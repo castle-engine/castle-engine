@@ -45,36 +45,36 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAppearance: TSFNode;
-    { X3D field "appearance". } { }
+    {  }
     public property FdAppearance: TSFNode read FFdAppearance;
     {  }
     property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
 
     strict private FFdGeometry: TSFNode;
-    { X3D field "geometry". } { }
+    {  }
     public property FdGeometry: TSFNode read FFdGeometry;
     {  }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     strict private FFdShading: TSFStringEnum;
-    { X3D field "shading". } { }
+    {  }
     public property FdShading: TSFStringEnum read FFdShading;
-    {  } { }
+    {  }
     property Shading: TShading read GetShading write SetShading;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdOctreeTriangles: TSFNode;
-    { X3D field "octreeTriangles". } { }
+    {  }
     public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -83,15 +83,15 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdRender: TSFBool;
-    { X3D field "render". } { }
+    { Should we render this shape. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     public property FdRender: TSFBool read FFdRender;
-    {  } { }
+    { Should we render this shape. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     property Render: Boolean read GetRender write SetRender;
 
     strict private FFdCollision: TSFStringEnum;
-    { X3D field "collision". } { }
+    {  }
     public property FdCollision: TSFStringEnum read FFdCollision;
-    {  } { }
+    {  }
     property Collision: TShapeCollision read GetCollision write SetCollision;
 
 {$endif read_interface}

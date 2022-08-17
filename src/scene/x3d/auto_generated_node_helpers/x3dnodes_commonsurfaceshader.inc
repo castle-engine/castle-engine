@@ -159,65 +159,65 @@
     function GetFresnelBlend: Single;
     procedure SetFresnelBlend(const Value: Single);
   public
-    {  } { }
+    {  }
     property AlphaFactor: Single read GetAlphaFactor write SetAlphaFactor;
-    {  } { }
+    {  }
     property AlphaTextureId: Integer read GetAlphaTextureId write SetAlphaTextureId;
-    {  } { }
+    {  }
     property AlphaTextureCoordinatesId: Integer read GetAlphaTextureCoordinatesId write SetAlphaTextureCoordinatesId;
-    {  } { }
+    {  }
     property AlphaTextureChannelMask: String read GetAlphaTextureChannelMask write SetAlphaTextureChannelMask;
     {  }
     property AlphaTexture: TAbstractTextureNode read GetAlphaTexture write SetAlphaTexture;
-    {  } { }
+    {  }
     property AmbientFactor: TVector3 read GetAmbientFactor write SetAmbientFactor;
-    {  } { }
+    {  }
     property AmbientTextureId: Integer read GetAmbientTextureId write SetAmbientTextureId;
-    {  } { }
+    {  }
     property AmbientTextureCoordinatesId: Integer read GetAmbientTextureCoordinatesId write SetAmbientTextureCoordinatesId;
-    {  } { }
+    {  }
     property AmbientTextureChannelMask: String read GetAmbientTextureChannelMask write SetAmbientTextureChannelMask;
     {  }
     property AmbientTexture: TAbstractTextureNode read GetAmbientTexture write SetAmbientTexture;
-    {  } { }
+    {  }
     property DiffuseFactor: TVector3 read GetDiffuseFactor write SetDiffuseFactor;
-    {  } { }
+    {  }
     property DiffuseTextureId: Integer read GetDiffuseTextureId write SetDiffuseTextureId;
-    {  } { }
+    {  }
     property DiffuseTextureCoordinatesId: Integer read GetDiffuseTextureCoordinatesId write SetDiffuseTextureCoordinatesId;
-    {  } { }
+    {  }
     property DiffuseTextureChannelMask: String read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
     {  }
     property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
     {  }
     property DiffuseDisplacementTexture: TAbstractTextureNode read GetDiffuseDisplacementTexture write SetDiffuseDisplacementTexture;
-    {  } { }
+    {  }
     property DisplacementAxis: String read GetDisplacementAxis write SetDisplacementAxis;
-    {  } { }
+    {  }
     property DisplacementFactor: Single read GetDisplacementFactor write SetDisplacementFactor;
-    {  } { }
+    {  }
     property DisplacementTextureId: Integer read GetDisplacementTextureId write SetDisplacementTextureId;
-    {  } { }
+    {  }
     property DisplacementTextureCoordinatesId: Integer read GetDisplacementTextureCoordinatesId write SetDisplacementTextureCoordinatesId;
     {  }
     property DisplacementTexture: TAbstractTextureNode read GetDisplacementTexture write SetDisplacementTexture;
-    {  } { }
+    {  }
     property EmissiveFactor: TVector3 read GetEmissiveFactor write SetEmissiveFactor;
-    {  } { }
+    {  }
     property EmissiveTextureId: Integer read GetEmissiveTextureId write SetEmissiveTextureId;
-    {  } { }
+    {  }
     property EmissiveTextureCoordinatesId: Integer read GetEmissiveTextureCoordinatesId write SetEmissiveTextureCoordinatesId;
-    {  } { }
+    {  }
     property EmissiveTextureChannelMask: String read GetEmissiveTextureChannelMask write SetEmissiveTextureChannelMask;
     {  }
     property EmissiveTexture: TAbstractTextureNode read GetEmissiveTexture write SetEmissiveTexture;
-    {  } { }
+    {  }
     property EnvironmentFactor: TVector3 read GetEnvironmentFactor write SetEnvironmentFactor;
-    {  } { }
+    {  }
     property EnvironmentTextureId: Integer read GetEnvironmentTextureId write SetEnvironmentTextureId;
-    {  } { }
+    {  }
     property EnvironmentTextureCoordinatesId: Integer read GetEnvironmentTextureCoordinatesId write SetEnvironmentTextureCoordinatesId;
-    {  } { }
+    {  }
     property EnvironmentTextureChannelMask: String read GetEnvironmentTextureChannelMask write SetEnvironmentTextureChannelMask;
     {  }
     property EnvironmentTexture: TAbstractEnvironmentTextureNode read GetEnvironmentTexture write SetEnvironmentTexture;
@@ -229,73 +229,73 @@
     property MultiSpecularShininessTexture: TAbstractTextureNode read GetMultiSpecularShininessTexture write SetMultiSpecularShininessTexture;
     {  }
     property MultiVisibilityTexture: TAbstractTextureNode read GetMultiVisibilityTexture write SetMultiVisibilityTexture;
-    {  } { }
+    {  }
     property NormalTextureId: Integer read GetNormalTextureId write SetNormalTextureId;
-    {  } { }
+    {  }
     property NormalTextureCoordinatesId: Integer read GetNormalTextureCoordinatesId write SetNormalTextureCoordinatesId;
-    {  } { }
+    {  }
     property NormalTextureChannelMask: String read GetNormalTextureChannelMask write SetNormalTextureChannelMask;
-    {  } { }
+    {  }
     property NormalScale: TVector3 read GetNormalScale write SetNormalScale;
-    {  } { }
+    {  }
     property NormalBias: TVector3 read GetNormalBias write SetNormalBias;
     {  }
     property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
-    {  } { }
+    {  }
     property NormalTextureParallaxHeight: Single read GetNormalTextureParallaxHeight write SetNormalTextureParallaxHeight;
-    {  } { }
+    {  }
     property ReflectionFactor: TVector3 read GetReflectionFactor write SetReflectionFactor;
-    {  } { }
+    {  }
     property ReflectionTextureId: Integer read GetReflectionTextureId write SetReflectionTextureId;
-    {  } { }
+    {  }
     property ReflectionTextureCoordinatesId: Integer read GetReflectionTextureCoordinatesId write SetReflectionTextureCoordinatesId;
-    {  } { }
+    {  }
     property ReflectionTextureChannelMask: String read GetReflectionTextureChannelMask write SetReflectionTextureChannelMask;
     {  }
     property ReflectionTexture: TAbstractTextureNode read GetReflectionTexture write SetReflectionTexture;
-    {  } { }
+    {  }
     property ShininessFactor: Single read GetShininessFactor write SetShininessFactor;
-    {  } { }
+    {  }
     property ShininessTextureId: Integer read GetShininessTextureId write SetShininessTextureId;
-    {  } { }
+    {  }
     property ShininessTextureCoordinatesId: Integer read GetShininessTextureCoordinatesId write SetShininessTextureCoordinatesId;
-    {  } { }
+    {  }
     property ShininessTextureChannelMask: String read GetShininessTextureChannelMask write SetShininessTextureChannelMask;
     {  }
     property ShininessTexture: TAbstractTextureNode read GetShininessTexture write SetShininessTexture;
-    {  } { }
+    {  }
     property SpecularFactor: TVector3 read GetSpecularFactor write SetSpecularFactor;
-    {  } { }
+    {  }
     property SpecularTextureId: Integer read GetSpecularTextureId write SetSpecularTextureId;
-    {  } { }
+    {  }
     property SpecularTextureCoordinatesId: Integer read GetSpecularTextureCoordinatesId write SetSpecularTextureCoordinatesId;
-    {  } { }
+    {  }
     property SpecularTextureChannelMask: String read GetSpecularTextureChannelMask write SetSpecularTextureChannelMask;
     {  }
     property SpecularTexture: TAbstractTextureNode read GetSpecularTexture write SetSpecularTexture;
-    {  } { }
+    {  }
     property TransmissionFactor: TVector3 read GetTransmissionFactor write SetTransmissionFactor;
-    {  } { }
+    {  }
     property TransmissionTextureId: Integer read GetTransmissionTextureId write SetTransmissionTextureId;
-    {  } { }
+    {  }
     property TransmissionTextureCoordinatesId: Integer read GetTransmissionTextureCoordinatesId write SetTransmissionTextureCoordinatesId;
-    {  } { }
+    {  }
     property TransmissionTextureChannelMask: String read GetTransmissionTextureChannelMask write SetTransmissionTextureChannelMask;
     {  }
     property TransmissionTexture: TAbstractTextureNode read GetTransmissionTexture write SetTransmissionTexture;
-    {  } { }
+    {  }
     property TangentTextureCoordinatesId: Integer read GetTangentTextureCoordinatesId write SetTangentTextureCoordinatesId;
-    {  } { }
+    {  }
     property BinormalTextureCoordinatesId: Integer read GetBinormalTextureCoordinatesId write SetBinormalTextureCoordinatesId;
-    {  } { }
+    {  }
     property InvertAlphaTexture: Boolean read GetInvertAlphaTexture write SetInvertAlphaTexture;
-    {  } { }
+    {  }
     property RelativeIndexOfRefraction: Single read GetRelativeIndexOfRefraction write SetRelativeIndexOfRefraction;
-    {  } { }
+    {  }
     property FresnelBlend: Single read GetFresnelBlend write SetFresnelBlend;
-    {  } { }
+    {  }
     procedure SetTextureTransformEnabled(const Value: array of boolean); overload;
-    {  } { }
+    {  }
     procedure SetTextureTransformEnabled(const Value: TBooleanList); overload;
 
 {$endif read_interface}

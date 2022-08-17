@@ -24,9 +24,9 @@
 {$ifdef read_interface}
 
   public
-    {  } { }
+    {  }
     procedure SetPoint(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetPoint(const Value: TVector2List); overload;
 
 {$endif read_interface}

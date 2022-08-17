@@ -35,37 +35,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdObjectType: TMFString;
-    { X3D field "objectType". } { }
+    {  }
     public property FdObjectType: TMFString read FFdObjectType;
-    {  } { }
+    {  }
     procedure SetObjectType(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetObjectType(const Value: TCastleStringList); overload;
 
     strict private FFdPickingGeometry: TSFNode;
-    { X3D field "pickingGeometry". } { }
+    {  }
     public property FdPickingGeometry: TSFNode read FFdPickingGeometry;
     {  }
     property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
 
     strict private FFdPickTarget: TMFNode;
-    { X3D field "pickTarget". } { }
+    {  }
     public property FdPickTarget: TMFNode read FFdPickTarget;
 
     strict private FEventPickedGeometry: TMFNodeEvent;
-    { X3D out event "pickedGeometry". } { }
+    {  }
     public property EventPickedGeometry: TMFNodeEvent read FEventPickedGeometry;
 
     strict private FFdIntersectionType: TSFStringEnum;
-    { X3D field "intersectionType". } { }
+    {  }
     public property FdIntersectionType: TSFStringEnum read FFdIntersectionType;
-    {  } { }
+    {  }
     property IntersectionType: TPickSensorIntersectionType read GetIntersectionType write SetIntersectionType;
 
     strict private FFdSortOrder: TSFStringEnum;
-    { X3D field "sortOrder". } { }
+    {  }
     public property FdSortOrder: TSFStringEnum read FFdSortOrder;
-    {  } { }
+    {  }
     property SortOrder: TPickSensorRange read GetSortOrder write SetSortOrder;
 
 {$endif read_interface}

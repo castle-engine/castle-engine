@@ -33,35 +33,35 @@
     class function ClassX3DType: string; override;
 
     strict private FFdClosed: TSFBool;
-    { X3D field "closed". } { }
+    {  }
     public property FdClosed: TSFBool read FFdClosed;
-    {  } { }
+    {  }
     property Closed: Boolean read GetClosed write SetClosed;
 
     strict private FFdKeyValue: TMFVec2f;
-    { X3D field "keyValue". } { }
+    {  }
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TVector2List); overload;
 
     strict private FFdKeyVelocity: TMFVec2f;
-    { X3D field "keyVelocity". } { }
+    {  }
     public property FdKeyVelocity: TMFVec2f read FFdKeyVelocity;
-    {  } { }
+    {  }
     procedure SetKeyVelocity(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetKeyVelocity(const Value: TVector2List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
-    { X3D field "normalizeVelocity". } { }
+    {  }
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-    {  } { }
+    {  }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
     strict private FEventValue_changed: TSFVec2fEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
 
 {$endif read_interface}

@@ -43,61 +43,61 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { X3D field "anchorPoint". } { }
+    {  }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
-    {  } { }
+    {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis1: TSFVec3f;
-    { X3D field "axis1". } { }
+    {  }
     public property FdAxis1: TSFVec3f read FFdAxis1;
-    {  } { }
+    {  }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
 
     strict private FFdAxis2: TSFVec3f;
-    { X3D field "axis2". } { }
+    {  }
     public property FdAxis2: TSFVec3f read FFdAxis2;
-    {  } { }
+    {  }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
 
     strict private FFdStopBounce1: TSFFloat;
-    { X3D field "stopBounce1". } { }
+    {  }
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
-    {  } { }
+    {  }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
 
     strict private FFdStop1ErrorCorrection: TSFFloat;
-    { X3D field "stop1ErrorCorrection". } { }
+    {  }
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
-    {  } { }
+    {  }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
 
     strict private FFdStop2Bounce: TSFFloat;
-    { X3D field "stop2Bounce". } { }
+    {  }
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
-    {  } { }
+    {  }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
 
     strict private FFdStop2ErrorCorrection: TSFFloat;
-    { X3D field "stop2ErrorCorrection". } { }
+    {  }
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
-    {  } { }
+    {  }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
 
     strict private FEventBody1AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body1AnchorPoint". } { }
+    {  }
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     strict private FEventBody1Axis: TSFVec3fEvent;
-    { X3D out event "body1Axis". } { }
+    {  }
     public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
 
     strict private FEventBody2AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body2AnchorPoint". } { }
+    {  }
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     strict private FEventBody2Axis: TSFVec3fEvent;
-    { X3D out event "body2Axis". } { }
+    {  }
     public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
 
 {$endif read_interface}

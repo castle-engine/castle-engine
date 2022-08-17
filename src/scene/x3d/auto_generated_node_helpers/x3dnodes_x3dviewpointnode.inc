@@ -45,75 +45,75 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenterOfRotation: TSFVec3f;
-    { X3D field "centerOfRotation". } { }
+    {  }
     public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
-    {  } { }
+    {  }
     property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdJump: TSFBool;
-    { X3D field "jump". } { }
+    {  }
     public property FdJump: TSFBool read FFdJump;
-    {  } { }
+    {  }
     property Jump: Boolean read GetJump write SetJump;
 
     strict private FFdOrientation: TSFRotation;
-    { X3D field "orientation". } { }
+    {  }
     public property FdOrientation: TSFRotation read FFdOrientation;
-    {  } { }
+    {  }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    { X3D field "retainUserOffsets". } { }
+    {  }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
-    {  } { }
+    {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
 
     strict private FEventCameraMatrix: TSFMatrix4fEvent;
-    { X3D out event "cameraMatrix". } { }
+    {  }
     public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
 
     strict private FEventCameraInverseMatrix: TSFMatrix4fEvent;
-    { X3D out event "cameraInverseMatrix". } { }
+    {  }
     public property EventCameraInverseMatrix: TSFMatrix4fEvent read FEventCameraInverseMatrix;
 
     strict private FEventCameraRotationMatrix: TSFMatrix3fEvent;
-    { X3D out event "cameraRotationMatrix". } { }
+    {  }
     public property EventCameraRotationMatrix: TSFMatrix3fEvent read FEventCameraRotationMatrix;
 
     strict private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
-    { X3D out event "cameraRotationInverseMatrix". } { }
+    {  }
     public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
 
     strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    { X3D field "cameraMatrixSendAlsoOnOffscreenRendering". } { }
+    {  }
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
-    {  } { }
+    {  }
     property CameraMatrixSendAlsoOnOffscreenRendering: Boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
 
     strict private FFdDirection: TMFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TMFVec3f read FFdDirection;
 
     strict private FFdUp: TMFVec3f;
-    { X3D field "up". } { }
+    {  }
     public property FdUp: TMFVec3f read FFdUp;
 
     strict private FFdGravityUp: TSFVec3f;
-    { X3D field "gravityUp". } { }
+    {  }
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
-    {  } { }
+    {  }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
     strict private FFdGravityTransform: TSFBool;
-    { X3D field "gravityTransform". } { }
+    {  }
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
-    {  } { }
+    {  }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;
 
 {$endif read_interface}

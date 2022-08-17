@@ -28,31 +28,31 @@
     class function ClassX3DType: string; override;
 
     strict private FEventActionKeyPress: TSFInt32Event;
-    { X3D out event "actionKeyPress". } { }
+    {  }
     public property EventActionKeyPress: TSFInt32Event read FEventActionKeyPress;
 
     strict private FEventActionKeyRelease: TSFInt32Event;
-    { X3D out event "actionKeyRelease". } { }
+    {  }
     public property EventActionKeyRelease: TSFInt32Event read FEventActionKeyRelease;
 
     strict private FEventAltKey: TSFBoolEvent;
-    { X3D out event "altKey". } { }
+    {  }
     public property EventAltKey: TSFBoolEvent read FEventAltKey;
 
     strict private FEventControlKey: TSFBoolEvent;
-    { X3D out event "controlKey". } { }
+    {  }
     public property EventControlKey: TSFBoolEvent read FEventControlKey;
 
     strict private FEventKeyPress: TSFStringEvent;
-    { X3D out event "keyPress". } { }
+    {  }
     public property EventKeyPress: TSFStringEvent read FEventKeyPress;
 
     strict private FEventKeyRelease: TSFStringEvent;
-    { X3D out event "keyRelease". } { }
+    {  }
     public property EventKeyRelease: TSFStringEvent read FEventKeyRelease;
 
     strict private FEventShiftKey: TSFBoolEvent;
-    { X3D out event "shiftKey". } { }
+    {  }
     public property EventShiftKey: TSFBoolEvent read FEventShiftKey;
 
 {$endif read_interface}

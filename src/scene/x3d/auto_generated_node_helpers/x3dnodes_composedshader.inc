@@ -31,15 +31,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdParts: TMFNode;
-    { X3D field "parts". } { }
+    {  }
     public property FdParts: TMFNode read FFdParts;
     {  }
     procedure SetParts(const Value: array of TShaderPartNode);
 
     strict private FFdUniformMissing: TSFStringEnum;
-    { X3D field "uniformMissing". } { }
+    { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
     public property FdUniformMissing: TSFStringEnum read FFdUniformMissing;
-    { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. } { }
+    { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
     property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;
 
 {$endif read_interface}

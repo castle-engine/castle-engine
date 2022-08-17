@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSpeed: TSFFloat;
-    { X3D field "speed". } { }
+    {  }
     public property FdSpeed: TSFFloat read FFdSpeed;
-    {  } { }
+    {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdVariation: TSFFloat;
-    { X3D field "variation". } { }
+    {  }
     public property FdVariation: TSFFloat read FFdVariation;
-    {  } { }
+    {  }
     property Variation: Single read GetVariation write SetVariation;
 
     strict private FFdMass: TSFFloat;
-    { X3D field "mass". } { }
+    {  }
     public property FdMass: TSFFloat read FFdMass;
-    {  } { }
+    {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdSurfaceArea: TSFFloat;
-    { X3D field "surfaceArea". } { }
+    {  }
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
-    {  } { }
+    {  }
     property SurfaceArea: Single read GetSurfaceArea write SetSurfaceArea;
 
 {$endif read_interface}

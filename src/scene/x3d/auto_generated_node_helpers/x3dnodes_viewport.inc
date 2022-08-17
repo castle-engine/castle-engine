@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdClipBoundary: TMFFloat;
-    { X3D field "clipBoundary". } { }
+    {  }
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
-    {  } { }
+    {  }
     procedure SetClipBoundary(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetClipBoundary(const Value: TSingleList); overload;
 
 {$endif read_interface}

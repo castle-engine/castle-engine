@@ -33,15 +33,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdRadius: TSFFloat;
-    { X3D field "radius". } { }
+    {  }
     public property FdRadius: TSFFloat read FFdRadius;
-    {  } { }
+    {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSlices: TSFInt32;
-    { X3D field "slices". } { }
+    {  }
     public property FdSlices: TSFInt32 read FFdSlices;
-    {  } { }
+    {  }
     property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}

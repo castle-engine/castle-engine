@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

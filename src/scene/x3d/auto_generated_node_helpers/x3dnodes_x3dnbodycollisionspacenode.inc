@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

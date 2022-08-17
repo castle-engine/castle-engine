@@ -33,31 +33,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCoordIndex: TMFInt32;
-    { X3D field "coordIndex". } { }
+    {  }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdDisplacements: TMFVec3f;
-    { X3D field "displacements". } { }
+    {  }
     public property FdDisplacements: TMFVec3f read FFdDisplacements;
-    {  } { }
+    {  }
     procedure SetDisplacements(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetDisplacements(const Value: TVector3List); overload;
 
     strict private FFdName: TSFString;
-    { X3D field "name". } { }
+    {  }
     public property FdName: TSFString read FFdName;
-    {  } { }
+    {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdWeight: TSFFloat;
-    { X3D field "weight". } { }
+    {  }
     public property FdWeight: TSFFloat read FFdWeight;
-    {  } { }
+    {  }
     property Weight: Single read GetWeight write SetWeight;
 
 {$endif read_interface}

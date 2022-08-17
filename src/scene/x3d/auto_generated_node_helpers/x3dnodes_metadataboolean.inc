@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFBool;
-    { X3D field "value". } { }
+    {  }
     public property FdValue: TMFBool read FFdValue;
-    {  } { }
+    {  }
     procedure SetValue(const Value: array of boolean); overload;
-    {  } { }
+    {  }
     procedure SetValue(const Value: TBooleanList); overload;
 
 {$endif read_interface}

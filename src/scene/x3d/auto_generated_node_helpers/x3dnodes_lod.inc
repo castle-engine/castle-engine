@@ -28,19 +28,19 @@
     class function ClassX3DType: string; override;
 
     strict private FEventLevel_changed: TSFInt32Event;
-    { X3D out event "level_changed". } { }
+    {  }
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
 
     strict private FFdForceTransitions: TSFBool;
-    { X3D field "forceTransitions". } { }
+    {  }
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
     strict private FFdRange: TMFFloat;
-    { X3D field "range". } { }
+    {  }
     public property FdRange: TMFFloat read FFdRange;
 
 {$endif read_interface}

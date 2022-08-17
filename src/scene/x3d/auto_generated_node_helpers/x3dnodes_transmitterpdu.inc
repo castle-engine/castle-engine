@@ -101,243 +101,243 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    { X3D field "address". } { }
+    {  }
     public property FdAddress: TSFString read FFdAddress;
-    {  } { }
+    {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdAntennaLocation: TSFVec3f;
-    { X3D field "antennaLocation". } { }
+    {  }
     public property FdAntennaLocation: TSFVec3f read FFdAntennaLocation;
-    {  } { }
+    {  }
     property AntennaLocation: TVector3 read GetAntennaLocation write SetAntennaLocation;
 
     strict private FFdAntennaPatternLength: TSFInt32;
-    { X3D field "antennaPatternLength". } { }
+    {  }
     public property FdAntennaPatternLength: TSFInt32 read FFdAntennaPatternLength;
-    {  } { }
+    {  }
     property AntennaPatternLength: Integer read GetAntennaPatternLength write SetAntennaPatternLength;
 
     strict private FFdAntennaPatternType: TSFInt32;
-    { X3D field "antennaPatternType". } { }
+    {  }
     public property FdAntennaPatternType: TSFInt32 read FFdAntennaPatternType;
-    {  } { }
+    {  }
     property AntennaPatternType: Integer read GetAntennaPatternType write SetAntennaPatternType;
 
     strict private FFdApplicationID: TSFInt32;
-    { X3D field "applicationID". } { }
+    {  }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
-    {  } { }
+    {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdCryptoKeyID: TSFInt32;
-    { X3D field "cryptoKeyID". } { }
+    {  }
     public property FdCryptoKeyID: TSFInt32 read FFdCryptoKeyID;
-    {  } { }
+    {  }
     property CryptoKeyID: Integer read GetCryptoKeyID write SetCryptoKeyID;
 
     strict private FFdCryptoSystem: TSFInt32;
-    { X3D field "cryptoSystem". } { }
+    {  }
     public property FdCryptoSystem: TSFInt32 read FFdCryptoSystem;
-    {  } { }
+    {  }
     property CryptoSystem: Integer read GetCryptoSystem write SetCryptoSystem;
 
     strict private FFdEntityID: TSFInt32;
-    { X3D field "entityID". } { }
+    {  }
     public property FdEntityID: TSFInt32 read FFdEntityID;
-    {  } { }
+    {  }
     property EntityID: Integer read GetEntityID write SetEntityID;
 
     strict private FFdFrequency: TSFInt32;
-    { X3D field "frequency". } { }
+    {  }
     public property FdFrequency: TSFInt32 read FFdFrequency;
-    {  } { }
+    {  }
     property Frequency: Integer read GetFrequency write SetFrequency;
 
     strict private FFdInputSource: TSFInt32;
-    { X3D field "inputSource". } { }
+    {  }
     public property FdInputSource: TSFInt32 read FFdInputSource;
-    {  } { }
+    {  }
     property InputSource: Integer read GetInputSource write SetInputSource;
 
     strict private FFdLengthOfModulationParameters: TSFInt32;
-    { X3D field "lengthOfModulationParameters". } { }
+    {  }
     public property FdLengthOfModulationParameters: TSFInt32 read FFdLengthOfModulationParameters;
-    {  } { }
+    {  }
     property LengthOfModulationParameters: Integer read GetLengthOfModulationParameters write SetLengthOfModulationParameters;
 
     strict private FFdModulationTypeDetail: TSFInt32;
-    { X3D field "modulationTypeDetail". } { }
+    {  }
     public property FdModulationTypeDetail: TSFInt32 read FFdModulationTypeDetail;
-    {  } { }
+    {  }
     property ModulationTypeDetail: Integer read GetModulationTypeDetail write SetModulationTypeDetail;
 
     strict private FFdModulationTypeMajor: TSFInt32;
-    { X3D field "modulationTypeMajor". } { }
+    {  }
     public property FdModulationTypeMajor: TSFInt32 read FFdModulationTypeMajor;
-    {  } { }
+    {  }
     property ModulationTypeMajor: Integer read GetModulationTypeMajor write SetModulationTypeMajor;
 
     strict private FFdModulationTypeSpreadSpectrum: TSFInt32;
-    { X3D field "modulationTypeSpreadSpectrum". } { }
+    {  }
     public property FdModulationTypeSpreadSpectrum: TSFInt32 read FFdModulationTypeSpreadSpectrum;
-    {  } { }
+    {  }
     property ModulationTypeSpreadSpectrum: Integer read GetModulationTypeSpreadSpectrum write SetModulationTypeSpreadSpectrum;
 
     strict private FFdModulationTypeSystem: TSFInt32;
-    { X3D field "modulationTypeSystem". } { }
+    {  }
     public property FdModulationTypeSystem: TSFInt32 read FFdModulationTypeSystem;
-    {  } { }
+    {  }
     property ModulationTypeSystem: Integer read GetModulationTypeSystem write SetModulationTypeSystem;
 
     strict private FFdMulticastRelayHost: TSFString;
-    { X3D field "multicastRelayHost". } { }
+    {  }
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
-    {  } { }
+    {  }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
 
     strict private FFdMulticastRelayPort: TSFInt32;
-    { X3D field "multicastRelayPort". } { }
+    {  }
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
-    {  } { }
+    {  }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
 
     strict private FFdNetworkMode: TSFStringEnum;
-    { X3D field "networkMode". } { }
+    {  }
     public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
-    {  } { }
+    {  }
     property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
 
     strict private FFdPort: TSFInt32;
-    { X3D field "port". } { }
+    {  }
     public property FdPort: TSFInt32 read FFdPort;
-    {  } { }
+    {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdPower: TSFFloat;
-    { X3D field "power". } { }
+    {  }
     public property FdPower: TSFFloat read FFdPower;
-    {  } { }
+    {  }
     property Power: Single read GetPower write SetPower;
 
     strict private FFdRadioEntityTypeCategory: TSFInt32;
-    { X3D field "radioEntityTypeCategory". } { }
+    {  }
     public property FdRadioEntityTypeCategory: TSFInt32 read FFdRadioEntityTypeCategory;
-    {  } { }
+    {  }
     property RadioEntityTypeCategory: Integer read GetRadioEntityTypeCategory write SetRadioEntityTypeCategory;
 
     strict private FFdRadioEntityTypeCountry: TSFInt32;
-    { X3D field "radioEntityTypeCountry". } { }
+    {  }
     public property FdRadioEntityTypeCountry: TSFInt32 read FFdRadioEntityTypeCountry;
-    {  } { }
+    {  }
     property RadioEntityTypeCountry: Integer read GetRadioEntityTypeCountry write SetRadioEntityTypeCountry;
 
     strict private FFdRadioEntityTypeDomain: TSFInt32;
-    { X3D field "radioEntityTypeDomain". } { }
+    {  }
     public property FdRadioEntityTypeDomain: TSFInt32 read FFdRadioEntityTypeDomain;
-    {  } { }
+    {  }
     property RadioEntityTypeDomain: Integer read GetRadioEntityTypeDomain write SetRadioEntityTypeDomain;
 
     strict private FFdRadioEntityTypeKind: TSFInt32;
-    { X3D field "radioEntityTypeKind". } { }
+    {  }
     public property FdRadioEntityTypeKind: TSFInt32 read FFdRadioEntityTypeKind;
-    {  } { }
+    {  }
     property RadioEntityTypeKind: Integer read GetRadioEntityTypeKind write SetRadioEntityTypeKind;
 
     strict private FFdRadioEntityTypeNomenclature: TSFInt32;
-    { X3D field "radioEntityTypeNomenclature". } { }
+    {  }
     public property FdRadioEntityTypeNomenclature: TSFInt32 read FFdRadioEntityTypeNomenclature;
-    {  } { }
+    {  }
     property RadioEntityTypeNomenclature: Integer read GetRadioEntityTypeNomenclature write SetRadioEntityTypeNomenclature;
 
     strict private FFdRadioEntityTypeNomenclatureVersion: TSFInt32;
-    { X3D field "radioEntityTypeNomenclatureVersion". } { }
+    {  }
     public property FdRadioEntityTypeNomenclatureVersion: TSFInt32 read FFdRadioEntityTypeNomenclatureVersion;
-    {  } { }
+    {  }
     property RadioEntityTypeNomenclatureVersion: Integer read GetRadioEntityTypeNomenclatureVersion write SetRadioEntityTypeNomenclatureVersion;
 
     strict private FFdRadioID: TSFInt32;
-    { X3D field "radioID". } { }
+    {  }
     public property FdRadioID: TSFInt32 read FFdRadioID;
-    {  } { }
+    {  }
     property RadioID: Integer read GetRadioID write SetRadioID;
 
     strict private FFdReadInterval: TSFFloat;
-    { X3D field "readInterval". } { }
+    {  }
     public property FdReadInterval: TSFFloat read FFdReadInterval;
-    {  } { }
+    {  }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
 
     strict private FFdRelativeAntennaLocation: TSFVec3f;
-    { X3D field "relativeAntennaLocation". } { }
+    {  }
     public property FdRelativeAntennaLocation: TSFVec3f read FFdRelativeAntennaLocation;
-    {  } { }
+    {  }
     property RelativeAntennaLocation: TVector3 read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
 
     strict private FFdRtpHeaderExpected: TSFBool;
-    { X3D field "rtpHeaderExpected". } { }
+    {  }
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
-    {  } { }
+    {  }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
     strict private FFdSiteID: TSFInt32;
-    { X3D field "siteID". } { }
+    {  }
     public property FdSiteID: TSFInt32 read FFdSiteID;
-    {  } { }
+    {  }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
     strict private FFdTransmitFrequencyBandwidth: TSFFloat;
-    { X3D field "transmitFrequencyBandwidth". } { }
+    {  }
     public property FdTransmitFrequencyBandwidth: TSFFloat read FFdTransmitFrequencyBandwidth;
-    {  } { }
+    {  }
     property TransmitFrequencyBandwidth: Single read GetTransmitFrequencyBandwidth write SetTransmitFrequencyBandwidth;
 
     strict private FFdTransmitState: TSFInt32;
-    { X3D field "transmitState". } { }
+    {  }
     public property FdTransmitState: TSFInt32 read FFdTransmitState;
-    {  } { }
+    {  }
     property TransmitState: Integer read GetTransmitState write SetTransmitState;
 
     strict private FFdWhichGeometry: TSFInt32;
-    { X3D field "whichGeometry". } { }
+    {  }
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
-    {  } { }
+    {  }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
 
     strict private FFdWriteInterval: TSFFloat;
-    { X3D field "writeInterval". } { }
+    {  }
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
-    {  } { }
+    {  }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
 
     strict private FEventIsNetworkReader: TSFBoolEvent;
-    { X3D out event "isNetworkReader". } { }
+    {  }
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     strict private FEventIsNetworkWriter: TSFBoolEvent;
-    { X3D out event "isNetworkWriter". } { }
+    {  }
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
-    { X3D out event "isRtpHeaderHeard". } { }
+    {  }
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     strict private FEventIsStandAlone: TSFBoolEvent;
-    { X3D out event "isStandAlone". } { }
+    {  }
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     strict private FEventTimestamp: TSFTimeEvent;
-    { X3D out event "timestamp". } { }
+    {  }
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

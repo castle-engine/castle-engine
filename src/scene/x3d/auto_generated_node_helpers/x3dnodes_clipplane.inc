@@ -33,15 +33,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdPlane: TSFVec4f;
-    { X3D field "plane". } { }
+    {  }
     public property FdPlane: TSFVec4f read FFdPlane;
-    {  } { }
+    {  }
     property Plane: TVector4 read GetPlane write SetPlane;
 
 {$endif read_interface}

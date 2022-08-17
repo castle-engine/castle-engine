@@ -39,89 +39,89 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_crossSection: TMFVec2fEvent;
-    { X3D in event "set_crossSection". } { }
+    {  }
     public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
 
     strict private FEventSet_orientation: TMFRotationEvent;
-    { X3D in event "set_orientation". } { }
+    {  }
     public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
 
     strict private FEventSet_scale: TMFVec2fEvent;
-    { X3D in event "set_scale". } { }
+    {  }
     public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
 
     strict private FEventSet_spine: TMFVec3fEvent;
-    { X3D in event "set_spine". } { }
+    {  }
     public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
 
     strict private FFdBeginCap: TSFBool;
-    { X3D field "beginCap". } { }
+    {  }
     public property FdBeginCap: TSFBool read FFdBeginCap;
-    {  } { }
+    {  }
     property BeginCap: Boolean read GetBeginCap write SetBeginCap;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdConvex: TSFBool;
-    { X3D field "convex". } { }
+    {  }
     public property FdConvex: TSFBool read FFdConvex;
-    {  } { }
+    {  }
     property Convex: Boolean read GetConvex write SetConvex;
 
     strict private FFdCreaseAngle: TSFFloat;
-    { X3D field "creaseAngle". } { }
+    {  }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-    {  } { }
+    {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdCrossSection: TMFVec2f;
-    { X3D field "crossSection". } { }
+    {  }
     public property FdCrossSection: TMFVec2f read FFdCrossSection;
-    {  } { }
+    {  }
     procedure SetCrossSection(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetCrossSection(const Value: TVector2List); overload;
 
     strict private FFdEndCap: TSFBool;
-    { X3D field "endCap". } { }
+    {  }
     public property FdEndCap: TSFBool read FFdEndCap;
-    {  } { }
+    {  }
     property EndCap: Boolean read GetEndCap write SetEndCap;
 
     strict private FFdOrientation: TMFRotation;
-    { X3D field "orientation". } { }
+    {  }
     public property FdOrientation: TMFRotation read FFdOrientation;
-    {  } { }
+    {  }
     procedure SetOrientation(const Value: array of TVector4); overload;
-    {  } { }
+    {  }
     procedure SetOrientation(const Value: TVector4List); overload;
 
     strict private FFdScale: TMFVec2f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TMFVec2f read FFdScale;
-    {  } { }
+    {  }
     procedure SetScale(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetScale(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdSpine: TMFVec3f;
-    { X3D field "spine". } { }
+    {  }
     public property FdSpine: TMFVec3f read FFdSpine;
-    {  } { }
+    {  }
     procedure SetSpine(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetSpine(const Value: TVector3List); overload;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

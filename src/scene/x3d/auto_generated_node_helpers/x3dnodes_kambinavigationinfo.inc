@@ -41,7 +41,7 @@
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
-    {  } { }
+    {  }
     property TimeOriginAtLoad: Boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
     {  }
     property OctreeRendering: TKambiOctreePropertiesNode read GetOctreeRendering write SetOctreeRendering;
@@ -51,9 +51,9 @@
     property OctreeVisibleTriangles: TKambiOctreePropertiesNode read GetOctreeVisibleTriangles write SetOctreeVisibleTriangles;
     {  }
     property OctreeStaticCollisions: TKambiOctreePropertiesNode read GetOctreeStaticCollisions write SetOctreeStaticCollisions;
-    {  } { }
+    {  }
     property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
-    {  } { }
+    {  }
     property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
     {  }
     property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;

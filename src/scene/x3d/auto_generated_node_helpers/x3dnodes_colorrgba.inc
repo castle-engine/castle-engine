@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TMFColorRGBA;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TMFColorRGBA read FFdColor;
-    {  } { }
+    {  }
     procedure SetColor(const Value: array of TCastleColor); overload;
-    {  } { }
+    {  }
     procedure SetColor(const Value: TVector4List); overload;
 
 {$endif read_interface}

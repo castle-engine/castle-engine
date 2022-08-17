@@ -55,81 +55,81 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    { X3D field "ambientIntensity". } { }
+    {  }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-    {  } { }
+    {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdBackAmbientIntensity: TSFFloat;
-    { X3D field "backAmbientIntensity". } { }
+    {  }
     public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
-    {  } { }
+    {  }
     property BackAmbientIntensity: Single read GetBackAmbientIntensity write SetBackAmbientIntensity;
 
     strict private FFdBackDiffuseColor: TSFColor;
-    { X3D field "backDiffuseColor". } { }
+    {  }
     public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
-    {  } { }
+    {  }
     property BackDiffuseColor: TCastleColorRGB read GetBackDiffuseColor write SetBackDiffuseColor;
 
     strict private FFdBackEmissiveColor: TSFColor;
-    { X3D field "backEmissiveColor". } { }
+    {  }
     public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
-    {  } { }
+    {  }
     property BackEmissiveColor: TCastleColorRGB read GetBackEmissiveColor write SetBackEmissiveColor;
 
     strict private FFdBackShininess: TSFFloat;
-    { X3D field "backShininess". } { }
+    {  }
     public property FdBackShininess: TSFFloat read FFdBackShininess;
-    {  } { }
+    {  }
     property BackShininess: Single read GetBackShininess write SetBackShininess;
 
     strict private FFdBackSpecularColor: TSFColor;
-    { X3D field "backSpecularColor". } { }
+    {  }
     public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
-    {  } { }
+    {  }
     property BackSpecularColor: TCastleColorRGB read GetBackSpecularColor write SetBackSpecularColor;
 
     strict private FFdBackTransparency: TSFFloat;
-    { X3D field "backTransparency". } { }
+    {  }
     public property FdBackTransparency: TSFFloat read FFdBackTransparency;
-    {  } { }
+    {  }
     property BackTransparency: Single read GetBackTransparency write SetBackTransparency;
 
     strict private FFdDiffuseColor: TSFColor;
-    { X3D field "diffuseColor". } { }
+    {  }
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
-    {  } { }
+    {  }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
 
     strict private FFdEmissiveColor: TSFColor;
-    { X3D field "emissiveColor". } { }
+    {  }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
-    {  } { }
+    {  }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdShininess: TSFFloat;
-    { X3D field "shininess". } { }
+    {  }
     public property FdShininess: TSFFloat read FFdShininess;
-    {  } { }
+    {  }
     property Shininess: Single read GetShininess write SetShininess;
 
     strict private FFdSeparateBackColor: TSFBool;
-    { X3D field "separateBackColor". } { }
+    {  }
     public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
-    {  } { }
+    {  }
     property SeparateBackColor: Boolean read GetSeparateBackColor write SetSeparateBackColor;
 
     strict private FFdSpecularColor: TSFColor;
-    { X3D field "specularColor". } { }
+    {  }
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
-    {  } { }
+    {  }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
 
     strict private FFdTransparency: TSFFloat;
-    { X3D field "transparency". } { }
+    {  }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  } { }
+    {  }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

@@ -33,27 +33,27 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_destination: TSFColorEvent;
-    { X3D in event "set_destination". } { }
+    {  }
     public property EventSet_destination: TSFColorEvent read FEventSet_destination;
 
     strict private FEventSet_value: TSFColorEvent;
-    { X3D in event "set_value". } { }
+    {  }
     public property EventSet_value: TSFColorEvent read FEventSet_value;
 
     strict private FEventValue_changed: TSFColorEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFColorEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFColor;
-    { X3D field "initialDestination". } { }
+    {  }
     public property FdInitialDestination: TSFColor read FFdInitialDestination;
-    {  } { }
+    {  }
     property InitialDestination: TCastleColorRGB read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFColor;
-    { X3D field "initialValue". } { }
+    {  }
     public property FdInitialValue: TSFColor read FFdInitialValue;
-    {  } { }
+    {  }
     property InitialValue: TCastleColorRGB read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}

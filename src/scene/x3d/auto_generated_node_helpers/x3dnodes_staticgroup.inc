@@ -29,7 +29,7 @@
   public
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}

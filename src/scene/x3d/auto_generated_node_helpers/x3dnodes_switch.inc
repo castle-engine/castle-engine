@@ -27,7 +27,7 @@
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public
-    {  } { }
+    {  }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;
 
 {$endif read_interface}

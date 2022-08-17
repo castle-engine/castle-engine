@@ -33,33 +33,33 @@
     class function ClassX3DType: string; override;
 
     strict private FEventAddGeometry: TMFNodeEvent;
-    { X3D in event "addGeometry". } { }
+    {  }
     public property EventAddGeometry: TMFNodeEvent read FEventAddGeometry;
 
     strict private FEventRemoveGeometry: TMFNodeEvent;
-    { X3D in event "removeGeometry". } { }
+    {  }
     public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
 
     strict private FFdGeometry: TMFNode;
-    { X3D field "geometry". } { }
+    {  }
     public property FdGeometry: TMFNode read FFdGeometry;
     {  }
     procedure SetGeometry(const Value: array of TAbstractNurbsSurfaceGeometryNode);
 
     strict private FFdTessellationScale: TSFFloat;
-    { X3D field "tessellationScale". } { }
+    {  }
     public property FdTessellationScale: TSFFloat read FFdTessellationScale;
-    {  } { }
+    {  }
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

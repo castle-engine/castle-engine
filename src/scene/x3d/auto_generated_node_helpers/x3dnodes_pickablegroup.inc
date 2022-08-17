@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdObjectType: TMFString;
-    { X3D field "objectType". } { }
+    {  }
     public property FdObjectType: TMFString read FFdObjectType;
-    {  } { }
+    {  }
     procedure SetObjectType(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetObjectType(const Value: TCastleStringList); overload;
 
     strict private FFdPickable: TSFBool;
-    { X3D field "pickable". } { }
+    {  }
     public property FdPickable: TSFBool read FFdPickable;
-    {  } { }
+    {  }
     property Pickable: Boolean read GetPickable write SetPickable;
 
 {$endif read_interface}

@@ -35,21 +35,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAngle: TSFFloat;
-    { X3D field "angle". } { }
+    {  }
     public property FdAngle: TSFFloat read FFdAngle;
-    {  } { }
+    {  }
     property Angle: Single read GetAngle write SetAngle;
 
     strict private FFdDirection: TSFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TSFVec3f read FFdDirection;
-    {  } { }
+    {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdPosition: TSFVec3f;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3f read FFdPosition;
-    {  } { }
+    {  }
     property Position: TVector3 read GetPosition write SetPosition;
 
 {$endif read_interface}

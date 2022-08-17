@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdInnerRadius: TSFFloat;
-    { X3D field "innerRadius". } { }
+    {  }
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
-    {  } { }
+    {  }
     property InnerRadius: Single read GetInnerRadius write SetInnerRadius;
 
     strict private FFdOuterRadius: TSFFloat;
-    { X3D field "outerRadius". } { }
+    {  }
     public property FdOuterRadius: TSFFloat read FFdOuterRadius;
-    {  } { }
+    {  }
     property OuterRadius: Single read GetOuterRadius write SetOuterRadius;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

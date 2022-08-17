@@ -31,25 +31,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdParameter: TMFString;
-    { X3D field "parameter". } { }
+    {  }
     public property FdParameter: TMFString read FFdParameter;
-    {  } { }
+    {  }
     procedure SetParameter(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetParameter(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

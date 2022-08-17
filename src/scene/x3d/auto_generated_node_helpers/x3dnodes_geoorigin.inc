@@ -33,23 +33,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCoords: TSFVec3d;
-    { X3D field "geoCoords". } { }
+    {  }
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
-    {  } { }
+    {  }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRotateYUp: TSFBool;
-    { X3D field "rotateYUp". } { }
+    {  }
     public property FdRotateYUp: TSFBool read FFdRotateYUp;
-    {  } { }
+    {  }
     property RotateYUp: Boolean read GetRotateYUp write SetRotateYUp;
 
 {$endif read_interface}

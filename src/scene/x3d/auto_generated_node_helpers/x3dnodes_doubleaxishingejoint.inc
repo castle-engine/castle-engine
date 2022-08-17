@@ -57,119 +57,119 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { X3D field "anchorPoint". } { }
+    {  }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
-    {  } { }
+    {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis1: TSFVec3f;
-    { X3D field "axis1". } { }
+    {  }
     public property FdAxis1: TSFVec3f read FFdAxis1;
-    {  } { }
+    {  }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
 
     strict private FFdAxis2: TSFVec3f;
-    { X3D field "axis2". } { }
+    {  }
     public property FdAxis2: TSFVec3f read FFdAxis2;
-    {  } { }
+    {  }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
 
     strict private FFdDesiredAngularVelocity1: TSFFloat;
-    { X3D field "desiredAngularVelocity1". } { }
+    {  }
     public property FdDesiredAngularVelocity1: TSFFloat read FFdDesiredAngularVelocity1;
-    {  } { }
+    {  }
     property DesiredAngularVelocity1: Single read GetDesiredAngularVelocity1 write SetDesiredAngularVelocity1;
 
     strict private FFdDesiredAngularVelocity2: TSFFloat;
-    { X3D field "desiredAngularVelocity2". } { }
+    {  }
     public property FdDesiredAngularVelocity2: TSFFloat read FFdDesiredAngularVelocity2;
-    {  } { }
+    {  }
     property DesiredAngularVelocity2: Single read GetDesiredAngularVelocity2 write SetDesiredAngularVelocity2;
 
     strict private FFdMaxAngle1: TSFFloat;
-    { X3D field "maxAngle1". } { }
+    {  }
     public property FdMaxAngle1: TSFFloat read FFdMaxAngle1;
-    {  } { }
+    {  }
     property MaxAngle1: Single read GetMaxAngle1 write SetMaxAngle1;
 
     strict private FFdMaxTorque1: TSFFloat;
-    { X3D field "maxTorque1". } { }
+    {  }
     public property FdMaxTorque1: TSFFloat read FFdMaxTorque1;
-    {  } { }
+    {  }
     property MaxTorque1: Single read GetMaxTorque1 write SetMaxTorque1;
 
     strict private FFdMaxTorque2: TSFFloat;
-    { X3D field "maxTorque2". } { }
+    {  }
     public property FdMaxTorque2: TSFFloat read FFdMaxTorque2;
-    {  } { }
+    {  }
     property MaxTorque2: Single read GetMaxTorque2 write SetMaxTorque2;
 
     strict private FFdMinAngle1: TSFFloat;
-    { X3D field "minAngle1". } { }
+    {  }
     public property FdMinAngle1: TSFFloat read FFdMinAngle1;
-    {  } { }
+    {  }
     property MinAngle1: Single read GetMinAngle1 write SetMinAngle1;
 
     strict private FFdStopBounce1: TSFFloat;
-    { X3D field "stopBounce1". } { }
+    {  }
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
-    {  } { }
+    {  }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
 
     strict private FFdStopConstantForceMix1: TSFFloat;
-    { X3D field "stopConstantForceMix1". } { }
+    {  }
     public property FdStopConstantForceMix1: TSFFloat read FFdStopConstantForceMix1;
-    {  } { }
+    {  }
     property StopConstantForceMix1: Single read GetStopConstantForceMix1 write SetStopConstantForceMix1;
 
     strict private FFdStopErrorCorrection1: TSFFloat;
-    { X3D field "stopErrorCorrection1". } { }
+    {  }
     public property FdStopErrorCorrection1: TSFFloat read FFdStopErrorCorrection1;
-    {  } { }
+    {  }
     property StopErrorCorrection1: Single read GetStopErrorCorrection1 write SetStopErrorCorrection1;
 
     strict private FFdSuspensionErrorCorrection: TSFFloat;
-    { X3D field "suspensionErrorCorrection". } { }
+    {  }
     public property FdSuspensionErrorCorrection: TSFFloat read FFdSuspensionErrorCorrection;
-    {  } { }
+    {  }
     property SuspensionErrorCorrection: Single read GetSuspensionErrorCorrection write SetSuspensionErrorCorrection;
 
     strict private FFdSuspensionForce: TSFFloat;
-    { X3D field "suspensionForce". } { }
+    {  }
     public property FdSuspensionForce: TSFFloat read FFdSuspensionForce;
-    {  } { }
+    {  }
     property SuspensionForce: Single read GetSuspensionForce write SetSuspensionForce;
 
     strict private FEventBody1AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body1AnchorPoint". } { }
+    {  }
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     strict private FEventBody1Axis: TSFVec3fEvent;
-    { X3D out event "body1Axis". } { }
+    {  }
     public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
 
     strict private FEventBody2AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body2AnchorPoint". } { }
+    {  }
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     strict private FEventBody2Axis: TSFVec3fEvent;
-    { X3D out event "body2Axis". } { }
+    {  }
     public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
 
     strict private FEventHinge1Angle: TSFFloatEvent;
-    { X3D out event "hinge1Angle". } { }
+    {  }
     public property EventHinge1Angle: TSFFloatEvent read FEventHinge1Angle;
 
     strict private FEventHinge1AngleRate: TSFFloatEvent;
-    { X3D out event "hinge1AngleRate". } { }
+    {  }
     public property EventHinge1AngleRate: TSFFloatEvent read FEventHinge1AngleRate;
 
     strict private FEventHinge2Angle: TSFFloatEvent;
-    { X3D out event "hinge2Angle". } { }
+    {  }
     public property EventHinge2Angle: TSFFloatEvent read FEventHinge2Angle;
 
     strict private FEventHinge2AngleRate: TSFFloatEvent;
-    { X3D out event "hinge2AngleRate". } { }
+    {  }
     public property EventHinge2AngleRate: TSFFloatEvent read FEventHinge2AngleRate;
 
 {$endif read_interface}

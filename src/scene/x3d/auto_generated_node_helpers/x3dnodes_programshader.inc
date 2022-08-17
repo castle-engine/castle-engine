@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdPrograms: TMFNode;
-    { X3D field "programs". } { }
+    {  }
     public property FdPrograms: TMFNode read FFdPrograms;
     {  }
     procedure SetPrograms(const Value: array of TShaderProgramNode);

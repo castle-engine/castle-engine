@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShape: TSFNode;
-    { X3D field "shape". } { }
+    {  }
     public property FdShape: TSFNode read FFdShape;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

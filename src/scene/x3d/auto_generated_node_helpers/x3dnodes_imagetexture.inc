@@ -27,11 +27,11 @@
     function GetFlipVertically: Boolean;
     procedure SetFlipVertically(const Value: Boolean);
   public
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
-    {  } { }
+    {  }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
 {$endif read_interface}

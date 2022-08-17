@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FEventPickedPoint: TMFVec3fEvent;
-    { X3D out event "pickedPoint". } { }
+    {  }
     public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
 
 {$endif read_interface}

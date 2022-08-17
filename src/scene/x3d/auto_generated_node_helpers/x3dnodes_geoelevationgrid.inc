@@ -57,111 +57,111 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_height: TMFDoubleEvent;
-    { X3D in event "set_height". } { }
+    {  }
     public property EventSet_height: TMFDoubleEvent read FEventSet_height;
 
     strict private FFdColor: TSFNode;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdNormal: TSFNode;
-    { X3D field "normal". } { }
+    {  }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdYScale: TSFFloat;
-    { X3D field "yScale". } { }
+    {  }
     public property FdYScale: TSFFloat read FFdYScale;
-    {  } { }
+    {  }
     property YScale: Single read GetYScale write SetYScale;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    { X3D field "colorPerVertex". } { }
+    {  }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-    {  } { }
+    {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdCreaseAngle: TSFDouble;
-    { X3D field "creaseAngle". } { }
+    {  }
     public property FdCreaseAngle: TSFDouble read FFdCreaseAngle;
-    {  } { }
+    {  }
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdGeoGridOrigin: TSFVec3d;
-    { X3D field "geoGridOrigin". } { }
+    {  }
     public property FdGeoGridOrigin: TSFVec3d read FFdGeoGridOrigin;
-    {  } { }
+    {  }
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdHeight: TMFDouble;
-    { X3D field "height". } { }
+    {  }
     public property FdHeight: TMFDouble read FFdHeight;
-    {  } { }
+    {  }
     procedure SetHeight(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetHeight(const Value: TDoubleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
-    { X3D field "normalPerVertex". } { }
+    {  }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
-    {  } { }
+    {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdXDimension: TSFInt32;
-    { X3D field "xDimension". } { }
+    {  }
     public property FdXDimension: TSFInt32 read FFdXDimension;
-    {  } { }
+    {  }
     property XDimension: Integer read GetXDimension write SetXDimension;
 
     strict private FFdXSpacing: TSFDouble;
-    { X3D field "xSpacing". } { }
+    {  }
     public property FdXSpacing: TSFDouble read FFdXSpacing;
-    {  } { }
+    {  }
     property XSpacing: Double read GetXSpacing write SetXSpacing;
 
     strict private FFdZDimension: TSFInt32;
-    { X3D field "zDimension". } { }
+    {  }
     public property FdZDimension: TSFInt32 read FFdZDimension;
-    {  } { }
+    {  }
     property ZDimension: Integer read GetZDimension write SetZDimension;
 
     strict private FFdZSpacing: TSFDouble;
-    { X3D field "zSpacing". } { }
+    {  }
     public property FdZSpacing: TSFDouble read FFdZSpacing;
-    {  } { }
+    {  }
     property ZSpacing: Double read GetZSpacing write SetZSpacing;
 
 {$endif read_interface}

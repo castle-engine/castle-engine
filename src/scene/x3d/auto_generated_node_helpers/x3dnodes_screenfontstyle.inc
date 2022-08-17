@@ -43,53 +43,53 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFamily: TMFString;
-    { X3D field "family". } { }
+    {  }
     public property FdFamily: TMFString read FFdFamily;
 
     strict private FFdHorizontal: TSFBool;
-    { X3D field "horizontal". } { }
+    {  }
     public property FdHorizontal: TSFBool read FFdHorizontal;
-    {  } { }
+    {  }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
 
     strict private FFdJustify: TMFString;
-    { X3D field "justify". } { }
+    {  }
     public property FdJustify: TMFString read FFdJustify;
 
     strict private FFdLanguage: TSFString;
-    { X3D field "language". } { }
+    {  }
     public property FdLanguage: TSFString read FFdLanguage;
-    {  } { }
+    {  }
     property Language: String read GetLanguage write SetLanguage;
 
     strict private FFdLeftToRight: TSFBool;
-    { X3D field "leftToRight". } { }
+    {  }
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
-    {  } { }
+    {  }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
 
     strict private FFdPointSize: TSFFloat;
-    { X3D field "pointSize". } { }
+    {  }
     public property FdPointSize: TSFFloat read FFdPointSize;
-    {  } { }
+    {  }
     property PointSize: Single read GetPointSize write SetPointSize;
 
     strict private FFdSpacing: TSFFloat;
-    { X3D field "spacing". } { }
+    {  }
     public property FdSpacing: TSFFloat read FFdSpacing;
-    {  } { }
+    {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdStyle: TSFStringEnum;
-    { X3D field "style". } { }
+    {  }
     public property FdStyle: TSFStringEnum read FFdStyle;
-    {  } { }
+    {  }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
 
     strict private FFdTopToBottom: TSFBool;
-    { X3D field "topToBottom". } { }
+    {  }
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
-    {  } { }
+    {  }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
 
 {$endif read_interface}

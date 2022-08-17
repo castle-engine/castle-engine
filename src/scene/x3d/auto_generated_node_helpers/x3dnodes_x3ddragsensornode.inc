@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAutoOffset: TSFBool;
-    { X3D field "autoOffset". } { }
+    {  }
     public property FdAutoOffset: TSFBool read FFdAutoOffset;
-    {  } { }
+    {  }
     property AutoOffset: Boolean read GetAutoOffset write SetAutoOffset;
 
     strict private FEventTrackPoint_changed: TSFVec3fEvent;
-    { X3D out event "trackPoint_changed". } { }
+    {  }
     public property EventTrackPoint_changed: TSFVec3fEvent read FEventTrackPoint_changed;
 
 {$endif read_interface}

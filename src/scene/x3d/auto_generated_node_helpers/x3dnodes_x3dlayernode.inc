@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdIsPickable: TSFBool;
-    { X3D field "isPickable". } { }
+    {  }
     public property FdIsPickable: TSFBool read FFdIsPickable;
-    {  } { }
+    {  }
     property IsPickable: Boolean read GetIsPickable write SetIsPickable;
 
     strict private FFdViewport: TSFNode;
-    { X3D field "viewport". } { }
+    {  }
     public property FdViewport: TSFNode read FFdViewport;
     {  }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;

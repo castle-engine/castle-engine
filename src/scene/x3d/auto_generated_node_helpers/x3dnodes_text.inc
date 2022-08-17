@@ -35,57 +35,57 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFontStyle: TSFNode;
-    { X3D field "fontStyle". } { }
+    {  }
     public property FdFontStyle: TSFNode read FFdFontStyle;
     {  }
     property FontStyle: TAbstractFontStyleNode read GetFontStyle write SetFontStyle;
 
     strict private FFdLength: TMFFloat;
-    { X3D field "length". } { }
+    {  }
     public property FdLength: TMFFloat read FFdLength;
-    {  } { }
+    {  }
     procedure SetLength(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetLength(const Value: TSingleList); overload;
 
     strict private FFdMaxExtent: TSFFloat;
-    { X3D field "maxExtent". } { }
+    {  }
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
-    {  } { }
+    {  }
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
 
     strict private FFdMaxDisplayChars: TSFInt32;
-    { X3D field "maxDisplayChars". } { }
+    {  }
     public property FdMaxDisplayChars: TSFInt32 read FFdMaxDisplayChars;
-    {  } { }
+    {  }
     property MaxDisplayChars: Integer read GetMaxDisplayChars write SetMaxDisplayChars;
 
     strict private FFdString: TMFString;
-    { X3D field "string". } { }
+    {  }
     public property FdString: TMFString read FFdString;
-    {  } { }
+    {  }
     procedure SetString(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetString(const Value: TCastleStringList); overload;
 
     strict private FEventLineBounds: TMFVec2fEvent;
-    { X3D out event "lineBounds". } { }
+    {  }
     public property EventLineBounds: TMFVec2fEvent read FEventLineBounds;
 
     strict private FEventOrigin: TSFVec3fEvent;
-    { X3D out event "origin". } { }
+    {  }
     public property EventOrigin: TSFVec3fEvent read FEventOrigin;
 
     strict private FEventTextBounds: TSFVec2fEvent;
-    { X3D out event "textBounds". } { }
+    {  }
     public property EventTextBounds: TSFVec2fEvent read FEventTextBounds;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

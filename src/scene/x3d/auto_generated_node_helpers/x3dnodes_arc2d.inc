@@ -35,21 +35,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEndAngle: TSFFloat;
-    { X3D field "endAngle". } { }
+    {  }
     public property FdEndAngle: TSFFloat read FFdEndAngle;
-    {  } { }
+    {  }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
 
     strict private FFdRadius: TSFFloat;
-    { X3D field "radius". } { }
+    {  }
     public property FdRadius: TSFFloat read FFdRadius;
-    {  } { }
+    {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdStartAngle: TSFFloat;
-    { X3D field "startAngle". } { }
+    {  }
     public property FdStartAngle: TSFFloat read FFdStartAngle;
-    {  } { }
+    {  }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
 
 {$endif read_interface}

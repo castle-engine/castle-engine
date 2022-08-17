@@ -41,47 +41,47 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCenter: TSFVec3d;
-    { X3D field "geoCenter". } { }
+    {  }
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
-    {  } { }
+    {  }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
 
     strict private FFdRotation: TSFRotation;
-    { X3D field "rotation". } { }
+    {  }
     public property FdRotation: TSFRotation read FFdRotation;
-    {  } { }
+    {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFVec3f read FFdScale;
-    {  } { }
+    {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { X3D field "scaleOrientation". } { }
+    {  }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-    {  } { }
+    {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdTranslation: TSFVec3f;
-    { X3D field "translation". } { }
+    {  }
     public property FdTranslation: TSFVec3f read FFdTranslation;
-    {  } { }
+    {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

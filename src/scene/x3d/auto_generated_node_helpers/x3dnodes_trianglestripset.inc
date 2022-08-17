@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdStripCount: TMFInt32;
-    { X3D field "stripCount". } { }
+    {  }
     public property FdStripCount: TMFInt32 read FFdStripCount;
-    {  } { }
+    {  }
     procedure SetStripCount(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetStripCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}

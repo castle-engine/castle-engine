@@ -43,91 +43,91 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdDisplacers: TMFNode;
-    { X3D field "displacers". } { }
+    {  }
     public property FdDisplacers: TMFNode read FFdDisplacers;
     {  }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
 
     strict private FFdLimitOrientation: TSFRotation;
-    { X3D field "limitOrientation". } { }
+    {  }
     public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
-    {  } { }
+    {  }
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
 
     strict private FFdLlimit: TMFFloat;
-    { X3D field "llimit". } { }
+    {  }
     public property FdLlimit: TMFFloat read FFdLlimit;
-    {  } { }
+    {  }
     procedure SetLlimit(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetLlimit(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
-    { X3D field "name". } { }
+    {  }
     public property FdName: TSFString read FFdName;
-    {  } { }
+    {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    { X3D field "rotation". } { }
+    {  }
     public property FdRotation: TSFRotation read FFdRotation;
-    {  } { }
+    {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFVec3f read FFdScale;
-    {  } { }
+    {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { X3D field "scaleOrientation". } { }
+    {  }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-    {  } { }
+    {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSkinCoordIndex: TMFInt32;
-    { X3D field "skinCoordIndex". } { }
+    {  }
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
-    {  } { }
+    {  }
     procedure SetSkinCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetSkinCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdSkinCoordWeight: TMFFloat;
-    { X3D field "skinCoordWeight". } { }
+    {  }
     public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
-    {  } { }
+    {  }
     procedure SetSkinCoordWeight(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetSkinCoordWeight(const Value: TSingleList); overload;
 
     strict private FFdStiffness: TMFFloat;
-    { X3D field "stiffness". } { }
+    {  }
     public property FdStiffness: TMFFloat read FFdStiffness;
-    {  } { }
+    {  }
     procedure SetStiffness(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetStiffness(const Value: TSingleList); overload;
 
     strict private FFdTranslation: TSFVec3f;
-    { X3D field "translation". } { }
+    {  }
     public property FdTranslation: TSFVec3f read FFdTranslation;
-    {  } { }
+    {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdUlimit: TMFFloat;
-    { X3D field "ulimit". } { }
+    {  }
     public property FdUlimit: TMFFloat read FFdUlimit;
-    {  } { }
+    {  }
     procedure SetUlimit(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetUlimit(const Value: TSingleList); overload;
 
 {$endif read_interface}

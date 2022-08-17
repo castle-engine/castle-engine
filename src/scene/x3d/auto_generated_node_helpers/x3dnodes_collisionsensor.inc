@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCollider: TSFNode;
-    { X3D field "collider". } { }
+    {  }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
     strict private FEventIntersections: TMFNodeEvent;
-    { X3D out event "intersections". } { }
+    {  }
     public property EventIntersections: TMFNodeEvent read FEventIntersections;
 
     strict private FEventContacts: TMFNodeEvent;
-    { X3D out event "contacts". } { }
+    {  }
     public property EventContacts: TMFNodeEvent read FEventContacts;
 
 {$endif read_interface}

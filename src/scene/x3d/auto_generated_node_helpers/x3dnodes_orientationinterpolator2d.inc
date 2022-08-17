@@ -27,11 +27,11 @@
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
   public
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TSingleList); overload;
-    {  } { }
+    {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
 {$endif read_interface}

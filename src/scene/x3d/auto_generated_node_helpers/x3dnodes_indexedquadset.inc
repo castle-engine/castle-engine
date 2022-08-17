@@ -29,16 +29,16 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_index: TMFInt32Event;
-    { X3D in event "set_index". } { }
+    {  }
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdIndex: TMFInt32;
-    { X3D field "index". } { }
+    {  }
     public property FdIndex: TMFInt32 read FFdIndex;
-    {  } { }
+    {  }
     procedure SetIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}

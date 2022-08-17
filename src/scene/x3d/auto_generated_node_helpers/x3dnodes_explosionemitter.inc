@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdPosition: TSFVec3f;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3f read FFdPosition;
-    {  } { }
+    {  }
     property Position: TVector3 read GetPosition write SetPosition;
 
 {$endif read_interface}

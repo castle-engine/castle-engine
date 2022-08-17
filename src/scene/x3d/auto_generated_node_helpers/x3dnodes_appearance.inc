@@ -62,7 +62,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
-    { X3D field "fillProperties". } { }
+    {  }
     public property FdFillProperties: TSFNode read FFdFillProperties;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -71,74 +71,74 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdLineProperties: TSFNode;
-    { X3D field "lineProperties". } { }
+    { Properties how to display line geometry (line width and such). }
     public property FdLineProperties: TSFNode read FFdLineProperties;
     { Properties how to display line geometry (line width and such). }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
 
     strict private FFdMaterial: TSFNode;
-    { X3D field "material". } { }
+    { Material determines how the shape looks, and how it interacts with lighting. }
     public property FdMaterial: TSFNode read FFdMaterial;
     { Material determines how the shape looks, and how it interacts with lighting. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
     strict private FFdShaders: TMFNode;
-    { X3D field "shaders". } { }
+    { Override shaders used for rendering this shape. It is usually better to use @link(Effects) -- they are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     public property FdShaders: TMFNode read FFdShaders;
     { Override shaders used for rendering this shape. It is usually better to use @link(Effects) -- they are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdTexture: TSFNode;
-    { X3D field "texture". } { }
+    { Texture used by this appearance. Deprecated, as it is better to specify textures inside material nodes. @deprecated }
     public property FdTexture: TSFNode read FFdTexture;
     { Texture used by this appearance. Deprecated, as it is better to specify textures inside material nodes. @deprecated }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     strict private FFdTextureTransform: TSFNode;
-    { X3D field "textureTransform". } { }
+    { Texture transformation. }
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { Texture transformation. }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
 
     strict private FFdBackMaterial: TSFNode;
-    { X3D field "backMaterial". } { }
+    { Alternative material to use for back faces (@italic(not implemented)). }
     public property FdBackMaterial: TSFNode read FFdBackMaterial;
-    { Alternative material to use for back faces (@italic(not implemented yet)). }
+    { Alternative material to use for back faces (@italic(not implemented)). }
     property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
 
     strict private FFdAlphaMode: TSFStringEnum;
-    { X3D field "alphaMode". } { }
+    {  }
     public property FdAlphaMode: TSFStringEnum read FFdAlphaMode;
-    {  } { }
+    {  }
     property AlphaMode: TAlphaMode read GetAlphaMode write SetAlphaMode;
 
     strict private FFdAlphaCutoff: TSFFloat;
-    { X3D field "alphaCutoff". } { }
+    {  }
     public property FdAlphaCutoff: TSFFloat read FFdAlphaCutoff;
-    {  } { }
+    {  }
     property AlphaCutoff: Single read GetAlphaCutoff write SetAlphaCutoff;
 
     strict private FFdReceiveShadows: TMFNode;
-    { X3D field "receiveShadows". } { }
+    {  }
     public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
     {  }
     procedure SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
 
     strict private FFdShadowCaster: TSFBool;
-    { X3D field "shadowCaster". } { }
+    {  }
     public property FdShadowCaster: TSFBool read FFdShadowCaster;
-    {  } { }
+    {  }
     property ShadowCaster: Boolean read GetShadowCaster write SetShadowCaster;
 
     strict private FFdNormalMap: TSFNode;
-    { X3D field "normalMap". } { }
+    {  }
     public property FdNormalMap: TSFNode read FFdNormalMap;
     {  }
     property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdHeightMap: TSFNode;
-    { X3D field "heightMap". } { }
+    {  }
     public property FdHeightMap: TSFNode read FFdHeightMap;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -147,27 +147,27 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdHeightMapScale: TSFFloat;
-    { X3D field "heightMapScale". } { }
+    {  }
     public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
-    {  } { }
+    {  }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
 
     strict private FFdBlendMode: TSFNode;
-    { X3D field "blendMode". } { }
+    {  }
     public property FdBlendMode: TSFNode read FFdBlendMode;
     {  }
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
 
     strict private FFdEffects: TMFNode;
-    { X3D field "effects". } { }
+    { Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     public property FdEffects: TMFNode read FFdEffects;
     { Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdAlphaChannel: TSFStringEnum;
-    { X3D field "alphaChannel". } { }
+    {  }
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
-    {  } { }
+    {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
 
 {$endif read_interface}

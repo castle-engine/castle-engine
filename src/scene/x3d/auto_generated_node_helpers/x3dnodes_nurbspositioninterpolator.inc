@@ -33,39 +33,39 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_fraction: TSFFloatEvent;
-    { X3D in event "set_fraction". } { }
+    {  }
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdControlPoint: TSFNode;
-    { X3D field "controlPoint". } { }
+    {  }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdKnot: TMFDouble;
-    { X3D field "knot". } { }
+    {  }
     public property FdKnot: TMFDouble read FFdKnot;
-    {  } { }
+    {  }
     procedure SetKnot(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetKnot(const Value: TDoubleList); overload;
 
     strict private FFdOrder: TSFInt32;
-    { X3D field "order". } { }
+    {  }
     public property FdOrder: TSFInt32 read FFdOrder;
-    {  } { }
+    {  }
     property Order: Integer read GetOrder write SetOrder;
 
     strict private FFdWeight: TMFDouble;
-    { X3D field "weight". } { }
+    {  }
     public property FdWeight: TMFDouble read FFdWeight;
-    {  } { }
+    {  }
     procedure SetWeight(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FEventValue_changed: TSFVec3fEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
 {$endif read_interface}

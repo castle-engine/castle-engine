@@ -53,97 +53,97 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_height: TMFFloatEvent;
-    { X3D in event "set_height". } { }
+    {  }
     public property EventSet_height: TMFFloatEvent read FEventSet_height;
 
     strict private FFdAttrib: TMFNode;
-    { X3D field "attrib". } { }
+    {  }
     public property FdAttrib: TMFNode read FFdAttrib;
     {  }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 
     strict private FFdColor: TSFNode;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdFogCoord: TSFNode;
-    { X3D field "fogCoord". } { }
+    {  }
     public property FdFogCoord: TSFNode read FFdFogCoord;
     {  }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 
     strict private FFdNormal: TSFNode;
-    { X3D field "normal". } { }
+    {  }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    { X3D field "colorPerVertex". } { }
+    {  }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-    {  } { }
+    {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdCreaseAngle: TSFFloat;
-    { X3D field "creaseAngle". } { }
+    {  }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-    {  } { }
+    {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdHeight: TMFFloat;
-    { X3D field "height". } { }
+    {  }
     public property FdHeight: TMFFloat read FFdHeight;
-    {  } { }
+    {  }
     procedure SetHeight(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetHeight(const Value: TSingleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
-    { X3D field "normalPerVertex". } { }
+    {  }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
-    {  } { }
+    {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdXDimension: TSFInt32;
-    { X3D field "xDimension". } { }
+    {  }
     public property FdXDimension: TSFInt32 read FFdXDimension;
-    {  } { }
+    {  }
     property XDimension: Integer read GetXDimension write SetXDimension;
 
     strict private FFdXSpacing: TSFFloat;
-    { X3D field "xSpacing". } { }
+    {  }
     public property FdXSpacing: TSFFloat read FFdXSpacing;
-    {  } { }
+    {  }
     property XSpacing: Single read GetXSpacing write SetXSpacing;
 
     strict private FFdZDimension: TSFInt32;
-    { X3D field "zDimension". } { }
+    {  }
     public property FdZDimension: TSFInt32 read FFdZDimension;
-    {  } { }
+    {  }
     property ZDimension: Integer read GetZDimension write SetZDimension;
 
     strict private FFdZSpacing: TSFFloat;
-    { X3D field "zSpacing". } { }
+    {  }
     public property FdZSpacing: TSFFloat read FFdZSpacing;
-    {  } { }
+    {  }
     property ZSpacing: Single read GetZSpacing write SetZSpacing;
 
 {$endif read_interface}

@@ -28,19 +28,19 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_boolean: TSFBoolEvent;
-    { X3D in event "set_boolean". } { }
+    {  }
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FEventInputFalse: TSFBoolEvent;
-    { X3D out event "inputFalse". } { }
+    {  }
     public property EventInputFalse: TSFBoolEvent read FEventInputFalse;
 
     strict private FEventInputNegate: TSFBoolEvent;
-    { X3D out event "inputNegate". } { }
+    {  }
     public property EventInputNegate: TSFBoolEvent read FEventInputNegate;
 
     strict private FEventInputTrue: TSFBoolEvent;
-    { X3D out event "inputTrue". } { }
+    {  }
     public property EventInputTrue: TSFBoolEvent read FEventInputTrue;
 
 {$endif read_interface}

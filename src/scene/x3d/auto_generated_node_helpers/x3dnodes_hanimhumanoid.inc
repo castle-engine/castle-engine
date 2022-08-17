@@ -47,105 +47,105 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdInfo: TMFString;
-    { X3D field "info". } { }
+    {  }
     public property FdInfo: TMFString read FFdInfo;
-    {  } { }
+    {  }
     procedure SetInfo(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdJoints: TMFNode;
-    { X3D field "joints". } { }
+    {  }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of THAnimJointNode);
 
     strict private FFdName: TSFString;
-    { X3D field "name". } { }
+    {  }
     public property FdName: TSFString read FFdName;
-    {  } { }
+    {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    { X3D field "rotation". } { }
+    {  }
     public property FdRotation: TSFRotation read FFdRotation;
-    {  } { }
+    {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFVec3f read FFdScale;
-    {  } { }
+    {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { X3D field "scaleOrientation". } { }
+    {  }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-    {  } { }
+    {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSegments: TMFNode;
-    { X3D field "segments". } { }
+    {  }
     public property FdSegments: TMFNode read FFdSegments;
     {  }
     procedure SetSegments(const Value: array of THAnimSegmentNode);
 
     strict private FFdSites: TMFNode;
-    { X3D field "sites". } { }
+    {  }
     public property FdSites: TMFNode read FFdSites;
     {  }
     procedure SetSites(const Value: array of THAnimSiteNode);
 
     strict private FFdSkeleton: TMFNode;
-    { X3D field "skeleton". } { }
+    {  }
     public property FdSkeleton: TMFNode read FFdSkeleton;
 
     strict private FFdSkin: TMFNode;
-    { X3D field "skin". } { }
+    {  }
     public property FdSkin: TMFNode read FFdSkin;
     {  }
     procedure SetSkin(const Value: array of TAbstractChildNode);
 
     strict private FFdSkinCoord: TSFNode;
-    { X3D field "skinCoord". } { }
+    {  }
     public property FdSkinCoord: TSFNode read FFdSkinCoord;
 
     strict private FFdSkinNormal: TSFNode;
-    { X3D field "skinNormal". } { }
+    {  }
     public property FdSkinNormal: TSFNode read FFdSkinNormal;
     {  }
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
 
     strict private FFdTranslation: TSFVec3f;
-    { X3D field "translation". } { }
+    {  }
     public property FdTranslation: TSFVec3f read FFdTranslation;
-    {  } { }
+    {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdVersion: TSFString;
-    { X3D field "version". } { }
+    {  }
     public property FdVersion: TSFString read FFdVersion;
-    {  } { }
+    {  }
     property Version: String read GetVersion write SetVersion;
 
     strict private FFdViewpoints: TMFNode;
-    { X3D field "viewpoints". } { }
+    {  }
     public property FdViewpoints: TMFNode read FFdViewpoints;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

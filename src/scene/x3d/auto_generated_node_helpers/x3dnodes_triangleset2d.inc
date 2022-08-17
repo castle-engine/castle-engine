@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdVertices: TMFVec2f;
-    { X3D field "vertices". } { }
+    {  }
     public property FdVertices: TMFVec2f read FFdVertices;
-    {  } { }
+    {  }
     procedure SetVertices(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetVertices(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

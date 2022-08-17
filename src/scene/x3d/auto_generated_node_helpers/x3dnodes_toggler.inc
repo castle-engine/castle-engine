@@ -31,11 +31,11 @@
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
-    {  } { }
+    {  }
     property Status: Boolean read GetStatus write SetStatus;
-    {  } { }
+    {  }
     property NotStatus: Boolean read GetNotStatus write SetNotStatus;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}

@@ -37,14 +37,14 @@
   public
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property Visible: Boolean read GetVisible write SetVisible;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property BboxDisplay: Boolean read GetBboxDisplay write SetBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 

@@ -31,29 +31,29 @@
     class function ClassX3DType: string; override;
 
     strict private FEventNext: TSFBoolEvent;
-    { X3D in event "next". } { }
+    {  }
     public property EventNext: TSFBoolEvent read FEventNext;
 
     strict private FEventPrevious: TSFBoolEvent;
-    { X3D in event "previous". } { }
+    {  }
     public property EventPrevious: TSFBoolEvent read FEventPrevious;
 
     strict private FEventSet_fraction: TSFFloatEvent;
-    { X3D in event "set_fraction". } { }
+    {  }
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdKey: TMFFloat;
-    { X3D field "key". } { }
+    {  }
     public property FdKey: TMFFloat read FFdKey;
-    {  } { }
+    {  }
     procedure SetKey(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetKey(const Value: TSingleList); overload;
 
     strict private FFdForceContinuousValue_changed: TSFBool;
-    { X3D field "forceContinuousValue_changed". } { }
+    {  }
     public property FdForceContinuousValue_changed: TSFBool read FFdForceContinuousValue_changed;
-    {  } { }
+    {  }
     property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;
 
 {$endif read_interface}

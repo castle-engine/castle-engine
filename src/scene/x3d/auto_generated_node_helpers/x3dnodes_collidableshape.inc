@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShape: TSFNode;
-    { X3D field "shape". } { }
+    {  }
     public property FdShape: TSFNode read FFdShape;
     {  }
     property Shape: TShapeNode read GetShape write SetShape;

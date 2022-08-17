@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMode: TSFStringEnum;
-    { X3D field "mode". } { }
+    {  }
     public property FdMode: TSFStringEnum read FFdMode;
-    {  } { }
+    {  }
     property Mode: TColorMode read GetMode write SetMode;
 
 {$endif read_interface}

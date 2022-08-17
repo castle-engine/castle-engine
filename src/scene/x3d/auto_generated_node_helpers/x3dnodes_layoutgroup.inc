@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdLayout: TSFNode;
-    { X3D field "layout". } { }
+    {  }
     public property FdLayout: TSFNode read FFdLayout;
     {  }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
 
     strict private FFdViewport: TSFNode;
-    { X3D field "viewport". } { }
+    {  }
     public property FdViewport: TSFNode read FFdViewport;
     {  }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;

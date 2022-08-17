@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdForce: TSFVec3f;
-    { X3D field "force". } { }
+    {  }
     public property FdForce: TSFVec3f read FFdForce;
-    {  } { }
+    {  }
     property Force: TVector3 read GetForce write SetForce;
 
 {$endif read_interface}

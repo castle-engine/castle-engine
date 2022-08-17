@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFieldOfView: TMFFloat;
-    { X3D field "fieldOfView". } { }
+    {  }
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
-    {  } { }
+    {  }
     procedure SetFieldOfView(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetFieldOfView(const Value: TSingleList); overload;
 
     strict private FFdPosition: TSFVec3f;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3f read FFdPosition;
 
 {$endif read_interface}

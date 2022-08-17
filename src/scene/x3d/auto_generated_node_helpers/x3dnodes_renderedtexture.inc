@@ -47,127 +47,127 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackground: TSFNode;
-    { X3D field "background". } { }
+    {  }
     public property FdBackground: TSFNode read FFdBackground;
     {  }
     property Background: TAbstractBackgroundNode read GetBackground write SetBackground;
 
     strict private FFdFog: TSFNode;
-    { X3D field "fog". } { }
+    {  }
     public property FdFog: TSFNode read FFdFog;
     {  }
     property Fog: TFogNode read GetFog write SetFog;
 
     strict private FFdEnvironment: TSFNode;
-    { X3D field "environment". } { }
+    {  }
     public property FdEnvironment: TSFNode read FFdEnvironment;
 
     strict private FFdScene: TSFNode;
-    { X3D field "scene". } { }
+    {  }
     public property FdScene: TSFNode read FFdScene;
     {  }
     property Scene: TAbstractNode read GetScene write SetScene;
 
     strict private FFdForeground: TSFNode;
-    { X3D field "foreground". } { }
+    {  }
     public property FdForeground: TSFNode read FFdForeground;
 
     strict private FFdDimensions: TMFInt32;
-    { X3D field "dimensions". } { }
+    {  }
     public property FdDimensions: TMFInt32 read FFdDimensions;
-    {  } { }
+    {  }
     procedure SetDimensions(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetDimensions(const Value: TLongIntList); overload;
 
     strict private FFdUpdate: TSFStringEnum;
-    { X3D field "update". } { }
+    { When to update the texture contents. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
-    { When to update the texture contents. } { }
+    { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdViewpoint: TSFNode;
-    { X3D field "viewpoint". } { }
+    {  }
     public property FdViewpoint: TSFNode read FFdViewpoint;
 
     strict private FFdTextureProperties: TSFNode;
-    { X3D field "textureProperties". } { }
+    {  }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdRepeatS: TSFBool;
-    { X3D field "repeatS". } { }
+    {  }
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    { X3D field "repeatT". } { }
+    {  }
     public property FdRepeatT: TSFBool read FFdRepeatT;
 
     strict private FFdRepeatR: TSFBool;
-    { X3D field "repeatR". } { }
+    {  }
     public property FdRepeatR: TSFBool read FFdRepeatR;
-    {  } { }
+    {  }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
 
     strict private FFdDepthMap: TMFBool;
-    { X3D field "depthMap". } { }
+    {  }
     public property FdDepthMap: TMFBool read FFdDepthMap;
-    {  } { }
+    {  }
     procedure SetDepthMap(const Value: array of boolean); overload;
-    {  } { }
+    {  }
     procedure SetDepthMap(const Value: TBooleanList); overload;
 
     strict private FFdZOffset: TMFInt32;
-    { X3D field "zOffset". } { }
+    {  }
     public property FdZOffset: TMFInt32 read FFdZOffset;
-    {  } { }
+    {  }
     procedure SetZOffset(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetZOffset(const Value: TLongIntList); overload;
 
     strict private FFdTargets: TMFNode;
-    { X3D field "targets". } { }
+    {  }
     public property FdTargets: TMFNode read FFdTargets;
     {  }
     procedure SetTargets(const Value: array of TAbstractTextureNode);
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FEventViewing: TSFMatrix4fEvent;
-    { X3D out event "viewing". } { }
+    {  }
     public property EventViewing: TSFMatrix4fEvent read FEventViewing;
 
     strict private FEventProjection: TSFMatrix4fEvent;
-    { X3D out event "projection". } { }
+    {  }
     public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
     strict private FFdFrameBufferMode: TSFString;
-    { X3D field "frameBufferMode". } { }
+    {  }
     public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
-    {  } { }
+    {  }
     property FrameBufferMode: String read GetFrameBufferMode write SetFrameBufferMode;
 
     strict private FFdExcludeNodes: TMFNode;
-    { X3D field "excludeNodes". } { }
+    {  }
     public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
 
     strict private FFdTriggerName: TSFString;
-    { X3D field "triggerName". } { }
+    {  }
     public property FdTriggerName: TSFString read FFdTriggerName;
-    {  } { }
+    {  }
     property TriggerName: String read GetTriggerName write SetTriggerName;
 
     strict private FEventImage_changed: TSFImageEvent;
-    { X3D out event "image_changed". } { }
+    {  }
     public property EventImage_changed: TSFImageEvent read FEventImage_changed;
 
     strict private FEventRendering: TSFBoolEvent;
-    { X3D out event "rendering". } { }
+    {  }
     public property EventRendering: TSFBoolEvent read FEventRendering;
 
 {$endif read_interface}

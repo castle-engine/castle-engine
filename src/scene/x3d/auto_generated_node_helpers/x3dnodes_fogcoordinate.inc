@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDepth: TMFFloat;
-    { X3D field "depth". } { }
+    {  }
     public property FdDepth: TMFFloat read FFdDepth;
-    {  } { }
+    {  }
     procedure SetDepth(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetDepth(const Value: TSingleList); overload;
 
 {$endif read_interface}

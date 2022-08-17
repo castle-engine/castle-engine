@@ -39,37 +39,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdChildren: TMFNode;
-    { X3D field "children". } { }
+    {  }
     public property FdChildren: TMFNode read FFdChildren;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplayed: TSFBool;
-    { X3D field "displayed". } { }
+    {  }
     public property FdDisplayed: TSFBool read FFdDisplayed;
-    {  } { }
+    {  }
     property Displayed: Boolean read GetDisplayed write SetDisplayed;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    { X3D field "retainUserOffsets". } { }
+    {  }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
-    {  } { }
+    {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
 
     strict private FFdSize: TSFVec3f;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFVec3f read FFdSize;
-    {  } { }
+    {  }
     property Size: TVector3 read GetSize write SetSize;
 
 {$endif read_interface}

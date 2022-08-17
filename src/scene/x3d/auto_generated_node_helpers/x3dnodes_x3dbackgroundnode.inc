@@ -28,13 +28,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShaders: TMFNode;
-    { X3D field "shaders". } { }
+    { Shaders used to render background geometry. }
     public property FdShaders: TMFNode read FFdShaders;
     { Shaders used to render background geometry. }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdEffects: TMFNode;
-    { X3D field "effects". } { }
+    { Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry. }
     public property FdEffects: TMFNode read FFdEffects;
     { Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry. }
     procedure SetEffects(const Value: array of TEffectNode);

@@ -31,21 +31,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFRotation;
-    { X3D field "keyValue". } { }
+    {  }
     public property FdKeyValue: TMFRotation read FFdKeyValue;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of TVector4); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TVector4List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
-    { X3D field "normalizeVelocity". } { }
+    {  }
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-    {  } { }
+    {  }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
     strict private FEventValue_changed: TSFRotationEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}

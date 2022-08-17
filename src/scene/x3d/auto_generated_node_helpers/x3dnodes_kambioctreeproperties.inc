@@ -29,9 +29,9 @@
     function GetLeafCapacity: Integer;
     procedure SetLeafCapacity(const Value: Integer);
   public
-    {  } { }
+    {  }
     property MaxDepth: Integer read GetMaxDepth write SetMaxDepth;
-    {  } { }
+    {  }
     property LeafCapacity: Integer read GetLeafCapacity write SetLeafCapacity;
 
 {$endif read_interface}

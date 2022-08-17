@@ -33,43 +33,43 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAlpha: TSFFloat;
-    { X3D field "alpha". } { }
+    {  }
     public property FdAlpha: TSFFloat read FFdAlpha;
-    {  } { }
+    {  }
     property Alpha: Single read GetAlpha write SetAlpha;
 
     strict private FFdColor: TSFColor;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFColor read FFdColor;
-    {  } { }
+    {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdFunction: TMFString;
-    { X3D field "function". } { }
+    {  }
     public property FdFunction: TMFString read FFdFunction;
-    {  } { }
+    {  }
     procedure SetFunction(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetFunction(const Value: TCastleStringList); overload;
 
     strict private FFdMode: TMFString;
-    { X3D field "mode". } { }
+    {  }
     public property FdMode: TMFString read FFdMode;
-    {  } { }
+    {  }
     procedure SetMode(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetMode(const Value: TCastleStringList); overload;
 
     strict private FFdSource: TMFString;
-    { X3D field "source". } { }
+    {  }
     public property FdSource: TMFString read FFdSource;
-    {  } { }
+    {  }
     procedure SetSource(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetSource(const Value: TCastleStringList); overload;
 
     strict private FFdTexture: TMFNode;
-    { X3D field "texture". } { }
+    {  }
     public property FdTexture: TMFNode read FFdTexture;
     {  }
     procedure SetTexture(const Value: array of TAbstractSingleTextureNode);

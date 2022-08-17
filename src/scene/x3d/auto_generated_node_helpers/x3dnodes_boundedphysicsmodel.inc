@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeometry: TSFNode;
-    { X3D field "geometry". } { }
+    {  }
     public property FdGeometry: TSFNode read FFdGeometry;
     {  }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;

@@ -31,19 +31,19 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_coordIndex: TMFInt32Event;
-    { X3D in event "set_coordIndex". } { }
+    {  }
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     strict private FFdCoordIndex: TMFInt32;
-    { X3D field "coordIndex". } { }
+    {  }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdSurface: TSFNode;
-    { X3D field "surface". } { }
+    {  }
     public property FdSurface: TSFNode read FFdSurface;
     {  }
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;

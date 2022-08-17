@@ -31,21 +31,21 @@
     class function ClassX3DType: string; override;
 
     strict private FEventActivate: TSFBoolEvent;
-    { X3D in event "activate". } { }
+    {  }
     public property EventActivate: TSFBoolEvent read FEventActivate;
 
     strict private FEventIsSelected: TSFBoolEvent;
-    { X3D out event "isSelected". } { }
+    {  }
     public property EventIsSelected: TSFBoolEvent read FEventIsSelected;
 
     strict private FEventIsValid: TSFBoolEvent;
-    { X3D out event "isValid". } { }
+    {  }
     public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
     strict private FFdLanguage: TSFStringEnum;
-    { X3D field "language". } { }
+    { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
     public property FdLanguage: TSFStringEnum read FFdLanguage;
-    { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. } { }
+    { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
     property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
 {$endif read_interface}

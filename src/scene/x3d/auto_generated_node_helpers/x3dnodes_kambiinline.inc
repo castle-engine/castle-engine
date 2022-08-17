@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdReplaceNames: TMFString;
-    { X3D field "replaceNames". } { }
+    {  }
     public property FdReplaceNames: TMFString read FFdReplaceNames;
-    {  } { }
+    {  }
     procedure SetReplaceNames(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetReplaceNames(const Value: TCastleStringList); overload;
 
     strict private FFdReplaceNodes: TMFNode;
-    { X3D field "replaceNodes". } { }
+    {  }
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
     {  }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);

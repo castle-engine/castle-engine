@@ -26,9 +26,9 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TVector3List); overload;
 
 {$endif read_interface}

@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_boolean: TSFBoolEvent;
-    { X3D in event "set_boolean". } { }
+    {  }
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FEventTriggerTime: TSFTimeEvent;
-    { X3D out event "triggerTime". } { }
+    {  }
     public property EventTriggerTime: TSFTimeEvent read FEventTriggerTime;
 
 {$endif read_interface}

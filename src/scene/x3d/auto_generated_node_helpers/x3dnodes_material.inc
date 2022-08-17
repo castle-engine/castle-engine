@@ -75,190 +75,190 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    { X3D field "ambientIntensity". } { }
+    {  }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-    {  } { }
+    {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdAmbientTexture: TSFNode;
-    { X3D field "ambientTexture". } { }
+    {  }
     public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
     {  }
     property AmbientTexture: TAbstractSingleTextureNode read GetAmbientTexture write SetAmbientTexture;
 
     strict private FFdAmbientTextureMapping: TSFString;
-    { X3D field "ambientTextureMapping". } { }
+    {  }
     public property FdAmbientTextureMapping: TSFString read FFdAmbientTextureMapping;
-    {  } { }
+    {  }
     property AmbientTextureMapping: String read GetAmbientTextureMapping write SetAmbientTextureMapping;
 
     strict private FFdDiffuseColor: TSFColor;
-    { X3D field "diffuseColor". } { }
+    { The primary way to control the color of object with Phong material. The object reflects light sources depending on the angle of the surface with respect to the light source. The more directly the surface faces the light, the more diffuse light reflects. }
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
-    {  } { }
+    { The primary way to control the color of object with Phong material. The object reflects light sources depending on the angle of the surface with respect to the light source. The more directly the surface faces the light, the more diffuse light reflects. }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
 
     strict private FFdDiffuseTexture: TSFNode;
-    { X3D field "diffuseTexture". } { }
+    { The primary texture to control the color of object with Phong material. The RGB channel of this texture is multiplied with @link(DiffuseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
-    {  }
+    { The primary texture to control the color of object with Phong material. The RGB channel of this texture is multiplied with @link(DiffuseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     property DiffuseTexture: TAbstractSingleTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdDiffuseTextureMapping: TSFString;
-    { X3D field "diffuseTextureMapping". } { }
+    {  }
     public property FdDiffuseTextureMapping: TSFString read FFdDiffuseTextureMapping;
-    {  } { }
+    {  }
     property DiffuseTextureMapping: String read GetDiffuseTextureMapping write SetDiffuseTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
-    { X3D field "occlusionStrength". } { }
+    {  }
     public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
-    {  } { }
+    {  }
     property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
 
     strict private FFdOcclusionTexture: TSFNode;
-    { X3D field "occlusionTexture". } { }
+    {  }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     {  }
     property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
     strict private FFdOcclusionTextureMapping: TSFString;
-    { X3D field "occlusionTextureMapping". } { }
+    {  }
     public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
-    {  } { }
+    {  }
     property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdShininess: TSFFloat;
-    { X3D field "shininess". } { }
+    {  }
     public property FdShininess: TSFFloat read FFdShininess;
-    {  } { }
+    {  }
     property Shininess: Single read GetShininess write SetShininess;
 
     strict private FFdShininessTexture: TSFNode;
-    { X3D field "shininessTexture". } { }
+    {  }
     public property FdShininessTexture: TSFNode read FFdShininessTexture;
     {  }
     property ShininessTexture: TAbstractSingleTextureNode read GetShininessTexture write SetShininessTexture;
 
     strict private FFdShininessTextureMapping: TSFString;
-    { X3D field "shininessTextureMapping". } { }
+    {  }
     public property FdShininessTextureMapping: TSFString read FFdShininessTextureMapping;
-    {  } { }
+    {  }
     property ShininessTextureMapping: String read GetShininessTextureMapping write SetShininessTextureMapping;
 
     strict private FFdSpecularColor: TSFColor;
-    { X3D field "specularColor". } { }
+    { Color of specular highlight, on shiny objects. }
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
-    {  } { }
+    { Color of specular highlight, on shiny objects. }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
 
     strict private FFdSpecularTexture: TSFNode;
-    { X3D field "specularTexture". } { }
+    {  }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractSingleTextureNode read GetSpecularTexture write SetSpecularTexture;
 
     strict private FFdSpecularTextureMapping: TSFString;
-    { X3D field "specularTextureMapping". } { }
+    {  }
     public property FdSpecularTextureMapping: TSFString read FFdSpecularTextureMapping;
-    {  } { }
+    {  }
     property SpecularTextureMapping: String read GetSpecularTextureMapping write SetSpecularTextureMapping;
 
     strict private FFdTransparency: TSFFloat;
-    { X3D field "transparency". } { }
+    {  }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  } { }
+    {  }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogImmune: TSFBool;
-    { X3D field "fogImmune". } { }
+    {  }
     public property FdFogImmune: TSFBool read FFdFogImmune;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property FogImmune: Boolean read GetFogImmune write SetFogImmune;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdMirror: TSFFloat;
-    { X3D field "mirror". } { }
+    {  }
     public property FdMirror: TSFFloat read FFdMirror;
-    {  } { }
+    {  }
     property Mirror: Single read GetMirror write SetMirror;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecular: TMFColor;
-    { X3D field "reflSpecular". } { }
+    {  }
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetReflSpecular(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflDiffuse: TMFColor;
-    { X3D field "reflDiffuse". } { }
+    {  }
     public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetReflDiffuse(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetReflDiffuse(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransSpecular: TMFColor;
-    { X3D field "transSpecular". } { }
+    {  }
     public property FdTransSpecular: TMFColor read FFdTransSpecular;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetTransSpecular(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetTransSpecular(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransDiffuse: TMFColor;
-    { X3D field "transDiffuse". } { }
+    {  }
     public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetTransDiffuse(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetTransDiffuse(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecularExp: TSFFloat;
-    { X3D field "reflSpecularExp". } { }
+    {  }
     public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property ReflSpecularExp: Single read GetReflSpecularExp write SetReflSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransSpecularExp: TSFFloat;
-    { X3D field "transSpecularExp". } { }
+    {  }
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 

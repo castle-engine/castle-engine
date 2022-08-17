@@ -27,11 +27,11 @@
     function GetMode: String;
     procedure SetMode(const Value: String);
   public
-    {  } { }
+    {  }
     property Mode: String read GetMode write SetMode;
-    {  } { }
+    {  }
     procedure SetParameter(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetParameter(const Value: TSingleList); overload;
 
 {$endif read_interface}

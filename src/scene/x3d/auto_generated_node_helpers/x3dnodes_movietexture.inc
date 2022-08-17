@@ -45,75 +45,75 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdLoop: TSFBool;
-    { X3D field "loop". } { }
+    {  }
     public property FdLoop: TSFBool read FFdLoop;
-    {  } { }
+    {  }
     property Loop: Boolean read GetLoop write SetLoop;
 
     strict private FFdPauseTime: TSFTime;
-    { X3D field "pauseTime". } { }
+    {  }
     public property FdPauseTime: TSFTime read FFdPauseTime;
-    {  } { }
+    {  }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
 
     strict private FFdResumeTime: TSFTime;
-    { X3D field "resumeTime". } { }
+    {  }
     public property FdResumeTime: TSFTime read FFdResumeTime;
-    {  } { }
+    {  }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
 
     strict private FFdSpeed: TSFFloat;
-    { X3D field "speed". } { }
+    {  }
     public property FdSpeed: TSFFloat read FFdSpeed;
-    {  } { }
+    {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdStartTime: TSFTime;
-    { X3D field "startTime". } { }
+    {  }
     public property FdStartTime: TSFTime read FFdStartTime;
-    {  } { }
+    {  }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
 
     strict private FFdStopTime: TSFTime;
-    { X3D field "stopTime". } { }
+    {  }
     public property FdStopTime: TSFTime read FFdStopTime;
-    {  } { }
+    {  }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFlipVertically: TSFBool;
-    { X3D field "flipVertically". } { }
+    {  }
     public property FdFlipVertically: TSFBool read FFdFlipVertically;
-    {  } { }
+    {  }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
     strict private FEventDuration_changed: TSFTimeEvent;
-    { X3D out event "duration_changed". } { }
+    {  }
     public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
     strict private FEventElapsedTime: TSFTimeEvent;
-    { X3D out event "elapsedTime". } { }
+    {  }
     public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
 
     strict private FEventIsActive: TSFBoolEvent;
-    { X3D out event "isActive". } { }
+    {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     strict private FEventIsPaused: TSFBoolEvent;
-    { X3D out event "isPaused". } { }
+    {  }
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
 {$endif read_interface}

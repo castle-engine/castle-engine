@@ -43,12 +43,17 @@ Switch : X3DGroupingNode {
 Transform : X3DGroupingNode {
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
+    doc: Center point around which the @link(Rotation) and @link(Scale) is performed.
   SFRotation [in,out] rotation         0 0 1 0
     range: [-1,1] or (-Inf,Inf)
+    doc: Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center).
   SFVec3f    [in,out] scale            1 1 1
     range: (-Inf, Inf)
+    doc: Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation).
   SFRotation [in,out] scaleOrientation 0 0 1 0
     range: [-1,1] or (-Inf,Inf)
+    doc: Orientation in which 3D @link(Scale) is performed.
   SFVec3f    [in,out] translation      0 0 0
     range: (-Inf,Inf)
+    doc: Translation (move) the children nodes.
 }

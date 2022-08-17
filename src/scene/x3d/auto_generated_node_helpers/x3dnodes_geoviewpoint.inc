@@ -37,55 +37,55 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_orientation: TSFRotationEvent;
-    { X3D in event "set_orientation". } { }
+    {  }
     public property EventSet_orientation: TSFRotationEvent read FEventSet_orientation;
 
     strict private FEventSet_position: TSFVec3dEvent;
-    { X3D in event "set_position". } { }
+    {  }
     public property EventSet_position: TSFVec3dEvent read FEventSet_position;
 
     strict private FFdFieldOfView: TSFFloat;
-    { X3D field "fieldOfView". } { }
+    {  }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
-    {  } { }
+    {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdHeadlight: TSFBool;
-    { X3D field "headlight". } { }
+    {  }
     public property FdHeadlight: TSFBool read FFdHeadlight;
-    {  } { }
+    {  }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdNavType: TMFString;
-    { X3D field "navType". } { }
+    {  }
     public property FdNavType: TMFString read FFdNavType;
-    {  } { }
+    {  }
     procedure SetNavType(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetNavType(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdPosition: TSFVec3d;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3d read FFdPosition;
 
     strict private FFdSpeedFactor: TSFFloat;
-    { X3D field "speedFactor". } { }
+    {  }
     public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
-    {  } { }
+    {  }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 
 {$endif read_interface}

@@ -33,27 +33,27 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_destination: TSFVec3fEvent;
-    { X3D in event "set_destination". } { }
+    {  }
     public property EventSet_destination: TSFVec3fEvent read FEventSet_destination;
 
     strict private FEventSet_value: TSFVec3fEvent;
-    { X3D in event "set_value". } { }
+    {  }
     public property EventSet_value: TSFVec3fEvent read FEventSet_value;
 
     strict private FEventValue_changed: TSFVec3fEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFVec3f;
-    { X3D field "initialDestination". } { }
+    {  }
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
-    {  } { }
+    {  }
     property InitialDestination: TVector3 read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFVec3f;
-    { X3D field "initialValue". } { }
+    {  }
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
-    {  } { }
+    {  }
     property InitialValue: TVector3 read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}

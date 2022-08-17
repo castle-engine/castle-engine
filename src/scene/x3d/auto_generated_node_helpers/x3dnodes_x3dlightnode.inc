@@ -41,45 +41,45 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    { X3D field "ambientIntensity". } { }
+    {  }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-    {  } { }
+    {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdColor: TSFColor;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFColor read FFdColor;
-    {  } { }
+    {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdGlobal: TSFBool;
-    { X3D field "global". } { }
+    {  }
     public property FdGlobal: TSFBool read FFdGlobal;
-    {  } { }
+    {  }
     property Global: Boolean read GetGlobal write SetGlobal;
 
     strict private FFdIntensity: TSFFloat;
-    { X3D field "intensity". } { }
+    {  }
     public property FdIntensity: TSFFloat read FFdIntensity;
-    {  } { }
+    {  }
     property Intensity: Single read GetIntensity write SetIntensity;
 
     strict private FFdOn: TSFBool;
-    { X3D field "on". } { }
+    {  }
     public property FdOn: TSFBool read FFdOn;
-    {  } { }
+    {  }
     property IsOn: Boolean read GetIsOn write SetIsOn;
 
     strict private FFdEffects: TMFNode;
-    { X3D field "effects". } { }
+    {  }
     public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdShadowVolumes: TSFBool;
-    { X3D field "shadowVolumes". } { }
+    {  }
     public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
-    {  } { }
+    {  }
     property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;
 
 {$endif read_interface}

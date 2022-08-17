@@ -35,21 +35,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TSFVec3f read FFdDirection;
-    {  } { }
+    {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionRectangle: TSFVec4f;
-    { X3D field "projectionRectangle". } { }
+    {  }
     public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
-    {  } { }
+    {  }
     property ProjectionRectangle: TVector4 read GetProjectionRectangle write SetProjectionRectangle;
 
     strict private FFdProjectionLocation: TSFVec3f;
-    { X3D field "projectionLocation". } { }
+    {  }
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
-    {  } { }
+    {  }
     property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;
 
 {$endif read_interface}

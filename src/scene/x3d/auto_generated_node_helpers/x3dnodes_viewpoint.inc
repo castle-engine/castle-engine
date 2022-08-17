@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFieldOfView: TSFFloat;
-    { X3D field "fieldOfView". } { }
+    {  }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
-    {  } { }
+    {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdPosition: TSFVec3f;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3f read FFdPosition;
 
     strict private FFdFieldOfViewForceVertical: TSFBool;
-    { X3D field "fieldOfViewForceVertical". } { }
+    {  }
     public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
-    {  } { }
+    {  }
     property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
 
 {$endif read_interface}

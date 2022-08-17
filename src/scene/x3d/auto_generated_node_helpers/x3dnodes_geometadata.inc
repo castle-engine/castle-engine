@@ -28,25 +28,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdData: TMFNode;
-    { X3D field "data". } { }
+    {  }
     public property FdData: TMFNode read FFdData;
     {  }
     procedure SetData(const Value: array of TAbstractNode);
 
     strict private FFdSummary: TMFString;
-    { X3D field "summary". } { }
+    {  }
     public property FdSummary: TMFString read FFdSummary;
-    {  } { }
+    {  }
     procedure SetSummary(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetSummary(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

@@ -35,29 +35,29 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSize: TSFVec3f;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFVec3f read FFdSize;
-    {  } { }
+    {  }
     property Size: TVector3 read GetSize write SetSize;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdDivisions: TSFInt32;
-    { X3D field "divisions". } { }
+    {  }
     public property FdDivisions: TSFInt32 read FFdDivisions;
-    {  } { }
+    {  }
     property Divisions: Integer read GetDivisions write SetDivisions;
 
 {$endif read_interface}

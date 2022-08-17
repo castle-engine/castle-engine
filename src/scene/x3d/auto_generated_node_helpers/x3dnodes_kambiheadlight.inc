@@ -39,19 +39,19 @@
     function GetSpotCutOffAngle: Single;
     procedure SetSpotCutOffAngle(const Value: Single);
   public
-    {  } { }
+    {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
-    {  } { }
+    {  }
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
-    {  } { }
+    {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    {  } { }
+    {  }
     property Intensity: Single read GetIntensity write SetIntensity;
-    {  } { }
+    {  }
     property Spot: Boolean read GetSpot write SetSpot;
-    {  } { }
+    {  }
     property SpotDropOffRate: Single read GetSpotDropOffRate write SetSpotDropOffRate;
-    {  } { }
+    {  }
     property SpotCutOffAngle: Single read GetSpotCutOffAngle write SetSpotCutOffAngle;
 
 {$endif read_interface}

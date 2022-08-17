@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TSFVec3f read FFdDirection;
-    {  } { }
+    {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdGustiness: TSFFloat;
-    { X3D field "gustiness". } { }
+    {  }
     public property FdGustiness: TSFFloat read FFdGustiness;
-    {  } { }
+    {  }
     property Gustiness: Single read GetGustiness write SetGustiness;
 
     strict private FFdSpeed: TSFFloat;
-    { X3D field "speed". } { }
+    {  }
     public property FdSpeed: TSFFloat read FFdSpeed;
-    {  } { }
+    {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTurbulence: TSFFloat;
-    { X3D field "turbulence". } { }
+    {  }
     public property FdTurbulence: TSFFloat read FFdTurbulence;
-    {  } { }
+    {  }
     property Turbulence: Single read GetTurbulence write SetTurbulence;
 
 {$endif read_interface}

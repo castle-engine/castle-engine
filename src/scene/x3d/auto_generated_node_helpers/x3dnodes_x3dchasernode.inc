@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDuration: TSFTime;
-    { X3D field "duration". } { }
+    {  }
     public property FdDuration: TSFTime read FFdDuration;
-    {  } { }
+    {  }
     property Duration: TFloatTime read GetDuration write SetDuration;
 
 {$endif read_interface}

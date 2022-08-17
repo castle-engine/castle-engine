@@ -55,95 +55,95 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_contacts: TMFNodeEvent;
-    { X3D in event "set_contacts". } { }
+    {  }
     public property EventSet_contacts: TMFNodeEvent read FEventSet_contacts;
 
     strict private FFdAutoDisable: TSFBool;
-    { X3D field "autoDisable". } { }
+    {  }
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
-    {  } { }
+    {  }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
 
     strict private FFdBodies: TMFNode;
-    { X3D field "bodies". } { }
+    {  }
     public property FdBodies: TMFNode read FFdBodies;
     {  }
     procedure SetBodies(const Value: array of TRigidBodyNode);
 
     strict private FFdConstantForceMix: TSFFloat;
-    { X3D field "constantForceMix". } { }
+    {  }
     public property FdConstantForceMix: TSFFloat read FFdConstantForceMix;
-    {  } { }
+    {  }
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
 
     strict private FFdContactSurfaceThickness: TSFFloat;
-    { X3D field "contactSurfaceThickness". } { }
+    {  }
     public property FdContactSurfaceThickness: TSFFloat read FFdContactSurfaceThickness;
-    {  } { }
+    {  }
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
 
     strict private FFdDisableAngularSpeed: TSFFloat;
-    { X3D field "disableAngularSpeed". } { }
+    {  }
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
-    {  } { }
+    {  }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
 
     strict private FFdDisableLinearSpeed: TSFFloat;
-    { X3D field "disableLinearSpeed". } { }
+    {  }
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
-    {  } { }
+    {  }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
 
     strict private FFdDisableTime: TSFFloat;
-    { X3D field "disableTime". } { }
+    {  }
     public property FdDisableTime: TSFFloat read FFdDisableTime;
-    {  } { }
+    {  }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdErrorCorrection: TSFFloat;
-    { X3D field "errorCorrection". } { }
+    {  }
     public property FdErrorCorrection: TSFFloat read FFdErrorCorrection;
-    {  } { }
+    {  }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
 
     strict private FFdGravity: TSFVec3f;
-    { X3D field "gravity". } { }
+    {  }
     public property FdGravity: TSFVec3f read FFdGravity;
-    {  } { }
+    {  }
     property Gravity: TVector3 read GetGravity write SetGravity;
 
     strict private FFdIterations: TSFInt32;
-    { X3D field "iterations". } { }
+    {  }
     public property FdIterations: TSFInt32 read FFdIterations;
-    {  } { }
+    {  }
     property Iterations: Integer read GetIterations write SetIterations;
 
     strict private FFdJoints: TMFNode;
-    { X3D field "joints". } { }
+    {  }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of TAbstractRigidJointNode);
 
     strict private FFdMaxCorrectionSpeed: TSFFloat;
-    { X3D field "maxCorrectionSpeed". } { }
+    {  }
     public property FdMaxCorrectionSpeed: TSFFloat read FFdMaxCorrectionSpeed;
-    {  } { }
+    {  }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
 
     strict private FFdPreferAccuracy: TSFBool;
-    { X3D field "preferAccuracy". } { }
+    {  }
     public property FdPreferAccuracy: TSFBool read FFdPreferAccuracy;
-    {  } { }
+    {  }
     property PreferAccuracy: Boolean read GetPreferAccuracy write SetPreferAccuracy;
 
     strict private FFdCollider: TSFNode;
-    { X3D field "collider". } { }
+    {  }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;

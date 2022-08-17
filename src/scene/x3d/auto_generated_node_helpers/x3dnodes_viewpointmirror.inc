@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDistanceFromShape: TSFFloat;
-    { X3D field "distanceFromShape". } { }
+    {  }
     public property FdDistanceFromShape: TSFFloat read FFdDistanceFromShape;
-    {  } { }
+    {  }
     property DistanceFromShape: Single read GetDistanceFromShape write SetDistanceFromShape;
 
 {$endif read_interface}

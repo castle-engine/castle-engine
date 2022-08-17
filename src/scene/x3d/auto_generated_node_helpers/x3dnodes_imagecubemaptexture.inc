@@ -31,15 +31,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTextureProperties: TSFNode;
-    { X3D field "textureProperties". } { }
+    {  }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;

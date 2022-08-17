@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_boolean: TSFBoolEvent;
-    { X3D in event "set_boolean". } { }
+    {  }
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FFdToggle: TSFBool;
-    { X3D field "toggle". } { }
+    {  }
     public property FdToggle: TSFBool read FFdToggle;
-    {  } { }
+    {  }
     property Toggle: Boolean read GetToggle write SetToggle;
 
 {$endif read_interface}

@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdNeedsDepth: TSFBool;
-    { X3D field "needsDepth". } { }
+    {  }
     public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
-    {  } { }
+    {  }
     property NeedsDepth: Boolean read GetNeedsDepth write SetNeedsDepth;
 
     strict private FFdShaders: TMFNode;
-    { X3D field "shaders". } { }
+    {  }
     public property FdShaders: TMFNode read FFdShaders;
     {  }
     procedure SetShaders(const Value: array of TAbstractShaderNode);

@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_triggerTime: TSFTimeEvent;
-    { X3D in event "set_triggerTime". } { }
+    {  }
     public property EventSet_triggerTime: TSFTimeEvent read FEventSet_triggerTime;
 
     strict private FEventTriggerTrue: TSFBoolEvent;
-    { X3D out event "triggerTrue". } { }
+    {  }
     public property EventTriggerTrue: TSFBoolEvent read FEventTriggerTrue;
 
 {$endif read_interface}

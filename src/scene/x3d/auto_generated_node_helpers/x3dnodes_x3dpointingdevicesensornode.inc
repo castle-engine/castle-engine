@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FEventIsOver: TSFBoolEvent;
-    { X3D out event "isOver". } { }
+    {  }
     public property EventIsOver: TSFBoolEvent read FEventIsOver;
 
 {$endif read_interface}

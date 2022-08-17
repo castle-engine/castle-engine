@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFVec2f;
-    { X3D field "keyValue". } { }
+    {  }
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TVector2List); overload;
 
     strict private FEventValue_changed: TMFVec2fEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
 
 {$endif read_interface}

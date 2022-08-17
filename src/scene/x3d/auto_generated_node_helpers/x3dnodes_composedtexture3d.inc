@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTexture: TMFNode;
-    { X3D field "texture". } { }
+    {  }
     public property FdTexture: TMFNode read FFdTexture;
     {  }
     procedure SetTexture(const Value: array of TAbstractTexture2DNode);

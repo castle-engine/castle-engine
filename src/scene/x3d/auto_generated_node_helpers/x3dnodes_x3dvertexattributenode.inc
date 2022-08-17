@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdName: TSFString;
-    { X3D field "name". } { }
+    {  }
     public property FdName: TSFString read FFdName;
-    {  } { }
+    {  }
     property NameField: String read GetNameField write SetNameField;
 
 {$endif read_interface}

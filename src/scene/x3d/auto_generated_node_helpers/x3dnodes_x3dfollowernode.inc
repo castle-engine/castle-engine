@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FEventIsActive: TSFBoolEvent;
-    { X3D out event "isActive". } { }
+    {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
 {$endif read_interface}

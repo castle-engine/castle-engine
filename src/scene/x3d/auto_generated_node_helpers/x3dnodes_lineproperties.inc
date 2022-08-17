@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdApplied: TSFBool;
-    { X3D field "applied". } { }
+    {  }
     public property FdApplied: TSFBool read FFdApplied;
-    {  } { }
+    {  }
     property Applied: Boolean read GetApplied write SetApplied;
 
     strict private FFdLinetype: TSFInt32;
-    { X3D field "linetype". } { }
+    {  }
     public property FdLinetype: TSFInt32 read FFdLinetype;
 
     strict private FFdLinewidthScaleFactor: TSFFloat;
-    { X3D field "linewidthScaleFactor". } { }
+    {  }
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
-    {  } { }
+    {  }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;
 
 {$endif read_interface}

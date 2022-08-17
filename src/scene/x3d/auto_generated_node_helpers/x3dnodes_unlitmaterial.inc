@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTransparency: TSFFloat;
-    { X3D field "transparency". } { }
+    {  }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  } { }
+    {  }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

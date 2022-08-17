@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFanCount: TMFInt32;
-    { X3D field "fanCount". } { }
+    {  }
     public property FdFanCount: TMFInt32 read FFdFanCount;
-    {  } { }
+    {  }
     procedure SetFanCount(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetFanCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}

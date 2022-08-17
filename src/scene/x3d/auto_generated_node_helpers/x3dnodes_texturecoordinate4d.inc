@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdPoint: TMFVec4f;
-    { X3D field "point". } { }
+    {  }
     public property FdPoint: TMFVec4f read FFdPoint;
-    {  } { }
+    {  }
     procedure SetPoint(const Value: array of TVector4); overload;
-    {  } { }
+    {  }
     procedure SetPoint(const Value: TVector4List); overload;
 
 {$endif read_interface}

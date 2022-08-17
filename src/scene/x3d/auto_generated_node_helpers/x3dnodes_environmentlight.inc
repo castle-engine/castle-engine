@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDiffuseTexture: TSFNode;
-    { X3D field "diffuseTexture". } { }
+    {  }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
     {  }
     property DiffuseTexture: TAbstractEnvironmentTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdSpecularTexture: TSFNode;
-    { X3D field "specularTexture". } { }
+    {  }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractEnvironmentTextureNode read GetSpecularTexture write SetSpecularTexture;

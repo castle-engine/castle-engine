@@ -38,7 +38,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    { X3D field "attrib". } { }
+    {  }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -47,20 +47,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    { X3D field "coord". } { }
+    {  }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    { X3D field "fogCoord". } { }
+    {  }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -69,11 +69,11 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdVertexCount: TMFInt32;
-    { X3D field "vertexCount". } { }
+    {  }
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
-    {  } { }
+    {  }
     procedure SetVertexCount(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetVertexCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}

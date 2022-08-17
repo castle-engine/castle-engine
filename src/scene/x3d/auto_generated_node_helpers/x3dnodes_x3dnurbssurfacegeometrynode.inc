@@ -47,89 +47,89 @@
     class function ClassX3DType: string; override;
 
     strict private FFdControlPoint: TSFNode;
-    { X3D field "controlPoint". } { }
+    {  }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdUTessellation: TSFInt32;
-    { X3D field "uTessellation". } { }
+    {  }
     public property FdUTessellation: TSFInt32 read FFdUTessellation;
-    {  } { }
+    {  }
     property UTessellation: Integer read GetUTessellation write SetUTessellation;
 
     strict private FFdVTessellation: TSFInt32;
-    { X3D field "vTessellation". } { }
+    {  }
     public property FdVTessellation: TSFInt32 read FFdVTessellation;
-    {  } { }
+    {  }
     property VTessellation: Integer read GetVTessellation write SetVTessellation;
 
     strict private FFdWeight: TMFDouble;
-    { X3D field "weight". } { }
+    {  }
     public property FdWeight: TMFDouble read FFdWeight;
-    {  } { }
+    {  }
     procedure SetWeight(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdUClosed: TSFBool;
-    { X3D field "uClosed". } { }
+    {  }
     public property FdUClosed: TSFBool read FFdUClosed;
-    {  } { }
+    {  }
     property UClosed: Boolean read GetUClosed write SetUClosed;
 
     strict private FFdUDimension: TSFInt32;
-    { X3D field "uDimension". } { }
+    {  }
     public property FdUDimension: TSFInt32 read FFdUDimension;
-    {  } { }
+    {  }
     property UDimension: Integer read GetUDimension write SetUDimension;
 
     strict private FFdUKnot: TMFDouble;
-    { X3D field "uKnot". } { }
+    {  }
     public property FdUKnot: TMFDouble read FFdUKnot;
-    {  } { }
+    {  }
     procedure SetUKnot(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetUKnot(const Value: TDoubleList); overload;
 
     strict private FFdUOrder: TSFInt32;
-    { X3D field "uOrder". } { }
+    {  }
     public property FdUOrder: TSFInt32 read FFdUOrder;
-    {  } { }
+    {  }
     property UOrder: Integer read GetUOrder write SetUOrder;
 
     strict private FFdVClosed: TSFBool;
-    { X3D field "vClosed". } { }
+    {  }
     public property FdVClosed: TSFBool read FFdVClosed;
-    {  } { }
+    {  }
     property VClosed: Boolean read GetVClosed write SetVClosed;
 
     strict private FFdVDimension: TSFInt32;
-    { X3D field "vDimension". } { }
+    {  }
     public property FdVDimension: TSFInt32 read FFdVDimension;
-    {  } { }
+    {  }
     property VDimension: Integer read GetVDimension write SetVDimension;
 
     strict private FFdVKnot: TMFDouble;
-    { X3D field "vKnot". } { }
+    {  }
     public property FdVKnot: TMFDouble read FFdVKnot;
-    {  } { }
+    {  }
     procedure SetVKnot(const Value: array of Double); overload;
-    {  } { }
+    {  }
     procedure SetVKnot(const Value: TDoubleList); overload;
 
     strict private FFdVOrder: TSFInt32;
-    { X3D field "vOrder". } { }
+    {  }
     public property FdVOrder: TSFInt32 read FFdVOrder;
-    {  } { }
+    {  }
     property VOrder: Integer read GetVOrder write SetVOrder;
 
 {$endif read_interface}

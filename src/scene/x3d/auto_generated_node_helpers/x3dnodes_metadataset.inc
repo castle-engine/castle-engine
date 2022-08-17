@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFNode;
-    { X3D field "value". } { }
+    {  }
     public property FdValue: TMFNode read FFdValue;
     {  }
     procedure SetValue(const Value: array of TAbstractMetadataNode);

@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { X3D field "anchorPoint". } { }
+    {  }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
-    {  } { }
+    {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FEventBody1AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body1AnchorPoint". } { }
+    {  }
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     strict private FEventBody2AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body2AnchorPoint". } { }
+    {  }
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
 {$endif read_interface}

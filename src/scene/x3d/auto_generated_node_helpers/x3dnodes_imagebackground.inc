@@ -29,13 +29,13 @@
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
   public
-    {  } { }
+    {  }
     property Color: TCastleColor read GetColor write SetColor;
     {  }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
-    {  } { }
+    {  }
     procedure SetTexCoords(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetTexCoords(const Value: TVector2List); overload;
 
 {$endif read_interface}

@@ -33,15 +33,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirectOutput: TSFBool;
-    { X3D field "directOutput". } { }
+    {  }
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
-    {  } { }
+    {  }
     property DirectOutput: Boolean read GetDirectOutput write SetDirectOutput;
 
     strict private FFdMustEvaluate: TSFBool;
-    { X3D field "mustEvaluate". } { }
+    {  }
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
-    {  } { }
+    {  }
     property MustEvaluate: Boolean read GetMustEvaluate write SetMustEvaluate;
 
 {$endif read_interface}

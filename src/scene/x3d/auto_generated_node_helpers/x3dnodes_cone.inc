@@ -41,47 +41,47 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBottom: TSFBool;
-    { X3D field "bottom". } { }
+    {  }
     public property FdBottom: TSFBool read FFdBottom;
-    {  } { }
+    {  }
     property Bottom: Boolean read GetBottom write SetBottom;
 
     strict private FFdBottomRadius: TSFFloat;
-    { X3D field "bottomRadius". } { }
+    {  }
     public property FdBottomRadius: TSFFloat read FFdBottomRadius;
-    {  } { }
+    {  }
     property BottomRadius: Single read GetBottomRadius write SetBottomRadius;
 
     strict private FFdHeight: TSFFloat;
-    { X3D field "height". } { }
+    {  }
     public property FdHeight: TSFFloat read FFdHeight;
-    {  } { }
+    {  }
     property Height: Single read GetHeight write SetHeight;
 
     strict private FFdSide: TSFBool;
-    { X3D field "side". } { }
+    {  }
     public property FdSide: TSFBool read FFdSide;
-    {  } { }
+    {  }
     property Side: Boolean read GetSide write SetSide;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdSlices: TSFInt32;
-    { X3D field "slices". } { }
+    {  }
     public property FdSlices: TSFInt32 read FFdSlices;
-    {  } { }
+    {  }
     property Slices: Integer read GetSlices write SetSlices;
 
     strict private FFdStacks: TSFInt32;
-    { X3D field "stacks". } { }
+    {  }
     public property FdStacks: TSFInt32 read FFdStacks;
-    {  } { }
+    {  }
     property Stacks: Integer read GetStacks write SetStacks;
 
 {$endif read_interface}

@@ -49,71 +49,71 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnisotropicDegree: TSFFloat;
-    { X3D field "anisotropicDegree". } { }
+    {  }
     public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
-    {  } { }
+    {  }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
 
     strict private FFdBorderColor: TSFColorRGBA;
-    { X3D field "borderColor". } { }
+    {  }
     public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
-    {  } { }
+    {  }
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
 
     strict private FFdBorderWidth: TSFInt32;
-    { X3D field "borderWidth". } { }
+    {  }
     public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
-    {  } { }
+    {  }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
 
     strict private FFdBoundaryModeS: TSFStringEnum;
-    { X3D field "boundaryModeS". } { }
+    {  }
     public property FdBoundaryModeS: TSFStringEnum read FFdBoundaryModeS;
-    {  } { }
+    {  }
     property BoundaryModeS: TBoundaryMode read GetBoundaryModeS write SetBoundaryModeS;
 
     strict private FFdBoundaryModeT: TSFStringEnum;
-    { X3D field "boundaryModeT". } { }
+    {  }
     public property FdBoundaryModeT: TSFStringEnum read FFdBoundaryModeT;
-    {  } { }
+    {  }
     property BoundaryModeT: TBoundaryMode read GetBoundaryModeT write SetBoundaryModeT;
 
     strict private FFdBoundaryModeR: TSFStringEnum;
-    { X3D field "boundaryModeR". } { }
+    {  }
     public property FdBoundaryModeR: TSFStringEnum read FFdBoundaryModeR;
-    {  } { }
+    {  }
     property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
 
     strict private FFdMagnificationFilter: TSFString;
-    { X3D field "magnificationFilter". } { }
+    {  }
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
     strict private FFdMinificationFilter: TSFString;
-    { X3D field "minificationFilter". } { }
+    {  }
     public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
     strict private FFdTextureCompression: TSFString;
-    { X3D field "textureCompression". } { }
+    {  }
     public property FdTextureCompression: TSFString read FFdTextureCompression;
-    {  } { }
+    {  }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
 
     strict private FFdTexturePriority: TSFFloat;
-    { X3D field "texturePriority". } { }
+    {  }
     public property FdTexturePriority: TSFFloat read FFdTexturePriority;
-    {  } { }
+    {  }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
 
     strict private FFdGenerateMipMaps: TSFBool;
-    { X3D field "generateMipMaps". } { }
+    {  }
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
-    {  } { }
+    {  }
     property GenerateMipMaps: Boolean read GetGenerateMipMaps write SetGenerateMipMaps;
 
     strict private FFdGuiTexture: TSFBool;
-    { X3D field "guiTexture". } { }
+    {  }
     public property FdGuiTexture: TSFBool read FFdGuiTexture;
-    {  } { }
+    {  }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;
 
 {$endif read_interface}

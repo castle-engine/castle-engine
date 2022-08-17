@@ -37,39 +37,39 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCycleInterval: TSFTime;
-    { X3D field "cycleInterval". } { }
+    {  }
     public property FdCycleInterval: TSFTime read FFdCycleInterval;
-    {  } { }
+    {  }
     property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
 
     strict private FEventCycleTime: TSFTimeEvent;
-    { X3D out event "cycleTime". } { }
+    {  }
     public property EventCycleTime: TSFTimeEvent read FEventCycleTime;
 
     strict private FEventFraction_changed: TSFFloatEvent;
-    { X3D out event "fraction_changed". } { }
+    {  }
     public property EventFraction_changed: TSFFloatEvent read FEventFraction_changed;
 
     strict private FEventTime: TSFTimeEvent;
-    { X3D out event "time". } { }
+    {  }
     public property EventTime: TSFTimeEvent read FEventTime;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFractionIncreasing: TSFBool;
-    { X3D field "fractionIncreasing". } { }
+    {  }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
-    {  } { }
+    {  }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
 
     strict private FFdDetectAffectedFields: TSFBool;
-    { X3D field "detectAffectedFields". } { }
+    {  }
     public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
-    {  } { }
+    {  }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;
 
 {$endif read_interface}

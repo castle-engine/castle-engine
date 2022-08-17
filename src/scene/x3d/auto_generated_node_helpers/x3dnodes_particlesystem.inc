@@ -49,89 +49,89 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCreateParticles: TSFBool;
-    { X3D field "createParticles". } { }
+    {  }
     public property FdCreateParticles: TSFBool read FFdCreateParticles;
-    {  } { }
+    {  }
     property CreateParticles: Boolean read GetCreateParticles write SetCreateParticles;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdLifetimeVariation: TSFFloat;
-    { X3D field "lifetimeVariation". } { }
+    {  }
     public property FdLifetimeVariation: TSFFloat read FFdLifetimeVariation;
-    {  } { }
+    {  }
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
 
     strict private FFdMaxParticles: TSFInt32;
-    { X3D field "maxParticles". } { }
+    {  }
     public property FdMaxParticles: TSFInt32 read FFdMaxParticles;
-    {  } { }
+    {  }
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
 
     strict private FFdParticleLifetime: TSFFloat;
-    { X3D field "particleLifetime". } { }
+    {  }
     public property FdParticleLifetime: TSFFloat read FFdParticleLifetime;
-    {  } { }
+    {  }
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
 
     strict private FFdParticleSize: TSFVec2f;
-    { X3D field "particleSize". } { }
+    {  }
     public property FdParticleSize: TSFVec2f read FFdParticleSize;
-    {  } { }
+    {  }
     property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
 
     strict private FEventIsActive: TSFBoolEvent;
-    { X3D out event "isActive". } { }
+    {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     strict private FFdColorRamp: TSFNode;
-    { X3D field "colorRamp". } { }
+    {  }
     public property FdColorRamp: TSFNode read FFdColorRamp;
     {  }
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
 
     strict private FFdColorKey: TMFFloat;
-    { X3D field "colorKey". } { }
+    {  }
     public property FdColorKey: TMFFloat read FFdColorKey;
-    {  } { }
+    {  }
     procedure SetColorKey(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetColorKey(const Value: TSingleList); overload;
 
     strict private FFdEmitter: TSFNode;
-    { X3D field "emitter". } { }
+    {  }
     public property FdEmitter: TSFNode read FFdEmitter;
     {  }
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
 
     strict private FFdGeometryType: TSFStringEnum;
-    { X3D field "geometryType". } { }
+    {  }
     public property FdGeometryType: TSFStringEnum read FFdGeometryType;
-    {  } { }
+    {  }
     property GeometryType: TParticlesGeometry read GetGeometryType write SetGeometryType;
 
     strict private FFdPhysics: TMFNode;
-    { X3D field "physics". } { }
+    {  }
     public property FdPhysics: TMFNode read FFdPhysics;
     {  }
     procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
 
     strict private FFdTexCoordRamp: TSFNode;
-    { X3D field "texCoordRamp". } { }
+    {  }
     public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
     {  }
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
 
     strict private FFdTexCoordKey: TMFFloat;
-    { X3D field "texCoordKey". } { }
+    {  }
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
-    {  } { }
+    {  }
     procedure SetTexCoordKey(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetTexCoordKey(const Value: TSingleList); overload;
 
 {$endif read_interface}

@@ -39,61 +39,61 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAvatarSize: TMFFloat;
-    { X3D field "avatarSize". } { }
+    {  }
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
-    {  } { }
+    {  }
     procedure SetAvatarSize(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetAvatarSize(const Value: TSingleList); overload;
 
     strict private FFdHeadlight: TSFBool;
-    { X3D field "headlight". } { }
+    {  }
     public property FdHeadlight: TSFBool read FFdHeadlight;
-    {  } { }
+    {  }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdSpeed: TSFFloat;
-    { X3D field "speed". } { }
+    {  }
     public property FdSpeed: TSFFloat read FFdSpeed;
-    {  } { }
+    {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTransitionTime: TSFTime;
-    { X3D field "transitionTime". } { }
+    {  }
     public property FdTransitionTime: TSFTime read FFdTransitionTime;
-    {  } { }
+    {  }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
 
     strict private FFdTransitionType: TMFString;
-    { X3D field "transitionType". } { }
+    {  }
     public property FdTransitionType: TMFString read FFdTransitionType;
-    {  } { }
+    {  }
     procedure SetTransitionType(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetTransitionType(const Value: TCastleStringList); overload;
 
     strict private FFdType: TMFString;
-    { X3D field "type". } { }
+    {  }
     public property FdType: TMFString read FFdType;
-    {  } { }
+    {  }
     procedure SetType(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetType(const Value: TCastleStringList); overload;
 
     strict private FFdVisibilityLimit: TSFFloat;
-    { X3D field "visibilityLimit". } { }
+    {  }
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
-    {  } { }
+    {  }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
 
     strict private FEventTransitionComplete: TSFBoolEvent;
-    { X3D out event "transitionComplete". } { }
+    {  }
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
 
     strict private FFdBlendingSort: TSFStringEnum;
-    { X3D field "blendingSort". } { }
+    {  }
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
-    {  } { }
+    {  }
     property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
 
 {$endif read_interface}

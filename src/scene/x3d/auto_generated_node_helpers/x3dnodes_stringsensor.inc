@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDeletionAllowed: TSFBool;
-    { X3D field "deletionAllowed". } { }
+    {  }
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
-    {  } { }
+    {  }
     property DeletionAllowed: Boolean read GetDeletionAllowed write SetDeletionAllowed;
 
     strict private FEventEnteredText: TSFStringEvent;
-    { X3D out event "enteredText". } { }
+    {  }
     public property EventEnteredText: TSFStringEvent read FEventEnteredText;
 
     strict private FEventFinalText: TSFStringEvent;
-    { X3D out event "finalText". } { }
+    {  }
     public property EventFinalText: TSFStringEvent read FEventFinalText;
 
 {$endif read_interface}

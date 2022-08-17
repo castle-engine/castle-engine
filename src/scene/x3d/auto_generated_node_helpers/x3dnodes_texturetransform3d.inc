@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdRotation: TSFRotation;
-    { X3D field "rotation". } { }
+    {  }
     public property FdRotation: TSFRotation read FFdRotation;
-    {  } { }
+    {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFVec3f read FFdScale;
-    {  } { }
+    {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdTranslation: TSFVec3f;
-    { X3D field "translation". } { }
+    {  }
     public property FdTranslation: TSFVec3f read FFdTranslation;
-    {  } { }
+    {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}

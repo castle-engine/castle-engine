@@ -28,17 +28,17 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_bind: TSFBoolEvent;
-    { X3D in event "set_bind". } { }
+    {  }
     public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventBindTime: TSFTimeEvent;
-    { X3D out event "bindTime". } { }
+    {  }
     public property EventBindTime: TSFTimeEvent read FEventBindTime;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FEventIsBound: TSFBoolEvent;
-    { X3D out event "isBound". } { }
+    {  }
     public property EventIsBound: TSFBoolEvent read FEventIsBound;
 
 {$endif read_interface}

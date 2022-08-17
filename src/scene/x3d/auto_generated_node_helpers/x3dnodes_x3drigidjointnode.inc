@@ -33,23 +33,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBody1: TSFNode;
-    { X3D field "body1". } { }
+    {  }
     public property FdBody1: TSFNode read FFdBody1;
     {  }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
 
     strict private FFdBody2: TSFNode;
-    { X3D field "body2". } { }
+    {  }
     public property FdBody2: TSFNode read FFdBody2;
     {  }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
 
     strict private FFdForceOutput: TMFString;
-    { X3D field "forceOutput". } { }
+    {  }
     public property FdForceOutput: TMFString read FFdForceOutput;
-    {  } { }
+    {  }
     procedure SetForceOutput(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetForceOutput(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

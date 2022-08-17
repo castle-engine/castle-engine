@@ -41,37 +41,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackTexture: TSFNode;
-    { X3D field "backTexture". } { }
+    {  }
     public property FdBackTexture: TSFNode read FFdBackTexture;
     {  }
     property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
 
     strict private FFdBottomTexture: TSFNode;
-    { X3D field "bottomTexture". } { }
+    {  }
     public property FdBottomTexture: TSFNode read FFdBottomTexture;
     {  }
     property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
 
     strict private FFdFrontTexture: TSFNode;
-    { X3D field "frontTexture". } { }
+    {  }
     public property FdFrontTexture: TSFNode read FFdFrontTexture;
     {  }
     property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
 
     strict private FFdLeftTexture: TSFNode;
-    { X3D field "leftTexture". } { }
+    {  }
     public property FdLeftTexture: TSFNode read FFdLeftTexture;
     {  }
     property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
 
     strict private FFdRightTexture: TSFNode;
-    { X3D field "rightTexture". } { }
+    {  }
     public property FdRightTexture: TSFNode read FFdRightTexture;
     {  }
     property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
 
     strict private FFdTopTexture: TSFNode;
-    { X3D field "topTexture". } { }
+    {  }
     public property FdTopTexture: TSFNode read FFdTopTexture;
     {  }
     property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;

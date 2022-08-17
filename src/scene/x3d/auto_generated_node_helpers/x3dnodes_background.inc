@@ -28,51 +28,51 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackUrl: TMFString;
-    { X3D field "backUrl". } { }
+    {  }
     public property FdBackUrl: TMFString read FFdBackUrl;
-    {  } { }
+    {  }
     procedure SetBackUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetBackUrl(const Value: TCastleStringList); overload;
 
     strict private FFdBottomUrl: TMFString;
-    { X3D field "bottomUrl". } { }
+    {  }
     public property FdBottomUrl: TMFString read FFdBottomUrl;
-    {  } { }
+    {  }
     procedure SetBottomUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetBottomUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFrontUrl: TMFString;
-    { X3D field "frontUrl". } { }
+    {  }
     public property FdFrontUrl: TMFString read FFdFrontUrl;
-    {  } { }
+    {  }
     procedure SetFrontUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetFrontUrl(const Value: TCastleStringList); overload;
 
     strict private FFdLeftUrl: TMFString;
-    { X3D field "leftUrl". } { }
+    {  }
     public property FdLeftUrl: TMFString read FFdLeftUrl;
-    {  } { }
+    {  }
     procedure SetLeftUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetLeftUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRightUrl: TMFString;
-    { X3D field "rightUrl". } { }
+    {  }
     public property FdRightUrl: TMFString read FFdRightUrl;
-    {  } { }
+    {  }
     procedure SetRightUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetRightUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTopUrl: TMFString;
-    { X3D field "topUrl". } { }
+    {  }
     public property FdTopUrl: TMFString read FFdTopUrl;
-    {  } { }
+    {  }
     procedure SetTopUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetTopUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

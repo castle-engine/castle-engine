@@ -50,7 +50,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    { X3D field "attrib". } { }
+    {  }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -59,20 +59,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    { X3D field "coord". } { }
+    {  }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    { X3D field "fogCoord". } { }
+    {  }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -81,56 +81,56 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdNormal: TSFNode;
-    { X3D field "normal". } { }
+    {  }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTangent: TSFNode;
-    { X3D field "tangent". } { }
+    {  }
     public property FdTangent: TSFNode read FFdTangent;
     {  }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    { X3D field "colorPerVertex". } { }
+    {  }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-    {  } { }
+    {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdNormalPerVertex: TSFBool;
-    { X3D field "normalPerVertex". } { }
+    {  }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
-    {  } { }
+    {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRadianceTransfer: TMFVec3f;
-    { X3D field "radianceTransfer". } { }
+    {  }
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetRadianceTransfer(const Value: array of TVector3); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     procedure SetRadianceTransfer(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 

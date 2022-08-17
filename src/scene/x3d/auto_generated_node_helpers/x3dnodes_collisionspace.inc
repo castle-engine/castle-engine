@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCollidables: TMFNode;
-    { X3D field "collidables". } { }
+    {  }
     public property FdCollidables: TMFNode read FFdCollidables;
 
     strict private FFdUseGeometry: TSFBool;
-    { X3D field "useGeometry". } { }
+    {  }
     public property FdUseGeometry: TSFBool read FFdUseGeometry;
-    {  } { }
+    {  }
     property UseGeometry: Boolean read GetUseGeometry write SetUseGeometry;
 
 {$endif read_interface}

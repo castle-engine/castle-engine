@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSize: TSFVec2f;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFVec2f read FFdSize;
-    {  } { }
+    {  }
     property Size: TVector2 read GetSize write SetSize;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FEventTouchTime: TSFTimeEvent;
-    { X3D out event "touchTime". } { }
+    {  }
     public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
 
 {$endif read_interface}

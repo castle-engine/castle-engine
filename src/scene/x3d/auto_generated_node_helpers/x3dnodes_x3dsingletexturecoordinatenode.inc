@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMapping: TSFString;
-    { X3D field "mapping". } { }
+    {  }
     public property FdMapping: TSFString read FFdMapping;
-    {  } { }
+    {  }
     property Mapping: String read GetMapping write SetMapping;
 
 {$endif read_interface}

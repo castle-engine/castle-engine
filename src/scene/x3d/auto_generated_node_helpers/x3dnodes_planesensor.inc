@@ -37,31 +37,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisRotation: TSFRotation;
-    { X3D field "axisRotation". } { }
+    {  }
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
-    {  } { }
+    {  }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
 
     strict private FFdMaxPosition: TSFVec2f;
-    { X3D field "maxPosition". } { }
+    {  }
     public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
-    {  } { }
+    {  }
     property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
 
     strict private FFdMinPosition: TSFVec2f;
-    { X3D field "minPosition". } { }
+    {  }
     public property FdMinPosition: TSFVec2f read FFdMinPosition;
-    {  } { }
+    {  }
     property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
 
     strict private FFdOffset: TSFVec3f;
-    { X3D field "offset". } { }
+    {  }
     public property FdOffset: TSFVec3f read FFdOffset;
-    {  } { }
+    {  }
     property Offset: TVector3 read GetOffset write SetOffset;
 
     strict private FEventTranslation_changed: TSFVec3fEvent;
-    { X3D out event "translation_changed". } { }
+    {  }
     public property EventTranslation_changed: TSFVec3fEvent read FEventTranslation_changed;
 
 {$endif read_interface}

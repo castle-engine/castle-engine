@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FEventAddChildren: TMFNodeEvent;
-    { X3D in event "addChildren". } { }
+    {  }
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     strict private FEventRemoveChildren: TMFNodeEvent;
-    { X3D in event "removeChildren". } { }
+    {  }
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    { X3D field "children". } { }
+    {  }
     public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);

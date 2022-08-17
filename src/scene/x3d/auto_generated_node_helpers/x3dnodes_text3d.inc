@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDepth: TSFFloat;
-    { X3D field "depth". } { }
+    {  }
     public property FdDepth: TSFFloat read FFdDepth;
-    {  } { }
+    {  }
     property Depth: Single read GetDepth write SetDepth;
 
 {$endif read_interface}

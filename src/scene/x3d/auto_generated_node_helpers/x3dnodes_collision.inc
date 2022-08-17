@@ -33,21 +33,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FEventCollideTime: TSFTimeEvent;
-    { X3D out event "collideTime". } { }
+    {  }
     public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
 
     strict private FEventIsActive: TSFBoolEvent;
-    { X3D out event "isActive". } { }
+    {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     strict private FFdProxy: TSFNode;
-    { X3D field "proxy". } { }
+    {  }
     public property FdProxy: TSFNode read FFdProxy;
     {  }
     property Proxy: TAbstractChildNode read GetProxy write SetProxy;

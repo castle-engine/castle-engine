@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFilled: TSFBool;
-    { X3D field "filled". } { }
+    {  }
     public property FdFilled: TSFBool read FFdFilled;
-    {  } { }
+    {  }
     property Filled: Boolean read GetFilled write SetFilled;
 
     strict private FFdHatchColor: TSFColor;
-    { X3D field "hatchColor". } { }
+    {  }
     public property FdHatchColor: TSFColor read FFdHatchColor;
-    {  } { }
+    {  }
     property HatchColor: TCastleColorRGB read GetHatchColor write SetHatchColor;
 
     strict private FFdHatched: TSFBool;
-    { X3D field "hatched". } { }
+    {  }
     public property FdHatched: TSFBool read FFdHatched;
-    {  } { }
+    {  }
     property Hatched: Boolean read GetHatched write SetHatched;
 
     strict private FFdHatchStyle: TSFInt32;
-    { X3D field "hatchStyle". } { }
+    {  }
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
-    {  } { }
+    {  }
     property HatchStyle: Integer read GetHatchStyle write SetHatchStyle;
 
 {$endif read_interface}

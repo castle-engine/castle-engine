@@ -31,21 +31,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFFloat;
-    { X3D field "keyValue". } { }
+    {  }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TSingleList); overload;
 
     strict private FFdAxis: TSFVec3f;
-    { X3D field "axis". } { }
+    {  }
     public property FdAxis: TSFVec3f read FFdAxis;
-    {  } { }
+    {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FEventValue_changed: TSFRotationEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}

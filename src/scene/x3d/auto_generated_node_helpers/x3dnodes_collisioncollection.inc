@@ -45,63 +45,63 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAppliedParameters: TMFString;
-    { X3D field "appliedParameters". } { }
+    {  }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
-    {  } { }
+    {  }
     procedure SetAppliedParameters(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetAppliedParameters(const Value: TCastleStringList); overload;
 
     strict private FFdBounce: TSFFloat;
-    { X3D field "bounce". } { }
+    {  }
     public property FdBounce: TSFFloat read FFdBounce;
-    {  } { }
+    {  }
     property Bounce: Single read GetBounce write SetBounce;
 
     strict private FFdCollidables: TMFNode;
-    { X3D field "collidables". } { }
+    {  }
     public property FdCollidables: TMFNode read FFdCollidables;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFrictionCoefficients: TSFVec2f;
-    { X3D field "frictionCoefficients". } { }
+    {  }
     public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
-    {  } { }
+    {  }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
 
     strict private FFdMinBounceSpeed: TSFFloat;
-    { X3D field "minBounceSpeed". } { }
+    {  }
     public property FdMinBounceSpeed: TSFFloat read FFdMinBounceSpeed;
-    {  } { }
+    {  }
     property MinBounceSpeed: Single read GetMinBounceSpeed write SetMinBounceSpeed;
 
     strict private FFdSlipFactors: TSFVec2f;
-    { X3D field "slipFactors". } { }
+    {  }
     public property FdSlipFactors: TSFVec2f read FFdSlipFactors;
-    {  } { }
+    {  }
     property SlipFactors: TVector2 read GetSlipFactors write SetSlipFactors;
 
     strict private FFdSoftnessConstantForceMix: TSFFloat;
-    { X3D field "softnessConstantForceMix". } { }
+    {  }
     public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
-    {  } { }
+    {  }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
 
     strict private FFdSoftnessErrorCorrection: TSFFloat;
-    { X3D field "softnessErrorCorrection". } { }
+    {  }
     public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
-    {  } { }
+    {  }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
 
     strict private FFdSurfaceSpeed: TSFVec2f;
-    { X3D field "surfaceSpeed". } { }
+    {  }
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
-    {  } { }
+    {  }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
 {$endif read_interface}

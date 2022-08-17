@@ -39,16 +39,16 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_colorIndex: TMFInt32Event;
-    { X3D in event "set_colorIndex". } { }
+    {  }
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
     strict private FEventSet_coordIndex: TMFInt32Event;
-    { X3D in event "set_coordIndex". } { }
+    {  }
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    { X3D field "attrib". } { }
+    {  }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -57,20 +57,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    { X3D field "color". } { }
+    {  }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    { X3D field "coord". } { }
+    {  }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    { X3D field "fogCoord". } { }
+    {  }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -79,25 +79,25 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColorIndex: TMFInt32;
-    { X3D field "colorIndex". } { }
+    {  }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
-    {  } { }
+    {  }
     procedure SetColorIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetColorIndex(const Value: TLongIntList); overload;
 
     strict private FFdColorPerVertex: TSFBool;
-    { X3D field "colorPerVertex". } { }
+    {  }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-    {  } { }
+    {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdCoordIndex: TMFInt32;
-    { X3D field "coordIndex". } { }
+    {  }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}

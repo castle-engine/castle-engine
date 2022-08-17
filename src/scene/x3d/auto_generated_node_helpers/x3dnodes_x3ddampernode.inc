@@ -35,21 +35,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTau: TSFTime;
-    { X3D field "tau". } { }
+    {  }
     public property FdTau: TSFTime read FFdTau;
-    {  } { }
+    {  }
     property Tau: TFloatTime read GetTau write SetTau;
 
     strict private FFdTolerance: TSFFloat;
-    { X3D field "tolerance". } { }
+    {  }
     public property FdTolerance: TSFFloat read FFdTolerance;
-    {  } { }
+    {  }
     property Tolerance: Single read GetTolerance write SetTolerance;
 
     strict private FFdOrder: TSFInt32;
-    { X3D field "order". } { }
+    {  }
     public property FdOrder: TSFInt32 read FFdOrder;
-    {  } { }
+    {  }
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}

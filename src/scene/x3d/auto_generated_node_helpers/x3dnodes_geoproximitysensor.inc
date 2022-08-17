@@ -33,39 +33,39 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCenter: TSFVec3d;
-    { X3D field "geoCenter". } { }
+    {  }
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
-    {  } { }
+    {  }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
 
     strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
-    { X3D out event "centerOfRotation_changed". } { }
+    {  }
     public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
     strict private FEventGeoCoord_changed: TSFVec3dEvent;
-    { X3D out event "geoCoord_changed". } { }
+    {  }
     public property EventGeoCoord_changed: TSFVec3dEvent read FEventGeoCoord_changed;
 
     strict private FEventOrientation_changed: TSFRotationEvent;
-    { X3D out event "orientation_changed". } { }
+    {  }
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     strict private FEventPosition_changed: TSFVec3fEvent;
-    { X3D out event "position_changed". } { }
+    {  }
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisOfRotation: TSFVec3f;
-    { X3D field "axisOfRotation". } { }
+    {  }
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
-    {  } { }
+    {  }
     property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;
 
 {$endif read_interface}

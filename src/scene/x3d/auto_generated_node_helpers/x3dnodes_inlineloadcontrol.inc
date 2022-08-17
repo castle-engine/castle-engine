@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FEventChildren: TMFNodeEvent;
-    { X3D out event "children". } { }
+    {  }
     public property EventChildren: TMFNodeEvent read FEventChildren;
 
 {$endif read_interface}

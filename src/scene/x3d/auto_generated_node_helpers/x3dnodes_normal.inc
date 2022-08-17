@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdVector: TMFVec3f;
-    { X3D field "vector". } { }
+    {  }
     public property FdVector: TMFVec3f read FFdVector;
-    {  } { }
+    {  }
     procedure SetVector(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetVector(const Value: TVector3List); overload;
 
 {$endif read_interface}

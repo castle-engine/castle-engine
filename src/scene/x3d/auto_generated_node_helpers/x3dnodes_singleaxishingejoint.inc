@@ -41,55 +41,55 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { X3D field "anchorPoint". } { }
+    {  }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
-    {  } { }
+    {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis: TSFVec3f;
-    { X3D field "axis". } { }
+    {  }
     public property FdAxis: TSFVec3f read FFdAxis;
-    {  } { }
+    {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FFdMaxAngle: TSFFloat;
-    { X3D field "maxAngle". } { }
+    {  }
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
-    {  } { }
+    {  }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
 
     strict private FFdMinAngle: TSFFloat;
-    { X3D field "minAngle". } { }
+    {  }
     public property FdMinAngle: TSFFloat read FFdMinAngle;
-    {  } { }
+    {  }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
 
     strict private FFdStopBounce: TSFFloat;
-    { X3D field "stopBounce". } { }
+    {  }
     public property FdStopBounce: TSFFloat read FFdStopBounce;
-    {  } { }
+    {  }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
 
     strict private FFdStopErrorCorrection: TSFFloat;
-    { X3D field "stopErrorCorrection". } { }
+    {  }
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
-    {  } { }
+    {  }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;
 
     strict private FEventAngle: TSFFloatEvent;
-    { X3D out event "angle". } { }
+    {  }
     public property EventAngle: TSFFloatEvent read FEventAngle;
 
     strict private FEventAngleRate: TSFFloatEvent;
-    { X3D out event "angleRate". } { }
+    {  }
     public property EventAngleRate: TSFFloatEvent read FEventAngleRate;
 
     strict private FEventBody1AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body1AnchorPoint". } { }
+    {  }
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     strict private FEventBody2AnchorPoint: TSFVec3fEvent;
-    { X3D out event "body2AnchorPoint". } { }
+    {  }
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
 {$endif read_interface}

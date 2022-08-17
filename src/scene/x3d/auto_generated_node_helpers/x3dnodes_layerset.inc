@@ -31,23 +31,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdActiveLayer: TSFInt32;
-    { X3D field "activeLayer". } { }
+    {  }
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
-    {  } { }
+    {  }
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
 
     strict private FFdLayers: TMFNode;
-    { X3D field "layers". } { }
+    {  }
     public property FdLayers: TMFNode read FFdLayers;
     {  }
     procedure SetLayers(const Value: array of TAbstractLayerNode);
 
     strict private FFdOrder: TMFInt32;
-    { X3D field "order". } { }
+    {  }
     public property FdOrder: TMFInt32 read FFdOrder;
-    {  } { }
+    {  }
     procedure SetOrder(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetOrder(const Value: TLongIntList); overload;
 
 {$endif read_interface}

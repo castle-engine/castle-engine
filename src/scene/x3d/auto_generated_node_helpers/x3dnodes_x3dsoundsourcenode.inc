@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { X3D field "description". } { }
+    {  }
     public property FdDescription: TSFString read FFdDescription;
-    {  } { }
+    {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdPitch: TSFFloat;
-    { X3D field "pitch". } { }
+    {  }
     public property FdPitch: TSFFloat read FFdPitch;
-    {  } { }
+    {  }
     property Pitch: Single read GetPitch write SetPitch;
 
     strict private FEventDuration_changed: TSFTimeEvent;
-    { X3D out event "duration_changed". } { }
+    {  }
     public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
 {$endif read_interface}

@@ -35,15 +35,15 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
-    {  } { }
+    { Center point around which the @link(Rotation) and @link(Scale) is performed. }
     property Center: TVector3 read GetCenter write SetCenter;
-    {  } { }
+    { Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
     property Rotation: TVector4 read GetRotation write SetRotation;
-    {  } { }
+    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). }
     property Scale: TVector3 read GetScale write SetScale;
-    {  } { }
+    { Orientation in which 3D @link(Scale) is performed. }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
-    {  } { }
+    { Translation (move) the children nodes. }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}

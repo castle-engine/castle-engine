@@ -67,143 +67,143 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAngularDampingFactor: TSFFloat;
-    { X3D field "angularDampingFactor". } { }
+    {  }
     public property FdAngularDampingFactor: TSFFloat read FFdAngularDampingFactor;
-    {  } { }
+    {  }
     property AngularDampingFactor: Single read GetAngularDampingFactor write SetAngularDampingFactor;
 
     strict private FFdAngularVelocity: TSFVec3f;
-    { X3D field "angularVelocity". } { }
+    {  }
     public property FdAngularVelocity: TSFVec3f read FFdAngularVelocity;
-    {  } { }
+    {  }
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
 
     strict private FFdAutoDamp: TSFBool;
-    { X3D field "autoDamp". } { }
+    {  }
     public property FdAutoDamp: TSFBool read FFdAutoDamp;
-    {  } { }
+    {  }
     property AutoDamp: Boolean read GetAutoDamp write SetAutoDamp;
 
     strict private FFdAutoDisable: TSFBool;
-    { X3D field "autoDisable". } { }
+    {  }
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
-    {  } { }
+    {  }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
 
     strict private FFdCenterOfMass: TSFVec3f;
-    { X3D field "centerOfMass". } { }
+    {  }
     public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
-    {  } { }
+    {  }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
 
     strict private FFdDisableAngularSpeed: TSFFloat;
-    { X3D field "disableAngularSpeed". } { }
+    {  }
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
-    {  } { }
+    {  }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
 
     strict private FFdDisableLinearSpeed: TSFFloat;
-    { X3D field "disableLinearSpeed". } { }
+    {  }
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
-    {  } { }
+    {  }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
 
     strict private FFdDisableTime: TSFFloat;
-    { X3D field "disableTime". } { }
+    {  }
     public property FdDisableTime: TSFFloat read FFdDisableTime;
-    {  } { }
+    {  }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFiniteRotationAxis: TSFVec3f;
-    { X3D field "finiteRotationAxis". } { }
+    {  }
     public property FdFiniteRotationAxis: TSFVec3f read FFdFiniteRotationAxis;
-    {  } { }
+    {  }
     property FiniteRotationAxis: TVector3 read GetFiniteRotationAxis write SetFiniteRotationAxis;
 
     strict private FFdFixed: TSFBool;
-    { X3D field "fixed". } { }
+    {  }
     public property FdFixed: TSFBool read FFdFixed;
-    {  } { }
+    {  }
     property Fixed: Boolean read GetFixed write SetFixed;
 
     strict private FFdForces: TMFVec3f;
-    { X3D field "forces". } { }
+    {  }
     public property FdForces: TMFVec3f read FFdForces;
-    {  } { }
+    {  }
     procedure SetForces(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetForces(const Value: TVector3List); overload;
 
     strict private FFdGeometry: TMFNode;
-    { X3D field "geometry". } { }
+    {  }
     public property FdGeometry: TMFNode read FFdGeometry;
     {  }
     procedure SetGeometry(const Value: array of TAbstractNBodyCollidableNode);
 
     strict private FFdInertia: TSFMatrix3f;
-    { X3D field "inertia". } { }
+    {  }
     public property FdInertia: TSFMatrix3f read FFdInertia;
-    {  } { }
+    {  }
     property Inertia: TMatrix3 read GetInertia write SetInertia;
 
     strict private FFdLinearDampingFactor: TSFFloat;
-    { X3D field "linearDampingFactor". } { }
+    {  }
     public property FdLinearDampingFactor: TSFFloat read FFdLinearDampingFactor;
-    {  } { }
+    {  }
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
 
     strict private FFdLinearVelocity: TSFVec3f;
-    { X3D field "linearVelocity". } { }
+    {  }
     public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
-    {  } { }
+    {  }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
 
     strict private FFdMass: TSFFloat;
-    { X3D field "mass". } { }
+    {  }
     public property FdMass: TSFFloat read FFdMass;
-    {  } { }
+    {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdMassDensityModel: TSFNode;
-    { X3D field "massDensityModel". } { }
+    {  }
     public property FdMassDensityModel: TSFNode read FFdMassDensityModel;
 
     strict private FFdOrientation: TSFRotation;
-    { X3D field "orientation". } { }
+    {  }
     public property FdOrientation: TSFRotation read FFdOrientation;
-    {  } { }
+    {  }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdPosition: TSFVec3f;
-    { X3D field "position". } { }
+    {  }
     public property FdPosition: TSFVec3f read FFdPosition;
-    {  } { }
+    {  }
     property Position: TVector3 read GetPosition write SetPosition;
 
     strict private FFdTorques: TMFVec3f;
-    { X3D field "torques". } { }
+    {  }
     public property FdTorques: TMFVec3f read FFdTorques;
-    {  } { }
+    {  }
     procedure SetTorques(const Value: array of TVector3); overload;
-    {  } { }
+    {  }
     procedure SetTorques(const Value: TVector3List); overload;
 
     strict private FFdUseFiniteRotation: TSFBool;
-    { X3D field "useFiniteRotation". } { }
+    {  }
     public property FdUseFiniteRotation: TSFBool read FFdUseFiniteRotation;
-    {  } { }
+    {  }
     property UseFiniteRotation: Boolean read GetUseFiniteRotation write SetUseFiniteRotation;
 
     strict private FFdUseGlobalGravity: TSFBool;
-    { X3D field "useGlobalGravity". } { }
+    {  }
     public property FdUseGlobalGravity: TSFBool read FFdUseGlobalGravity;
-    {  } { }
+    {  }
     property UseGlobalGravity: Boolean read GetUseGlobalGravity write SetUseGlobalGravity;
 
 {$endif read_interface}

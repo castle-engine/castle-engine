@@ -51,69 +51,69 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBaseColor: TSFColor;
-    { X3D field "baseColor". } { }
+    { The primary way to control the color of object with physical (PBR) material. }
     public property FdBaseColor: TSFColor read FFdBaseColor;
-    {  } { }
+    { The primary way to control the color of object with physical (PBR) material. }
     property BaseColor: TCastleColorRGB read GetBaseColor write SetBaseColor;
 
     strict private FFdBaseTexture: TSFNode;
-    { X3D field "baseTexture". } { }
+    { The primary texture to control the color of object with physical (PBR) material. The RGB channel of this texture is multiplied with @link(BaseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     public property FdBaseTexture: TSFNode read FFdBaseTexture;
-    {  }
+    { The primary texture to control the color of object with physical (PBR) material. The RGB channel of this texture is multiplied with @link(BaseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     property BaseTexture: TAbstractSingleTextureNode read GetBaseTexture write SetBaseTexture;
 
     strict private FFdBaseTextureMapping: TSFString;
-    { X3D field "baseTextureMapping". } { }
+    { Determines texture coordinates used by @link(BaseTexture). }
     public property FdBaseTextureMapping: TSFString read FFdBaseTextureMapping;
-    {  } { }
+    { Determines texture coordinates used by @link(BaseTexture). }
     property BaseTextureMapping: String read GetBaseTextureMapping write SetBaseTextureMapping;
 
     strict private FFdMetallic: TSFFloat;
-    { X3D field "metallic". } { }
+    {  }
     public property FdMetallic: TSFFloat read FFdMetallic;
-    {  } { }
+    {  }
     property Metallic: Single read GetMetallic write SetMetallic;
 
     strict private FFdMetallicRoughnessTexture: TSFNode;
-    { X3D field "metallicRoughnessTexture". } { }
+    { Control the @link(Metallic) and @link(Roughness) using a texture. The @italic(Blue) channel of this texture is multiplied with @link(Metallic). The @link(Green) channel is multiplied with @link(Roughness). The other channels are ignored. }
     public property FdMetallicRoughnessTexture: TSFNode read FFdMetallicRoughnessTexture;
-    {  }
+    { Control the @link(Metallic) and @link(Roughness) using a texture. The @italic(Blue) channel of this texture is multiplied with @link(Metallic). The @link(Green) channel is multiplied with @link(Roughness). The other channels are ignored. }
     property MetallicRoughnessTexture: TAbstractSingleTextureNode read GetMetallicRoughnessTexture write SetMetallicRoughnessTexture;
 
     strict private FFdMetallicRoughnessTextureMapping: TSFString;
-    { X3D field "metallicRoughnessTextureMapping". } { }
+    { Determines texture coordinates used by @link(MetallicRoughnessTexture). }
     public property FdMetallicRoughnessTextureMapping: TSFString read FFdMetallicRoughnessTextureMapping;
-    {  } { }
+    { Determines texture coordinates used by @link(MetallicRoughnessTexture). }
     property MetallicRoughnessTextureMapping: String read GetMetallicRoughnessTextureMapping write SetMetallicRoughnessTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
-    { X3D field "occlusionStrength". } { }
+    {  }
     public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
-    {  } { }
+    {  }
     property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
 
     strict private FFdOcclusionTexture: TSFNode;
-    { X3D field "occlusionTexture". } { }
+    {  }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     {  }
     property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
     strict private FFdOcclusionTextureMapping: TSFString;
-    { X3D field "occlusionTextureMapping". } { }
+    {  }
     public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
-    {  } { }
+    {  }
     property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdRoughness: TSFFloat;
-    { X3D field "roughness". } { }
+    {  }
     public property FdRoughness: TSFFloat read FFdRoughness;
-    {  } { }
+    {  }
     property Roughness: Single read GetRoughness write SetRoughness;
 
     strict private FFdTransparency: TSFFloat;
-    { X3D field "transparency". } { }
+    {  }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  } { }
+    {  }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

@@ -41,39 +41,39 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { X3D field "update". } { }
+    { When to update the texture contents. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
-    { When to update the texture contents. } { }
+    { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFInt32 read FFdSize;
-    {  } { }
+    {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdLight: TSFNode;
-    { X3D field "light". } { }
+    {  }
     public property FdLight: TSFNode read FFdLight;
     {  }
     property Light: TAbstractLightNode read GetLight write SetLight;
 
     strict private FFdScale: TSFFloat;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFFloat read FFdScale;
-    {  } { }
+    {  }
     property Scale: Single read GetScale write SetScale;
 
     strict private FFdBias: TSFFloat;
-    { X3D field "bias". } { }
+    {  }
     public property FdBias: TSFFloat read FFdBias;
-    {  } { }
+    {  }
     property Bias: Single read GetBias write SetBias;
 
     strict private FFdCompareMode: TSFStringEnum;
-    { X3D field "compareMode". } { }
+    {  }
     public property FdCompareMode: TSFStringEnum read FFdCompareMode;
-    {  } { }
+    {  }
     property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;
 
 {$endif read_interface}

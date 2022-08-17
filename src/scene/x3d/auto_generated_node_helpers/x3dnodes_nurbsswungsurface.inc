@@ -35,25 +35,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdProfileCurve: TSFNode;
-    { X3D field "profileCurve". } { }
+    {  }
     public property FdProfileCurve: TSFNode read FFdProfileCurve;
     {  }
     property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
 
     strict private FFdTrajectoryCurve: TSFNode;
-    { X3D field "trajectoryCurve". } { }
+    {  }
     public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
     {  }
     property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
 
     strict private FFdCcw: TSFBool;
-    { X3D field "ccw". } { }
+    {  }
     public property FdCcw: TSFBool read FFdCcw;
-    {  } { }
+    {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

@@ -49,63 +49,63 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TSFVec3f read FFdDirection;
-    {  } { }
+    {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdIntensity: TSFFloat;
-    { X3D field "intensity". } { }
+    {  }
     public property FdIntensity: TSFFloat read FFdIntensity;
-    {  } { }
+    {  }
     property Intensity: Single read GetIntensity write SetIntensity;
 
     strict private FFdLocation: TSFVec3f;
-    { X3D field "location". } { }
+    {  }
     public property FdLocation: TSFVec3f read FFdLocation;
-    {  } { }
+    {  }
     property Location: TVector3 read GetLocation write SetLocation;
 
     strict private FFdMaxBack: TSFFloat;
-    { X3D field "maxBack". } { }
+    {  }
     public property FdMaxBack: TSFFloat read FFdMaxBack;
-    {  } { }
+    {  }
     property MaxBack: Single read GetMaxBack write SetMaxBack;
 
     strict private FFdMaxFront: TSFFloat;
-    { X3D field "maxFront". } { }
+    {  }
     public property FdMaxFront: TSFFloat read FFdMaxFront;
-    {  } { }
+    {  }
     property MaxFront: Single read GetMaxFront write SetMaxFront;
 
     strict private FFdMinBack: TSFFloat;
-    { X3D field "minBack". } { }
+    {  }
     public property FdMinBack: TSFFloat read FFdMinBack;
-    {  } { }
+    {  }
     property MinBack: Single read GetMinBack write SetMinBack;
 
     strict private FFdMinFront: TSFFloat;
-    { X3D field "minFront". } { }
+    {  }
     public property FdMinFront: TSFFloat read FFdMinFront;
-    {  } { }
+    {  }
     property MinFront: Single read GetMinFront write SetMinFront;
 
     strict private FFdPriority: TSFFloat;
-    { X3D field "priority". } { }
+    {  }
     public property FdPriority: TSFFloat read FFdPriority;
-    {  } { }
+    {  }
     property Priority: Single read GetPriority write SetPriority;
 
     strict private FFdSource: TSFNode;
-    { X3D field "source". } { }
+    {  }
     public property FdSource: TSFNode read FFdSource;
     {  }
     property Source: TAbstractSoundSourceNode read GetSource write SetSource;
 
     strict private FFdSpatialize: TSFBool;
-    { X3D field "spatialize". } { }
+    {  }
     public property FdSpatialize: TSFBool read FFdSpatialize;
-    {  } { }
+    {  }
     property Spatialize: Boolean read GetSpatialize write SetSpatialize;
 
 {$endif read_interface}

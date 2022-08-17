@@ -39,37 +39,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisRotation: TSFRotation;
-    { X3D field "axisRotation". } { }
+    {  }
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
-    {  } { }
+    {  }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
 
     strict private FFdDiskAngle: TSFFloat;
-    { X3D field "diskAngle". } { }
+    {  }
     public property FdDiskAngle: TSFFloat read FFdDiskAngle;
-    {  } { }
+    {  }
     property DiskAngle: Single read GetDiskAngle write SetDiskAngle;
 
     strict private FFdMaxAngle: TSFFloat;
-    { X3D field "maxAngle". } { }
+    {  }
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
-    {  } { }
+    {  }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
 
     strict private FFdMinAngle: TSFFloat;
-    { X3D field "minAngle". } { }
+    {  }
     public property FdMinAngle: TSFFloat read FFdMinAngle;
-    {  } { }
+    {  }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
 
     strict private FFdOffset: TSFFloat;
-    { X3D field "offset". } { }
+    {  }
     public property FdOffset: TSFFloat read FFdOffset;
-    {  } { }
+    {  }
     property Offset: Single read GetOffset write SetOffset;
 
     strict private FEventRotation_changed: TSFRotationEvent;
-    { X3D out event "rotation_changed". } { }
+    {  }
     public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
 {$endif read_interface}

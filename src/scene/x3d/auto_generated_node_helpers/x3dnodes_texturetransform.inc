@@ -33,13 +33,13 @@
     function GetTranslation: TVector2;
     procedure SetTranslation(const Value: TVector2);
   public
-    {  } { }
+    {  }
     property Center: TVector2 read GetCenter write SetCenter;
-    {  } { }
+    {  }
     property Rotation: Single read GetRotation write SetRotation;
-    {  } { }
+    {  }
     property Scale: TVector2 read GetScale write SetScale;
-    {  } { }
+    {  }
     property Translation: TVector2 read GetTranslation write SetTranslation;
 
 {$endif read_interface}

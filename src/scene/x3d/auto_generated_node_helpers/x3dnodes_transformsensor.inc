@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTargetObject: TSFNode;
-    { X3D field "targetObject". } { }
+    {  }
     public property FdTargetObject: TSFNode read FFdTargetObject;
 
     strict private FEventOrientation_changed: TSFRotationEvent;
-    { X3D out event "orientation_changed". } { }
+    {  }
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     strict private FEventPosition_changed: TSFVec3fEvent;
-    { X3D out event "position_changed". } { }
+    {  }
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
 {$endif read_interface}

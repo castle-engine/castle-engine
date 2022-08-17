@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdOffset: TSFRotation;
-    { X3D field "offset". } { }
+    {  }
     public property FdOffset: TSFRotation read FFdOffset;
-    {  } { }
+    {  }
     property Offset: TVector4 read GetOffset write SetOffset;
 
     strict private FEventRotation_changed: TSFRotationEvent;
-    { X3D out event "rotation_changed". } { }
+    {  }
     public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
 {$endif read_interface}

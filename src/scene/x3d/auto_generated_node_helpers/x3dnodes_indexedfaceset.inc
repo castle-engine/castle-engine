@@ -34,70 +34,70 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_colorIndex: TMFInt32Event;
-    { X3D in event "set_colorIndex". } { }
+    {  }
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_coordIndex: TMFInt32Event;
-    { X3D in event "set_coordIndex". } { }
+    {  }
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_normalIndex: TMFInt32Event;
-    { X3D in event "set_normalIndex". } { }
+    {  }
     public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_texCoordIndex: TMFInt32Event;
-    { X3D in event "set_texCoordIndex". } { }
+    {  }
     public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColorIndex: TMFInt32;
-    { X3D field "colorIndex". } { }
+    {  }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
-    {  } { }
+    {  }
     procedure SetColorIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetColorIndex(const Value: TLongIntList); overload;
 
     strict private FFdConvex: TSFBool;
-    { X3D field "convex". } { }
+    {  }
     public property FdConvex: TSFBool read FFdConvex;
-    {  } { }
+    {  }
     property Convex: Boolean read GetConvex write SetConvex;
 
     strict private FFdCoordIndex: TMFInt32;
-    { X3D field "coordIndex". } { }
+    {  }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdCreaseAngle: TSFFloat;
-    { X3D field "creaseAngle". } { }
+    {  }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-    {  } { }
+    {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdNormalIndex: TMFInt32;
-    { X3D field "normalIndex". } { }
+    {  }
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
-    {  } { }
+    {  }
     procedure SetNormalIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetNormalIndex(const Value: TLongIntList); overload;
 
     strict private FFdTexCoordIndex: TMFInt32;
-    { X3D field "texCoordIndex". } { }
+    {  }
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
-    {  } { }
+    {  }
     procedure SetTexCoordIndex(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetTexCoordIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}

@@ -31,9 +31,9 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMatrix: TSFMatrix4f;
-    { X3D field "matrix". } { }
+    {  }
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
-    {  } { }
+    {  }
     property Matrix: TMatrix4 read GetMatrix write SetMatrix;
 
 {$endif read_interface}

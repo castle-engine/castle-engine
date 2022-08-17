@@ -51,71 +51,71 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFamily: TMFString;
-    { X3D field "family". } { }
+    {  }
     public property FdFamily: TMFString read FFdFamily;
 
     strict private FFdHorizontal: TSFBool;
-    { X3D field "horizontal". } { }
+    {  }
     public property FdHorizontal: TSFBool read FFdHorizontal;
-    {  } { }
+    {  }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
 
     strict private FFdJustify: TMFString;
-    { X3D field "justify". } { }
+    {  }
     public property FdJustify: TMFString read FFdJustify;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLanguage: TSFString;
-    { X3D field "language". } { }
+    {  }
     public property FdLanguage: TSFString read FFdLanguage;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property Language: String read GetLanguage write SetLanguage;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLeftToRight: TSFBool;
-    { X3D field "leftToRight". } { }
+    {  }
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdSize: TSFFloat;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFFloat read FFdSize;
-    {  } { }
+    {  }
     property Size: Single read GetSize write SetSize;
 
     strict private FFdSpacing: TSFFloat;
-    { X3D field "spacing". } { }
+    {  }
     public property FdSpacing: TSFFloat read FFdSpacing;
-    {  } { }
+    {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdStyle: TSFStringEnum;
-    { X3D field "style". } { }
+    {  }
     public property FdStyle: TSFStringEnum read FFdStyle;
-    {  } { }
+    {  }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
-    { X3D field "topToBottom". } { }
+    {  }
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdBlending: TSFBool;
-    { X3D field "blending". } { }
+    {  }
     public property FdBlending: TSFBool read FFdBlending;
-    {  } { }
+    {  }
     property Blending: Boolean read GetBlending write SetBlending;
 
 {$endif read_interface}

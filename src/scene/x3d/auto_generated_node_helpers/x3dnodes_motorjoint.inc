@@ -63,129 +63,129 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxis1Angle: TSFFloat;
-    { X3D field "axis1Angle". } { }
+    {  }
     public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
-    {  } { }
+    {  }
     property Axis1Angle: Single read GetAxis1Angle write SetAxis1Angle;
 
     strict private FFdAxis1Torque: TSFFloat;
-    { X3D field "axis1Torque". } { }
+    {  }
     public property FdAxis1Torque: TSFFloat read FFdAxis1Torque;
-    {  } { }
+    {  }
     property Axis1Torque: Single read GetAxis1Torque write SetAxis1Torque;
 
     strict private FFdAxis2Angle: TSFFloat;
-    { X3D field "axis2Angle". } { }
+    {  }
     public property FdAxis2Angle: TSFFloat read FFdAxis2Angle;
-    {  } { }
+    {  }
     property Axis2Angle: Single read GetAxis2Angle write SetAxis2Angle;
 
     strict private FFdAxis2Torque: TSFFloat;
-    { X3D field "axis2Torque". } { }
+    {  }
     public property FdAxis2Torque: TSFFloat read FFdAxis2Torque;
-    {  } { }
+    {  }
     property Axis2Torque: Single read GetAxis2Torque write SetAxis2Torque;
 
     strict private FFdAxis3Angle: TSFFloat;
-    { X3D field "axis3Angle". } { }
+    {  }
     public property FdAxis3Angle: TSFFloat read FFdAxis3Angle;
-    {  } { }
+    {  }
     property Axis3Angle: Single read GetAxis3Angle write SetAxis3Angle;
 
     strict private FFdAxis3Torque: TSFFloat;
-    { X3D field "axis3Torque". } { }
+    {  }
     public property FdAxis3Torque: TSFFloat read FFdAxis3Torque;
-    {  } { }
+    {  }
     property Axis3Torque: Single read GetAxis3Torque write SetAxis3Torque;
 
     strict private FFdEnabledAxes: TSFInt32;
-    { X3D field "enabledAxes". } { }
+    {  }
     public property FdEnabledAxes: TSFInt32 read FFdEnabledAxes;
-    {  } { }
+    {  }
     property EnabledAxes: Integer read GetEnabledAxes write SetEnabledAxes;
 
     strict private FFdMotor1Axis: TSFVec3f;
-    { X3D field "motor1Axis". } { }
+    {  }
     public property FdMotor1Axis: TSFVec3f read FFdMotor1Axis;
-    {  } { }
+    {  }
     property Motor1Axis: TVector3 read GetMotor1Axis write SetMotor1Axis;
 
     strict private FFdMotor2Axis: TSFVec3f;
-    { X3D field "motor2Axis". } { }
+    {  }
     public property FdMotor2Axis: TSFVec3f read FFdMotor2Axis;
-    {  } { }
+    {  }
     property Motor2Axis: TVector3 read GetMotor2Axis write SetMotor2Axis;
 
     strict private FFdMotor3Axis: TSFVec3f;
-    { X3D field "motor3Axis". } { }
+    {  }
     public property FdMotor3Axis: TSFVec3f read FFdMotor3Axis;
-    {  } { }
+    {  }
     property Motor3Axis: TVector3 read GetMotor3Axis write SetMotor3Axis;
 
     strict private FFdStop1Bounce: TSFFloat;
-    { X3D field "stop1Bounce". } { }
+    {  }
     public property FdStop1Bounce: TSFFloat read FFdStop1Bounce;
-    {  } { }
+    {  }
     property Stop1Bounce: Single read GetStop1Bounce write SetStop1Bounce;
 
     strict private FFdStop1ErrorCorrection: TSFFloat;
-    { X3D field "stop1ErrorCorrection". } { }
+    {  }
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
-    {  } { }
+    {  }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
 
     strict private FFdStop2Bounce: TSFFloat;
-    { X3D field "stop2Bounce". } { }
+    {  }
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
-    {  } { }
+    {  }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
 
     strict private FFdStop2ErrorCorrection: TSFFloat;
-    { X3D field "stop2ErrorCorrection". } { }
+    {  }
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
-    {  } { }
+    {  }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
 
     strict private FFdStop3Bounce: TSFFloat;
-    { X3D field "stop3Bounce". } { }
+    {  }
     public property FdStop3Bounce: TSFFloat read FFdStop3Bounce;
-    {  } { }
+    {  }
     property Stop3Bounce: Single read GetStop3Bounce write SetStop3Bounce;
 
     strict private FFdStop3ErrorCorrection: TSFFloat;
-    { X3D field "stop3ErrorCorrection". } { }
+    {  }
     public property FdStop3ErrorCorrection: TSFFloat read FFdStop3ErrorCorrection;
-    {  } { }
+    {  }
     property Stop3ErrorCorrection: Single read GetStop3ErrorCorrection write SetStop3ErrorCorrection;
 
     strict private FEventMotor1Angle: TSFFloatEvent;
-    { X3D out event "motor1Angle". } { }
+    {  }
     public property EventMotor1Angle: TSFFloatEvent read FEventMotor1Angle;
 
     strict private FEventMotor1AngleRate: TSFFloatEvent;
-    { X3D out event "motor1AngleRate". } { }
+    {  }
     public property EventMotor1AngleRate: TSFFloatEvent read FEventMotor1AngleRate;
 
     strict private FEventMotor2Angle: TSFFloatEvent;
-    { X3D out event "motor2Angle". } { }
+    {  }
     public property EventMotor2Angle: TSFFloatEvent read FEventMotor2Angle;
 
     strict private FEventMotor2AngleRate: TSFFloatEvent;
-    { X3D out event "motor2AngleRate". } { }
+    {  }
     public property EventMotor2AngleRate: TSFFloatEvent read FEventMotor2AngleRate;
 
     strict private FEventMotor3Angle: TSFFloatEvent;
-    { X3D out event "motor3Angle". } { }
+    {  }
     public property EventMotor3Angle: TSFFloatEvent read FEventMotor3Angle;
 
     strict private FEventMotor3AngleRate: TSFFloatEvent;
-    { X3D out event "motor3AngleRate". } { }
+    {  }
     public property EventMotor3AngleRate: TSFFloatEvent read FEventMotor3AngleRate;
 
     strict private FFdAutoCalc: TSFBool;
-    { X3D field "autoCalc". } { }
+    {  }
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
-    {  } { }
+    {  }
     property AutoCalc: Boolean read GetAutoCalc write SetAutoCalc;
 
 {$endif read_interface}

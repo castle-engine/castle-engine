@@ -43,53 +43,53 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    { X3D field "url". } { }
+    {  }
     public property FdUrl: TMFString read FFdUrl;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdCategory: TSFInt32;
-    { X3D field "category". } { }
+    {  }
     public property FdCategory: TSFInt32 read FFdCategory;
-    {  } { }
+    {  }
     property Category: Integer read GetCategory write SetCategory;
 
     strict private FFdCountry: TSFInt32;
-    { X3D field "country". } { }
+    {  }
     public property FdCountry: TSFInt32 read FFdCountry;
-    {  } { }
+    {  }
     property Country: Integer read GetCountry write SetCountry;
 
     strict private FFdDomain: TSFInt32;
-    { X3D field "domain". } { }
+    {  }
     public property FdDomain: TSFInt32 read FFdDomain;
-    {  } { }
+    {  }
     property Domain: Integer read GetDomain write SetDomain;
 
     strict private FFdExtra: TSFInt32;
-    { X3D field "extra". } { }
+    {  }
     public property FdExtra: TSFInt32 read FFdExtra;
-    {  } { }
+    {  }
     property Extra: Integer read GetExtra write SetExtra;
 
     strict private FFdKind: TSFInt32;
-    { X3D field "kind". } { }
+    {  }
     public property FdKind: TSFInt32 read FFdKind;
-    {  } { }
+    {  }
     property Kind: Integer read GetKind write SetKind;
 
     strict private FFdSpecific: TSFInt32;
-    { X3D field "specific". } { }
+    {  }
     public property FdSpecific: TSFInt32 read FFdSpecific;
-    {  } { }
+    {  }
     property Specific: Integer read GetSpecific write SetSpecific;
 
     strict private FFdSubcategory: TSFInt32;
-    { X3D field "subcategory". } { }
+    {  }
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
-    {  } { }
+    {  }
     property Subcategory: Integer read GetSubcategory write SetSubcategory;
 
 {$endif read_interface}

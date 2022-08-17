@@ -39,41 +39,41 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxis: TSFVec3f;
-    { X3D field "axis". } { }
+    {  }
     public property FdAxis: TSFVec3f read FFdAxis;
-    {  } { }
+    {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FFdMaxSeparation: TSFFloat;
-    { X3D field "maxSeparation". } { }
+    {  }
     public property FdMaxSeparation: TSFFloat read FFdMaxSeparation;
-    {  } { }
+    {  }
     property MaxSeparation: Single read GetMaxSeparation write SetMaxSeparation;
 
     strict private FFdMinSeparation: TSFFloat;
-    { X3D field "minSeparation". } { }
+    {  }
     public property FdMinSeparation: TSFFloat read FFdMinSeparation;
-    {  } { }
+    {  }
     property MinSeparation: Single read GetMinSeparation write SetMinSeparation;
 
     strict private FFdStopBounce: TSFFloat;
-    { X3D field "stopBounce". } { }
+    {  }
     public property FdStopBounce: TSFFloat read FFdStopBounce;
-    {  } { }
+    {  }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
 
     strict private FFdStopErrorCorrection: TSFFloat;
-    { X3D field "stopErrorCorrection". } { }
+    {  }
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
-    {  } { }
+    {  }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;
 
     strict private FEventSeparation: TSFFloatEvent;
-    { X3D out event "separation". } { }
+    {  }
     public property EventSeparation: TSFFloatEvent read FEventSeparation;
 
     strict private FEventSeparationRate: TSFFloatEvent;
-    { X3D out event "separationRate". } { }
+    {  }
     public property EventSeparationRate: TSFFloatEvent read FEventSeparationRate;
 
 {$endif read_interface}

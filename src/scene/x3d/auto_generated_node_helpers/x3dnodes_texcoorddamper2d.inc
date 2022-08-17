@@ -28,31 +28,31 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_destination: TMFVec2fEvent;
-    { X3D in event "set_destination". } { }
+    {  }
     public property EventSet_destination: TMFVec2fEvent read FEventSet_destination;
 
     strict private FEventSet_value: TMFVec2fEvent;
-    { X3D in event "set_value". } { }
+    {  }
     public property EventSet_value: TMFVec2fEvent read FEventSet_value;
 
     strict private FEventValue_changed: TMFVec2fEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TMFVec2f;
-    { X3D field "initialDestination". } { }
+    {  }
     public property FdInitialDestination: TMFVec2f read FFdInitialDestination;
-    {  } { }
+    {  }
     procedure SetInitialDestination(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetInitialDestination(const Value: TVector2List); overload;
 
     strict private FFdInitialValue: TMFVec2f;
-    { X3D field "initialValue". } { }
+    {  }
     public property FdInitialValue: TMFVec2f read FFdInitialValue;
-    {  } { }
+    {  }
     procedure SetInitialValue(const Value: array of TVector2); overload;
-    {  } { }
+    {  }
     procedure SetInitialValue(const Value: TVector2List); overload;
 
 {$endif read_interface}

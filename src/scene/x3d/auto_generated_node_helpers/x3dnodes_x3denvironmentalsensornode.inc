@@ -33,23 +33,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3f read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdSize: TSFVec3f;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFVec3f read FFdSize;
-    {  } { }
+    {  }
     property Size: TVector3 read GetSize write SetSize;
 
     strict private FEventEnterTime: TSFTimeEvent;
-    { X3D out event "enterTime". } { }
+    {  }
     public property EventEnterTime: TSFTimeEvent read FEventEnterTime;
 
     strict private FEventExitTime: TSFTimeEvent;
-    { X3D out event "exitTime". } { }
+    {  }
     public property EventExitTime: TSFTimeEvent read FEventExitTime;
 
 {$endif read_interface}

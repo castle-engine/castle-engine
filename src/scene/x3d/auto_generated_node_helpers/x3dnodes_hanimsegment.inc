@@ -43,59 +43,59 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenterOfMass: TSFVec3f;
-    { X3D field "centerOfMass". } { }
+    {  }
     public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
-    {  } { }
+    {  }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
 
     strict private FFdCoord: TSFNode;
-    { X3D field "coord". } { }
+    {  }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
     strict private FFdDisplacers: TMFNode;
-    { X3D field "displacers". } { }
+    {  }
     public property FdDisplacers: TMFNode read FFdDisplacers;
     {  }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
 
     strict private FFdMass: TSFFloat;
-    { X3D field "mass". } { }
+    {  }
     public property FdMass: TSFFloat read FFdMass;
-    {  } { }
+    {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdMomentsOfInertia: TMFFloat;
-    { X3D field "momentsOfInertia". } { }
+    {  }
     public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
-    {  } { }
+    {  }
     procedure SetMomentsOfInertia(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetMomentsOfInertia(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
-    { X3D field "name". } { }
+    {  }
     public property FdName: TSFString read FFdName;
-    {  } { }
+    {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    { X3D field "rotation". } { }
+    {  }
     public property FdRotation: TSFRotation read FFdRotation;
-    {  } { }
+    {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { X3D field "scale". } { }
+    {  }
     public property FdScale: TSFVec3f read FFdScale;
-    {  } { }
+    {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdTranslation: TSFVec3f;
-    { X3D field "translation". } { }
+    {  }
     public property FdTranslation: TSFVec3f read FFdTranslation;
-    {  } { }
+    {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}

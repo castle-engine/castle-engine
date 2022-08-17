@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFMatrix4f;
-    { X3D field "value". } { }
+    {  }
     public property FdValue: TMFMatrix4f read FFdValue;
-    {  } { }
+    {  }
     procedure SetValue(const Value: array of TMatrix4); overload;
-    {  } { }
+    {  }
     procedure SetValue(const Value: TMatrix4List); overload;
 
 {$endif read_interface}

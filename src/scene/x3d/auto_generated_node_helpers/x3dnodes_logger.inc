@@ -35,25 +35,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdLevel: TSFInt32;
-    { X3D field "level". } { }
+    {  }
     public property FdLevel: TSFInt32 read FFdLevel;
-    {  } { }
+    {  }
     property Level: Integer read GetLevel write SetLevel;
 
     strict private FFdLogFile: TSFString;
-    { X3D field "logFile". } { }
+    {  }
     public property FdLogFile: TSFString read FFdLogFile;
-    {  } { }
+    {  }
     property LogFile: String read GetLogFile write SetLogFile;
 
     strict private FFdEnabled: TSFBool;
-    { X3D field "enabled". } { }
+    {  }
     public property FdEnabled: TSFBool read FFdEnabled;
-    {  } { }
+    {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FEventWrite: TXFAnyEvent;
-    { X3D in event "write". } { }
+    {  }
     public property EventWrite: TXFAnyEvent read FEventWrite;
 
 {$endif read_interface}

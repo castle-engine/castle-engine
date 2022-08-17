@@ -33,21 +33,21 @@
     class function ClassX3DType: string; override;
 
     strict private FFdRepeatS: TSFBool;
-    { X3D field "repeatS". } { }
+    {  }
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    { X3D field "repeatT". } { }
+    {  }
     public property FdRepeatT: TSFBool read FFdRepeatT;
 
     strict private FFdRepeatR: TSFBool;
-    { X3D field "repeatR". } { }
+    {  }
     public property FdRepeatR: TSFBool read FFdRepeatR;
-    {  } { }
+    {  }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
 
     strict private FFdTextureProperties: TSFNode;
-    { X3D field "textureProperties". } { }
+    {  }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;

@@ -28,11 +28,11 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFInt32;
-    { X3D field "value". } { }
+    {  }
     public property FdValue: TMFInt32 read FFdValue;
-    {  } { }
+    {  }
     procedure SetValue(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetValue(const Value: TLongIntList); overload;
 
 {$endif read_interface}

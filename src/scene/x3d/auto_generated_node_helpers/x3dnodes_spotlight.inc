@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBeamWidth: TSFFloat;
-    { X3D field "beamWidth". } { }
+    {  }
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
-    {  } { }
+    {  }
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
 
     strict private FFdCutOffAngle: TSFFloat;
-    { X3D field "cutOffAngle". } { }
+    {  }
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
-    {  } { }
+    {  }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
 
     strict private FFdDirection: TSFVec3f;
-    { X3D field "direction". } { }
+    {  }
     public property FdDirection: TSFVec3f read FFdDirection;
-    {  } { }
+    {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionAngle: TSFFloat;
-    { X3D field "projectionAngle". } { }
+    {  }
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
-    {  } { }
+    {  }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
 
 {$endif read_interface}

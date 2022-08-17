@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FEventSet_boolean: TSFBoolEvent;
-    { X3D in event "set_boolean". } { }
+    {  }
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FFdIntegerKey: TSFInt32;
-    { X3D field "integerKey". } { }
+    {  }
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
-    {  } { }
+    {  }
     property IntegerKey: Integer read GetIntegerKey write SetIntegerKey;
 
     strict private FEventTriggerValue: TSFInt32Event;
-    { X3D out event "triggerValue". } { }
+    {  }
     public property EventTriggerValue: TSFInt32Event read FEventTriggerValue;
 
 {$endif read_interface}

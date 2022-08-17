@@ -33,13 +33,13 @@
     function GetColorTransparency: Single;
     procedure SetColorTransparency(const Value: Single);
   public
-    {  } { }
+    {  }
     property SrcFactor: String read GetSrcFactor write SetSrcFactor;
-    {  } { }
+    {  }
     property DestFactor: String read GetDestFactor write SetDestFactor;
-    {  } { }
+    {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    {  } { }
+    {  }
     property ColorTransparency: Single read GetColorTransparency write SetColorTransparency;
 
 {$endif read_interface}

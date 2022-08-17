@@ -34,7 +34,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdMetadata: TSFNode;
-    { X3D field "metadata". } { }
+    {  }
     public property FdMetadata: TSFNode read FFdMetadata;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

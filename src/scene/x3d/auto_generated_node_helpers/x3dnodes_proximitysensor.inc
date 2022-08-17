@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
-    { X3D out event "centerOfRotation_changed". } { }
+    {  }
     public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
     strict private FEventOrientation_changed: TSFRotationEvent;
-    { X3D out event "orientation_changed". } { }
+    {  }
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     strict private FEventPosition_changed: TSFVec3fEvent;
-    { X3D out event "position_changed". } { }
+    {  }
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
 {$endif read_interface}

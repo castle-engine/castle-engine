@@ -37,27 +37,27 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { X3D field "update". } { }
+    { When to update the texture contents. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
-    { When to update the texture contents. } { }
+    { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFInt32 read FFdSize;
-    {  } { }
+    {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdTextureProperties: TSFNode;
-    { X3D field "textureProperties". } { }
+    {  }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdBias: TSFVec3f;
-    { X3D field "bias". } { }
+    { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. }
     public property FdBias: TSFVec3f read FFdBias;
-    { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. } { }
+    { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. }
     property Bias: TVector3 read GetBias write SetBias;
 
 {$endif read_interface}

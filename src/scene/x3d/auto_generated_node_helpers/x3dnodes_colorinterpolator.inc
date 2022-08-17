@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFColor;
-    { X3D field "keyValue". } { }
+    {  }
     public property FdKeyValue: TMFColor read FFdKeyValue;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: array of TCastleColorRGB); overload;
-    {  } { }
+    {  }
     procedure SetKeyValue(const Value: TVector3List); overload;
 
     strict private FEventValue_changed: TSFColorEvent;
-    { X3D out event "value_changed". } { }
+    {  }
     public property EventValue_changed: TSFColorEvent read FEventValue_changed;
 
 {$endif read_interface}

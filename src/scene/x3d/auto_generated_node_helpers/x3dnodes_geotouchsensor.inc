@@ -31,33 +31,33 @@
     class function ClassX3DType: string; override;
 
     strict private FEventHitNormal_changed: TSFVec3fEvent;
-    { X3D out event "hitNormal_changed". } { }
+    {  }
     public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
 
     strict private FEventHitPoint_changed: TSFVec3fEvent;
-    { X3D out event "hitPoint_changed". } { }
+    {  }
     public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
 
     strict private FEventHitTexCoord_changed: TSFVec2fEvent;
-    { X3D out event "hitTexCoord_changed". } { }
+    {  }
     public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
 
     strict private FEventHitGeoCoord_changed: TSFVec3dEvent;
-    { X3D out event "hitGeoCoord_changed". } { }
+    {  }
     public property EventHitGeoCoord_changed: TSFVec3dEvent read FEventHitGeoCoord_changed;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}

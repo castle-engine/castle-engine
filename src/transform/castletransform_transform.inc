@@ -1471,7 +1471,7 @@
 
     { Rotation in 3D, around a specified axis.
       Rotation is expressed as a 4D vector, in which the first 3 components
-      specify the rotation axis (does not need to be normalized, but must be non-zero),
+      specify the rotation axis (does not need to be normalized, but must be non-zero)
       and the last component is the rotation angle @italic(in radians).
 
       Note: the Rotation axis (first 3 components) must not be a zero vector,

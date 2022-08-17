@@ -37,31 +37,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdClosureType: TSFStringEnum;
-    { X3D field "closureType". } { }
+    {  }
     public property FdClosureType: TSFStringEnum read FFdClosureType;
-    {  } { }
+    {  }
     property ClosureType: TArcClosureType read GetClosureType write SetClosureType;
 
     strict private FFdEndAngle: TSFFloat;
-    { X3D field "endAngle". } { }
+    {  }
     public property FdEndAngle: TSFFloat read FFdEndAngle;
-    {  } { }
+    {  }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
 
     strict private FFdRadius: TSFFloat;
-    { X3D field "radius". } { }
+    {  }
     public property FdRadius: TSFFloat read FFdRadius;
-    {  } { }
+    {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdStartAngle: TSFFloat;
-    { X3D field "startAngle". } { }
+    {  }
     public property FdStartAngle: TSFFloat read FFdStartAngle;
-    {  } { }
+    {  }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
 
 {$endif read_interface}

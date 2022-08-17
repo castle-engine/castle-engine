@@ -37,93 +37,93 @@
     class function ClassX3DType: string; override;
 
     strict private FEventChildren: TMFNodeEvent;
-    { X3D out event "children". } { }
+    {  }
     public property EventChildren: TMFNodeEvent read FEventChildren;
 
     strict private FEventLevel_changed: TSFInt32Event;
-    { X3D out event "level_changed". } { }
+    {  }
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3d;
-    { X3D field "center". } { }
+    {  }
     public property FdCenter: TSFVec3d read FFdCenter;
-    {  } { }
+    {  }
     property Center: TVector3Double read GetCenter write SetCenter;
 
     strict private FFdChild1Url: TMFString;
-    { X3D field "child1Url". } { }
+    {  }
     public property FdChild1Url: TMFString read FFdChild1Url;
-    {  } { }
+    {  }
     procedure SetChild1Url(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetChild1Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild2Url: TMFString;
-    { X3D field "child2Url". } { }
+    {  }
     public property FdChild2Url: TMFString read FFdChild2Url;
-    {  } { }
+    {  }
     procedure SetChild2Url(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetChild2Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild3Url: TMFString;
-    { X3D field "child3Url". } { }
+    {  }
     public property FdChild3Url: TMFString read FFdChild3Url;
-    {  } { }
+    {  }
     procedure SetChild3Url(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetChild3Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild4Url: TMFString;
-    { X3D field "child4Url". } { }
+    {  }
     public property FdChild4Url: TMFString read FFdChild4Url;
-    {  } { }
+    {  }
     procedure SetChild4Url(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetChild4Url(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    { X3D field "geoOrigin". } { }
+    {  }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { X3D field "geoSystem". } { }
+    {  }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRange: TSFFloat;
-    { X3D field "range". } { }
+    {  }
     public property FdRange: TSFFloat read FFdRange;
-    {  } { }
+    {  }
     property Range: Single read GetRange write SetRange;
 
     strict private FFdRootUrl: TMFString;
-    { X3D field "rootUrl". } { }
+    {  }
     public property FdRootUrl: TMFString read FFdRootUrl;
-    {  } { }
+    {  }
     procedure SetRootUrl(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetRootUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRootNode: TMFNode;
-    { X3D field "rootNode". } { }
+    {  }
     public property FdRootNode: TMFNode read FFdRootNode;
     {  }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

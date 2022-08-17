@@ -31,41 +31,41 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGroundAngle: TMFFloat;
-    { X3D field "groundAngle". } { }
+    {  }
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
-    {  } { }
+    {  }
     procedure SetGroundAngle(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetGroundAngle(const Value: TSingleList); overload;
 
     strict private FFdGroundColor: TMFColor;
-    { X3D field "groundColor". } { }
+    {  }
     public property FdGroundColor: TMFColor read FFdGroundColor;
-    {  } { }
+    {  }
     procedure SetGroundColor(const Value: array of TCastleColorRGB); overload;
-    {  } { }
+    {  }
     procedure SetGroundColor(const Value: TVector3List); overload;
 
     strict private FFdSkyAngle: TMFFloat;
-    { X3D field "skyAngle". } { }
+    {  }
     public property FdSkyAngle: TMFFloat read FFdSkyAngle;
-    {  } { }
+    {  }
     procedure SetSkyAngle(const Value: array of Single); overload;
-    {  } { }
+    {  }
     procedure SetSkyAngle(const Value: TSingleList); overload;
 
     strict private FFdSkyColor: TMFColor;
-    { X3D field "skyColor". } { }
+    {  }
     public property FdSkyColor: TMFColor read FFdSkyColor;
-    {  } { }
+    {  }
     procedure SetSkyColor(const Value: array of TCastleColorRGB); overload;
-    {  } { }
+    {  }
     procedure SetSkyColor(const Value: TVector3List); overload;
 
     strict private FFdTransparency: TSFFloat;
-    { X3D field "transparency". } { }
+    {  }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  } { }
+    {  }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

@@ -32,7 +32,7 @@
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 {$ifndef CASTLE_SLIM_NODES}
-    {  } { }
+    {  }
     property CrossOrigin: String read GetCrossOrigin write SetCrossOrigin;
 {$endif not CASTLE_SLIM_NODES}
 

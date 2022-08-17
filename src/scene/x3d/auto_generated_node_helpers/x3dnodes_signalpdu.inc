@@ -67,149 +67,149 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    { X3D field "address". } { }
+    {  }
     public property FdAddress: TSFString read FFdAddress;
-    {  } { }
+    {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdApplicationID: TSFInt32;
-    { X3D field "applicationID". } { }
+    {  }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
-    {  } { }
+    {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdData: TMFInt32;
-    { X3D field "data". } { }
+    {  }
     public property FdData: TMFInt32 read FFdData;
-    {  } { }
+    {  }
     procedure SetData(const Value: array of LongInt); overload;
-    {  } { }
+    {  }
     procedure SetData(const Value: TLongIntList); overload;
 
     strict private FFdDataLength: TSFInt32;
-    { X3D field "dataLength". } { }
+    {  }
     public property FdDataLength: TSFInt32 read FFdDataLength;
-    {  } { }
+    {  }
     property DataLength: Integer read GetDataLength write SetDataLength;
 
     strict private FFdEncodingScheme: TSFInt32;
-    { X3D field "encodingScheme". } { }
+    {  }
     public property FdEncodingScheme: TSFInt32 read FFdEncodingScheme;
-    {  } { }
+    {  }
     property EncodingScheme: Integer read GetEncodingScheme write SetEncodingScheme;
 
     strict private FFdEntityID: TSFInt32;
-    { X3D field "entityID". } { }
+    {  }
     public property FdEntityID: TSFInt32 read FFdEntityID;
-    {  } { }
+    {  }
     property EntityID: Integer read GetEntityID write SetEntityID;
 
     strict private FFdMulticastRelayHost: TSFString;
-    { X3D field "multicastRelayHost". } { }
+    {  }
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
-    {  } { }
+    {  }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
 
     strict private FFdMulticastRelayPort: TSFInt32;
-    { X3D field "multicastRelayPort". } { }
+    {  }
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
-    {  } { }
+    {  }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
 
     strict private FFdNetworkMode: TSFStringEnum;
-    { X3D field "networkMode". } { }
+    {  }
     public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
-    {  } { }
+    {  }
     property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
 
     strict private FFdPort: TSFInt32;
-    { X3D field "port". } { }
+    {  }
     public property FdPort: TSFInt32 read FFdPort;
-    {  } { }
+    {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdRadioID: TSFInt32;
-    { X3D field "radioID". } { }
+    {  }
     public property FdRadioID: TSFInt32 read FFdRadioID;
-    {  } { }
+    {  }
     property RadioID: Integer read GetRadioID write SetRadioID;
 
     strict private FFdReadInterval: TSFFloat;
-    { X3D field "readInterval". } { }
+    {  }
     public property FdReadInterval: TSFFloat read FFdReadInterval;
-    {  } { }
+    {  }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
 
     strict private FFdRtpHeaderExpected: TSFBool;
-    { X3D field "rtpHeaderExpected". } { }
+    {  }
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
-    {  } { }
+    {  }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
     strict private FFdSampleRate: TSFInt32;
-    { X3D field "sampleRate". } { }
+    {  }
     public property FdSampleRate: TSFInt32 read FFdSampleRate;
-    {  } { }
+    {  }
     property SampleRate: Integer read GetSampleRate write SetSampleRate;
 
     strict private FFdSamples: TSFInt32;
-    { X3D field "samples". } { }
+    {  }
     public property FdSamples: TSFInt32 read FFdSamples;
-    {  } { }
+    {  }
     property Samples: Integer read GetSamples write SetSamples;
 
     strict private FFdSiteID: TSFInt32;
-    { X3D field "siteID". } { }
+    {  }
     public property FdSiteID: TSFInt32 read FFdSiteID;
-    {  } { }
+    {  }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
     strict private FFdTdlType: TSFInt32;
-    { X3D field "tdlType". } { }
+    {  }
     public property FdTdlType: TSFInt32 read FFdTdlType;
-    {  } { }
+    {  }
     property TdlType: Integer read GetTdlType write SetTdlType;
 
     strict private FFdWhichGeometry: TSFInt32;
-    { X3D field "whichGeometry". } { }
+    {  }
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
-    {  } { }
+    {  }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
 
     strict private FFdWriteInterval: TSFFloat;
-    { X3D field "writeInterval". } { }
+    {  }
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
-    {  } { }
+    {  }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
 
     strict private FEventIsNetworkReader: TSFBoolEvent;
-    { X3D out event "isNetworkReader". } { }
+    {  }
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     strict private FEventIsNetworkWriter: TSFBoolEvent;
-    { X3D out event "isNetworkWriter". } { }
+    {  }
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
-    { X3D out event "isRtpHeaderHeard". } { }
+    {  }
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     strict private FEventIsStandAlone: TSFBoolEvent;
-    { X3D out event "isStandAlone". } { }
+    {  }
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     strict private FEventTimestamp: TSFTimeEvent;
-    { X3D out event "timestamp". } { }
+    {  }
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { X3D field "bboxCenter". } { }
+    {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. } { }
+    { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { X3D field "bboxSize". } { }
+    {  }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

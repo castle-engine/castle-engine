@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCollidable: TSFNode;
-    { X3D field "collidable". } { }
+    {  }
     public property FdCollidable: TSFNode read FFdCollidable;
     {  }
     property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;

@@ -28,15 +28,15 @@
     class function ClassX3DType: string; override;
 
     strict private FEventAddTrimmingContour: TMFNodeEvent;
-    { X3D in event "addTrimmingContour". } { }
+    {  }
     public property EventAddTrimmingContour: TMFNodeEvent read FEventAddTrimmingContour;
 
     strict private FEventRemoveTrimmingContour: TMFNodeEvent;
-    { X3D in event "removeTrimmingContour". } { }
+    {  }
     public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
 
     strict private FFdTrimmingContour: TMFNode;
-    { X3D field "trimmingContour". } { }
+    {  }
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
     {  }
     procedure SetTrimmingContour(const Value: array of TContour2DNode);

@@ -41,39 +41,39 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEmissiveColor: TSFColor;
-    { X3D field "emissiveColor". } { }
+    {  }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
-    {  } { }
+    {  }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdEmissiveTexture: TSFNode;
-    { X3D field "emissiveTexture". } { }
+    {  }
     public property FdEmissiveTexture: TSFNode read FFdEmissiveTexture;
     {  }
     property EmissiveTexture: TAbstractSingleTextureNode read GetEmissiveTexture write SetEmissiveTexture;
 
     strict private FFdEmissiveTextureMapping: TSFString;
-    { X3D field "emissiveTextureMapping". } { }
+    {  }
     public property FdEmissiveTextureMapping: TSFString read FFdEmissiveTextureMapping;
-    {  } { }
+    {  }
     property EmissiveTextureMapping: String read GetEmissiveTextureMapping write SetEmissiveTextureMapping;
 
     strict private FFdNormalTexture: TSFNode;
-    { X3D field "normalTexture". } { }
+    { Normalmap texture to perform bump mapping. See https://castle-engine.io/bump_mapping . }
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
-    {  }
+    { Normalmap texture to perform bump mapping. See https://castle-engine.io/bump_mapping . }
     property NormalTexture: TAbstractTexture2DNode read GetNormalTexture write SetNormalTexture;
 
     strict private FFdNormalTextureMapping: TSFString;
-    { X3D field "normalTextureMapping". } { }
+    { Determines texture coordinates used by @link(NormalTexture). }
     public property FdNormalTextureMapping: TSFString read FFdNormalTextureMapping;
-    {  } { }
+    { Determines texture coordinates used by @link(NormalTexture). }
     property NormalTextureMapping: String read GetNormalTextureMapping write SetNormalTextureMapping;
 
     strict private FFdNormalScale: TSFFloat;
-    { X3D field "normalScale". } { }
+    { Emphasize (when > 1) or deemphasize (< 1) the effect of @link(NormalTexture) on the model. }
     public property FdNormalScale: TSFFloat read FFdNormalScale;
-    {  } { }
+    { Emphasize (when > 1) or deemphasize (< 1) the effect of @link(NormalTexture) on the model. }
     property NormalScale: Single read GetNormalScale write SetNormalScale;
 
 {$endif read_interface}

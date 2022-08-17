@@ -31,17 +31,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdInfo: TMFString;
-    { X3D field "info". } { }
+    {  }
     public property FdInfo: TMFString read FFdInfo;
-    {  } { }
+    {  }
     procedure SetInfo(const Value: array of string); overload;
-    {  } { }
+    {  }
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdTitle: TSFString;
-    { X3D field "title". } { }
+    {  }
     public property FdTitle: TSFString read FFdTitle;
-    {  } { }
+    {  }
     property Title: String read GetTitle write SetTitle;
 
 {$endif read_interface}

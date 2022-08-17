@@ -33,23 +33,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSize: TSFVec3f;
-    { X3D field "size". } { }
+    {  }
     public property FdSize: TSFVec3f read FFdSize;
-    {  } { }
+    {  }
     property Size: TVector3 read GetSize write SetSize;
 
     strict private FFdSolid: TSFBool;
-    { X3D field "solid". } { }
+    {  }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdManifold: TSFBool;
-    { X3D field "manifold". } { }
+    {  }
     public property FdManifold: TSFBool read FFdManifold;
-    {  } { }
+    {  }
     property Manifold: Boolean read GetManifold write SetManifold;
 
     strict private FFdTexCoord: TSFNode;
-    { X3D field "texCoord". } { }
+    {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

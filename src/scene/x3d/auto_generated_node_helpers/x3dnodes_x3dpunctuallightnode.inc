@@ -43,43 +43,43 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShadows: TSFBool;
-    { X3D field "shadows". } { }
+    {  }
     public property FdShadows: TSFBool read FFdShadows;
-    {  } { }
+    {  }
     property Shadows: Boolean read GetShadows write SetShadows;
 
     strict private FFdShadowVolumesMain: TSFBool;
-    { X3D field "shadowVolumesMain". } { }
+    { Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes). }
     public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
-    { Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes). } { }
+    { Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes). }
     property ShadowVolumesMain: Boolean read GetShadowVolumesMain write SetShadowVolumesMain;
 
     strict private FFdShowProxyGeometry: TSFBool;
-    { X3D field "showProxyGeometry". } { }
+    { InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/]. }
     public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
-    { InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/]. } { }
+    { InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/]. }
     property ShowProxyGeometry: Boolean read GetShowProxyGeometry write SetShowProxyGeometry;
 
     strict private FFdProjectionNear: TSFFloat;
-    { X3D field "projectionNear". } { }
+    { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
-    { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php } { }
+    { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
 
     strict private FFdProjectionFar: TSFFloat;
-    { X3D field "projectionFar". } { }
+    { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     public property FdProjectionFar: TSFFloat read FFdProjectionFar;
-    { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php } { }
+    { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
 
     strict private FFdUp: TSFVec3f;
-    { X3D field "up". } { }
+    { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     public property FdUp: TSFVec3f read FFdUp;
-    { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php } { }
+    { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property Up: TVector3 read GetUp write SetUp;
 
     strict private FFdDefaultShadowMap: TSFNode;
-    { X3D field "defaultShadowMap". } { }
+    { Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
     { Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
