@@ -31,10 +31,24 @@
     function GetNeedsDepth: Boolean;
     procedure SetNeedsDepth(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdNeedsDepth: TSFBool;
+    { X3D field "needsDepth". } { }
+    public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
     { X3D field "needsDepth". } { }
     property NeedsDepth: Boolean read GetNeedsDepth write SetNeedsDepth;
+
+    strict private FFdShaders: TMFNode;
+    { X3D field "shaders". } { }
+    public property FdShaders: TMFNode read FFdShaders;
     { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
@@ -74,6 +88,28 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractShaderNode));
   FdShaders.Send(A);
+end;
+
+class function TScreenEffectNode.ClassX3DType: String;
+begin
+  Result := 'ScreenEffect';
+end;
+
+procedure TScreenEffectNode.CreateNode;
+begin
+  inherited;
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chScreenEffectEnabled;
+  AddField(FFdEnabled);
+
+  FFdNeedsDepth := TSFBool.Create(Self, True, 'needsDepth', false);
+   FdNeedsDepth.ChangeAlways := chRedisplay;
+  AddField(FFdNeedsDepth);
+
+  FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
+   FdShaders.ChangeAlways := chEverything;
+  AddField(FFdShaders);
 end;
 
 {$endif read_implementation}

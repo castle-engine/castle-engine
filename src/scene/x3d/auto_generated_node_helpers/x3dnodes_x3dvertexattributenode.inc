@@ -29,6 +29,12 @@
     function GetNameField: String;
     procedure SetNameField(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
 
@@ -46,6 +52,22 @@ end;
 procedure TAbstractVertexAttributeNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
+end;
+
+class function TAbstractVertexAttributeNode.ClassX3DType: String;
+begin
+  Result := 'X3DVertexAttributeNode';
+end;
+
+procedure TAbstractVertexAttributeNode.CreateNode;
+begin
+  inherited;
+
+  FFdName := TSFString.Create(Self, False, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
+
+  DefaultContainerField := 'attrib';
 end;
 
 {$endif read_implementation}

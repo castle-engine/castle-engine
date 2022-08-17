@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetShaderType: TShaderType;
+    procedure SetShaderType(const Value: TShaderType);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdType: TSFStringEnum;
+    { X3D field "type". } { }
+    public property FdType: TSFStringEnum read FFdType;
+    { X3D field "type". } { }
+    property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
 {$endif read_interface}
 
@@ -45,6 +60,36 @@ end;
 procedure TShaderProgramNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+function TShaderProgramNode.GetShaderType: TShaderType;
+begin
+  Result := TShaderType(FdType.EnumValue);
+end;
+
+procedure TShaderProgramNode.SetShaderType(const Value: TShaderType);
+begin
+  FdType.SendEnumValue(Ord(Value));
+end;
+
+class function TShaderProgramNode.ClassX3DType: String;
+begin
+  Result := 'ShaderProgram';
+end;
+
+procedure TShaderProgramNode.CreateNode;
+begin
+  inherited;
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUrl);
+
+  FFdType := TSFStringEnum.Create(Self, False, 'type', ShaderTypeNameX3D, Ord(stVertex));
+   FdType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdType);
+
+  DefaultContainerField := 'programs';
 end;
 
 {$endif read_implementation}

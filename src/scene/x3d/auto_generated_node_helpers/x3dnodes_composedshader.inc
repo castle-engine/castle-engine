@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdParts: TMFNode;
+    { X3D field "parts". } { }
+    public property FdParts: TMFNode read FFdParts;
     { Set X3D field "parts". } { }
     procedure SetParts(const Value: array of TShaderPartNode);
 
@@ -45,6 +51,20 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TShaderPartNode));
   FdParts.Send(A);
+end;
+
+class function TComposedShaderNode.ClassX3DType: String;
+begin
+  Result := 'ComposedShader';
+end;
+
+procedure TComposedShaderNode.CreateNode;
+begin
+  inherited;
+
+  FFdParts := TMFNode.Create(Self, True, 'parts', [TShaderPartNode]);
+   FdParts.ChangeAlways := chEverything;
+  AddField(FFdParts);
 end;
 
 {$endif read_implementation}

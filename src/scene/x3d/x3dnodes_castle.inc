@@ -217,18 +217,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdShaders: TMFNode;
-    public property FdShaders: TMFNode read FFdShaders;
-
-    strict private FFdNeedsDepth: TSFBool;
-    public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Shader and ShaderLoaded properties are internally managed by the renderer.
       Right now, this means TCastleScene.
@@ -242,7 +232,7 @@
       read FStateForShaderPrepare;
     { @groupEnd }
 
-    {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
+  {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
   end;
 
   { Internal notes to MultiGeneratedTextureCoordinate:
@@ -262,10 +252,7 @@
   { Generated texture coordinates for multi-texturing.
     See [https://castle-engine.io/x3d_extensions.php#section_ext_tex_coord]. }
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
-  public
-    class function ClassX3DType: string; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
 
   TEffectPartNode = class;
@@ -273,26 +260,11 @@
   { Shader effect, that can be composed with other effect or standard rendering.
     See https://castle-engine.io/compositing_shaders.php . }
   TEffectNode = class(TAbstractChildNode)
-  strict private
-    function GetLanguage: TShaderLanguage;
-    procedure SetLanguage(const Value: TShaderLanguage);
   protected
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdLanguage: TSFStringEnum;
-    public property FdLanguage: TSFStringEnum read FFdLanguage;
-    property Language: TShaderLanguage read GetLanguage write SetLanguage;
-
-    strict private FFdParts: TMFNode;
-    public property FdParts: TMFNode read FFdParts;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    {$I auto_generated_node_helpers/x3dnodes_effect.inc}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_effect.inc}
   end;
 
   { Part of a shader effect, used with @link(TEffectNode).
@@ -303,23 +275,10 @@
     ContentsCache: string;
     procedure EventUrlReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-    function GetShaderType: TShaderType;
-    procedure SetShaderType(const Value: TShaderType);
     function GetContents: string;
     procedure SetContents(const Value: string);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdType: TSFStringEnum;
-    public property FdType: TSFStringEnum read FFdType;
-
-    { Shader type. }
-    property ShaderType: TShaderType read GetShaderType write SetShaderType;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
 
     { The shader code.
 
@@ -333,7 +292,7 @@
       Setting this overrides the URL field, to specify only the given shader code. }
     property Contents: string read GetContents write SetContents;
 
-    {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
+  {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
 
   { Procedural texture defined by shaders.
@@ -648,22 +607,11 @@ begin
   Result := 'ProjectedTextureCoordinate';
 end;
 
-procedure TScreenEffectNode.CreateNode;
+{ TScreenEffectNode ---------------------------------------------------------- }
+
+constructor TScreenEffectNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangeAlways := chScreenEffectEnabled;
-  AddField(FFdEnabled);
-
-  FFdShaders := TMFNode.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangeAlways := chEverything;
-  AddField(FFdShaders);
-
-  FFdNeedsDepth := TSFBool.Create(Self, true, 'needsDepth', false);
-   FdNeedsDepth.ChangeAlways := chRedisplay;
-  AddField(FFdNeedsDepth);
-
   FStateForShaderPrepare := TX3DGraphTraverseState.Create;
 end;
 
@@ -671,11 +619,6 @@ destructor TScreenEffectNode.Destroy;
 begin
   FreeAndNil(FStateForShaderPrepare);
   inherited;
-end;
-
-class function TScreenEffectNode.ClassX3DType: string;
-begin
-  Result := 'ScreenEffect';
 end;
 
 function TScreenEffectNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -687,29 +630,11 @@ begin
   if Result <> nil then Exit;
 end;
 
-class function TMultiGeneratedTextureCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'MultiGeneratedTextureCoordinate';
-end;
-
 { TEffectNode ---------------------------------------------------------------- }
 
-procedure TEffectNode.CreateNode;
+constructor TEffectNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.ChangeAlways := chEverything;
-  AddField(FFdLanguage);
-
-  FFdParts := TMFNode.Create(Self, false, 'parts', [TEffectPartNode]);
-   FdParts.ChangeAlways := chEverything;
-  AddField(FFdParts);
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
-
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
@@ -721,46 +646,14 @@ begin
   State.Effects.Add(Self);
 end;
 
-class function TEffectNode.ClassX3DType: string;
-begin
-  Result := 'Effect';
-end;
-
-function TEffectNode.GetLanguage: TShaderLanguage;
-begin
-  Result := TShaderLanguage(FdLanguage.EnumValue);
-end;
-
-procedure TEffectNode.SetLanguage(const Value: TShaderLanguage);
-begin
-  FdLanguage.SendEnumValue(Ord(Value));
-end;
+{ TEffectPartNode ------------------------------------------------------------ }
 
 constructor TEffectPartNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
-end;
-
-procedure TEffectPartNode.CreateNode;
-begin
-  inherited;
-
-  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.ChangeAlways := chEverything;
-  AddField(FFdType);
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangeAlways := chEverything;
-   FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
-  AddField(FFdUrl);
-
-  DefaultContainerField := 'parts';
-end;
-
-class function TEffectPartNode.ClassX3DType: string;
-begin
-  Result := 'EffectPart';
+  FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
+  CDataField := FdUrl;
 end;
 
 function TEffectPartNode.GetContents: string;
@@ -789,15 +682,7 @@ begin
   ContentsCached := false;
 end;
 
-function TEffectPartNode.GetShaderType: TShaderType;
-begin
-  Result := TShaderType(FdType.EnumValue);
-end;
-
-procedure TEffectPartNode.SetShaderType(const Value: TShaderType);
-begin
-  FdType.SendEnumValue(Ord(Value));
-end;
+{ TShaderTextureNode --------------------------------------------------------- }
 
 procedure TShaderTextureNode.CreateNode;
 begin

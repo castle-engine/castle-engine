@@ -29,10 +29,20 @@
     function GetNumComponents: Integer;
     procedure SetNumComponents(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdValue: TMFFloat;
+    { X3D field "value". } { }
+    public property FdValue: TMFFloat read FFdValue;
     { Set X3D field "value". } { }
     procedure SetValue(const Value: array of Single); overload;
     { Set X3D field "value". } { }
     procedure SetValue(const Value: TSingleList); overload;
+
+    strict private FFdNumComponents: TSFInt32;
+    { X3D field "numComponents". } { }
+    public property FdNumComponents: TSFInt32 read FFdNumComponents;
     { X3D field "numComponents". } { }
     property NumComponents: Integer read GetNumComponents write SetNumComponents;
 
@@ -60,6 +70,24 @@ end;
 procedure TFloatVertexAttributeNode.SetNumComponents(const Value: Integer);
 begin
   FdNumComponents.Send(Value);
+end;
+
+class function TFloatVertexAttributeNode.ClassX3DType: String;
+begin
+  Result := 'FloatVertexAttribute';
+end;
+
+procedure TFloatVertexAttributeNode.CreateNode;
+begin
+  inherited;
+
+  FFdValue := TMFFloat.Create(Self, True, 'value', []);
+   FdValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdValue);
+
+  FFdNumComponents := TSFInt32.Create(Self, False, 'numComponents', 4);
+   FdNumComponents.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNumComponents);
 end;
 
 {$endif read_implementation}

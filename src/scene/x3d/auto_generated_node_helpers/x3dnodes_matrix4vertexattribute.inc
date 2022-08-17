@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdValue: TMFMatrix4f;
+    { X3D field "value". } { }
+    public property FdValue: TMFMatrix4f read FFdValue;
     { Set X3D field "value". } { }
     procedure SetValue(const Value: array of TMatrix4); overload;
     { Set X3D field "value". } { }
@@ -45,6 +51,20 @@ end;
 procedure TMatrix4VertexAttributeNode.SetValue(const Value: TMatrix4List);
 begin
   FdValue.Send(Value);
+end;
+
+class function TMatrix4VertexAttributeNode.ClassX3DType: String;
+begin
+  Result := 'Matrix4VertexAttribute';
+end;
+
+procedure TMatrix4VertexAttributeNode.CreateNode;
+begin
+  inherited;
+
+  FFdValue := TMFMatrix4f.Create(Self, True, 'value', []);
+   FdValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdValue);
 end;
 
 {$endif read_implementation}

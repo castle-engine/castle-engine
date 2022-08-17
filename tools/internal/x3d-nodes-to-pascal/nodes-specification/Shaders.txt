@@ -1,62 +1,83 @@
 X3DShaderNode : X3DAppearanceChildNode {
+  auto-generate-more: true
+  default-container-field: shaders
+
   SFBool   [in]     activate
   SFBool   [out]    isSelected
   SFBool   [out]    isValid
   SFString []       language   ""
     range: ["CG"|"GLSL"|"HLSL"|...]
     enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
+    doc: Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL.
+    change: chEverything
 }
 
 X3DVertexAttributeNode : X3DGeometricPropertyNode {
+  auto-generate-more: true
+  default-container-field: attrib
+
   SFString []       name     ""
 }
 
 ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
+  auto-generate-more: true
   MFNode    [in,out] parts      []
     range: ShaderPart
-  # And any number of:
+    change: chEverything
 }
 
 FloatVertexAttribute : X3DVertexAttributeNode {
-  MFFloat  [in,out] value  		  []
+  auto-generate-more: true
+  MFFloat  [in,out] value                 []
     range: (-Inf,Inf)
   SFInt32  []       numComponents 4
     range: [1..4]
 }
 
 Matrix3VertexAttribute : X3DVertexAttributeNode {
+  auto-generate-more: true
   MFMatrix3f [in,out] value    []
     range: (-Inf,Inf)
 }
 
 Matrix4VertexAttribute : X3DVertexAttributeNode {
+  auto-generate-more: true
   MFMatrix4f [in,out] value    []
     range: (-Inf,Inf)
 }
 
 PackagedShader : X3DShaderNode, X3DUrlObject, X3DProgrammableShaderObject {
+  auto-generate-more: true
   MFString  [in,out] url        []
     range: [URI]
-  # And any number of:
 }
 
 ProgramShader : X3DShaderNode {
+  auto-generate-more: true
   MFNode   [in,out] programs   []
     range: ShaderProgram
 }
 
 ShaderPart : X3DNode, X3DUrlObject {
+  auto-generate-more: true
+  default-container-field: parts
+
   MFString [in,out] url      []
     range: [URI]
+    change: chEverything
   SFString []       type     "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
     enumerated-type: TShaderType ShaderTypeNameX3D stVertex
+    change: chEverything
 }
 
 ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
+  auto-generate-more: true
+  default-container-field: programs
+
   MFString  [in,out] url       []
     range: [URI]
   SFString  []       type      "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
-  # And any number of:
+    enumerated-type: TShaderType ShaderTypeNameX3D stVertex
 }

@@ -184,9 +184,19 @@ Logger : X3DChildNode {
   XFAny      [in]          write
 }
 
-MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
-  MFNode [in,out] texCoord NULL
-    range: TextureCoordinateGenerator, ProjectedTextureCoordinate
+# MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
+#   auto-generate-more: true
+#
+#   MFNode [in,out] texCoord NULL
+#     range: TextureCoordinateGenerator, ProjectedTextureCoordinate
+# }
+#
+# Implementation detail: instead of being a new class
+# derived from abstract X3DTextureCoordinateNode,
+# MultiGeneratedTextureCoordinate now descends from MultiTextureCoordinate.
+# See TMultiGeneratedTextureCoordinateNode comments for reasons.
+MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
+  auto-generate-more: true
 }
 
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
@@ -196,36 +206,44 @@ ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
 
 # See https://castle-engine.io/x3d_extensions_screen_effects.php
 ScreenEffect : X3DChildNode {
+  auto-generate-more: true
   SFBool     [in,out]      enabled     TRUE
+    change: chScreenEffectEnabled
   SFBool     [in,out]      needsDepth  FALSE
+    change: chRedisplay
   MFNode     [in,out]      shaders     []
     range: X3DShaderNode
+    change: chEverything
 }
 
 # See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
+  auto-generate-more: true
+
   SFString   []            language    ""
-    range: ["CG"|"GLSL"|"HLSL"]
-    # TODO: use enumerated-type:.... allowed values are like ComposedShader.language
+    range: ["CG"|"GLSL"|"HLSL"|...]
+    enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
+    change: chEverything
+    doc: Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL.
   SFBool     [in,out]      enabled     TRUE
+    change: chVisibleNonGeometry
   MFNode     []            parts       []
     range: EffectPart
-
-  # And any number of uniform variables, just like for ComposedShader node:
-  fieldType []       fieldName
-  fieldType [in]     fieldName
-  fieldType [out]    fieldName
-  fieldType [in,out] fieldName
+    change: chEverything
 }
 
 # See https://castle-engine.io/compositing_shaders.php
 EffectPart : X3DNode, X3DUrlObject {
+  auto-generate-more: true
   default-container-field: parts
-  # may be changed to [in,out] one day
+
+  # URL may change to [in,out] at some point, to allow changing the Effect code
   MFString []       url      []
+    change: chEverything
   SFString []       type     "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
-    # TODO: use enumerated-type:....
+    enumerated-type: TShaderType ShaderTypeNameX3D stVertex
+    change: chEverything
 }
 
 # See https://castle-engine.io/compositing_shaders.php

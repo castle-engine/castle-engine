@@ -26,11 +26,29 @@
 {$ifdef read_interface}
 
   strict private
+    function GetLanguage: TShaderLanguage;
+    procedure SetLanguage(const Value: TShaderLanguage);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdLanguage: TSFStringEnum;
+    { X3D field "language". } { }
+    public property FdLanguage: TSFStringEnum read FFdLanguage;
+    { X3D field "language". } { }
+    property Language: TShaderLanguage read GetLanguage write SetLanguage;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdParts: TMFNode;
+    { X3D field "parts". } { }
+    public property FdParts: TMFNode read FFdParts;
     { Set X3D field "parts". } { }
     procedure SetParts(const Value: array of TEffectPartNode);
 
@@ -39,6 +57,16 @@
 {$ifdef read_implementation}
 
 { TEffectNode ----------------------------------------------- }
+
+function TEffectNode.GetLanguage: TShaderLanguage;
+begin
+  Result := TShaderLanguage(FdLanguage.EnumValue);
+end;
+
+procedure TEffectNode.SetLanguage(const Value: TShaderLanguage);
+begin
+  FdLanguage.SendEnumValue(Ord(Value));
+end;
 
 function TEffectNode.GetEnabled: Boolean;
 begin
@@ -60,6 +88,28 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TEffectPartNode));
   FdParts.Send(A);
+end;
+
+class function TEffectNode.ClassX3DType: String;
+begin
+  Result := 'Effect';
+end;
+
+procedure TEffectNode.CreateNode;
+begin
+  inherited;
+
+  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', ShaderLanguageNames, Ord(slDefault));
+   FdLanguage.ChangeAlways := chEverything;
+  AddField(FFdLanguage);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdParts := TMFNode.Create(Self, False, 'parts', [TEffectPartNode]);
+   FdParts.ChangeAlways := chEverything;
+  AddField(FFdParts);
 end;
 
 {$endif read_implementation}

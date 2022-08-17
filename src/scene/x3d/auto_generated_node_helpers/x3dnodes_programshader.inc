@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPrograms: TMFNode;
+    { X3D field "programs". } { }
+    public property FdPrograms: TMFNode read FFdPrograms;
     { Set X3D field "programs". } { }
     procedure SetPrograms(const Value: array of TShaderProgramNode);
 
@@ -45,6 +51,20 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TShaderProgramNode));
   FdPrograms.Send(A);
+end;
+
+class function TProgramShaderNode.ClassX3DType: String;
+begin
+  Result := 'ProgramShader';
+end;
+
+procedure TProgramShaderNode.CreateNode;
+begin
+  inherited;
+
+  FFdPrograms := TMFNode.Create(Self, True, 'programs', [TShaderProgramNode]);
+   FdPrograms.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPrograms);
 end;
 
 {$endif read_implementation}

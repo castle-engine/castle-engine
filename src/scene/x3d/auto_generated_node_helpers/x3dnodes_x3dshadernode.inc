@@ -29,6 +29,24 @@
     function GetLanguage: TShaderLanguage;
     procedure SetLanguage(const Value: TShaderLanguage);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventActivate: TSFBoolEvent;
+    { X3D in event "activate". } { }
+    public property EventActivate: TSFBoolEvent read FEventActivate;
+
+    strict private FEventIsSelected: TSFBoolEvent;
+    { X3D out event "isSelected". } { }
+    public property EventIsSelected: TSFBoolEvent read FEventIsSelected;
+
+    strict private FEventIsValid: TSFBoolEvent;
+    { X3D out event "isValid". } { }
+    public property EventIsValid: TSFBoolEvent read FEventIsValid;
+
+    strict private FFdLanguage: TSFStringEnum;
+    { X3D field "language". } { }
+    public property FdLanguage: TSFStringEnum read FFdLanguage;
     { X3D field "language". } { }
     property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
@@ -46,6 +64,31 @@ end;
 procedure TAbstractShaderNode.SetLanguage(const Value: TShaderLanguage);
 begin
   FdLanguage.SendEnumValue(Ord(Value));
+end;
+
+class function TAbstractShaderNode.ClassX3DType: String;
+begin
+  Result := 'X3DShaderNode';
+end;
+
+procedure TAbstractShaderNode.CreateNode;
+begin
+  inherited;
+
+  FEventActivate := TSFBoolEvent.Create(Self, 'activate', true);
+  AddEvent(FEventActivate);
+
+  FEventIsSelected := TSFBoolEvent.Create(Self, 'isSelected', false);
+  AddEvent(FEventIsSelected);
+
+  FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
+  AddEvent(FEventIsValid);
+
+  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', ShaderLanguageNames, Ord(slDefault));
+   FdLanguage.ChangeAlways := chEverything;
+  AddField(FFdLanguage);
+
+  DefaultContainerField := 'shaders';
 end;
 
 {$endif read_implementation}

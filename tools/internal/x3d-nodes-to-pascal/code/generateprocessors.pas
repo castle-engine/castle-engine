@@ -668,7 +668,9 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       Field.PascalName := 'IsOn'
     else
     if (Field.PascalName = 'type') and
-       (Node.X3DType = 'ShaderPart') then
+       ( (Node.X3DType = 'ShaderPart') or
+         (Node.X3DType = 'EffectPart') or
+         (Node.X3DType = 'ShaderProgram') ) then
       Field.PascalName := 'ShaderType'
     else
     if Field.PascalName = 'name' then
