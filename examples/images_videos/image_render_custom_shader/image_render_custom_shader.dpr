@@ -110,7 +110,7 @@ end;
 procedure WindowUpdate(Container: TCastleContainer);
 begin
   LifeTime := LifeTime +  Container.Fps.SecondsPassed;
-  Shader.Uniform('life_time', umIgnore).SetValue(LifeTime);
+  Shader.Uniform('life_time').SetValue(LifeTime);
 end;
 
 begin
