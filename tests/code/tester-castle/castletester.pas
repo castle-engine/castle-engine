@@ -1225,8 +1225,8 @@ end;
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} true
-    {$else} false
+    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} false
+    {$else} true
     {$endif};
 end;
 
