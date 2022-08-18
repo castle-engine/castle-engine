@@ -117,7 +117,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_BOTTOM],
     FdParts.Flags[CYLINDER_PARTS_SIDES],
     FdParts.Flags[CYLINDER_PARTS_TOP],
-    DefaultTriangulationSlices, DefaultTriangulationStacks);
+    DefaultTriangulationSlices, 1 { no stacks used for cylinder });
 end;
 
 function TCylinderNode.TrianglesCount(State: TX3DGraphTraverseState;
