@@ -223,12 +223,55 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   end;
 
 var
-  I, J: Integer;
   BottomCircleIndex, BottomMiddleIndex, BottomFaceIndex: Integer;
   TopCircleIndex, TopMiddleIndex, TopFaceIndex: Integer;
-  SideBottomCircleIndex, SideTopCircleIndex, MiddleCircleIndex,
-    MiddleFaceIndex, SideFaceIndex: Integer;
-  Stack: Single;
+  SideBottomCircleIndex, SideTopCircleIndex, SideFaceIndex: Integer;
+
+  { Add additional stack in the middle.
+    StackHeight should be between 0 = bottom and 1 = top
+    (not inclusive, i.e. don't use this to generate bottom/top,
+    this is done by special code.) }
+  procedure AddStack(const StackHeight: Single);
+  var
+    I: Integer;
+    MiddleCircleIndex, MiddleFaceIndex: Integer;
+  begin
+    MiddleCircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices + 1;
+    GenerateCircle(QuadricSlices, Lerp(StackHeight, BottomRadius, TopRadius), -Height / 2 + StackHeight * Height, PVector3(Coord.Ptr(MiddleCircleIndex)));
+    Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
+    Normal.Count := Normal.Count + QuadricSlices + 1;
+    for I := 0 to QuadricSlices - 1 do
+      Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
+    Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
+      for I := 0 to QuadricSlices do
+        TexCoord.List^[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, StackHeight);
+    end;
+
+    MiddleFaceIndex := CoordIndex.Count;
+    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+    for I := 0 to QuadricSlices - 1 do
+    begin
+      CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
+      CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+      CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+      CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
+      CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
+    end;
+
+    if MaterialIndex <> nil then
+      MaterialIndex.AddDuplicate(0, QuadricSlices);
+
+    { Next stack added. Now replace SideBottomCircleIndex,
+      to say that the the current circle is the bottom now. }
+    SideBottomCircleIndex := MiddleCircleIndex;
+  end;
+
+var
+  I, J: Integer;
 begin
   { For VRML 1.0, some of these MF fields by default have non-empty content.
     It's safest to just clean them. }
@@ -349,43 +392,11 @@ begin
 
     { Add additional "stacks" to the geometry when QuadricStacks > 1 }
     for J := 1 to QuadricStacks - 1 do
-    begin
-      { stack height, in range [0..1] (0 = bottom, 1 = top). }
-      Stack := J / QuadricStacks;
-
-      MiddleCircleIndex := Coord.Count;
-      Coord.Count := Coord.Count + QuadricSlices + 1;
-      GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, PVector3(Coord.Ptr(MiddleCircleIndex)));
-      Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
-      Normal.Count := Normal.Count + QuadricSlices + 1;
-      for I := 0 to QuadricSlices - 1 do
-        Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
-      Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
-      if TexCoord <> nil then
-      begin
-        TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
-        for I := 0 to QuadricSlices do
-          TexCoord.List^[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, Stack);
-      end;
-
-      MiddleFaceIndex := CoordIndex.Count;
-      CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
-      for I := 0 to QuadricSlices - 1 do
-      begin
-        CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
-        CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-        CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-        CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
-        CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
-      end;
-
-      if MaterialIndex <> nil then
-        MaterialIndex.AddDuplicate(0, QuadricSlices);
-
-      { Next stack added. Now replace SideBottomCircleIndex,
-        to say that the the current circle is the bottom now. }
-      SideBottomCircleIndex := MiddleCircleIndex;
-    end;
+      AddStack(J / QuadricStacks);
+    (* Alt approach, for Cone tip:
+    if ExtraStackNearTop then
+      AddStack(0.9);
+    *)
 
     SideTopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
@@ -588,7 +599,9 @@ begin
       FdParts.Flags[CYLINDER_PARTS_BOTTOM],
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
-      DefaultTriangulationSlices, DefaultTriangulationStacks);
+      DefaultTriangulationSlices,
+      { Just like with TCylinderNode.CalculateStacks, Cylinder in VRML 1 doesn't use stacks }
+      1);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).
