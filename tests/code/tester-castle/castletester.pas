@@ -194,9 +194,9 @@ type
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
-      AddrOfError: Pointer = nil);
+      AddrOfError: Pointer = nil); overload;
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
-      const Epsilon: Double; AddrOfError: Pointer = nil);
+      const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
       AddrOfError: Pointer = nil);
