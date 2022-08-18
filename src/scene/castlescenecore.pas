@@ -1166,9 +1166,12 @@ type
       do see appropriate TAbstractGeometryNode methods.
       Here, we just sum their results for all shapes.
       @groupBegin }
-    function VerticesCount: Cardinal;
-    function TrianglesCount: Cardinal;
+    function VerticesCount: Cardinal; overload;
+    function TrianglesCount: Cardinal; overload;
     { @groupEnd }
+
+    function VerticesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use VerticesCount without Boolean argument, it is ignored now';
+    function TrianglesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use TrianglesCount without Boolean argument, it is ignored now';
 
     { Helper functions for accessing viewpoints defined in the scene.
       @groupBegin }
@@ -3639,6 +3642,16 @@ begin
     Include(Validities, fvTrianglesCount);
   end;
   Result := FTrianglesCount;
+end;
+
+function TCastleSceneCore.VerticesCount(const Ignored: Boolean): Cardinal;
+begin
+  Result := VerticesCount();
+end;
+
+function TCastleSceneCore.TrianglesCount(const Ignored: Boolean): Cardinal;
+begin
+  Result := TrianglesCount();
 end;
 
 function TCastleSceneCore.CreateShape(const AGeometry: TAbstractGeometryNode;

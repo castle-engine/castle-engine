@@ -446,9 +446,12 @@ type
       @groupBegin }
     function LocalBoundingBox: TBox3D;
     function BoundingBox: TBox3D;
-    function VerticesCount: Cardinal;
-    function TrianglesCount: Cardinal;
+    function VerticesCount: Cardinal; overload;
+    function TrianglesCount: Cardinal; overload;
     { @groupEnd }
+
+    function VerticesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use VerticesCount without Boolean argument, it is ignored now';
+    function TrianglesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use TrianglesCount without Boolean argument, it is ignored now';
 
     { Decompose the geometry into primitives, with arrays of per-vertex data. }
     function GeometryArrays: TGeometryArrays;
@@ -1666,6 +1669,16 @@ begin
     Include(Validities, svTrianglesCount);
   end;
   Result := FTrianglesCount;
+end;
+
+function TShape.VerticesCount(const Ignored: Boolean): Cardinal;
+begin
+  Result := VerticesCount();
+end;
+
+function TShape.TrianglesCount(const Ignored: Boolean): Cardinal;
+begin
+  Result := TrianglesCount();
 end;
 
 function TShape.GeometryArrays: TGeometryArrays;
