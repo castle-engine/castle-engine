@@ -106,8 +106,8 @@ begin
 
   { Output some information about the loaded scene }
   WritelnLog('Scene vertexes: %d, triangles: %d, bounding box: %s', [
-    Scene.VerticesCount(true),
-    Scene.TrianglesCount(true),
+    Scene.VerticesCount,
+    Scene.TrianglesCount,
     Scene.BoundingBox.ToString
   ]);
 

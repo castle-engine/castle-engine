@@ -199,8 +199,8 @@ begin
       'Vertexes: %d' + NL +
       'Triangles: %d' + NL +
       'Bounding Box: %s', [
-      Scene.VerticesCount(true),
-      Scene.TrianglesCount(true),
+      Scene.VerticesCount,
+      Scene.TrianglesCount,
       Scene.BoundingBox.ToString
     ]);
 
