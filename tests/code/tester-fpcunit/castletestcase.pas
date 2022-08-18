@@ -66,6 +66,8 @@ type
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; AddrOfError: Pointer = nil);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double; AddrOfError: Pointer = nil);
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D; AddrOfError: Pointer = nil);
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D; const Epsilon: Double; AddrOfError: Pointer = nil);
     procedure AssertFilenamesEqual(const Expected, Actual: string; AddrOfError: Pointer = nil);
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage; AddrOfError: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TRectangle; AddrOfError: Pointer = nil);

@@ -221,9 +221,14 @@ var
     And check their results match results of the proxy. }
   procedure CheckNodeBBoxAndTrisCount;
   begin
-    AssertBoxesEqual(NastyShape.BoundingBox     , ProxyShape.BoundingBox, 0.01);
-    AssertBoxesEqual(NastyShape.LocalBoundingBox, ProxyShape.LocalBoundingBox, 0.01);
-    AssertEquals    (NastyShape.TrianglesCount  , ProxyShape.TrianglesCount);
+    AssertBoxesEqual('TestGeometryUsesOptimizedMethods: BoundingBox should be equal, for ' + GoodGeometry.ClassName,
+      NastyShape.BoundingBox     , ProxyShape.BoundingBox, 0.01);
+    AssertBoxesEqual(
+      'TestGeometryUsesOptimizedMethods: LocalBoundingBox should be equal, for ' + GoodGeometry.ClassName,
+      NastyShape.LocalBoundingBox, ProxyShape.LocalBoundingBox, 0.01);
+    AssertEquals    (
+      'TestGeometryUsesOptimizedMethods: TrianglesCount should be equal, for ' + GoodGeometry.ClassName,
+      NastyShape.TrianglesCount  , ProxyShape.TrianglesCount);
   end;
 
 begin
