@@ -148,7 +148,7 @@ begin
     Writeln('Modelview matrix: ');
     Writeln(ShapeModelView.ToString('    '));
 
-    GeometryArrays := Shape.GeometryArrays(true);
+    GeometryArrays := Shape.GeometryArrays;
     try
       Writeln('Geometry:',
         ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
