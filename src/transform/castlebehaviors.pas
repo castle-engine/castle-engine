@@ -29,6 +29,7 @@ uses Classes, Generics.Collections,
 {$I castlebehaviors_alive.inc}
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
+{$I castlebehaviors_sticktosurface.inc}
 //{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
 
@@ -42,11 +43,13 @@ uses SysUtils, Math,
 {$I castlebehaviors_alive.inc}
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
+{$I castlebehaviors_sticktosurface.inc}
 // TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
   // TODO-works but API not finalized yet: RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
   RegisterSerializableComponent(TCastleSoundSource, 'Sound Source');
   RegisterSerializableComponent(TCastleBillboard, 'Billboard');
+  RegisterSerializableComponent(TCastleStickToSurface, 'Stick To Surface');
   // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

@@ -1151,7 +1151,11 @@
     function MoveAllowed(const OldPos, NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; overload;
 
-    { Cast a ray, see what is hit.
+    { Check for ray collisions within this TCastleTransform and children.
+      @exclude }
+    function InternalRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
+
+    { Cast a ray, see what is hit (checks the whole world, not just this TCastleTransform hierarchy).
 
       The given RayOrigin, RayDirection are in the parent
       coordinate system of this TCastleTransform.
@@ -1162,7 +1166,7 @@
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    { Cast a ray, see what is hit.
+    { Cast a ray, see what is hit (checks the whole world, not just this TCastleTransform hierarchy).
 
       The given RayOrigin, RayDirection are in the parent
       coordinate system of this TCastleTransform.
