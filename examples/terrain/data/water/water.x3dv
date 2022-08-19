@@ -21,7 +21,7 @@ Collision {
       shading "PHONG"
       appearance Appearance {
         material PhysicalMaterial {
-          transparency 0.1
+          transparency 0.3
           baseColor 0.5 0.5 1
           baseTexture RenderedTexture {
             dimensions [ 2048 2048 3 ]
