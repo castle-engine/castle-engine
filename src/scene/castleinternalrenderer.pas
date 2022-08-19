@@ -3479,27 +3479,14 @@ procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
   procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
   var
     GLNode: TGLRenderedTextureNode;
-    GeometryCoordsField: TMFVec3f;
-    GeometryCoords: TVector3List;
   begin
     if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
       GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
       begin
-        { calculate GeometryCoords }
-        GeometryCoords := nil;
-        if Shape.Geometry.InternalCoord(Shape.State, GeometryCoordsField) and
-           (GeometryCoordsField <> nil) then
-          GeometryCoords := GeometryCoordsField.Items;
-
-        GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          CurrentViewpoint, CameraViewKnown,
-          CameraPosition, CameraDirection, CameraUp,
-          Shape.BoundingBox,
-          Shape.State.Transformation.Transform,
-          GeometryCoords,
-          Shape.MirrorPlaneUniforms);
+        GLNode.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
+          CameraViewKnown, CameraPosition, CameraDirection, CameraUp, Shape);
 
         TexNode.GenTexFunctionality.PostUpdate;
 
@@ -3511,9 +3498,11 @@ procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
 
 begin
   if TextureNode is TGeneratedCubeMapTextureNode then
-    UpdateGeneratedCubeMap(TGeneratedCubeMapTextureNode(TextureNode)) else
+    UpdateGeneratedCubeMap(TGeneratedCubeMapTextureNode(TextureNode))
+  else
   if TextureNode is TGeneratedShadowMapNode then
-    UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode)) else
+    UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode))
+  else
   if TextureNode is TRenderedTextureNode then
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
 end;

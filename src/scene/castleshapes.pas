@@ -441,14 +441,21 @@ type
       Owned by this TShape class. }
     function State: TX3DGraphTraverseState;
 
-    { Calculate bounding box and vertices/triangles count,
-      see TAbstractGeometryNode methods.
-      @groupBegin }
+    { Bounding box in local shape coordinates, i.e. disregarging all transformations
+      (any TTransformNode, TCastleTransform) done on top of shape. }
     function LocalBoundingBox: TBox3D;
+
+    { Bounding box in scene coordinates, i.e. in the local coordinates of TCastleSceneCore
+      that owns this shape.
+
+      The idea is that TCastleSceneCore.LocalBoundingBox is calculated
+      just by summing up the Shape.BoundingBox for each shape.
+      So transformations done using TTransformNode are accounted here.
+      Parent TCastleTransform are not accounted here. }
     function BoundingBox: TBox3D;
+
     function VerticesCount: Cardinal; overload;
     function TrianglesCount: Cardinal; overload;
-    { @groupEnd }
 
     function VerticesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use VerticesCount without Boolean argument, it is ignored now';
     function TrianglesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use TrianglesCount without Boolean argument, it is ignored now';

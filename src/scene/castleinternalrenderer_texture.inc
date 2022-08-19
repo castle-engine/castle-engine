@@ -298,10 +298,7 @@
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
-      const ShapeBoundingBox: TBox3D;
-      const GeometryTransform: TMatrix4;
-      const GeometryCoords: TVector3List;
-      var MirrorPlaneUniforms: TMirrorPlaneUniforms);
+      const ShapeForViewpointMirror: TX3DRendererShape);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -1319,10 +1316,7 @@ procedure TGLRenderedTextureNode.Update(
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
-  const ShapeBoundingBox: TBox3D;
-  const GeometryTransform: TMatrix4;
-  const GeometryCoords: TVector3List;
-  var MirrorPlaneUniforms: TMirrorPlaneUniforms);
+  const ShapeForViewpointMirror: TX3DRendererShape);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { We have to calculate projection, given Viewpoint node.
@@ -1521,7 +1515,7 @@ procedure TGLRenderedTextureNode.Update(
     CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   end;
 
-  procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
+  procedure GetMatricesForViewpointMirror(const ViewpointMirror: TViewpointMirrorNode;
     out CameraRenderPosition: TVector3;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
@@ -1530,8 +1524,35 @@ procedure TGLRenderedTextureNode.Update(
     Plane: TVector4;
     ZNear: Single;
     FrustumDimensions: TFloatRectangle;
+    ShapeBox: TBox3d;
     ShapeCorners: TBoxCorners;
+    GeometryCoordsField: TMFVec3f;
+    GeometryCoords: TVector3List;
   begin
+    if (ShapeForViewpointMirror.ParentScene = nil) or
+       (not ShapeForViewpointMirror.ParentScene.HasWorldTransform) then
+    begin
+      WritelnWarning('ViewpointMirror can only work in TCastleScene that is part of viewport exactly once (without TCastleTransformReference)');
+      GetMatricesForViewpoint(
+        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+
+    { calculate camera Pos, Dir, Up (in world space) }
+    if not CameraViewKnown then
+    begin
+      WritelnWarning('ViewpointMirror will not work correctly until camera vectors are known');
+      GetMatricesForViewpoint(
+        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+    GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
+
+    { calculate GeometryCoords }
+    GeometryCoords := nil;
+    if ShapeForViewpointMirror.Geometry.InternalCoord(ShapeForViewpointMirror.State, GeometryCoordsField) and
+       (GeometryCoordsField <> nil) then
+      GeometryCoords := GeometryCoordsField.Items;
     if GeometryCoords = nil then
     begin
       WritelnWarning('ViewpointMirror can only be used on node with coordinates');
@@ -1540,9 +1561,7 @@ procedure TGLRenderedTextureNode.Update(
       Exit;
     end;
 
-    GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
-
-    { calculate Plane of the mirror }
+    { calculate Plane of the mirror from GeometryCoords (in local shape coords) }
     if not PointsPlane(GeometryCoords, Plane) then
     begin
       WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
@@ -1550,7 +1569,11 @@ procedure TGLRenderedTextureNode.Update(
         CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
       Exit;
     end;
-    Plane := PlaneTransform(Plane, GeometryTransform);
+
+    { convert Plane to world coords }
+    Plane := PlaneTransform(Plane,
+      ShapeForViewpointMirror.ParentScene.WorldTransform *
+      ShapeForViewpointMirror.State.Transformation.Transform);
 
     { reflect Pos, Dir, Up for mirror view }
     PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
@@ -1569,8 +1592,10 @@ procedure TGLRenderedTextureNode.Update(
     CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
 
     { calculate FrustumDimensions,
-      to include ShapeBoundingBox projected on the Plane. }
-    ShapeBoundingBox.Corners(ShapeCorners);
+      to include ShapeForViewpointMirror bounding box projected on the Plane. }
+    ShapeBox := ShapeForViewpointMirror.BoundingBox.Transform(
+      ShapeForViewpointMirror.ParentScene.WorldTransform);
+    ShapeBox.Corners(ShapeCorners);
     FrustumDimensions := TFloatRectangle.Empty;
     for Coord in ShapeCorners do
     begin
@@ -1582,17 +1607,17 @@ procedure TGLRenderedTextureNode.Update(
       FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
     end;
 
-    ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
+    ZNear := PointsDistance(Pos, PosOnPlane) + ViewpointMirror.DistanceFromShape;
     ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
       ZNear, ProjectionFar);
 
-    if MirrorPlaneUniforms = nil then
-      MirrorPlaneUniforms := TMirrorPlaneUniforms.Create;
-    MirrorPlaneUniforms.NormalizedPlane := Plane;
-    MirrorPlaneUniforms.CameraPositionOnPlane := PosOnPlane;
-    MirrorPlaneUniforms.CameraSide := Side;
-    MirrorPlaneUniforms.CameraUp := Up;
-    MirrorPlaneUniforms.FrustumDimensions := FrustumDimensions;
+    if ShapeForViewpointMirror.MirrorPlaneUniforms = nil then
+      ShapeForViewpointMirror.MirrorPlaneUniforms := TMirrorPlaneUniforms.Create;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.NormalizedPlane := Plane;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.CameraPositionOnPlane := PosOnPlane;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.CameraSide := Side;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.CameraUp := Up;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.FrustumDimensions := FrustumDimensions;
   end;
 
 var
@@ -1603,7 +1628,8 @@ var
 begin
   if FGLName = 0 then Exit;
 
-  { calculate Viewpoint }
+  { calculate matrices to use when rendering,
+    using algorithm based on TextureNode.Viewpoint }
   if TextureNode.FdViewpoint.Value is TViewpointMirrorNode then
     GetMatricesForViewpointMirror(
       TViewpointMirrorNode(TextureNode.FdViewpoint.Value),
