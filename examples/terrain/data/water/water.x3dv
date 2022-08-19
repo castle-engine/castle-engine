@@ -20,11 +20,10 @@ Collision {
     children Shape {
       shading "PHONG"
       appearance Appearance {
-        shaders CommonSurfaceShader {
-          alphaFactor 0.9 # opacity = 1 - transparency
-          specularFactor 1 1 1
-          shininessFactor 0.6
-          diffuseTexture RenderedTexture {
+        material PhysicalMaterial {
+          transparency 0.1
+          baseColor 0.5 0.5 1
+          baseTexture RenderedTexture {
             dimensions [ 2048 2048 3 ]
             viewpoint ViewpointMirror { }
             repeatS FALSE
