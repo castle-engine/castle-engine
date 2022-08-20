@@ -644,9 +644,15 @@ procedure TCastleTerrainData.RemoveChangeNotification(const Notify: TNotifyEvent
 begin
   if FChangeNotifications = nil then
   begin
-    WritelnWarning('FChangeNotifications already freed when RemoveFontSizeChangeNotification');
-    { In case it may be nil when destroying, and we make notification.
-      If this ever happens, in valid circumstances, we'll just remove the warning. }
+    { This can happen when we free the TCastleTerrainData (like TCastleTerrainNoise)
+      that is referenced in some TCastleTerrain.Data.
+      Then TCastleTerrainData.Destroy does "FreeAndNil(FChangeNotifications)"
+      first, then calls inherited destructor, that sends DataFreeNotification
+      to TCastleTerrain which in turn in SetData does RemoveChangeNotification.
+      So this all can happen in valid situation and can be just ignored.
+      When FChangeNotifications = nil it means we're freeing ourselves
+      and we no longer care about tracking FChangeNotifications. }
+    Assert(csDestroying in ComponentState);
     Exit;
   end;
   FChangeNotifications.Remove(Notify);
