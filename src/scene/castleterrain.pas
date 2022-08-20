@@ -462,8 +462,8 @@ type
       FTriangulate: Boolean;
       FSize: Single;
       FTextureMix: Single;
-      FNormalDark: Single;
-      FNormalDarkening: Single;
+      FDarknessAmount: Single;
+      FDarknessIntensity: Single;
       FSubdivisions: Cardinal;
       FPreciseCollisions: Boolean;
       FUpdateGeometryWhenLoaded: Boolean;
@@ -489,8 +489,8 @@ type
     function GetTexture(const Index: Integer): String;
     procedure SetTexture(const Index: Integer; const Value: String);
     procedure SetTextureMix(const Value: Single);
-    procedure SetNormalDark(const Value: Single);
-    procedure SetNormalDarkening(const Value: Single);
+    procedure SetDarknessAmount(const Value: Single);
+    procedure SetDarknessIntensity(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
   protected
     procedure Loaded; override;
@@ -517,8 +517,8 @@ type
       );
       DefaultUvScale = 1.0;
       DefaultTextureMix = 1.0;
-      DefaultNormalDark = 0.90;
-      DefaultNormalDarkening = 0.5;
+      DefaultDarknessAmount = 0.90;
+      DefaultDarknessIntensity = 0.5;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -596,22 +596,17 @@ type
 
     { The steep slope at which we make color maximally darker.
       The slope is just Y coordinate of the normalized normal vector.
-      NormalDark = 0.0 means that we apply darkness only when slope is really vertical
+      DarknessAmount = 0.0 means that we apply darkness only when slope is really vertical
       (it practically makes the darkness non-existing),
       1.0 means that we start applying the darkness when scope is even horizontal
-      (it makes everything covered by darkness).
-
-      TODO: Better name for this and NormalDarkening?
-      DarknessStartSlope
-      DarknessIntensity
-    }
-    property NormalDark: Single read FNormalDark write SetNormalDark
-      {$ifdef FPC}default DefaultNormalDark{$endif};
+      (it makes everything covered by darkness). }
+    property DarknessAmount: Single read FDarknessAmount write SetDarknessAmount
+      {$ifdef FPC}default DefaultDarknessAmount{$endif};
 
     { How darker can we make the color, because of steep slope.
-      0.0 means we can make it completely black, 1.0 disables color darkening. }
-    property NormalDarkening: Single read FNormalDarkening write SetNormalDarkening
-      {$ifdef FPC}default DefaultNormalDarkening{$endif};
+      1.0 means we can make it completely black, 0.0 disables color darkening. }
+    property DarknessIntensity: Single read FDarknessIntensity write SetDarknessIntensity
+      {$ifdef FPC}default DefaultDarknessIntensity{$endif};
 
     { Resolve collisions precisely with the terrain geometry.
       When this is @false we will only consider the terrain bounding box for collisions,
@@ -1470,8 +1465,8 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     end;
 
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', FTextureMix));
-    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_dark', FNormalDark));
-    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_darkening', FNormalDarkening));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'darkness_amount', FDarknessAmount));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'darkness_intensity', FDarknessIntensity));
 
     { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
     FragmentPart := TEffectPartNode.Create;
@@ -1495,8 +1490,8 @@ begin
   FSubdivisions := DefaultSubdivisions;
   FSize := DefaultSize;
   FTextureMix := DefaultTextureMix;
-  FNormalDark := DefaultNormalDark;
-  FNormalDarkening := DefaultNormalDarkening;
+  FDarknessAmount := DefaultDarknessAmount;
+  FDarknessIntensity := DefaultDarknessIntensity;
   FPreciseCollisions := true;
 
   Scene := TCastleScene.Create(Self);
@@ -1749,21 +1744,21 @@ begin
   end;
 end;
 
-procedure TCastleTerrain.SetNormalDark(const Value: Single);
+procedure TCastleTerrain.SetDarknessAmount(const Value: Single);
 begin
-  if FNormalDark <> Value then
+  if FDarknessAmount <> Value then
   begin
-    FNormalDark := Value;
-    (Effect.Field('normal_dark') as TSFFloat).Send(Value);
+    FDarknessAmount := Value;
+    (Effect.Field('darkness_amount') as TSFFloat).Send(Value);
   end;
 end;
 
-procedure TCastleTerrain.SetNormalDarkening(const Value: Single);
+procedure TCastleTerrain.SetDarknessIntensity(const Value: Single);
 begin
-  if FNormalDarkening <> Value then
+  if FDarknessIntensity <> Value then
   begin
-    FNormalDarkening := Value;
-    (Effect.Field('normal_darkening') as TSFFloat).Send(Value);
+    FDarknessIntensity := Value;
+    (Effect.Field('darkness_intensity') as TSFFloat).Send(Value);
   end;
 end;
 
@@ -1789,7 +1784,7 @@ begin
        'UvScale1', 'UvScale2', 'UvScale3',
        'Color1Persistent', 'Color2Persistent', 'Color3Persistent',
        'Texture1', 'Texture2', 'Texture3',
-       'TextureMix', 'NormalDark', 'NormalDarkening'
+       'TextureMix', 'DarknessAmount', 'DarknessIntensity'
      ]) then
     Result := [psBasic]
   else

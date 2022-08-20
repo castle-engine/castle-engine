@@ -16,8 +16,8 @@ uniform float uv_scale_1;
 uniform float uv_scale_2;
 uniform float uv_scale_3;
 
-uniform float normal_dark;
-uniform float normal_darkening;
+uniform float darkness_amount;
+uniform float darkness_intensity;
 uniform float texture_mix;
 
 uniform float h0; // below is tex/color_1
@@ -63,5 +63,26 @@ void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 
   fragment_color.rgb = mix(fragment_color.rgb, base_color, texture_mix);
 
-  fragment_color.rgb *= mix(normal_darkening, 1.0, smoothstep(normal_dark, 1.0, normal_slope));
+  /* What does this do?
+
+     normal_slope (normal.y)
+     = 0 means a vertical face
+     = 1 means a horizontal face
+
+     So
+
+     - when normal_slope <= darkness_amount (more vertical than darkness_amount)
+       then we multiply by "1.0-darkness_intensity",
+       which means we make it completely dark when darkness_intensity=1.
+
+       Smaller darkness_amount makes the area with "full darkness"
+       ("1.0-darkness_intensity") smaller, though the darkness is still applied
+       through the range, just with smaller impact.
+
+     - when normal_slope >= 1.0 (completely horizontal)
+       then we multiply by 1.0
+       which means we don't change it.
+  */
+
+  fragment_color.rgb *= mix(1.0-darkness_intensity, 1.0, smoothstep(darkness_amount, 1.0, normal_slope));
 }

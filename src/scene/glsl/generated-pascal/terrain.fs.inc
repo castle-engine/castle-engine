@@ -18,8 +18,8 @@
 'uniform float uv_scale_2;' + LineEnding +
 'uniform float uv_scale_3;' + LineEnding +
 '' + LineEnding +
-'uniform float normal_dark;' + LineEnding +
-'uniform float normal_darkening;' + LineEnding +
+'uniform float darkness_amount;' + LineEnding +
+'uniform float darkness_intensity;' + LineEnding +
 'uniform float texture_mix;' + LineEnding +
 '' + LineEnding +
 'uniform float h0; // below is tex/color_1' + LineEnding +
@@ -65,6 +65,27 @@
 '' + LineEnding +
 '  fragment_color.rgb = mix(fragment_color.rgb, base_color, texture_mix);' + LineEnding +
 '' + LineEnding +
-'  fragment_color.rgb *= mix(normal_darkening, 1.0, smoothstep(normal_dark, 1.0, normal_slope));' + LineEnding +
+'  /* What does this do?' + LineEnding +
+'' + LineEnding +
+'     normal_slope (normal.y)' + LineEnding +
+'     = 0 means a vertical face' + LineEnding +
+'     = 1 means a horizontal face' + LineEnding +
+'' + LineEnding +
+'     So' + LineEnding +
+'' + LineEnding +
+'     - when normal_slope <= darkness_amount (more vertical than darkness_amount)' + LineEnding +
+'       then we multiply by "1.0-darkness_intensity",' + LineEnding +
+'       which means we make it completely dark when darkness_intensity=1.' + LineEnding +
+'' + LineEnding +
+'       Smaller darkness_amount makes the area with "full darkness"' + LineEnding +
+'       ("1.0-darkness_intensity") smaller, though the darkness is still applied' + LineEnding +
+'       through the range, just with smaller impact.' + LineEnding +
+'' + LineEnding +
+'     - when normal_slope >= 1.0 (completely horizontal)' + LineEnding +
+'       then we multiply by 1.0' + LineEnding +
+'       which means we don''t change it.' + LineEnding +
+'  */' + LineEnding +
+'' + LineEnding +
+'  fragment_color.rgb *= mix(1.0-darkness_intensity, 1.0, smoothstep(darkness_amount, 1.0, normal_slope));' + LineEnding +
 '}' + LineEnding +
 ''
