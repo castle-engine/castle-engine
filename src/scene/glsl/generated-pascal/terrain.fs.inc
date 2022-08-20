@@ -10,6 +10,10 @@
 'uniform sampler2D tex_2;' + LineEnding +
 'uniform sampler2D tex_3;' + LineEnding +
 '' + LineEnding +
+'uniform vec3 color_1;' + LineEnding +
+'uniform vec3 color_2;' + LineEnding +
+'uniform vec3 color_3;' + LineEnding +
+'' + LineEnding +
 'uniform float uv_scale_1;' + LineEnding +
 'uniform float uv_scale_2;' + LineEnding +
 'uniform float uv_scale_3;' + LineEnding +
@@ -18,11 +22,11 @@
 'uniform float normal_darkening;' + LineEnding +
 'uniform float texture_mix;' + LineEnding +
 '' + LineEnding +
-'uniform float h0; // below is tex_1' + LineEnding +
-'uniform float h1; // below is tex_2 mixed with tex_1' + LineEnding +
-'uniform float h2; // below is tex_2' + LineEnding +
-'uniform float h3; // below is tex_3 mixed with tex_2' + LineEnding +
-'                  // above is tex_3' + LineEnding +
+'uniform float h0; // below is tex/color_1' + LineEnding +
+'uniform float h1; // below is tex/color_2 mixed with tex/color_1' + LineEnding +
+'uniform float h2; // below is tex/color_2' + LineEnding +
+'uniform float h3; // below is tex/color_3 mixed with tex/color_2' + LineEnding +
+'                  // above is tex/color_3' + LineEnding +
 '' + LineEnding +
 'varying vec3 terrain_position;' + LineEnding +
 'varying vec3 terrain_normal;' + LineEnding +
@@ -34,7 +38,6 @@
 '' + LineEnding +
 'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' + LineEnding +
 '{' + LineEnding +
-'  vec4 tex;' + LineEnding +
 '  float h = terrain_position.y;' + LineEnding +
 '  /* We flip terrain_position.z, to map texture more naturally, when viewed from above.' + LineEnding +
 '     This is consistent with calculating TexCoord for TCastleTerrainData.Height.' + LineEnding +
@@ -44,56 +47,23 @@
 '  vec2 uv = vec2(terrain_position.x, -terrain_position.z);' + LineEnding +
 '  float normal_slope = normalize(terrain_normal).y;' + LineEnding +
 '' + LineEnding +
-'  /*' + LineEnding +
-'  if (h <= h0) {' + LineEnding +
-'    tex = texture2D(tex_1, uv);' + LineEnding +
-'  } else' + LineEnding +
-'  if (h <= h1) {' + LineEnding +
-'    float mixfactor = smoothstep(h0, h1, h);' + LineEnding +
-'      //clamp((h - h0) / (h1 - h0), 0.0, 1.0);' + LineEnding +
-'    tex = mix(texture2D(tex_1, uv), texture2D(tex_2, uv), mixfactor);' + LineEnding +
-'  } else' + LineEnding +
-'  if (h <= h2) {' + LineEnding +
-'    tex = texture2D(tex_2, uv);' + LineEnding +
-'  } else' + LineEnding +
-'  if (h <= h3) {' + LineEnding +
-'    float mixfactor = smoothstep(h2, h3, h);' + LineEnding +
-'      //clamp((h - h2) / (h3 - h2), 0.0, 1.0);' + LineEnding +
-'    tex = mix(texture2D(tex_2, uv), texture2D(tex_3, uv), mixfactor);' + LineEnding +
-'  } else' + LineEnding +
-'  {' + LineEnding +
-'    tex = texture2D(tex_3, uv);' + LineEnding +
-'  }' + LineEnding +
-'  */' + LineEnding +
-'' + LineEnding +
-'  /* This achieves the same effect as above (because smoothstep' + LineEnding +
-'     does clamp() inside), but better:' + LineEnding +
-'     - one 1 "if", instead of 4 "if"s' + LineEnding +
-'     - no weird artifacts when h is precisely at h0, h1, h2 or h3.' + LineEnding +
-'' + LineEnding +
-'       (previous code was sometimes showing a weird color at these borders,' + LineEnding +
-'       possibly GPU was forcing all neighboring pixels to have the same' + LineEnding +
-'       "if" outcome -- observed with' + LineEnding +
-'         Renderer: GeForce GTS 450/PCIe/SSE2' + LineEnding +
-'         Version: 4.5.0 NVIDIA 375.82' + LineEnding +
-'         on Linux/x86_64.' + LineEnding +
-'       ).' + LineEnding +
-'  */' + LineEnding +
-'' + LineEnding +
+'  vec3 base_color;' + LineEnding +
 '  float hhalf = (h1 + h2) * 0.5;' + LineEnding +
 '  if (h < hhalf) {' + LineEnding +
 '    float mixfactor = smoothstep(h0, h1, h);' + LineEnding +
-'    tex = mix(' + LineEnding +
-'      castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)),' + LineEnding +
-'      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)), mixfactor);' + LineEnding +
+'    base_color = mix(' + LineEnding +
+'      color_1 * castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)).rgb,' + LineEnding +
+'      color_2 * castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)).rgb,' + LineEnding +
+'      mixfactor);' + LineEnding +
 '  } else {' + LineEnding +
 '    float mixfactor = smoothstep(h2, h3, h);' + LineEnding +
-'    tex = mix(' + LineEnding +
-'      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)),' + LineEnding +
-'      castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)), mixfactor);' + LineEnding +
+'    base_color = mix(' + LineEnding +
+'      color_2 * castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)).rgb,' + LineEnding +
+'      color_3 * castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)).rgb,' + LineEnding +
+'      mixfactor);' + LineEnding +
 '  }' + LineEnding +
 '' + LineEnding +
-'  fragment_color.rgb = mix(fragment_color.rgb, tex.rgb, texture_mix);' + LineEnding +
+'  fragment_color.rgb = mix(fragment_color.rgb, base_color, texture_mix);' + LineEnding +
 '' + LineEnding +
 '  fragment_color.rgb *= mix(normal_darkening, 1.0, smoothstep(normal_dark, 1.0, normal_slope));' + LineEnding +
 '}' + LineEnding +
