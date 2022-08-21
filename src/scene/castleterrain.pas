@@ -38,7 +38,10 @@
       Edit textures influence using splatmap. Just a texture where RGBA
       are weights for each texture.
 
-      Implement this, and also add a brush to edit splatmap in CGE editor.)
+      Implement this, and also add a brush to edit splatmap in CGE editor.
+
+      The existing way to determine layers influence can then be used
+      as just a nice (optional) way to auto-generate initial splatmap.)
 
     @item(Adding vegetation to the terrain.
 
