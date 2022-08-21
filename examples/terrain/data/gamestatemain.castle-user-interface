@@ -64,8 +64,11 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "SteepEmphasize" : 2.0000000000000000E+000,
-            "Subdivisions" : 256,
+            "SubdivisionsPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.5600000000000000E+002,
+              "Y" : 2.5600000000000000E+002
+            },
             "$NonVisualComponents" : [
               {
                 "$$ClassName" : "TCastleTerrainNoise",
@@ -197,7 +200,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.5013504028320312E+001,
-                  "Y" : 5.5009307861328125E+000,
+                  "Y" : 5.5009460449218750E+000,
                   "Z" : -6.9450263977050781E+000
                 },
                 "$Behaviors" : [
@@ -272,7 +275,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.6254806518554688E+000,
-                  "Y" : 4.6230468750000000E+000,
+                  "Y" : 4.6230621337890625E+000,
                   "Z" : -4.7247009277343750E+000
                 },
                 "$Behaviors" : [
@@ -410,7 +413,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.2156982421875000E+001,
-                  "Y" : 4.5844879150390625E+000,
+                  "Y" : 4.5844726562500000E+000,
                   "Z" : 2.4945175170898438E+001
                 },
                 "$Behaviors" : [
@@ -456,7 +459,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 7.4944458007812500E+000,
-                  "Y" : 4.8269348144531250E+000,
+                  "Y" : 4.8269195556640625E+000,
                   "Z" : 1.3133346557617188E+001
                 },
                 "$Behaviors" : [
@@ -496,7 +499,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 4.4099998474121094E+000,
-                  "Y" : 4.9565124511718750E+000,
+                  "Y" : 4.9564971923828125E+000,
                   "Z" : 8.6454582214355469E+000
                 },
                 "$Children" : [
