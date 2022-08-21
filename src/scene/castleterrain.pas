@@ -450,15 +450,20 @@ type
   strict private
     Terrain: TCastleTerrain;
     Layer: Integer;
-    UvScaleField: TSFFloat;
     ColorField: TSFColor;
     TextureNode: TImageTextureNode;
     function GetUvScale: Single;
     procedure SetUvScale(const Value: Single);
+    function GetMetallic: Single;
+    procedure SetMetallic(const Value: Single);
+    function GetRoughness: Single;
+    procedure SetRoughness(const Value: Single);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
     function GetTexture: String;
     procedure SetTexture(const Value: String);
+    function GetUsingPackedVector(const Vec: TSFVec4f): Single;
+    procedure SetUsingPackedVector(const Vec: TSFVec4f; const Value: Single);
   {$warnings off}
   private
     constructor CreateForTerrain(const ATerrain: TCastleTerrain;
@@ -467,6 +472,8 @@ type
   {$warnings on}
     const
       DefaultUvScale = 1.0;
+      DefaultMetallic = 1.0;
+      DefaultRoughness = 1.0;
 
     { Public constructor for this class raises exception.
       Never create instances of this class directly.
@@ -489,6 +496,12 @@ type
     { Texture URL. Texture is multiplied by @link(Color).
       Default (none) behaves as if it was a white texture for calculation. }
     property Texture: String read GetTexture write SetTexture;
+
+    { The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal). }
+    property Metallic: Single read GetMetallic write SetMetallic {$ifdef FPC}default DefaultMetallic{$endif};
+
+    { The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough). }
+    property Roughness: Single read GetRoughness write SetRoughness {$ifdef FPC}default DefaultRoughness{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc}
@@ -585,6 +598,7 @@ type
     procedure SetPreciseCollisions(const Value: Boolean);
   private
     Scene: TCastleScene;
+    UvScaleField, MetallicField, RoughnessField: TSFVec4f;
   protected
     procedure Loaded; override;
   public
@@ -1517,8 +1531,6 @@ begin
   TextureField := TSFNode.Create(Effect, false, 'tex_' + IntToStr(Layer), [], TextureNode);
   Effect.AddCustomField(TextureField);
 
-  UvScaleField := TSFFloat.Create(Effect, true, 'uv_scale_' + IntToStr(Layer), DefaultUvScale);
-  Effect.AddCustomField(UvScaleField);
 
   ColorField := TSFColor.Create(Effect, true, 'color_' + IntToStr(Layer), WhiteRGB);
   Effect.AddCustomField(ColorField);
@@ -1536,14 +1548,48 @@ begin
   inherited;
 end;
 
+function TCastleTerrainLayer.GetUsingPackedVector(const Vec: TSFVec4f): Single;
+begin
+  Result := Vec.Value[Layer - 1];
+end;
+
+procedure TCastleTerrainLayer.SetUsingPackedVector(const Vec: TSFVec4f; const Value: Single);
+var
+  V: TVector4;
+begin
+  V := Vec.Value;
+  V.InternalData[Layer - 1] := Value;
+  Vec.Send(V);
+end;
+
 function TCastleTerrainLayer.GetUvScale: Single;
 begin
-  Result := UvScaleField.Value;
+  Result := GetUsingPackedVector(Terrain.UvScaleField);
 end;
 
 procedure TCastleTerrainLayer.SetUvScale(const Value: Single);
 begin
-  UvScaleField.Send(Value);
+  SetUsingPackedVector(Terrain.UvScaleField, Value);
+end;
+
+function TCastleTerrainLayer.GetMetallic: Single;
+begin
+  Result := GetUsingPackedVector(Terrain.MetallicField);
+end;
+
+procedure TCastleTerrainLayer.SetMetallic(const Value: Single);
+begin
+  SetUsingPackedVector(Terrain.MetallicField, Value);
+end;
+
+function TCastleTerrainLayer.GetRoughness: Single;
+begin
+  Result := GetUsingPackedVector(Terrain.RoughnessField);
+end;
+
+procedure TCastleTerrainLayer.SetRoughness(const Value: Single);
+begin
+  SetUsingPackedVector(Terrain.RoughnessField, Value);
 end;
 
 function TCastleTerrainLayer.GetColor: TCastleColorRGB;
@@ -1580,7 +1626,7 @@ end;
 function TCastleTerrainLayer.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'UvScale', 'ColorPersistent', 'Texture'
+     'UvScale', 'ColorPersistent', 'Texture', 'Metallic', 'Roughness'
      ]) then
     Result := [psBasic]
   else
@@ -1608,6 +1654,27 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
       the TPhysicalMaterialNode.BaseTexture, which is meaningless when no light shines. }
     Effect.UniformMissing := umIgnore;
     Appearance.SetEffects([Effect]);
+
+    UvScaleField := TSFVec4f.Create(Effect, true, 'uv_scale', Vector4(
+      TCastleTerrainLayer.DefaultUvScale,
+      TCastleTerrainLayer.DefaultUvScale,
+      TCastleTerrainLayer.DefaultUvScale,
+      TCastleTerrainLayer.DefaultUvScale));
+    Effect.AddCustomField(UvScaleField);
+
+    MetallicField := TSFVec4f.Create(Effect, true, 'metallic', Vector4(
+      TCastleTerrainLayer.DefaultMetallic,
+      TCastleTerrainLayer.DefaultMetallic,
+      TCastleTerrainLayer.DefaultMetallic,
+      TCastleTerrainLayer.DefaultMetallic));
+    Effect.AddCustomField(MetallicField);
+
+    RoughnessField := TSFVec4f.Create(Effect, true, 'roughness', Vector4(
+      TCastleTerrainLayer.DefaultRoughness,
+      TCastleTerrainLayer.DefaultRoughness,
+      TCastleTerrainLayer.DefaultRoughness,
+      TCastleTerrainLayer.DefaultRoughness));
+    Effect.AddCustomField(RoughnessField);
 
     for I := 1 to HeightsCount do
     begin
