@@ -64,7 +64,10 @@
     @item(TCastleTerrain configurable textures number.)
     @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
       See wyrd-forest arguments.)
-    @item(TCastleTerrain add property to define material type, like in primitives - unlit, physical, phong?)
+    @item(TCastleTerrain add property to define material type, like in primitives - unlit, physical, phong?
+      Wait with this for our final CGE components to define materials and effects,
+      TCastlePhysicalMaterial, TCastleShaderEffect -- they will determine how to nicely
+      expose it here.)
   )
 }
 unit CastleTerrain;
@@ -439,6 +442,59 @@ type
     property Operation: TCastleTerrainCombineOperation read FOperation write SetOperation default opMax;
   end;
 
+  TCastleTerrain = class;
+
+  { Layer of a terrain properties. See @link(TCastleTerrain) for docs how terrain
+    uses layers for display. }
+  TCastleTerrainLayer = class(TCastleComponent)
+  strict private
+    Terrain: TCastleTerrain;
+    Layer: Integer;
+    UvScaleField: TSFFloat;
+    ColorField: TSFColor;
+    TextureNode: TImageTextureNode;
+    function GetUvScale: Single;
+    procedure SetUvScale(const Value: Single);
+    function GetColor: TCastleColorRGB;
+    procedure SetColor(const Value: TCastleColorRGB);
+    function GetTexture: String;
+    procedure SetTexture(const Value: String);
+  {$warnings off}
+  private
+    constructor CreateForTerrain(const ATerrain: TCastleTerrain;
+      const ALayer: Integer; const Effect: TEffectNode);
+  public
+  {$warnings on}
+    const
+      DefaultUvScale = 1.0;
+
+    { Public constructor for this class raises exception.
+      Never create instances of this class directly.
+      The instances of this class should only be created by implementation of TCastleTerrain,
+      access them as TCastleTerrain subcomponents like @link(TCastleTerrain.Layer1). }
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Color, multiplied by @link(Texture).
+      Default is white. }
+    property Color: TCastleColorRGB read GetColor write SetColor;
+
+  published
+    { Scale the @link(Texture).
+      Setting UV scale to be equal to 1/@link(TCastleTerrainData.Size)
+      reliably makes the texture image size match the whole terrain. }
+    property UvScale: Single read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
+
+    { Texture URL. Texture is multiplied by @link(Color).
+      Default (none) behaves as if it was a white texture for calculation. }
+    property Texture: String read GetTexture write SetTexture;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc}
+  {$undef read_interface_class}
+  end;
+
   { Terrain.
 
     Assign @link(Data) to provide some non-trivial height map, you can use there:
@@ -462,8 +518,10 @@ type
     @unorderedList(
       @item(
         Each layer has a color (white by default), texture (none by default,
-        that behaves like white) and UV scale. For example layer 1 is
-        @link(Color1), @link(Texture1), @link(UvScale1).)
+        that behaves like white) and UV scale.
+        See @link(TCastleTerrainLayer).
+        Each layer is a property like @link(Layer1), @link(Layer2),
+        @link(Layer3), @link(Layer4).)
 
       @item(Only the RBG channels of textures matter, alpha is ignored.)
 
@@ -493,31 +551,22 @@ type
       LayersCount = 4;
       HeightsCount = 2;
   strict private
-    type
-      TLayer = record
-        UvScale: TSFFloat;
-        Color: TSFColor;
-        TextureNode: TImageTextureNode;
-      end;
-
-    var
-      Scene: TCastleScene;
-      TerrainNode: TAbstractChildNode;
-      Appearance: TAppearanceNode;
-      Effect: TEffectNode;
-      HeightsFields: array [1..HeightsCount] of TSFFloat;
-      Layers: array [1..LayersCount] of TLayer;
-      FData: TCastleTerrainData;
-      FDataObserver: TFreeNotificationObserver;
-      FTriangulate: Boolean;
-      FSize: Single;
-      FLayersInfluence: Single;
-      FSteepEmphasize: Single;
-      FSubdivisions: Cardinal;
-      FPreciseCollisions: Boolean;
-      FUpdateGeometryWhenLoaded: Boolean;
-
+    TerrainNode: TAbstractChildNode;
+    Appearance: TAppearanceNode;
+    Effect: TEffectNode;
+    HeightsFields: array [1..HeightsCount] of TSFFloat;
+    Layers: array [1..LayersCount] of TCastleTerrainLayer;
+    FData: TCastleTerrainData;
+    FDataObserver: TFreeNotificationObserver;
+    FTriangulate: Boolean;
+    FSize: Single;
+    FLayersInfluence: Single;
+    FSteepEmphasize: Single;
+    FSubdivisions: Cardinal;
+    FPreciseCollisions: Boolean;
+    FUpdateGeometryWhenLoaded: Boolean;
     function GetRenderOptions: TCastleRenderOptions;
+    function GetLayer(const Index: Integer): TCastleTerrainLayer;
     procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
     procedure DataChanged(Sender: TObject);
 
@@ -531,15 +580,11 @@ type
     procedure SetSize(const Value: Single);
     function GetHeight(const Index: Integer): Single;
     procedure SetHeight(const Index: Integer; const Value: Single);
-    function GetUvScale(const Index: Integer): Single;
-    procedure SetUvScale(const Index: Integer; const Value: Single);
-    function GetColor(const Index: Integer): TCastleColorRGB;
-    procedure SetColor(const Index: Integer; const Value: TCastleColorRGB);
-    function GetTexture(const Index: Integer): String;
-    procedure SetTexture(const Index: Integer; const Value: String);
     procedure SetLayersInfluence(const Value: Single);
     procedure SetSteepEmphasize(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
+  private
+    Scene: TCastleScene;
   protected
     procedure Loaded; override;
   public
@@ -560,31 +605,30 @@ type
         DefaultHeight2
       );
       DefaultLayersInfluence = 1.0;
-      DefaultSteepEmphasize = 0.5;
-      DefaultUvScale = 1.0;
+      DefaultSteepEmphasize = 2.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
-    { 1st color, multiplied by @link(Texture1).
-      See TCastleTerrain for a description when do we show show 1st layer (color and texture).
-      Default is white. }
-    property Color1: TCastleColorRGB index 1 read GetColor write SetColor;
-    { 2st color, multiplied by @link(Texture2).
-      See TCastleTerrain for a description when do we show show 2nd layer (color and texture).
-      Default is white. }
-    property Color2: TCastleColorRGB index 2 read GetColor write SetColor;
-    { 3rd color, multiplied by @link(Texture3).
-      See TCastleTerrain for a description when do we show show 3rd layer (color and texture).
-      Default is white. }
-    property Color3: TCastleColorRGB index 3 read GetColor write SetColor;
-    { 4th color, multiplied by @link(Texture4).
-      See TCastleTerrain for a description when do we show show 4th layer (color and texture).
-      Default is white. }
-    property Color4: TCastleColorRGB index 4 read GetColor write SetColor;
   published
+    { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
+
+    { 1st layer is displayed on lower heights and more flat terrain.
+      See TCastleTerrain for a full description how do we mix layers. }
+    property Layer1: TCastleTerrainLayer index 1 read GetLayer;
+
+    { 2nd layer is displayed on lower heights and more steep terrain.
+      See TCastleTerrain for a full description how do we mix layers. }
+    property Layer2: TCastleTerrainLayer index 2 read GetLayer;
+
+    { 3rd layer is displayed on higher heights and more flat terrain.
+      See TCastleTerrain for a full description how do we mix layers. }
+    property Layer3: TCastleTerrainLayer index 3 read GetLayer;
+
+    { 4th layer is displayed on higher heights and more steep terrain.
+      See TCastleTerrain for a full description how do we mix layers. }
+    property Layer4: TCastleTerrainLayer index 4 read GetLayer;
 
     { Data for terrain heights.
       Changing this requires rebuild of terrain geometry, so it's costly.
@@ -630,33 +674,6 @@ type
       See TCastleTerrain for a description when do we show show layers and how this property affects it. }
     property Height2: Single index 2 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight2{$endif};
 
-    { Scale the @link(Texture1).
-      Setting UV scale to be equal to 1/Size reliably makes the texture image size match the whole terrain. }
-    property UvScale1: Single index 1 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-    { Scale the @link(Texture2). }
-    property UvScale2: Single index 2 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-    { Scale the @link(Texture3). }
-    property UvScale3: Single index 3 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-    { Scale the @link(Texture4). }
-    property UvScale4: Single index 4 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-
-    { 1st texture URL, multiplied by @link(Color1).
-      See TCastleTerrain for a description when do we show show 1st layer (color and texture).
-      Default (none) behaves as if it was a white texture for calculation. }
-    property Texture1: String index 1 read GetTexture write SetTexture;
-    { 2st texture URL, multiplied by @link(Color2).
-      See TCastleTerrain for a description when do we show show 2nd layer (color and texture).
-      Default (none) behaves as if it was a white texture for calculation. }
-    property Texture2: String index 2 read GetTexture write SetTexture;
-    { 3rd texture URL, multiplied by @link(Color3).
-      See TCastleTerrain for a description when do we show show 3rd layer (color and texture).
-      Default (none) behaves as if it was a white texture for calculation. }
-    property Texture3: String index 3 read GetTexture write SetTexture;
-    { 4th texture URL, multiplied by @link(Color4).
-      See TCastleTerrain for a description when do we show show 4th layer (color and texture).
-      Default (none) behaves as if it was a white texture for calculation. }
-    property Texture4: String index 4 read GetTexture write SetTexture;
-
     { How much do the layers affect the final color.
       0.0 means that layes are ignored, and the terrain look is a regular
       mesh look with @link(TPhysicalMaterialNode).
@@ -670,11 +687,7 @@ type
       which prevents moving on terrain nicely, picking terrain points with mouse etc.
       This sets @link(TCastleSceneCore.Spatial). }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default true;
-
-  {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
-  {$undef read_interface_class}
-  end experimental;
+  end;
 
 implementation
 
@@ -1474,7 +1487,7 @@ begin
   end;
 end;
 
-{ TCastleTerrain ------------------------------------------------------------- }
+{ TCastleTerrainLayer -------------------------------------------------------- }
 
 const
   { URL of a white pixel texture, embedded PPM.
@@ -1484,13 +1497,108 @@ const
     '255'#10 +
     '255 255 255';
 
+constructor TCastleTerrainLayer.Create(AOwner: TComponent);
+begin
+  inherited;
+  raise Exception.Create('TCastleTerrainLayer can only be instantiated by TCastleTerrain as a subcomponent');
+end;
+
+constructor TCastleTerrainLayer.CreateForTerrain(const ATerrain: TCastleTerrain;
+  const ALayer: Integer; const Effect: TEffectNode);
+var
+  TextureField: TSFNode;
+begin
+  inherited Create(ATerrain);
+  Terrain := ATerrain;
+  Layer := ALayer;
+
+  TextureNode := TImageTextureNode.Create;
+  TextureNode.SetUrl([WhitePixel]);
+  TextureField := TSFNode.Create(Effect, false, 'tex_' + IntToStr(Layer), [], TextureNode);
+  Effect.AddCustomField(TextureField);
+
+  UvScaleField := TSFFloat.Create(Effect, true, 'uv_scale_' + IntToStr(Layer), DefaultUvScale);
+  Effect.AddCustomField(UvScaleField);
+
+  ColorField := TSFColor.Create(Effect, true, 'color_' + IntToStr(Layer), WhiteRGB);
+  Effect.AddCustomField(ColorField);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleTerrainLayer.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
+
+function TCastleTerrainLayer.GetUvScale: Single;
+begin
+  Result := UvScaleField.Value;
+end;
+
+procedure TCastleTerrainLayer.SetUvScale(const Value: Single);
+begin
+  UvScaleField.Send(Value);
+end;
+
+function TCastleTerrainLayer.GetColor: TCastleColorRGB;
+begin
+  Result := ColorField.Value;
+end;
+
+procedure TCastleTerrainLayer.SetColor(const Value: TCastleColorRGB);
+begin
+  ColorField.Send(Value);
+end;
+
+function TCastleTerrainLayer.GetTexture: String;
+begin
+  if TextureNode.FdUrl.Count = 2 then // [image url, WhitePixel]
+    Result := TextureNode.FdUrl.Items[0]
+  else
+    Result := '';
+end;
+
+procedure TCastleTerrainLayer.SetTexture(const Value: String);
+begin
+  if GetTexture() <> Value then
+  begin
+    if Value <> '' then
+      TextureNode.SetUrl([Value, WhitePixel])
+    else
+      TextureNode.SetUrl([WhitePixel]);
+    // TODO: Only this will properly update the shader uniform to use new texture
+    Terrain.Scene.ChangedAll;
+  end;
+end;
+
+function TCastleTerrainLayer.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'UvScale', 'ColorPersistent', 'Texture'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TCastleTerrain ------------------------------------------------------------- }
+
 constructor TCastleTerrain.Create(AOwner: TComponent);
 
   procedure AdjustAppearance;
   var
     VertexPart, FragmentPart: TEffectPartNode;
-    Layer: Integer;
-    TextureField: TSFNode;
+    I: Integer;
   begin
     { initialize Effect node, for a shader effect }
     Effect := TEffectNode.Create;
@@ -1501,24 +1609,10 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     Effect.UniformMissing := umIgnore;
     Appearance.SetEffects([Effect]);
 
-    for Layer := 1 to LayersCount do
+    for I := 1 to HeightsCount do
     begin
-      Layers[Layer].TextureNode := TImageTextureNode.Create;
-      Layers[Layer].TextureNode.SetUrl([WhitePixel]);
-      TextureField := TSFNode.Create(Effect, false, 'tex_' + IntToStr(Layer), [], Layers[Layer].TextureNode);
-      Effect.AddCustomField(TextureField);
-
-      Layers[Layer].UvScale := TSFFloat.Create(Effect, true, 'uv_scale_' + IntToStr(Layer), DefaultUvScale);
-      Effect.AddCustomField(Layers[Layer].UvScale);
-
-      Layers[Layer].Color := TSFColor.Create(Effect, true, 'color_' + IntToStr(Layer), WhiteRGB);
-      Effect.AddCustomField(Layers[Layer].Color);
-    end;
-
-    for Layer := 1 to HeightsCount do
-    begin
-      HeightsFields[Layer] := TSFFloat.Create(Effect, true, 'height_' + IntToStr(Layer), DefaultHeight[Layer]);
-      Effect.AddCustomField(HeightsFields[Layer]);
+      HeightsFields[I] := TSFFloat.Create(Effect, true, 'height_' + IntToStr(I), DefaultHeight[I]);
+      Effect.AddCustomField(HeightsFields[I]);
     end;
 
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'layers_influence', FLayersInfluence));
@@ -1539,6 +1633,8 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     Appearance.Material := TPhysicalMaterialNode.Create;
   end;
 
+var
+  Layer: Cardinal;
 begin
   inherited;
 
@@ -1559,21 +1655,21 @@ begin
   Appearance.KeepExistingBegin; // it's easiest to manage release of Appearance
   AdjustAppearance;
 
+  for Layer := 1 to LayersCount do
+  begin
+    Layers[Layer] := TCastleTerrainLayer.CreateForTerrain(Self, Layer, Effect);
+    Layers[Layer].SetSubComponent(true);
+    Layers[Layer].Name := 'Layer' + IntToStr(Layer);
+  end;
+
   FDataObserver := TFreeNotificationObserver.Create(Self);
   FDataObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DataFreeNotification;
 
   UpdateGeometry;
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleTerrain.Destroy;
 begin
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
   inherited;
   // remove after RootNode containing this is removed too
   FreeAndNil(Appearance);
@@ -1669,6 +1765,11 @@ begin
   end;
 end;
 
+function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
+begin
+  Result := Layers[Index];
+end;
+
 function TCastleTerrain.GetRenderOptions: TCastleRenderOptions;
 begin
   Result := Scene.RenderOptions;
@@ -1749,47 +1850,6 @@ begin
   HeightsFields[Index].Send(Value);
 end;
 
-function TCastleTerrain.GetUvScale(const Index: Integer): Single;
-begin
-  Result := Layers[Index].UvScale.Value;
-end;
-
-procedure TCastleTerrain.SetUvScale(const Index: Integer; const Value: Single);
-begin
-  Layers[Index].UvScale.Send(Value);
-end;
-
-function TCastleTerrain.GetColor(const Index: Integer): TCastleColorRGB;
-begin
-  Result := Layers[Index].Color.Value;
-end;
-
-procedure TCastleTerrain.SetColor(const Index: Integer; const Value: TCastleColorRGB);
-begin
-  Layers[Index].Color.Send(Value);
-end;
-
-function TCastleTerrain.GetTexture(const Index: Integer): String;
-begin
-  if Layers[Index].TextureNode.FdUrl.Count = 2 then // [image url, WhitePixel]
-    Result := Layers[Index].TextureNode.FdUrl.Items[0]
-  else
-    Result := '';
-end;
-
-procedure TCastleTerrain.SetTexture(const Index: Integer; const Value: String);
-begin
-  if GetTexture(Index) <> Value then
-  begin
-    if Value <> '' then
-      Layers[Index].TextureNode.SetUrl([Value, WhitePixel])
-    else
-      Layers[Index].TextureNode.SetUrl([WhitePixel]);
-    // TODO: Only this will properly update the shader uniform to use new texture
-    Scene.ChangedAll;
-  end;
-end;
-
 procedure TCastleTerrain.SetLayersInfluence(const Value: Single);
 begin
   if FLayersInfluence <> Value then
@@ -1827,19 +1887,13 @@ begin
   if ArrayContainsString(PropertyName, [
        'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size', 'PreciseCollisions',
        'Height1', 'Height2',
-       'UvScale1', 'UvScale2', 'UvScale3', 'UvScale4',
-       'Color1Persistent', 'Color2Persistent', 'Color3Persistent', 'Color4Persistent',
-       'Texture1', 'Texture2', 'Texture3', 'Texture4',
+       'Layer1', 'Layer2', 'Layer3', 'Layer4',
        'LayersInfluence', 'SteepEmphasize'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
-
-{$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
-{$undef read_implementation_methods}
 
 initialization
   RegisterSerializableComponent(TCastleTerrainImage, 'Terrain Data (Experimental)/Image Data');

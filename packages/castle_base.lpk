@@ -4046,7 +4046,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item985>
       <Item986>
-        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleterrainlayer_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item986>
     </Files>

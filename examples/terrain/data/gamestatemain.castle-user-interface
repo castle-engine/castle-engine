@@ -40,20 +40,32 @@
             "$$ClassName" : "TCastleTerrain",
             "Data" : "TerrainNoise1",
             "Height2" : 1.2000000000000000E+001,
+            "Layer1" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "Texture" : "castle-data:/textures/island_sand2_d.jpg",
+              "UvScale" : 1.0000000149011612E-001
+            },
+            "Layer2" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "Texture" : "castle-data:/textures/mntn_green_d.jpg",
+              "UvScale" : 1.0000000149011612E-001
+            },
+            "Layer3" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "Texture" : "castle-data:/textures/mntn_white_d.jpg",
+              "UvScale" : 1.0000000149011612E-001
+            },
+            "Layer4" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "Texture" : "castle-data:/textures/snow_mud_d.jpg",
+              "UvScale" : 1.0000000149011612E-001
+            },
             "Name" : "Terrain1",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SteepEmphasize" : 2.0000000000000000E+000,
             "Subdivisions" : 256,
-            "Texture1" : "castle-data:/textures/island_sand2_d.jpg",
-            "Texture2" : "castle-data:/textures/mntn_yellow_d.jpg",
-            "Texture3" : "castle-data:/textures/mntn_white_d.jpg",
-            "Texture4" : "castle-data:/textures/snow_mud_d.jpg",
-            "UvScale1" : 1.0000000149011612E-001,
-            "UvScale2" : 1.0000000149011612E-001,
-            "UvScale3" : 1.0000000149011612E-001,
-            "UvScale4" : 1.0000000149011612E-001,
             "$NonVisualComponents" : [
               {
                 "$$ClassName" : "TCastleTerrainNoise",
@@ -594,21 +606,21 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 4.4284585118293762E-001,
-          "X" : -9.0396773815155029E-001,
-          "Y" : 4.1940757632255554E-001,
-          "Z" : 8.3304122090339661E-002
+          "W" : 3.6155754327774048E-001,
+          "X" : -8.0296713113784790E-001,
+          "Y" : -5.8966249227523804E-001,
+          "Z" : -8.6845017969608307E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 2.6530961990356445E+001,
+          "X" : 6.6888461112976074E+000,
           "Y" : 1.6744052886962891E+001,
-          "Z" : 4.3009166717529297E+001
+          "Z" : 2.1068407058715820E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 2.3263051986694336E+001,
+        "MoveSpeed" : 1.7113283157348633E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {

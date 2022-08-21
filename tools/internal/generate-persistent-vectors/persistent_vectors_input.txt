@@ -93,7 +93,4 @@
 ../../../src/scene/ TCastleSpotLight Color TCastleColorRGB
 ../../../src/scene/ TCastleSpotLight Attenuation TVector3
 
-../../../src/scene/ TCastleTerrain Color1 TCastleColorRGB
-../../../src/scene/ TCastleTerrain Color2 TCastleColorRGB
-../../../src/scene/ TCastleTerrain Color3 TCastleColorRGB
-../../../src/scene/ TCastleTerrain Color4 TCastleColorRGB
+../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
