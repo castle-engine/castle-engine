@@ -436,12 +436,59 @@ type
     property Operation: TCastleTerrainCombineOperation read FOperation write SetOperation default opMax;
   end;
 
-  { Scene showing a terrain with 3 layers of textures. }
+  { Terrain.
+
+    Assign @link(Data) to provide some non-trivial height map, you can use there:
+
+    @unorderedList(
+      @item(@link(TCastleTerrainNoise) to generate a height map using a dedicated
+        algorithm for terrain generation, using smooth noise and special tricks
+        to have smooth and heteregeneous terrain.)
+
+      @item(@link(TCastleTerrainImage) to generate a height map from intensities
+        of a simple 2D image.)
+
+      @item(@link(TCastleTerrainCombine) to combine the above options in any expression
+        (take minimum, maximum, sum, multiply).)
+    )
+
+    The terrain starts as a standard mesh with a @link(TPhysicalMaterialNode) material.
+    We apply on it a special affect to mix 4 layers, where each layer has a separate
+    color and texture.
+
+    @unorderedList(
+      @item(
+        Each layer has a color (white by default), texture (none by default,
+        that behaves like white) and UV scale. For example layer 1 is
+        @link(Color1), @link(Texture1), @link(UvScale1).)
+
+      @item(Only the RBG channels of textures matter, alpha is ignored.)
+
+      @item(Layer 1 is used for flat terrain on lower heights.)
+
+      @item(Layer 2 is used for steep terrain on lower heights.)
+
+      @item(Layer 3 is used for flat terrain on higher heights.)
+
+      @item(Layer 4 is used for steep terrain on higher heights.)
+
+      @item(The meaning of "lower" and "higher" heights is determined by @link(Height1)
+        and @link(Height2). Below @link(Height1) we show only layers 1+2,
+        above @link(Height2) we show only layers 3+4,
+        between we show a smooth interpolation between them.)
+
+      @item(The meaning of "flat" and "steep" is determined by looking at terrain
+        normals emphasized by @link(SteepEmphasize).)
+
+      @item(The influence of this effect can be controlled by LayersInfluence.)
+    )
+  }
   TCastleTerrain = class(TCastleTransform)
   public
     const
-      { Texture layers to render this terrain. TODO: Should not be hardcoded here. }
-      LayersCount = 3;
+      { Texture layers to render this terrain. }
+      LayersCount = 4;
+      HeightsCount = 2;
   strict private
     type
       TLayer = record
@@ -455,15 +502,14 @@ type
       TerrainNode: TAbstractChildNode;
       Appearance: TAppearanceNode;
       Effect: TEffectNode;
-      HeightsFields: array [0..LayersCount] of TSFFloat;
+      HeightsFields: array [1..HeightsCount] of TSFFloat;
       Layers: array [1..LayersCount] of TLayer;
       FData: TCastleTerrainData;
       FDataObserver: TFreeNotificationObserver;
       FTriangulate: Boolean;
       FSize: Single;
-      FTextureMix: Single;
-      FDarknessAmount: Single;
-      FDarknessIntensity: Single;
+      FLayersInfluence: Single;
+      FSteepEmphasize: Single;
       FSubdivisions: Cardinal;
       FPreciseCollisions: Boolean;
       FUpdateGeometryWhenLoaded: Boolean;
@@ -488,9 +534,8 @@ type
     procedure SetColor(const Index: Integer; const Value: TCastleColorRGB);
     function GetTexture(const Index: Integer): String;
     procedure SetTexture(const Index: Integer; const Value: String);
-    procedure SetTextureMix(const Value: Single);
-    procedure SetDarknessAmount(const Value: Single);
-    procedure SetDarknessIntensity(const Value: Single);
+    procedure SetLayersInfluence(const Value: Single);
+    procedure SetSteepEmphasize(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
   protected
     procedure Loaded; override;
@@ -498,41 +543,43 @@ type
     const
       DefaultSubdivisions = 64;
       DefaultSize = 100;
-      DefaultHeight0 = 5.0;
-      DefaultHeight1 = 6.0;
-      DefaultHeight2 = 7.0;
-      DefaultHeight3 = 10.0;
-      { Default values for @link(Height0), @link(Height1) etc.
+      DefaultHeight1 = 4.0;
+      DefaultHeight2 = 8.0;
+      { Default values for @link(Height1), @link(Height2) etc.
 
         Note: This array duplicates information in constants
-        @link(DefaultHeight0), @link(DefaultHeight1) etc.
+        @link(DefaultHeight1), @link(DefaultHeight2) etc.
         Unfortunately we need the simple constants too, to specify properties default values
         like "default DefaultHeight0". Using "default DefaultHeight[0]" doesn't work in FPC
         (nor in Delphi, but that's because Delphi cannot handle Single defaults at all). }
-      DefaultHeight: array [0..LayersCount] of Single = (
-        DefaultHeight0,
+      DefaultHeight: array [1..HeightsCount] of Single = (
         DefaultHeight1,
-        DefaultHeight2,
-        DefaultHeight3
+        DefaultHeight2
       );
+      DefaultLayersInfluence = 1.0;
+      DefaultSteepEmphasize = 0.5;
       DefaultUvScale = 1.0;
-      DefaultTextureMix = 1.0;
-      DefaultDarknessAmount = 0.90;
-      DefaultDarknessIntensity = 0.5;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { 1st color, multiplied by @link(Texture1) and used when terrain height is below Height1.
+    { 1st color, multiplied by @link(Texture1).
+      See TCastleTerrain for a description when do we show show 1st layer (color and texture).
       Default is white. }
     property Color1: TCastleColorRGB index 1 read GetColor write SetColor;
-    { 2st color, multiplied by @link(Texture2) and used when terrain height is between Height0 and Height3.
+    { 2st color, multiplied by @link(Texture2).
+      See TCastleTerrain for a description when do we show show 2nd layer (color and texture).
       Default is white. }
     property Color2: TCastleColorRGB index 2 read GetColor write SetColor;
-    { 3rd color, multiplied by @link(Texture3) and used when terrain height is above Height2.
+    { 3rd color, multiplied by @link(Texture3).
+      See TCastleTerrain for a description when do we show show 3rd layer (color and texture).
       Default is white. }
     property Color3: TCastleColorRGB index 3 read GetColor write SetColor;
+    { 4th color, multiplied by @link(Texture4).
+      See TCastleTerrain for a description when do we show show 4th layer (color and texture).
+      Default is white. }
+    property Color4: TCastleColorRGB index 4 read GetColor write SetColor;
   published
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
 
@@ -562,51 +609,58 @@ type
       Avoid doing it at runtime. }
     property Size: Single read FSize write SetSize {$ifdef FPC}default DefaultSize{$endif};
 
-    { Below this height we show only Texture1. }
-    property Height0: Single index 0 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight0{$endif};
+    { How much should we emphasize the "steep" layers (2nd and 4th layers)
+      at the expense of "flat" layers (1st and 3rd).
 
-    { Between Height0 and Height1, we mix Texture1 with Texture2. }
+      SteepEmphasize = 0.0 means that only "flat" layers (1 and 3) are visible.
+      SteepEmphasize = 1.0 means that flat vs steep is a linear interpolation
+      based on normal Y coordinate (but, since most terrains are more flat than
+      steep, in practice the "flat" layers are still more visible).
+      As SteepEmphasize goes toward infinity, the "steep" layers (2 and 4) dominate. }
+    property SteepEmphasize: Single read FSteepEmphasize write SetSteepEmphasize
+      {$ifdef FPC}default DefaultSteepEmphasize{$endif};
+
+    { Below Height1 we only display layers 1+2.
+      See TCastleTerrain for a description when do we show show layers and how this property affects it. }
     property Height1: Single index 1 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight1{$endif};
-
-    { Between Height1 and Height2, we show only Texture2. }
+    { Above Height2 we only display layers 3+4.
+      See TCastleTerrain for a description when do we show show layers and how this property affects it. }
     property Height2: Single index 2 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight2{$endif};
 
-    { Between Height2 and Height3, we mix Texture2 with Texture3.
-      Above Height3 we show only Texture3. }
-    property Height3: Single index 3 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight3{$endif};
-
-    { Scale the Texture1. }
+    { Scale the @link(Texture1).
+      Setting UV scale to be equal to 1/Size reliably makes the texture image size match the whole terrain. }
     property UvScale1: Single index 1 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-    { Scale the Texture1. }
+    { Scale the @link(Texture2). }
     property UvScale2: Single index 2 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
-    { Scale the Texture1. }
+    { Scale the @link(Texture3). }
     property UvScale3: Single index 3 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
+    { Scale the @link(Texture4). }
+    property UvScale4: Single index 4 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
 
-    { 1st texture URL, multiplied by @link(Color1) and used when terrain height is below Height1. }
+    { 1st texture URL, multiplied by @link(Color1).
+      See TCastleTerrain for a description when do we show show 1st layer (color and texture).
+      Default (none) behaves as if it was a white texture for calculation. }
     property Texture1: String index 1 read GetTexture write SetTexture;
-    { 2st texture URL, multiplied by @link(Color2) and used when terrain height is between Height0 and Height3. }
+    { 2st texture URL, multiplied by @link(Color2).
+      See TCastleTerrain for a description when do we show show 2nd layer (color and texture).
+      Default (none) behaves as if it was a white texture for calculation. }
     property Texture2: String index 2 read GetTexture write SetTexture;
-    { 3rd texture URL, multiplied by @link(Color3) and used when terrain height is above Height2. }
+    { 3rd texture URL, multiplied by @link(Color3).
+      See TCastleTerrain for a description when do we show show 3rd layer (color and texture).
+      Default (none) behaves as if it was a white texture for calculation. }
     property Texture3: String index 3 read GetTexture write SetTexture;
+    { 4th texture URL, multiplied by @link(Color4).
+      See TCastleTerrain for a description when do we show show 4th layer (color and texture).
+      Default (none) behaves as if it was a white texture for calculation. }
+    property Texture4: String index 4 read GetTexture write SetTexture;
 
-    { How much do the textures affect the final color.
-      0.0 means that textures are ignored, 1.0 means maximum influence. }
-    property TextureMix: Single read FTextureMix write SetTextureMix
-      {$ifdef FPC}default DefaultTextureMix{$endif};
-
-    { The steep slope at which we make color maximally darker.
-      The slope is just Y coordinate of the normalized normal vector.
-      DarknessAmount = 0.0 means that we apply darkness only when slope is really vertical
-      (it practically makes the darkness non-existing),
-      1.0 means that we start applying the darkness when scope is even horizontal
-      (it makes everything covered by darkness). }
-    property DarknessAmount: Single read FDarknessAmount write SetDarknessAmount
-      {$ifdef FPC}default DefaultDarknessAmount{$endif};
-
-    { How darker can we make the color, because of steep slope.
-      1.0 means we can make it completely black, 0.0 disables color darkening. }
-    property DarknessIntensity: Single read FDarknessIntensity write SetDarknessIntensity
-      {$ifdef FPC}default DefaultDarknessIntensity{$endif};
+    { How much do the layers affect the final color.
+      0.0 means that layes are ignored, and the terrain look is a regular
+      mesh look with @link(TPhysicalMaterialNode).
+      1.0 means maximum influence, the layers determine the base color
+      (TODO: and normals in the future). }
+    property LayersInfluence: Single read FLayersInfluence write SetLayersInfluence
+      {$ifdef FPC}default DefaultLayersInfluence{$endif};
 
     { Resolve collisions precisely with the terrain geometry.
       When this is @false we will only consider the terrain bounding box for collisions,
@@ -1458,15 +1512,14 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
       Effect.AddCustomField(Layers[Layer].Color);
     end;
 
-    for Layer := 0 to LayersCount do
+    for Layer := 1 to HeightsCount do
     begin
-      HeightsFields[Layer] := TSFFloat.Create(Effect, true, 'h' + IntToStr(Layer), DefaultHeight[Layer]);
+      HeightsFields[Layer] := TSFFloat.Create(Effect, true, 'height_' + IntToStr(Layer), DefaultHeight[Layer]);
       Effect.AddCustomField(HeightsFields[Layer]);
     end;
 
-    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', FTextureMix));
-    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'darkness_amount', FDarknessAmount));
-    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'darkness_intensity', FDarknessIntensity));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'layers_influence', FLayersInfluence));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'steep_emphasize', FSteepEmphasize));
 
     { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
     FragmentPart := TEffectPartNode.Create;
@@ -1489,9 +1542,8 @@ begin
   FTriangulate := true;
   FSubdivisions := DefaultSubdivisions;
   FSize := DefaultSize;
-  FTextureMix := DefaultTextureMix;
-  FDarknessAmount := DefaultDarknessAmount;
-  FDarknessIntensity := DefaultDarknessIntensity;
+  FLayersInfluence := DefaultLayersInfluence;
+  FSteepEmphasize := DefaultSteepEmphasize;
   FPreciseCollisions := true;
 
   Scene := TCastleScene.Create(Self);
@@ -1735,30 +1787,21 @@ begin
   end;
 end;
 
-procedure TCastleTerrain.SetTextureMix(const Value: Single);
+procedure TCastleTerrain.SetLayersInfluence(const Value: Single);
 begin
-  if FTextureMix <> Value then
+  if FLayersInfluence <> Value then
   begin
-    FTextureMix := Value;
-    (Effect.Field('texture_mix') as TSFFloat).Send(Value);
+    FLayersInfluence := Value;
+    (Effect.Field('layers_influence') as TSFFloat).Send(Value);
   end;
 end;
 
-procedure TCastleTerrain.SetDarknessAmount(const Value: Single);
+procedure TCastleTerrain.SetSteepEmphasize(const Value: Single);
 begin
-  if FDarknessAmount <> Value then
+  if FSteepEmphasize <> Value then
   begin
-    FDarknessAmount := Value;
-    (Effect.Field('darkness_amount') as TSFFloat).Send(Value);
-  end;
-end;
-
-procedure TCastleTerrain.SetDarknessIntensity(const Value: Single);
-begin
-  if FDarknessIntensity <> Value then
-  begin
-    FDarknessIntensity := Value;
-    (Effect.Field('darkness_intensity') as TSFFloat).Send(Value);
+    FSteepEmphasize := Value;
+    (Effect.Field('steep_emphasize') as TSFFloat).Send(Value);
   end;
 end;
 
@@ -1780,11 +1823,11 @@ function TCastleTerrain.PropertySections(const PropertyName: String): TPropertyS
 begin
   if ArrayContainsString(PropertyName, [
        'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size', 'PreciseCollisions',
-       'Height0', 'Height1', 'Height2', 'Height3',
-       'UvScale1', 'UvScale2', 'UvScale3',
-       'Color1Persistent', 'Color2Persistent', 'Color3Persistent',
-       'Texture1', 'Texture2', 'Texture3',
-       'TextureMix', 'DarknessAmount', 'DarknessIntensity'
+       'Height1', 'Height2',
+       'UvScale1', 'UvScale2', 'UvScale3', 'UvScale4',
+       'Color1Persistent', 'Color2Persistent', 'Color3Persistent', 'Color4Persistent',
+       'Texture1', 'Texture2', 'Texture3', 'Texture4',
+       'LayersInfluence', 'SteepEmphasize'
      ]) then
     Result := [psBasic]
   else

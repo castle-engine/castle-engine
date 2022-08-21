@@ -89,6 +89,8 @@ begin
     'Texture2', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
     'Texture3', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
+    'Texture4', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,

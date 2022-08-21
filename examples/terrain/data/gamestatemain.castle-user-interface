@@ -39,17 +39,21 @@
           {
             "$$ClassName" : "TCastleTerrain",
             "Data" : "TerrainNoise1",
+            "Height2" : 1.2000000000000000E+001,
             "Name" : "Terrain1",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
+            "SteepEmphasize" : 2.0000000000000000E+000,
             "Subdivisions" : 256,
             "Texture1" : "castle-data:/textures/island_sand2_d.jpg",
-            "Texture2" : "castle-data:/textures/ground_mud2_d.jpg",
+            "Texture2" : "castle-data:/textures/mntn_yellow_d.jpg",
             "Texture3" : "castle-data:/textures/mntn_white_d.jpg",
+            "Texture4" : "castle-data:/textures/snow_mud_d.jpg",
             "UvScale1" : 1.0000000149011612E-001,
             "UvScale2" : 1.0000000149011612E-001,
             "UvScale3" : 1.0000000149011612E-001,
+            "UvScale4" : 1.0000000149011612E-001,
             "$NonVisualComponents" : [
               {
                 "$$ClassName" : "TCastleTerrainNoise",
@@ -256,7 +260,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.6254806518554688E+000,
-                  "Y" : 4.6230621337890625E+000,
+                  "Y" : 4.6230468750000000E+000,
                   "Z" : -4.7247009277343750E+000
                 },
                 "$Behaviors" : [
@@ -301,8 +305,8 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 3.4205763339996338E+000,
-                  "Y" : 7.4122416973114014E-001,
+                  "X" : 3.4205780029296875E+000,
+                  "Y" : 4.0807647705078125E+000,
                   "Z" : 6.8810272216796875E-001
                 },
                 "$Behaviors" : [
@@ -371,7 +375,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.7162521362304688E+001,
-                  "Y" : 5.3058776855468750E+000,
+                  "Y" : 5.3058929443359375E+000,
                   "Z" : 1.1616760253906250E+001
                 },
                 "$Behaviors" : [
@@ -394,7 +398,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.2156982421875000E+001,
-                  "Y" : 4.5844726562500000E+000,
+                  "Y" : 4.5844879150390625E+000,
                   "Z" : 2.4945175170898438E+001
                 },
                 "$Behaviors" : [
@@ -440,7 +444,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 7.4944458007812500E+000,
-                  "Y" : 4.8269195556640625E+000,
+                  "Y" : 4.8269348144531250E+000,
                   "Z" : 1.3133346557617188E+001
                 },
                 "$Behaviors" : [
@@ -463,7 +467,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 7.4944458007812500E+000,
-                  "Y" : 4.7819976806640625E+000,
+                  "Y" : 4.7820129394531250E+000,
                   "Z" : 8.5001678466796875E+000
                 },
                 "$Behaviors" : [
@@ -590,16 +594,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 8.1380170583724976E-001,
-          "X" : -7.9019445180892944E-001,
-          "Y" : -5.8065193891525269E-001,
-          "Z" : -1.9605185091495514E-001
+          "W" : 4.4284585118293762E-001,
+          "X" : -9.0396773815155029E-001,
+          "Y" : 4.1940757632255554E-001,
+          "Z" : 8.3304122090339661E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -7.0274839401245117E+000,
-          "Y" : 3.9831066131591797E+001,
-          "Z" : 4.6329837799072266E+001
+          "X" : 2.6530961990356445E+001,
+          "Y" : 1.6744052886962891E+001,
+          "Z" : 4.3009166717529297E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

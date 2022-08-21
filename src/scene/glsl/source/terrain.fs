@@ -7,24 +7,23 @@
 uniform sampler2D tex_1;
 uniform sampler2D tex_2;
 uniform sampler2D tex_3;
+uniform sampler2D tex_4;
 
 uniform vec3 color_1;
 uniform vec3 color_2;
 uniform vec3 color_3;
+uniform vec3 color_4;
 
 uniform float uv_scale_1;
 uniform float uv_scale_2;
 uniform float uv_scale_3;
+uniform float uv_scale_4;
 
-uniform float darkness_amount;
-uniform float darkness_intensity;
-uniform float texture_mix;
+uniform float height_1;
+uniform float height_2;
 
-uniform float h0; // below is tex/color_1
-uniform float h1; // below is tex/color_2 mixed with tex/color_1
-uniform float h2; // below is tex/color_2
-uniform float h3; // below is tex/color_3 mixed with tex/color_2
-                  // above is tex/color_3
+uniform float layers_influence;
+uniform float steep_emphasize;
 
 varying vec3 terrain_position;
 varying vec3 terrain_normal;
@@ -37,52 +36,30 @@ vec4 castle_texture_color_to_linear(const in vec4 srgbIn);
 void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 {
   float h = terrain_position.y;
+
   /* We flip terrain_position.z, to map texture more naturally, when viewed from above.
      This is consistent with calculating TexCoord for TCastleTerrainData.Height.
      We just flip the sign, because the terrain textures always have repeat = true,
      so there's no need to shift the texture in any way.
   */
   vec2 uv = vec2(terrain_position.x, -terrain_position.z);
-  float normal_slope = normalize(terrain_normal).y;
 
-  vec3 base_color;
-  float hhalf = (h1 + h2) * 0.5;
-  if (h < hhalf) {
-    float mixfactor = smoothstep(h0, h1, h);
-    base_color = mix(
-      color_1 * castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)).rgb,
-      color_2 * castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)).rgb,
-      mixfactor);
-  } else {
-    float mixfactor = smoothstep(h2, h3, h);
-    base_color = mix(
-      color_2 * castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)).rgb,
-      color_3 * castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)).rgb,
-      mixfactor);
-  }
-
-  fragment_color.rgb = mix(fragment_color.rgb, base_color, texture_mix);
-
-  /* What does this do?
-
+  /* What does this mean?
      normal_slope (normal.y)
      = 0 means a vertical face
      = 1 means a horizontal face
-
-     So
-
-     - when normal_slope <= darkness_amount (more vertical than darkness_amount)
-       then we multiply by "1.0-darkness_intensity",
-       which means we make it completely dark when darkness_intensity=1.
-
-       Smaller darkness_amount makes the area with "full darkness"
-       ("1.0-darkness_intensity") smaller, though the darkness is still applied
-       through the range, just with smaller impact.
-
-     - when normal_slope >= 1.0 (completely horizontal)
-       then we multiply by 1.0
-       which means we don't change it.
   */
+  float normal_slope = normalize(terrain_normal).y;
 
-  fragment_color.rgb *= mix(1.0-darkness_intensity, 1.0, smoothstep(darkness_amount, 1.0, normal_slope));
+  vec3 c1 = color_1 * castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)).rgb;
+  vec3 c2 = color_2 * castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)).rgb;
+  vec3 c3 = color_3 * castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)).rgb;
+  vec3 c4 = color_4 * castle_texture_color_to_linear(texture2D(tex_4, uv * uv_scale_4)).rgb;
+
+  float height_mix = smoothstep(height_1, height_2, h);
+  vec3 flat_color = mix(c1, c3, height_mix);
+  vec3 steep_color = mix(c2, c4, height_mix);
+  vec3 modified_color = mix(steep_color, flat_color, pow(normal_slope, steep_emphasize));
+
+  fragment_color.rgb = mix(fragment_color.rgb, modified_color, layers_influence);
 }
