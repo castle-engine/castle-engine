@@ -94,3 +94,6 @@
 ../../../src/scene/ TCastleSpotLight Attenuation TVector3
 
 ../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
+
+../../../src/scene/ TCastleTerrain Size TVector2
+../../../src/scene/ TCastleTerrain Subdivisions TVector2
