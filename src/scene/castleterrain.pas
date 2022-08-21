@@ -61,10 +61,12 @@
   Smaller TODOs:
 
   @unorderedList(
-    @item(TCastleTerrain configurable textures number.)
-    @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
+    @item(Enable normalmaps for each layer.)
+    @item(? TCastleTerrain configurable textures number.
+      Unsure -- hardcoding current 4 layers sucks, but also it makes sense for coming RGBA splatmap.)
+    @item(? TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
       See wyrd-forest arguments.)
-    @item(TCastleTerrain add property to define material type, like in primitives - unlit, physical, phong?
+    @item(? TCastleTerrain add property to define material type, like in primitives - unlit, physical, phong.
       Wait with this for our final CGE components to define materials and effects,
       TCastlePhysicalMaterial, TCastleShaderEffect -- they will determine how to nicely
       expose it here.)

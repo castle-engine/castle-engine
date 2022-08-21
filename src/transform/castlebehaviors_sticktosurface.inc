@@ -42,7 +42,10 @@ type
       stick to the object under it, as if the gravity was forcing it down immediately. }
     property Direction: TVector3 read FDirection write FDirection;
   published
-    { Target to which Parent of this behavior sticks. }
+    { Target to which Parent of this behavior sticks.
+
+      TODO: Rotating the target right now doesn't make proper behavior,
+      test by rotating terrain in examples/terrain/. }
     property Target: TCastleTransform read FTarget write SetTarget;
 
     { Perform stickiness only at design-time.
