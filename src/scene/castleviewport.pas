@@ -1457,7 +1457,11 @@ begin
   NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
-  Assert(FItems.MainCamera = Camera);
+
+  { FItems.MainCamera is left *unsynchronized* with NewCamera,
+    because in InternalDesignManipulation the design-time camera is set as MainCamera. }
+  if InternalDesignManipulation then
+    Assert(FItems.MainCamera <> Camera);
 
   // SetCamera doesn't add to World automatically
   Assert(Camera.World = nil);
