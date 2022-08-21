@@ -205,6 +205,7 @@ Material : X3DOneSidedMaterialNode {
 
   SFFloat  [in,out] transparency                    0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out]      fogImmune             FALSE
@@ -241,6 +242,7 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
 
   SFFloat  [in,out] metallic                        1
     range: [0,1]
+    doc: The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal).
   SFNode   [in,out] metallicRoughnessTexture        NULL
     range: X3DSingleTextureNode
     change: chEverything
@@ -257,9 +259,11 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
 
   SFFloat  [in,out] roughness                       1
     range: [0,1]
+    doc: The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough).
 
   SFFloat  [in,out] transparency                    0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 }
 
 Shape : X3DShapeNode {
@@ -304,4 +308,5 @@ UnlitMaterial : X3DOneSidedMaterialNode {
 
   SFFloat [in,out] transparency             0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 }
