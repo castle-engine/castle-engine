@@ -62,27 +62,10 @@
 
   { Base for all nodes which specify a texture, but not multi-texture. }
   TAbstractSingleTextureNode = class(TAbstractTextureNode)
-  strict private
-    function GetAlphaChannelField: TAutoAlphaChannel;
-    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
   public
-    procedure CreateNode; override;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdCrossOrigin: TSFString;
-    public property FdCrossOrigin: TSFString read FFdCrossOrigin;
-    {$endif}
-
-    strict private FFdAlphaChannel: TSFStringEnum;
-    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
-    property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
-
     function AlphaChannelFinal: TAlphaChannel; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
   end;
 
   { VRML/X3D texture that is 2D and can be loaded (from file or some other stream).
@@ -586,42 +569,14 @@ end;
 
 { TAbstractSingleTextureNode -------------------------------------------------------- }
 
-procedure TAbstractSingleTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chEverything;
-  AddField(FFdEffects);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdCrossOrigin := TSFString.Create(Self, false, 'crossOrigin', '');
-   FdCrossOrigin.ChangeAlways := chNone;
-  AddField(FFdCrossOrigin);
-  {$endif}
-
-  FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
-   FdAlphaChannel.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdAlphaChannel);
-end;
-
-function TAbstractSingleTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
-begin
-  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
-end;
-
-procedure TAbstractSingleTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
-begin
-  FdAlphaChannel.SendEnumValue(Ord(Value));
-end;
-
 function TAbstractSingleTextureNode.AlphaChannelFinal: TAlphaChannel;
 var
   Res: TAutoAlphaChannel;
 begin
-  Res := AlphaChannelField;
+  Res := AlphaChannel;
   if Res = acAuto then
-    Result := AlphaChannelData else
+    Result := AlphaChannelData
+  else
     Result := Res;
 end;
 

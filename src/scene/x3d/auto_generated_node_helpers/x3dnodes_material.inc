@@ -165,9 +165,9 @@
     property SpecularTextureMapping: String read GetSpecularTextureMapping write SetSpecularTextureMapping;
 
     strict private FFdTransparency: TSFFloat;
-    {  }
+    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  }
+    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$ifndef CASTLE_SLIM_NODES}

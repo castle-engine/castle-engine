@@ -69,9 +69,9 @@
     property BaseTextureMapping: String read GetBaseTextureMapping write SetBaseTextureMapping;
 
     strict private FFdMetallic: TSFFloat;
-    {  }
+    { The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal). }
     public property FdMetallic: TSFFloat read FFdMetallic;
-    {  }
+    { The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal). }
     property Metallic: Single read GetMetallic write SetMetallic;
 
     strict private FFdMetallicRoughnessTexture: TSFNode;
@@ -105,15 +105,15 @@
     property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdRoughness: TSFFloat;
-    {  }
+    { The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough). }
     public property FdRoughness: TSFFloat read FFdRoughness;
-    {  }
+    { The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough). }
     property Roughness: Single read GetRoughness write SetRoughness;
 
     strict private FFdTransparency: TSFFloat;
-    {  }
+    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     public property FdTransparency: TSFFloat read FFdTransparency;
-    {  }
+    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

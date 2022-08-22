@@ -28,13 +28,33 @@
     function GetCrossOrigin: String;
     procedure SetCrossOrigin(const Value: String);
 {$endif not CASTLE_SLIM_NODES}
+    function GetAlphaChannel: TAutoAlphaChannel;
+    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEffects: TMFNode;
+    {  }
+    public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
+
 {$ifndef CASTLE_SLIM_NODES}
-    {  }
+    strict private FFdCrossOrigin: TSFString;
+    { X3DOM extension, not implemented in CGE. }
+    public property FdCrossOrigin: TSFString read FFdCrossOrigin;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    { X3DOM extension, not implemented in CGE. }
     property CrossOrigin: String read GetCrossOrigin write SetCrossOrigin;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdAlphaChannel: TSFStringEnum;
+    {  }
+    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
+    {  }
+    property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
 
 {$endif read_interface}
 
@@ -66,4 +86,38 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TAbstractSingleTextureNode.GetAlphaChannel: TAutoAlphaChannel;
+begin
+  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
+end;
+
+procedure TAbstractSingleTextureNode.SetAlphaChannel(const Value: TAutoAlphaChannel);
+begin
+  FdAlphaChannel.SendEnumValue(Ord(Value));
+end;
+
+class function TAbstractSingleTextureNode.ClassX3DType: String;
+begin
+  Result := 'X3DSingleTextureNode';
+end;
+
+procedure TAbstractSingleTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
+   FdEffects.ChangeAlways := chEverything;
+  AddField(FFdEffects);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdCrossOrigin := TSFString.Create(Self, False, 'crossOrigin', '');
+   FdCrossOrigin.ChangeAlways := chNone;
+  AddField(FFdCrossOrigin);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdAlphaChannel := TSFStringEnum.Create(Self, False, 'alphaChannel', AlphaToString, Ord(acAuto));
+   FdAlphaChannel.ChangeAlways := chVisibleVRML1State;
+  AddField(FFdAlphaChannel);
+end;
+
 {$endif read_implementation}

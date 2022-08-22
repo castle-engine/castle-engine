@@ -10,14 +10,24 @@ X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
 }
 
 X3DSingleTextureNode : X3DTextureNode {
+  auto-generate-more: true
+
   # CASTLE GAME ENGINE EXTENSIONS:
-  MFNode     []            effects          []
+  MFNode     []   effects          []
     range: Effect
+    change: chEverything
 
   # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
   # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
   SFString   []   crossOrigin  ""
     not-slim
+    change: chNone
+    doc: X3DOM extension, not implemented in CGE.
+
+  SFString   []   alphaChannel     "AUTO"
+    range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+    enumerated-type: TAutoAlphaChannel AlphaToString acAuto
+    change: chVisibleVRML1State
 }
 
 X3DSingleTextureTransformNode : X3DTextureTransformNode {
