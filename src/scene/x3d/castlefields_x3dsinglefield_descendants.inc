@@ -116,7 +116,7 @@
     Passing around them as just pointers to a constant array makes them fast
     and avoids copying and wasting memory for each TSFStringEnum / TSFEnum
     to keep the names list in some separate object. }
-  TConstantStringArray = array [0..MaxInt div SizeOf(Pointer)] of String;
+  TConstantStringArray = array [0..MaxInt div SizeOf(Pointer) - 1] of String;
   PConstantStringArray = ^TConstantStringArray;
 
   { VRML 1.0 (deprecated) field representing an enumerated value,
