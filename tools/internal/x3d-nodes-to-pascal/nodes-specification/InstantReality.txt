@@ -4,6 +4,9 @@ MatrixTransform : X3DGroupingNode {
 }
 
 CommonSurfaceShader :  X3DShaderNode {
+  auto-generate-more: true
+  default-container-field: shaders
+
   SFFloat         [in,out]     alphaFactor                      1
   SFInt32         [in,out]     alphaTextureId                   -1
   SFInt32         [in,out]     alphaTextureCoordinatesId        0
@@ -61,10 +64,21 @@ CommonSurfaceShader :  X3DShaderNode {
   SFNode          [in,out]     multiVisibilityTexture               NULL
     range: X3DTextureNode
 
+  # Note that we don't expose normalFormat, normalSpace as enumerated type.
+  # That's because
+  # - these fields are ignored
+  # - I don't want CGE devs
+  #   to think that we support (or plan to support)
+  #   other normalmap formats / space, when we don't (because tangent space
+  #   is so standard).
+  # - CommonSurfaceShader is deprecated now, so I don't want to add extra enum
+  #   types to support it.
+
   SFString        [in,out]     normalFormat                     "UNORM"
-    range: ["UNORM"]
+    #range: ["UNORM"]
   SFString        [in,out]     normalSpace                      "TANGENT"
-    range: ["TANGENT"]
+    #range: ["TANGENT"]
+
   SFInt32         [in,out]     normalTextureId                  -1
   SFInt32         [in,out]     normalTextureCoordinatesId       0
   SFString        [in,out]     normalTextureChannelMask         "rgb"
@@ -117,7 +131,7 @@ CommonSurfaceShader :  X3DShaderNode {
 
   SFFloat         [in,out]     fresnelBlend                     0
 
-  MFBool          []           textureTransformEnabled          [FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE]
+  MFBool          []           textureTransformEnabled          [false, false, false, false, false, false, false, false]
 }
 
 ImageBackground : X3DBackgroundNode {
