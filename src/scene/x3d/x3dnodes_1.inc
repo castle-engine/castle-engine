@@ -814,16 +814,30 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
 
 const
   { Constants for @link(TAsciiTextNode_1.FdJustification).Value. }
   JUSTIFICATION_LEFT = 0;
   JUSTIFICATION_CENTER = 1;
   JUSTIFICATION_RIGHT = 2;
+
+  { Arrays with TSFEnum (VRML 1 specific field) possible values.
+    They have to be zero-based (we use High()+1 assuming it). }
+  JustificationNames1: array [0..2] of String = ('LEFT', 'CENTER', 'RIGHT');
+  FamilyNames1: array [0..2] of String = ('SERIF', 'SANS', 'TYPEWRITER');
+  BindingNames1: array [0..7] of String = ('DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED');
+  WrapNames1: array [0..1] of String = ('REPEAT', 'CLAMP');
+  TextureModelNames1: array [0..0] of String = ('DECAL');
+  MapNames1: array [0..1] of String = ('NONE', 'POINT');
+  RenderCullingNames1: array [0..2] of String = ('ON', 'OFF', 'AUTO');
+  FaceTypeNames1: array [0..1] of String = ('UNKNOWN_FACE_TYPE', 'CONVEX');
+  ShapeTypeNames1: array [0..1] of String = ('UNKNOWN_SHAPE_TYPE', 'SOLID');
+  VertexOrderingNames1: array [0..2] of String = ('UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE');
+
+class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+begin
+  Result := Version.Major <= 1;
+end;
 
 procedure TAsciiTextNode_1.CreateNode;
 begin
@@ -837,7 +851,7 @@ begin
    FdSpacing.ChangeAlways := chGeometry;
   AddField(FFdSpacing);
 
-  FFdJustification := TSFEnum.Create(Self, true, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
+  FFdJustification := TSFEnum.Create(Self, true, 'justification', @JustificationNames1, High(JustificationNames1) + 1, JUSTIFICATION_LEFT);
    FdJustification.ChangeAlways := chGeometry;
   AddField(FFdJustification);
 
@@ -1238,7 +1252,7 @@ begin
   AddField(FFdSize);
 
   {$warnings off}
-  FFdFamily := TSFEnum.Create(Self, true, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
+  FFdFamily := TSFEnum.Create(Self, true, 'family', @FamilyNames1, High(FamilyNames1) + 1, FSFAMILY_SERIF);
   {$warnings on}
    FdFamily.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFamily);
@@ -1626,7 +1640,7 @@ procedure TMaterialBindingNode_1.CreateNode;
 begin
   inherited;
 
-  FFdValue := TSFEnum.Create(Self, true, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
+  FFdValue := TSFEnum.Create(Self, true, 'value', @BindingNames1, High(BindingNames1) + 1, 1);
    FdValue.ChangeAlways := chVisibleVRML1State;
   AddField(FFdValue);
 end;
@@ -1640,7 +1654,7 @@ procedure TNormalBindingNode_1.CreateNode;
 begin
   inherited;
 
-  FFdValue := TSFEnum.Create(Self, true, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
+  FFdValue := TSFEnum.Create(Self, true, 'value', @BindingNames1, High(BindingNames1) + 1, 0);
    FdValue.ChangeAlways := chVisibleVRML1State;
   AddField(FFdValue);
 end;
@@ -1667,15 +1681,15 @@ begin
    FdImage.ChangeAlways := chTextureImage;
   AddField(FFdImage);
 
-  FFdWrapS := TSFEnum.Create(Self, true, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  FFdWrapS := TSFEnum.Create(Self, true, 'wrapS', @WrapNames1, High(WrapNames1) + 1, TEXWRAP_REPEAT);
    FdWrapS.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdWrapS);
 
-  FFdWrapT := TSFEnum.Create(Self, true, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  FFdWrapT := TSFEnum.Create(Self, true, 'wrapT', @WrapNames1, High(WrapNames1) + 1, TEXWRAP_REPEAT);
    FdWrapT.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdWrapT);
 
-  FFdModel := TSFEnum.Create(Self, true, 'model', ['DECAL'], 0);
+  FFdModel := TSFEnum.Create(Self, true, 'model', @TextureModelNames1, High(TextureModelNames1) + 1, 0);
    FdModel.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdModel);
 
@@ -1826,15 +1840,15 @@ procedure TShapeHintsNode_1.CreateNode;
 begin
   inherited;
 
-  FFdVertexOrdering := TSFEnum.Create(Self, true, 'vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
+  FFdVertexOrdering := TSFEnum.Create(Self, true, 'vertexOrdering', @VertexOrderingNames1, High(VertexOrderingNames1) + 1, VERTORDER_UNKNOWN);
    FdVertexOrdering.ChangeAlways := chVisibleVRML1State;
   AddField(FFdVertexOrdering);
 
-  FFdShapeType := TSFEnum.Create(Self, true, 'shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
+  FFdShapeType := TSFEnum.Create(Self, true, 'shapeType', @ShapeTypeNames1, High(ShapeTypeNames1) + 1, SHTYPE_UNKNOWN);
    FdShapeType.ChangeAlways := chVisibleVRML1State;
   AddField(FFdShapeType);
 
-  FFdFaceType := TSFEnum.Create(Self, true, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
+  FFdFaceType := TSFEnum.Create(Self, true, 'faceType', @FaceTypeNames1, High(FaceTypeNames1) + 1, FACETYPE_CONVEX);
    FdFaceType.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFaceType);
 
@@ -2341,7 +2355,7 @@ procedure TSeparatorNode_1.CreateNode;
 begin
   inherited;
 
-  FFdRenderCulling := TSFEnum.Create(Self, true, 'renderCulling', ['ON', 'OFF', 'AUTO'], 2);
+  FFdRenderCulling := TSFEnum.Create(Self, true, 'renderCulling', @RenderCullingNames1, High(RenderCullingNames1) + 1, 2);
   AddField(FFdRenderCulling);
 end;
 
@@ -2436,7 +2450,7 @@ begin
   FFdDescription := TSFString.Create(Self, true, 'description', '');
   AddField(FFdDescription);
 
-  FFdMap := TSFEnum.Create(Self, true, 'map', ['NONE', 'POINT'], 0);
+  FFdMap := TSFEnum.Create(Self, true, 'map', @MapNames1, High(MapNames1) + 1, 0);
   AddField(FFdMap);
 end;
 

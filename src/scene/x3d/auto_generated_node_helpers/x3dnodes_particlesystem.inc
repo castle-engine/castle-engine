@@ -331,7 +331,7 @@ begin
    FdEmitter.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmitter);
 
-  FFdGeometryType := TSFStringEnum.Create(Self, False, 'geometryType', ParticlesGeometryNames, Ord(pgQuad));
+  FFdGeometryType := TSFStringEnum.Create(Self, False, 'geometryType', @ParticlesGeometryNames, Ord(High(ParticlesGeometryNames)) + 1, Ord(pgQuad));
    FdGeometryType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdGeometryType);
 

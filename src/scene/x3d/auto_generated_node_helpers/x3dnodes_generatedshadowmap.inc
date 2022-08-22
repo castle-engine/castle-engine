@@ -154,7 +154,7 @@ procedure TGeneratedShadowMapNode.CreateNode;
 begin
   inherited;
 
-  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', TextureUpdateNames, Ord(upNone));
+  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', @TextureUpdateNames, Ord(High(TextureUpdateNames)) + 1, Ord(upNone));
    FdUpdate.ChangeAlways := chRedisplay;
   AddField(FFdUpdate);
 
@@ -178,7 +178,7 @@ begin
    FdBias.MustBeNonnegative := true;
   AddField(FFdBias);
 
-  FFdCompareMode := TSFStringEnum.Create(Self, False, 'compareMode', CompareModeNames, Ord(smCompareRLEqual));
+  FFdCompareMode := TSFStringEnum.Create(Self, False, 'compareMode', @CompareModeNames, Ord(High(CompareModeNames)) + 1, Ord(smCompareRLEqual));
    FdCompareMode.ChangeAlways := chTextureRendererProperties;
   AddField(FFdCompareMode);
 end;

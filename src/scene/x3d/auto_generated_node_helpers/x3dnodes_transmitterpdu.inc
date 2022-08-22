@@ -787,7 +787,7 @@ begin
    FdMulticastRelayPort.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMulticastRelayPort);
 
-  FFdNetworkMode := TSFStringEnum.Create(Self, True, 'networkMode', DISNetworkModeNames, Ord(nmStandAlone));
+  FFdNetworkMode := TSFStringEnum.Create(Self, True, 'networkMode', @DISNetworkModeNames, Ord(High(DISNetworkModeNames)) + 1, Ord(nmStandAlone));
    FdNetworkMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdNetworkMode);
 

@@ -61,7 +61,7 @@ procedure TAbstractColorNode.CreateNode;
 begin
   inherited;
 
-  FFdMode := TSFStringEnum.Create(Self, False, 'mode', ColorModeNames, Ord(cmReplace));
+  FFdMode := TSFStringEnum.Create(Self, False, 'mode', @ColorModeNames, Ord(High(ColorModeNames)) + 1, Ord(cmReplace));
    FdMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMode);
 

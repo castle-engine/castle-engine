@@ -82,7 +82,7 @@ begin
   FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
   AddEvent(FEventIsValid);
 
-  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', ShaderLanguageNames, Ord(slDefault));
+  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', @ShaderLanguageNames, Ord(High(ShaderLanguageNames)) + 1, Ord(slDefault));
    FdLanguage.ChangeAlways := chEverything;
   AddField(FFdLanguage);
 

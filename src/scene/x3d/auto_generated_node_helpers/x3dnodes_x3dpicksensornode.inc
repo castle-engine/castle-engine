@@ -141,11 +141,11 @@ begin
   FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
   AddEvent(FEventPickedGeometry);
 
-  FFdIntersectionType := TSFStringEnum.Create(Self, False, 'intersectionType', PickSensorIntersectionTypeNames, Ord(piBounds));
+  FFdIntersectionType := TSFStringEnum.Create(Self, False, 'intersectionType', @PickSensorIntersectionTypeNames, Ord(High(PickSensorIntersectionTypeNames)) + 1, Ord(piBounds));
    FdIntersectionType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdIntersectionType);
 
-  FFdSortOrder := TSFStringEnum.Create(Self, False, 'sortOrder', PickSensorRangeNames, Ord(prClosest));
+  FFdSortOrder := TSFStringEnum.Create(Self, False, 'sortOrder', @PickSensorRangeNames, Ord(High(PickSensorRangeNames)) + 1, Ord(prClosest));
    FdSortOrder.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSortOrder);
 end;

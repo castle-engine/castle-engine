@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,11 +59,14 @@ begin
   ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
+const
+  AxisNames: array [0..2] of String = ('X', 'Y', 'Z');
+
 procedure TRotationXYZNode.CreateNode;
 begin
   inherited;
 
-  FFdAxis := TSFEnum.Create(Self, true, 'axis' , ['X', 'Y', 'Z'], 0);
+  FFdAxis := TSFEnum.Create(Self, true, 'axis' , @AxisNames, High(AxisNames) + 1, 0);
    FdAxis.ChangeAlways := chEverything;
   AddField(FFdAxis);
 

@@ -353,7 +353,7 @@ begin
    FdDimensions.ChangeAlways := chTextureRendererProperties;
   AddField(FFdDimensions);
 
-  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', TextureUpdateNames, Ord(upNone));
+  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', @TextureUpdateNames, Ord(High(TextureUpdateNames)) + 1, Ord(upNone));
    FdUpdate.ChangeAlways := chRedisplay;
   AddField(FFdUpdate);
 

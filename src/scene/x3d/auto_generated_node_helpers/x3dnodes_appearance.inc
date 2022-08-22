@@ -423,7 +423,7 @@ begin
    FdBackMaterial.ChangeAlways := chNone;
   AddField(FFdBackMaterial);
 
-  FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', AlphaModeToString, Ord(amAuto));
+  FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', @AlphaModeToString, Ord(High(AlphaModeToString)) + 1, Ord(amAuto));
    FdAlphaMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaMode);
 
@@ -461,7 +461,7 @@ begin
    FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
 
-  FFdAlphaChannel := TSFStringEnum.Create(Self, True, 'alphaChannel', AlphaToString, Ord(acAuto));
+  FFdAlphaChannel := TSFStringEnum.Create(Self, True, 'alphaChannel', @AlphaToString, Ord(High(AlphaToString)) + 1, Ord(acAuto));
    FdAlphaChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaChannel);
 

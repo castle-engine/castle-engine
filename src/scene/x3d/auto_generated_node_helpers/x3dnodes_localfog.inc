@@ -177,7 +177,7 @@ begin
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabled);
 
-  FFdFogType := TSFStringEnum.Create(Self, True, 'fogType', FogTypeNames, Ord(ftLinear));
+  FFdFogType := TSFStringEnum.Create(Self, True, 'fogType', @FogTypeNames, Ord(High(FogTypeNames)) + 1, Ord(ftLinear));
    FdFogType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFogType);
 

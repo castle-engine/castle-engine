@@ -243,15 +243,15 @@ begin
    FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBorderWidth);
 
-  FFdBoundaryModeS := TSFStringEnum.Create(Self, True, 'boundaryModeS', BoundaryModeNames, Ord(bmRepeat));
+  FFdBoundaryModeS := TSFStringEnum.Create(Self, True, 'boundaryModeS', @BoundaryModeNames, Ord(High(BoundaryModeNames)) + 1, Ord(bmRepeat));
    FdBoundaryModeS.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeS);
 
-  FFdBoundaryModeT := TSFStringEnum.Create(Self, True, 'boundaryModeT', BoundaryModeNames, Ord(bmRepeat));
+  FFdBoundaryModeT := TSFStringEnum.Create(Self, True, 'boundaryModeT', @BoundaryModeNames, Ord(High(BoundaryModeNames)) + 1, Ord(bmRepeat));
    FdBoundaryModeT.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeT);
 
-  FFdBoundaryModeR := TSFStringEnum.Create(Self, True, 'boundaryModeR', BoundaryModeNames, Ord(bmRepeat));
+  FFdBoundaryModeR := TSFStringEnum.Create(Self, True, 'boundaryModeR', @BoundaryModeNames, Ord(High(BoundaryModeNames)) + 1, Ord(bmRepeat));
    FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeR);
 

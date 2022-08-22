@@ -224,7 +224,7 @@ begin
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
   AddEvent(FEventTransitionComplete);
 
-  FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', BlendingSortNames, Ord(obsDefault));
+  FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', @BlendingSortNames, Ord(High(BlendingSortNames)) + 1, Ord(obsDefault));
    FdBlendingSort.ChangeAlways := chRedisplay;
   AddField(FFdBlendingSort);
 end;

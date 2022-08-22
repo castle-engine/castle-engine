@@ -155,7 +155,7 @@ begin
    FdColor.ChangeAlways := chRedisplay;
   AddField(FFdColor);
 
-  FFdFogType := TSFStringEnum.Create(Self, True, 'fogType', FogTypeNames, Ord(ftLinear));
+  FFdFogType := TSFStringEnum.Create(Self, True, 'fogType', @FogTypeNames, Ord(High(FogTypeNames)) + 1, Ord(ftLinear));
    FdFogType.ChangeAlways := chRedisplay;
   AddField(FFdFogType);
 

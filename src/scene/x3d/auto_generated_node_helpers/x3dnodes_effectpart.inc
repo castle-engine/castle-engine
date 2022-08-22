@@ -83,7 +83,7 @@ begin
    FdUrl.ChangeAlways := chEverything;
   AddField(FFdUrl);
 
-  FFdType := TSFStringEnum.Create(Self, False, 'type', ShaderTypeNameX3D, Ord(stVertex));
+  FFdType := TSFStringEnum.Create(Self, False, 'type', @ShaderTypeNameX3D, Ord(High(ShaderTypeNameX3D)) + 1, Ord(stVertex));
    FdType.ChangeAlways := chEverything;
   AddField(FFdType);
 

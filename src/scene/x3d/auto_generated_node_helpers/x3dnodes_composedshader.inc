@@ -83,7 +83,7 @@ begin
    FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
 
-  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', UniformMissingNames, Ord(umWarning));
+  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', @UniformMissingNames, Ord(High(UniformMissingNames)) + 1, Ord(umWarning));
    FdUniformMissing.ChangeAlways := chEverything;
   AddField(FFdUniformMissing);
 end;

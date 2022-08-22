@@ -115,7 +115,7 @@ procedure TEffectNode.CreateNode;
 begin
   inherited;
 
-  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', ShaderLanguageNames, Ord(slDefault));
+  FFdLanguage := TSFStringEnum.Create(Self, False, 'language', @ShaderLanguageNames, Ord(High(ShaderLanguageNames)) + 1, Ord(slDefault));
    FdLanguage.ChangeAlways := chEverything;
   AddField(FFdLanguage);
 
@@ -127,7 +127,7 @@ begin
    FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
 
-  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', UniformMissingNames, Ord(umWarning));
+  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', @UniformMissingNames, Ord(High(UniformMissingNames)) + 1, Ord(umWarning));
    FdUniformMissing.ChangeAlways := chEverything;
   AddField(FFdUniformMissing);
 end;

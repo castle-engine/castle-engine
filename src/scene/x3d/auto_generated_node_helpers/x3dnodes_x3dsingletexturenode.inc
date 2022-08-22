@@ -115,7 +115,7 @@ begin
   AddField(FFdCrossOrigin);
 {$endif not CASTLE_SLIM_NODES}
 
-  FFdAlphaChannel := TSFStringEnum.Create(Self, False, 'alphaChannel', AlphaToString, Ord(acAuto));
+  FFdAlphaChannel := TSFStringEnum.Create(Self, False, 'alphaChannel', @AlphaToString, Ord(High(AlphaToString)) + 1, Ord(acAuto));
    FdAlphaChannel.ChangeAlways := chVisibleVRML1State;
   AddField(FFdAlphaChannel);
 end;

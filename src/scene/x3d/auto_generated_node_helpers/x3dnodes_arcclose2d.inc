@@ -119,7 +119,7 @@ procedure TArcClose2DNode.CreateNode;
 begin
   inherited;
 
-  FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', ArcClosureTypeNames, Ord(acPie));
+  FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', @ArcClosureTypeNames, Ord(High(ArcClosureTypeNames)) + 1, Ord(acPie));
    FdClosureType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdClosureType);
 

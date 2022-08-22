@@ -253,7 +253,7 @@ begin
    FdSpacing.MustBeNonnegative := true;
   AddField(FFdSpacing);
 
-  FFdStyle := TSFStringEnum.Create(Self, False, 'style', FontStyleNames, Ord(fsPlain));
+  FFdStyle := TSFStringEnum.Create(Self, False, 'style', @FontStyleNames, Ord(High(FontStyleNames)) + 1, Ord(fsPlain));
    FdStyle.ChangeAlways := chFontStyleFontChanged;
   AddField(FFdStyle);
 

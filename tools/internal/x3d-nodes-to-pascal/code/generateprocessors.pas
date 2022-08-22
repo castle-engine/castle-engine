@@ -248,7 +248,7 @@ begin
           NL +
           Field.ConditionsBegin +
           Iff(Field.IsEnumString,
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.EnumNames + ', Ord(' + Field.EnumDefault + '));',
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', @' + Field.EnumNames + ', Ord(High(' + Field.EnumNames + ')) + 1, Ord(' + Field.EnumDefault + '));',
           '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');') + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL +

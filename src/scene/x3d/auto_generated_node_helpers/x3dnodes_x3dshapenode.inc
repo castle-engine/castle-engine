@@ -211,7 +211,7 @@ begin
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
 
-  FFdShading := TSFStringEnum.Create(Self, True, 'shading', ShadingNames, Ord(shDefault));
+  FFdShading := TSFStringEnum.Create(Self, True, 'shading', @ShadingNames, Ord(High(ShadingNames)) + 1, Ord(shDefault));
    FdShading.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShading);
 
@@ -225,7 +225,7 @@ begin
    FdRender.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRender);
 
-  FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
+  FFdCollision := TSFStringEnum.Create(Self, False, 'collision', @ShapeCollisionNames, Ord(High(ShapeCollisionNames)) + 1, Ord(scDefault));
    FdCollision.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCollision);
 end;
