@@ -90,6 +90,11 @@
   public
     procedure BeforeDestruction;override;
 
+    { Internal procedure called when behavior is selected in castle editor. }
+    procedure InternalSelectionStart; virtual;
+    { Internal procedure called when behavior is deselected in castle editor. }
+    procedure InternalSelectionEnd; virtual;
+
     function World: TCastleAbstractRootTransform;
 
     { Parent TCastleTransform of this behavior.
@@ -192,6 +197,18 @@ begin
     Parent.BeforeBehaviorDestroy(Self);
 
   inherited BeforeDestruction;
+end;
+
+procedure TCastleBehavior.InternalSelectionStart;
+begin
+  // nothing by default
+  WritelnLog('Behavior ' + Name +  ' selected in editor');
+end;
+
+procedure TCastleBehavior.InternalSelectionEnd;
+begin
+  // nothing by default
+  WritelnLog('Behavior ' + Name +  ' deselected in editor');
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;
