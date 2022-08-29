@@ -287,8 +287,8 @@
                 "EnableLimits" : false,
                 "EnableMotor" : false,
                 "MaximimAngleLimit" : 1.0000000000000000E+000,
-                "MaximumMotorTorque" : -1.0000000000000000E+005,
-                "MinimumAngleLimit" : -1.0000000000000000E+000,
+                "MaxMotorTorque" : -1.0000000000000000E+005,
+                "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
                 "Name" : "JointHinge",
                 "RotationAxisPersistent" : {
@@ -462,8 +462,8 @@
                 "EnableLimits" : true,
                 "EnableMotor" : false,
                 "MaximimAngleLimit" : 1.0000000000000000E+000,
-                "MaximumMotorTorque" : -1.0000000000000000E+005,
-                "MinimumAngleLimit" : -1.0000000000000000E+000,
+                "MaxMotorTorque" : -1.0000000000000000E+005,
+                "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
                 "Name" : "JointHinge2",
                 "RotationAxisPersistent" : {
@@ -588,8 +588,8 @@
                 "EnableLimits" : false,
                 "EnableMotor" : true,
                 "MaximimAngleLimit" : 3.0000000000000000E+000,
-                "MaximumMotorTorque" : -1.0000000000000000E+005,
-                "MinimumAngleLimit" : -3.0000000000000000E+000,
+                "MaxMotorTorque" : -1.0000000000000000E+005,
+                "MinAngleLimit" : -3.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
                 "Name" : "JointHinge1",
                 "RotationAxisPersistent" : {
@@ -1203,22 +1203,22 @@
                 "$$ClassName" : "TJointPulley",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxPulley2",
-                "ConnectedWorldAnchorPointPersistent" : {
+                "ConnectedWorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003,
                   "Y" : 1.7136999511718750E+002
                 },
-                "ConnectedWorldGroundAnchorPointPersistent" : {
+                "ConnectedWorldGroundAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003
                 },
                 "Name" : "JointPulley1",
-                "WorldAnchorPointPersistent" : {
+                "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002,
                   "Y" : 1.7469000244140625E+002
                 },
-                "WorldGroundAnchorPointPersistent" : {
+                "WorldGroundAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002
                 }

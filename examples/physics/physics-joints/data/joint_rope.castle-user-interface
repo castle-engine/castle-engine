@@ -81,7 +81,7 @@
                   {
                     "$$ClassName" : "TJointRope",
                     "Breakable" : false,
-                    "ConnectedAnchorPointPersistent" : {
+                    "ConnectedAnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -1.5000000000000000E+000
                     },
@@ -179,12 +179,12 @@
               },
               {
                 "$$ClassName" : "TJointRope",
-                "AnchorPointPersistent" : {
+                "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.0000000149011612E-001
                 },
                 "Breakable" : false,
-                "ConnectedAnchorPointPersistent" : {
+                "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.5000000000000000E+000
                 },

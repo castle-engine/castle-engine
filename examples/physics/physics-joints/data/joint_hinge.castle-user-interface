@@ -501,7 +501,7 @@
                   },
                   {
                     "$$ClassName" : "TJointHinge",
-                    "AnchorPointPersistent" : {
+                    "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 2.7400000095367432E+000,
                       "Z" : -1.1200000047683716E+000
