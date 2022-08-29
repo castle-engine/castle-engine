@@ -134,6 +134,10 @@ type
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
+    { Procedure called before selecton change unfortunately it does not return
+      previously selected nodes. }
+    procedure ControlsTreeBeforeSelectionChange(Sender: TObject; Node: TTreeNode;
+      var AllowChange: Boolean);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
@@ -238,6 +242,9 @@ type
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
 
+      { Needed to check what was deselected after InternalSelectionStart }
+      FSelectionStartBehaviorList: specialize TList<TCastleBehavior>;
+
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
     procedure CastleControlOpen(Sender: TObject);
@@ -280,6 +287,14 @@ type
     { If there is exactly one item selected, return it. Otherwise return nil. }
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
+
+    { After calling InternalSelectionStart we need check current selection to
+      call InternalSelectionEnd }
+    procedure CheckBehaviorsStillSelected;
+
+    procedure DoInternalSelectionStart(const Behavior: TCastleBehavior);
+    procedure DoInternalSelectionEnd(const Behavior: TCastleBehavior);
+    procedure DoAllInternalSelectionEnd;
 
     { If the selected items all have the same TCastleViewport parent,
       return it. Otherwise return nil. }
@@ -1228,6 +1243,7 @@ begin
   ControlProperties.ActivePage := TabBasic;
 
   TreeNodeMap := TTreeNodeMap.Create;
+  FSelectionStartBehaviorList := specialize TList<TCastleBehavior>.Create;
 
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
@@ -1260,6 +1276,7 @@ destructor TDesignFrame.Destroy;
 var
   F: TCollectionPropertyEditorForm;
 begin
+  FreeAndNil(FSelectionStartBehaviorList);
   FreeAndNil(TreeNodeMap);
 
   if CollectionPropertyEditorForm <> nil then
@@ -1797,6 +1814,10 @@ begin
       else
         UndoSummary := SelectedCount.ToString + ' components';
 
+      { Run InternalSelectionEnd on all Behaviors before freeing it and
+        ControlsTree.Items.Clear }
+      DoAllInternalSelectionEnd;
+
       { We depend on the fact TComponentList observes freed items,
         and removes them automatically.
         This way also freeing something that frees something else
@@ -1813,8 +1834,10 @@ begin
 
       // temporarily disable this event, as some pointers are invalid now
       ControlsTree.OnSelectionChanged := nil;
+      ControlsTree.OnChanging := nil;
       ControlsTree.Items.Clear;
       TreeNodeMap.Clear;
+      ControlsTree.OnChanging := @ControlsTreeBeforeSelectionChange;
       ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
       UpdateDesign;
@@ -3557,6 +3580,59 @@ begin
     ControlsTree.Select([Node]);
 end;
 
+procedure TDesignFrame.CheckBehaviorsStillSelected;
+var
+  SelectedComponents: TComponentList;
+  SelectedCount: Integer;
+  I: Integer;
+  B: TCastleBehavior;
+  Index: Integer;
+  BehaviorCount: Integer;
+begin
+  BehaviorCount := FSelectionStartBehaviorList.Count;
+  if BehaviorCount = 0 then
+    Exit;
+
+  GetSelected(SelectedComponents, SelectedCount);
+
+  { If behavior is not on selected list call InternalSelectionEnd and
+    remove it from FSelectionStartBehaviorList }
+  for I := 0 to BehaviorCount - 1 do
+  begin
+    B := FSelectionStartBehaviorList[I];
+    if SelectedComponents <> nil then
+    begin
+      Index := SelectedComponents.IndexOf(B);
+      if Index < 0 then
+        DoInternalSelectionEnd(B);
+    end
+    else
+      DoInternalSelectionEnd(B);
+  end;
+end;
+
+procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior);
+begin
+  Behavior.InternalSelectionStart;
+  FSelectionStartBehaviorList.Add(Behavior);
+end;
+
+procedure TDesignFrame.DoInternalSelectionEnd(const Behavior: TCastleBehavior);
+begin
+  Behavior.InternalSelectionEnd;
+  FSelectionStartBehaviorList.Remove(Behavior);
+end;
+
+procedure TDesignFrame.DoAllInternalSelectionEnd;
+var
+  I: Integer;
+begin
+  for I := 0 to FSelectionStartBehaviorList.Count - 1 do
+  begin
+    DoInternalSelectionEnd(FSelectionStartBehaviorList[I]);
+  end;
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
@@ -3675,11 +3751,26 @@ begin
   { if selection determines CurrentViewport, update CurrentViewport immediately
     (without waiting for OnUpdate) -- maybe this will be relevant at some point }
   UpdateCurrentViewport;
+
+  { Call InternalSelectionStart when SelectedComponent is a behavior. I think
+    this should be done on end of this function }
+  if SelectedComponent is TCastleBehavior then
+  begin
+    TCastleBehavior(SelectedComponent).InternalSelectionStart;
+    FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
 begin
   UpdateSelectedControl;
+end;
+
+procedure TDesignFrame.ControlsTreeBeforeSelectionChange(Sender: TObject;
+  Node: TTreeNode; var AllowChange: Boolean);
+begin
+  CheckBehaviorsStillSelected;
+  AllowChange := true;
 end;
 
 procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
