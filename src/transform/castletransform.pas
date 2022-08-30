@@ -75,8 +75,6 @@ initialization
   GlobalIdentityMatrix := TMatrix4.Identity;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
-  RegisterSerializableComponent(TTemporaryAnchor, 'TemporaryAnchor');
-  RegisterSerializableComponent(TTemporaryConnectedAnchor, 'TemporaryConnectedAnchor');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
