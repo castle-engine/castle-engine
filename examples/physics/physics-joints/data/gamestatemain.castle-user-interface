@@ -83,16 +83,14 @@
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
-                "Name" : "BoxCollider1",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider1"
               },
               {
                 "$$ClassName" : "TJointRope",
+                "AnchorPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 8.9754158020019531E+001
+                },
                 "BreakThresholdForce" : 1.0000000149011612E-001,
                 "BreakThresholdTorque" : 1.0000000149011612E-001,
                 "Breakable" : false,
@@ -141,13 +139,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider2",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider2"
               }
             ]
           },
@@ -212,13 +204,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider3",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider3"
               }
             ]
           },
@@ -270,23 +256,20 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider1",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider1"
               },
               {
                 "$$ClassName" : "TJointHinge",
+                "AnchorPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+002
+                },
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : true,
                 "ConnectedTransform" : "BoxHingeBreakForce",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
-                "MaximimAngleLimit" : 1.0000000000000000E+000,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
@@ -339,13 +322,7 @@
                 "$$ClassName" : "TCastleBoxCollider",
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 2.0000000000000000E+000,
-                "Name" : "BoxCollider4",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider4"
               }
             ]
           },
@@ -393,13 +370,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider5",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider5"
               }
             ]
           },
@@ -445,13 +416,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider7",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider7"
               },
               {
                 "$$ClassName" : "TJointHinge",
@@ -461,7 +426,6 @@
                 "ConnectedTransform" : "BoxHingeLimits",
                 "EnableLimits" : true,
                 "EnableMotor" : false,
-                "MaximimAngleLimit" : 1.0000000000000000E+000,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
@@ -519,13 +483,7 @@
                 "$$ClassName" : "TCastleBoxCollider",
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 2.0000000000000000E+000,
-                "Name" : "BoxCollider13",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider13"
               }
             ]
           },
@@ -571,13 +529,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider6",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider6"
               },
               {
                 "$$ClassName" : "TJointHinge",
@@ -587,7 +539,6 @@
                 "ConnectedTransform" : "BoxHingeMotor",
                 "EnableLimits" : false,
                 "EnableMotor" : true,
-                "MaximimAngleLimit" : 3.0000000000000000E+000,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -3.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
@@ -640,13 +591,7 @@
                 "$$ClassName" : "TCastleBoxCollider",
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 2.0000000000000000E+000,
-                "Name" : "BoxCollider12",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider12"
               }
             ]
           },
@@ -697,13 +642,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider2",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider2"
               },
               {
                 "$$ClassName" : "TJointFixed",
@@ -752,13 +691,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider6",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider6"
               }
             ]
           },
@@ -821,13 +754,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider7",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider7"
               }
             ]
           },
@@ -858,13 +785,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider3",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider3"
               },
               {
                 "$$ClassName" : "TJointBall",
@@ -916,13 +837,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider4",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider4"
               },
               {
                 "$$ClassName" : "TJointDistance",
@@ -976,13 +891,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider8",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider8"
               }
             ]
           },
@@ -1031,13 +940,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider9",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider9"
               }
             ]
           },
@@ -1082,13 +985,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider5",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider5"
               },
               {
                 "$$ClassName" : "TJointWorldPlaneDistance",
@@ -1191,13 +1088,7 @@
                 "$$ClassName" : "TCastleBoxCollider",
                 "Friction" : 0.0000000000000000E+000,
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider10",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider10"
               },
               {
                 "$$ClassName" : "TJointPulley",
@@ -1269,13 +1160,7 @@
                 "$$ClassName" : "TCastleBoxCollider",
                 "Friction" : 0.0000000000000000E+000,
                 "Mass" : 2.0000000000000000E+001,
-                "Name" : "BoxCollider11",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider11"
               }
             ]
           },
@@ -1321,13 +1206,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Name" : "SphereCollider8",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider8"
               },
               {
                 "$$ClassName" : "TJointGrab",
@@ -1361,7 +1240,7 @@
           "$$ClassName" : "TCastleVector3Persistent",
           "X" : 7.9978448486328125E+002,
           "Y" : 6.8881915283203125E+002,
-          "Z" : 3.5632646484375000E+003
+          "Z" : 1.4284116210937500E+003
         }
       },
       "InternalDesignNavigationType" : 2,
