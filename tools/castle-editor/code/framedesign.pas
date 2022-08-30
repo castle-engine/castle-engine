@@ -3027,7 +3027,7 @@ begin
     as it will not be saved.
     Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
-  Result := not (csTransient in Child.ComponentStyle);
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TTemporaryTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
@@ -3635,6 +3635,42 @@ end;
 
 procedure TDesignFrame.UpdateSelectedControl;
 
+  procedure SynchronizeTreeNodeChildTransforms(Parent: TTreeNode);
+  var
+    C: TComponent;
+    ParentTransform, ChildTransform: TCastleTransform;
+    ChildNode: TTreeNode;
+    I: Integer;
+    Title: String;
+  begin
+    C := TComponent(Parent.Data);
+    if C = nil then
+      Exit;
+
+    if C is TCastleTransform then
+    begin
+      ParentTransform := TCastleTransform(C);
+
+      for I := 0 to ParentTransform.Count -1 do
+      begin
+        ChildTransform := ParentTransform.Items[I];
+        if not Selectable(ChildTransform) then
+          continue;
+
+        if not TreeNodeMap.TryGetValue(ChildTransform, ChildNode) then
+        begin
+          // add TreeNode
+          Title := TreeNodeCaption(ChildTransform);
+          ChildNode := ControlsTree.Items.AddChildObject(Parent, Title, ChildTransform);
+          TreeNodeMap.AddOrSetValue(ChildTransform, ChildNode);
+
+          // add sub items
+          SynchronizeTreeNodeChildTransforms(ChildNode);
+        end;
+      end;
+    end;
+  end;
+
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
   var
     I: Integer;
@@ -3702,6 +3738,7 @@ var
   InspectorType: TInspectorType;
   V: TCastleViewport;
   T: TCastleTransform;
+  ParentNode: TTreeNode;
 begin
   OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
@@ -3758,6 +3795,9 @@ begin
   begin
     TCastleBehavior(SelectedComponent).InternalSelectionStart;
     FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
+
+    if TreeNodeMap.TryGetValue(TCastleBehavior(SelectedComponent).Parent, ParentNode) then
+      SynchronizeTreeNodeChildTransforms(ParentNode);
   end;
 end;
 

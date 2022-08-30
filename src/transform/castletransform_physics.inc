@@ -1012,12 +1012,65 @@
 
   EConnectedTransformTheSameAsParent = class (Exception);
 
+  TTemporaryTransform = class(TCastleTransform)
+    strict private
+      FColor: TCastleColor;
+      FWireframeColor: TCastleColorRGB;
+      FJoint: TAbstractJoint;
+      FParentWireframed: Boolean;
+      FParentWireframeEffect: TWireframeEffect;
+      FParentWireframeColor: TCastleColorRGB;
+
+      procedure SetColor(const Value: TCastleColor);
+      procedure ApplyWireframeEffectToParent(const RenderOptions: TCastleRenderOptions);
+      procedure RemoveWireframeEffectFromParent(const RenderOptions: TCastleRenderOptions);
+    protected
+      FSphere: TCastleTransform;
+
+      function EstimateSphereRadius: Single;
+
+      procedure SetValue(const AValue: TVector3);
+      procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
+      function GetObservedValue: TVector3; virtual; abstract;
+
+      procedure CheckTransformInsideParent;
+      procedure ChangedTransform; override;
+    public
+      constructor Create(AOwner: TComponent;
+        const AJoint: TAbstractJoint); virtual; reintroduce;
+      destructor Destroy; override;
+
+      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+      property Value: TVector3 read GetObservedValue write SetValue;
+      property WireframeColor: TCastleColorRGB read FWireframeColor write FWireframeColor;
+      property Joint: TAbstractJoint read FJoint;
+      property Color: TCastleColor read FColor write SetColor;
+  end;
+
+  TTemporaryAnchor = class(TTemporaryTransform)
+    protected
+      procedure SetObservedValue(const AValue: TVector3); override;
+      function GetObservedValue: TVector3; override;
+  end;
+
+  TTemporaryConnectedAnchor = class(TTemporaryTransform)
+    protected
+      procedure SetObservedValue(const AValue: TVector3); override;
+      function GetObservedValue: TVector3; override;
+
+    public
+      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  end;
+
+
   TJointHinge = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointHinge: TKraftConstraintJointHinge;
       FMotorSpeed: Single;
       FRotationAxis: TVector3;
       FAnchor: TVector3;
+      FAnchorTransform: TTemporaryAnchor;
       FMinAngleLimit: Single;
       FMaxAngleLimit: Single;
       FEnableLimits: Boolean;
@@ -1042,6 +1095,9 @@
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+
+      procedure InternalSelectionStart; override;
+      procedure InternalSelectionEnd; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1070,6 +1126,9 @@
       FConnectedAnchor: TVector3;
       FDistance: Single;
 
+      FAnchorTransform: TTemporaryAnchor;
+      FConnectedAnchorTransform: TTemporaryConnectedAnchor;
+
       procedure SetAnchor(const AValue: TVector3);
       procedure SetConnectedAnchor(const AValue: TVector3);
       procedure SetDistance(const AValue: Single);
@@ -1081,6 +1140,9 @@
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+
+      procedure InternalSelectionStart; override;
+      procedure InternalSelectionEnd; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3706,6 +3768,203 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+{ TTemporaryTransform ------------------------------------------------------- }
+
+procedure TTemporaryTransform.SetColor(const Value: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
+  begin
+    FColor := Value;
+    if FSphere <> nil then
+      TCastleSphere(FSphere).Color := FColor;
+  end;
+end;
+
+procedure TTemporaryTransform.ApplyWireframeEffectToParent(
+  const RenderOptions: TCastleRenderOptions);
+begin
+  if FParentWireframed then
+    Exit;
+
+  if RenderOptions.WireframeEffect <> weWireframeOnly then
+  begin
+    FParentWireframeEffect := RenderOptions.WireframeEffect;
+    FParentWireframeColor := RenderOptions.WireframeColor;
+
+    RenderOptions.WireframeEffect := weWireframeOnly;
+    RenderOptions.WireframeColor := FWireframeColor;
+    FParentWireframed := true;
+  end;
+end;
+
+procedure TTemporaryTransform.RemoveWireframeEffectFromParent(
+  const RenderOptions: TCastleRenderOptions);
+begin
+  if not FParentWireframed then
+    Exit;
+
+  RenderOptions.WireframeEffect := FParentWireframeEffect;
+  RenderOptions.WireframeColor := FParentWireframeColor;
+  FParentWireframed := false;
+end;
+
+function TTemporaryTransform.EstimateSphereRadius: Single;
+begin
+  if Parent <> nil then
+    Result := Parent.World.BoundingBox.AverageSize(false, 100) / 200
+  else
+    Result := 1;
+end;
+
+procedure TTemporaryTransform.SetValue(const AValue: TVector3);
+begin
+  SetObservedValue(AValue);
+  if not TVector3.PerfectlyEquals(Translation, AValue) then
+    Translation := AValue;
+end;
+
+procedure TTemporaryTransform.CheckTransformInsideParent;
+var
+  Scene: TCastleScene;
+  Primitive: TCastleAbstractPrimitive;
+begin
+  if Parent = nil then
+    Exit;
+
+  if Parent.LocalBoundingBox.Contains(Translation) then
+  begin
+    if Parent is TCastleScene then
+    begin
+      Scene := TCastleScene(Parent);
+      ApplyWireframeEffectToParent(Scene.RenderOptions);
+      Exit;
+    end;
+
+    if Parent is TCastleAbstractPrimitive then
+    begin
+      Primitive := TCastleAbstractPrimitive(Parent);
+      ApplyWireframeEffectToParent(Primitive.RenderOptions);
+      Exit;
+    end;
+  end else
+  if FParentWireframed then
+  begin
+    if Parent is TCastleScene then
+    begin
+      Scene := TCastleScene(Parent);
+      RemoveWireframeEffectFromParent(Scene.RenderOptions);
+      Exit;
+    end;
+
+    if Parent is TCastleAbstractPrimitive then
+    begin
+      Primitive := TCastleAbstractPrimitive(Parent);
+      RemoveWireframeEffectFromParent(Primitive.RenderOptions);
+      Exit;
+    end;
+  end;
+end;
+
+procedure TTemporaryTransform.ChangedTransform;
+begin
+  inherited ChangedTransform;
+  if not TVector3.PerfectlyEquals(Translation, Value) then
+    Value := Translation;
+end;
+
+constructor TTemporaryTransform.Create(AOwner: TComponent;
+  const AJoint: TAbstractJoint);
+begin
+  inherited Create(AOwner);
+
+  FColor := Red;
+  FWireframeColor := Vector3(0.75, 0.75, 0.75);
+  FJoint := AJoint;
+  SetTransient;
+
+  FSphere := TCastleSphere.Create(nil);
+  FSphere.SetTransient;
+  TCastleSphere(FSphere).Color := FColor;
+  TCastleSphere(FSphere).Material := pmUnlit;
+  TCastleSphere(FSphere).Radius := EstimateSphereRadius;
+  Add(FSphere);
+end;
+
+destructor TTemporaryTransform.Destroy;
+begin
+  FreeAndNil(FSphere);
+end;
+
+procedure TTemporaryTransform.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+var
+  NewRadius: Single;
+begin
+  inherited Update(SecondsPassed, RemoveMe);
+
+  if FSphere <> nil then
+  begin
+    NewRadius := EstimateSphereRadius;
+
+    if not SameValue(NewRadius, TCastleSphere(FSphere).Radius) then
+    begin
+      TCastleSphere(FSphere).Radius := NewRadius;
+    end;
+  end;
+
+  CheckTransformInsideParent;
+end;
+
+{ TTemporaryAnchor ----------------------------------------------------------- }
+
+procedure TTemporaryAnchor.SetObservedValue(const AValue: TVector3);
+begin
+  if Joint is TJointHinge then
+  begin
+    if not TVector3.PerfectlyEquals(TJointHinge(Joint).Anchor, AValue) then
+      TJointHinge(Joint).Anchor := AValue;
+  end;
+
+  if Joint is TJointRope then
+  begin
+    if not TVector3.PerfectlyEquals(TJointRope(Joint).Anchor, AValue) then
+      TJointRope(Joint).Anchor := AValue;
+  end;
+end;
+
+function TTemporaryAnchor.GetObservedValue: TVector3;
+begin
+  if Joint is TJointHinge then
+    Exit(TJointHinge(Joint).Anchor);
+
+  if Joint is TJointRope then
+    Exit(TJointRope(Joint).Anchor);
+end;
+
+{ TTemporaryConnectedAnchor -------------------------------------------------- }
+
+procedure TTemporaryConnectedAnchor.SetObservedValue(const AValue: TVector3);
+begin
+  if Joint is TJointRope then
+  begin
+    if not TVector3.PerfectlyEquals(TJointRope(Joint).ConnectedAnchor, AValue) then
+      TJointRope(Joint).ConnectedAnchor := AValue;
+  end;
+end;
+
+function TTemporaryConnectedAnchor.GetObservedValue: TVector3;
+begin
+  if Joint is TJointRope then
+    Exit(TJointRope(Joint).ConnectedAnchor);
+end;
+
+constructor TTemporaryConnectedAnchor.Create(AOwner: TComponent;
+  const AJoint: TAbstractJoint);
+begin
+  inherited Create(AOwner, AJoint);
+  Color := Green;
+end;
+
 { TJointHinge --------------------------------------------------------------- }
 
 procedure TJointHinge.SetAnchor(const AValue: TVector3);
@@ -3714,6 +3973,8 @@ begin
     Exit;
 
   FAnchor := AValue;
+  if FAnchorTransform <> nil then
+    FAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -3835,6 +4096,25 @@ begin
   inherited Destroy;
 end;
 
+procedure TJointHinge.InternalSelectionStart;
+begin
+  inherited InternalSelectionStart;
+
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryAnchor.Create(Self, Self);
+    Parent.Add(FAnchorTransform);
+    FAnchorTransform.Value := Anchor;
+  end;
+end;
+
+procedure TJointHinge.InternalSelectionEnd;
+begin
+  // TODO: when remove anchor transform? -  we can't do it here because this
+  // FreeAndNil(FAnchorTransform);
+  inherited InternalSelectionEnd;
+end;
+
 function TJointHinge.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -3864,6 +4144,8 @@ begin
     Exit;
 
   FAnchor := AValue;
+  if FAnchorTransform <> nil then
+    FAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -3873,6 +4155,8 @@ begin
     Exit;
 
   FConnectedAnchor := AValue;
+  if FConnectedAnchorTransform <> nil then
+    FConnectedAnchorTransform.Value := FConnectedAnchor;
   RecreateKraftJoint;
 end;
 
@@ -3926,6 +4210,32 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
+end;
+
+procedure TJointRope.InternalSelectionStart;
+begin
+  inherited InternalSelectionStart;
+
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryAnchor.Create(Self, Self);
+    Parent.Add(FAnchorTransform);
+    FAnchorTransform.Translation := Anchor;
+  end;
+
+  if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
+  begin
+    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(FConnectedRigidBody.Parent, Self);
+    FConnectedAnchorTransform.Translation := ConnectedAnchor;
+    FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
+  end;
+end;
+
+procedure TJointRope.InternalSelectionEnd;
+begin
+  //FreeAndNil(FAnchorTransform);
+  //FreeAndNil(FConnectedAnchorTransform);
+  inherited InternalSelectionEnd;
 end;
 
 function TJointRope.PropertySections(const PropertyName: String

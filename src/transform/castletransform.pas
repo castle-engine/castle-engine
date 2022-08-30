@@ -23,7 +23,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleTriangles, CastleRenderOptions, CastleProjection,
-  CastleUIControls, CastleQuaternions;
+  CastleUIControls, CastleQuaternions, CastleColors;
 
 type
   {$define read_interface}
@@ -75,6 +75,8 @@ initialization
   GlobalIdentityMatrix := TMatrix4.Identity;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
+  RegisterSerializableComponent(TTemporaryAnchor, 'TemporaryAnchor');
+  RegisterSerializableComponent(TTemporaryConnectedAnchor, 'TemporaryConnectedAnchor');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
