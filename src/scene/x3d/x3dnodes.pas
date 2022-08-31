@@ -237,7 +237,6 @@ type
   {$I x3dnodes_1.inc}
   {$I x3dnodes_inventor.inc}
   {$I x3dnodes_97_hanim.inc}
-  {$I x3dnodes_97_nurbs.inc}
   {$I x3dnodes_castle.inc}
   {$I x3dnodes_instantreality.inc}
 
@@ -374,7 +373,6 @@ uses
 {$I x3dnodes_1.inc}
 {$I x3dnodes_inventor.inc}
 {$I x3dnodes_97_hanim.inc}
-{$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
 {$I x3dnodes_instantreality.inc}
 
@@ -724,7 +722,6 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97HAnimNodes;
-  RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
   RegisterInstantRealityNodes;
 

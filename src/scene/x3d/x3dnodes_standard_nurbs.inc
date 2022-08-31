@@ -13,13 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ NurbsCurve2D is shared with VRML 97 NURBS definition.
-  The rest is, for now, completely separate from VRML 97 NURBS definition
-  in x3dnodes_97_nurbs.inc. }
-
 {$ifdef read_interface}
-  TNurbsSurfaceNode = class;
-
   { Base type for nodes that provide control curve information in 2D space. }
   TAbstractNurbsControlCurveNode = class(TAbstractNode)
   {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
