@@ -440,11 +440,6 @@
 
   TTexture2Node_1 = class(TAbstractTexture2DNode)
   strict protected
-    function GetRepeatS: boolean; override;
-    function GetRepeatT: boolean; override;
-    procedure SetRepeatS(const Value: boolean); override;
-    procedure SetRepeatT(const Value: boolean); override;
-
     { Texture is loaded from file or inlined.
       The priority has the filename, only if it's empty (or an exception
       occurs during file loading) then the inlined texture will be used.
@@ -454,6 +449,8 @@
       IsTextureImage = false) is also useful: it turns off using the previous
       texture. }
     procedure LoadTextureData(out CacheUsed: boolean); override;
+  protected
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -1664,10 +1661,31 @@ begin
   Result := 'NormalBinding';
 end;
 
+{ TTexture2Node_1 ------------------------------------------------------------ }
+
 const
   { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value. }
   TEXWRAP_REPEAT = 0;
   TEXWRAP_CLAMP = 1;
+
+procedure TTexture2Node_1.ParseAfter(Reader: TX3DReaderNames);
+begin
+  inherited;
+
+  { Implementation of VRML 1 node TTexture2Node_1
+    just copies the FdWrapS/T values to X3D fields RepeatS/T at parsing.
+
+    This makes code easier (the rest of code can just use
+    TAbstractTexture2DNode.RepeatS/T).
+    It also makes small unexpected issue -- if you would construct
+    VRML 1 node TTexture2Node_1 by code,
+    you actually should set RepeatS/T and not WrapS/T.
+    But, as VRML 1.0 is deprecated and ancient format now, this is acceptable.
+  }
+
+  RepeatS := FdWrapS.Value = TEXWRAP_REPEAT;
+  RepeatT := FdWrapT.Value = TEXWRAP_REPEAT;
+end;
 
 procedure TTexture2Node_1.CreateNode;
 begin
@@ -1752,32 +1770,6 @@ begin
   if not FdImage.Value.IsEmpty then
     Result := InlinedDescr else
     Result := 'none';
-end;
-
-function TTexture2Node_1.GetRepeatS: boolean;
-begin
-  Result := FdWrapS.Value = TEXWRAP_REPEAT;
-end;
-
-function TTexture2Node_1.GetRepeatT: boolean;
-begin
-  Result := FdWrapT.Value = TEXWRAP_REPEAT;
-end;
-
-procedure TTexture2Node_1.SetRepeatS(const Value: boolean);
-begin
-  if Value then
-    FdWrapS.Send(TEXWRAP_REPEAT)
-  else
-    FdWrapS.Send(TEXWRAP_CLAMP);
-end;
-
-procedure TTexture2Node_1.SetRepeatT(const Value: boolean);
-begin
-  if Value then
-    FdWrapT.Send(TEXWRAP_REPEAT)
-  else
-    FdWrapT.Send(TEXWRAP_CLAMP);
 end;
 
 procedure TTexture2TransformNode_1.CreateNode;

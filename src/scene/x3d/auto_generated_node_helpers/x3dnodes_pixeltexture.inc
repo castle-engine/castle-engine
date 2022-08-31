@@ -23,11 +23,32 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdImage: TSFImage;
+    {  }
+    public property FdImage: TSFImage read FFdImage;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TPixelTextureNode ----------------------------------------------- }
+
+class function TPixelTextureNode.ClassX3DType: String;
+begin
+  Result := 'PixelTexture';
+end;
+
+procedure TPixelTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdImage := TSFImage.Create(Self, True, 'image', nil);
+   FdImage.ChangeAlways := chTextureImage;
+  AddField(FFdImage);
+end;
 
 {$endif read_implementation}

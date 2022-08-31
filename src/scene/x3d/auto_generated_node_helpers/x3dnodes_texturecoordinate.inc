@@ -24,6 +24,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPoint: TMFVec2f;
+    {  }
+    public property FdPoint: TMFVec2f read FFdPoint;
     {  }
     procedure SetPoint(const Value: array of TVector2); overload;
     {  }
@@ -43,6 +49,20 @@ end;
 procedure TTextureCoordinateNode.SetPoint(const Value: TVector2List);
 begin
   FdPoint.Send(Value);
+end;
+
+class function TTextureCoordinateNode.ClassX3DType: String;
+begin
+  Result := 'TextureCoordinate';
+end;
+
+procedure TTextureCoordinateNode.CreateNode;
+begin
+  inherited;
+
+  FFdPoint := TMFVec2f.Create(Self, True, 'point', []);
+   FdPoint.ChangeAlways := chTextureCoordinate;
+  AddField(FFdPoint);
 end;
 
 {$endif read_implementation}

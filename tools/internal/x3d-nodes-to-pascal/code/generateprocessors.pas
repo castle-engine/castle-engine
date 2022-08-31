@@ -1090,8 +1090,6 @@ begin
   if Field.IsEnumString and (Field.EnumType = '') then
     Exit;
   if (Field.X3DName = 'solid') or
-     (Field.X3DName = 'repeatS') or
-     (Field.X3DName = 'repeatT') or
      (Field.X3DName = 'linetype') or
      (Field.X3DName = 'bboxSize') or // this is accounted already by writing out bboxCenter as public BBox
 

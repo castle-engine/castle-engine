@@ -27,10 +27,20 @@
     function GetFlipVertically: Boolean;
     procedure SetFlipVertically(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUrl: TMFString;
+    {  }
+    public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
     {  }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdFlipVertically: TSFBool;
+    {  }
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
     {  }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
@@ -58,6 +68,24 @@ end;
 procedure TImageTextureNode.SetFlipVertically(const Value: Boolean);
 begin
   FdFlipVertically.Send(Value);
+end;
+
+class function TImageTextureNode.ClassX3DType: String;
+begin
+  Result := 'ImageTexture';
+end;
+
+procedure TImageTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chTextureImage;
+  AddField(FFdUrl);
+
+  FFdFlipVertically := TSFBool.Create(Self, False, 'flipVertically', false);
+   FdFlipVertically.ChangeAlways := chTextureImage;
+  AddField(FFdFlipVertically);
 end;
 
 {$endif read_implementation}

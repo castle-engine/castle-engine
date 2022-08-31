@@ -24,9 +24,31 @@
 {$ifdef read_interface}
 
   strict private
+    function GetRepeatS: Boolean;
+    procedure SetRepeatS(const Value: Boolean);
+    function GetRepeatT: Boolean;
+    procedure SetRepeatT(const Value: Boolean);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdRepeatS: TSFBool;
+    {  }
+    public property FdRepeatS: TSFBool read FFdRepeatS;
+    {  }
+    property RepeatS: Boolean read GetRepeatS write SetRepeatS;
+
+    strict private FFdRepeatT: TSFBool;
+    {  }
+    public property FdRepeatT: TSFBool read FFdRepeatT;
+    {  }
+    property RepeatT: Boolean read GetRepeatT write SetRepeatT;
+
+    strict private FFdTextureProperties: TSFNode;
+    {  }
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
@@ -35,6 +57,26 @@
 {$ifdef read_implementation}
 
 { TAbstractTexture2DNode ----------------------------------------------- }
+
+function TAbstractTexture2DNode.GetRepeatS: Boolean;
+begin
+  Result := FdRepeatS.Value;
+end;
+
+procedure TAbstractTexture2DNode.SetRepeatS(const Value: Boolean);
+begin
+  FdRepeatS.Send(Value);
+end;
+
+function TAbstractTexture2DNode.GetRepeatT: Boolean;
+begin
+  Result := FdRepeatT.Value;
+end;
+
+procedure TAbstractTexture2DNode.SetRepeatT(const Value: Boolean);
+begin
+  FdRepeatT.Send(Value);
+end;
 
 function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
 begin
@@ -47,6 +89,28 @@ end;
 procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
 begin
   FdTextureProperties.Send(Value);
+end;
+
+class function TAbstractTexture2DNode.ClassX3DType: String;
+begin
+  Result := 'X3DTexture2DNode';
+end;
+
+procedure TAbstractTexture2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdRepeatS := TSFBool.Create(Self, False, 'repeatS', true);
+   FdRepeatS.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRepeatS);
+
+  FFdRepeatT := TSFBool.Create(Self, False, 'repeatT', true);
+   FdRepeatT.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRepeatT);
+
+  FFdTextureProperties := TSFNode.Create(Self, False, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTextureProperties);
 end;
 
 {$endif read_implementation}

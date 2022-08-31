@@ -62,7 +62,7 @@ begin
   inherited;
 
   FFdMapping := TSFString.Create(Self, True, 'mapping', '');
-   FdMapping.ChangeAlways := chVisibleNonGeometry;
+   FdMapping.ChangeAlways := chTextureTransform;
   AddField(FFdMapping);
 end;
 

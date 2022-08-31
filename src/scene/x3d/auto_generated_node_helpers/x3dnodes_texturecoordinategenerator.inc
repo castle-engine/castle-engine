@@ -27,12 +27,26 @@
     function GetMode: String;
     procedure SetMode(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdMode: TSFString;
+    {  }
+    public property FdMode: TSFString read FFdMode;
     {  }
     property Mode: String read GetMode write SetMode;
+
+    strict private FFdParameter: TMFFloat;
+    {  }
+    public property FdParameter: TMFFloat read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of Single); overload;
     {  }
     procedure SetParameter(const Value: TSingleList); overload;
+
+    strict private FFdProjectedLight: TSFNode;
+    {  }
+    public property FdProjectedLight: TSFNode read FFdProjectedLight;
 
 {$endif read_interface}
 
@@ -58,6 +72,28 @@ end;
 procedure TTextureCoordinateGeneratorNode.SetParameter(const Value: TSingleList);
 begin
   FdParameter.Send(Value);
+end;
+
+class function TTextureCoordinateGeneratorNode.ClassX3DType: String;
+begin
+  Result := 'TextureCoordinateGenerator';
+end;
+
+procedure TTextureCoordinateGeneratorNode.CreateNode;
+begin
+  inherited;
+
+  FFdMode := TSFString.Create(Self, True, 'mode', 'SPHERE');
+   FdMode.ChangeAlways := chTextureCoordinate;
+  AddField(FFdMode);
+
+  FFdParameter := TMFFloat.Create(Self, True, 'parameter', []);
+   FdParameter.ChangeAlways := chTextureCoordinate;
+  AddField(FFdParameter);
+
+  FFdProjectedLight := TSFNode.Create(Self, True, 'projectedLight', [TSpotLightNode, TDirectionalLightNode]);
+   FdProjectedLight.ChangeAlways := chTextureCoordinate;
+  AddField(FFdProjectedLight);
 end;
 
 {$endif read_implementation}

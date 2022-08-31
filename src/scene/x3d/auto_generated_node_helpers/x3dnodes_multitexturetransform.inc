@@ -24,6 +24,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdTextureTransform: TMFNode;
+    {  }
+    public property FdTextureTransform: TMFNode read FFdTextureTransform;
     {  }
     procedure SetTextureTransform(const Value: array of TAbstractSingleTextureTransformNode);
 
@@ -43,6 +49,20 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractSingleTextureTransformNode));
   FdTextureTransform.Send(A);
+end;
+
+class function TMultiTextureTransformNode.ClassX3DType: String;
+begin
+  Result := 'MultiTextureTransform';
+end;
+
+procedure TMultiTextureTransformNode.CreateNode;
+begin
+  inherited;
+
+  FFdTextureTransform := TMFNode.Create(Self, True, 'textureTransform', [TAbstractSingleTextureTransformNode]);
+   FdTextureTransform.ChangeAlways := chEverything;
+  AddField(FFdTextureTransform);
 end;
 
 {$endif read_implementation}

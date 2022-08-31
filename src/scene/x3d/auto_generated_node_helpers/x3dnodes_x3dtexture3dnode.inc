@@ -24,6 +24,10 @@
 {$ifdef read_interface}
 
   strict private
+    function GetRepeatS: Boolean;
+    procedure SetRepeatS(const Value: Boolean);
+    function GetRepeatT: Boolean;
+    procedure SetRepeatT(const Value: Boolean);
     function GetRepeatR: Boolean;
     procedure SetRepeatR(const Value: Boolean);
     function GetTextureProperties: TTexturePropertiesNode;
@@ -35,10 +39,14 @@
     strict private FFdRepeatS: TSFBool;
     {  }
     public property FdRepeatS: TSFBool read FFdRepeatS;
+    {  }
+    property RepeatS: Boolean read GetRepeatS write SetRepeatS;
 
     strict private FFdRepeatT: TSFBool;
     {  }
     public property FdRepeatT: TSFBool read FFdRepeatT;
+    {  }
+    property RepeatT: Boolean read GetRepeatT write SetRepeatT;
 
     strict private FFdRepeatR: TSFBool;
     {  }
@@ -57,6 +65,26 @@
 {$ifdef read_implementation}
 
 { TAbstractTexture3DNode ----------------------------------------------- }
+
+function TAbstractTexture3DNode.GetRepeatS: Boolean;
+begin
+  Result := FdRepeatS.Value;
+end;
+
+procedure TAbstractTexture3DNode.SetRepeatS(const Value: Boolean);
+begin
+  FdRepeatS.Send(Value);
+end;
+
+function TAbstractTexture3DNode.GetRepeatT: Boolean;
+begin
+  Result := FdRepeatT.Value;
+end;
+
+procedure TAbstractTexture3DNode.SetRepeatT(const Value: Boolean);
+begin
+  FdRepeatT.Send(Value);
+end;
 
 function TAbstractTexture3DNode.GetRepeatR: Boolean;
 begin

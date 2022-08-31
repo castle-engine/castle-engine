@@ -33,12 +33,30 @@
     function GetTranslation: TVector2;
     procedure SetTranslation(const Value: TVector2);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec2f;
+    {  }
+    public property FdCenter: TSFVec2f read FFdCenter;
     {  }
     property Center: TVector2 read GetCenter write SetCenter;
+
+    strict private FFdRotation: TSFFloat;
+    {  }
+    public property FdRotation: TSFFloat read FFdRotation;
     {  }
     property Rotation: Single read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec2f;
+    {  }
+    public property FdScale: TSFVec2f read FFdScale;
     {  }
     property Scale: TVector2 read GetScale write SetScale;
+
+    strict private FFdTranslation: TSFVec2f;
+    {  }
+    public property FdTranslation: TSFVec2f read FFdTranslation;
     {  }
     property Translation: TVector2 read GetTranslation write SetTranslation;
 
@@ -86,6 +104,33 @@ end;
 procedure TTextureTransformNode.SetTranslation(const Value: TVector2);
 begin
   FdTranslation.Send(Value);
+end;
+
+class function TTextureTransformNode.ClassX3DType: String;
+begin
+  Result := 'TextureTransform';
+end;
+
+procedure TTextureTransformNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec2f.Create(Self, True, 'center', Vector2(0, 0));
+   FdCenter.ChangeAlways := chTextureTransform;
+  AddField(FFdCenter);
+
+  FFdRotation := TSFFloat.Create(Self, True, 'rotation', 0);
+   FdRotation.ChangeAlways := chTextureTransform;
+   FdRotation.Angle := true;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec2f.Create(Self, True, 'scale', Vector2(1, 1));
+   FdScale.ChangeAlways := chTextureTransform;
+  AddField(FFdScale);
+
+  FFdTranslation := TSFVec2f.Create(Self, True, 'translation', Vector2(0, 0));
+   FdTranslation.ChangeAlways := chTextureTransform;
+  AddField(FFdTranslation);
 end;
 
 {$endif read_implementation}
