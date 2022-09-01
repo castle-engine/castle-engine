@@ -199,18 +199,22 @@ begin
 
   FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
    FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
+   FdStopBounce1.MustBeNonnegative := true;
   AddField(FFdStopBounce1);
 
   FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
    FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStop1ErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStop1ErrorCorrection);
 
   FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
    FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
+   FdStop2Bounce.MustBeNonnegative := true;
   AddField(FFdStop2Bounce);
 
   FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
    FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStop2ErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStop2ErrorCorrection);
 
   FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);

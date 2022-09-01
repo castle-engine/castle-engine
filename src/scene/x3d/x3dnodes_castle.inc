@@ -50,25 +50,9 @@
   end;
 
   { Navigation information with some Castle Game Engine extensions.
-    See https://castle-engine.io/x3d_implementation_navigation_extensions.php . }
+    @deprecated Use TNavigationInfoNode, it already has all CGE extensions. }
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTimeOriginAtLoad: TSFBool;
-    public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
-
-    strict private FFdHeadBobbing: TSFFloat;
-    public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
-
-    strict private FFdHeadBobbingTime: TSFFloat;
-    public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
-
-    strict private FFdHeadlightNode: TSFNode;
-    public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
-
-    {$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
+  {$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
   end;
 
   TShadowMapCompareMode = (smCompareRLEqual, smCompareRGEqual, smNone);
@@ -288,32 +272,6 @@ begin
       Node := FdReplaceNodes[I];
       Exit;
     end;
-end;
-
-procedure TKambiNavigationInfoNode.CreateNode;
-begin
-  inherited;
-
-  FFdTimeOriginAtLoad := TSFBool.Create(Self, false, 'timeOriginAtLoad', false);
-  AddField(FFdTimeOriginAtLoad);
-
-  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing);
-   FdHeadBobbing.MustBeNonnegative := true;
-   FdHeadBobbing.ChangeAlways := chNavigationInfo;
-  AddField(FFdHeadBobbing);
-
-  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime);
-   FdHeadBobbingTime.MustBeNonnegative := true;
-   FdHeadBobbingTime.ChangeAlways := chNavigationInfo;
-  AddField(FdHeadBobbingTime);
-
-  FFdHeadlightNode := TSFNode.Create(Self, true, 'headlightNode', [TAbstractLightNode]);
-  AddField(FFdHeadlightNode);
-end;
-
-class function TKambiNavigationInfoNode.ClassX3DType: string;
-begin
-  Result := 'KambiNavigationInfo';
 end;
 
 { TGeneratedShadowMapNode.TGenShadowMapGenTex -------------------------------- }

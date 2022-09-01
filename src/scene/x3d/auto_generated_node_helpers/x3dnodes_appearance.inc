@@ -429,6 +429,7 @@ begin
 
   FFdAlphaCutoff := TSFFloat.Create(Self, True, 'alphaCutoff', 0.5);
    FdAlphaCutoff.ChangeAlways := chVisibleNonGeometry;
+   FdAlphaCutoff.MustBeNonnegative := true;
   AddField(FFdAlphaCutoff);
 
   FFdReceiveShadows := TMFNode.Create(Self, False, 'receiveShadows', [TAbstractPunctualLightNode]);

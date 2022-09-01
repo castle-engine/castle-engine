@@ -241,6 +241,7 @@ begin
 
   FFdBorderWidth := TSFInt32.Create(Self, True, 'borderWidth', 0);
    FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
+   FdBorderWidth.MustBeNonnegative := true;
   AddField(FFdBorderWidth);
 
   FFdBoundaryModeS := TSFStringEnum.Create(Self, True, 'boundaryModeS', @BoundaryModeNames, Ord(High(BoundaryModeNames)) + 1, Ord(bmRepeat));
@@ -269,6 +270,7 @@ begin
 
   FFdTexturePriority := TSFFloat.Create(Self, True, 'texturePriority', 0);
    FdTexturePriority.ChangeAlways := chTexturePropertiesNode;
+   FdTexturePriority.MustBeNonnegative := true;
   AddField(FFdTexturePriority);
 
   FFdGenerateMipMaps := TSFBool.Create(Self, False, 'generateMipMaps', false);

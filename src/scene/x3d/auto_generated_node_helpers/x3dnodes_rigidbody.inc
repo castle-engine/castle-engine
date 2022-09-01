@@ -445,6 +445,7 @@ begin
 
   FFdAngularDampingFactor := TSFFloat.Create(Self, True, 'angularDampingFactor', 0.001);
    FdAngularDampingFactor.ChangeAlways := chVisibleNonGeometry;
+   FdAngularDampingFactor.MustBeNonnegative := true;
   AddField(FFdAngularDampingFactor);
 
   FFdAngularVelocity := TSFVec3f.Create(Self, True, 'angularVelocity', Vector3(0, 0, 0));
@@ -504,6 +505,7 @@ begin
 
   FFdLinearDampingFactor := TSFFloat.Create(Self, True, 'linearDampingFactor', 0.001);
    FdLinearDampingFactor.ChangeAlways := chVisibleNonGeometry;
+   FdLinearDampingFactor.MustBeNonnegative := true;
   AddField(FFdLinearDampingFactor);
 
   FFdLinearVelocity := TSFVec3f.Create(Self, True, 'linearVelocity', Vector3(0, 0, 0));

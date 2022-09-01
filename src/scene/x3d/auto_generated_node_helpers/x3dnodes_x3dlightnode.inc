@@ -171,6 +171,7 @@ begin
 
   FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0);
    FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdAmbientIntensity.MustBeNonnegative := true;
   AddField(FFdAmbientIntensity);
 
   FFdColor := TSFColor.Create(Self, True, 'color', Vector3(1, 1, 1));
@@ -183,6 +184,7 @@ begin
 
   FFdIntensity := TSFFloat.Create(Self, True, 'intensity', 1);
    FdIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdIntensity.MustBeNonnegative := true;
   AddField(FFdIntensity);
 
   FFdOn := TSFBool.Create(Self, True, 'on', true);

@@ -415,26 +415,32 @@ begin
 
   FFdStop1Bounce := TSFFloat.Create(Self, True, 'stop1Bounce', 0);
    FdStop1Bounce.ChangeAlways := chVisibleNonGeometry;
+   FdStop1Bounce.MustBeNonnegative := true;
   AddField(FFdStop1Bounce);
 
   FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
    FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStop1ErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStop1ErrorCorrection);
 
   FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
    FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
+   FdStop2Bounce.MustBeNonnegative := true;
   AddField(FFdStop2Bounce);
 
   FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
    FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStop2ErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStop2ErrorCorrection);
 
   FFdStop3Bounce := TSFFloat.Create(Self, True, 'stop3Bounce', 0);
    FdStop3Bounce.ChangeAlways := chVisibleNonGeometry;
+   FdStop3Bounce.MustBeNonnegative := true;
   AddField(FFdStop3Bounce);
 
   FFdStop3ErrorCorrection := TSFFloat.Create(Self, True, 'stop3ErrorCorrection', 0.8);
    FdStop3ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStop3ErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStop3ErrorCorrection);
 
   FEventMotor1Angle := TSFFloatEvent.Create(Self, 'motor1Angle', false);

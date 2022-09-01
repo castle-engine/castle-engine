@@ -63,6 +63,7 @@ begin
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
+   FdTransparency.MustBeNonnegative := true;
   AddField(FFdTransparency);
 
   DefaultContainerField := 'material';

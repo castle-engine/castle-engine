@@ -131,6 +131,7 @@ begin
 
   FFdTurbulence := TSFFloat.Create(Self, True, 'turbulence', 0);
    FdTurbulence.ChangeAlways := chVisibleNonGeometry;
+   FdTurbulence.MustBeNonnegative := true;
   AddField(FFdTurbulence);
 end;
 

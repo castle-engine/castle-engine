@@ -153,6 +153,7 @@ begin
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chBackground;
+   FdTransparency.MustBeNonnegative := true;
   AddField(FFdTransparency);
 end;
 

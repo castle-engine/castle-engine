@@ -264,6 +264,7 @@ begin
 
   FFdMetallic := TSFFloat.Create(Self, True, 'metallic', 1);
    FdMetallic.ChangeAlways := chVisibleNonGeometry;
+   FdMetallic.MustBeNonnegative := true;
   AddField(FFdMetallic);
 
   FFdMetallicRoughnessTexture := TSFNode.Create(Self, True, 'metallicRoughnessTexture', [TAbstractSingleTextureNode]);
@@ -276,6 +277,7 @@ begin
 
   FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
    FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
+   FdOcclusionStrength.MustBeNonnegative := true;
   AddField(FFdOcclusionStrength);
 
   FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
@@ -288,10 +290,12 @@ begin
 
   FFdRoughness := TSFFloat.Create(Self, True, 'roughness', 1);
    FdRoughness.ChangeAlways := chVisibleNonGeometry;
+   FdRoughness.MustBeNonnegative := true;
   AddField(FFdRoughness);
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
+   FdTransparency.MustBeNonnegative := true;
   AddField(FFdTransparency);
 
   DefaultContainerField := 'material';

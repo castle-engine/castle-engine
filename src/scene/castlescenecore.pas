@@ -7029,8 +7029,7 @@ end;
 procedure TCastleSceneCore.ResetTimeAtLoad;
 begin
   if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TKambiNavigationInfoNode) and
-     TKambiNavigationInfoNode(NavigationInfoStack.Top).TimeOriginAtLoad then
+     NavigationInfoStack.Top.TimeOriginAtLoad then
     FTimeAtLoad := 0.0
   else
     FTimeAtLoad := DateTimeToUnix(CastleNow);
@@ -7516,11 +7515,10 @@ var
       Navigation.ClimbHeight := 0;
 
     { calculate Navigation.HeadBobbing* }
-    if (NavigationNode <> nil) and
-       (NavigationNode is TKambiNavigationInfoNode) then
+    if NavigationNode <> nil then
     begin
-      Navigation.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
-      Navigation.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
+      Navigation.HeadBobbing := NavigationNode.HeadBobbing;
+      Navigation.HeadBobbingTime := NavigationNode.HeadBobbingTime;
     end else
     begin
       Navigation.HeadBobbing := TCastleWalkNavigation.DefaultHeadBobbing;
@@ -7856,23 +7854,18 @@ begin
 end;
 
 function TCastleSceneCore.CustomHeadlight: TAbstractLightNode;
-var
-  MaybeResult: TX3DNode;
 begin
-  Result := nil;
-  if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TKambiNavigationInfoNode) then
-  begin
-    MaybeResult := TKambiNavigationInfoNode(NavigationInfoStack.Top).FdheadlightNode.Value;
-    if MaybeResult is TAbstractLightNode then
-      Result := TAbstractLightNode(MaybeResult);
-  end;
+  if NavigationInfoStack.Top <> nil then
+    Result := NavigationInfoStack.Top.HeadlightNode
+  else
+    Result := nil;
 end;
 
 procedure TCastleSceneCore.UpdateHeadlightOnFromNavigationInfo;
 begin
   if NavigationInfoStack.Top <> nil then
-    HeadlightOn := NavigationInfoStack.Top.FdHeadlight.Value else
+    HeadlightOn := NavigationInfoStack.Top.Headlight
+  else
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 

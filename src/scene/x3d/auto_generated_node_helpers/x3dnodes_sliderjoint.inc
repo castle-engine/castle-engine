@@ -157,10 +157,12 @@ begin
 
   FFdStopBounce := TSFFloat.Create(Self, True, 'stopBounce', 0);
    FdStopBounce.ChangeAlways := chVisibleNonGeometry;
+   FdStopBounce.MustBeNonnegative := true;
   AddField(FFdStopBounce);
 
   FFdStopErrorCorrection := TSFFloat.Create(Self, True, 'stopErrorCorrection', 1);
    FdStopErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStopErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStopErrorCorrection);
 
   FEventSeparation := TSFFloatEvent.Create(Self, 'separation', false);

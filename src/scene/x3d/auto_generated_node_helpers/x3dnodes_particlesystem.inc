@@ -300,6 +300,7 @@ begin
 
   FFdLifetimeVariation := TSFFloat.Create(Self, True, 'lifetimeVariation', 0.25);
    FdLifetimeVariation.ChangeAlways := chVisibleNonGeometry;
+   FdLifetimeVariation.MustBeNonnegative := true;
   AddField(FFdLifetimeVariation);
 
   FFdMaxParticles := TSFInt32.Create(Self, True, 'maxParticles', 200);

@@ -185,10 +185,12 @@ begin
 
   FFdStopBounce := TSFFloat.Create(Self, True, 'stopBounce', 0);
    FdStopBounce.ChangeAlways := chVisibleNonGeometry;
+   FdStopBounce.MustBeNonnegative := true;
   AddField(FFdStopBounce);
 
   FFdStopErrorCorrection := TSFFloat.Create(Self, True, 'stopErrorCorrection', 0.8);
    FdStopErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdStopErrorCorrection.MustBeNonnegative := true;
   AddField(FFdStopErrorCorrection);
 
   FEventAngle := TSFFloatEvent.Create(Self, 'angle', false);

@@ -634,7 +634,11 @@ begin
       (X3DType = 'SFInt32')
     ) and (
       (Range = '(0,Inf)') or
-      (Range = '[0,Inf)')
+      (Range = '[0,Inf)') or
+      (Range = '(0,1)') or
+      (Range = '[0,1)') or
+      (Range = '(0,1]') or
+      (Range = '[0,1]')
     );
 end;
 

@@ -362,6 +362,7 @@ begin
 
   FFdErrorCorrection := TSFFloat.Create(Self, True, 'errorCorrection', 0.8);
    FdErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdErrorCorrection.MustBeNonnegative := true;
   AddField(FFdErrorCorrection);
 
   FFdGravity := TSFVec3f.Create(Self, True, 'gravity', Vector3(0, -9.8, 0));

@@ -70,13 +70,7 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
-  SFBool []            timeOriginAtLoad           FALSE
-  SFFloat    [in,out]      headBobbing             0.02
-    range: [0, 1)
-  SFFloat    [in,out]      headBobbingTime         0.5
-    range: > 0
-  SFNode     [in,out]      headlightNode           NULL
-    range: X3DLightNode
+  auto-generate-more: true
 }
 
 Teapot : X3DGeometryNode {

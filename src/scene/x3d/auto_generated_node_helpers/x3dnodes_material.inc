@@ -556,6 +556,7 @@ begin
 
   FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0.2);
    FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdAmbientIntensity.MustBeNonnegative := true;
   AddField(FFdAmbientIntensity);
 
   FFdAmbientTexture := TSFNode.Create(Self, True, 'ambientTexture', [TAbstractSingleTextureNode]);
@@ -580,6 +581,7 @@ begin
 
   FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
    FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
+   FdOcclusionStrength.MustBeNonnegative := true;
   AddField(FFdOcclusionStrength);
 
   FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
@@ -592,6 +594,7 @@ begin
 
   FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
    FdShininess.ChangeAlways := chVisibleNonGeometry;
+   FdShininess.MustBeNonnegative := true;
   AddField(FFdShininess);
 
   FFdShininessTexture := TSFNode.Create(Self, True, 'shininessTexture', [TAbstractSingleTextureNode]);
@@ -616,6 +619,7 @@ begin
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
+   FdTransparency.MustBeNonnegative := true;
   AddField(FFdTransparency);
 
 {$ifndef CASTLE_SLIM_NODES}

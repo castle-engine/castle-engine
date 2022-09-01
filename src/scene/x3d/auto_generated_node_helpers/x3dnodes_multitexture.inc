@@ -153,6 +153,7 @@ begin
 
   FFdAlpha := TSFFloat.Create(Self, True, 'alpha', 1);
    FdAlpha.ChangeAlways := chTextureRendererProperties;
+   FdAlpha.MustBeNonnegative := true;
   AddField(FFdAlpha);
 
   FFdColor := TSFColor.Create(Self, True, 'color', Vector3(1, 1, 1));

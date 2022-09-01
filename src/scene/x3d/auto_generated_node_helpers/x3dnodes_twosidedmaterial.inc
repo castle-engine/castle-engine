@@ -279,10 +279,12 @@ begin
 
   FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0.2);
    FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdAmbientIntensity.MustBeNonnegative := true;
   AddField(FFdAmbientIntensity);
 
   FFdBackAmbientIntensity := TSFFloat.Create(Self, True, 'backAmbientIntensity', 0.2);
    FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdBackAmbientIntensity.MustBeNonnegative := true;
   AddField(FFdBackAmbientIntensity);
 
   FFdBackDiffuseColor := TSFColor.Create(Self, True, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
@@ -295,6 +297,7 @@ begin
 
   FFdBackShininess := TSFFloat.Create(Self, True, 'backShininess', 0.2);
    FdBackShininess.ChangeAlways := chVisibleNonGeometry;
+   FdBackShininess.MustBeNonnegative := true;
   AddField(FFdBackShininess);
 
   FFdBackSpecularColor := TSFColor.Create(Self, True, 'backSpecularColor', Vector3(0, 0, 0));
@@ -303,6 +306,7 @@ begin
 
   FFdBackTransparency := TSFFloat.Create(Self, True, 'backTransparency', 0);
    FdBackTransparency.ChangeAlways := chVisibleNonGeometry;
+   FdBackTransparency.MustBeNonnegative := true;
   AddField(FFdBackTransparency);
 
   FFdDiffuseColor := TSFColor.Create(Self, True, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
@@ -315,6 +319,7 @@ begin
 
   FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
    FdShininess.ChangeAlways := chVisibleNonGeometry;
+   FdShininess.MustBeNonnegative := true;
   AddField(FFdShininess);
 
   FFdSeparateBackColor := TSFBool.Create(Self, True, 'separateBackColor', false);
@@ -327,6 +332,7 @@ begin
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
+   FdTransparency.MustBeNonnegative := true;
   AddField(FFdTransparency);
 end;
 

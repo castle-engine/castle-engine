@@ -365,6 +365,7 @@ begin
 
   FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
    FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
+   FdStopBounce1.MustBeNonnegative := true;
   AddField(FFdStopBounce1);
 
   FFdStopConstantForceMix1 := TSFFloat.Create(Self, True, 'stopConstantForceMix1', 0.001);
@@ -374,10 +375,12 @@ begin
 
   FFdStopErrorCorrection1 := TSFFloat.Create(Self, True, 'stopErrorCorrection1', 0.8);
    FdStopErrorCorrection1.ChangeAlways := chVisibleNonGeometry;
+   FdStopErrorCorrection1.MustBeNonnegative := true;
   AddField(FFdStopErrorCorrection1);
 
   FFdSuspensionErrorCorrection := TSFFloat.Create(Self, True, 'suspensionErrorCorrection', 0.8);
    FdSuspensionErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdSuspensionErrorCorrection.MustBeNonnegative := true;
   AddField(FFdSuspensionErrorCorrection);
 
   FFdSuspensionForce := TSFFloat.Create(Self, True, 'suspensionForce', 0);

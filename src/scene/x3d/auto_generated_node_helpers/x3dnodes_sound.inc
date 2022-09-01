@@ -232,6 +232,7 @@ begin
 
   FFdIntensity := TSFFloat.Create(Self, True, 'intensity', 1);
    FdIntensity.ChangeAlways := chVisibleNonGeometry;
+   FdIntensity.MustBeNonnegative := true;
   AddField(FFdIntensity);
 
   FFdLocation := TSFVec3f.Create(Self, True, 'location', Vector3(0, 0, 0));
@@ -260,6 +261,7 @@ begin
 
   FFdPriority := TSFFloat.Create(Self, True, 'priority', 0);
    FdPriority.ChangeAlways := chVisibleNonGeometry;
+   FdPriority.MustBeNonnegative := true;
   AddField(FFdPriority);
 
   FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode]);

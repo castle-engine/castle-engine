@@ -34,6 +34,14 @@
     procedure SetVisibilityLimit(const Value: Single);
     function GetBlendingSort: TOptionalBlendingSort;
     procedure SetBlendingSort(const Value: TOptionalBlendingSort);
+    function GetTimeOriginAtLoad: Boolean;
+    procedure SetTimeOriginAtLoad(const Value: Boolean);
+    function GetHeadBobbing: Single;
+    procedure SetHeadBobbing(const Value: Single);
+    function GetHeadBobbingTime: Single;
+    procedure SetHeadBobbingTime(const Value: Single);
+    function GetHeadlightNode: TAbstractLightNode;
+    procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -47,15 +55,15 @@
     procedure SetAvatarSize(const Value: TSingleList); overload;
 
     strict private FFdHeadlight: TSFBool;
-    {  }
+    { Control the headlight. @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera. }
     public property FdHeadlight: TSFBool read FFdHeadlight;
-    {  }
+    { Control the headlight. @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera. }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdSpeed: TSFFloat;
-    {  }
+    { Movement speed. @deprecated Instead of this, control the move speed using @link(TCastleWalkNavigation.MoveSpeed). }
     public property FdSpeed: TSFFloat read FFdSpeed;
-    {  }
+    { Movement speed. @deprecated Instead of this, control the move speed using @link(TCastleWalkNavigation.MoveSpeed). }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTransitionTime: TSFTime;
@@ -91,10 +99,34 @@
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
 
     strict private FFdBlendingSort: TSFStringEnum;
-    {  }
+    { Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort). }
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
-    {  }
+    { Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort). }
     property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
+
+    strict private FFdTimeOriginAtLoad: TSFBool;
+    { @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion. }
+    public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
+    { @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion. }
+    property TimeOriginAtLoad: Boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
+
+    strict private FFdHeadBobbing: TSFFloat;
+    { Intensity of head bobbing. 0 means to not do head bobbing. Must be >= 0 and < 1, but sensible values are close to 0 (while any values < 1 are technically allowed, but they make the head bobbing effect crazily exaggerated). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
+    { Intensity of head bobbing. 0 means to not do head bobbing. Must be >= 0 and < 1, but sensible values are close to 0 (while any values < 1 are technically allowed, but they make the head bobbing effect crazily exaggerated). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
+
+    strict private FFdHeadBobbingTime: TSFFloat;
+    { How much time passes to make full head bobbing sequence (camera swing up and then down back to original height). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
+    { How much time passes to make full head bobbing sequence (camera swing up and then down back to original height). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
+
+    strict private FFdHeadlightNode: TSFNode;
+    { Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
+    { Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;
 
 {$endif read_interface}
 
@@ -182,6 +214,49 @@ begin
   FdBlendingSort.SendEnumValue(Ord(Value));
 end;
 
+function TNavigationInfoNode.GetTimeOriginAtLoad: Boolean;
+begin
+  Result := FdTimeOriginAtLoad.Value;
+end;
+
+procedure TNavigationInfoNode.SetTimeOriginAtLoad(const Value: Boolean);
+begin
+  FdTimeOriginAtLoad.Send(Value);
+end;
+
+function TNavigationInfoNode.GetHeadBobbing: Single;
+begin
+  Result := FdHeadBobbing.Value;
+end;
+
+procedure TNavigationInfoNode.SetHeadBobbing(const Value: Single);
+begin
+  FdHeadBobbing.Send(Value);
+end;
+
+function TNavigationInfoNode.GetHeadBobbingTime: Single;
+begin
+  Result := FdHeadBobbingTime.Value;
+end;
+
+procedure TNavigationInfoNode.SetHeadBobbingTime(const Value: Single);
+begin
+  FdHeadBobbingTime.Send(Value);
+end;
+
+function TNavigationInfoNode.GetHeadlightNode: TAbstractLightNode;
+begin
+  if FdHeadlightNode.Value is TAbstractLightNode then
+    Result := TAbstractLightNode(FdHeadlightNode.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNavigationInfoNode.SetHeadlightNode(const Value: TAbstractLightNode);
+begin
+  FdHeadlightNode.Send(Value);
+end;
+
 class function TNavigationInfoNode.ClassX3DType: String;
 begin
   Result := 'NavigationInfo';
@@ -227,6 +302,24 @@ begin
   FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', @BlendingSortNames, Ord(High(BlendingSortNames)) + 1, Ord(obsDefault));
    FdBlendingSort.ChangeAlways := chRedisplay;
   AddField(FFdBlendingSort);
+
+  FFdTimeOriginAtLoad := TSFBool.Create(Self, False, 'timeOriginAtLoad', false);
+   FdTimeOriginAtLoad.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTimeOriginAtLoad);
+
+  FFdHeadBobbing := TSFFloat.Create(Self, True, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing);
+   FdHeadBobbing.ChangeAlways := chNavigationInfo;
+   FdHeadBobbing.MustBeNonnegative := true;
+  AddField(FFdHeadBobbing);
+
+  FFdHeadBobbingTime := TSFFloat.Create(Self, True, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime);
+   FdHeadBobbingTime.ChangeAlways := chNavigationInfo;
+   FdHeadBobbingTime.MustBeNonnegative := true;
+  AddField(FFdHeadBobbingTime);
+
+  FFdHeadlightNode := TSFNode.Create(Self, True, 'headlightNode', [TAbstractLightNode]);
+   FdHeadlightNode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHeadlightNode);
 end;
 
 {$endif read_implementation}

@@ -357,6 +357,7 @@ begin
 
   FFdBounce := TSFFloat.Create(Self, True, 'bounce', 0);
    FdBounce.ChangeAlways := chVisibleNonGeometry;
+   FdBounce.MustBeNonnegative := true;
   AddField(FFdBounce);
 
   FFdContactNormal := TSFVec3f.Create(Self, True, 'contactNormal', Vector3(0, 1, 0));
@@ -398,10 +399,12 @@ begin
 
   FFdSoftnessConstantForceMix := TSFFloat.Create(Self, True, 'softnessConstantForceMix', 0.0001);
    FdSoftnessConstantForceMix.ChangeAlways := chVisibleNonGeometry;
+   FdSoftnessConstantForceMix.MustBeNonnegative := true;
   AddField(FFdSoftnessConstantForceMix);
 
   FFdSoftnessErrorCorrection := TSFFloat.Create(Self, True, 'softnessErrorCorrection', 0.8);
    FdSoftnessErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+   FdSoftnessErrorCorrection.MustBeNonnegative := true;
   AddField(FFdSoftnessErrorCorrection);
 
   FFdSurfaceSpeed := TSFVec2f.Create(Self, True, 'surfaceSpeed', Vector2(0, 0));

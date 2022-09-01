@@ -23,24 +23,9 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetTimeOriginAtLoad: Boolean;
-    procedure SetTimeOriginAtLoad(const Value: Boolean);
-    function GetHeadBobbing: Single;
-    procedure SetHeadBobbing(const Value: Single);
-    function GetHeadBobbingTime: Single;
-    procedure SetHeadBobbingTime(const Value: Single);
-    function GetHeadlightNode: TAbstractLightNode;
-    procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
-    {  }
-    property TimeOriginAtLoad: Boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
-    {  }
-    property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
-    {  }
-    property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
-    {  }
-    property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
@@ -48,47 +33,14 @@
 
 { TKambiNavigationInfoNode ----------------------------------------------- }
 
-function TKambiNavigationInfoNode.GetTimeOriginAtLoad: Boolean;
+class function TKambiNavigationInfoNode.ClassX3DType: String;
 begin
-  Result := FdTimeOriginAtLoad.Value;
+  Result := 'KambiNavigationInfo';
 end;
 
-procedure TKambiNavigationInfoNode.SetTimeOriginAtLoad(const Value: Boolean);
+procedure TKambiNavigationInfoNode.CreateNode;
 begin
-  FdTimeOriginAtLoad.Send(Value);
-end;
-
-function TKambiNavigationInfoNode.GetHeadBobbing: Single;
-begin
-  Result := FdHeadBobbing.Value;
-end;
-
-procedure TKambiNavigationInfoNode.SetHeadBobbing(const Value: Single);
-begin
-  FdHeadBobbing.Send(Value);
-end;
-
-function TKambiNavigationInfoNode.GetHeadBobbingTime: Single;
-begin
-  Result := FdHeadBobbingTime.Value;
-end;
-
-procedure TKambiNavigationInfoNode.SetHeadBobbingTime(const Value: Single);
-begin
-  FdHeadBobbingTime.Send(Value);
-end;
-
-function TKambiNavigationInfoNode.GetHeadlightNode: TAbstractLightNode;
-begin
-  if FdHeadlightNode.Value is TAbstractLightNode then
-    Result := TAbstractLightNode(FdHeadlightNode.Value)
-  else
-    Result := nil;
-end;
-
-procedure TKambiNavigationInfoNode.SetHeadlightNode(const Value: TAbstractLightNode);
-begin
-  FdHeadlightNode.Send(Value);
+  inherited;
 end;
 
 {$endif read_implementation}
