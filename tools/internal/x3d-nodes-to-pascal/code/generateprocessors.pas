@@ -844,7 +844,7 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       Field.Comment := Trim(SEnding(Field.Comment, 2));
 
     if Field.Comment <> '' then
-      raise EInvalidSpecificationFile.CreateFmt('Comments at field lines are not allowed not, as they usually indicate you should split this into separate lines for change,not-slim etc.: %s.%s', [
+      raise EInvalidSpecificationFile.CreateFmt('Comments at field lines are not allowed, as they usually indicate you should split this into separate lines for change,not-slim etc.: %s.%s', [
         Node.X3DType,
         Field.X3DName
       ]);

@@ -409,6 +409,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_converter.inc}
 {$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
