@@ -487,10 +487,6 @@ begin
     //TConeNode,
     //TContour2DNode,
     //TCoordinateNode,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is CoordinateDeformer allowed or not as children node.
-      To be fixed when I'll implement CoordinateDeformer handling. }
-    TCoordinateDeformerNode,
     TCoordinateInterpolatorNode,
     //TCylinderNode,
     TCylinderSensorNode,
@@ -532,11 +528,6 @@ begin
     TNormalInterpolatorNode,
     //TNurbsCurveNode,
     //TNurbsCurve2DNode,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is NurbsGroup allowed or not as children node.
-      To be fixed when I'll implement NurbsGroup handling. }
-    TNurbsGroupNode,
-    TNurbsPositionInterpolatorNode_2,
     //TNurbsSurfaceNode,
     //TNurbsTextureSurfaceNode,
     TOrientationInterpolatorNode,
@@ -583,7 +574,6 @@ begin
   AllowedGeometryNodes.AssignArray([
     TBoxNode,
     TConeNode,
-    TContour2DNode_2,
     TCylinderNode,
     TElevationGridNode,
     TExtrusionNode,
@@ -591,12 +581,10 @@ begin
     TIndexedFaceSetNode,
     TIndexedLineSetNode,
     TNurbsCurveNode,
-    TNurbsSurfaceNode,
     TPointSetNode,
     TSphereNode,
     TTextNode,
-    TText3DNode,
-    TTrimmedSurfaceNode
+    TText3DNode
   ]);
 
   try
@@ -921,12 +909,7 @@ begin
   begin
     N := InstantiableNodes[I].Create;
     try
-      if (N is TAbstractGeometryNode) and
-         { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
-           This isn't really mandated by any specification,
-           as VRML 97 spec doesn't use XML encoding,
-           so it doesn't specify containerField. }
-         (not (N is TContour2DNode_2)) then
+      if N is TAbstractGeometryNode then
       try
         AssertTrue(N.DefaultContainerField = 'geometry');
       except
