@@ -24,21 +24,39 @@
 {$ifdef read_interface}
 
   strict private
-    function GetSrcFactor: String;
-    procedure SetSrcFactor(const Value: String);
-    function GetDestFactor: String;
-    procedure SetDestFactor(const Value: String);
+    function GetSrcFactor: TBlendingSourceFactor;
+    procedure SetSrcFactor(const Value: TBlendingSourceFactor);
+    function GetDestFactor: TBlendingDestinationFactor;
+    procedure SetDestFactor(const Value: TBlendingDestinationFactor);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
     function GetColorTransparency: Single;
     procedure SetColorTransparency(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdSrcFactor: TSFStringEnum;
     {  }
-    property SrcFactor: String read GetSrcFactor write SetSrcFactor;
+    public property FdSrcFactor: TSFStringEnum read FFdSrcFactor;
     {  }
-    property DestFactor: String read GetDestFactor write SetDestFactor;
+    property SrcFactor: TBlendingSourceFactor read GetSrcFactor write SetSrcFactor;
+
+    strict private FFdDestFactor: TSFStringEnum;
+    {  }
+    public property FdDestFactor: TSFStringEnum read FFdDestFactor;
+    {  }
+    property DestFactor: TBlendingDestinationFactor read GetDestFactor write SetDestFactor;
+
+    strict private FFdColor: TSFColor;
+    {  }
+    public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
+
+    strict private FFdColorTransparency: TSFFloat;
+    {  }
+    public property FdColorTransparency: TSFFloat read FFdColorTransparency;
     {  }
     property ColorTransparency: Single read GetColorTransparency write SetColorTransparency;
 
@@ -48,24 +66,24 @@
 
 { TBlendModeNode ----------------------------------------------- }
 
-function TBlendModeNode.GetSrcFactor: String;
+function TBlendModeNode.GetSrcFactor: TBlendingSourceFactor;
 begin
-  Result := FdSrcFactor.Value;
+  Result := TBlendingSourceFactor(FdSrcFactor.EnumValue);
 end;
 
-procedure TBlendModeNode.SetSrcFactor(const Value: String);
+procedure TBlendModeNode.SetSrcFactor(const Value: TBlendingSourceFactor);
 begin
-  FdSrcFactor.Send(Value);
+  FdSrcFactor.SendEnumValue(Ord(Value));
 end;
 
-function TBlendModeNode.GetDestFactor: String;
+function TBlendModeNode.GetDestFactor: TBlendingDestinationFactor;
 begin
-  Result := FdDestFactor.Value;
+  Result := TBlendingDestinationFactor(FdDestFactor.EnumValue);
 end;
 
-procedure TBlendModeNode.SetDestFactor(const Value: String);
+procedure TBlendModeNode.SetDestFactor(const Value: TBlendingDestinationFactor);
 begin
-  FdDestFactor.Send(Value);
+  FdDestFactor.SendEnumValue(Ord(Value));
 end;
 
 function TBlendModeNode.GetColor: TCastleColorRGB;
@@ -86,6 +104,34 @@ end;
 procedure TBlendModeNode.SetColorTransparency(const Value: Single);
 begin
   FdColorTransparency.Send(Value);
+end;
+
+class function TBlendModeNode.ClassX3DType: String;
+begin
+  Result := 'BlendMode';
+end;
+
+procedure TBlendModeNode.CreateNode;
+begin
+  inherited;
+
+  FFdSrcFactor := TSFStringEnum.Create(Self, True, 'srcFactor', @BlendingSourceFactorNames, Ord(High(BlendingSourceFactorNames)) + 1, Ord(bsSrcAlpha));
+   FdSrcFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSrcFactor);
+
+  FFdDestFactor := TSFStringEnum.Create(Self, True, 'destFactor', @BlendingDestinationFactorNames, Ord(High(BlendingDestinationFactorNames)) + 1, Ord(bdOneMinusSrcAlpha));
+   FdDestFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDestFactor);
+
+  FFdColor := TSFColor.Create(Self, True, 'color', Vector3(1, 1, 1));
+   FdColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColor);
+
+  FFdColorTransparency := TSFFloat.Create(Self, True, 'colorTransparency', 0);
+   FdColorTransparency.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColorTransparency);
+
+  DefaultContainerField := 'blendMode';
 end;
 
 {$endif read_implementation}

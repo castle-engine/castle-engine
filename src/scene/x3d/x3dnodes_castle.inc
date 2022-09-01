@@ -20,42 +20,20 @@
   { Text with 3D depth.
     @bold(The depth is not implemented now -- this is equivalent to @link(TTextNode) now.) }
   TText3DNode = class(TTextNode)
-    {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
   end;
 
   { Customize blending (partial transparency) mode.
-    See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
-
-    This is an extension, not present in standard X3D.
-    It is compatible with modelled after, and compatible with,
-    and InstantReality extension -- see
-    [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
-    and [http://www.instantreality.org/documentation/nodetype/BlendMode/]. }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_blending . }
   TBlendModeNode = class(TAbstractAppearanceChildNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSrcFactor: TSFString;
-    public property FdSrcFactor: TSFString read FFdSrcFactor;
-
-    strict private FFdDestFactor: TSFString;
-    public property FdDestFactor: TSFString read FFdDestFactor;
-
-    strict private FFdColor: TSFColor;
-    public property FdColor: TSFColor read FFdColor;
-
-    strict private FFdColorTransparency: TSFFloat;
-    public property FdColorTransparency: TSFFloat read FFdColorTransparency;
-
-    {$I auto_generated_node_helpers/x3dnodes_blendmode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_blendmode.inc}
   end;
 
   { Appearance node with a special name @code(KambiAppearance).
     Useful if you want to use EXTERNPROTO to declare Castle Game Engine
     extensions the Appearance in a clean way. }
   TKambiAppearanceNode = class(TAppearanceNode)
-    {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
+  {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
 
   { Embed a scene from another file, and replace some of it's nodes.
@@ -269,36 +247,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{ TBlendModeNode ------------------------------------------------------------- }
-
-class function TBlendModeNode.ClassX3DType: string;
-begin
-  Result := 'BlendMode';
-end;
-
-procedure TBlendModeNode.CreateNode;
-begin
-  inherited;
-
-  FFdSrcFactor := TSFString.Create(Self, true, 'srcFactor', 'src_alpha');
-   FdSrcFactor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSrcFactor);
-
-  FFdDestFactor := TSFString.Create(Self, true, 'destFactor', 'one_minus_src_alpha');
-   FdDestFactor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDestFactor);
-
-  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdColor);
-
-  FFdColorTransparency := TSFFloat.Create(Self, true, 'colorTransparency', 0.0);
-   FdColorTransparency.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdColorTransparency);
-
-  DefaultContainerField := 'blendMode';
-end;
 
 procedure TKambiInlineNode.AfterLoadInlined;
 var

@@ -410,6 +410,58 @@ const
     'Steep Parallax With Self-Shadowing'
   );
 
+  { Names for TBlendingSourceFactor used by TBlendModeNode when it is read/written in X3D file.
+    Deliberately compatible with (a subset of) X3DOM BlendMode specification on
+    https://doc.x3dom.org/author/Shape/BlendMode.html . }
+  BlendingSourceFactorNames: array [TBlendingSourceFactor] of string =
+  (
+    'src_alpha',
+    'one_minus_src_alpha',
+    'zero',
+    'one',
+
+    'dst_color',
+    'src_color',
+    'dst_alpha',
+
+    'one_minus_dst_color',
+    'one_minus_src_color',
+    'one_minus_dst_alpha',
+
+    'src_alpha_saturate',
+
+    'constant_color',
+    'one_minus_constant_color',
+    'constant_alpha',
+    'one_minus_constant_alpha'
+  );
+
+  { Names for TBlendingDestinationFactor used by TBlendModeNode when it is read/written in X3D file.
+    Deliberately compatible with (a subset of) X3DOM BlendMode specification on
+    https://doc.x3dom.org/author/Shape/BlendMode.html . }
+  BlendingDestinationFactorNames: array [TBlendingDestinationFactor] of string =
+  (
+    'src_alpha',
+    'one_minus_src_alpha',
+    'zero',
+    'one',
+
+    'dst_color',
+    'src_color',
+    'dst_alpha',
+
+    'one_minus_dst_color',
+    'one_minus_src_color',
+    'one_minus_dst_alpha',
+
+    // 'src_alpha_saturate', // not supported as destination factor
+
+    'constant_color',
+    'one_minus_constant_color',
+    'constant_alpha',
+    'one_minus_constant_alpha'
+  );
+
   DefaultColorSpace = csLinearWhenPhysicalMaterial;
 
 var
