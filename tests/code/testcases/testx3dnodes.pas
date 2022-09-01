@@ -470,7 +470,6 @@ begin
     TWWWInlineNode_1,
 
     { Kambi non-standard nodes }
-    TKambiHeadLightNode,
     //TText3DNode,
     //TBlendModeNode,
     //TKambiAppearanceNode,

@@ -789,10 +789,6 @@ type
   private
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
-    function OverrideOctreeLimits(
-      const BaseLimits: TOctreeLimits;
-      const OP: TSceneOctreeProperties): TOctreeLimits;
-
     { Create octree containing all triangles or shapes from our scene.
       Create octree, inits it with our LocalBoundingBox
       and adds shapes (or all triangles from our Shapes).
@@ -5715,22 +5711,6 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
-function TCastleSceneCore.OverrideOctreeLimits(
-  const BaseLimits: TOctreeLimits;
-  const OP: TSceneOctreeProperties): TOctreeLimits;
-var
-  Props: TKambiOctreePropertiesNode;
-begin
-  Result := BaseLimits;
-  if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TKambiNavigationInfoNode) then
-  begin
-    Props := TKambiNavigationInfoNode(NavigationInfoStack.Top).OctreeProperties(OP);
-    if Props <> nil then
-      Props.OverrideLimits(Result);
-  end;
-end;
-
 function TCastleSceneCore.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
@@ -5844,7 +5824,7 @@ begin
   if (ssRendering in Spatial) and (FOctreeRendering = nil) then
   begin
     FOctreeRendering := CreateShapeOctree(
-      OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
+      FShapeOctreeLimits,
       ShapeOctreeProgressTitle,
       false);
     if LogChanges then
@@ -5859,7 +5839,7 @@ begin
   if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
   begin
     FOctreeDynamicCollisions := CreateShapeOctree(
-      OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
+      FShapeOctreeLimits,
       ShapeOctreeProgressTitle,
       true);
     if LogChanges then
@@ -5873,7 +5853,7 @@ function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
 begin
   if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
-      OverrideOctreeLimits(FTriangleOctreeLimits, opVisibleTriangles),
+      FTriangleOctreeLimits,
       TriangleOctreeProgressTitle,
       false);
   Result := FOctreeVisibleTriangles;
@@ -5883,7 +5863,7 @@ function TCastleSceneCore.InternalOctreeStaticCollisions: TTriangleOctree;
 begin
   if (ssStaticCollisions in Spatial) and (FOctreeStaticCollisions = nil) then
     FOctreeStaticCollisions := CreateTriangleOctree(
-      OverrideOctreeLimits(FTriangleOctreeLimits, opStaticCollisions),
+      FTriangleOctreeLimits,
       TriangleOctreeProgressTitle,
       true);
   Result := FOctreeStaticCollisions;

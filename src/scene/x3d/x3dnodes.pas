@@ -482,10 +482,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
 {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
 {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
-{$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
 {$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
-{$I auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_layer.inc}
 {$I auto_generated_node_helpers/x3dnodes_layerset.inc}

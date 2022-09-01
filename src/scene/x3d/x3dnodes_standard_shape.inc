@@ -17,7 +17,6 @@
 
 {$ifdef read_interface}
   { }
-  TKambiOctreePropertiesNode = class;
   TAbstractShaderNode = class;
   TAbstractOneSidedMaterialNode = class;
   TAbstractSingleTextureNode = class;
@@ -455,9 +454,6 @@ begin
   FdBboxSize.ChangeAlways := chBBox;
   FdAppearance.ChangeAlways := chEverything;
   FdGeometry.ChangeAlways := chEverything;
-  {$ifndef CASTLE_SLIM_NODES}
-  FdOctreeTriangles.ChangeAlways := chEverything;
-  {$endif}
 end;
 
 procedure TAbstractShapeNode.SetAppearanceBefore(const Value: TAppearanceNode);

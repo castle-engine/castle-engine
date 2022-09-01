@@ -71,41 +71,12 @@ KambiInline : Inline {
 
 KambiNavigationInfo : NavigationInfo {
   SFBool []            timeOriginAtLoad           FALSE
-  SFNode []            octreeRendering            NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeDynamicCollisions    NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeVisibleTriangles     NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeStaticCollisions     NULL
-    range: KambiOctreeProperties
   SFFloat    [in,out]      headBobbing             0.02
     range: [0, 1)
   SFFloat    [in,out]      headBobbingTime         0.5
     range: > 0
   SFNode     [in,out]      headlightNode           NULL
     range: X3DLightNode
-}
-
-KambiHeadLight : X3DChildNode {
-  SFFloat    [in,out]      ambientIntensity      0
-    range: [0.0, 1.0]
-  SFVec3f    [in,out]      attenuation           1 0 0
-    range: [0, infinity)
-  SFColor    [in,out]      color                 1 1 1
-    range: [0, 1]
-  SFFloat    [in,out]      intensity             1
-    range: [0, 1]
-  SFBool     [in,out]      spot                  FALSE
-  SFFloat    [in,out]      spotDropOffRate       0
-  SFFloat    [in,out]      spotCutOffAngle       0.785398
-}
-
-KambiOctreeProperties : X3DNode {
-  SFInt32 []            maxDepth              -1
-    range:  >= -1
-  SFInt32 []            leafCapacity          -1
-    range:  >= -1
 }
 
 Teapot : X3DGeometryNode {

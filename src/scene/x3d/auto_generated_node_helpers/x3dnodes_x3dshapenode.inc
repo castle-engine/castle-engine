@@ -32,10 +32,6 @@
     procedure SetBBox(const Value: TBox3D);
     function GetShading: TShading;
     procedure SetShading(const Value: TShading);
-{$ifndef CASTLE_SLIM_NODES}
-    function GetOctreeTriangles: TKambiOctreePropertiesNode;
-    procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
-{$endif not CASTLE_SLIM_NODES}
     function GetRender: Boolean;
     procedure SetRender(const Value: Boolean);
     function GetCollision: TShapeCollision;
@@ -71,16 +67,6 @@
     public property FdShading: TSFStringEnum read FFdShading;
     {  }
     property Shading: TShading read GetShading write SetShading;
-
-{$ifndef CASTLE_SLIM_NODES}
-    strict private FFdOctreeTriangles: TSFNode;
-    {  }
-    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-    {  }
-    property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
-{$endif not CASTLE_SLIM_NODES}
 
     strict private FFdRender: TSFBool;
     { Should we render this shape. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
@@ -151,21 +137,6 @@ begin
   FdShading.SendEnumValue(Ord(Value));
 end;
 
-{$ifndef CASTLE_SLIM_NODES}
-function TAbstractShapeNode.GetOctreeTriangles: TKambiOctreePropertiesNode;
-begin
-  if FdOctreeTriangles.Value is TKambiOctreePropertiesNode then
-    Result := TKambiOctreePropertiesNode(FdOctreeTriangles.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractShapeNode.SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
-begin
-  FdOctreeTriangles.Send(Value);
-end;
-
-{$endif not CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetRender: Boolean;
 begin
   Result := FdRender.Value;
@@ -214,12 +185,6 @@ begin
   FFdShading := TSFStringEnum.Create(Self, True, 'shading', @ShadingNames, Ord(High(ShadingNames)) + 1, Ord(shDefault));
    FdShading.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShading);
-
-{$ifndef CASTLE_SLIM_NODES}
-  FFdOctreeTriangles := TSFNode.Create(Self, False, 'octreeTriangles', [TKambiOctreePropertiesNode]);
-   FdOctreeTriangles.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdOctreeTriangles);
-{$endif not CASTLE_SLIM_NODES}
 
   FFdRender := TSFBool.Create(Self, True, 'render', true);
    FdRender.ChangeAlways := chVisibleNonGeometry;

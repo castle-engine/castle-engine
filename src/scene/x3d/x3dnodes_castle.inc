@@ -17,37 +17,6 @@
   See [https://castle-engine.io/x3d_extensions.php]. } { }
 
 {$ifdef read_interface}
-  { Headlight configuration, allows to customize headlight look and shape.
-    See https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight . }
-  TKambiHeadLightNode = class(TAbstractChildNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAmbientIntensity: TSFFloat;
-    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-
-    strict private FFdAttenuation: TSFVec3f;
-    public property FdAttenuation: TSFVec3f read FFdAttenuation;
-
-    strict private FFdColor: TSFColor;
-    public property FdColor: TSFColor read FFdColor;
-
-    strict private FFdIntensity: TSFFloat;
-    public property FdIntensity: TSFFloat read FFdIntensity;
-
-    strict private FFdSpot: TSFBool;
-    public property FdSpot: TSFBool read FFdSpot;
-
-    strict private FFdSpotCutOffAngle: TSFFloat;
-    public property FdSpotCutOffAngle: TSFFloat read FFdSpotCutOffAngle;
-
-    strict private FFdSpotDropOffRate: TSFFloat;
-    public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
-
-    {$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
-  end;
-
   { Text with 3D depth.
     @bold(The depth is not implemented now -- this is equivalent to @link(TTextNode) now.) }
   TText3DNode = class(TTextNode)
@@ -102,12 +71,6 @@
     {$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
   end;
 
-  TSceneOctreeProperties = (
-    opRendering,
-    opDynamicCollisions,
-    opVisibleTriangles,
-    opStaticCollisions);
-
   { Navigation information with some Castle Game Engine extensions.
     See https://castle-engine.io/x3d_implementation_navigation_extensions.php . }
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
@@ -118,18 +81,6 @@
     strict private FFdTimeOriginAtLoad: TSFBool;
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
 
-    strict private FFdOctreeRendering: TSFNode;
-    public property FdOctreeRendering: TSFNode read FFdOctreeRendering;
-
-    strict private FFdOctreeDynamicCollisions: TSFNode;
-    public property FdOctreeDynamicCollisions: TSFNode read FFdOctreeDynamicCollisions;
-
-    strict private FFdOctreeVisibleTriangles: TSFNode;
-    public property FdOctreeVisibleTriangles: TSFNode read FFdOctreeVisibleTriangles;
-
-    strict private FFdOctreeStaticCollisions: TSFNode;
-    public property FdOctreeStaticCollisions: TSFNode read FFdOctreeStaticCollisions;
-
     strict private FFdHeadBobbing: TSFFloat;
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
 
@@ -139,29 +90,7 @@
     strict private FFdHeadlightNode: TSFNode;
     public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
 
-    { Return value of appropriate FdOctreeXxx field.
-      Returns @nil if the field doesn't have allowed (TKambiOctreePropertiesNode)
-      value (or if the field is actually @nil, naturally). }
-    function OctreeProperties(OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
-
     {$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
-  end;
-
-  TKambiOctreePropertiesNode = class(TAbstractNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdMaxDepth: TSFInt32;
-    public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
-
-    strict private FFdLeafCapacity: TSFInt32;
-    public property FdLeafCapacity: TSFInt32 read FFdLeafCapacity;
-
-    { Override Limits fields, where our own fields have values <> -1. }
-    procedure OverrideLimits(var Limits: TOctreeLimits);
-
-    {$I auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc}
   end;
 
   TShadowMapCompareMode = (smCompareRLEqual, smCompareRGEqual, smNone);
@@ -341,47 +270,6 @@
 
 {$ifdef read_implementation}
 
-{ TKambiHeadLightNode -------------------------------------------------------- }
-
-class function TKambiHeadLightNode.ClassX3DType: string;
-begin
-  Result := 'KambiHeadLight';
-end;
-
-procedure TKambiHeadLightNode.CreateNode;
-const
-  HeadLightDefaultAmbientIntensity = 0;
-  HeadLightDefaultAttenuation: TVector3 = (X: 1; Y: 0; Z: 0);
-  HeadLightDefaultColor: TVector3 = (X: 1; Y: 1; Z: 1);
-  HeadLightDefaultIntensity = 1.0;
-  HeadLightDefaultSpot = false;
-  HeadLightDefaultSpotCutOffAngle = Pi / 4;
-  HeadLightDefaultSpotDropOffRate = 0.0;
-begin
-  inherited;
-
-  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
-  AddField(FFdAmbientIntensity);
-
-  FFdAttenuation := TSFVec3f.Create(Self, true, 'attenuation', HeadLightDefaultAttenuation);
-  AddField(FFdAttenuation);
-
-  FFdColor := TSFColor.Create(Self, true, 'color', HeadLightDefaultColor);
-  AddField(FFdColor);
-
-  FFdIntensity := TSFFloat.Create(Self, true, 'intensity', HeadLightDefaultIntensity);
-  AddField(FFdIntensity);
-
-  FFdSpot := TSFBool.Create(Self, true, 'spot', HeadLightDefaultSpot);
-  AddField(FFdSpot);
-
-  FFdSpotCutOffAngle := TSFFloat.Create(Self, true, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
-  AddField(FFdSpotCutOffAngle);
-
-  FFdSpotDropOffRate := TSFFloat.Create(Self, true, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
-  AddField(FFdSpotDropOffRate);
-end;
-
 { TBlendModeNode ------------------------------------------------------------- }
 
 class function TBlendModeNode.ClassX3DType: string;
@@ -461,19 +349,6 @@ begin
   FFdTimeOriginAtLoad := TSFBool.Create(Self, false, 'timeOriginAtLoad', false);
   AddField(FFdTimeOriginAtLoad);
 
-  FFdOctreeRendering := TSFNode.Create(Self, false, 'octreeRendering', [TKambiOctreePropertiesNode]);
-  AddField(FFdOctreeRendering);
-
-  FFdOctreeDynamicCollisions := TSFNode.Create(Self, false, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
-  AddField(FFdOctreeDynamicCollisions);
-
-  FFdOctreeVisibleTriangles := TSFNode.Create(Self, false, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
-  AddField(FFdOctreeVisibleTriangles);
-
-  FFdOctreeStaticCollisions := TSFNode.Create(Self, false, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
-  FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
-  AddField(FFdOctreeStaticCollisions);
-
   FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing);
    FdHeadBobbing.MustBeNonnegative := true;
    FdHeadBobbing.ChangeAlways := chNavigationInfo;
@@ -491,56 +366,6 @@ end;
 class function TKambiNavigationInfoNode.ClassX3DType: string;
 begin
   Result := 'KambiNavigationInfo';
-end;
-
-function TKambiNavigationInfoNode.OctreeProperties(
-  OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
-var
-  N: TX3DNode;
-begin
-  case OP of
-    opRendering        : N := FdOctreeRendering          .Value;
-    opDynamicCollisions: N := FdOctreeDynamicCollisions  .Value;
-    opVisibleTriangles : N := FdOctreeVisibleTriangles   .Value;
-    opStaticCollisions : N := FdOctreeStaticCollisions.Value;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TKambiOctreePropertiesNode.OctreeProperties');
-    {$endif}
-  end;
-  if N is TKambiOctreePropertiesNode then
-    Result := TKambiOctreePropertiesNode(N) else
-    Result := nil;
-end;
-
-procedure TKambiOctreePropertiesNode.CreateNode;
-begin
-  inherited;
-
-  FFdMaxDepth := TSFInt32.Create(Self, true, 'maxDepth', -1);
-   FdMaxDepth.ChangeAlways := chEverything;
-  AddField(FFdMaxDepth);
-
-  FFdLeafCapacity := TSFInt32.Create(Self, true, 'leafCapacity', -1);
-   FdLeafCapacity.ChangeAlways := chEverything;
-  AddField(FFdLeafCapacity);
-end;
-
-class function TKambiOctreePropertiesNode.ClassX3DType: string;
-begin
-  Result := 'KambiOctreeProperties';
-end;
-
-procedure TKambiOctreePropertiesNode.OverrideLimits(var Limits: TOctreeLimits);
-begin
-  if FdMaxDepth.Value >= 0 then
-    Limits.MaxDepth := FdMaxDepth.Value else
-  if FdMaxDepth.Value <> -1 then
-    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
-
-  if FdLeafCapacity.Value >= 0 then
-    Limits.LeafCapacity := FdLeafCapacity.Value else
-  if FdLeafCapacity.Value <> -1 then
-    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
 { TGeneratedShadowMapNode.TGenShadowMapGenTex -------------------------------- }
@@ -765,13 +590,11 @@ end;
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TKambiHeadLightNode,
     TText3DNode,
     TBlendModeNode,
     TKambiAppearanceNode,
     TKambiInlineNode,
     TKambiNavigationInfoNode,
-    TKambiOctreePropertiesNode,
     TGeneratedShadowMapNode,
     TProjectedTextureCoordinateNode,
     TScreenEffectNode,
