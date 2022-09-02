@@ -87,15 +87,7 @@
   { Generate texture coordinates by projection.
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
   TProjectedTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-
-    class function ClassX3DType: string; override;
-
-    strict private FFdProjector: TSFNode;
-    public property FdProjector: TSFNode read FFdProjector;
-
-    {$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
   end;
 
   { Screen-space shader effect.
@@ -189,20 +181,13 @@
   { Procedural texture defined by shaders.
     See https://castle-engine.io/compositing_shaders.php . }
   TShaderTextureNode = class(TAbstractSingleTextureNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDefaultTexCoord: TSFString;
-    public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
-
-    {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
+  {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
   end;
 
   { Viewpoint for making reflections on flat objects.
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
   TViewpointMirrorNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
+  {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;
 
   { Interpolate (animate) a 2D orientation,
@@ -212,20 +197,8 @@
     procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdKeyValue: TMFFloat;
-    public property FdKeyValue: TMFFloat read FFdKeyValue;
-
-    strict private FFdAxis: TSFVec3f;
-    public property FdAxis: TSFVec3f read FFdAxis;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFRotationEvent;
-    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
   end;
 
 {$endif read_interface}
@@ -313,31 +286,6 @@ begin
   AddFunctionality(FGenTexFunctionality);
 end;
 
-procedure TProjectedTextureCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  { Note that projector node is not enumerated as an active node
-    for traversing (in DirectEnumerateActive), because the light doesn't
-    shine here. We don't want
-    to override it's transform with transformation of this
-    ProjectedTextureCoordinate. }
-  FFdProjector := TSFNode.Create(Self, true, 'projector', [
-    TSpotLightNode_1,
-    TDirectionalLightNode_1,
-    TSpotLightNode,
-    TDirectionalLightNode,
-    TAbstractViewpointNode
-  ]);
-   FFdprojector.ChangeAlways := chTextureCoordinate;
-  AddField(FFdProjector);
-end;
-
-class function TProjectedTextureCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'ProjectedTextureCoordinate';
-end;
-
 { TScreenEffectNode ---------------------------------------------------------- }
 
 constructor TScreenEffectNode.Create(const AX3DName, ABaseUrl: String);
@@ -413,46 +361,12 @@ begin
   ContentsCached := false;
 end;
 
-{ TShaderTextureNode --------------------------------------------------------- }
-
-procedure TShaderTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdDefaultTexCoord := TSFString.Create(Self, false, 'defaultTexCoord', 'BOUNDS2D');
-   FdDefaultTexCoord.ChangeAlways := chEverything;
-  AddField(FFdDefaultTexCoord);
-end;
-
-class function TShaderTextureNode.ClassX3DType: string;
-begin
-  Result := 'ShaderTexture';
-end;
-
 { TOrientationInterpolator2DNode ---------------------------------- }
 
-procedure TOrientationInterpolator2DNode.CreateNode;
+constructor TOrientationInterpolator2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdKeyValue := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FFdAxis := TSFVec3f.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'axis', Vector3(0, 0, 1));
-  AddField(FFdAxis);
-
-  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
-  EventSet_Fraction.AddNotification(
-    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TOrientationInterpolator2DNode.ClassX3DType: string;
-begin
-  Result := 'OrientationInterpolator2D';
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(

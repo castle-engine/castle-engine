@@ -165,8 +165,12 @@ MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
 }
 
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
+  auto-generate-more: true
   SFNode     [in,out]      projector   NULL
     range: SpotLight, DirectionalLight, X3DViewpointNode
+    # TODO: we should also allow VRML 1 TSpotLightNode_1, TDirectionalLightNode_1
+    change: chTextureCoordinate
+    doc: Viewpoint or light that determine how is the texture projected.
 }
 
 # See https://castle-engine.io/x3d_extensions_screen_effects.php
@@ -217,10 +221,10 @@ EffectPart : X3DNode, X3DUrlObject {
 
 # See https://castle-engine.io/compositing_shaders.php
 ShaderTexture : X3DSingleTextureNode {
-  MFNode   []       effects         []
-    range: Effect
+  auto-generate-more: true
   SFString []       defaultTexCoord "BOUNDS2D"
-    range: ["BOUNDS2D"|"BOUNDS3D"]
+    #range: ["BOUNDS2D"|"BOUNDS3D"]
+    change: chEverything
     # TODO: use enumerated-type:....
 }
 
@@ -245,7 +249,9 @@ ViewpointMirror {
 }
 
 OrientationInterpolator2D : X3DInterpolatorNode {
+  auto-generate-more: true
   MFFloat    [in,out] keyValue      []
+    change: chNone
   SFVec3f    [in,out] axis          0 0 1
   SFRotation [out]    value_changed
 }

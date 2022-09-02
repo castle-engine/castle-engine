@@ -27,12 +27,26 @@
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFFloat;
+    {  }
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of Single); overload;
     {  }
     procedure SetKeyValue(const Value: TSingleList); overload;
+
+    strict private FFdAxis: TSFVec3f;
+    {  }
+    public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    {  }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -58,6 +72,27 @@ end;
 procedure TOrientationInterpolator2DNode.SetAxis(const Value: TVector3);
 begin
   FdAxis.Send(Value);
+end;
+
+class function TOrientationInterpolator2DNode.ClassX3DType: String;
+begin
+  Result := 'OrientationInterpolator2D';
+end;
+
+procedure TOrientationInterpolator2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFFloat.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FFdAxis := TSFVec3f.Create(Self, True, 'axis', Vector3(0, 0, 1));
+   FdAxis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

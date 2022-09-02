@@ -6,11 +6,7 @@ X3DCubicBezierInterpolator : X3DInterpolatorNode {
 CubicBezierCoordinateInterpolator : X3DCubicBezierInterpolator {
   auto-generate-more: true
   MFVec3f    [in,out] keyValue        []
-    # This is defined in Pascal by generic TAbstractCubicBezierArrayInterpolatorNode
-    field-generate-more: false
   MFVec3f    [out]    value_changed
-    # This is defined in Pascal by generic TAbstractCubicBezierArrayInterpolatorNode
-    field-generate-more: false
 }
 
 CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {

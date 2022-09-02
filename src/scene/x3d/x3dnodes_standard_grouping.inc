@@ -368,7 +368,6 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-
     function TransformationChange: TNodeTransformationChange; override;
 
     {$I auto_generated_node_helpers/x3dnodes_switch.inc}

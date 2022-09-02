@@ -23,9 +23,18 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetDefaultTexCoord: String;
+    procedure SetDefaultTexCoord(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDefaultTexCoord: TSFString;
     {  }
-    procedure SetEffects(const Value: array of TEffectNode);
+    public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
+    {  }
+    property DefaultTexCoord: String read GetDefaultTexCoord write SetDefaultTexCoord;
 
 {$endif read_interface}
 
@@ -33,16 +42,28 @@
 
 { TShaderTextureNode ----------------------------------------------- }
 
-procedure TShaderTextureNode.SetEffects(const Value: array of TEffectNode);
-var
-  L: Integer;
-  A: array of TX3DNode;
+function TShaderTextureNode.GetDefaultTexCoord: String;
 begin
-  L := High(Value) + 1;
-  SetLength(A, L);
-  if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TEffectNode));
-  FdEffects.Send(A);
+  Result := FdDefaultTexCoord.Value;
+end;
+
+procedure TShaderTextureNode.SetDefaultTexCoord(const Value: String);
+begin
+  FdDefaultTexCoord.Send(Value);
+end;
+
+class function TShaderTextureNode.ClassX3DType: String;
+begin
+  Result := 'ShaderTexture';
+end;
+
+procedure TShaderTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdDefaultTexCoord := TSFString.Create(Self, False, 'defaultTexCoord', 'BOUNDS2D');
+   FdDefaultTexCoord.ChangeAlways := chEverything;
+  AddField(FFdDefaultTexCoord);
 end;
 
 {$endif read_implementation}
