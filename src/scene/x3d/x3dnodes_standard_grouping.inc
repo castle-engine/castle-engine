@@ -498,10 +498,12 @@ begin
   EventaddChildren.AddNotification({$ifdef FPC}@{$endif} EventAddChildrenReceive);
   EventRemoveChildren.AddNotification({$ifdef FPC}@{$endif} EventRemoveChildrenReceive);
 
+  {$ifndef CASTLE_SLIM_NODES}
   { Calling it "render" is an extension from InstantReality,
     see [http://instant-reality.com/documentation/nodetype/ChildGroup/].
     This extension was invented before X3D 4 added it. }
   FFdVisible.AddAlternativeName('render', 0);
+  {$endif}
 end;
 
 function TAbstractGroupingNode.ToChildrenArray(
