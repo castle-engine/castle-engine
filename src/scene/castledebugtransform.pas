@@ -154,7 +154,7 @@ type
     var
       FBox: TDebugBox;
       FTransform: TMatrixTransformNode;
-      FParentSpace: TAbstractX3DGroupingNode;
+      FParentSpace: TAbstractGroupingNode;
       FParent: TCastleTransform;
       FScene: TInternalScene;
       FExists: boolean;
@@ -187,7 +187,7 @@ type
     { Add to this additional things that are expressed in parent coordinate-space.
       Be sure to call @link(ChangedScene) afterwards, unless you do it in InitializeNodes
       (then @link(ChangedScene) is not necessary). }
-    property ParentSpace: TAbstractX3DGroupingNode read FParentSpace;
+    property ParentSpace: TAbstractGroupingNode read FParentSpace;
     property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
   end;

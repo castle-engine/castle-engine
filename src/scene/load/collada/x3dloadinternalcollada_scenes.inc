@@ -16,7 +16,7 @@
 {$ifdef read_implementation_nested}
 var
   { List of Collada visual scenes, for <visual_scene> Collada elements.
-    Every visual scene is X3D TAbstractX3DGroupingNode instance.
+    Every visual scene is X3D TAbstractGroupingNode instance.
     This is for Collada >= 1.4.x (for Collada < 1.4.x,
     the <scene> element is directly placed as a rendered scene). }
   VisualScenes: TX3DChildrenList;

@@ -78,7 +78,7 @@
 
   { Joint of an animated humanoid.
     Joints are organized in a hierarchy, like bones. }
-  THAnimJointNode = class(TAbstractX3DGroupingNode)
+  THAnimJointNode = class(TAbstractGroupingNode)
   strict private
     type
       THAnimJointNodeTransformFunctionality = class(TTransformFunctionality)
@@ -121,7 +121,7 @@
 
   { Visible segment of an animated humanoid,
     always a child of a TJointNode. }
-  THAnimSegmentNode = class(TAbstractX3DGroupingNode)
+  THAnimSegmentNode = class(TAbstractGroupingNode)
   strict private
     type
       THAnimSegmentNodeTransformFunctionality = class(TTransformFunctionality)
@@ -145,7 +145,7 @@
 
   { An attachment point of an animated humanoid,
     to attach something that held, worm or such by a humanoid. }
-  THAnimSiteNode = class(TAbstractX3DGroupingNode)
+  THAnimSiteNode = class(TAbstractGroupingNode)
   strict private
     type
       THAnimSiteNodeTransformFunctionality = class(TTransformFunctionality)

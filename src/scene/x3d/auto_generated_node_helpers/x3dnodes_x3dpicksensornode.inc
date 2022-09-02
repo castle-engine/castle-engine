@@ -134,7 +134,7 @@ begin
    FdPickingGeometry.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPickingGeometry);
 
-  FFdPickTarget := TMFNode.Create(Self, True, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
+  FFdPickTarget := TMFNode.Create(Self, True, 'pickTarget', [TAbstractGroupingNode, TAbstractShapeNode, TInlineNode]);
    FdPickTarget.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPickTarget);
 

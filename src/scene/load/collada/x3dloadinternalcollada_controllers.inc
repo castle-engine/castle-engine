@@ -54,12 +54,12 @@ var
 
 { Read <instance_controller>, adding resulting X3D node into
   ParentGroup. }
-procedure ReadInstanceController(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadInstanceController(ParentGroup: TAbstractGroupingNode;
   InstantiatingElement: TDOMElement);
 var
   ControllerId: string;
   Controller: TColladaController;
-  Group: TAbstractX3DGroupingNode;
+  Group: TAbstractGroupingNode;
   Geometry: TColladaGeometry;
 begin
   if InstantiatingElement.AttributeString('url', ControllerId) and

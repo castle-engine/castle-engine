@@ -24,7 +24,7 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_matrix_transform .
     It is compatible with InstantReality,
     see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
-  TMatrixTransformNode = class(TAbstractX3DGroupingNode)
+  TMatrixTransformNode = class(TAbstractGroupingNode)
   strict private
     type
       TMatrixTransformNodeTransformFunctionality = class(TTransformFunctionality)

@@ -68,7 +68,7 @@ Note that the alpha component of this color matters
 If the resulting image is partially-transparent,
 it will be mixed with black color.
 
-# TAbstractX3DGroupingNode.BBox
+# TAbstractGroupingNode.BBox
 You can provide a manually-calculated bounding box of the group here,
 for optimization purposes. Leave this field as empty (TBox3D.Empty)
 to let the engine calculate best bounding box automatically.
@@ -140,14 +140,14 @@ See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section
 This is a deprecated property. It is better to set normal map within the material node,
 using the @link(TAbstractOneSidedMaterialNode.NormalTexture).
 
-# TAbstractX3DGroupingNode.Visible
+# TAbstractGroupingNode.Visible
 
 Is this group visible (@italic(not implemented yet)).
 
 While this is not implemented for an entire X3D group,
 note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape.
 
-# TAbstractX3DGroupingNode.BBoxDisplay
+# TAbstractGroupingNode.BBoxDisplay
 
 Is the bounding box of this group visible (@italic(not implemented yet)).
 

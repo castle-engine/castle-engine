@@ -149,8 +149,8 @@ begin
 
   InstantiableNodes.Add(TX3DRootNode);
   InstantiableNodes.Add(TX3DNode);
+  InstantiableNodes.Add(TAbstractInternalGroupingNode);
   InstantiableNodes.Add(TAbstractGroupingNode);
-  InstantiableNodes.Add(TAbstractX3DGroupingNode);
 end;
 
 procedure TTestX3DNodes.TearDown;

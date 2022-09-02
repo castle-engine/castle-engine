@@ -160,9 +160,9 @@ type
   TSkinToInitialize = class
     Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node that are TShapeNode should have skinning applied. }
-    Shapes: TAbstractX3DGroupingNode;
+    Shapes: TAbstractGroupingNode;
     { Immediate parent of the Shapes node (it always has only one parent). }
-    ShapesParent: TAbstractX3DGroupingNode;
+    ShapesParent: TAbstractGroupingNode;
   end;
 
   TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
@@ -1750,7 +1750,7 @@ var
   end;
 
   procedure ReadMesh(const Mesh: TPasGLTF.TMesh;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
@@ -1767,7 +1767,7 @@ var
   end;
 
   procedure ReadMesh(const MeshIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   begin
     if Between(MeshIndex, 0, Document.Meshes.Count - 1) then
       ReadMesh(Document.Meshes[MeshIndex], ParentGroup)
@@ -1776,7 +1776,7 @@ var
   end;
 
   procedure ReadCamera(const Camera: TPasGLTF.TCamera;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   var
     OrthoViewpoint: TOrthoViewpointNode;
     Viewpoint: TViewpointNode;
@@ -1811,7 +1811,7 @@ var
   end;
 
   procedure ReadCamera(const CameraIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   begin
     if Between(CameraIndex, 0, Document.Cameras.Count - 1) then
       ReadCamera(Document.Cameras[CameraIndex], ParentGroup)
@@ -1819,7 +1819,7 @@ var
       WritelnWarning('glTF', 'Camera index invalid: %d', [CameraIndex]);
   end;
 
-  procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
     Transform: TTransformNode;
 
@@ -1828,14 +1828,14 @@ var
     procedure ApplySkin(const Skin: TPasGLTF.TSkin);
     var
       SkinToInitialize: TSkinToInitialize;
-      Shapes: TAbstractX3DGroupingNode;
+      Shapes: TAbstractGroupingNode;
       I: Integer;
       ShapeNode: TShapeNode;
     begin
       SkinToInitialize := TSkinToInitialize.Create;
       SkinsToInitialize.Add(SkinToInitialize);
       // Shapes is the group created inside ReadMesh
-      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
+      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
       SkinToInitialize.Shapes := Shapes;
       SkinToInitialize.ShapesParent := Transform;
       SkinToInitialize.Skin := Skin;
@@ -1916,7 +1916,7 @@ var
       WritelnWarning('glTF', 'Node index invalid: %d', [NodeIndex]);
   end;
 
-  procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
     Scene: TPasGLTF.TScene;
     NodeIndex: Integer;
@@ -1935,7 +1935,7 @@ var
     const Node: TTransformNode;
     const Path: TGltfSamplerPath;
     const TimeSensor: TTimeSensorNode;
-    const ParentGroup: TAbstractX3DGroupingNode;
+    const ParentGroup: TAbstractGroupingNode;
     out Duration: TFloatTime): TAbstractInterpolatorNode;
   var
     InterpolatePosition: TPositionInterpolatorNode;
@@ -2050,7 +2050,7 @@ var
     end;
   end;
 
-  procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractGroupingNode);
   var
     TimeSensor: TTimeSensorNode;
     Channel: TPasGLTF.TAnimation.TChannel;
@@ -2250,7 +2250,7 @@ var
   { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
   procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
     const Shape: TShapeNode; const BBox: TBox3D;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const ParentGroup: TAbstractGroupingNode);
   var
     ValueTrigger: TValueTriggerNode;
     Center, Size: TVector3;
@@ -2279,8 +2279,8 @@ var
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
-    const SkeletonRoot: TAbstractX3DGroupingNode; const SkeletonRootIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const SkeletonRoot: TAbstractGroupingNode; const SkeletonRootIndex: Integer;
+    const ParentGroup: TAbstractGroupingNode);
   var
     CoordField: TSFNode;
     Coord: TCoordinateNode;
@@ -2471,15 +2471,15 @@ var
 
   { Apply Skin to deform shapes list. }
   procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const ParentGroup: TAbstractGroupingNode);
   var
     SkeletonRootIndex: Integer;
-    SkeletonRoot: TAbstractX3DGroupingNode;
+    SkeletonRoot: TAbstractGroupingNode;
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
     Skin: TPasGLTF.TSkin;
-    Shapes: TAbstractX3DGroupingNode;
+    Shapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
   begin
     Skin := SkinToInitialize.Skin;
@@ -2498,7 +2498,7 @@ var
         ]);
         Exit;
       end;
-      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractX3DGroupingNode;
+      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
     end;
 
     // first nil local variables, to reliably do try..finally that includes them all
@@ -2568,7 +2568,7 @@ var
   { Read glTF skins, which result in CoordinateInterpolator nodes
     attached to shapes.
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
-  procedure ReadSkins(const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadSkins(const ParentGroup: TAbstractGroupingNode);
   var
     SkinToInitialize: TSkinToInitialize;
   begin

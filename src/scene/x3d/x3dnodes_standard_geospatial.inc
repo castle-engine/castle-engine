@@ -49,11 +49,11 @@
   {$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
   end;
 
-  TGeoLocationNode = class(TAbstractX3DGroupingNode)
+  TGeoLocationNode = class(TAbstractGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
   end;
 
-  TGeoLODNode = class(TAbstractGroupingNode)
+  TGeoLODNode = class(TAbstractInternalGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geolod.inc}
   end;
 
@@ -77,7 +77,7 @@
   {$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
   end;
 
-  TGeoTransformNode = class(TAbstractX3DGroupingNode)
+  TGeoTransformNode = class(TAbstractGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
   end;
 

@@ -416,7 +416,7 @@ type
     During the lifetime of the scene, this X3D graph can change
     (e.g. because of animations), and you can always change it by code
     too. E.g. you can freely change @link(TTransformNode.Translation)
-    or add children by @link(TAbstractX3DGroupingNode.AddChildren RootNode.AddChildren).
+    or add children by @link(TAbstractGroupingNode.AddChildren RootNode.AddChildren).
     The X3D nodes graph works like a DOM tree for rendering HTML documents:
     it's typically initialized from a file (3D model), but during
     the game execution it is dynamic, always changing.
@@ -3698,7 +3698,7 @@ function TChangedAllTraverser.Traverse(
       So we cheat a little, knowing that internally every node implementing TTransformFunctionality
       does StateStack.Push inside BeforeTraverse exactly once and then
       modifies transformation.
-      (This happens for both TAbstractGroupingNode and THAnimHumanoidNode.
+      (This happens for both TAbstractInternalGroupingNode and THAnimHumanoidNode.
       Right now, node with TTransformFunctionality is always one of those.)
       So we know that previous state lies safely at PreviousTop.
 

@@ -359,7 +359,7 @@ begin
       to the current State.
 
       It may seem wasteful to enumerate children twice
-      (first we enumerate in TAbstractGroupingNode.BeforeTraverse,
+      (first we enumerate in TAbstractInternalGroupingNode.BeforeTraverse,
       then actual TX3DNode.Traverse enumerates again,
       this time recursively time). But it turned out to
       be the fastest and simplest method of propagating lsLocal lights
@@ -405,7 +405,7 @@ begin
 
     *)
 
-    { Note: We do CreateLightInstance with State from TAbstractGroupingNode node,
+    { Note: We do CreateLightInstance with State from TAbstractInternalGroupingNode node,
       while precisely we should rather use State from TAbstractLightNode
       traverse. But, fortunately, State of TAbstractLightNode doesn't
       change inside (TAbstractLightNode doesn't do anything inside

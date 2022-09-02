@@ -20,7 +20,7 @@
   end;
 
   { Holds a set of assemblies or parts grouped together. }
-  TCADAssemblyNode = class(TAbstractX3DGroupingNode)
+  TCADAssemblyNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     {$I auto_generated_node_helpers/x3dnodes_cadassembly.inc}
@@ -34,14 +34,14 @@
   end;
 
   { Hierarchy of nodes used for showing layer structure for the CAD model. }
-  TCADLayerNode = class(TAbstractX3DGroupingNode)
+  TCADLayerNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     {$I auto_generated_node_helpers/x3dnodes_cadlayer.inc}
   end;
 
   { Represents the location and faces that constitute a part in the CAD model. }
-  TCADPartNode = class(TAbstractX3DGroupingNode)
+  TCADPartNode = class(TAbstractGroupingNode)
   strict private
     type
       TCADPartNodeTransformFunctionality = class(TTransformFunctionality)

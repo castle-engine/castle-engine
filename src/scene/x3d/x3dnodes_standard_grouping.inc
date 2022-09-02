@@ -15,12 +15,19 @@
 
 {$ifdef read_interface}
   { Base node that may contain children nodes.
-    Note that this descends from TAbstractChildNode,
+
+    You should not use this class directly usually,
+    instead use e.g. TAbstractGroupingNode.
+    This class is a common ancestor to help implementing a few similar nodes,
+    like TAbstractGroupingNode and TStaticGroupNode, but it is undefined whether
+    they will always rely on this common ancestor.
+
+    Note: This descends from TAbstractChildNode,
     so it can be inserted as child of another grouping node.
     So, you can create a hierarchy of nodes with any depth.
 
     Handles TTransformFunctionality for any descendant that defines an instance of it. }
-  TAbstractGroupingNode = class(TAbstractChildNode)
+  TAbstractInternalGroupingNode = class(TAbstractChildNode)
   strict private
     type
       TGeneralGroupingEnumerator = class
@@ -47,8 +54,8 @@
     destructor Destroy; override;
   end;
 
-  { Base node that contains children nodes, in X3D and VRML 2.0. }
-  TAbstractX3DGroupingNode = class(TAbstractGroupingNode)
+  { Base node that contains children nodes. }
+  TAbstractGroupingNode = class(TAbstractInternalGroupingNode)
   strict private
     type
       TChildrenArray = array of TAbstractChildNode;
@@ -131,9 +138,11 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
   end;
 
+  TAbstractX3DGroupingNode = TAbstractGroupingNode deprecated 'use TAbstractGroupingNode';
+
   { Contains children nodes without introducing a new transformation.
     It is equivalent to a TTransformNode containing an identity transform. }
-  TGroupNode = class(TAbstractX3DGroupingNode)
+  TGroupNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -325,7 +334,7 @@
     send events, receive events or contain any USE
     references outside the StaticGroup.
     This allows to optimize this content for faster rendering and less memory usage. }
-  TStaticGroupNode = class(TAbstractGroupingNode)
+  TStaticGroupNode = class(TAbstractInternalGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -355,7 +364,7 @@
     programmer simply works with FdChildren field, and when reading/writing
     VRML file we take care to actually use either "children" or "choice" name,
     depending on used VRML version. }
-  TSwitchNode = class(TAbstractX3DGroupingNode)
+  TSwitchNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -375,7 +384,7 @@
   TSwitchNode_2 = TSwitchNode;
 
   { Grouping node that transforms (moves, rotates, scales) it's children. }
-  TTransformNode = class(TAbstractX3DGroupingNode)
+  TTransformNode = class(TAbstractGroupingNode)
   strict private
     type
       TTransformNodeTransformFunctionality = class(TTransformFunctionality)
@@ -425,7 +434,7 @@
 
 { TGeneralGroupingEnumerator ------------------------------------------------- }
 
-function TAbstractGroupingNode.TGeneralGroupingEnumerator.EnumerateChildrenFunction(
+function TAbstractInternalGroupingNode.TGeneralGroupingEnumerator.EnumerateChildrenFunction(
   Node, Child: TX3DNode): Pointer;
 begin
   Result := nil;
@@ -449,27 +458,27 @@ begin
   State.PointingDeviceSensors.Add(Child);
 end;
 
-{ TAbstractGroupingNode ------------------------------------------------------ }
+{ TAbstractInternalGroupingNode ------------------------------------------------------ }
 
-procedure TAbstractGroupingNode.CreateNode;
+procedure TAbstractInternalGroupingNode.CreateNode;
 begin
   inherited;
   TempEnumerator := TGeneralGroupingEnumerator.Create;
   TempEnumeratorUsed := false;
 end;
 
-destructor TAbstractGroupingNode.Destroy;
+destructor TAbstractInternalGroupingNode.Destroy;
 begin
   FreeAndNil(TempEnumerator);
   inherited;
 end;
 
-function TAbstractGroupingNode.SeparateGroup: boolean;
+function TAbstractInternalGroupingNode.SeparateGroup: boolean;
 begin
   Result := true;
 end;
 
-procedure TAbstractGroupingNode.BeforeTraverse(
+procedure TAbstractInternalGroupingNode.BeforeTraverse(
   StateStack: TX3DGraphTraverseStateStack);
 var
   Enumerator: TGeneralGroupingEnumerator;
@@ -485,10 +494,10 @@ begin
     { Note: Applying transformation cannot be done in overriden BeforeTraverse.
 
       Reason: for storing ClipPlanes transformations, we need to know
-      transformed matrix inside TAbstractGroupingNode.BeforeTraverse implementation.
-      And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
+      transformed matrix inside TAbstractInternalGroupingNode.BeforeTraverse implementation.
+      And we also do StateStack.Push inside TAbstractInternalGroupingNode.BeforeTraverse
       implementation... So ApplyTransform must happen in the middle of
-      TAbstractGroupingNode.BeforeTraverse call. }
+      TAbstractInternalGroupingNode.BeforeTraverse call. }
 
     TransformFunctionality.ApplyTransform(StateStack.Top);
   end;
@@ -536,7 +545,7 @@ begin
   end;
 end;
 
-procedure TAbstractGroupingNode.AfterTraverse(
+procedure TAbstractInternalGroupingNode.AfterTraverse(
   StateStack: TX3DGraphTraverseStateStack);
 begin
   if BeforeTraversePushedState then
@@ -545,9 +554,9 @@ begin
   inherited;
 end;
 
-{ TAbstractX3DGroupingNode --------------------------------------------------- }
+{ TAbstractGroupingNode --------------------------------------------------- }
 
-procedure TAbstractX3DGroupingNode.CreateNode;
+procedure TAbstractGroupingNode.CreateNode;
 begin
   inherited;
 
@@ -589,7 +598,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractX3DGroupingNode.ToChildrenArray(
+function TAbstractGroupingNode.ToChildrenArray(
   const Nodes: TMFNode): TChildrenArray;
 var
   I: Integer;
@@ -607,19 +616,19 @@ begin
   end;
 end;
 
-procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
+procedure TAbstractGroupingNode.EventAddChildrenReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   AddChildren(ToChildrenArray(Value as TMFNode), false);
 end;
 
-procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
+procedure TAbstractGroupingNode.EventRemoveChildrenReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   RemoveChildren(ToChildrenArray(Value as TMFNode));
 end;
 
-procedure TAbstractX3DGroupingNode.AddChildren(
+procedure TAbstractGroupingNode.AddChildren(
   const Children: array of TAbstractChildNode;
   const AllowDuplicates: Boolean);
 var
@@ -645,7 +654,7 @@ begin
     Scene.InternalChangedField(FdChildren, chGroupChildrenAdd);
 end;
 
-procedure TAbstractX3DGroupingNode.RemoveChildren(
+procedure TAbstractGroupingNode.RemoveChildren(
   const Children: array of TAbstractChildNode);
 var
   N: TAbstractChildNode;
@@ -673,20 +682,20 @@ begin
     Scene.InternalChangedField(FdChildren);
 end;
 
-procedure TAbstractX3DGroupingNode.AddChildren(
+procedure TAbstractGroupingNode.AddChildren(
   const Child: TAbstractChildNode;
   const AllowDuplicates: Boolean);
 begin
   AddChildren([Child], AllowDuplicates);
 end;
 
-procedure TAbstractX3DGroupingNode.RemoveChildren(
+procedure TAbstractGroupingNode.RemoveChildren(
   const Child: TAbstractChildNode);
 begin
   RemoveChildren([Child]);
 end;
 
-procedure TAbstractX3DGroupingNode.ClearChildren;
+procedure TAbstractGroupingNode.ClearChildren;
 begin
   if FdChildren.Count <> 0 then
   begin

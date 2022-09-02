@@ -52,9 +52,9 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractX3DGroupingNode ----------------------------------------------- }
+{ TAbstractGroupingNode ----------------------------------------------- }
 
-procedure TAbstractX3DGroupingNode.SetChildren(const Value: array of TAbstractChildNode);
+procedure TAbstractGroupingNode.SetChildren(const Value: array of TAbstractChildNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -66,12 +66,12 @@ begin
   FdChildren.Send(A);
 end;
 
-function TAbstractX3DGroupingNode.GetBBox: TBox3D;
+function TAbstractGroupingNode.GetBBox: TBox3D;
 begin
   Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TAbstractX3DGroupingNode.SetBBox(const Value: TBox3D);
+procedure TAbstractGroupingNode.SetBBox(const Value: TBox3D);
 var
   ValueCenter, ValueSize: TVector3;
 begin
@@ -81,24 +81,24 @@ begin
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
-function TAbstractX3DGroupingNode.GetVisible: Boolean;
+function TAbstractGroupingNode.GetVisible: Boolean;
 begin
   Result := FdVisible.Value;
 end;
 
-procedure TAbstractX3DGroupingNode.SetVisible(const Value: Boolean);
+procedure TAbstractGroupingNode.SetVisible(const Value: Boolean);
 begin
   FdVisible.Send(Value);
 end;
 
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-function TAbstractX3DGroupingNode.GetBboxDisplay: Boolean;
+function TAbstractGroupingNode.GetBboxDisplay: Boolean;
 begin
   Result := FdBboxDisplay.Value;
 end;
 
-procedure TAbstractX3DGroupingNode.SetBboxDisplay(const Value: Boolean);
+procedure TAbstractGroupingNode.SetBboxDisplay(const Value: Boolean);
 begin
   FdBboxDisplay.Send(Value);
 end;

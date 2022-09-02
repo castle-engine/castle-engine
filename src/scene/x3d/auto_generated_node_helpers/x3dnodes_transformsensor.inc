@@ -54,7 +54,7 @@ procedure TTransformSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdTargetObject := TSFNode.Create(Self, True, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
+  FFdTargetObject := TSFNode.Create(Self, True, 'targetObject', [TAbstractGroupingNode, TAbstractShapeNode]);
    FdTargetObject.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTargetObject);
 

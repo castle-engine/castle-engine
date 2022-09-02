@@ -29,7 +29,7 @@
 
   { Load the URL when the user activates (clicks)
     some geometry contained within the Anchor node's children. }
-  TAnchorNode = class(TAbstractX3DGroupingNode)
+  TAnchorNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -89,7 +89,7 @@
   end;
 
   { Embed another X3D scene into the current scene. }
-  TInlineNode = class(TAbstractGroupingNode)
+  TInlineNode = class(TAbstractInternalGroupingNode)
   strict private
     procedure EventLoadReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
