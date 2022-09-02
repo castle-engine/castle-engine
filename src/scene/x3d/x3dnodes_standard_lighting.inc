@@ -89,13 +89,7 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
-  { Base class for all "punctual" light nodes (that have a position and/or direction).
-
-    Note that even the old VRML 1.0 light nodes inherit from this.
-    Although they interpret some bits differently
-    ("ambientIntensity" < 0 has special meaning).
-    But most of the fields behave identically, they only have different
-    default values. }
+  { Base class for all "punctual" light nodes (that have a position and/or direction). }
   TAbstractPunctualLightNode = class(TAbstractLightNode)
   strict private
     function  GetProjectionSceneLocation: TVector3;

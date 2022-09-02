@@ -1074,10 +1074,7 @@ begin
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
 
   { calculate AmbientColor3 = light color * light ambient intensity }
-  if Node.FdAmbientIntensity.Value < 0 then
-    AmbientColor3 := Color3
-  else
-    AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
+  AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
 
   if Node is TAbstractPunctualLightNode then
   begin

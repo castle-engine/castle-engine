@@ -655,7 +655,6 @@
 
   TDirectionalLightNode_1 = class(TAbstractDirectionalLightNode)
   public
-    procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -2086,16 +2085,6 @@ begin
   Result := ptPerspective;
 end;
 
-procedure TDirectionalLightNode_1.CreateNode;
-begin
-  inherited;
-
-  { Default ambientIntensity value for VRML 1.0.
-    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
-  FdAmbientIntensity.Value := -1;
-  FdAmbientIntensity.DefaultValue := -1;
-end;
-
 class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
@@ -2116,11 +2105,6 @@ end;
 procedure TPointLightNode_1.CreateNode;
 begin
   inherited;
-
-  { Default ambientIntensity value for VRML 1.0.
-    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
-  FdAmbientIntensity.Value := -1;
-  FdAmbientIntensity.DefaultValue := -1;
 
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
   FdLocation.Value := Vector3(0, 0, 1);
@@ -2152,11 +2136,6 @@ end;
 procedure TSpotLightNode_1.CreateNode;
 begin
   inherited;
-
-  { Default ambientIntensity value for VRML 1.0.
-    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
-  FdAmbientIntensity.Value := -1;
-  FdAmbientIntensity.DefaultValue := -1;
 
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
   FdLocation.Value := Vector3(0, 0, 1);
