@@ -51,9 +51,9 @@
     public property FdChildren: TMFNode read FFdChildren;
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. }
+    { You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;

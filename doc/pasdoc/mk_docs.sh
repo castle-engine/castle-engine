@@ -188,7 +188,6 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  --description=../doc/pasdoc/x3dnodes_documentation.txt \
   $FORMAT_OPTIONS \
   | \
   grep --ignore-case --invert-match --fixed-strings \

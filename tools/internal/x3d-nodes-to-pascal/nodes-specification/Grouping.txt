@@ -19,6 +19,8 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
     change: chGroupChildren
   SFVec3f []       bboxCenter     0 0 0
     range: (-Inf,Inf)
+    # Note that bboxCenter documentation string it used for generated "BBox: TBox3D" property.
+    doc: You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox
   SFVec3f []       bboxSize       -1 -1 -1
     range: [0,Inf) or -1 -1 -1
   SFBool  [in,out] visible        TRUE

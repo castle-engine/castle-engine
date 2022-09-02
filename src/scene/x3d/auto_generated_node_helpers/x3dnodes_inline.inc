@@ -49,7 +49,7 @@
     strict private FFdBboxCenter: TSFVec3f;
     {  }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. }
+    {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;

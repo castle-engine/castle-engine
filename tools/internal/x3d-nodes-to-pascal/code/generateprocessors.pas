@@ -1,3 +1,4 @@
+// -*- compile-command: "castle-engine compile && cd .. && ./run.sh" -*-
 {
   Copyright 2015-2022 Michalis Kamburelis.
 
@@ -889,6 +890,24 @@ var
       raise EInvalidSpecificationFile.CreateFmt('"%s" can only be used when a field was declared earlier', [Command]);
   end;
 
+  { Simple approach to read multiline string from text file.
+    Assumes that it must end with a line with only """ (optionally surrounded by whitespaces,
+    but nothing more, not even comments). }
+  function ReadMultilineString(const F: TTextReader): String;
+  var
+    S: String;
+  begin
+    Result := '';
+    repeat
+      if F.Eof then
+        raise EInvalidSpecificationFile.Create('Unexpected end of file in the middle of multiline string (""")');
+      S := F.Readln;
+      if Trim(S) = '"""' then
+        Exit;
+      Result := Result + Trim(S) + NL;
+    until false;
+  end;
+
 var
   F: TTextReader;
   PosComment, I: Integer;
@@ -998,6 +1017,8 @@ begin
           begin
             ValidatePerFieldCommand('doc');
             LastField.Documentation := Trim(PrefixRemove('doc:', Trim(Line), false));
+            if LastField.Documentation = '"""' then
+              LastField.Documentation := ReadMultilineString(F);
           end else
 
           if Tokens[0] = 'setter-before:' then
@@ -1188,7 +1209,7 @@ begin
       Field.ConditionsEnd;
     OutputPublicInterface +=
       Field.ConditionsBegin +
-      '    { Bounding box, as TBox3D. }' + NL +
+      '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
       '    property BBox: TBox3D read GetBBox write SetBBox;' + NL +
       Field.ConditionsEnd;
     OutputImplementation +=

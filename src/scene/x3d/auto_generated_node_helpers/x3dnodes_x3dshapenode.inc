@@ -53,9 +53,25 @@
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { You can provide a manually-calculated bounding box of the shape here, for optimization purposes. Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically.
+
+Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
+
+The glTF skinned animation automatically fills this field for the affected shapes.
+
+@italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
+
+To read the calculated bounding box, load the nodes to TCastleScene. You can then use @link(TCastleTransform.BoundingBox Scene.BoundingBox), @link(TCastleTransform.LocalBoundingBox Scene.LocalBoundingBox), @link(TCastleTransform.WorldBoundingBox Scene.WorldBoundingBox) to know bounding box of the scene. To get bounding box of a particular shape, enumerate @link(TCastleSceneCore.Shapes) to find the correct shape (using any criteria you want -- note that the same TShapeNode may be reused multiple times), and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    { Bounding box, as TBox3D. }
+    { You can provide a manually-calculated bounding box of the shape here, for optimization purposes. Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically.
+
+Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
+
+The glTF skinned animation automatically fills this field for the affected shapes.
+
+@italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
+
+To read the calculated bounding box, load the nodes to TCastleScene. You can then use @link(TCastleTransform.BoundingBox Scene.BoundingBox), @link(TCastleTransform.LocalBoundingBox Scene.LocalBoundingBox), @link(TCastleTransform.WorldBoundingBox Scene.WorldBoundingBox) to know bounding box of the scene. To get bounding box of a particular shape, enumerate @link(TCastleSceneCore.Shapes) to find the correct shape (using any criteria you want -- note that the same TShapeNode may be reused multiple times), and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox). }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
