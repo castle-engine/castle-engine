@@ -91,7 +91,7 @@ begin
    FdParameter.ChangeAlways := chTextureCoordinate;
   AddField(FFdParameter);
 
-  FFdProjectedLight := TSFNode.Create(Self, True, 'projectedLight', [TSpotLightNode, TDirectionalLightNode]);
+  FFdProjectedLight := TSFNode.Create(Self, True, 'projectedLight', [TSpotLightNode, TDirectionalLightNode, TSpotLightNode_1, TDirectionalLightNode_1]);
    FdProjectedLight.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjectedLight);
 end;

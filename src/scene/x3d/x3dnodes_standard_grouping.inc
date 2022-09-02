@@ -50,7 +50,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
   end;
 
@@ -65,32 +65,7 @@
     procedure EventRemoveChildrenReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-
-    { Event in } { }
-    strict private FEventAddChildren: TMFNodeEvent;
-    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
-
-    { Event in } { }
-    strict private FEventRemoveChildren: TMFNodeEvent;
-    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
-
-    strict private FFdChildren: TMFNode;
-    public property FdChildren: TMFNode read FFdChildren;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdVisible: TSFBool;
-    public property FdVisible: TSFBool read FFdVisible;
-
-    strict private FFdBBoxDisplay: TSFBool;
-    public property FdBBoxDisplay: TSFBool read FFdBBoxDisplay;
-    {$endif}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { Add the nodes as children.
 
@@ -135,7 +110,7 @@
       to the parent TCastleSceneCore. }
     procedure ClearChildren;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
   end;
 
   TAbstractX3DGroupingNode = TAbstractGroupingNode deprecated 'use TAbstractGroupingNode';
@@ -146,16 +121,13 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
-    {$I auto_generated_node_helpers/x3dnodes_group.inc}
+  {$I auto_generated_node_helpers/x3dnodes_group.inc}
   end;
   TGroupNode_2 = TGroupNode;
 
+  { Map String->LongInt. }
   TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
   strict private
     function GetItems(const AKey: string): LongInt;
@@ -337,20 +309,7 @@
   TStaticGroupNode = class(TAbstractInternalGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdChildren: TMFNode;
-    public property FdChildren: TMFNode read FFdChildren;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
+  {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
   end;
 
   { Choose only one (or none) of the child nodes for processing.
@@ -368,18 +327,12 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdWhichChoice: TSFInt32;
-    public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     function TransformationChange: TNodeTransformationChange; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_switch.inc}
+  {$I auto_generated_node_helpers/x3dnodes_switch.inc}
   end;
   TSwitchNode_2 = TSwitchNode;
 
@@ -403,28 +356,11 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdScaleOrientation: TSFRotation;
-    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    {$I auto_generated_node_helpers/x3dnodes_transform.inc}
+  {$I auto_generated_node_helpers/x3dnodes_transform.inc}
   end;
   TTransformNode_2 = TTransformNode;
 
@@ -460,7 +396,7 @@ end;
 
 { TAbstractInternalGroupingNode ------------------------------------------------------ }
 
-procedure TAbstractInternalGroupingNode.CreateNode;
+constructor TAbstractInternalGroupingNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   TempEnumerator := TGeneralGroupingEnumerator.Create;
@@ -556,46 +492,16 @@ end;
 
 { TAbstractGroupingNode --------------------------------------------------- }
 
-procedure TAbstractGroupingNode.CreateNode;
+constructor TAbstractGroupingNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
-
-  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
-  AddEvent(FEventAddChildren);
   EventaddChildren.AddNotification({$ifdef FPC}@{$endif} EventAddChildrenReceive);
-
-  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
-  AddEvent(FEventRemoveChildren);
   EventRemoveChildren.AddNotification({$ifdef FPC}@{$endif} EventRemoveChildrenReceive);
 
-  { Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
-    to be present at top-level of the file.
-    Testcase: demo-models/vrml_1/castle_extensions/multi_root.wrl }
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode, TAbstractGeometryNode_1]);
-   FdChildren.ChangeAlways := chGroupChildren;
-  AddField(FFdChildren);
-
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdVisible := TSFBool.Create(Self, true, 'visible', true);
   { Calling it "render" is an extension from InstantReality,
     see [http://instant-reality.com/documentation/nodetype/ChildGroup/].
     This extension was invented before X3D 4 added it. }
   FFdVisible.AddAlternativeName('render', 0);
-  AddField(FFdVisible);
-
-  FFdBBoxDisplay := TSFBool.Create(Self, true, 'bboxDisplay', false);
-  AddField(FFdBBoxDisplay);
-  {$endif}
-
-  DefaultContainerField := 'children';
 end;
 
 function TAbstractGroupingNode.ToChildrenArray(
@@ -707,17 +613,7 @@ begin
   end;
 end;
 
-procedure TGroupNode.CreateNode;
-begin
-  inherited;
-
-  DefaultContainerField := 'children';
-end;
-
-class function TGroupNode.ClassX3DType: string;
-begin
-  Result := 'Group';
-end;
+{ TGroupNode ----------------------------------------------------------------- }
 
 class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -1159,30 +1055,6 @@ end;
 
 { TStaticGroupNode ----------------------------------------------------------- }
 
-procedure TStaticGroupNode.CreateNode;
-begin
-  inherited;
-
-  FFdChildren := TMFNode.Create(Self, false, 'children', [TAbstractChildNode]);
-   FdChildren.ChangeAlways := chGroupChildren;
-  AddField(FFdChildren);
-
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TStaticGroupNode.ClassX3DType: string;
-begin
-  Result := 'StaticGroup';
-end;
-
 function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -1191,23 +1063,10 @@ end;
 
 { TSwitchNode ---------------------------------------------------------------- }
 
-procedure TSwitchNode.CreateNode;
+constructor TSwitchNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
-
   Fdchildren.AddAlternativeName('choice', 2);
-
-  FFdWhichChoice := TSFInt32.Create(Self, true, 'whichChoice', -1);
-   FdWhichChoice.ChangeAlways := chSwitch2;
-  AddField(FFdWhichChoice);
-  { X3D specification comment: [-1,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSwitchNode.ClassX3DType: string;
-begin
-  Result := 'Switch';
 end;
 
 class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1267,43 +1126,6 @@ begin
   inherited;
   FTransformFunctionality := TTransformNodeTransformFunctionality.Create(Self);
   AddFunctionality(FTransformFunctionality);
-end;
-
-procedure TTransformNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (-Inf, Inf) }
-
-  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangeAlways := chTransform;
-  AddField(FFdScaleOrientation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) }
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TTransformNode.ClassX3DType: string;
-begin
-  Result := 'Transform';
 end;
 
 class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

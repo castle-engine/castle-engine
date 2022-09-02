@@ -7,12 +7,17 @@
 # }
 
 X3DGroupingNode : X3DChildNode, X3DBoundedObject {
+  auto-generate-more: true
   MFNode  [in]     addChildren
     range: X3DChildNode
   MFNode  [in]     removeChildren
     range: X3DChildNode
   MFNode  [in,out] children       []
-    range: X3DChildNode
+    # Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
+    # to be present at top-level of the file.
+    # Testcase: demo-models/vrml_1/castle_extensions/multi_root.wrl
+    range: X3DChildNode, TAbstractGeometryNode_1
+    change: chGroupChildren
   SFVec3f []       bboxCenter     0 0 0
     range: (-Inf,Inf)
   SFVec3f []       bboxSize       -1 -1 -1
@@ -24,11 +29,14 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
 }
 
 Group : X3DGroupingNode {
+  auto-generate-more: true
 }
 
 StaticGroup : X3DChildNode, X3DBoundedObject {
+  auto-generate-more: true
   MFNode  []       children   []
     range: X3DChildNode
+    change: chGroupChildren
   SFVec3f []       bboxCenter 0 0 0
     range: (-Inf,Inf)
   SFVec3f []       bboxSize   -1 -1 -1
@@ -36,24 +44,32 @@ StaticGroup : X3DChildNode, X3DBoundedObject {
 }
 
 Switch : X3DGroupingNode {
+  auto-generate-more: true
   SFInt32 [in,out] whichChoice    -1
     range: [-1,Inf)
+    change: chSwitch2
 }
 
 Transform : X3DGroupingNode {
+  auto-generate-more: true
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     doc: Center point around which the @link(Rotation) and @link(Scale) is performed.
+    change: chTransform
   SFRotation [in,out] rotation         0 0 1 0
     range: [-1,1] or (-Inf,Inf)
     doc: Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center).
+    change: chTransform
   SFVec3f    [in,out] scale            1 1 1
     range: (-Inf, Inf)
     doc: Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation).
+    change: chTransform
   SFRotation [in,out] scaleOrientation 0 0 1 0
     range: [-1,1] or (-Inf,Inf)
     doc: Orientation in which 3D @link(Scale) is performed.
+    change: chTransform
   SFVec3f    [in,out] translation      0 0 0
     range: (-Inf,Inf)
     doc: Translation (move) the children nodes.
+    change: chTransform
 }

@@ -167,8 +167,7 @@ MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
   auto-generate-more: true
   SFNode     [in,out]      projector   NULL
-    range: SpotLight, DirectionalLight, X3DViewpointNode
-    # TODO: we should also allow VRML 1 TSpotLightNode_1, TDirectionalLightNode_1
+    range: SpotLight, DirectionalLight, X3DViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1
     change: chTextureCoordinate
     doc: Viewpoint or light that determine how is the texture projected.
 }

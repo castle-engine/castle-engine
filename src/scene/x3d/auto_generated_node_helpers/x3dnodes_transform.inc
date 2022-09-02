@@ -35,14 +35,36 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec3f;
+    { Center point around which the @link(Rotation) and @link(Scale) is performed. }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdRotation: TSFRotation;
+    { Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
+    public property FdRotation: TSFRotation read FFdRotation;
     { Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). }
+    public property FdScale: TSFVec3f read FFdScale;
     { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdScaleOrientation: TSFRotation;
+    { Orientation in which 3D @link(Scale) is performed. }
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { Orientation in which 3D @link(Scale) is performed. }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+
+    strict private FFdTranslation: TSFVec3f;
+    { Translation (move) the children nodes. }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { Translation (move) the children nodes. }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
@@ -100,6 +122,36 @@ end;
 procedure TTransformNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
+end;
+
+class function TTransformNode.ClassX3DType: String;
+begin
+  Result := 'Transform';
+end;
+
+procedure TTransformNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chTransform;
+  AddField(FFdCenter);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chTransform;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chTransform;
+  AddField(FFdScale);
+
+  FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
+   FdScaleOrientation.ChangeAlways := chTransform;
+  AddField(FFdScaleOrientation);
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chTransform;
+  AddField(FFdTranslation);
 end;
 
 {$endif read_implementation}

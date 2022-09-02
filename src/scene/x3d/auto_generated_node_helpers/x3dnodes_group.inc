@@ -23,11 +23,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGroupNode ----------------------------------------------- }
+
+class function TGroupNode.ClassX3DType: String;
+begin
+  Result := 'Group';
+end;
+
+procedure TGroupNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

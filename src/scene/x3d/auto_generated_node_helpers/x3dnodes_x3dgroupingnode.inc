@@ -35,13 +35,45 @@
     procedure SetBboxDisplay(const Value: Boolean);
 {$endif not CASTLE_SLIM_NODES}
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddChildren: TMFNodeEvent;
     {  }
-    procedure SetChildren(const Value: array of TAbstractChildNode);
+    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
+
+    strict private FEventRemoveChildren: TMFNodeEvent;
+    {  }
+    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
+
+    strict private FFdChildren: TMFNode;
+    {  }
+    public property FdChildren: TMFNode read FFdChildren;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    {  }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    {  }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdVisible: TSFBool;
+    {  }
+    public property FdVisible: TSFBool read FFdVisible;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     {  }
     property Visible: Boolean read GetVisible write SetVisible;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdBboxDisplay: TSFBool;
+    {  }
+    public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     {  }
@@ -53,18 +85,6 @@
 {$ifdef read_implementation}
 
 { TAbstractGroupingNode ----------------------------------------------- }
-
-procedure TAbstractGroupingNode.SetChildren(const Value: array of TAbstractChildNode);
-var
-  L: Integer;
-  A: array of TX3DNode;
-begin
-  L := High(Value) + 1;
-  SetLength(A, L);
-  if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
-  FdChildren.Send(A);
-end;
 
 function TAbstractGroupingNode.GetBBox: TBox3D;
 begin
@@ -104,4 +124,44 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+class function TAbstractGroupingNode.ClassX3DType: String;
+begin
+  Result := 'X3DGroupingNode';
+end;
+
+procedure TAbstractGroupingNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
+  AddEvent(FEventAddChildren);
+
+  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
+  AddEvent(FEventRemoveChildren);
+
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractChildNode, TAbstractGeometryNode_1]);
+   FdChildren.ChangeAlways := chGroupChildren;
+  AddField(FFdChildren);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdVisible := TSFBool.Create(Self, True, 'visible', true);
+   FdVisible.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVisible);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdBboxDisplay := TSFBool.Create(Self, True, 'bboxDisplay', false);
+   FdBboxDisplay.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxDisplay);
+{$endif not CASTLE_SLIM_NODES}
+end;
+
 {$endif read_implementation}

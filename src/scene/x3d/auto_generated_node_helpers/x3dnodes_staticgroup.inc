@@ -27,10 +27,24 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdChildren: TMFNode;
+    {  }
+    public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);
+
+    strict private FFdBboxCenter: TSFVec3f;
+    {  }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { Bounding box, as TBox3D. }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    {  }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -62,6 +76,28 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function TStaticGroupNode.ClassX3DType: String;
+begin
+  Result := 'StaticGroup';
+end;
+
+procedure TStaticGroupNode.CreateNode;
+begin
+  inherited;
+
+  FFdChildren := TMFNode.Create(Self, False, 'children', [TAbstractChildNode]);
+   FdChildren.ChangeAlways := chGroupChildren;
+  AddField(FFdChildren);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

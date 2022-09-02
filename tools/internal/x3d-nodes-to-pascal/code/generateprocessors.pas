@@ -289,6 +289,16 @@ function TX3DNodeInformation.PascalType(const ForceAsFunctionality: boolean): st
 begin
   Result := X3DType;
 
+  { If this looks like a TXxxNode, then assume it is already a Pascal name spelled explicitly
+    in txt file. }
+  if IsPrefix('T', X3DType, false) and
+     (
+       IsSuffix('Node', X3DType, false) or
+       IsSuffix('Node_1', X3DType, false) or
+       IsSuffix('Node_2', X3DType, false)
+     ) then
+    Exit;
+
   if ForceAsFunctionality or IsFunctionality then
   begin
     // change 'X3DUrlObject' into 'TUrlFunctionality'

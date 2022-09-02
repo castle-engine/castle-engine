@@ -27,6 +27,12 @@
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdWhichChoice: TSFInt32;
+    {  }
+    public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
     {  }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;
 
@@ -44,6 +50,20 @@ end;
 procedure TSwitchNode.SetWhichChoice(const Value: Integer);
 begin
   FdWhichChoice.Send(Value);
+end;
+
+class function TSwitchNode.ClassX3DType: String;
+begin
+  Result := 'Switch';
+end;
+
+procedure TSwitchNode.CreateNode;
+begin
+  inherited;
+
+  FFdWhichChoice := TSFInt32.Create(Self, True, 'whichChoice', -1);
+   FdWhichChoice.ChangeAlways := chSwitch2;
+  AddField(FFdWhichChoice);
 end;
 
 {$endif read_implementation}

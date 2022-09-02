@@ -162,8 +162,7 @@ TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
   # to override it's transform with transformation of this
   # TextureCoordinateGenerator.
   SFNode   [in,out] projectedLight NULL
-    range: SpotLight, DirectionalLight
-    # TODO: to allowed classes, we could also add VRML 1 TSpotLightNode_1, TDirectionalLightNode_1
+    range: SpotLight, DirectionalLight, TSpotLightNode_1, TDirectionalLightNode_1
     change: chTextureCoordinate
 }
 

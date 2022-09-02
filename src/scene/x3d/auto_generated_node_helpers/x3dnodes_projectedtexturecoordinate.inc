@@ -46,7 +46,7 @@ procedure TProjectedTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
-  FFdProjector := TSFNode.Create(Self, True, 'projector', [TSpotLightNode, TDirectionalLightNode, TAbstractViewpointNode]);
+  FFdProjector := TSFNode.Create(Self, True, 'projector', [TSpotLightNode, TDirectionalLightNode, TAbstractViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1]);
    FdProjector.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjector);
 end;
