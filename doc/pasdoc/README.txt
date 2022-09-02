@@ -135,10 +135,8 @@ The documentation style:
     to make sure that the link is correct (PasDoc will warn if @link contents
     are incorrect, e.g. you make a typo).
 
-- An exception to the rule "put comments in the unit interface"
-  are the X3D fields in "src/x3d/auto_generated_node_helpers/xxx.inc".
-  They should be documented inside the "src/x3d/x3dnodes_documentation.txt" file,
-  not by editing the Pascal source code.
-
+- An exception to the rule "put comments in the unit interface" are the X3D fields.
+  They should be documented using "doc:" tag in txt files in
+  tools/internal/x3d-nodes-to-pascal/nodes-specification/Rendering.txt .
   This makes it possible to regenerate the include files in
   "auto_generated_node_helpers" when necessary.
