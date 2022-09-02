@@ -1,24 +1,19 @@
 X3DTextureCoordinateNode : X3DGeometricPropertyNode {
-  auto-generate-more: true
   # X3D XML spec doesn't specify containerField for abstract X3D classes.
   # But texCoord seems most sensible for this.
   default-container-field: texCoord
 }
 
 X3DTextureNode : X3DAppearanceChildNode {
-  auto-generate-more: true
   default-container-field: texture
 }
 
 X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
-  auto-generate-more: true
   SFString [in,out] mapping  ""
     change: chTextureCoordinate
 }
 
 X3DSingleTextureNode : X3DTextureNode {
-  auto-generate-more: true
-
   # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []   effects          []
     range: Effect
@@ -38,15 +33,12 @@ X3DSingleTextureNode : X3DTextureNode {
 }
 
 X3DSingleTextureTransformNode : X3DTextureTransformNode {
-  auto-generate-more: true
   SFString [in,out] mapping  ""
     # TODO is chTextureTransform enough? chTextureTransform will not free proxy?
     change: chTextureTransform
 }
 
 X3DTexture2DNode : X3DSingleTextureNode {
-  auto-generate-more: true
-
   SFBool []       repeatS           TRUE
     change: chTextureRendererProperties
   SFBool []       repeatT           TRUE
@@ -57,12 +49,10 @@ X3DTexture2DNode : X3DSingleTextureNode {
 }
 
 X3DTextureTransformNode : X3DAppearanceChildNode {
-  auto-generate-more: true
   default-container-field: textureTransform
 }
 
 ImageTexture : X3DTexture2DNode, X3DUrlObject {
-  auto-generate-more: true
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
@@ -71,7 +61,6 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
-  auto-generate-more: true
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0
@@ -100,7 +89,6 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 }
 
 MultiTexture : X3DTextureNode {
-  auto-generate-more: true
   SFFloat  [in,out] alpha    1
     range: [0,1]
     change: chTextureRendererProperties
@@ -119,35 +107,29 @@ MultiTexture : X3DTextureNode {
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {
-  auto-generate-more: true
   MFNode [in,out] texCoord NULL
     range: X3DSingleTextureCoordinateNode
     change: chTextureCoordinate
 }
 
 MultiTextureTransform : X3DTextureTransformNode {
-  auto-generate-more: true
   MFNode [in,out] textureTransform NULL
     range: X3DSingleTextureTransformNode
     change: chEverything
 }
 
 PixelTexture : X3DTexture2DNode {
-  auto-generate-more: true
   SFImage [in,out] image nil
     change: chTextureImage
 }
 
 TextureCoordinate : X3DSingleTextureCoordinateNode {
-  auto-generate-more: true
   MFVec2f [in,out] point    []
     range: (-Inf,Inf)
     change: chTextureCoordinate
 }
 
 TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
-  auto-generate-more: true
-
   SFString [in,out] mode      "SPHERE"
     change: chTextureCoordinate
     # TODO: should be defined as enum
@@ -167,7 +149,6 @@ TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
 }
 
 TextureProperties : X3DNode {
-  auto-generate-more: true
   default-container-field: textureProperties
   SFFloat     [in,out] anisotropicDegree   1.0
     range: [1,Inf)
@@ -211,7 +192,6 @@ TextureProperties : X3DNode {
 }
 
 TextureTransform : X3DSingleTextureTransformNode {
-  auto-generate-more: true
   SFVec2f [in,out] center      0 0
     change: chTextureTransform
   SFFloat [in,out] rotation    0

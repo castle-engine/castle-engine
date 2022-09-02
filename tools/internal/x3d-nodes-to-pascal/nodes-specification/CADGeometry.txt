@@ -1,18 +1,15 @@
 X3DProductStructureChildNode : X3DChildNode {
-  auto-generate-more: true
   default-container-field: children
   SFString [in,out] name ""
     change: chNone
 }
 
 CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
-  auto-generate-more: true
   SFString [in,out] name           ""
     change: chNone
 }
 
 CADFace : X3DProductStructureChildNode, X3DBoundedObject {
-  auto-generate-more: true
   SFNode   [in,out] shape      NULL
     range: X3DShapeNode, LOD, Transform
   SFVec3f  []       bboxCenter 0 0 0
@@ -22,14 +19,12 @@ CADFace : X3DProductStructureChildNode, X3DBoundedObject {
 }
 
 CADLayer : X3DGroupingNode {
-  auto-generate-more: true
   SFString [in,out] name           ""
     change: chNone
   # MFBool   [in,out] visible        [] # X3D 4 removed it, in favor of "SFBool visible" at X3DGroupingNode; we just follow X3D 4 spec for all X3D versions, for simplicity
 }
 
 CADPart : X3DGroupingNode, X3DProductStructureChildNode {
-  auto-generate-more: true
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     change: chTransform
@@ -50,7 +45,6 @@ CADPart : X3DGroupingNode, X3DProductStructureChildNode {
 }
 
 IndexedQuadSet : X3DComposedGeometryNode {
-  auto-generate-more: true
   MFInt32 [in]     set_index       []
     range: [0,Inf)
     not-slim
@@ -60,5 +54,4 @@ IndexedQuadSet : X3DComposedGeometryNode {
 }
 
 QuadSet : X3DComposedGeometryNode {
-  auto-generate-more: true
 }

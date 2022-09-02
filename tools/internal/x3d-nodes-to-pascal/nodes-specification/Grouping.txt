@@ -7,7 +7,6 @@
 # }
 
 X3DGroupingNode : X3DChildNode, X3DBoundedObject {
-  auto-generate-more: true
   MFNode  [in]     addChildren
     range: X3DChildNode
   MFNode  [in]     removeChildren
@@ -29,11 +28,9 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
 }
 
 Group : X3DGroupingNode {
-  auto-generate-more: true
 }
 
 StaticGroup : X3DChildNode, X3DBoundedObject {
-  auto-generate-more: true
   MFNode  []       children   []
     range: X3DChildNode
     change: chGroupChildren
@@ -44,14 +41,12 @@ StaticGroup : X3DChildNode, X3DBoundedObject {
 }
 
 Switch : X3DGroupingNode {
-  auto-generate-more: true
   SFInt32 [in,out] whichChoice    -1
     range: [-1,Inf)
     change: chSwitch2
 }
 
 Transform : X3DGroupingNode {
-  auto-generate-more: true
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     doc: Center point around which the @link(Rotation) and @link(Scale) is performed.

@@ -1,5 +1,4 @@
 X3DShaderNode : X3DAppearanceChildNode {
-  auto-generate-more: true
   default-container-field: shaders
 
   SFBool   [in]     activate
@@ -13,14 +12,12 @@ X3DShaderNode : X3DAppearanceChildNode {
 }
 
 X3DVertexAttributeNode : X3DGeometricPropertyNode {
-  auto-generate-more: true
   default-container-field: attrib
 
   SFString []       name     ""
 }
 
 ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
-  auto-generate-more: true
   MFNode    [in,out] parts      []
     range: ShaderPart
     change: chEverything
@@ -32,7 +29,6 @@ ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
 }
 
 FloatVertexAttribute : X3DVertexAttributeNode {
-  auto-generate-more: true
   MFFloat  [in,out] value                 []
     range: (-Inf,Inf)
   SFInt32  []       numComponents 4
@@ -40,31 +36,26 @@ FloatVertexAttribute : X3DVertexAttributeNode {
 }
 
 Matrix3VertexAttribute : X3DVertexAttributeNode {
-  auto-generate-more: true
   MFMatrix3f [in,out] value    []
     range: (-Inf,Inf)
 }
 
 Matrix4VertexAttribute : X3DVertexAttributeNode {
-  auto-generate-more: true
   MFMatrix4f [in,out] value    []
     range: (-Inf,Inf)
 }
 
 PackagedShader : X3DShaderNode, X3DUrlObject, X3DProgrammableShaderObject {
-  auto-generate-more: true
   MFString  [in,out] url        []
     range: [URI]
 }
 
 ProgramShader : X3DShaderNode {
-  auto-generate-more: true
   MFNode   [in,out] programs   []
     range: ShaderProgram
 }
 
 ShaderPart : X3DNode, X3DUrlObject {
-  auto-generate-more: true
   default-container-field: parts
 
   MFString [in,out] url      []
@@ -77,7 +68,6 @@ ShaderPart : X3DNode, X3DUrlObject {
 }
 
 ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
-  auto-generate-more: true
   default-container-field: programs
 
   MFString  [in,out] url       []

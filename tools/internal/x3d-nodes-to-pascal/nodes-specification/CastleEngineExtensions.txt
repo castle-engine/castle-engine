@@ -23,11 +23,9 @@
 # to declare KambiAppearance by EXTERNPROTO and fallback on standard
 # Appearance.
 KambiAppearance : Appearance {
-  auto-generate-more: true
 }
 
 GeneratedShadowMap : X3DSingleTextureNode {
-  auto-generate-more: true
   SFString   [in,out]      update           "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
     enumerated-type: TTextureUpdate TextureUpdateNames upNone
@@ -54,14 +52,12 @@ GeneratedShadowMap : X3DSingleTextureNode {
 }
 
 Text3D : Text {
-  auto-generate-more: true
   SFFloat    [in,out]      depth       0.1
     range: >= 0
     change: chGeometry
 }
 
 KambiInline : Inline {
-  auto-generate-more: true
   MFString   [in,out]      replaceNames  []
     change: chEverything
   MFNode     [in,out]      replaceNodes  []
@@ -70,11 +66,9 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
-  auto-generate-more: true
 }
 
 Teapot : X3DGeometryNode {
-  auto-generate-more: true
   SFVec3f    []            size        3 3 3
   SFBool     []            solid       TRUE
   SFBool     []            manifold    FALSE
@@ -83,7 +77,6 @@ Teapot : X3DGeometryNode {
 }
 
 RenderedTexture : X3DSingleTextureNode {
-  auto-generate-more: true
   SFNode     [in,out]      background       NULL
     range: X3DBackgroundNode
     change: chGeneratedTextureUpdateNeeded
@@ -142,7 +135,6 @@ RenderedTexture : X3DSingleTextureNode {
 }
 
 Logger : X3DChildNode {
-  auto-generate-more: true
   SFInt32    [in,out]      level       1
   SFString   []            logFile     ""
   SFBool     [in,out]      enabled     TRUE
@@ -150,8 +142,7 @@ Logger : X3DChildNode {
 }
 
 # MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
-#   auto-generate-more: true
-#
+# #
 #   MFNode [in,out] texCoord NULL
 #     range: TextureCoordinateGenerator, ProjectedTextureCoordinate
 # }
@@ -161,11 +152,9 @@ Logger : X3DChildNode {
 # MultiGeneratedTextureCoordinate now descends from MultiTextureCoordinate.
 # See TMultiGeneratedTextureCoordinateNode comments for reasons.
 MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
-  auto-generate-more: true
 }
 
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
-  auto-generate-more: true
   SFNode     [in,out]      projector   NULL
     range: SpotLight, DirectionalLight, X3DViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1
     change: chTextureCoordinate
@@ -174,7 +163,6 @@ ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
 
 # See https://castle-engine.io/x3d_extensions_screen_effects.php
 ScreenEffect : X3DChildNode {
-  auto-generate-more: true
   SFBool     [in,out]      enabled     TRUE
     change: chScreenEffectEnabled
   SFBool     [in,out]      needsDepth  FALSE
@@ -186,7 +174,6 @@ ScreenEffect : X3DChildNode {
 
 # See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
-  auto-generate-more: true
 
   SFString   []            language    ""
     range: ["CG"|"GLSL"|"HLSL"|...]
@@ -207,7 +194,6 @@ Effect : X3DChildNode {
 
 # See https://castle-engine.io/compositing_shaders.php
 EffectPart : X3DNode, X3DUrlObject {
-  auto-generate-more: true
   default-container-field: parts
 
   MFString [in,out] url      []
@@ -220,7 +206,6 @@ EffectPart : X3DNode, X3DUrlObject {
 
 # See https://castle-engine.io/compositing_shaders.php
 ShaderTexture : X3DSingleTextureNode {
-  auto-generate-more: true
   SFString []       defaultTexCoord "BOUNDS2D"
     #range: ["BOUNDS2D"|"BOUNDS3D"]
     change: chEverything
@@ -229,7 +214,6 @@ ShaderTexture : X3DSingleTextureNode {
 
 # See https://castle-engine.io/x3d_extensions.php#section_ext_blending
 BlendMode {
-  auto-generate-more: true
   default-container-field: blendMode
   SFString   [in,out]      srcFactor   "src_alpha"
     range: ["zero", ..., "one_minus_constant_alpha"]
@@ -242,13 +226,11 @@ BlendMode {
 }
 
 ViewpointMirror {
-  auto-generate-more: true
   default-container-field: viewpoint
   SFFloat   [in,out]      distanceFromShape 0.01
 }
 
 OrientationInterpolator2D : X3DInterpolatorNode {
-  auto-generate-more: true
   MFFloat    [in,out] keyValue      []
     change: chNone
   SFVec3f    [in,out] axis          0 0 1

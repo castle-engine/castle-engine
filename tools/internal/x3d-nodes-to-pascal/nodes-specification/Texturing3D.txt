@@ -1,6 +1,4 @@
 X3DTexture3DNode : X3DSingleTextureNode {
-  auto-generate-more: true
-
   SFBool []       repeatS           FALSE
     change: chTextureRendererProperties
   SFBool []       repeatT           FALSE
@@ -13,55 +11,41 @@ X3DTexture3DNode : X3DSingleTextureNode {
 }
 
 ComposedTexture3D : X3DTexture3DNode {
-  auto-generate-more: true
-
   MFNode [in,out] texture  []
     range: X3DTexture2DNode
     change: chTextureImage
 }
 
 ImageTexture3D : X3DTexture3DNode, X3DUrlObject {
-  auto-generate-more: true
-
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
 }
 
 PixelTexture3D : X3DTexture3DNode {
-  auto-generate-more: true
-
   MFInt32 [in,out] image             [0, 0, 0, 0]
     change: chTextureImage
 }
 
 TextureCoordinate3D : X3DSingleTextureCoordinateNode {
-  auto-generate-more: true
-
   MFVec3f [in,out] point    []
     range: (-Inf,Inf)
     change: chTextureCoordinate
 }
 
 TextureCoordinate4D : X3DSingleTextureCoordinateNode {
-  auto-generate-more: true
-
   MFVec4f [in,out] point    []
     range: (-Inf,Inf)
     change: chTextureCoordinate
 }
 
 TextureTransformMatrix3D : X3DSingleTextureTransformNode {
-  auto-generate-more: true
-
   SFMatrix4f [in,out] matrix      identity
     range: (-Inf,Inf)
     change: chTextureTransform
 }
 
 TextureTransform3D : X3DSingleTextureTransformNode {
-  auto-generate-more: true
-
   SFVec3f    [in,out] center      0 0 0
     range: (-Inf,Inf)
     change: chTextureTransform

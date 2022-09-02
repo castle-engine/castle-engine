@@ -1,5 +1,4 @@
 X3DNBodyCollidableNode : X3DChildNode, X3DBoundedObject {
-  auto-generate-more: true
   SFBool     [in,out] enabled     TRUE
   SFRotation [in,out] rotation    0 0 1 0
     range: [0,1]
@@ -12,7 +11,6 @@ X3DNBodyCollidableNode : X3DChildNode, X3DBoundedObject {
 }
 
 X3DNBodyCollisionSpaceNode : X3DNode, X3DBoundedObject {
-  auto-generate-more: true
   SFBool  [in,out] enabled    TRUE
   SFVec3f []       bboxCenter 0 0 0
     range: (-Inf,Inf)
@@ -21,7 +19,6 @@ X3DNBodyCollisionSpaceNode : X3DNode, X3DBoundedObject {
 }
 
 X3DRigidJointNode : X3DNode {
-  auto-generate-more: true
   default-container-field: joints
   SFNode   [in,out] body1       NULL
     range: RigidBody
@@ -32,26 +29,22 @@ X3DRigidJointNode : X3DNode {
 }
 
 BallJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFVec3f  [in,out] anchorPoint      0 0 0
   SFVec3f  [out]    body1AnchorPoint
   SFVec3f  [out]    body2AnchorPoint
 }
 
 CollidableOffset : X3DNBodyCollidableNode {
-  auto-generate-more: true
   SFNode     []       collidable  NULL
     range: X3DNBodyCollidableNode
 }
 
 CollidableShape : X3DNBodyCollidableNode  {
-  auto-generate-more: true
   SFNode     []       shape       NULL
     range: Shape
 }
 
 CollisionCollection : X3DChildNode {
-  auto-generate-more: true
   MFString [in,out] appliedParameters        ["BOUNCE"]
     range: []
   SFFloat  [in,out] bounce                   0
@@ -74,7 +67,6 @@ CollisionCollection : X3DChildNode {
 }
 
 CollisionSensor : X3DSensorNode {
-  auto-generate-more: true
   SFNode [in,out] collider      NULL
     range: CollisionCollection
   MFNode [out]    intersections
@@ -84,7 +76,6 @@ CollisionSensor : X3DSensorNode {
 }
 
 CollisionSpace : X3DNBodyCollisionSpaceNode {
-  auto-generate-more: true
   default-container-field: children
   MFNode  [in,out] collidables NULL
     range: X3DNBodyCollisionSpaceNode, X3DNBodyCollidableNode
@@ -92,7 +83,6 @@ CollisionSpace : X3DNBodyCollisionSpaceNode {
 }
 
 Contact : X3DNode {
-  auto-generate-more: true
   default-container-field: children
   MFString [in,out] appliedParameters        ["BOUNCE"]
     range: []
@@ -129,7 +119,6 @@ Contact : X3DNode {
 }
 
 DoubleAxisHingeJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFVec3f  [in,out] anchorPoint               0 0 0
   SFVec3f  [in,out] axis1                     0 0 0
   SFVec3f  [in,out] axis2                     0 0 0
@@ -166,7 +155,6 @@ DoubleAxisHingeJoint : X3DRigidJointNode {
 }
 
 MotorJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFFloat  [in,out] axis1Angle           0
     range: [-Pi,Pi]
   SFFloat  [in,out] axis1Torque          0
@@ -206,7 +194,6 @@ MotorJoint : X3DRigidJointNode {
 }
 
 RigidBody : X3DNode {
-  auto-generate-more: true
   default-container-field: bodies
   SFFloat    [in,out] angularDampingFactor 0.001
     range: [0,1]
@@ -248,7 +235,6 @@ RigidBody : X3DNode {
 }
 
 RigidBodyCollection : X3DChildNode {
-  auto-generate-more: true
   MFNode  [in]     set_contacts            []
     range: Contact
   SFBool  [in,out] autoDisable             FALSE
@@ -280,7 +266,6 @@ RigidBodyCollection : X3DChildNode {
 }
 
 SingleAxisHingeJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFVec3f  [in,out] anchorPoint         0 0 0
   SFVec3f  [in,out] axis                0 0 0
   SFFloat  [in,out] maxAngle            Pi
@@ -296,7 +281,6 @@ SingleAxisHingeJoint : X3DRigidJointNode {
 }
 
 SliderJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFVec3f  [in,out] axis                0 1 0
   SFFloat  [in,out] maxSeparation       1
     range: [0,Inf)
@@ -311,7 +295,6 @@ SliderJoint : X3DRigidJointNode {
 }
 
 UniversalJoint : X3DRigidJointNode {
-  auto-generate-more: true
   SFVec3f  [in,out] anchorPoint          0 0 0
   SFVec3f  [in,out] axis1                0 0 0
   SFVec3f  [in,out] axis2                0 0 0

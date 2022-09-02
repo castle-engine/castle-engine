@@ -1,6 +1,4 @@
 X3DViewpointNode : X3DBindableNode {
-  auto-generate-more: true
-
   SFVec3f    [in,out] centerOfRotation  0 0 0
     range: (-Inf,Inf)
   SFString   [in,out] description       ""
@@ -22,15 +20,11 @@ X3DViewpointNode : X3DBindableNode {
 }
 
 Billboard : X3DGroupingNode {
-  auto-generate-more: true
-
   SFVec3f [in,out] axisOfRotation 0 1 0
     range: (-Inf,Inf)
 }
 
 Collision : X3DGroupingNode, X3DSensorNode {
-  auto-generate-more: true
-
   SFBool  [in,out] enabled TRUE
     change: chEverything
   SFTime  [out]    collideTime
@@ -41,8 +35,6 @@ Collision : X3DGroupingNode, X3DSensorNode {
 }
 
 LOD : X3DGroupingNode {
-  auto-generate-more: true
-
   SFInt32 [out]    level_changed
   SFVec3f []       center           0 0 0
     range: (-Inf,Inf)
@@ -56,8 +48,6 @@ LOD : X3DGroupingNode {
 }
 
 NavigationInfo : X3DBindableNode {
-  auto-generate-more: true
-
   MFFloat  [in,out] avatarSize      [0.25, 1.6, 0.75]
     range: [0,Inf)
     change: chNavigationInfo
@@ -101,8 +91,6 @@ NavigationInfo : X3DBindableNode {
 }
 
 OrthoViewpoint : X3DViewpointNode {
-  auto-generate-more: true
-
   MFFloat    [in,out] fieldOfView       [-1, -1, 1, 1]
     range: (-Inf,Inf)
     change: chViewpointProjection
@@ -112,8 +100,6 @@ OrthoViewpoint : X3DViewpointNode {
 }
 
 Viewpoint : X3DViewpointNode {
-  auto-generate-more: true
-
   SFFloat    [in,out] fieldOfView       Pi/4
     range: (0,Pi)
     change: chViewpointProjection
@@ -127,8 +113,6 @@ Viewpoint : X3DViewpointNode {
 }
 
 ViewpointGroup : X3DChildNode {
-  auto-generate-more: true
-
   SFVec3f  [in,out] center            0 0 0
     range: (-Inf,Inf)
   MFNode   [in,out] children          []

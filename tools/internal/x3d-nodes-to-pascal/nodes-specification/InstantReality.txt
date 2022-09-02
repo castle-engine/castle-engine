@@ -1,10 +1,8 @@
 MatrixTransform : X3DGroupingNode {
-  auto-generate-more: true
   SFMatrix4f [in,out] matrix identity
 }
 
 CommonSurfaceShader :  X3DShaderNode {
-  auto-generate-more: true
   default-container-field: shaders
 
   SFFloat         [in,out]     alphaFactor                      1
@@ -135,7 +133,6 @@ CommonSurfaceShader :  X3DShaderNode {
 }
 
 ImageBackground : X3DBackgroundNode {
-  auto-generate-more: true
   SFColorRGBA [in,out] color     1 1 1 1
   SFNode      [in,out] texture   NULL
     range: X3DTextureNode
@@ -144,7 +141,6 @@ ImageBackground : X3DBackgroundNode {
 }
 
 Plane : X3DGeometryNode {
-  auto-generate-more: true
   SFVec2f []       size     2 2
     range: (0,Inf)
     change: chGeometry
@@ -153,7 +149,6 @@ Plane : X3DGeometryNode {
 }
 
 Toggler : X3DChildNode {
-  auto-generate-more: true
   SFBool     [in,out]      status      FALSE
     change: chNone
     doc: Stored Boolean value.
@@ -178,7 +173,6 @@ Toggler : X3DChildNode {
 }
 
 Converter : X3DChildNode {
-  auto-generate-more: true
   SFBool [in,out] enabled TRUE
   XFAny [in] in
   XFAny [out] out
