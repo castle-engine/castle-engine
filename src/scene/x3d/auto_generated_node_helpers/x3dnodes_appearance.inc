@@ -89,9 +89,9 @@
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdTexture: TSFNode;
-    { Texture used by this appearance. Deprecated, as it is better to specify textures inside material nodes. @deprecated }
+    { Main texture used by this appearance (diffuse texture for Phong lighting model, base texture for physical lighting model, emissive texture for the unlit lighting model). @deprecated It is more flexible to set the relevant texture inside material node, like @link(TMaterialNode.DiffuseTexture), @link(TPhysicalMaterialNode.BaseTexture), @link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture). }
     public property FdTexture: TSFNode read FFdTexture;
-    { Texture used by this appearance. Deprecated, as it is better to specify textures inside material nodes. @deprecated }
+    { Main texture used by this appearance (diffuse texture for Phong lighting model, base texture for physical lighting model, emissive texture for the unlit lighting model). @deprecated It is more flexible to set the relevant texture inside material node, like @link(TMaterialNode.DiffuseTexture), @link(TPhysicalMaterialNode.BaseTexture), @link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture). }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     strict private FFdTextureTransform: TSFNode;
@@ -131,18 +131,18 @@
     property ShadowCaster: Boolean read GetShadowCaster write SetShadowCaster;
 
     strict private FFdNormalMap: TSFNode;
-    {  }
+    { Normal map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     public property FdNormalMap: TSFNode read FFdNormalMap;
-    {  }
+    { Normal map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdHeightMap: TSFNode;
-    {  }
+    { Height map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     public property FdHeightMap: TSFNode read FFdHeightMap;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  }
+    { Height map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     property HeightMap: TAbstractTexture2DNode read GetHeightMap write SetHeightMap;
 {$endif not CASTLE_SLIM_NODES}
 
@@ -153,9 +153,9 @@
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
 
     strict private FFdBlendMode: TSFNode;
-    {  }
+    { Determines the exact blending equation used, in case @link(AlphaMode) indicates blending. See https://castle-engine.io/x3d_extensions.php }
     public property FdBlendMode: TSFNode read FFdBlendMode;
-    {  }
+    { Determines the exact blending equation used, in case @link(AlphaMode) indicates blending. See https://castle-engine.io/x3d_extensions.php }
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
 
     strict private FFdEffects: TMFNode;

@@ -33,6 +33,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] tangent         NULL
     range: Tangent
     change: chGeometry
+    doc: Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties.
   SFNode [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
     change: chGeometry

@@ -69,9 +69,9 @@
     property Shading: TShading read GetShading write SetShading;
 
     strict private FFdRender: TSFBool;
-    { Should we render this shape. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
+    { Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     public property FdRender: TSFBool read FFdRender;
-    { Should we render this shape. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
+    { Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     property Render: Boolean read GetRender write SetRender;
 
     strict private FFdCollision: TSFStringEnum;

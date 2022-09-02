@@ -5,6 +5,7 @@ X3DViewpointNode : X3DBindableNode {
   SFBool     [in,out] jump              TRUE
   SFRotation [in,out] orientation       0 0 1 0
     range: [-1,1],(-Inf,Inf)
+    doc: Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp).
   SFBool     [in,out] retainUserOffsets FALSE
 
   # CASTLE GAME ENGINE EXTENSIONS:
@@ -16,12 +17,15 @@ X3DViewpointNode : X3DBindableNode {
   MFVec3f    [in,out]      direction   []
   MFVec3f    [in,out]      up          []
   SFVec3f    [in,out]      gravityUp   0 1 0
+    doc: Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated
   SFBool     [in,out]      gravityTransform  TRUE
+    doc: Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode.
 }
 
 Billboard : X3DGroupingNode {
   SFVec3f [in,out] axisOfRotation 0 1 0
     range: (-Inf,Inf)
+    doc: Axis around which the billboard rotates to face the camera. Can be zero to rotate freely.
 }
 
 Collision : X3DGroupingNode, X3DSensorNode {

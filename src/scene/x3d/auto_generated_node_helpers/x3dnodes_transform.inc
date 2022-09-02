@@ -45,15 +45,15 @@
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdRotation: TSFRotation;
-    { Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
+    { Rotate children in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
     public property FdRotation: TSFRotation read FFdRotation;
-    { Rotation in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
+    { Rotate children in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). }
+    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). Note about negative scale: We do the best we can to work with @italic(any) scale value, even negative or zero. But usually, it's best to keep the scale positive. See the @link(TCastleTransform.Scale) documentation for some good guidelines about the scale. }
     public property FdScale: TSFVec3f read FFdScale;
-    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). }
+    { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). Note about negative scale: We do the best we can to work with @italic(any) scale value, even negative or zero. But usually, it's best to keep the scale positive. See the @link(TCastleTransform.Scale) documentation for some good guidelines about the scale. }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;

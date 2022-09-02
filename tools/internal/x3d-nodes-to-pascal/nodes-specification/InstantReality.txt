@@ -25,6 +25,7 @@ CommonSurfaceShader :  X3DShaderNode {
   SFString        [in,out]     diffuseTextureChannelMask        "rgb"
   SFNode          [in,out]     diffuseTexture                   NULL
     range: X3DTextureNode
+    doc: The texture controlling the diffuse color, multiplied by @link(DiffuseFactor).
 
   # Added in X3DOM
   SFNode          [in,out]     diffuseDisplacementTexture       NULL
@@ -55,6 +56,7 @@ CommonSurfaceShader :  X3DShaderNode {
   # Added in X3DOM
   SFNode          [in,out]     multiDiffuseAlphaTexture             NULL
     range: X3DTextureNode
+    doc: The texture controlling the diffuse (rgb) and alpha (alpha channel). Diffuse color is multiplied by @link(DiffuseFactor), alpha is (or rather: should be) multiplied by @link(AlphaFactor).
   SFNode          [in,out]     multiEmmisiveAmbientIntensityTexture NULL
     range: X3DTextureNode
   SFNode          [in,out]     multiSpecularShininessTexture        NULL
@@ -84,6 +86,7 @@ CommonSurfaceShader :  X3DShaderNode {
   SFVec3f         []           normalBias                       -1 -1 -1
   SFNode          [in,out]     normalTexture                    NULL
     range: X3DTextureNode
+    doc: Normalmap for bump mapping (the texture controlling the normals).
 
   # Added in Castle Game Engine
   SFFloat         [in,out]     normalTextureParallaxHeight      0
@@ -134,8 +137,10 @@ CommonSurfaceShader :  X3DShaderNode {
 
 ImageBackground : X3DBackgroundNode {
   SFColorRGBA [in,out] color     1 1 1 1
+    doc: Color that is multiplied by the texture color. Opaque white by default. Note that the alpha component of this color matters (just like the alpha channel of the texture in @link(Texture)). If the resulting image is partially-transparent, it will be mixed with black underneath.
   SFNode      [in,out] texture   NULL
     range: X3DTextureNode
+    doc: Texture displayed in a full-screen quad. Only 2D single-texture nodes are supported now. If you leave this as @nil, the TImageBackgroundNode has no visible effect.
   MFVec2f     [in,out] texCoords [ Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1) ]
     doc: Texture coordinates of the full-screen quad. By default they use the whole texture area: @orderedList( @item(Vector2(0, 0),) @item(Vector2(1, 0),) @item(Vector2(1, 1),) @item(Vector2(0, 1)) ) It is undefined what happens if there are not exactly 4 items.
 }

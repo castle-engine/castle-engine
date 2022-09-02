@@ -63,9 +63,9 @@
     property Jump: Boolean read GetJump write SetJump;
 
     strict private FFdOrientation: TSFRotation;
-    {  }
+    { Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
     public property FdOrientation: TSFRotation read FFdOrientation;
-    {  }
+    { Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdRetainUserOffsets: TSFBool;
@@ -105,15 +105,15 @@
     public property FdUp: TMFVec3f read FFdUp;
 
     strict private FFdGravityUp: TSFVec3f;
-    {  }
+    { Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated }
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
-    {  }
+    { Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
     strict private FFdGravityTransform: TSFBool;
-    {  }
+    { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
-    {  }
+    { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;
 
 {$endif read_interface}

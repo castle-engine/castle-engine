@@ -51,9 +51,9 @@
     procedure SetKey(const Value: TSingleList); overload;
 
     strict private FFdForceContinuousValue_changed: TSFBool;
-    {  }
+    { Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php }
     public property FdForceContinuousValue_changed: TSFBool read FFdForceContinuousValue_changed;
-    {  }
+    { Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php }
     property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;
 
 {$endif read_interface}

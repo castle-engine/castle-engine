@@ -33,15 +33,15 @@
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TSFColorRGBA;
-    {  }
+    { Color that is multiplied by the texture color. Opaque white by default. Note that the alpha component of this color matters (just like the alpha channel of the texture in @link(Texture)). If the resulting image is partially-transparent, it will be mixed with black underneath. }
     public property FdColor: TSFColorRGBA read FFdColor;
-    {  }
+    { Color that is multiplied by the texture color. Opaque white by default. Note that the alpha component of this color matters (just like the alpha channel of the texture in @link(Texture)). If the resulting image is partially-transparent, it will be mixed with black underneath. }
     property Color: TCastleColor read GetColor write SetColor;
 
     strict private FFdTexture: TSFNode;
-    {  }
+    { Texture displayed in a full-screen quad. Only 2D single-texture nodes are supported now. If you leave this as @nil, the TImageBackgroundNode has no visible effect. }
     public property FdTexture: TSFNode read FFdTexture;
-    {  }
+    { Texture displayed in a full-screen quad. Only 2D single-texture nodes are supported now. If you leave this as @nil, the TImageBackgroundNode has no visible effect. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     strict private FFdTexCoords: TMFVec2f;

@@ -251,9 +251,9 @@
     property DiffuseTextureChannelMask: String read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
 
     strict private FFdDiffuseTexture: TSFNode;
-    {  }
+    { The texture controlling the diffuse color, multiplied by @link(DiffuseFactor). }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
-    {  }
+    { The texture controlling the diffuse color, multiplied by @link(DiffuseFactor). }
     property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdDiffuseDisplacementTexture: TSFNode;
@@ -353,9 +353,9 @@
     property EnvironmentTexture: TAbstractEnvironmentTextureNode read GetEnvironmentTexture write SetEnvironmentTexture;
 
     strict private FFdMultiDiffuseAlphaTexture: TSFNode;
-    {  }
+    { The texture controlling the diffuse (rgb) and alpha (alpha channel). Diffuse color is multiplied by @link(DiffuseFactor), alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
     public property FdMultiDiffuseAlphaTexture: TSFNode read FFdMultiDiffuseAlphaTexture;
-    {  }
+    { The texture controlling the diffuse (rgb) and alpha (alpha channel). Diffuse color is multiplied by @link(DiffuseFactor), alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
     property MultiDiffuseAlphaTexture: TAbstractTextureNode read GetMultiDiffuseAlphaTexture write SetMultiDiffuseAlphaTexture;
 
     strict private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
@@ -419,9 +419,9 @@
     property NormalBias: TVector3 read GetNormalBias write SetNormalBias;
 
     strict private FFdNormalTexture: TSFNode;
-    {  }
+    { Normalmap for bump mapping (the texture controlling the normals). }
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
-    {  }
+    { Normalmap for bump mapping (the texture controlling the normals). }
     property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
 
     strict private FFdNormalTextureParallaxHeight: TSFFloat;

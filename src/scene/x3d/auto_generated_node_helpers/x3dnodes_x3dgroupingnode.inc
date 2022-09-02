@@ -62,21 +62,21 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisible: TSFBool;
-    {  }
+    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape. }
     public property FdVisible: TSFBool read FFdVisible;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  }
+    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape. }
     property Visible: Boolean read GetVisible write SetVisible;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxDisplay: TSFBool;
-    {  }
+    { Is the bounding box of this group visible (@italic(not implemented yet)). While this is not implemented for an X3D group, note that you can use @link(TDebugTransformBox) to easily display bounding box of a whole @link(TCastleTransform). }
     public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    {  }
+    { Is the bounding box of this group visible (@italic(not implemented yet)). While this is not implemented for an X3D group, note that you can use @link(TDebugTransformBox) to easily display bounding box of a whole @link(TCastleTransform). }
     property BboxDisplay: Boolean read GetBboxDisplay write SetBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 

@@ -87,9 +87,9 @@
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTangent: TSFNode;
-    {  }
+    { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
     public property FdTangent: TSFNode read FFdTangent;
-    {  }
+    { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;

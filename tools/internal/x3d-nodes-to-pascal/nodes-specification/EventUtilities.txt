@@ -6,6 +6,7 @@ X3DSequencerNode : X3DChildNode {
   MFFloat      [in,out] key           []
     range: (-Inf,Inf)
   SFBool       [in,out] forceContinuousValue_changed  FALSE
+    doc: Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_forceContinuousValue_Changed .
 }
 
 X3DTriggerNode : X3DChildNode  {
