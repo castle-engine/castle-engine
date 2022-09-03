@@ -360,15 +360,16 @@ div.main-cge-download {
         padding-bottom: 1em;
     }
 }
-.news-row-wrapper .row-title {
+.main-page-header {
+    clear: both;
     border-top: thin solid #dcdcdc;
-    margin-bottom: 1em;
+    margin-bottom: 2em;
     padding-left: 15px;
     padding-top: 0.5em;
     font-size: larger;
     font-weight: bold;
+    text-align: center;
 }
-.news-row-wrapper .row-title,
 .news-row-wrapper .row {
     width: 1200px;
     max-width: 100%;
@@ -936,4 +937,80 @@ div.download .download_platform {
 .talk-button > p > img {
   width: 100px;
   height: 100px;
+}
+
+/* features list ------------------------------------------------------------- */
+
+.feature-title {
+  margin-top: 2em;
+  font-weight: bold;
+  text-align: center;
+  font-size: larger;
+}
+.feature-description {
+}
+.feature-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Mobile view: single column */
+@media only screen and (max-width : 767px) {
+  .feature-row {
+    border-width: thin;
+    border-style: solid;
+    border-radius: 4px;
+    border-color: #dcdcdc;
+    -webkit-box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    -moz-box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+  }
+  .feature-title {
+    margin-top: 0.5em;
+  }
+  .feature-description {
+    padding-bottom: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+/* Desktop view: two columns */
+@media only screen and (min-width : 768px) {
+  .feature-title {
+    margin-top: 2em;
+  }
+  .feature-row {
+    clear: both;
+
+    /* margin-left: 8.33333333%; */ /* like .col-sm-1 in bootstrap */
+    /* width: 82%; */ /* like 2x .col-sm-5 in bootstrap */
+    /*
+    background: #DDD;
+    display: table-row;
+    */
+  }
+  .feature-column-image,
+  .feature-column-text {
+    width: 50%;
+  }
+  .feature-column-text {
+    padding-right: 2em;
+    padding-left: 2em;
+    text-align: center;
+  }
+  .feature-row-odd .feature-column-text {
+    float: left;
+  }
+  .feature-row-odd .feature-column-image {
+    float: right;
+  }
+  .feature-row-even .feature-column-text {
+    float: right;
+  }
+  .feature-row-even .feature-column-image {
+    float: left;
+  }
 }
