@@ -415,25 +415,25 @@ const
     https://doc.x3dom.org/author/Shape/BlendMode.html . }
   BlendingSourceFactorNames: array [TBlendingSourceFactor] of string =
   (
-    'src_alpha',
-    'one_minus_src_alpha',
-    'zero',
-    'one',
+    'SRC_ALPHA',
+    'ONE_MINUS_SRC_ALPHA',
+    'ZERO',
+    'ONE',
 
-    'dst_color',
-    'src_color',
-    'dst_alpha',
+    'DST_COLOR',
+    'SRC_COLOR',
+    'DST_ALPHA',
 
-    'one_minus_dst_color',
-    'one_minus_src_color',
-    'one_minus_dst_alpha',
+    'ONE_MINUS_DST_COLOR',
+    'ONE_MINUS_SRC_COLOR',
+    'ONE_MINUS_DST_ALPHA',
 
-    'src_alpha_saturate',
+    'SRC_ALPHA_SATURATE',
 
-    'constant_color',
-    'one_minus_constant_color',
-    'constant_alpha',
-    'one_minus_constant_alpha'
+    'CONSTANT_COLOR',
+    'ONE_MINUS_CONSTANT_COLOR',
+    'CONSTANT_ALPHA',
+    'ONE_MINUS_CONSTANT_ALPHA'
   );
 
   { Names for TBlendingDestinationFactor used by TBlendModeNode when it is read/written in X3D file.
@@ -441,25 +441,25 @@ const
     https://doc.x3dom.org/author/Shape/BlendMode.html . }
   BlendingDestinationFactorNames: array [TBlendingDestinationFactor] of string =
   (
-    'src_alpha',
-    'one_minus_src_alpha',
-    'zero',
-    'one',
+    'SRC_ALPHA',
+    'ONE_MINUS_SRC_ALPHA',
+    'ZERO',
+    'ONE',
 
-    'dst_color',
-    'src_color',
-    'dst_alpha',
+    'DST_COLOR',
+    'SRC_COLOR',
+    'DST_ALPHA',
 
-    'one_minus_dst_color',
-    'one_minus_src_color',
-    'one_minus_dst_alpha',
+    'ONE_MINUS_DST_COLOR',
+    'ONE_MINUS_SRC_COLOR',
+    'ONE_MINUS_DST_ALPHA',
 
-    // 'src_alpha_saturate', // not supported as destination factor
+    // 'SRC_ALPHA_SATURATE', // NOT SUPPORTED AS DESTINATION FACTOR
 
-    'constant_color',
-    'one_minus_constant_color',
-    'constant_alpha',
-    'one_minus_constant_alpha'
+    'CONSTANT_COLOR',
+    'ONE_MINUS_CONSTANT_COLOR',
+    'CONSTANT_ALPHA',
+    'ONE_MINUS_CONSTANT_ALPHA'
   );
 
   DefaultColorSpace = csLinearWhenPhysicalMaterial;
