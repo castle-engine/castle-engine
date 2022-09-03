@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdParts: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Parts). This wrapper API may change, we advise to access simpler @link(Parts) instead. }
     public property FdParts: TMFNode read FFdParts;
     {  }
     procedure SetParts(const Value: array of TShaderPartNode);
 
     strict private FFdUniformMissing: TSFStringEnum;
-    { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
+    { Internal wrapper for property @link(UniformMissing). This wrapper API may change, we advise to access simpler @link(UniformMissing) instead. }
     public property FdUniformMissing: TSFStringEnum read FFdUniformMissing;
     { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
     property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;

@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBody1: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Body1). This wrapper API may change, we advise to access simpler @link(Body1) instead. }
     public property FdBody1: TSFNode read FFdBody1;
     {  }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
 
     strict private FFdBody2: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Body2). This wrapper API may change, we advise to access simpler @link(Body2) instead. }
     public property FdBody2: TSFNode read FFdBody2;
     {  }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
 
     strict private FFdForceOutput: TMFString;
-    {  }
+    { Internal wrapper for property @link(ForceOutput). This wrapper API may change, we advise to access simpler @link(ForceOutput) instead. }
     public property FdForceOutput: TMFString read FFdForceOutput;
     {  }
     procedure SetForceOutput(const Value: array of string); overload;

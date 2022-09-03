@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCollidable: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Collidable). This wrapper API may change, we advise to access simpler @link(Collidable) instead. }
     public property FdCollidable: TSFNode read FFdCollidable;
     {  }
     property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;

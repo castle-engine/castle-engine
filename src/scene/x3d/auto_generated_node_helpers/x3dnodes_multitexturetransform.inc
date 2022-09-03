@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTextureTransform: TMFNode;
-    {  }
+    { Internal wrapper for property @link(TextureTransform). This wrapper API may change, we advise to access simpler @link(TextureTransform) instead. }
     public property FdTextureTransform: TMFNode read FFdTextureTransform;
     {  }
     procedure SetTextureTransform(const Value: array of TAbstractSingleTextureTransformNode);

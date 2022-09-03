@@ -35,25 +35,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdProfileCurve: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ProfileCurve). This wrapper API may change, we advise to access simpler @link(ProfileCurve) instead. }
     public property FdProfileCurve: TSFNode read FFdProfileCurve;
     {  }
     property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
 
     strict private FFdTrajectoryCurve: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TrajectoryCurve). This wrapper API may change, we advise to access simpler @link(TrajectoryCurve) instead. }
     public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
     {  }
     property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
 
     strict private FFdCcw: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

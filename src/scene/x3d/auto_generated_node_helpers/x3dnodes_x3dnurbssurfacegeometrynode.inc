@@ -47,29 +47,29 @@
     class function ClassX3DType: string; override;
 
     strict private FFdControlPoint: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ControlPoint). This wrapper API may change, we advise to access simpler @link(ControlPoint) instead. }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdUTessellation: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(UTessellation). This wrapper API may change, we advise to access simpler @link(UTessellation) instead. }
     public property FdUTessellation: TSFInt32 read FFdUTessellation;
     {  }
     property UTessellation: Integer read GetUTessellation write SetUTessellation;
 
     strict private FFdVTessellation: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(VTessellation). This wrapper API may change, we advise to access simpler @link(VTessellation) instead. }
     public property FdVTessellation: TSFInt32 read FFdVTessellation;
     {  }
     property VTessellation: Integer read GetVTessellation write SetVTessellation;
 
     strict private FFdWeight: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
     public property FdWeight: TMFDouble read FFdWeight;
     {  }
     procedure SetWeight(const Value: array of Double); overload;
@@ -77,23 +77,23 @@
     procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdUClosed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(UClosed). This wrapper API may change, we advise to access simpler @link(UClosed) instead. }
     public property FdUClosed: TSFBool read FFdUClosed;
     {  }
     property UClosed: Boolean read GetUClosed write SetUClosed;
 
     strict private FFdUDimension: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(UDimension). This wrapper API may change, we advise to access simpler @link(UDimension) instead. }
     public property FdUDimension: TSFInt32 read FFdUDimension;
     {  }
     property UDimension: Integer read GetUDimension write SetUDimension;
 
     strict private FFdUKnot: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(UKnot). This wrapper API may change, we advise to access simpler @link(UKnot) instead. }
     public property FdUKnot: TMFDouble read FFdUKnot;
     {  }
     procedure SetUKnot(const Value: array of Double); overload;
@@ -101,25 +101,25 @@
     procedure SetUKnot(const Value: TDoubleList); overload;
 
     strict private FFdUOrder: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(UOrder). This wrapper API may change, we advise to access simpler @link(UOrder) instead. }
     public property FdUOrder: TSFInt32 read FFdUOrder;
     {  }
     property UOrder: Integer read GetUOrder write SetUOrder;
 
     strict private FFdVClosed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(VClosed). This wrapper API may change, we advise to access simpler @link(VClosed) instead. }
     public property FdVClosed: TSFBool read FFdVClosed;
     {  }
     property VClosed: Boolean read GetVClosed write SetVClosed;
 
     strict private FFdVDimension: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(VDimension). This wrapper API may change, we advise to access simpler @link(VDimension) instead. }
     public property FdVDimension: TSFInt32 read FFdVDimension;
     {  }
     property VDimension: Integer read GetVDimension write SetVDimension;
 
     strict private FFdVKnot: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(VKnot). This wrapper API may change, we advise to access simpler @link(VKnot) instead. }
     public property FdVKnot: TMFDouble read FFdVKnot;
     {  }
     procedure SetVKnot(const Value: array of Double); overload;
@@ -127,7 +127,7 @@
     procedure SetVKnot(const Value: TDoubleList); overload;
 
     strict private FFdVOrder: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(VOrder). This wrapper API may change, we advise to access simpler @link(VOrder) instead. }
     public property FdVOrder: TSFInt32 read FFdVOrder;
     {  }
     property VOrder: Integer read GetVOrder write SetVOrder;

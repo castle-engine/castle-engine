@@ -37,19 +37,19 @@
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     strict private FFdCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
     strict private FFdDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;

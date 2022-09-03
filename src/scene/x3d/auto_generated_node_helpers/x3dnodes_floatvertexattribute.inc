@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Value). This wrapper API may change, we advise to access simpler @link(Value) instead. }
     public property FdValue: TMFFloat read FFdValue;
     {  }
     procedure SetValue(const Value: array of Single); overload;
@@ -39,7 +39,7 @@
     procedure SetValue(const Value: TSingleList); overload;
 
     strict private FFdNumComponents: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(NumComponents). This wrapper API may change, we advise to access simpler @link(NumComponents) instead. }
     public property FdNumComponents: TSFInt32 read FFdNumComponents;
     {  }
     property NumComponents: Integer read GetNumComponents write SetNumComponents;

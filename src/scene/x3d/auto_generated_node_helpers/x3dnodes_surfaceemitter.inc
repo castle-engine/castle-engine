@@ -35,7 +35,7 @@
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     strict private FFdCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
@@ -43,7 +43,7 @@
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdSurface: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Surface). This wrapper API may change, we advise to access simpler @link(Surface) instead. }
     public property FdSurface: TSFNode read FFdSurface;
     {  }
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;

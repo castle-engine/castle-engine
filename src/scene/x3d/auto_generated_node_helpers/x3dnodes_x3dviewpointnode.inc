@@ -45,31 +45,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenterOfRotation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(CenterOfRotation). This wrapper API may change, we advise to access simpler @link(CenterOfRotation) instead. }
     public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
     {  }
     property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdJump: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Jump). This wrapper API may change, we advise to access simpler @link(Jump) instead. }
     public property FdJump: TSFBool read FFdJump;
     {  }
     property Jump: Boolean read GetJump write SetJump;
 
     strict private FFdOrientation: TSFRotation;
-    { Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
+    { Internal wrapper for property @link(Orientation). This wrapper API may change, we advise to access simpler @link(Orientation) instead. }
     public property FdOrientation: TSFRotation read FFdOrientation;
     { Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RetainUserOffsets). This wrapper API may change, we advise to access simpler @link(RetainUserOffsets) instead. }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
@@ -91,27 +91,27 @@
     public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
 
     strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    {  }
+    { Internal wrapper for property @link(CameraMatrixSendAlsoOnOffscreenRendering). This wrapper API may change, we advise to access simpler @link(CameraMatrixSendAlsoOnOffscreenRendering) instead. }
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
     {  }
     property CameraMatrixSendAlsoOnOffscreenRendering: Boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
 
     strict private FFdDirection: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TMFVec3f read FFdDirection;
 
     strict private FFdUp: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(Up). This wrapper API may change, we advise to access simpler @link(Up) instead. }
     public property FdUp: TMFVec3f read FFdUp;
 
     strict private FFdGravityUp: TSFVec3f;
-    { Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated }
+    { Internal wrapper for property @link(GravityUp). This wrapper API may change, we advise to access simpler @link(GravityUp) instead. }
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
     { Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
     strict private FFdGravityTransform: TSFBool;
-    { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
+    { Internal wrapper for property @link(GravityTransform). This wrapper API may change, we advise to access simpler @link(GravityTransform) instead. }
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
     { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;

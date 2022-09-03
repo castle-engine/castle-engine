@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(BackUrl). This wrapper API may change, we advise to access simpler @link(BackUrl) instead. }
     public property FdBackUrl: TMFString read FFdBackUrl;
     {  }
     procedure SetBackUrl(const Value: array of string); overload;
@@ -36,7 +36,7 @@
     procedure SetBackUrl(const Value: TCastleStringList); overload;
 
     strict private FFdBottomUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(BottomUrl). This wrapper API may change, we advise to access simpler @link(BottomUrl) instead. }
     public property FdBottomUrl: TMFString read FFdBottomUrl;
     {  }
     procedure SetBottomUrl(const Value: array of string); overload;
@@ -44,7 +44,7 @@
     procedure SetBottomUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFrontUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(FrontUrl). This wrapper API may change, we advise to access simpler @link(FrontUrl) instead. }
     public property FdFrontUrl: TMFString read FFdFrontUrl;
     {  }
     procedure SetFrontUrl(const Value: array of string); overload;
@@ -52,7 +52,7 @@
     procedure SetFrontUrl(const Value: TCastleStringList); overload;
 
     strict private FFdLeftUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(LeftUrl). This wrapper API may change, we advise to access simpler @link(LeftUrl) instead. }
     public property FdLeftUrl: TMFString read FFdLeftUrl;
     {  }
     procedure SetLeftUrl(const Value: array of string); overload;
@@ -60,7 +60,7 @@
     procedure SetLeftUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRightUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(RightUrl). This wrapper API may change, we advise to access simpler @link(RightUrl) instead. }
     public property FdRightUrl: TMFString read FFdRightUrl;
     {  }
     procedure SetRightUrl(const Value: array of string); overload;
@@ -68,7 +68,7 @@
     procedure SetRightUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTopUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(TopUrl). This wrapper API may change, we advise to access simpler @link(TopUrl) instead. }
     public property FdTopUrl: TMFString read FFdTopUrl;
     {  }
     procedure SetTopUrl(const Value: array of string); overload;

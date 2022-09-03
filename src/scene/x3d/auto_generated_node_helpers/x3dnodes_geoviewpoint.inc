@@ -45,19 +45,19 @@
     public property EventSet_position: TSFVec3dEvent read FEventSet_position;
 
     strict private FFdFieldOfView: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(FieldOfView). This wrapper API may change, we advise to access simpler @link(FieldOfView) instead. }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdHeadlight: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Headlight). This wrapper API may change, we advise to access simpler @link(Headlight) instead. }
     public property FdHeadlight: TSFBool read FFdHeadlight;
     {  }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdNavType: TMFString;
-    {  }
+    { Internal wrapper for property @link(NavType). This wrapper API may change, we advise to access simpler @link(NavType) instead. }
     public property FdNavType: TMFString read FFdNavType;
     {  }
     procedure SetNavType(const Value: array of string); overload;
@@ -65,13 +65,13 @@
     procedure SetNavType(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    {  }
+    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    {  }
+    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -79,11 +79,11 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdPosition: TSFVec3d;
-    {  }
+    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
     public property FdPosition: TSFVec3d read FFdPosition;
 
     strict private FFdSpeedFactor: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(SpeedFactor). This wrapper API may change, we advise to access simpler @link(SpeedFactor) instead. }
     public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
     {  }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;

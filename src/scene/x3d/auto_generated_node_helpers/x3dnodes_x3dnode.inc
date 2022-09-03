@@ -34,7 +34,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdMetadata: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Metadata). This wrapper API may change, we advise to access simpler @link(Metadata) instead. }
     public property FdMetadata: TSFNode read FFdMetadata;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

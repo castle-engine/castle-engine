@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdLevel: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Level). This wrapper API may change, we advise to access simpler @link(Level) instead. }
     public property FdLevel: TSFInt32 read FFdLevel;
     {  }
     property Level: Integer read GetLevel write SetLevel;
 
     strict private FFdLogFile: TSFString;
-    {  }
+    { Internal wrapper for property @link(LogFile). This wrapper API may change, we advise to access simpler @link(LogFile) instead. }
     public property FdLogFile: TSFString read FFdLogFile;
     {  }
     property LogFile: String read GetLogFile write SetLogFile;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;

@@ -41,37 +41,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { When to update the texture contents. }
+    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFInt32 read FFdSize;
     {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdLight: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Light). This wrapper API may change, we advise to access simpler @link(Light) instead. }
     public property FdLight: TSFNode read FFdLight;
     {  }
     property Light: TAbstractLightNode read GetLight write SetLight;
 
     strict private FFdScale: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFFloat read FFdScale;
     {  }
     property Scale: Single read GetScale write SetScale;
 
     strict private FFdBias: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Bias). This wrapper API may change, we advise to access simpler @link(Bias) instead. }
     public property FdBias: TSFFloat read FFdBias;
     {  }
     property Bias: Single read GetBias write SetBias;
 
     strict private FFdCompareMode: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(CompareMode). This wrapper API may change, we advise to access simpler @link(CompareMode) instead. }
     public property FdCompareMode: TSFStringEnum read FFdCompareMode;
     {  }
     property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;

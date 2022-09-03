@@ -33,17 +33,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdApplied: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Applied). This wrapper API may change, we advise to access simpler @link(Applied) instead. }
     public property FdApplied: TSFBool read FFdApplied;
     {  }
     property Applied: Boolean read GetApplied write SetApplied;
 
     strict private FFdLinetype: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Linetype). This wrapper API may change, we advise to access simpler @link(Linetype) instead. }
     public property FdLinetype: TSFInt32 read FFdLinetype;
 
     strict private FFdLinewidthScaleFactor: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(LinewidthScaleFactor). This wrapper API may change, we advise to access simpler @link(LinewidthScaleFactor) instead. }
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
     {  }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;

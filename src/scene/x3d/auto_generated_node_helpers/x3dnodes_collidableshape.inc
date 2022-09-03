@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShape: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Shape). This wrapper API may change, we advise to access simpler @link(Shape) instead. }
     public property FdShape: TSFNode read FFdShape;
     {  }
     property Shape: TShapeNode read GetShape write SetShape;

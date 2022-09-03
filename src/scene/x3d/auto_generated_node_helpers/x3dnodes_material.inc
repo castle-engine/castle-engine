@@ -75,104 +75,104 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(AmbientIntensity). This wrapper API may change, we advise to access simpler @link(AmbientIntensity) instead. }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdAmbientTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(AmbientTexture). This wrapper API may change, we advise to access simpler @link(AmbientTexture) instead. }
     public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
     {  }
     property AmbientTexture: TAbstractSingleTextureNode read GetAmbientTexture write SetAmbientTexture;
 
     strict private FFdAmbientTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(AmbientTextureMapping). This wrapper API may change, we advise to access simpler @link(AmbientTextureMapping) instead. }
     public property FdAmbientTextureMapping: TSFString read FFdAmbientTextureMapping;
     {  }
     property AmbientTextureMapping: String read GetAmbientTextureMapping write SetAmbientTextureMapping;
 
     strict private FFdDiffuseColor: TSFColor;
-    { The primary way to control the color of object with Phong material. The object reflects light sources depending on the angle of the surface with respect to the light source. The more directly the surface faces the light, the more diffuse light reflects. }
+    { Internal wrapper for property @link(DiffuseColor). This wrapper API may change, we advise to access simpler @link(DiffuseColor) instead. }
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
     { The primary way to control the color of object with Phong material. The object reflects light sources depending on the angle of the surface with respect to the light source. The more directly the surface faces the light, the more diffuse light reflects. }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
 
     strict private FFdDiffuseTexture: TSFNode;
-    { The primary texture to control the color of object with Phong material. The RGB channel of this texture is multiplied with @link(DiffuseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
+    { Internal wrapper for property @link(DiffuseTexture). This wrapper API may change, we advise to access simpler @link(DiffuseTexture) instead. }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
     { The primary texture to control the color of object with Phong material. The RGB channel of this texture is multiplied with @link(DiffuseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     property DiffuseTexture: TAbstractSingleTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdDiffuseTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(DiffuseTextureMapping). This wrapper API may change, we advise to access simpler @link(DiffuseTextureMapping) instead. }
     public property FdDiffuseTextureMapping: TSFString read FFdDiffuseTextureMapping;
     {  }
     property DiffuseTextureMapping: String read GetDiffuseTextureMapping write SetDiffuseTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(OcclusionStrength). This wrapper API may change, we advise to access simpler @link(OcclusionStrength) instead. }
     public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
     {  }
     property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
 
     strict private FFdOcclusionTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(OcclusionTexture). This wrapper API may change, we advise to access simpler @link(OcclusionTexture) instead. }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     {  }
     property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
     strict private FFdOcclusionTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(OcclusionTextureMapping). This wrapper API may change, we advise to access simpler @link(OcclusionTextureMapping) instead. }
     public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
     {  }
     property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdShininess: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Shininess). This wrapper API may change, we advise to access simpler @link(Shininess) instead. }
     public property FdShininess: TSFFloat read FFdShininess;
     {  }
     property Shininess: Single read GetShininess write SetShininess;
 
     strict private FFdShininessTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ShininessTexture). This wrapper API may change, we advise to access simpler @link(ShininessTexture) instead. }
     public property FdShininessTexture: TSFNode read FFdShininessTexture;
     {  }
     property ShininessTexture: TAbstractSingleTextureNode read GetShininessTexture write SetShininessTexture;
 
     strict private FFdShininessTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(ShininessTextureMapping). This wrapper API may change, we advise to access simpler @link(ShininessTextureMapping) instead. }
     public property FdShininessTextureMapping: TSFString read FFdShininessTextureMapping;
     {  }
     property ShininessTextureMapping: String read GetShininessTextureMapping write SetShininessTextureMapping;
 
     strict private FFdSpecularColor: TSFColor;
-    { Color of specular highlight, on shiny objects. }
+    { Internal wrapper for property @link(SpecularColor). This wrapper API may change, we advise to access simpler @link(SpecularColor) instead. }
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
     { Color of specular highlight, on shiny objects. }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
 
     strict private FFdSpecularTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(SpecularTexture). This wrapper API may change, we advise to access simpler @link(SpecularTexture) instead. }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractSingleTextureNode read GetSpecularTexture write SetSpecularTexture;
 
     strict private FFdSpecularTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(SpecularTextureMapping). This wrapper API may change, we advise to access simpler @link(SpecularTextureMapping) instead. }
     public property FdSpecularTextureMapping: TSFString read FFdSpecularTextureMapping;
     {  }
     property SpecularTextureMapping: String read GetSpecularTextureMapping write SetSpecularTextureMapping;
 
     strict private FFdTransparency: TSFFloat;
-    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
+    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
     public property FdTransparency: TSFFloat read FFdTransparency;
     { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogImmune: TSFBool;
-    {  }
+    { Internal wrapper for property @link(FogImmune). This wrapper API may change, we advise to access simpler @link(FogImmune) instead. }
     public property FdFogImmune: TSFBool read FFdFogImmune;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -181,14 +181,14 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdMirror: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Mirror). This wrapper API may change, we advise to access simpler @link(Mirror) instead. }
     public property FdMirror: TSFFloat read FFdMirror;
     {  }
     property Mirror: Single read GetMirror write SetMirror;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecular: TMFColor;
-    {  }
+    { Internal wrapper for property @link(ReflSpecular). This wrapper API may change, we advise to access simpler @link(ReflSpecular) instead. }
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -202,7 +202,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflDiffuse: TMFColor;
-    {  }
+    { Internal wrapper for property @link(ReflDiffuse). This wrapper API may change, we advise to access simpler @link(ReflDiffuse) instead. }
     public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -216,7 +216,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransSpecular: TMFColor;
-    {  }
+    { Internal wrapper for property @link(TransSpecular). This wrapper API may change, we advise to access simpler @link(TransSpecular) instead. }
     public property FdTransSpecular: TMFColor read FFdTransSpecular;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -230,7 +230,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransDiffuse: TMFColor;
-    {  }
+    { Internal wrapper for property @link(TransDiffuse). This wrapper API may change, we advise to access simpler @link(TransDiffuse) instead. }
     public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -244,7 +244,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecularExp: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ReflSpecularExp). This wrapper API may change, we advise to access simpler @link(ReflSpecularExp) instead. }
     public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -254,7 +254,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransSpecularExp: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(TransSpecularExp). This wrapper API may change, we advise to access simpler @link(TransSpecularExp) instead. }
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

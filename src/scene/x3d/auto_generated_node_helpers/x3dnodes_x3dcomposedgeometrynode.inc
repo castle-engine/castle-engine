@@ -50,7 +50,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Attrib). This wrapper API may change, we advise to access simpler @link(Attrib) instead. }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -59,20 +59,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(FogCoord). This wrapper API may change, we advise to access simpler @link(FogCoord) instead. }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -81,48 +81,48 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdNormal: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Normal). This wrapper API may change, we advise to access simpler @link(Normal) instead. }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTangent: TSFNode;
-    { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
+    { Internal wrapper for property @link(Tangent). This wrapper API may change, we advise to access simpler @link(Tangent) instead. }
     public property FdTangent: TSFNode read FFdTangent;
     { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdCcw: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(ColorPerVertex). This wrapper API may change, we advise to access simpler @link(ColorPerVertex) instead. }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdNormalPerVertex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(NormalPerVertex). This wrapper API may change, we advise to access simpler @link(NormalPerVertex) instead. }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRadianceTransfer: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(RadianceTransfer). This wrapper API may change, we advise to access simpler @link(RadianceTransfer) instead. }
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

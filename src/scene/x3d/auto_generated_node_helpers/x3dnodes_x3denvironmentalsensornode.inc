@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;

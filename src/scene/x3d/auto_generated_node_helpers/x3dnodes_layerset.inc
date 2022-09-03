@@ -31,19 +31,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdActiveLayer: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ActiveLayer). This wrapper API may change, we advise to access simpler @link(ActiveLayer) instead. }
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
     {  }
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
 
     strict private FFdLayers: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Layers). This wrapper API may change, we advise to access simpler @link(Layers) instead. }
     public property FdLayers: TMFNode read FFdLayers;
     {  }
     procedure SetLayers(const Value: array of TAbstractLayerNode);
 
     strict private FFdOrder: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
     public property FdOrder: TMFInt32 read FFdOrder;
     {  }
     procedure SetOrder(const Value: array of LongInt); overload;

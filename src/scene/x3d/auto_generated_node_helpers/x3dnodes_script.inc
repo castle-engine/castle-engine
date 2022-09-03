@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirectOutput: TSFBool;
-    {  }
+    { Internal wrapper for property @link(DirectOutput). This wrapper API may change, we advise to access simpler @link(DirectOutput) instead. }
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
     {  }
     property DirectOutput: Boolean read GetDirectOutput write SetDirectOutput;
 
     strict private FFdMustEvaluate: TSFBool;
-    {  }
+    { Internal wrapper for property @link(MustEvaluate). This wrapper API may change, we advise to access simpler @link(MustEvaluate) instead. }
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
     {  }
     property MustEvaluate: Boolean read GetMustEvaluate write SetMustEvaluate;

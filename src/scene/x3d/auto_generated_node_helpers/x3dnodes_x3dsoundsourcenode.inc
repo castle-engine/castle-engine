@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdPitch: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Pitch). This wrapper API may change, we advise to access simpler @link(Pitch) instead. }
     public property FdPitch: TSFFloat read FFdPitch;
     {  }
     property Pitch: Single read GetPitch write SetPitch;

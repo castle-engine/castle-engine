@@ -28,13 +28,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdData: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Data). This wrapper API may change, we advise to access simpler @link(Data) instead. }
     public property FdData: TMFNode read FFdData;
     {  }
     procedure SetData(const Value: array of TAbstractNode);
 
     strict private FFdSummary: TMFString;
-    {  }
+    { Internal wrapper for property @link(Summary). This wrapper API may change, we advise to access simpler @link(Summary) instead. }
     public property FdSummary: TMFString read FFdSummary;
     {  }
     procedure SetSummary(const Value: array of string); overload;
@@ -42,7 +42,7 @@
     procedure SetSummary(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;

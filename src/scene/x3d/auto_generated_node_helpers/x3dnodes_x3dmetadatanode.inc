@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdName: TSFString;
-    {  }
+    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdReference: TSFString;
-    {  }
+    { Internal wrapper for property @link(Reference). This wrapper API may change, we advise to access simpler @link(Reference) instead. }
     public property FdReference: TSFString read FFdReference;
     {  }
     property Reference: String read GetReference write SetReference;

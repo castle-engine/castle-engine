@@ -51,67 +51,67 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBaseColor: TSFColor;
-    { The primary way to control the color of object with physical (PBR) material. }
+    { Internal wrapper for property @link(BaseColor). This wrapper API may change, we advise to access simpler @link(BaseColor) instead. }
     public property FdBaseColor: TSFColor read FFdBaseColor;
     { The primary way to control the color of object with physical (PBR) material. }
     property BaseColor: TCastleColorRGB read GetBaseColor write SetBaseColor;
 
     strict private FFdBaseTexture: TSFNode;
-    { The primary texture to control the color of object with physical (PBR) material. The RGB channel of this texture is multiplied with @link(BaseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
+    { Internal wrapper for property @link(BaseTexture). This wrapper API may change, we advise to access simpler @link(BaseTexture) instead. }
     public property FdBaseTexture: TSFNode read FFdBaseTexture;
     { The primary texture to control the color of object with physical (PBR) material. The RGB channel of this texture is multiplied with @link(BaseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)). }
     property BaseTexture: TAbstractSingleTextureNode read GetBaseTexture write SetBaseTexture;
 
     strict private FFdBaseTextureMapping: TSFString;
-    { Determines texture coordinates used by @link(BaseTexture). }
+    { Internal wrapper for property @link(BaseTextureMapping). This wrapper API may change, we advise to access simpler @link(BaseTextureMapping) instead. }
     public property FdBaseTextureMapping: TSFString read FFdBaseTextureMapping;
     { Determines texture coordinates used by @link(BaseTexture). }
     property BaseTextureMapping: String read GetBaseTextureMapping write SetBaseTextureMapping;
 
     strict private FFdMetallic: TSFFloat;
-    { The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal). }
+    { Internal wrapper for property @link(Metallic). This wrapper API may change, we advise to access simpler @link(Metallic) instead. }
     public property FdMetallic: TSFFloat read FFdMetallic;
     { The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal). }
     property Metallic: Single read GetMetallic write SetMetallic;
 
     strict private FFdMetallicRoughnessTexture: TSFNode;
-    { Control the @link(Metallic) and @link(Roughness) using a texture. The @italic(Blue) channel of this texture is multiplied with @link(Metallic). The @link(Green) channel is multiplied with @link(Roughness). The other channels are ignored. }
+    { Internal wrapper for property @link(MetallicRoughnessTexture). This wrapper API may change, we advise to access simpler @link(MetallicRoughnessTexture) instead. }
     public property FdMetallicRoughnessTexture: TSFNode read FFdMetallicRoughnessTexture;
     { Control the @link(Metallic) and @link(Roughness) using a texture. The @italic(Blue) channel of this texture is multiplied with @link(Metallic). The @link(Green) channel is multiplied with @link(Roughness). The other channels are ignored. }
     property MetallicRoughnessTexture: TAbstractSingleTextureNode read GetMetallicRoughnessTexture write SetMetallicRoughnessTexture;
 
     strict private FFdMetallicRoughnessTextureMapping: TSFString;
-    { Determines texture coordinates used by @link(MetallicRoughnessTexture). }
+    { Internal wrapper for property @link(MetallicRoughnessTextureMapping). This wrapper API may change, we advise to access simpler @link(MetallicRoughnessTextureMapping) instead. }
     public property FdMetallicRoughnessTextureMapping: TSFString read FFdMetallicRoughnessTextureMapping;
     { Determines texture coordinates used by @link(MetallicRoughnessTexture). }
     property MetallicRoughnessTextureMapping: String read GetMetallicRoughnessTextureMapping write SetMetallicRoughnessTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(OcclusionStrength). This wrapper API may change, we advise to access simpler @link(OcclusionStrength) instead. }
     public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
     {  }
     property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
 
     strict private FFdOcclusionTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(OcclusionTexture). This wrapper API may change, we advise to access simpler @link(OcclusionTexture) instead. }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     {  }
     property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
     strict private FFdOcclusionTextureMapping: TSFString;
-    {  }
+    { Internal wrapper for property @link(OcclusionTextureMapping). This wrapper API may change, we advise to access simpler @link(OcclusionTextureMapping) instead. }
     public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
     {  }
     property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdRoughness: TSFFloat;
-    { The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough). }
+    { Internal wrapper for property @link(Roughness). This wrapper API may change, we advise to access simpler @link(Roughness) instead. }
     public property FdRoughness: TSFFloat read FFdRoughness;
     { The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough). }
     property Roughness: Single read GetRoughness write SetRoughness;
 
     strict private FFdTransparency: TSFFloat;
-    { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
+    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
     public property FdTransparency: TSFFloat read FFdTransparency;
     { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     property Transparency: Single read GetTransparency write SetTransparency;

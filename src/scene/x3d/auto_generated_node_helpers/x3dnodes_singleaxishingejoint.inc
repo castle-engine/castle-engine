@@ -41,37 +41,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(AnchorPoint). This wrapper API may change, we advise to access simpler @link(AnchorPoint) instead. }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
     public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FFdMaxAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MaxAngle). This wrapper API may change, we advise to access simpler @link(MaxAngle) instead. }
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
     {  }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
 
     strict private FFdMinAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MinAngle). This wrapper API may change, we advise to access simpler @link(MinAngle) instead. }
     public property FdMinAngle: TSFFloat read FFdMinAngle;
     {  }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
 
     strict private FFdStopBounce: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(StopBounce). This wrapper API may change, we advise to access simpler @link(StopBounce) instead. }
     public property FdStopBounce: TSFFloat read FFdStopBounce;
     {  }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
 
     strict private FFdStopErrorCorrection: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(StopErrorCorrection). This wrapper API may change, we advise to access simpler @link(StopErrorCorrection) instead. }
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
     {  }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;

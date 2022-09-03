@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDiffuseTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(DiffuseTexture). This wrapper API may change, we advise to access simpler @link(DiffuseTexture) instead. }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
     {  }
     property DiffuseTexture: TAbstractEnvironmentTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdSpecularTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(SpecularTexture). This wrapper API may change, we advise to access simpler @link(SpecularTexture) instead. }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractEnvironmentTextureNode read GetSpecularTexture write SetSpecularTexture;

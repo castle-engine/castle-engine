@@ -39,35 +39,35 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdChildren: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
     public property FdChildren: TMFNode read FFdChildren;
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplayed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Displayed). This wrapper API may change, we advise to access simpler @link(Displayed) instead. }
     public property FdDisplayed: TSFBool read FFdDisplayed;
     {  }
     property Displayed: Boolean read GetDisplayed write SetDisplayed;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RetainUserOffsets). This wrapper API may change, we advise to access simpler @link(RetainUserOffsets) instead. }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
 
     strict private FFdSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;

@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFBool;
-    {  }
+    { Internal wrapper for property @link(Value). This wrapper API may change, we advise to access simpler @link(Value) instead. }
     public property FdValue: TMFBool read FFdValue;
     {  }
     procedure SetValue(const Value: array of boolean); overload;

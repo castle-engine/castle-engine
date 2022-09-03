@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisOfRotation: TSFVec3f;
-    { Axis around which the billboard rotates to face the camera. Can be zero to rotate freely. }
+    { Internal wrapper for property @link(AxisOfRotation). This wrapper API may change, we advise to access simpler @link(AxisOfRotation) instead. }
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
     { Axis around which the billboard rotates to face the camera. Can be zero to rotate freely. }
     property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;

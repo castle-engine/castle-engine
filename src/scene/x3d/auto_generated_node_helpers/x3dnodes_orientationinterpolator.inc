@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFRotation;
-    {  }
+    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFRotation read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of TVector4); overload;

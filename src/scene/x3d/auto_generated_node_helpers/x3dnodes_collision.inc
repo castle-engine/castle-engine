@@ -33,7 +33,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
@@ -47,7 +47,7 @@
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     strict private FFdProxy: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Proxy). This wrapper API may change, we advise to access simpler @link(Proxy) instead. }
     public property FdProxy: TSFNode read FFdProxy;
     {  }
     property Proxy: TAbstractChildNode read GetProxy write SetProxy;

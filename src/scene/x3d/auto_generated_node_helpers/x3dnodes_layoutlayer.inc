@@ -39,13 +39,13 @@
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
     public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);
 
     strict private FFdLayout: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Layout). This wrapper API may change, we advise to access simpler @link(Layout) instead. }
     public property FdLayout: TSFNode read FFdLayout;
     {  }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;

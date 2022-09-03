@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of Single); overload;

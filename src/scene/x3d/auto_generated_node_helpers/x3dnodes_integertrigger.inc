@@ -35,7 +35,7 @@
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FFdIntegerKey: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(IntegerKey). This wrapper API may change, we advise to access simpler @link(IntegerKey) instead. }
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
     {  }
     property IntegerKey: Integer read GetIntegerKey write SetIntegerKey;

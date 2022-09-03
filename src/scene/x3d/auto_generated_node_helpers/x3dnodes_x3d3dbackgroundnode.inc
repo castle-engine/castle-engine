@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGroundAngle: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(GroundAngle). This wrapper API may change, we advise to access simpler @link(GroundAngle) instead. }
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
     {  }
     procedure SetGroundAngle(const Value: array of Single); overload;
@@ -39,7 +39,7 @@
     procedure SetGroundAngle(const Value: TSingleList); overload;
 
     strict private FFdGroundColor: TMFColor;
-    {  }
+    { Internal wrapper for property @link(GroundColor). This wrapper API may change, we advise to access simpler @link(GroundColor) instead. }
     public property FdGroundColor: TMFColor read FFdGroundColor;
     {  }
     procedure SetGroundColor(const Value: array of TCastleColorRGB); overload;
@@ -47,7 +47,7 @@
     procedure SetGroundColor(const Value: TVector3List); overload;
 
     strict private FFdSkyAngle: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(SkyAngle). This wrapper API may change, we advise to access simpler @link(SkyAngle) instead. }
     public property FdSkyAngle: TMFFloat read FFdSkyAngle;
     {  }
     procedure SetSkyAngle(const Value: array of Single); overload;
@@ -55,7 +55,7 @@
     procedure SetSkyAngle(const Value: TSingleList); overload;
 
     strict private FFdSkyColor: TMFColor;
-    {  }
+    { Internal wrapper for property @link(SkyColor). This wrapper API may change, we advise to access simpler @link(SkyColor) instead. }
     public property FdSkyColor: TMFColor read FFdSkyColor;
     {  }
     procedure SetSkyColor(const Value: array of TCastleColorRGB); overload;
@@ -63,7 +63,7 @@
     procedure SetSkyColor(const Value: TVector3List); overload;
 
     strict private FFdTransparency: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
     public property FdTransparency: TSFFloat read FFdTransparency;
     {  }
     property Transparency: Single read GetTransparency write SetTransparency;

@@ -34,7 +34,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(Index). This wrapper API may change, we advise to access simpler @link(Index) instead. }
     public property FdIndex: TMFInt32 read FFdIndex;
     {  }
     procedure SetIndex(const Value: array of LongInt); overload;

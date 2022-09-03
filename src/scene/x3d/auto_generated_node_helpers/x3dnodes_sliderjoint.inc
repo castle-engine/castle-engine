@@ -39,31 +39,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxis: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
     public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FFdMaxSeparation: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MaxSeparation). This wrapper API may change, we advise to access simpler @link(MaxSeparation) instead. }
     public property FdMaxSeparation: TSFFloat read FFdMaxSeparation;
     {  }
     property MaxSeparation: Single read GetMaxSeparation write SetMaxSeparation;
 
     strict private FFdMinSeparation: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MinSeparation). This wrapper API may change, we advise to access simpler @link(MinSeparation) instead. }
     public property FdMinSeparation: TSFFloat read FFdMinSeparation;
     {  }
     property MinSeparation: Single read GetMinSeparation write SetMinSeparation;
 
     strict private FFdStopBounce: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(StopBounce). This wrapper API may change, we advise to access simpler @link(StopBounce) instead. }
     public property FdStopBounce: TSFFloat read FFdStopBounce;
     {  }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
 
     strict private FFdStopErrorCorrection: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(StopErrorCorrection). This wrapper API may change, we advise to access simpler @link(StopErrorCorrection) instead. }
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
     {  }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;

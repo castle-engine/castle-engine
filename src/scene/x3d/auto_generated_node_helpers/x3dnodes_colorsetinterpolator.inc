@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFColor;
-    {  }
+    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFColor read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of TCastleColorRGB); overload;

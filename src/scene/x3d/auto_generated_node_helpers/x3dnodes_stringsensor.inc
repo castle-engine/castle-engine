@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDeletionAllowed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(DeletionAllowed). This wrapper API may change, we advise to access simpler @link(DeletionAllowed) instead. }
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
     {  }
     property DeletionAllowed: Boolean read GetDeletionAllowed write SetDeletionAllowed;

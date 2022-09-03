@@ -40,7 +40,7 @@
     public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
     public property FdInitialDestination: TMFVec3f read FFdInitialDestination;
     {  }
     procedure SetInitialDestination(const Value: array of TVector3); overload;
@@ -48,7 +48,7 @@
     procedure SetInitialDestination(const Value: TVector3List); overload;
 
     strict private FFdInitialValue: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
     public property FdInitialValue: TMFVec3f read FFdInitialValue;
     {  }
     procedure SetInitialValue(const Value: array of TVector3); overload;

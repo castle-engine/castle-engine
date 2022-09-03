@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdReplaceNames: TMFString;
-    {  }
+    { Internal wrapper for property @link(ReplaceNames). This wrapper API may change, we advise to access simpler @link(ReplaceNames) instead. }
     public property FdReplaceNames: TMFString read FFdReplaceNames;
     {  }
     procedure SetReplaceNames(const Value: array of string); overload;
@@ -36,7 +36,7 @@
     procedure SetReplaceNames(const Value: TCastleStringList); overload;
 
     strict private FFdReplaceNodes: TMFNode;
-    {  }
+    { Internal wrapper for property @link(ReplaceNodes). This wrapper API may change, we advise to access simpler @link(ReplaceNodes) instead. }
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
     {  }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);

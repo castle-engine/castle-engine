@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMatrix: TSFMatrix4f;
-    {  }
+    { Internal wrapper for property @link(Matrix). This wrapper API may change, we advise to access simpler @link(Matrix) instead. }
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
     {  }
     property Matrix: TMatrix4 read GetMatrix write SetMatrix;

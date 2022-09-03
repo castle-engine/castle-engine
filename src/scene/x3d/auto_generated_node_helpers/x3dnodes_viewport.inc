@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdClipBoundary: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(ClipBoundary). This wrapper API may change, we advise to access simpler @link(ClipBoundary) instead. }
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
     {  }
     procedure SetClipBoundary(const Value: array of Single); overload;

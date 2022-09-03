@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdClosed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Closed). This wrapper API may change, we advise to access simpler @link(Closed) instead. }
     public property FdClosed: TSFBool read FFdClosed;
     {  }
     property Closed: Boolean read GetClosed write SetClosed;
 
     strict private FFdKeyValue: TMFVec2f;
-    {  }
+    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of TVector2); overload;
@@ -47,7 +47,7 @@
     procedure SetKeyValue(const Value: TVector2List); overload;
 
     strict private FFdKeyVelocity: TMFVec2f;
-    {  }
+    { Internal wrapper for property @link(KeyVelocity). This wrapper API may change, we advise to access simpler @link(KeyVelocity) instead. }
     public property FdKeyVelocity: TMFVec2f read FFdKeyVelocity;
     {  }
     procedure SetKeyVelocity(const Value: array of TVector2); overload;
@@ -55,7 +55,7 @@
     procedure SetKeyVelocity(const Value: TVector2List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
-    {  }
+    { Internal wrapper for property @link(NormalizeVelocity). This wrapper API may change, we advise to access simpler @link(NormalizeVelocity) instead. }
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
     {  }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;

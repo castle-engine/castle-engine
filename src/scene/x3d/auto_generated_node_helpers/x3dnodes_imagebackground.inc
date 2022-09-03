@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TSFColorRGBA;
-    { Color that is multiplied by the texture color. Opaque white by default. Note that the alpha component of this color matters (just like the alpha channel of the texture in @link(Texture)). If the resulting image is partially-transparent, it will be mixed with black underneath. }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFColorRGBA read FFdColor;
     { Color that is multiplied by the texture color. Opaque white by default. Note that the alpha component of this color matters (just like the alpha channel of the texture in @link(Texture)). If the resulting image is partially-transparent, it will be mixed with black underneath. }
     property Color: TCastleColor read GetColor write SetColor;
 
     strict private FFdTexture: TSFNode;
-    { Texture displayed in a full-screen quad. Only 2D single-texture nodes are supported now. If you leave this as @nil, the TImageBackgroundNode has no visible effect. }
+    { Internal wrapper for property @link(Texture). This wrapper API may change, we advise to access simpler @link(Texture) instead. }
     public property FdTexture: TSFNode read FFdTexture;
     { Texture displayed in a full-screen quad. Only 2D single-texture nodes are supported now. If you leave this as @nil, the TImageBackgroundNode has no visible effect. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     strict private FFdTexCoords: TMFVec2f;
-    { Texture coordinates of the full-screen quad. By default they use the whole texture area: @orderedList( @item(Vector2(0, 0),) @item(Vector2(1, 0),) @item(Vector2(1, 1),) @item(Vector2(0, 1)) ) It is undefined what happens if there are not exactly 4 items. }
+    { Internal wrapper for property @link(TexCoords). This wrapper API may change, we advise to access simpler @link(TexCoords) instead. }
     public property FdTexCoords: TMFVec2f read FFdTexCoords;
     { Texture coordinates of the full-screen quad. By default they use the whole texture area: @orderedList( @item(Vector2(0, 0),) @item(Vector2(1, 0),) @item(Vector2(1, 1),) @item(Vector2(0, 1)) ) It is undefined what happens if there are not exactly 4 items. }
     procedure SetTexCoords(const Value: array of TVector2); overload;

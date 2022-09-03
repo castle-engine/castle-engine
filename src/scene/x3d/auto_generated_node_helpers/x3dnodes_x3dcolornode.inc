@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMode: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
     public property FdMode: TSFStringEnum read FFdMode;
     {  }
     property Mode: TColorMode read GetMode write SetMode;

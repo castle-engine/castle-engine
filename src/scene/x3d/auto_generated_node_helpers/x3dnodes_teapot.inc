@@ -33,23 +33,23 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdManifold: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Manifold). This wrapper API may change, we advise to access simpler @link(Manifold) instead. }
     public property FdManifold: TSFBool read FFdManifold;
     {  }
     property Manifold: Boolean read GetManifold write SetManifold;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

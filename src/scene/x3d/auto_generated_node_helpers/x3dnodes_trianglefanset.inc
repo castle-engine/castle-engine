@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFanCount: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(FanCount). This wrapper API may change, we advise to access simpler @link(FanCount) instead. }
     public property FdFanCount: TMFInt32 read FFdFanCount;
     {  }
     procedure SetFanCount(const Value: array of LongInt); overload;

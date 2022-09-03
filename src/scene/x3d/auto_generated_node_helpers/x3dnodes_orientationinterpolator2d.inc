@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of Single); overload;
@@ -39,7 +39,7 @@
     procedure SetKeyValue(const Value: TSingleList); overload;
 
     strict private FFdAxis: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
     public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;

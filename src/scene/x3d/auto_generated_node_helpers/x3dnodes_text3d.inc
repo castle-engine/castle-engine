@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDepth: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Depth). This wrapper API may change, we advise to access simpler @link(Depth) instead. }
     public property FdDepth: TSFFloat read FFdDepth;
     {  }
     property Depth: Single read GetDepth write SetDepth;

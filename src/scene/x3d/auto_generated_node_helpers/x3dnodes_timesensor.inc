@@ -37,7 +37,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCycleInterval: TSFTime;
-    {  }
+    { Internal wrapper for property @link(CycleInterval). This wrapper API may change, we advise to access simpler @link(CycleInterval) instead. }
     public property FdCycleInterval: TSFTime read FFdCycleInterval;
     {  }
     property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
@@ -55,19 +55,19 @@
     public property EventTime: TSFTimeEvent read FEventTime;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFractionIncreasing: TSFBool;
-    {  }
+    { Internal wrapper for property @link(FractionIncreasing). This wrapper API may change, we advise to access simpler @link(FractionIncreasing) instead. }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
     {  }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
 
     strict private FFdDetectAffectedFields: TSFBool;
-    {  }
+    { Internal wrapper for property @link(DetectAffectedFields). This wrapper API may change, we advise to access simpler @link(DetectAffectedFields) instead. }
     public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
     {  }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;

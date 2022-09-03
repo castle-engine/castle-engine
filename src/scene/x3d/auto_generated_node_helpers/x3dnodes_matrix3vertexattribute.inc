@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdValue: TMFMatrix3f;
-    {  }
+    { Internal wrapper for property @link(Value). This wrapper API may change, we advise to access simpler @link(Value) instead. }
     public property FdValue: TMFMatrix3f read FFdValue;
     {  }
     procedure SetValue(const Value: array of TMatrix3); overload;

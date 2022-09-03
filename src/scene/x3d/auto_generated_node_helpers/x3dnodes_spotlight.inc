@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBeamWidth: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(BeamWidth). This wrapper API may change, we advise to access simpler @link(BeamWidth) instead. }
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
     {  }
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
 
     strict private FFdCutOffAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(CutOffAngle). This wrapper API may change, we advise to access simpler @link(CutOffAngle) instead. }
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
     {  }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
 
     strict private FFdDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ProjectionAngle). This wrapper API may change, we advise to access simpler @link(ProjectionAngle) instead. }
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
     {  }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;

@@ -47,7 +47,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAvatarSize: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(AvatarSize). This wrapper API may change, we advise to access simpler @link(AvatarSize) instead. }
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
     {  }
     procedure SetAvatarSize(const Value: array of Single); overload;
@@ -55,25 +55,25 @@
     procedure SetAvatarSize(const Value: TSingleList); overload;
 
     strict private FFdHeadlight: TSFBool;
-    { Control the headlight. @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera. }
+    { Internal wrapper for property @link(Headlight). This wrapper API may change, we advise to access simpler @link(Headlight) instead. }
     public property FdHeadlight: TSFBool read FFdHeadlight;
     { Control the headlight. @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera. }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdSpeed: TSFFloat;
-    { Movement speed. @deprecated Instead of this, control the move speed using @link(TCastleWalkNavigation.MoveSpeed). }
+    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
     public property FdSpeed: TSFFloat read FFdSpeed;
     { Movement speed. @deprecated Instead of this, control the move speed using @link(TCastleWalkNavigation.MoveSpeed). }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTransitionTime: TSFTime;
-    {  }
+    { Internal wrapper for property @link(TransitionTime). This wrapper API may change, we advise to access simpler @link(TransitionTime) instead. }
     public property FdTransitionTime: TSFTime read FFdTransitionTime;
     {  }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
 
     strict private FFdTransitionType: TMFString;
-    {  }
+    { Internal wrapper for property @link(TransitionType). This wrapper API may change, we advise to access simpler @link(TransitionType) instead. }
     public property FdTransitionType: TMFString read FFdTransitionType;
     {  }
     procedure SetTransitionType(const Value: array of string); overload;
@@ -81,7 +81,7 @@
     procedure SetTransitionType(const Value: TCastleStringList); overload;
 
     strict private FFdType: TMFString;
-    {  }
+    { Internal wrapper for property @link(Type). This wrapper API may change, we advise to access simpler @link(Type) instead. }
     public property FdType: TMFString read FFdType;
     {  }
     procedure SetType(const Value: array of string); overload;
@@ -89,7 +89,7 @@
     procedure SetType(const Value: TCastleStringList); overload;
 
     strict private FFdVisibilityLimit: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(VisibilityLimit). This wrapper API may change, we advise to access simpler @link(VisibilityLimit) instead. }
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
     {  }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
@@ -99,31 +99,31 @@
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
 
     strict private FFdBlendingSort: TSFStringEnum;
-    { Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort). }
+    { Internal wrapper for property @link(BlendingSort). This wrapper API may change, we advise to access simpler @link(BlendingSort) instead. }
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
     { Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort). }
     property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
 
     strict private FFdTimeOriginAtLoad: TSFBool;
-    { @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion. }
+    { Internal wrapper for property @link(TimeOriginAtLoad). This wrapper API may change, we advise to access simpler @link(TimeOriginAtLoad) instead. }
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
     { @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion. }
     property TimeOriginAtLoad: Boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
 
     strict private FFdHeadBobbing: TSFFloat;
-    { Intensity of head bobbing. 0 means to not do head bobbing. Must be >= 0 and < 1, but sensible values are close to 0 (while any values < 1 are technically allowed, but they make the head bobbing effect crazily exaggerated). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    { Internal wrapper for property @link(HeadBobbing). This wrapper API may change, we advise to access simpler @link(HeadBobbing) instead. }
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
     { Intensity of head bobbing. 0 means to not do head bobbing. Must be >= 0 and < 1, but sensible values are close to 0 (while any values < 1 are technically allowed, but they make the head bobbing effect crazily exaggerated). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
     property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
 
     strict private FFdHeadBobbingTime: TSFFloat;
-    { How much time passes to make full head bobbing sequence (camera swing up and then down back to original height). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    { Internal wrapper for property @link(HeadBobbingTime). This wrapper API may change, we advise to access simpler @link(HeadBobbingTime) instead. }
     public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
     { How much time passes to make full head bobbing sequence (camera swing up and then down back to original height). See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
     property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
 
     strict private FFdHeadlightNode: TSFNode;
-    { Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
+    { Internal wrapper for property @link(HeadlightNode). This wrapper API may change, we advise to access simpler @link(HeadlightNode) instead. }
     public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
     { Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
     property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;

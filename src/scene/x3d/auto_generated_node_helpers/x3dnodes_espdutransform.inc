@@ -163,25 +163,25 @@
     public property EventSet_articulationParameterValue7: TSFFloatEvent read FEventSet_articulationParameterValue7;
 
     strict private FFdAddress: TSFString;
-    {  }
+    { Internal wrapper for property @link(Address). This wrapper API may change, we advise to access simpler @link(Address) instead. }
     public property FdAddress: TSFString read FFdAddress;
     {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ApplicationID). This wrapper API may change, we advise to access simpler @link(ApplicationID) instead. }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdArticulationParameterCount: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterCount). This wrapper API may change, we advise to access simpler @link(ArticulationParameterCount) instead. }
     public property FdArticulationParameterCount: TSFInt32 read FFdArticulationParameterCount;
     {  }
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
 
     strict private FFdArticulationParameterDesignatorArray: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterDesignatorArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterDesignatorArray) instead. }
     public property FdArticulationParameterDesignatorArray: TMFInt32 read FFdArticulationParameterDesignatorArray;
     {  }
     procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt); overload;
@@ -189,7 +189,7 @@
     procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterChangeIndicatorArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterChangeIndicatorArray) instead. }
     public property FdArticulationParameterChangeIndicatorArray: TMFInt32 read FFdArticulationParameterChangeIndicatorArray;
     {  }
     procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt); overload;
@@ -197,7 +197,7 @@
     procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterIdPartAttachedToArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterIdPartAttachedToArray) instead. }
     public property FdArticulationParameterIdPartAttachedToArray: TMFInt32 read FFdArticulationParameterIdPartAttachedToArray;
     {  }
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt); overload;
@@ -205,7 +205,7 @@
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterTypeArray: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterTypeArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterTypeArray) instead. }
     public property FdArticulationParameterTypeArray: TMFInt32 read FFdArticulationParameterTypeArray;
     {  }
     procedure SetArticulationParameterTypeArray(const Value: array of LongInt); overload;
@@ -213,7 +213,7 @@
     procedure SetArticulationParameterTypeArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterArray: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(ArticulationParameterArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterArray) instead. }
     public property FdArticulationParameterArray: TMFFloat read FFdArticulationParameterArray;
     {  }
     procedure SetArticulationParameterArray(const Value: array of Single); overload;
@@ -221,283 +221,283 @@
     procedure SetArticulationParameterArray(const Value: TSingleList); overload;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdCollisionType: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(CollisionType). This wrapper API may change, we advise to access simpler @link(CollisionType) instead. }
     public property FdCollisionType: TSFInt32 read FFdCollisionType;
     {  }
     property CollisionType: Integer read GetCollisionType write SetCollisionType;
 
     strict private FFdDeadReckoning: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DeadReckoning). This wrapper API may change, we advise to access simpler @link(DeadReckoning) instead. }
     public property FdDeadReckoning: TSFInt32 read FFdDeadReckoning;
     {  }
     property DeadReckoning: Integer read GetDeadReckoning write SetDeadReckoning;
 
     strict private FFdDetonationLocation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(DetonationLocation). This wrapper API may change, we advise to access simpler @link(DetonationLocation) instead. }
     public property FdDetonationLocation: TSFVec3f read FFdDetonationLocation;
     {  }
     property DetonationLocation: TVector3 read GetDetonationLocation write SetDetonationLocation;
 
     strict private FFdDetonationRelativeLocation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(DetonationRelativeLocation). This wrapper API may change, we advise to access simpler @link(DetonationRelativeLocation) instead. }
     public property FdDetonationRelativeLocation: TSFVec3f read FFdDetonationRelativeLocation;
     {  }
     property DetonationRelativeLocation: TVector3 read GetDetonationRelativeLocation write SetDetonationRelativeLocation;
 
     strict private FFdDetonationResult: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DetonationResult). This wrapper API may change, we advise to access simpler @link(DetonationResult) instead. }
     public property FdDetonationResult: TSFInt32 read FFdDetonationResult;
     {  }
     property DetonationResult: Integer read GetDetonationResult write SetDetonationResult;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdEntityCategory: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityCategory). This wrapper API may change, we advise to access simpler @link(EntityCategory) instead. }
     public property FdEntityCategory: TSFInt32 read FFdEntityCategory;
     {  }
     property EntityCategory: Integer read GetEntityCategory write SetEntityCategory;
 
     strict private FFdEntityCountry: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityCountry). This wrapper API may change, we advise to access simpler @link(EntityCountry) instead. }
     public property FdEntityCountry: TSFInt32 read FFdEntityCountry;
     {  }
     property EntityCountry: Integer read GetEntityCountry write SetEntityCountry;
 
     strict private FFdEntityDomain: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityDomain). This wrapper API may change, we advise to access simpler @link(EntityDomain) instead. }
     public property FdEntityDomain: TSFInt32 read FFdEntityDomain;
     {  }
     property EntityDomain: Integer read GetEntityDomain write SetEntityDomain;
 
     strict private FFdEntityExtra: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityExtra). This wrapper API may change, we advise to access simpler @link(EntityExtra) instead. }
     public property FdEntityExtra: TSFInt32 read FFdEntityExtra;
     {  }
     property EntityExtra: Integer read GetEntityExtra write SetEntityExtra;
 
     strict private FFdEntityID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityID). This wrapper API may change, we advise to access simpler @link(EntityID) instead. }
     public property FdEntityID: TSFInt32 read FFdEntityID;
     {  }
     property EntityID: Integer read GetEntityID write SetEntityID;
 
     strict private FFdEntityKind: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityKind). This wrapper API may change, we advise to access simpler @link(EntityKind) instead. }
     public property FdEntityKind: TSFInt32 read FFdEntityKind;
     {  }
     property EntityKind: Integer read GetEntityKind write SetEntityKind;
 
     strict private FFdEntitySpecific: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntitySpecific). This wrapper API may change, we advise to access simpler @link(EntitySpecific) instead. }
     public property FdEntitySpecific: TSFInt32 read FFdEntitySpecific;
     {  }
     property EntitySpecific: Integer read GetEntitySpecific write SetEntitySpecific;
 
     strict private FFdEntitySubCategory: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntitySubCategory). This wrapper API may change, we advise to access simpler @link(EntitySubCategory) instead. }
     public property FdEntitySubCategory: TSFInt32 read FFdEntitySubCategory;
     {  }
     property EntitySubCategory: Integer read GetEntitySubCategory write SetEntitySubCategory;
 
     strict private FFdEventApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EventApplicationID). This wrapper API may change, we advise to access simpler @link(EventApplicationID) instead. }
     public property FdEventApplicationID: TSFInt32 read FFdEventApplicationID;
     {  }
     property EventApplicationID: Integer read GetEventApplicationID write SetEventApplicationID;
 
     strict private FFdEventEntityID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EventEntityID). This wrapper API may change, we advise to access simpler @link(EventEntityID) instead. }
     public property FdEventEntityID: TSFInt32 read FFdEventEntityID;
     {  }
     property EventEntityID: Integer read GetEventEntityID write SetEventEntityID;
 
     strict private FFdEventNumber: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EventNumber). This wrapper API may change, we advise to access simpler @link(EventNumber) instead. }
     public property FdEventNumber: TSFInt32 read FFdEventNumber;
     {  }
     property EventNumber: Integer read GetEventNumber write SetEventNumber;
 
     strict private FFdEventSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EventSiteID). This wrapper API may change, we advise to access simpler @link(EventSiteID) instead. }
     public property FdEventSiteID: TSFInt32 read FFdEventSiteID;
     {  }
     property EventSiteID: Integer read GetEventSiteID write SetEventSiteID;
 
     strict private FFdFired1: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Fired1). This wrapper API may change, we advise to access simpler @link(Fired1) instead. }
     public property FdFired1: TSFBool read FFdFired1;
     {  }
     property Fired1: Boolean read GetFired1 write SetFired1;
 
     strict private FFdFired2: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Fired2). This wrapper API may change, we advise to access simpler @link(Fired2) instead. }
     public property FdFired2: TSFBool read FFdFired2;
     {  }
     property Fired2: Boolean read GetFired2 write SetFired2;
 
     strict private FFdFireMissionIndex: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(FireMissionIndex). This wrapper API may change, we advise to access simpler @link(FireMissionIndex) instead. }
     public property FdFireMissionIndex: TSFInt32 read FFdFireMissionIndex;
     {  }
     property FireMissionIndex: Integer read GetFireMissionIndex write SetFireMissionIndex;
 
     strict private FFdFiringRange: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(FiringRange). This wrapper API may change, we advise to access simpler @link(FiringRange) instead. }
     public property FdFiringRange: TSFFloat read FFdFiringRange;
     {  }
     property FiringRange: Single read GetFiringRange write SetFiringRange;
 
     strict private FFdFiringRate: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(FiringRate). This wrapper API may change, we advise to access simpler @link(FiringRate) instead. }
     public property FdFiringRate: TSFInt32 read FFdFiringRate;
     {  }
     property FiringRate: Integer read GetFiringRate write SetFiringRate;
 
     strict private FFdForceID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ForceID). This wrapper API may change, we advise to access simpler @link(ForceID) instead. }
     public property FdForceID: TSFInt32 read FFdForceID;
     {  }
     property ForceID: Integer read GetForceID write SetForceID;
 
     strict private FFdFuse: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Fuse). This wrapper API may change, we advise to access simpler @link(Fuse) instead. }
     public property FdFuse: TSFInt32 read FFdFuse;
     {  }
     property Fuse: Integer read GetFuse write SetFuse;
 
     strict private FFdLinearVelocity: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(LinearVelocity). This wrapper API may change, we advise to access simpler @link(LinearVelocity) instead. }
     public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
     {  }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
 
     strict private FFdLinearAcceleration: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(LinearAcceleration). This wrapper API may change, we advise to access simpler @link(LinearAcceleration) instead. }
     public property FdLinearAcceleration: TSFVec3f read FFdLinearAcceleration;
     {  }
     property LinearAcceleration: TVector3 read GetLinearAcceleration write SetLinearAcceleration;
 
     strict private FFdMarking: TSFString;
-    {  }
+    { Internal wrapper for property @link(Marking). This wrapper API may change, we advise to access simpler @link(Marking) instead. }
     public property FdMarking: TSFString read FFdMarking;
     {  }
     property Marking: String read GetMarking write SetMarking;
 
     strict private FFdMulticastRelayHost: TSFString;
-    {  }
+    { Internal wrapper for property @link(MulticastRelayHost). This wrapper API may change, we advise to access simpler @link(MulticastRelayHost) instead. }
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
     {  }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
 
     strict private FFdMulticastRelayPort: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MulticastRelayPort). This wrapper API may change, we advise to access simpler @link(MulticastRelayPort) instead. }
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
     {  }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
 
     strict private FFdMunitionApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MunitionApplicationID). This wrapper API may change, we advise to access simpler @link(MunitionApplicationID) instead. }
     public property FdMunitionApplicationID: TSFInt32 read FFdMunitionApplicationID;
     {  }
     property MunitionApplicationID: Integer read GetMunitionApplicationID write SetMunitionApplicationID;
 
     strict private FFdMunitionEndPoint: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(MunitionEndPoint). This wrapper API may change, we advise to access simpler @link(MunitionEndPoint) instead. }
     public property FdMunitionEndPoint: TSFVec3f read FFdMunitionEndPoint;
     {  }
     property MunitionEndPoint: TVector3 read GetMunitionEndPoint write SetMunitionEndPoint;
 
     strict private FFdMunitionEntityID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MunitionEntityID). This wrapper API may change, we advise to access simpler @link(MunitionEntityID) instead. }
     public property FdMunitionEntityID: TSFInt32 read FFdMunitionEntityID;
     {  }
     property MunitionEntityID: Integer read GetMunitionEntityID write SetMunitionEntityID;
 
     strict private FFdMunitionQuantity: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MunitionQuantity). This wrapper API may change, we advise to access simpler @link(MunitionQuantity) instead. }
     public property FdMunitionQuantity: TSFInt32 read FFdMunitionQuantity;
     {  }
     property MunitionQuantity: Integer read GetMunitionQuantity write SetMunitionQuantity;
 
     strict private FFdMunitionSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MunitionSiteID). This wrapper API may change, we advise to access simpler @link(MunitionSiteID) instead. }
     public property FdMunitionSiteID: TSFInt32 read FFdMunitionSiteID;
     {  }
     property MunitionSiteID: Integer read GetMunitionSiteID write SetMunitionSiteID;
 
     strict private FFdMunitionStartPoint: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(MunitionStartPoint). This wrapper API may change, we advise to access simpler @link(MunitionStartPoint) instead. }
     public property FdMunitionStartPoint: TSFVec3f read FFdMunitionStartPoint;
     {  }
     property MunitionStartPoint: TVector3 read GetMunitionStartPoint write SetMunitionStartPoint;
 
     strict private FFdNetworkMode: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(NetworkMode). This wrapper API may change, we advise to access simpler @link(NetworkMode) instead. }
     public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
     {  }
     property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
 
     strict private FFdPort: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Port). This wrapper API may change, we advise to access simpler @link(Port) instead. }
     public property FdPort: TSFInt32 read FFdPort;
     {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdReadInterval: TSFTime;
-    {  }
+    { Internal wrapper for property @link(ReadInterval). This wrapper API may change, we advise to access simpler @link(ReadInterval) instead. }
     public property FdReadInterval: TSFTime read FFdReadInterval;
     {  }
     property ReadInterval: TFloatTime read GetReadInterval write SetReadInterval;
 
     strict private FFdRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(SiteID). This wrapper API may change, we advise to access simpler @link(SiteID) instead. }
     public property FdSiteID: TSFInt32 read FFdSiteID;
     {  }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
     strict private FFdTranslation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdWarhead: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Warhead). This wrapper API may change, we advise to access simpler @link(Warhead) instead. }
     public property FdWarhead: TSFInt32 read FFdWarhead;
     {  }
     property Warhead: Integer read GetWarhead write SetWarhead;
 
     strict private FFdWriteInterval: TSFTime;
-    {  }
+    { Internal wrapper for property @link(WriteInterval). This wrapper API may change, we advise to access simpler @link(WriteInterval) instead. }
     public property FdWriteInterval: TSFTime read FFdWriteInterval;
     {  }
     property WriteInterval: TFloatTime read GetWriteInterval write SetWriteInterval;
@@ -579,7 +579,7 @@
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
     strict private FFdRtpHeaderExpected: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RtpHeaderExpected). This wrapper API may change, we advise to access simpler @link(RtpHeaderExpected) instead. }
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
     {  }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;

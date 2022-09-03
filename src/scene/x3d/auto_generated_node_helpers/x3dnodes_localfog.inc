@@ -43,43 +43,43 @@
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFogType: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(FogType). This wrapper API may change, we advise to access simpler @link(FogType) instead. }
     public property FdFogType: TSFStringEnum read FFdFogType;
     {  }
     property FogType: TFogType read GetFogType write SetFogType;
 
     strict private FFdVisibilityRange: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(VisibilityRange). This wrapper API may change, we advise to access simpler @link(VisibilityRange) instead. }
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
     {  }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
 
     strict private FFdVolumetric: TSFBool;
-    { Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php }
+    { Internal wrapper for property @link(Volumetric). This wrapper API may change, we advise to access simpler @link(Volumetric) instead. }
     public property FdVolumetric: TSFBool read FFdVolumetric;
     { Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php }
     property Volumetric: Boolean read GetVolumetric write SetVolumetric;
 
     strict private FFdVolumetricDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(VolumetricDirection). This wrapper API may change, we advise to access simpler @link(VolumetricDirection) instead. }
     public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
     {  }
     property VolumetricDirection: TVector3 read GetVolumetricDirection write SetVolumetricDirection;
 
     strict private FFdVolumetricVisibilityStart: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(VolumetricVisibilityStart). This wrapper API may change, we advise to access simpler @link(VolumetricVisibilityStart) instead. }
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     {  }
     property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;

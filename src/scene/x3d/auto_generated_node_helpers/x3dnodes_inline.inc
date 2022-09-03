@@ -33,13 +33,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdLoad: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Load). This wrapper API may change, we advise to access simpler @link(Load) instead. }
     public property FdLoad: TSFBool read FFdLoad;
     {  }
     property Load: Boolean read GetLoad write SetLoad;
 
     strict private FFdUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
@@ -47,13 +47,13 @@
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

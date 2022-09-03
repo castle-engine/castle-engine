@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdGustiness: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Gustiness). This wrapper API may change, we advise to access simpler @link(Gustiness) instead. }
     public property FdGustiness: TSFFloat read FFdGustiness;
     {  }
     property Gustiness: Single read GetGustiness write SetGustiness;
 
     strict private FFdSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
     public property FdSpeed: TSFFloat read FFdSpeed;
     {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTurbulence: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Turbulence). This wrapper API may change, we advise to access simpler @link(Turbulence) instead. }
     public property FdTurbulence: TSFFloat read FFdTurbulence;
     {  }
     property Turbulence: Single read GetTurbulence write SetTurbulence;

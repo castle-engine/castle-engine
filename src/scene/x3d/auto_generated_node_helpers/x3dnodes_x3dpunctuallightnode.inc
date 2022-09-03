@@ -43,43 +43,43 @@
     class function ClassX3DType: string; override;
 
     strict private FFdShadows: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Shadows). This wrapper API may change, we advise to access simpler @link(Shadows) instead. }
     public property FdShadows: TSFBool read FFdShadows;
     {  }
     property Shadows: Boolean read GetShadows write SetShadows;
 
     strict private FFdShadowVolumesMain: TSFBool;
-    { Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes). }
+    { Internal wrapper for property @link(ShadowVolumesMain). This wrapper API may change, we advise to access simpler @link(ShadowVolumesMain) instead. }
     public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
     { Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes). }
     property ShadowVolumesMain: Boolean read GetShadowVolumesMain write SetShadowVolumesMain;
 
     strict private FFdShowProxyGeometry: TSFBool;
-    { InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/]. }
+    { Internal wrapper for property @link(ShowProxyGeometry). This wrapper API may change, we advise to access simpler @link(ShowProxyGeometry) instead. }
     public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
     { InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/]. }
     property ShowProxyGeometry: Boolean read GetShowProxyGeometry write SetShowProxyGeometry;
 
     strict private FFdProjectionNear: TSFFloat;
-    { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Internal wrapper for property @link(ProjectionNear). This wrapper API may change, we advise to access simpler @link(ProjectionNear) instead. }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
     { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
 
     strict private FFdProjectionFar: TSFFloat;
-    { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Internal wrapper for property @link(ProjectionFar). This wrapper API may change, we advise to access simpler @link(ProjectionFar) instead. }
     public property FdProjectionFar: TSFFloat read FFdProjectionFar;
     { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
 
     strict private FFdUp: TSFVec3f;
-    { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Internal wrapper for property @link(Up). This wrapper API may change, we advise to access simpler @link(Up) instead. }
     public property FdUp: TSFVec3f read FFdUp;
     { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property Up: TVector3 read GetUp write SetUp;
 
     strict private FFdDefaultShadowMap: TSFNode;
-    { Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Internal wrapper for property @link(DefaultShadowMap). This wrapper API may change, we advise to access simpler @link(DefaultShadowMap) instead. }
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
     { Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;

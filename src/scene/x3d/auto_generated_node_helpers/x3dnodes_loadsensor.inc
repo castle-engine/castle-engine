@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTimeOut: TSFTime;
-    {  }
+    { Internal wrapper for property @link(TimeOut). This wrapper API may change, we advise to access simpler @link(TimeOut) instead. }
     public property FdTimeOut: TSFTime read FFdTimeOut;
     {  }
     property TimeOut: TFloatTime read GetTimeOut write SetTimeOut;
 
     strict private FFdWatchList: TMFNode;
-    {  }
+    { Internal wrapper for property @link(WatchList). This wrapper API may change, we advise to access simpler @link(WatchList) instead. }
     public property FdWatchList: TMFNode read FFdWatchList;
 
     strict private FEventIsLoaded: TSFBoolEvent;

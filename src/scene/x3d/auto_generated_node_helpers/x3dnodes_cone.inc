@@ -41,45 +41,45 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBottom: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Bottom). This wrapper API may change, we advise to access simpler @link(Bottom) instead. }
     public property FdBottom: TSFBool read FFdBottom;
     {  }
     property Bottom: Boolean read GetBottom write SetBottom;
 
     strict private FFdBottomRadius: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(BottomRadius). This wrapper API may change, we advise to access simpler @link(BottomRadius) instead. }
     public property FdBottomRadius: TSFFloat read FFdBottomRadius;
     {  }
     property BottomRadius: Single read GetBottomRadius write SetBottomRadius;
 
     strict private FFdHeight: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
     public property FdHeight: TSFFloat read FFdHeight;
     {  }
     property Height: Single read GetHeight write SetHeight;
 
     strict private FFdSide: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Side). This wrapper API may change, we advise to access simpler @link(Side) instead. }
     public property FdSide: TSFBool read FFdSide;
     {  }
     property Side: Boolean read GetSide write SetSide;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdSlices: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Slices). This wrapper API may change, we advise to access simpler @link(Slices) instead. }
     public property FdSlices: TSFInt32 read FFdSlices;
     {  }
     property Slices: Integer read GetSlices write SetSlices;
 
     strict private FFdStacks: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Stacks). This wrapper API may change, we advise to access simpler @link(Stacks) instead. }
     public property FdStacks: TSFInt32 read FFdStacks;
     {  }
     property Stacks: Integer read GetStacks write SetStacks;

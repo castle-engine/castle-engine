@@ -199,7 +199,7 @@ begin
         NL +
         Field.ConditionsBegin +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
+        '    { Internal wrapper for property @link(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @link(' + Field.PascalName + ') instead. }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 

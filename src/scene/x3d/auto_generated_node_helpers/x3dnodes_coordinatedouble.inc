@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdPoint: TMFVec3d;
-    {  }
+    { Internal wrapper for property @link(Point). This wrapper API may change, we advise to access simpler @link(Point) instead. }
     public property FdPoint: TMFVec3d read FFdPoint;
     {  }
     procedure SetPoint(const Value: array of TVector3Double); overload;

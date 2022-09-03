@@ -55,31 +55,31 @@
     public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
 
     strict private FFdBeginCap: TSFBool;
-    {  }
+    { Internal wrapper for property @link(BeginCap). This wrapper API may change, we advise to access simpler @link(BeginCap) instead. }
     public property FdBeginCap: TSFBool read FFdBeginCap;
     {  }
     property BeginCap: Boolean read GetBeginCap write SetBeginCap;
 
     strict private FFdCcw: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdConvex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Convex). This wrapper API may change, we advise to access simpler @link(Convex) instead. }
     public property FdConvex: TSFBool read FFdConvex;
     {  }
     property Convex: Boolean read GetConvex write SetConvex;
 
     strict private FFdCreaseAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdCrossSection: TMFVec2f;
-    {  }
+    { Internal wrapper for property @link(CrossSection). This wrapper API may change, we advise to access simpler @link(CrossSection) instead. }
     public property FdCrossSection: TMFVec2f read FFdCrossSection;
     {  }
     procedure SetCrossSection(const Value: array of TVector2); overload;
@@ -87,13 +87,13 @@
     procedure SetCrossSection(const Value: TVector2List); overload;
 
     strict private FFdEndCap: TSFBool;
-    {  }
+    { Internal wrapper for property @link(EndCap). This wrapper API may change, we advise to access simpler @link(EndCap) instead. }
     public property FdEndCap: TSFBool read FFdEndCap;
     {  }
     property EndCap: Boolean read GetEndCap write SetEndCap;
 
     strict private FFdOrientation: TMFRotation;
-    {  }
+    { Internal wrapper for property @link(Orientation). This wrapper API may change, we advise to access simpler @link(Orientation) instead. }
     public property FdOrientation: TMFRotation read FFdOrientation;
     {  }
     procedure SetOrientation(const Value: array of TVector4); overload;
@@ -101,7 +101,7 @@
     procedure SetOrientation(const Value: TVector4List); overload;
 
     strict private FFdScale: TMFVec2f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TMFVec2f read FFdScale;
     {  }
     procedure SetScale(const Value: array of TVector2); overload;
@@ -109,11 +109,11 @@
     procedure SetScale(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdSpine: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(Spine). This wrapper API may change, we advise to access simpler @link(Spine) instead. }
     public property FdSpine: TMFVec3f read FFdSpine;
     {  }
     procedure SetSpine(const Value: array of TVector3); overload;
@@ -121,7 +121,7 @@
     procedure SetSpine(const Value: TVector3List); overload;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

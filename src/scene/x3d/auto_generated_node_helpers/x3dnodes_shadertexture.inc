@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDefaultTexCoord: TSFString;
-    {  }
+    { Internal wrapper for property @link(DefaultTexCoord). This wrapper API may change, we advise to access simpler @link(DefaultTexCoord) instead. }
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
     {  }
     property DefaultTexCoord: String read GetDefaultTexCoord write SetDefaultTexCoord;

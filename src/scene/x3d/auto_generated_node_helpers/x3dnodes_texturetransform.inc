@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec2f read FFdCenter;
     {  }
     property Center: TVector2 read GetCenter write SetCenter;
 
     strict private FFdRotation: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
     public property FdRotation: TSFFloat read FFdRotation;
     {  }
     property Rotation: Single read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFVec2f read FFdScale;
     {  }
     property Scale: TVector2 read GetScale write SetScale;
 
     strict private FFdTranslation: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
     public property FdTranslation: TSFVec2f read FFdTranslation;
     {  }
     property Translation: TVector2 read GetTranslation write SetTranslation;

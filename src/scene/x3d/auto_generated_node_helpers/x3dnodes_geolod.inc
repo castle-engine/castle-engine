@@ -45,13 +45,13 @@
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3d;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3d read FFdCenter;
     {  }
     property Center: TVector3Double read GetCenter write SetCenter;
 
     strict private FFdChild1Url: TMFString;
-    {  }
+    { Internal wrapper for property @link(Child1Url). This wrapper API may change, we advise to access simpler @link(Child1Url) instead. }
     public property FdChild1Url: TMFString read FFdChild1Url;
     {  }
     procedure SetChild1Url(const Value: array of string); overload;
@@ -59,7 +59,7 @@
     procedure SetChild1Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild2Url: TMFString;
-    {  }
+    { Internal wrapper for property @link(Child2Url). This wrapper API may change, we advise to access simpler @link(Child2Url) instead. }
     public property FdChild2Url: TMFString read FFdChild2Url;
     {  }
     procedure SetChild2Url(const Value: array of string); overload;
@@ -67,7 +67,7 @@
     procedure SetChild2Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild3Url: TMFString;
-    {  }
+    { Internal wrapper for property @link(Child3Url). This wrapper API may change, we advise to access simpler @link(Child3Url) instead. }
     public property FdChild3Url: TMFString read FFdChild3Url;
     {  }
     procedure SetChild3Url(const Value: array of string); overload;
@@ -75,7 +75,7 @@
     procedure SetChild3Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild4Url: TMFString;
-    {  }
+    { Internal wrapper for property @link(Child4Url). This wrapper API may change, we advise to access simpler @link(Child4Url) instead. }
     public property FdChild4Url: TMFString read FFdChild4Url;
     {  }
     procedure SetChild4Url(const Value: array of string); overload;
@@ -83,13 +83,13 @@
     procedure SetChild4Url(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    {  }
+    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    {  }
+    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -97,13 +97,13 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRange: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Range). This wrapper API may change, we advise to access simpler @link(Range) instead. }
     public property FdRange: TSFFloat read FFdRange;
     {  }
     property Range: Single read GetRange write SetRange;
 
     strict private FFdRootUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(RootUrl). This wrapper API may change, we advise to access simpler @link(RootUrl) instead. }
     public property FdRootUrl: TMFString read FFdRootUrl;
     {  }
     procedure SetRootUrl(const Value: array of string); overload;
@@ -111,19 +111,19 @@
     procedure SetRootUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRootNode: TMFNode;
-    {  }
+    { Internal wrapper for property @link(RootNode). This wrapper API may change, we advise to access simpler @link(RootNode) instead. }
     public property FdRootNode: TMFNode read FFdRootNode;
     {  }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

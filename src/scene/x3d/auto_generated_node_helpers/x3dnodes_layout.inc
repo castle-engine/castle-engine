@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAlign: TMFString;
-    {  }
+    { Internal wrapper for property @link(Align). This wrapper API may change, we advise to access simpler @link(Align) instead. }
     public property FdAlign: TMFString read FFdAlign;
     {  }
     procedure SetAlign(const Value: array of string); overload;
@@ -36,7 +36,7 @@
     procedure SetAlign(const Value: TCastleStringList); overload;
 
     strict private FFdOffset: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
     public property FdOffset: TMFFloat read FFdOffset;
     {  }
     procedure SetOffset(const Value: array of Single); overload;
@@ -44,7 +44,7 @@
     procedure SetOffset(const Value: TSingleList); overload;
 
     strict private FFdOffsetUnits: TMFString;
-    {  }
+    { Internal wrapper for property @link(OffsetUnits). This wrapper API may change, we advise to access simpler @link(OffsetUnits) instead. }
     public property FdOffsetUnits: TMFString read FFdOffsetUnits;
     {  }
     procedure SetOffsetUnits(const Value: array of string); overload;
@@ -52,7 +52,7 @@
     procedure SetOffsetUnits(const Value: TCastleStringList); overload;
 
     strict private FFdScaleMode: TMFString;
-    {  }
+    { Internal wrapper for property @link(ScaleMode). This wrapper API may change, we advise to access simpler @link(ScaleMode) instead. }
     public property FdScaleMode: TMFString read FFdScaleMode;
     {  }
     procedure SetScaleMode(const Value: array of string); overload;
@@ -60,7 +60,7 @@
     procedure SetScaleMode(const Value: TCastleStringList); overload;
 
     strict private FFdSize: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TMFFloat read FFdSize;
     {  }
     procedure SetSize(const Value: array of Single); overload;
@@ -68,7 +68,7 @@
     procedure SetSize(const Value: TSingleList); overload;
 
     strict private FFdSizeUnits: TMFString;
-    {  }
+    { Internal wrapper for property @link(SizeUnits). This wrapper API may change, we advise to access simpler @link(SizeUnits) instead. }
     public property FdSizeUnits: TMFString read FFdSizeUnits;
     {  }
     procedure SetSizeUnits(const Value: array of string); overload;

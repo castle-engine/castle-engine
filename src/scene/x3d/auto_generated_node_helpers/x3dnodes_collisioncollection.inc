@@ -45,7 +45,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAppliedParameters: TMFString;
-    {  }
+    { Internal wrapper for property @link(AppliedParameters). This wrapper API may change, we advise to access simpler @link(AppliedParameters) instead. }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     {  }
     procedure SetAppliedParameters(const Value: array of string); overload;
@@ -53,53 +53,53 @@
     procedure SetAppliedParameters(const Value: TCastleStringList); overload;
 
     strict private FFdBounce: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Bounce). This wrapper API may change, we advise to access simpler @link(Bounce) instead. }
     public property FdBounce: TSFFloat read FFdBounce;
     {  }
     property Bounce: Single read GetBounce write SetBounce;
 
     strict private FFdCollidables: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Collidables). This wrapper API may change, we advise to access simpler @link(Collidables) instead. }
     public property FdCollidables: TMFNode read FFdCollidables;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFrictionCoefficients: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(FrictionCoefficients). This wrapper API may change, we advise to access simpler @link(FrictionCoefficients) instead. }
     public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
     {  }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
 
     strict private FFdMinBounceSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MinBounceSpeed). This wrapper API may change, we advise to access simpler @link(MinBounceSpeed) instead. }
     public property FdMinBounceSpeed: TSFFloat read FFdMinBounceSpeed;
     {  }
     property MinBounceSpeed: Single read GetMinBounceSpeed write SetMinBounceSpeed;
 
     strict private FFdSlipFactors: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(SlipFactors). This wrapper API may change, we advise to access simpler @link(SlipFactors) instead. }
     public property FdSlipFactors: TSFVec2f read FFdSlipFactors;
     {  }
     property SlipFactors: TVector2 read GetSlipFactors write SetSlipFactors;
 
     strict private FFdSoftnessConstantForceMix: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(SoftnessConstantForceMix). This wrapper API may change, we advise to access simpler @link(SoftnessConstantForceMix) instead. }
     public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
     {  }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
 
     strict private FFdSoftnessErrorCorrection: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(SoftnessErrorCorrection). This wrapper API may change, we advise to access simpler @link(SoftnessErrorCorrection) instead. }
     public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
     {  }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
 
     strict private FFdSurfaceSpeed: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(SurfaceSpeed). This wrapper API may change, we advise to access simpler @link(SurfaceSpeed) instead. }
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
     {  }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;

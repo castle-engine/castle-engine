@@ -43,7 +43,7 @@
     public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
     strict private FFdLanguage: TSFStringEnum;
-    { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
+    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
     public property FdLanguage: TSFStringEnum read FFdLanguage;
     { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
     property Language: TShaderLanguage read GetLanguage write SetLanguage;

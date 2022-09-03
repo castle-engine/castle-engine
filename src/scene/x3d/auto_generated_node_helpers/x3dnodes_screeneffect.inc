@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdNeedsDepth: TSFBool;
-    {  }
+    { Internal wrapper for property @link(NeedsDepth). This wrapper API may change, we advise to access simpler @link(NeedsDepth) instead. }
     public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
     {  }
     property NeedsDepth: Boolean read GetNeedsDepth write SetNeedsDepth;
 
     strict private FFdShaders: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Shaders). This wrapper API may change, we advise to access simpler @link(Shaders) instead. }
     public property FdShaders: TMFNode read FFdShaders;
     {  }
     procedure SetShaders(const Value: array of TAbstractShaderNode);

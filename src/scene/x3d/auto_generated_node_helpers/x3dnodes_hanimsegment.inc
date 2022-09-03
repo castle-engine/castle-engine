@@ -43,31 +43,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenterOfMass: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(CenterOfMass). This wrapper API may change, we advise to access simpler @link(CenterOfMass) instead. }
     public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
     {  }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
 
     strict private FFdCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
     strict private FFdDisplacers: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Displacers). This wrapper API may change, we advise to access simpler @link(Displacers) instead. }
     public property FdDisplacers: TMFNode read FFdDisplacers;
     {  }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
 
     strict private FFdMass: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Mass). This wrapper API may change, we advise to access simpler @link(Mass) instead. }
     public property FdMass: TSFFloat read FFdMass;
     {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdMomentsOfInertia: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(MomentsOfInertia). This wrapper API may change, we advise to access simpler @link(MomentsOfInertia) instead. }
     public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
     {  }
     procedure SetMomentsOfInertia(const Value: array of Single); overload;
@@ -75,25 +75,25 @@
     procedure SetMomentsOfInertia(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
-    {  }
+    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdTranslation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;

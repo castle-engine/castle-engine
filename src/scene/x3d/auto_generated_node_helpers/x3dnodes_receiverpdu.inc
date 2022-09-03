@@ -69,115 +69,115 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    {  }
+    { Internal wrapper for property @link(Address). This wrapper API may change, we advise to access simpler @link(Address) instead. }
     public property FdAddress: TSFString read FFdAddress;
     {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ApplicationID). This wrapper API may change, we advise to access simpler @link(ApplicationID) instead. }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdEntityID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EntityID). This wrapper API may change, we advise to access simpler @link(EntityID) instead. }
     public property FdEntityID: TSFInt32 read FFdEntityID;
     {  }
     property EntityID: Integer read GetEntityID write SetEntityID;
 
     strict private FFdMulticastRelayHost: TSFString;
-    {  }
+    { Internal wrapper for property @link(MulticastRelayHost). This wrapper API may change, we advise to access simpler @link(MulticastRelayHost) instead. }
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
     {  }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
 
     strict private FFdMulticastRelayPort: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(MulticastRelayPort). This wrapper API may change, we advise to access simpler @link(MulticastRelayPort) instead. }
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
     {  }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
 
     strict private FFdNetworkMode: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(NetworkMode). This wrapper API may change, we advise to access simpler @link(NetworkMode) instead. }
     public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
     {  }
     property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
 
     strict private FFdPort: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Port). This wrapper API may change, we advise to access simpler @link(Port) instead. }
     public property FdPort: TSFInt32 read FFdPort;
     {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdRadioID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(RadioID). This wrapper API may change, we advise to access simpler @link(RadioID) instead. }
     public property FdRadioID: TSFInt32 read FFdRadioID;
     {  }
     property RadioID: Integer read GetRadioID write SetRadioID;
 
     strict private FFdReadInterval: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ReadInterval). This wrapper API may change, we advise to access simpler @link(ReadInterval) instead. }
     public property FdReadInterval: TSFFloat read FFdReadInterval;
     {  }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
 
     strict private FFdReceivedPower: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ReceivedPower). This wrapper API may change, we advise to access simpler @link(ReceivedPower) instead. }
     public property FdReceivedPower: TSFFloat read FFdReceivedPower;
     {  }
     property ReceivedPower: Single read GetReceivedPower write SetReceivedPower;
 
     strict private FFdReceiverState: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ReceiverState). This wrapper API may change, we advise to access simpler @link(ReceiverState) instead. }
     public property FdReceiverState: TSFInt32 read FFdReceiverState;
     {  }
     property ReceiverState: Integer read GetReceiverState write SetReceiverState;
 
     strict private FFdRtpHeaderExpected: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RtpHeaderExpected). This wrapper API may change, we advise to access simpler @link(RtpHeaderExpected) instead. }
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
     {  }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
     strict private FFdSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(SiteID). This wrapper API may change, we advise to access simpler @link(SiteID) instead. }
     public property FdSiteID: TSFInt32 read FFdSiteID;
     {  }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
     strict private FFdTransmitterApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmitterApplicationID). This wrapper API may change, we advise to access simpler @link(TransmitterApplicationID) instead. }
     public property FdTransmitterApplicationID: TSFInt32 read FFdTransmitterApplicationID;
     {  }
     property TransmitterApplicationID: Integer read GetTransmitterApplicationID write SetTransmitterApplicationID;
 
     strict private FFdTransmitterEntityID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmitterEntityID). This wrapper API may change, we advise to access simpler @link(TransmitterEntityID) instead. }
     public property FdTransmitterEntityID: TSFInt32 read FFdTransmitterEntityID;
     {  }
     property TransmitterEntityID: Integer read GetTransmitterEntityID write SetTransmitterEntityID;
 
     strict private FFdTransmitterRadioID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmitterRadioID). This wrapper API may change, we advise to access simpler @link(TransmitterRadioID) instead. }
     public property FdTransmitterRadioID: TSFInt32 read FFdTransmitterRadioID;
     {  }
     property TransmitterRadioID: Integer read GetTransmitterRadioID write SetTransmitterRadioID;
 
     strict private FFdTransmitterSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmitterSiteID). This wrapper API may change, we advise to access simpler @link(TransmitterSiteID) instead. }
     public property FdTransmitterSiteID: TSFInt32 read FFdTransmitterSiteID;
     {  }
     property TransmitterSiteID: Integer read GetTransmitterSiteID write SetTransmitterSiteID;
 
     strict private FFdWhichGeometry: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(WhichGeometry). This wrapper API may change, we advise to access simpler @link(WhichGeometry) instead. }
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
     {  }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
 
     strict private FFdWriteInterval: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(WriteInterval). This wrapper API may change, we advise to access simpler @link(WriteInterval) instead. }
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
     {  }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
@@ -203,13 +203,13 @@
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

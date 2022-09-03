@@ -39,31 +39,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(AxisRotation). This wrapper API may change, we advise to access simpler @link(AxisRotation) instead. }
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
     {  }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
 
     strict private FFdDiskAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(DiskAngle). This wrapper API may change, we advise to access simpler @link(DiskAngle) instead. }
     public property FdDiskAngle: TSFFloat read FFdDiskAngle;
     {  }
     property DiskAngle: Single read GetDiskAngle write SetDiskAngle;
 
     strict private FFdMaxAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MaxAngle). This wrapper API may change, we advise to access simpler @link(MaxAngle) instead. }
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
     {  }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
 
     strict private FFdMinAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MinAngle). This wrapper API may change, we advise to access simpler @link(MinAngle) instead. }
     public property FdMinAngle: TSFFloat read FFdMinAngle;
     {  }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
 
     strict private FFdOffset: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
     public property FdOffset: TSFFloat read FFdOffset;
     {  }
     property Offset: Single read GetOffset write SetOffset;

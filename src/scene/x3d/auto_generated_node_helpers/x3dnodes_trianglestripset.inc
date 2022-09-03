@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdStripCount: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(StripCount). This wrapper API may change, we advise to access simpler @link(StripCount) instead. }
     public property FdStripCount: TMFInt32 read FFdStripCount;
     {  }
     procedure SetStripCount(const Value: array of LongInt); overload;

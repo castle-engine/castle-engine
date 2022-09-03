@@ -32,15 +32,15 @@
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
 
     strict private FFdForceTransitions: TSFBool;
-    {  }
+    { Internal wrapper for property @link(ForceTransitions). This wrapper API may change, we advise to access simpler @link(ForceTransitions) instead. }
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
     strict private FFdRange: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Range). This wrapper API may change, we advise to access simpler @link(Range) instead. }
     public property FdRange: TMFFloat read FFdRange;
 
 {$endif read_interface}

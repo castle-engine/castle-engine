@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { When to update the texture contents. }
+    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFInt32 read FFdSize;
     {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdTextureProperties: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdBias: TSFVec3f;
-    { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. }
+    { Internal wrapper for property @link(Bias). This wrapper API may change, we advise to access simpler @link(Bias) instead. }
     public property FdBias: TSFVec3f read FFdBias;
     { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. }
     property Bias: TVector3 read GetBias write SetBias;

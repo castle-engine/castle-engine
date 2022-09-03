@@ -35,14 +35,14 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEffects: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
     public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdCrossOrigin: TSFString;
-    { X3DOM extension, not implemented in CGE. }
+    { Internal wrapper for property @link(CrossOrigin). This wrapper API may change, we advise to access simpler @link(CrossOrigin) instead. }
     public property FdCrossOrigin: TSFString read FFdCrossOrigin;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -51,7 +51,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdAlphaChannel: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(AlphaChannel). This wrapper API may change, we advise to access simpler @link(AlphaChannel) instead. }
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;

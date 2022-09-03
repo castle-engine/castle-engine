@@ -47,13 +47,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdInfo: TMFString;
-    {  }
+    { Internal wrapper for property @link(Info). This wrapper API may change, we advise to access simpler @link(Info) instead. }
     public property FdInfo: TMFString read FFdInfo;
     {  }
     procedure SetInfo(const Value: array of string); overload;
@@ -61,91 +61,91 @@
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdJoints: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Joints). This wrapper API may change, we advise to access simpler @link(Joints) instead. }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of THAnimJointNode);
 
     strict private FFdName: TSFString;
-    {  }
+    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSegments: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Segments). This wrapper API may change, we advise to access simpler @link(Segments) instead. }
     public property FdSegments: TMFNode read FFdSegments;
     {  }
     procedure SetSegments(const Value: array of THAnimSegmentNode);
 
     strict private FFdSites: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Sites). This wrapper API may change, we advise to access simpler @link(Sites) instead. }
     public property FdSites: TMFNode read FFdSites;
     {  }
     procedure SetSites(const Value: array of THAnimSiteNode);
 
     strict private FFdSkeleton: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Skeleton). This wrapper API may change, we advise to access simpler @link(Skeleton) instead. }
     public property FdSkeleton: TMFNode read FFdSkeleton;
 
     strict private FFdSkin: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Skin). This wrapper API may change, we advise to access simpler @link(Skin) instead. }
     public property FdSkin: TMFNode read FFdSkin;
     {  }
     procedure SetSkin(const Value: array of TAbstractChildNode);
 
     strict private FFdSkinCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(SkinCoord). This wrapper API may change, we advise to access simpler @link(SkinCoord) instead. }
     public property FdSkinCoord: TSFNode read FFdSkinCoord;
 
     strict private FFdSkinNormal: TSFNode;
-    {  }
+    { Internal wrapper for property @link(SkinNormal). This wrapper API may change, we advise to access simpler @link(SkinNormal) instead. }
     public property FdSkinNormal: TSFNode read FFdSkinNormal;
     {  }
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
 
     strict private FFdTranslation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdVersion: TSFString;
-    {  }
+    { Internal wrapper for property @link(Version). This wrapper API may change, we advise to access simpler @link(Version) instead. }
     public property FdVersion: TSFString read FFdVersion;
     {  }
     property Version: String read GetVersion write SetVersion;
 
     strict private FFdViewpoints: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Viewpoints). This wrapper API may change, we advise to access simpler @link(Viewpoints) instead. }
     public property FdViewpoints: TMFNode read FFdViewpoints;
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

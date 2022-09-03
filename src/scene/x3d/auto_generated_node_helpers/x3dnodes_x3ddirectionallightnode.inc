@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionRectangle: TSFVec4f;
-    {  }
+    { Internal wrapper for property @link(ProjectionRectangle). This wrapper API may change, we advise to access simpler @link(ProjectionRectangle) instead. }
     public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
     {  }
     property ProjectionRectangle: TVector4 read GetProjectionRectangle write SetProjectionRectangle;
 
     strict private FFdProjectionLocation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(ProjectionLocation). This wrapper API may change, we advise to access simpler @link(ProjectionLocation) instead. }
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
     {  }
     property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;

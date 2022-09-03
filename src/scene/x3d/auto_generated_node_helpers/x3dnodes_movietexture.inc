@@ -45,49 +45,49 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdLoop: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Loop). This wrapper API may change, we advise to access simpler @link(Loop) instead. }
     public property FdLoop: TSFBool read FFdLoop;
     {  }
     property Loop: Boolean read GetLoop write SetLoop;
 
     strict private FFdPauseTime: TSFTime;
-    {  }
+    { Internal wrapper for property @link(PauseTime). This wrapper API may change, we advise to access simpler @link(PauseTime) instead. }
     public property FdPauseTime: TSFTime read FFdPauseTime;
     {  }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
 
     strict private FFdResumeTime: TSFTime;
-    {  }
+    { Internal wrapper for property @link(ResumeTime). This wrapper API may change, we advise to access simpler @link(ResumeTime) instead. }
     public property FdResumeTime: TSFTime read FFdResumeTime;
     {  }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
 
     strict private FFdSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
     public property FdSpeed: TSFFloat read FFdSpeed;
     {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdStartTime: TSFTime;
-    {  }
+    { Internal wrapper for property @link(StartTime). This wrapper API may change, we advise to access simpler @link(StartTime) instead. }
     public property FdStartTime: TSFTime read FFdStartTime;
     {  }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
 
     strict private FFdStopTime: TSFTime;
-    {  }
+    { Internal wrapper for property @link(StopTime). This wrapper API may change, we advise to access simpler @link(StopTime) instead. }
     public property FdStopTime: TSFTime read FFdStopTime;
     {  }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
 
     strict private FFdUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
@@ -95,7 +95,7 @@
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFlipVertically: TSFBool;
-    {  }
+    { Internal wrapper for property @link(FlipVertically). This wrapper API may change, we advise to access simpler @link(FlipVertically) instead. }
     public property FdFlipVertically: TSFBool read FFdFlipVertically;
     {  }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;

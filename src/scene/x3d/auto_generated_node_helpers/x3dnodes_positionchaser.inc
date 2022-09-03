@@ -45,13 +45,13 @@
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
     {  }
     property InitialDestination: TVector3 read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
     {  }
     property InitialValue: TVector3 read GetInitialValue write SetInitialValue;

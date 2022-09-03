@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdWhichChoice: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(WhichChoice). This wrapper API may change, we advise to access simpler @link(WhichChoice) instead. }
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
     {  }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;

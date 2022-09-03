@@ -41,43 +41,43 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(AmbientIntensity). This wrapper API may change, we advise to access simpler @link(AmbientIntensity) instead. }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdGlobal: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Global). This wrapper API may change, we advise to access simpler @link(Global) instead. }
     public property FdGlobal: TSFBool read FFdGlobal;
     {  }
     property Global: Boolean read GetGlobal write SetGlobal;
 
     strict private FFdIntensity: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Intensity). This wrapper API may change, we advise to access simpler @link(Intensity) instead. }
     public property FdIntensity: TSFFloat read FFdIntensity;
     {  }
     property Intensity: Single read GetIntensity write SetIntensity;
 
     strict private FFdOn: TSFBool;
-    {  }
+    { Internal wrapper for property @link(IsOn). This wrapper API may change, we advise to access simpler @link(IsOn) instead. }
     public property FdOn: TSFBool read FFdOn;
     {  }
     property IsOn: Boolean read GetIsOn write SetIsOn;
 
     strict private FFdEffects: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
     public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdShadowVolumes: TSFBool;
-    {  }
+    { Internal wrapper for property @link(ShadowVolumes). This wrapper API may change, we advise to access simpler @link(ShadowVolumes) instead. }
     public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
     {  }
     property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;

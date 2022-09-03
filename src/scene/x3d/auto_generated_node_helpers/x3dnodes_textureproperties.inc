@@ -49,69 +49,69 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAnisotropicDegree: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(AnisotropicDegree). This wrapper API may change, we advise to access simpler @link(AnisotropicDegree) instead. }
     public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
     {  }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
 
     strict private FFdBorderColor: TSFColorRGBA;
-    {  }
+    { Internal wrapper for property @link(BorderColor). This wrapper API may change, we advise to access simpler @link(BorderColor) instead. }
     public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
     {  }
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
 
     strict private FFdBorderWidth: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(BorderWidth). This wrapper API may change, we advise to access simpler @link(BorderWidth) instead. }
     public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
     {  }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
 
     strict private FFdBoundaryModeS: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(BoundaryModeS). This wrapper API may change, we advise to access simpler @link(BoundaryModeS) instead. }
     public property FdBoundaryModeS: TSFStringEnum read FFdBoundaryModeS;
     {  }
     property BoundaryModeS: TBoundaryMode read GetBoundaryModeS write SetBoundaryModeS;
 
     strict private FFdBoundaryModeT: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(BoundaryModeT). This wrapper API may change, we advise to access simpler @link(BoundaryModeT) instead. }
     public property FdBoundaryModeT: TSFStringEnum read FFdBoundaryModeT;
     {  }
     property BoundaryModeT: TBoundaryMode read GetBoundaryModeT write SetBoundaryModeT;
 
     strict private FFdBoundaryModeR: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(BoundaryModeR). This wrapper API may change, we advise to access simpler @link(BoundaryModeR) instead. }
     public property FdBoundaryModeR: TSFStringEnum read FFdBoundaryModeR;
     {  }
     property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
 
     strict private FFdMagnificationFilter: TSFString;
-    {  }
+    { Internal wrapper for property @link(MagnificationFilter). This wrapper API may change, we advise to access simpler @link(MagnificationFilter) instead. }
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
     strict private FFdMinificationFilter: TSFString;
-    {  }
+    { Internal wrapper for property @link(MinificationFilter). This wrapper API may change, we advise to access simpler @link(MinificationFilter) instead. }
     public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
     strict private FFdTextureCompression: TSFString;
-    {  }
+    { Internal wrapper for property @link(TextureCompression). This wrapper API may change, we advise to access simpler @link(TextureCompression) instead. }
     public property FdTextureCompression: TSFString read FFdTextureCompression;
     {  }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
 
     strict private FFdTexturePriority: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(TexturePriority). This wrapper API may change, we advise to access simpler @link(TexturePriority) instead. }
     public property FdTexturePriority: TSFFloat read FFdTexturePriority;
     {  }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
 
     strict private FFdGenerateMipMaps: TSFBool;
-    {  }
+    { Internal wrapper for property @link(GenerateMipMaps). This wrapper API may change, we advise to access simpler @link(GenerateMipMaps) instead. }
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
     {  }
     property GenerateMipMaps: Boolean read GetGenerateMipMaps write SetGenerateMipMaps;
 
     strict private FFdGuiTexture: TSFBool;
-    {  }
+    { Internal wrapper for property @link(GuiTexture). This wrapper API may change, we advise to access simpler @link(GuiTexture) instead. }
     public property FdGuiTexture: TSFBool read FFdGuiTexture;
     {  }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;

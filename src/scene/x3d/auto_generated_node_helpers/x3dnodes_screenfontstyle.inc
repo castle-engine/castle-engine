@@ -43,51 +43,51 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFamily: TMFString;
-    {  }
+    { Internal wrapper for property @link(Family). This wrapper API may change, we advise to access simpler @link(Family) instead. }
     public property FdFamily: TMFString read FFdFamily;
 
     strict private FFdHorizontal: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Horizontal). This wrapper API may change, we advise to access simpler @link(Horizontal) instead. }
     public property FdHorizontal: TSFBool read FFdHorizontal;
     {  }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
 
     strict private FFdJustify: TMFString;
-    {  }
+    { Internal wrapper for property @link(Justify). This wrapper API may change, we advise to access simpler @link(Justify) instead. }
     public property FdJustify: TMFString read FFdJustify;
 
     strict private FFdLanguage: TSFString;
-    {  }
+    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
     public property FdLanguage: TSFString read FFdLanguage;
     {  }
     property Language: String read GetLanguage write SetLanguage;
 
     strict private FFdLeftToRight: TSFBool;
-    {  }
+    { Internal wrapper for property @link(LeftToRight). This wrapper API may change, we advise to access simpler @link(LeftToRight) instead. }
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
     {  }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
 
     strict private FFdPointSize: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(PointSize). This wrapper API may change, we advise to access simpler @link(PointSize) instead. }
     public property FdPointSize: TSFFloat read FFdPointSize;
     {  }
     property PointSize: Single read GetPointSize write SetPointSize;
 
     strict private FFdSpacing: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Spacing). This wrapper API may change, we advise to access simpler @link(Spacing) instead. }
     public property FdSpacing: TSFFloat read FFdSpacing;
     {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdStyle: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(Style). This wrapper API may change, we advise to access simpler @link(Style) instead. }
     public property FdStyle: TSFStringEnum read FFdStyle;
     {  }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
 
     strict private FFdTopToBottom: TSFBool;
-    {  }
+    { Internal wrapper for property @link(TopToBottom). This wrapper API may change, we advise to access simpler @link(TopToBottom) instead. }
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
     {  }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;

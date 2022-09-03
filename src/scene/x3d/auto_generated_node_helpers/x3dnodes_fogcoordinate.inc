@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDepth: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Depth). This wrapper API may change, we advise to access simpler @link(Depth) instead. }
     public property FdDepth: TMFFloat read FFdDepth;
     {  }
     procedure SetDepth(const Value: array of Single); overload;

@@ -47,22 +47,22 @@
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
     public property FdChildren: TMFNode read FFdChildren;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisible: TSFBool;
-    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape. }
+    { Internal wrapper for property @link(Visible). This wrapper API may change, we advise to access simpler @link(Visible) instead. }
     public property FdVisible: TSFBool read FFdVisible;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -72,7 +72,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxDisplay: TSFBool;
-    { Is the bounding box of this group visible (@italic(not implemented yet)). While this is not implemented for an X3D group, note that you can use @link(TDebugTransformBox) to easily display bounding box of a whole @link(TCastleTransform). }
+    { Internal wrapper for property @link(BboxDisplay). This wrapper API may change, we advise to access simpler @link(BboxDisplay) instead. }
     public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

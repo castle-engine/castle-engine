@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdRepeatS: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatS). This wrapper API may change, we advise to access simpler @link(RepeatS) instead. }
     public property FdRepeatS: TSFBool read FFdRepeatS;
     {  }
     property RepeatS: Boolean read GetRepeatS write SetRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatT). This wrapper API may change, we advise to access simpler @link(RepeatT) instead. }
     public property FdRepeatT: TSFBool read FFdRepeatT;
     {  }
     property RepeatT: Boolean read GetRepeatT write SetRepeatT;
 
     strict private FFdRepeatR: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatR). This wrapper API may change, we advise to access simpler @link(RepeatR) instead. }
     public property FdRepeatR: TSFBool read FFdRepeatR;
     {  }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
 
     strict private FFdTextureProperties: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;

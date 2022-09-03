@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdPrograms: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Programs). This wrapper API may change, we advise to access simpler @link(Programs) instead. }
     public property FdPrograms: TMFNode read FFdPrograms;
     {  }
     procedure SetPrograms(const Value: array of TShaderProgramNode);

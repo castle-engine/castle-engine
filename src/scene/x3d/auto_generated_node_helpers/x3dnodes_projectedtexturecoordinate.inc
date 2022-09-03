@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdProjector: TSFNode;
-    { Viewpoint or light that determine how is the texture projected. }
+    { Internal wrapper for property @link(Projector). This wrapper API may change, we advise to access simpler @link(Projector) instead. }
     public property FdProjector: TSFNode read FFdProjector;
 
 {$endif read_interface}

@@ -32,7 +32,7 @@
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     strict private FFdIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(Index). This wrapper API may change, we advise to access simpler @link(Index) instead. }
     public property FdIndex: TMFInt32 read FFdIndex;
     {  }
     procedure SetIndex(const Value: array of LongInt); overload;

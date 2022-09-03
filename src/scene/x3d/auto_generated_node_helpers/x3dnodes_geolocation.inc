@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCoords: TSFVec3d;
-    {  }
+    { Internal wrapper for property @link(GeoCoords). This wrapper API may change, we advise to access simpler @link(GeoCoords) instead. }
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
     {  }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
 
     strict private FFdGeoOrigin: TSFNode;
-    {  }
+    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    {  }
+    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;

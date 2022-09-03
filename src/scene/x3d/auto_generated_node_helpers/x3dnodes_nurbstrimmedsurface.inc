@@ -36,7 +36,7 @@
     public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
 
     strict private FFdTrimmingContour: TMFNode;
-    {  }
+    { Internal wrapper for property @link(TrimmingContour). This wrapper API may change, we advise to access simpler @link(TrimmingContour) instead. }
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
     {  }
     procedure SetTrimmingContour(const Value: array of TContour2DNode);

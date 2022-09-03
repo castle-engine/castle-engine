@@ -35,7 +35,7 @@
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdKey: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Key). This wrapper API may change, we advise to access simpler @link(Key) instead. }
     public property FdKey: TMFFloat read FFdKey;
     {  }
     procedure SetKey(const Value: array of Single); overload;
@@ -43,7 +43,7 @@
     procedure SetKey(const Value: TSingleList); overload;
 
     strict private FFdInterpolation: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(Interpolation). This wrapper API may change, we advise to access simpler @link(Interpolation) instead. }
     public property FdInterpolation: TSFStringEnum read FFdInterpolation;
     {  }
     property Interpolation: TInterpolation read GetInterpolation write SetInterpolation;

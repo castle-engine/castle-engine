@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTau: TSFTime;
-    {  }
+    { Internal wrapper for property @link(Tau). This wrapper API may change, we advise to access simpler @link(Tau) instead. }
     public property FdTau: TSFTime read FFdTau;
     {  }
     property Tau: TFloatTime read GetTau write SetTau;
 
     strict private FFdTolerance: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Tolerance). This wrapper API may change, we advise to access simpler @link(Tolerance) instead. }
     public property FdTolerance: TSFFloat read FFdTolerance;
     {  }
     property Tolerance: Single read GetTolerance write SetTolerance;
 
     strict private FFdOrder: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
     public property FdOrder: TSFInt32 read FFdOrder;
     {  }
     property Order: Integer read GetOrder write SetOrder;

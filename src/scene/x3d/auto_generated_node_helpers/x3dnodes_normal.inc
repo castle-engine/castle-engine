@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdVector: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(Vector). This wrapper API may change, we advise to access simpler @link(Vector) instead. }
     public property FdVector: TMFVec3f read FFdVector;
     {  }
     procedure SetVector(const Value: array of TVector3); overload;

@@ -167,421 +167,421 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAlphaFactor: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(AlphaFactor). This wrapper API may change, we advise to access simpler @link(AlphaFactor) instead. }
     public property FdAlphaFactor: TSFFloat read FFdAlphaFactor;
     {  }
     property AlphaFactor: Single read GetAlphaFactor write SetAlphaFactor;
 
     strict private FFdAlphaTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(AlphaTextureId). This wrapper API may change, we advise to access simpler @link(AlphaTextureId) instead. }
     public property FdAlphaTextureId: TSFInt32 read FFdAlphaTextureId;
     {  }
     property AlphaTextureId: Integer read GetAlphaTextureId write SetAlphaTextureId;
 
     strict private FFdAlphaTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(AlphaTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(AlphaTextureCoordinatesId) instead. }
     public property FdAlphaTextureCoordinatesId: TSFInt32 read FFdAlphaTextureCoordinatesId;
     {  }
     property AlphaTextureCoordinatesId: Integer read GetAlphaTextureCoordinatesId write SetAlphaTextureCoordinatesId;
 
     strict private FFdAlphaTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(AlphaTextureChannelMask). This wrapper API may change, we advise to access simpler @link(AlphaTextureChannelMask) instead. }
     public property FdAlphaTextureChannelMask: TSFString read FFdAlphaTextureChannelMask;
     {  }
     property AlphaTextureChannelMask: String read GetAlphaTextureChannelMask write SetAlphaTextureChannelMask;
 
     strict private FFdAlphaTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(AlphaTexture). This wrapper API may change, we advise to access simpler @link(AlphaTexture) instead. }
     public property FdAlphaTexture: TSFNode read FFdAlphaTexture;
     {  }
     property AlphaTexture: TAbstractTextureNode read GetAlphaTexture write SetAlphaTexture;
 
     strict private FFdAmbientFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(AmbientFactor). This wrapper API may change, we advise to access simpler @link(AmbientFactor) instead. }
     public property FdAmbientFactor: TSFVec3f read FFdAmbientFactor;
     {  }
     property AmbientFactor: TVector3 read GetAmbientFactor write SetAmbientFactor;
 
     strict private FFdAmbientTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(AmbientTextureId). This wrapper API may change, we advise to access simpler @link(AmbientTextureId) instead. }
     public property FdAmbientTextureId: TSFInt32 read FFdAmbientTextureId;
     {  }
     property AmbientTextureId: Integer read GetAmbientTextureId write SetAmbientTextureId;
 
     strict private FFdAmbientTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(AmbientTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(AmbientTextureCoordinatesId) instead. }
     public property FdAmbientTextureCoordinatesId: TSFInt32 read FFdAmbientTextureCoordinatesId;
     {  }
     property AmbientTextureCoordinatesId: Integer read GetAmbientTextureCoordinatesId write SetAmbientTextureCoordinatesId;
 
     strict private FFdAmbientTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(AmbientTextureChannelMask). This wrapper API may change, we advise to access simpler @link(AmbientTextureChannelMask) instead. }
     public property FdAmbientTextureChannelMask: TSFString read FFdAmbientTextureChannelMask;
     {  }
     property AmbientTextureChannelMask: String read GetAmbientTextureChannelMask write SetAmbientTextureChannelMask;
 
     strict private FFdAmbientTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(AmbientTexture). This wrapper API may change, we advise to access simpler @link(AmbientTexture) instead. }
     public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
     {  }
     property AmbientTexture: TAbstractTextureNode read GetAmbientTexture write SetAmbientTexture;
 
     strict private FFdDiffuseFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(DiffuseFactor). This wrapper API may change, we advise to access simpler @link(DiffuseFactor) instead. }
     public property FdDiffuseFactor: TSFVec3f read FFdDiffuseFactor;
     {  }
     property DiffuseFactor: TVector3 read GetDiffuseFactor write SetDiffuseFactor;
 
     strict private FFdDiffuseTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DiffuseTextureId). This wrapper API may change, we advise to access simpler @link(DiffuseTextureId) instead. }
     public property FdDiffuseTextureId: TSFInt32 read FFdDiffuseTextureId;
     {  }
     property DiffuseTextureId: Integer read GetDiffuseTextureId write SetDiffuseTextureId;
 
     strict private FFdDiffuseTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DiffuseTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(DiffuseTextureCoordinatesId) instead. }
     public property FdDiffuseTextureCoordinatesId: TSFInt32 read FFdDiffuseTextureCoordinatesId;
     {  }
     property DiffuseTextureCoordinatesId: Integer read GetDiffuseTextureCoordinatesId write SetDiffuseTextureCoordinatesId;
 
     strict private FFdDiffuseTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(DiffuseTextureChannelMask). This wrapper API may change, we advise to access simpler @link(DiffuseTextureChannelMask) instead. }
     public property FdDiffuseTextureChannelMask: TSFString read FFdDiffuseTextureChannelMask;
     {  }
     property DiffuseTextureChannelMask: String read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
 
     strict private FFdDiffuseTexture: TSFNode;
-    { The texture controlling the diffuse color, multiplied by @link(DiffuseFactor). }
+    { Internal wrapper for property @link(DiffuseTexture). This wrapper API may change, we advise to access simpler @link(DiffuseTexture) instead. }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
     { The texture controlling the diffuse color, multiplied by @link(DiffuseFactor). }
     property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdDiffuseDisplacementTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(DiffuseDisplacementTexture). This wrapper API may change, we advise to access simpler @link(DiffuseDisplacementTexture) instead. }
     public property FdDiffuseDisplacementTexture: TSFNode read FFdDiffuseDisplacementTexture;
     {  }
     property DiffuseDisplacementTexture: TAbstractTextureNode read GetDiffuseDisplacementTexture write SetDiffuseDisplacementTexture;
 
     strict private FFdDisplacementAxis: TSFString;
-    {  }
+    { Internal wrapper for property @link(DisplacementAxis). This wrapper API may change, we advise to access simpler @link(DisplacementAxis) instead. }
     public property FdDisplacementAxis: TSFString read FFdDisplacementAxis;
     {  }
     property DisplacementAxis: String read GetDisplacementAxis write SetDisplacementAxis;
 
     strict private FFdDisplacementFactor: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(DisplacementFactor). This wrapper API may change, we advise to access simpler @link(DisplacementFactor) instead. }
     public property FdDisplacementFactor: TSFFloat read FFdDisplacementFactor;
     {  }
     property DisplacementFactor: Single read GetDisplacementFactor write SetDisplacementFactor;
 
     strict private FFdDisplacementTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DisplacementTextureId). This wrapper API may change, we advise to access simpler @link(DisplacementTextureId) instead. }
     public property FdDisplacementTextureId: TSFInt32 read FFdDisplacementTextureId;
     {  }
     property DisplacementTextureId: Integer read GetDisplacementTextureId write SetDisplacementTextureId;
 
     strict private FFdDisplacementTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(DisplacementTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(DisplacementTextureCoordinatesId) instead. }
     public property FdDisplacementTextureCoordinatesId: TSFInt32 read FFdDisplacementTextureCoordinatesId;
     {  }
     property DisplacementTextureCoordinatesId: Integer read GetDisplacementTextureCoordinatesId write SetDisplacementTextureCoordinatesId;
 
     strict private FFdDisplacementTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(DisplacementTexture). This wrapper API may change, we advise to access simpler @link(DisplacementTexture) instead. }
     public property FdDisplacementTexture: TSFNode read FFdDisplacementTexture;
     {  }
     property DisplacementTexture: TAbstractTextureNode read GetDisplacementTexture write SetDisplacementTexture;
 
     strict private FFdEmissiveFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(EmissiveFactor). This wrapper API may change, we advise to access simpler @link(EmissiveFactor) instead. }
     public property FdEmissiveFactor: TSFVec3f read FFdEmissiveFactor;
     {  }
     property EmissiveFactor: TVector3 read GetEmissiveFactor write SetEmissiveFactor;
 
     strict private FFdEmissiveTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EmissiveTextureId). This wrapper API may change, we advise to access simpler @link(EmissiveTextureId) instead. }
     public property FdEmissiveTextureId: TSFInt32 read FFdEmissiveTextureId;
     {  }
     property EmissiveTextureId: Integer read GetEmissiveTextureId write SetEmissiveTextureId;
 
     strict private FFdEmissiveTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EmissiveTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(EmissiveTextureCoordinatesId) instead. }
     public property FdEmissiveTextureCoordinatesId: TSFInt32 read FFdEmissiveTextureCoordinatesId;
     {  }
     property EmissiveTextureCoordinatesId: Integer read GetEmissiveTextureCoordinatesId write SetEmissiveTextureCoordinatesId;
 
     strict private FFdEmissiveTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(EmissiveTextureChannelMask). This wrapper API may change, we advise to access simpler @link(EmissiveTextureChannelMask) instead. }
     public property FdEmissiveTextureChannelMask: TSFString read FFdEmissiveTextureChannelMask;
     {  }
     property EmissiveTextureChannelMask: String read GetEmissiveTextureChannelMask write SetEmissiveTextureChannelMask;
 
     strict private FFdEmissiveTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(EmissiveTexture). This wrapper API may change, we advise to access simpler @link(EmissiveTexture) instead. }
     public property FdEmissiveTexture: TSFNode read FFdEmissiveTexture;
     {  }
     property EmissiveTexture: TAbstractTextureNode read GetEmissiveTexture write SetEmissiveTexture;
 
     strict private FFdEnvironmentFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(EnvironmentFactor). This wrapper API may change, we advise to access simpler @link(EnvironmentFactor) instead. }
     public property FdEnvironmentFactor: TSFVec3f read FFdEnvironmentFactor;
     {  }
     property EnvironmentFactor: TVector3 read GetEnvironmentFactor write SetEnvironmentFactor;
 
     strict private FFdEnvironmentTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EnvironmentTextureId). This wrapper API may change, we advise to access simpler @link(EnvironmentTextureId) instead. }
     public property FdEnvironmentTextureId: TSFInt32 read FFdEnvironmentTextureId;
     {  }
     property EnvironmentTextureId: Integer read GetEnvironmentTextureId write SetEnvironmentTextureId;
 
     strict private FFdEnvironmentTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(EnvironmentTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(EnvironmentTextureCoordinatesId) instead. }
     public property FdEnvironmentTextureCoordinatesId: TSFInt32 read FFdEnvironmentTextureCoordinatesId;
     {  }
     property EnvironmentTextureCoordinatesId: Integer read GetEnvironmentTextureCoordinatesId write SetEnvironmentTextureCoordinatesId;
 
     strict private FFdEnvironmentTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(EnvironmentTextureChannelMask). This wrapper API may change, we advise to access simpler @link(EnvironmentTextureChannelMask) instead. }
     public property FdEnvironmentTextureChannelMask: TSFString read FFdEnvironmentTextureChannelMask;
     {  }
     property EnvironmentTextureChannelMask: String read GetEnvironmentTextureChannelMask write SetEnvironmentTextureChannelMask;
 
     strict private FFdEnvironmentTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(EnvironmentTexture). This wrapper API may change, we advise to access simpler @link(EnvironmentTexture) instead. }
     public property FdEnvironmentTexture: TSFNode read FFdEnvironmentTexture;
     {  }
     property EnvironmentTexture: TAbstractEnvironmentTextureNode read GetEnvironmentTexture write SetEnvironmentTexture;
 
     strict private FFdMultiDiffuseAlphaTexture: TSFNode;
-    { The texture controlling the diffuse (rgb) and alpha (alpha channel). Diffuse color is multiplied by @link(DiffuseFactor), alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
+    { Internal wrapper for property @link(MultiDiffuseAlphaTexture). This wrapper API may change, we advise to access simpler @link(MultiDiffuseAlphaTexture) instead. }
     public property FdMultiDiffuseAlphaTexture: TSFNode read FFdMultiDiffuseAlphaTexture;
     { The texture controlling the diffuse (rgb) and alpha (alpha channel). Diffuse color is multiplied by @link(DiffuseFactor), alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
     property MultiDiffuseAlphaTexture: TAbstractTextureNode read GetMultiDiffuseAlphaTexture write SetMultiDiffuseAlphaTexture;
 
     strict private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(MultiEmmisiveAmbientIntensityTexture). This wrapper API may change, we advise to access simpler @link(MultiEmmisiveAmbientIntensityTexture) instead. }
     public property FdMultiEmmisiveAmbientIntensityTexture: TSFNode read FFdMultiEmmisiveAmbientIntensityTexture;
     {  }
     property MultiEmmisiveAmbientIntensityTexture: TAbstractTextureNode read GetMultiEmmisiveAmbientIntensityTexture write SetMultiEmmisiveAmbientIntensityTexture;
 
     strict private FFdMultiSpecularShininessTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(MultiSpecularShininessTexture). This wrapper API may change, we advise to access simpler @link(MultiSpecularShininessTexture) instead. }
     public property FdMultiSpecularShininessTexture: TSFNode read FFdMultiSpecularShininessTexture;
     {  }
     property MultiSpecularShininessTexture: TAbstractTextureNode read GetMultiSpecularShininessTexture write SetMultiSpecularShininessTexture;
 
     strict private FFdMultiVisibilityTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(MultiVisibilityTexture). This wrapper API may change, we advise to access simpler @link(MultiVisibilityTexture) instead. }
     public property FdMultiVisibilityTexture: TSFNode read FFdMultiVisibilityTexture;
     {  }
     property MultiVisibilityTexture: TAbstractTextureNode read GetMultiVisibilityTexture write SetMultiVisibilityTexture;
 
     strict private FFdNormalFormat: TSFString;
-    {  }
+    { Internal wrapper for property @link(NormalFormat). This wrapper API may change, we advise to access simpler @link(NormalFormat) instead. }
     public property FdNormalFormat: TSFString read FFdNormalFormat;
     {  }
     property NormalFormat: String read GetNormalFormat write SetNormalFormat;
 
     strict private FFdNormalSpace: TSFString;
-    {  }
+    { Internal wrapper for property @link(NormalSpace). This wrapper API may change, we advise to access simpler @link(NormalSpace) instead. }
     public property FdNormalSpace: TSFString read FFdNormalSpace;
     {  }
     property NormalSpace: String read GetNormalSpace write SetNormalSpace;
 
     strict private FFdNormalTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(NormalTextureId). This wrapper API may change, we advise to access simpler @link(NormalTextureId) instead. }
     public property FdNormalTextureId: TSFInt32 read FFdNormalTextureId;
     {  }
     property NormalTextureId: Integer read GetNormalTextureId write SetNormalTextureId;
 
     strict private FFdNormalTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(NormalTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(NormalTextureCoordinatesId) instead. }
     public property FdNormalTextureCoordinatesId: TSFInt32 read FFdNormalTextureCoordinatesId;
     {  }
     property NormalTextureCoordinatesId: Integer read GetNormalTextureCoordinatesId write SetNormalTextureCoordinatesId;
 
     strict private FFdNormalTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(NormalTextureChannelMask). This wrapper API may change, we advise to access simpler @link(NormalTextureChannelMask) instead. }
     public property FdNormalTextureChannelMask: TSFString read FFdNormalTextureChannelMask;
     {  }
     property NormalTextureChannelMask: String read GetNormalTextureChannelMask write SetNormalTextureChannelMask;
 
     strict private FFdNormalScale: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(NormalScale). This wrapper API may change, we advise to access simpler @link(NormalScale) instead. }
     public property FdNormalScale: TSFVec3f read FFdNormalScale;
     {  }
     property NormalScale: TVector3 read GetNormalScale write SetNormalScale;
 
     strict private FFdNormalBias: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(NormalBias). This wrapper API may change, we advise to access simpler @link(NormalBias) instead. }
     public property FdNormalBias: TSFVec3f read FFdNormalBias;
     {  }
     property NormalBias: TVector3 read GetNormalBias write SetNormalBias;
 
     strict private FFdNormalTexture: TSFNode;
-    { Normalmap for bump mapping (the texture controlling the normals). }
+    { Internal wrapper for property @link(NormalTexture). This wrapper API may change, we advise to access simpler @link(NormalTexture) instead. }
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
     { Normalmap for bump mapping (the texture controlling the normals). }
     property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
 
     strict private FFdNormalTextureParallaxHeight: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(NormalTextureParallaxHeight). This wrapper API may change, we advise to access simpler @link(NormalTextureParallaxHeight) instead. }
     public property FdNormalTextureParallaxHeight: TSFFloat read FFdNormalTextureParallaxHeight;
     {  }
     property NormalTextureParallaxHeight: Single read GetNormalTextureParallaxHeight write SetNormalTextureParallaxHeight;
 
     strict private FFdReflectionFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(ReflectionFactor). This wrapper API may change, we advise to access simpler @link(ReflectionFactor) instead. }
     public property FdReflectionFactor: TSFVec3f read FFdReflectionFactor;
     {  }
     property ReflectionFactor: TVector3 read GetReflectionFactor write SetReflectionFactor;
 
     strict private FFdReflectionTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ReflectionTextureId). This wrapper API may change, we advise to access simpler @link(ReflectionTextureId) instead. }
     public property FdReflectionTextureId: TSFInt32 read FFdReflectionTextureId;
     {  }
     property ReflectionTextureId: Integer read GetReflectionTextureId write SetReflectionTextureId;
 
     strict private FFdReflectionTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ReflectionTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(ReflectionTextureCoordinatesId) instead. }
     public property FdReflectionTextureCoordinatesId: TSFInt32 read FFdReflectionTextureCoordinatesId;
     {  }
     property ReflectionTextureCoordinatesId: Integer read GetReflectionTextureCoordinatesId write SetReflectionTextureCoordinatesId;
 
     strict private FFdReflectionTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(ReflectionTextureChannelMask). This wrapper API may change, we advise to access simpler @link(ReflectionTextureChannelMask) instead. }
     public property FdReflectionTextureChannelMask: TSFString read FFdReflectionTextureChannelMask;
     {  }
     property ReflectionTextureChannelMask: String read GetReflectionTextureChannelMask write SetReflectionTextureChannelMask;
 
     strict private FFdReflectionTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ReflectionTexture). This wrapper API may change, we advise to access simpler @link(ReflectionTexture) instead. }
     public property FdReflectionTexture: TSFNode read FFdReflectionTexture;
     {  }
     property ReflectionTexture: TAbstractTextureNode read GetReflectionTexture write SetReflectionTexture;
 
     strict private FFdShininessFactor: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ShininessFactor). This wrapper API may change, we advise to access simpler @link(ShininessFactor) instead. }
     public property FdShininessFactor: TSFFloat read FFdShininessFactor;
     {  }
     property ShininessFactor: Single read GetShininessFactor write SetShininessFactor;
 
     strict private FFdShininessTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ShininessTextureId). This wrapper API may change, we advise to access simpler @link(ShininessTextureId) instead. }
     public property FdShininessTextureId: TSFInt32 read FFdShininessTextureId;
     {  }
     property ShininessTextureId: Integer read GetShininessTextureId write SetShininessTextureId;
 
     strict private FFdShininessTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ShininessTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(ShininessTextureCoordinatesId) instead. }
     public property FdShininessTextureCoordinatesId: TSFInt32 read FFdShininessTextureCoordinatesId;
     {  }
     property ShininessTextureCoordinatesId: Integer read GetShininessTextureCoordinatesId write SetShininessTextureCoordinatesId;
 
     strict private FFdShininessTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(ShininessTextureChannelMask). This wrapper API may change, we advise to access simpler @link(ShininessTextureChannelMask) instead. }
     public property FdShininessTextureChannelMask: TSFString read FFdShininessTextureChannelMask;
     {  }
     property ShininessTextureChannelMask: String read GetShininessTextureChannelMask write SetShininessTextureChannelMask;
 
     strict private FFdShininessTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ShininessTexture). This wrapper API may change, we advise to access simpler @link(ShininessTexture) instead. }
     public property FdShininessTexture: TSFNode read FFdShininessTexture;
     {  }
     property ShininessTexture: TAbstractTextureNode read GetShininessTexture write SetShininessTexture;
 
     strict private FFdSpecularFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(SpecularFactor). This wrapper API may change, we advise to access simpler @link(SpecularFactor) instead. }
     public property FdSpecularFactor: TSFVec3f read FFdSpecularFactor;
     {  }
     property SpecularFactor: TVector3 read GetSpecularFactor write SetSpecularFactor;
 
     strict private FFdSpecularTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(SpecularTextureId). This wrapper API may change, we advise to access simpler @link(SpecularTextureId) instead. }
     public property FdSpecularTextureId: TSFInt32 read FFdSpecularTextureId;
     {  }
     property SpecularTextureId: Integer read GetSpecularTextureId write SetSpecularTextureId;
 
     strict private FFdSpecularTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(SpecularTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(SpecularTextureCoordinatesId) instead. }
     public property FdSpecularTextureCoordinatesId: TSFInt32 read FFdSpecularTextureCoordinatesId;
     {  }
     property SpecularTextureCoordinatesId: Integer read GetSpecularTextureCoordinatesId write SetSpecularTextureCoordinatesId;
 
     strict private FFdSpecularTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(SpecularTextureChannelMask). This wrapper API may change, we advise to access simpler @link(SpecularTextureChannelMask) instead. }
     public property FdSpecularTextureChannelMask: TSFString read FFdSpecularTextureChannelMask;
     {  }
     property SpecularTextureChannelMask: String read GetSpecularTextureChannelMask write SetSpecularTextureChannelMask;
 
     strict private FFdSpecularTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(SpecularTexture). This wrapper API may change, we advise to access simpler @link(SpecularTexture) instead. }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractTextureNode read GetSpecularTexture write SetSpecularTexture;
 
     strict private FFdTransmissionFactor: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(TransmissionFactor). This wrapper API may change, we advise to access simpler @link(TransmissionFactor) instead. }
     public property FdTransmissionFactor: TSFVec3f read FFdTransmissionFactor;
     {  }
     property TransmissionFactor: TVector3 read GetTransmissionFactor write SetTransmissionFactor;
 
     strict private FFdTransmissionTextureId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmissionTextureId). This wrapper API may change, we advise to access simpler @link(TransmissionTextureId) instead. }
     public property FdTransmissionTextureId: TSFInt32 read FFdTransmissionTextureId;
     {  }
     property TransmissionTextureId: Integer read GetTransmissionTextureId write SetTransmissionTextureId;
 
     strict private FFdTransmissionTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TransmissionTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(TransmissionTextureCoordinatesId) instead. }
     public property FdTransmissionTextureCoordinatesId: TSFInt32 read FFdTransmissionTextureCoordinatesId;
     {  }
     property TransmissionTextureCoordinatesId: Integer read GetTransmissionTextureCoordinatesId write SetTransmissionTextureCoordinatesId;
 
     strict private FFdTransmissionTextureChannelMask: TSFString;
-    {  }
+    { Internal wrapper for property @link(TransmissionTextureChannelMask). This wrapper API may change, we advise to access simpler @link(TransmissionTextureChannelMask) instead. }
     public property FdTransmissionTextureChannelMask: TSFString read FFdTransmissionTextureChannelMask;
     {  }
     property TransmissionTextureChannelMask: String read GetTransmissionTextureChannelMask write SetTransmissionTextureChannelMask;
 
     strict private FFdTransmissionTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TransmissionTexture). This wrapper API may change, we advise to access simpler @link(TransmissionTexture) instead. }
     public property FdTransmissionTexture: TSFNode read FFdTransmissionTexture;
     {  }
     property TransmissionTexture: TAbstractTextureNode read GetTransmissionTexture write SetTransmissionTexture;
 
     strict private FFdTangentTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(TangentTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(TangentTextureCoordinatesId) instead. }
     public property FdTangentTextureCoordinatesId: TSFInt32 read FFdTangentTextureCoordinatesId;
     {  }
     property TangentTextureCoordinatesId: Integer read GetTangentTextureCoordinatesId write SetTangentTextureCoordinatesId;
 
     strict private FFdBinormalTextureCoordinatesId: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(BinormalTextureCoordinatesId). This wrapper API may change, we advise to access simpler @link(BinormalTextureCoordinatesId) instead. }
     public property FdBinormalTextureCoordinatesId: TSFInt32 read FFdBinormalTextureCoordinatesId;
     {  }
     property BinormalTextureCoordinatesId: Integer read GetBinormalTextureCoordinatesId write SetBinormalTextureCoordinatesId;
 
     strict private FFdInvertAlphaTexture: TSFBool;
-    {  }
+    { Internal wrapper for property @link(InvertAlphaTexture). This wrapper API may change, we advise to access simpler @link(InvertAlphaTexture) instead. }
     public property FdInvertAlphaTexture: TSFBool read FFdInvertAlphaTexture;
     {  }
     property InvertAlphaTexture: Boolean read GetInvertAlphaTexture write SetInvertAlphaTexture;
 
     strict private FFdRelativeIndexOfRefraction: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(RelativeIndexOfRefraction). This wrapper API may change, we advise to access simpler @link(RelativeIndexOfRefraction) instead. }
     public property FdRelativeIndexOfRefraction: TSFFloat read FFdRelativeIndexOfRefraction;
     {  }
     property RelativeIndexOfRefraction: Single read GetRelativeIndexOfRefraction write SetRelativeIndexOfRefraction;
 
     strict private FFdFresnelBlend: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(FresnelBlend). This wrapper API may change, we advise to access simpler @link(FresnelBlend) instead. }
     public property FdFresnelBlend: TSFFloat read FFdFresnelBlend;
     {  }
     property FresnelBlend: Single read GetFresnelBlend write SetFresnelBlend;
 
     strict private FFdTextureTransformEnabled: TMFBool;
-    {  }
+    { Internal wrapper for property @link(TextureTransformEnabled). This wrapper API may change, we advise to access simpler @link(TextureTransformEnabled) instead. }
     public property FdTextureTransformEnabled: TMFBool read FFdTextureTransformEnabled;
     {  }
     procedure SetTextureTransformEnabled(const Value: array of boolean); overload;

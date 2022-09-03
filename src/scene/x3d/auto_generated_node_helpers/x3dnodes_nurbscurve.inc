@@ -37,19 +37,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdControlPoint: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ControlPoint). This wrapper API may change, we advise to access simpler @link(ControlPoint) instead. }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdTessellation: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Tessellation). This wrapper API may change, we advise to access simpler @link(Tessellation) instead. }
     public property FdTessellation: TSFInt32 read FFdTessellation;
     {  }
     property Tessellation: Integer read GetTessellation write SetTessellation;
 
     strict private FFdWeight: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
     public property FdWeight: TMFDouble read FFdWeight;
     {  }
     procedure SetWeight(const Value: array of Double); overload;
@@ -57,13 +57,13 @@
     procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FFdClosed: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Closed). This wrapper API may change, we advise to access simpler @link(Closed) instead. }
     public property FdClosed: TSFBool read FFdClosed;
     {  }
     property Closed: Boolean read GetClosed write SetClosed;
 
     strict private FFdKnot: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(Knot). This wrapper API may change, we advise to access simpler @link(Knot) instead. }
     public property FdKnot: TMFDouble read FFdKnot;
     {  }
     procedure SetKnot(const Value: array of Double); overload;
@@ -71,7 +71,7 @@
     procedure SetKnot(const Value: TDoubleList); overload;
 
     strict private FFdOrder: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
     public property FdOrder: TSFInt32 read FFdOrder;
     {  }
     property Order: Integer read GetOrder write SetOrder;

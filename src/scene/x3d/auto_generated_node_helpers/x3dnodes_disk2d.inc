@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdInnerRadius: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(InnerRadius). This wrapper API may change, we advise to access simpler @link(InnerRadius) instead. }
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
     {  }
     property InnerRadius: Single read GetInnerRadius write SetInnerRadius;
 
     strict private FFdOuterRadius: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(OuterRadius). This wrapper API may change, we advise to access simpler @link(OuterRadius) instead. }
     public property FdOuterRadius: TSFFloat read FFdOuterRadius;
     {  }
     property OuterRadius: Single read GetOuterRadius write SetOuterRadius;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

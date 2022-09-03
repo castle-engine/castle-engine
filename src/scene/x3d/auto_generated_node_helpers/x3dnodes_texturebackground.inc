@@ -41,37 +41,37 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(BackTexture). This wrapper API may change, we advise to access simpler @link(BackTexture) instead. }
     public property FdBackTexture: TSFNode read FFdBackTexture;
     {  }
     property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
 
     strict private FFdBottomTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(BottomTexture). This wrapper API may change, we advise to access simpler @link(BottomTexture) instead. }
     public property FdBottomTexture: TSFNode read FFdBottomTexture;
     {  }
     property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
 
     strict private FFdFrontTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(FrontTexture). This wrapper API may change, we advise to access simpler @link(FrontTexture) instead. }
     public property FdFrontTexture: TSFNode read FFdFrontTexture;
     {  }
     property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
 
     strict private FFdLeftTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(LeftTexture). This wrapper API may change, we advise to access simpler @link(LeftTexture) instead. }
     public property FdLeftTexture: TSFNode read FFdLeftTexture;
     {  }
     property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
 
     strict private FFdRightTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(RightTexture). This wrapper API may change, we advise to access simpler @link(RightTexture) instead. }
     public property FdRightTexture: TSFNode read FFdRightTexture;
     {  }
     property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
 
     strict private FFdTopTexture: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TopTexture). This wrapper API may change, we advise to access simpler @link(TopTexture) instead. }
     public property FdTopTexture: TSFNode read FFdTopTexture;
     {  }
     property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;

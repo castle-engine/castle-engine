@@ -31,19 +31,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdChildren: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
     public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TAbstractChildNode);
 
     strict private FFdBboxCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

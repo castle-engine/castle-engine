@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdParameter: TMFString;
-    {  }
+    { Internal wrapper for property @link(Parameter). This wrapper API may change, we advise to access simpler @link(Parameter) instead. }
     public property FdParameter: TMFString read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of string); overload;
@@ -45,7 +45,7 @@
     procedure SetParameter(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;

@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSrcFactor: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(SrcFactor). This wrapper API may change, we advise to access simpler @link(SrcFactor) instead. }
     public property FdSrcFactor: TSFStringEnum read FFdSrcFactor;
     {  }
     property SrcFactor: TBlendingSourceFactor read GetSrcFactor write SetSrcFactor;
 
     strict private FFdDestFactor: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(DestFactor). This wrapper API may change, we advise to access simpler @link(DestFactor) instead. }
     public property FdDestFactor: TSFStringEnum read FFdDestFactor;
     {  }
     property DestFactor: TBlendingDestinationFactor read GetDestFactor write SetDestFactor;
 
     strict private FFdColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdColorTransparency: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ColorTransparency). This wrapper API may change, we advise to access simpler @link(ColorTransparency) instead. }
     public property FdColorTransparency: TSFFloat read FFdColorTransparency;
     {  }
     property ColorTransparency: Single read GetColorTransparency write SetColorTransparency;

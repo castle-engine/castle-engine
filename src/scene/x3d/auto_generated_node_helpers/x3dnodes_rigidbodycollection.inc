@@ -59,91 +59,91 @@
     public property EventSet_contacts: TMFNodeEvent read FEventSet_contacts;
 
     strict private FFdAutoDisable: TSFBool;
-    {  }
+    { Internal wrapper for property @link(AutoDisable). This wrapper API may change, we advise to access simpler @link(AutoDisable) instead. }
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
     {  }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
 
     strict private FFdBodies: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Bodies). This wrapper API may change, we advise to access simpler @link(Bodies) instead. }
     public property FdBodies: TMFNode read FFdBodies;
     {  }
     procedure SetBodies(const Value: array of TRigidBodyNode);
 
     strict private FFdConstantForceMix: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ConstantForceMix). This wrapper API may change, we advise to access simpler @link(ConstantForceMix) instead. }
     public property FdConstantForceMix: TSFFloat read FFdConstantForceMix;
     {  }
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
 
     strict private FFdContactSurfaceThickness: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ContactSurfaceThickness). This wrapper API may change, we advise to access simpler @link(ContactSurfaceThickness) instead. }
     public property FdContactSurfaceThickness: TSFFloat read FFdContactSurfaceThickness;
     {  }
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
 
     strict private FFdDisableAngularSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(DisableAngularSpeed). This wrapper API may change, we advise to access simpler @link(DisableAngularSpeed) instead. }
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
     {  }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
 
     strict private FFdDisableLinearSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(DisableLinearSpeed). This wrapper API may change, we advise to access simpler @link(DisableLinearSpeed) instead. }
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
     {  }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
 
     strict private FFdDisableTime: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(DisableTime). This wrapper API may change, we advise to access simpler @link(DisableTime) instead. }
     public property FdDisableTime: TSFFloat read FFdDisableTime;
     {  }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
 
     strict private FFdEnabled: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdErrorCorrection: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(ErrorCorrection). This wrapper API may change, we advise to access simpler @link(ErrorCorrection) instead. }
     public property FdErrorCorrection: TSFFloat read FFdErrorCorrection;
     {  }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
 
     strict private FFdGravity: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Gravity). This wrapper API may change, we advise to access simpler @link(Gravity) instead. }
     public property FdGravity: TSFVec3f read FFdGravity;
     {  }
     property Gravity: TVector3 read GetGravity write SetGravity;
 
     strict private FFdIterations: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Iterations). This wrapper API may change, we advise to access simpler @link(Iterations) instead. }
     public property FdIterations: TSFInt32 read FFdIterations;
     {  }
     property Iterations: Integer read GetIterations write SetIterations;
 
     strict private FFdJoints: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Joints). This wrapper API may change, we advise to access simpler @link(Joints) instead. }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of TAbstractRigidJointNode);
 
     strict private FFdMaxCorrectionSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(MaxCorrectionSpeed). This wrapper API may change, we advise to access simpler @link(MaxCorrectionSpeed) instead. }
     public property FdMaxCorrectionSpeed: TSFFloat read FFdMaxCorrectionSpeed;
     {  }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
 
     strict private FFdPreferAccuracy: TSFBool;
-    {  }
+    { Internal wrapper for property @link(PreferAccuracy). This wrapper API may change, we advise to access simpler @link(PreferAccuracy) instead. }
     public property FdPreferAccuracy: TSFBool read FFdPreferAccuracy;
     {  }
     property PreferAccuracy: Boolean read GetPreferAccuracy write SetPreferAccuracy;
 
     strict private FFdCollider: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Collider). This wrapper API may change, we advise to access simpler @link(Collider) instead. }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;

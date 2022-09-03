@@ -61,61 +61,61 @@
     public property EventSet_height: TMFDoubleEvent read FEventSet_height;
 
     strict private FFdColor: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdNormal: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Normal). This wrapper API may change, we advise to access simpler @link(Normal) instead. }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTexCoord: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdYScale: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(YScale). This wrapper API may change, we advise to access simpler @link(YScale) instead. }
     public property FdYScale: TSFFloat read FFdYScale;
     {  }
     property YScale: Single read GetYScale write SetYScale;
 
     strict private FFdCcw: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(ColorPerVertex). This wrapper API may change, we advise to access simpler @link(ColorPerVertex) instead. }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdCreaseAngle: TSFDouble;
-    {  }
+    { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
     public property FdCreaseAngle: TSFDouble read FFdCreaseAngle;
     {  }
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdGeoGridOrigin: TSFVec3d;
-    {  }
+    { Internal wrapper for property @link(GeoGridOrigin). This wrapper API may change, we advise to access simpler @link(GeoGridOrigin) instead. }
     public property FdGeoGridOrigin: TSFVec3d read FFdGeoGridOrigin;
     {  }
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
 
     strict private FFdGeoOrigin: TSFNode;
-    {  }
+    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    {  }
+    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -123,7 +123,7 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdHeight: TMFDouble;
-    {  }
+    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
     public property FdHeight: TMFDouble read FFdHeight;
     {  }
     procedure SetHeight(const Value: array of Double); overload;
@@ -131,35 +131,35 @@
     procedure SetHeight(const Value: TDoubleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(NormalPerVertex). This wrapper API may change, we advise to access simpler @link(NormalPerVertex) instead. }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdXDimension: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(XDimension). This wrapper API may change, we advise to access simpler @link(XDimension) instead. }
     public property FdXDimension: TSFInt32 read FFdXDimension;
     {  }
     property XDimension: Integer read GetXDimension write SetXDimension;
 
     strict private FFdXSpacing: TSFDouble;
-    {  }
+    { Internal wrapper for property @link(XSpacing). This wrapper API may change, we advise to access simpler @link(XSpacing) instead. }
     public property FdXSpacing: TSFDouble read FFdXSpacing;
     {  }
     property XSpacing: Double read GetXSpacing write SetXSpacing;
 
     strict private FFdZDimension: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ZDimension). This wrapper API may change, we advise to access simpler @link(ZDimension) instead. }
     public property FdZDimension: TSFInt32 read FFdZDimension;
     {  }
     property ZDimension: Integer read GetZDimension write SetZDimension;
 
     strict private FFdZSpacing: TSFDouble;
-    {  }
+    { Internal wrapper for property @link(ZSpacing). This wrapper API may change, we advise to access simpler @link(ZSpacing) instead. }
     public property FdZSpacing: TSFDouble read FFdZSpacing;
     {  }
     property ZSpacing: Double read GetZSpacing write SetZSpacing;

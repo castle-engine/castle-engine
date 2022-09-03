@@ -33,7 +33,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
@@ -41,7 +41,7 @@
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdDisplacements: TMFVec3f;
-    {  }
+    { Internal wrapper for property @link(Displacements). This wrapper API may change, we advise to access simpler @link(Displacements) instead. }
     public property FdDisplacements: TMFVec3f read FFdDisplacements;
     {  }
     procedure SetDisplacements(const Value: array of TVector3); overload;
@@ -49,13 +49,13 @@
     procedure SetDisplacements(const Value: TVector3List); overload;
 
     strict private FFdName: TSFString;
-    {  }
+    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdWeight: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
     public property FdWeight: TSFFloat read FFdWeight;
     {  }
     property Weight: Single read GetWeight write SetWeight;

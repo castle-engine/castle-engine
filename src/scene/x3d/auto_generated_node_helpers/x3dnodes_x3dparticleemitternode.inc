@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdSpeed: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
     public property FdSpeed: TSFFloat read FFdSpeed;
     {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdVariation: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Variation). This wrapper API may change, we advise to access simpler @link(Variation) instead. }
     public property FdVariation: TSFFloat read FFdVariation;
     {  }
     property Variation: Single read GetVariation write SetVariation;
 
     strict private FFdMass: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Mass). This wrapper API may change, we advise to access simpler @link(Mass) instead. }
     public property FdMass: TSFFloat read FFdMass;
     {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdSurfaceArea: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(SurfaceArea). This wrapper API may change, we advise to access simpler @link(SurfaceArea) instead. }
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
     {  }
     property SurfaceArea: Single read GetSurfaceArea write SetSurfaceArea;

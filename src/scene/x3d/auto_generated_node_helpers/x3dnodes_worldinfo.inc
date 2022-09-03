@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdInfo: TMFString;
-    {  }
+    { Internal wrapper for property @link(Info). This wrapper API may change, we advise to access simpler @link(Info) instead. }
     public property FdInfo: TMFString read FFdInfo;
     {  }
     procedure SetInfo(const Value: array of string); overload;
@@ -39,7 +39,7 @@
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdTitle: TSFString;
-    {  }
+    { Internal wrapper for property @link(Title). This wrapper API may change, we advise to access simpler @link(Title) instead. }
     public property FdTitle: TSFString read FFdTitle;
     {  }
     property Title: String read GetTitle write SetTitle;

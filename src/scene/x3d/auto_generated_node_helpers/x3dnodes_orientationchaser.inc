@@ -45,13 +45,13 @@
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
     public property FdInitialDestination: TSFRotation read FFdInitialDestination;
     {  }
     property InitialDestination: TVector4 read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
     public property FdInitialValue: TSFRotation read FFdInitialValue;
     {  }
     property InitialValue: TVector4 read GetInitialValue write SetInitialValue;

@@ -51,33 +51,33 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBackground: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Background). This wrapper API may change, we advise to access simpler @link(Background) instead. }
     public property FdBackground: TSFNode read FFdBackground;
     {  }
     property Background: TAbstractBackgroundNode read GetBackground write SetBackground;
 
     strict private FFdFog: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Fog). This wrapper API may change, we advise to access simpler @link(Fog) instead. }
     public property FdFog: TSFNode read FFdFog;
     {  }
     property Fog: TFogNode read GetFog write SetFog;
 
     strict private FFdEnvironment: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Environment). This wrapper API may change, we advise to access simpler @link(Environment) instead. }
     public property FdEnvironment: TSFNode read FFdEnvironment;
 
     strict private FFdScene: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Scene). This wrapper API may change, we advise to access simpler @link(Scene) instead. }
     public property FdScene: TSFNode read FFdScene;
     {  }
     property Scene: TAbstractNode read GetScene write SetScene;
 
     strict private FFdForeground: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Foreground). This wrapper API may change, we advise to access simpler @link(Foreground) instead. }
     public property FdForeground: TSFNode read FFdForeground;
 
     strict private FFdDimensions: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(Dimensions). This wrapper API may change, we advise to access simpler @link(Dimensions) instead. }
     public property FdDimensions: TMFInt32 read FFdDimensions;
     {  }
     procedure SetDimensions(const Value: array of LongInt); overload;
@@ -85,41 +85,41 @@
     procedure SetDimensions(const Value: TLongIntList); overload;
 
     strict private FFdUpdate: TSFStringEnum;
-    { When to update the texture contents. }
+    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdViewpoint: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Viewpoint). This wrapper API may change, we advise to access simpler @link(Viewpoint) instead. }
     public property FdViewpoint: TSFNode read FFdViewpoint;
 
     strict private FFdTextureProperties: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdRepeatS: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatS). This wrapper API may change, we advise to access simpler @link(RepeatS) instead. }
     public property FdRepeatS: TSFBool read FFdRepeatS;
     {  }
     property RepeatS: Boolean read GetRepeatS write SetRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatT). This wrapper API may change, we advise to access simpler @link(RepeatT) instead. }
     public property FdRepeatT: TSFBool read FFdRepeatT;
     {  }
     property RepeatT: Boolean read GetRepeatT write SetRepeatT;
 
     strict private FFdRepeatR: TSFBool;
-    {  }
+    { Internal wrapper for property @link(RepeatR). This wrapper API may change, we advise to access simpler @link(RepeatR) instead. }
     public property FdRepeatR: TSFBool read FFdRepeatR;
     {  }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
 
     strict private FFdDepthMap: TMFBool;
-    {  }
+    { Internal wrapper for property @link(DepthMap). This wrapper API may change, we advise to access simpler @link(DepthMap) instead. }
     public property FdDepthMap: TMFBool read FFdDepthMap;
     {  }
     procedure SetDepthMap(const Value: array of boolean); overload;
@@ -127,7 +127,7 @@
     procedure SetDepthMap(const Value: TBooleanList); overload;
 
     strict private FFdZOffset: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ZOffset). This wrapper API may change, we advise to access simpler @link(ZOffset) instead. }
     public property FdZOffset: TMFInt32 read FFdZOffset;
     {  }
     procedure SetZOffset(const Value: array of LongInt); overload;
@@ -135,13 +135,13 @@
     procedure SetZOffset(const Value: TLongIntList); overload;
 
     strict private FFdTargets: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Targets). This wrapper API may change, we advise to access simpler @link(Targets) instead. }
     public property FdTargets: TMFNode read FFdTargets;
     {  }
     procedure SetTargets(const Value: array of TAbstractTextureNode);
 
     strict private FFdDescription: TSFString;
-    {  }
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
@@ -155,17 +155,17 @@
     public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
     strict private FFdFrameBufferMode: TSFString;
-    {  }
+    { Internal wrapper for property @link(FrameBufferMode). This wrapper API may change, we advise to access simpler @link(FrameBufferMode) instead. }
     public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
     {  }
     property FrameBufferMode: String read GetFrameBufferMode write SetFrameBufferMode;
 
     strict private FFdExcludeNodes: TMFNode;
-    {  }
+    { Internal wrapper for property @link(ExcludeNodes). This wrapper API may change, we advise to access simpler @link(ExcludeNodes) instead. }
     public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
 
     strict private FFdTriggerName: TSFString;
-    {  }
+    { Internal wrapper for property @link(TriggerName). This wrapper API may change, we advise to access simpler @link(TriggerName) instead. }
     public property FdTriggerName: TSFString read FFdTriggerName;
     {  }
     property TriggerName: String read GetTriggerName write SetTriggerName;

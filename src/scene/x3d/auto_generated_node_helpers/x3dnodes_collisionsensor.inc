@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCollider: TSFNode;
-    {  }
+    { Internal wrapper for property @link(Collider). This wrapper API may change, we advise to access simpler @link(Collider) instead. }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;

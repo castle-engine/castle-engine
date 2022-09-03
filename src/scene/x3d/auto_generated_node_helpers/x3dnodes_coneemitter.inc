@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Angle). This wrapper API may change, we advise to access simpler @link(Angle) instead. }
     public property FdAngle: TSFFloat read FFdAngle;
     {  }
     property Angle: Single read GetAngle write SetAngle;
 
     strict private FFdDirection: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdPosition: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
     public property FdPosition: TSFVec3f read FFdPosition;
     {  }
     property Position: TVector3 read GetPosition write SetPosition;

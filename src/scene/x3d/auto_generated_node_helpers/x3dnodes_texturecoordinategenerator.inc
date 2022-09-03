@@ -31,13 +31,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdMode: TSFString;
-    {  }
+    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
     public property FdMode: TSFString read FFdMode;
     {  }
     property Mode: String read GetMode write SetMode;
 
     strict private FFdParameter: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Parameter). This wrapper API may change, we advise to access simpler @link(Parameter) instead. }
     public property FdParameter: TMFFloat read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of Single); overload;
@@ -45,7 +45,7 @@
     procedure SetParameter(const Value: TSingleList); overload;
 
     strict private FFdProjectedLight: TSFNode;
-    {  }
+    { Internal wrapper for property @link(ProjectedLight). This wrapper API may change, we advise to access simpler @link(ProjectedLight) instead. }
     public property FdProjectedLight: TSFNode read FFdProjectedLight;
 
 {$endif read_interface}

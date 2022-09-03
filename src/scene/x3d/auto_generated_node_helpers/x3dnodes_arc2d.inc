@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdEndAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(EndAngle). This wrapper API may change, we advise to access simpler @link(EndAngle) instead. }
     public property FdEndAngle: TSFFloat read FFdEndAngle;
     {  }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
 
     strict private FFdRadius: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdStartAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(StartAngle). This wrapper API may change, we advise to access simpler @link(StartAngle) instead. }
     public property FdStartAngle: TSFFloat read FFdStartAngle;
     {  }
     property StartAngle: Single read GetStartAngle write SetStartAngle;

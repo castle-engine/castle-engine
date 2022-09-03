@@ -33,19 +33,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAlpha: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Alpha). This wrapper API may change, we advise to access simpler @link(Alpha) instead. }
     public property FdAlpha: TSFFloat read FFdAlpha;
     {  }
     property Alpha: Single read GetAlpha write SetAlpha;
 
     strict private FFdColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdFunction: TMFString;
-    {  }
+    { Internal wrapper for property @link(Function). This wrapper API may change, we advise to access simpler @link(Function) instead. }
     public property FdFunction: TMFString read FFdFunction;
     {  }
     procedure SetFunction(const Value: array of string); overload;
@@ -53,7 +53,7 @@
     procedure SetFunction(const Value: TCastleStringList); overload;
 
     strict private FFdMode: TMFString;
-    {  }
+    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
     public property FdMode: TMFString read FFdMode;
     {  }
     procedure SetMode(const Value: array of string); overload;
@@ -61,7 +61,7 @@
     procedure SetMode(const Value: TCastleStringList); overload;
 
     strict private FFdSource: TMFString;
-    {  }
+    { Internal wrapper for property @link(Source). This wrapper API may change, we advise to access simpler @link(Source) instead. }
     public property FdSource: TMFString read FFdSource;
     {  }
     procedure SetSource(const Value: array of string); overload;
@@ -69,7 +69,7 @@
     procedure SetSource(const Value: TCastleStringList); overload;
 
     strict private FFdTexture: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Texture). This wrapper API may change, we advise to access simpler @link(Texture) instead. }
     public property FdTexture: TMFNode read FFdTexture;
     {  }
     procedure SetTexture(const Value: array of TAbstractSingleTextureNode);

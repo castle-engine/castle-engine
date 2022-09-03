@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdForce: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Force). This wrapper API may change, we advise to access simpler @link(Force) instead. }
     public property FdForce: TSFVec3f read FFdForce;
     {  }
     property Force: TVector3 read GetForce write SetForce;

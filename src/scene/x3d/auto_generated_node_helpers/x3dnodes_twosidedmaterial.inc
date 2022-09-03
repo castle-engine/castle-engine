@@ -55,79 +55,79 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(AmbientIntensity). This wrapper API may change, we advise to access simpler @link(AmbientIntensity) instead. }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdBackAmbientIntensity: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(BackAmbientIntensity). This wrapper API may change, we advise to access simpler @link(BackAmbientIntensity) instead. }
     public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
     {  }
     property BackAmbientIntensity: Single read GetBackAmbientIntensity write SetBackAmbientIntensity;
 
     strict private FFdBackDiffuseColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(BackDiffuseColor). This wrapper API may change, we advise to access simpler @link(BackDiffuseColor) instead. }
     public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
     {  }
     property BackDiffuseColor: TCastleColorRGB read GetBackDiffuseColor write SetBackDiffuseColor;
 
     strict private FFdBackEmissiveColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(BackEmissiveColor). This wrapper API may change, we advise to access simpler @link(BackEmissiveColor) instead. }
     public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
     {  }
     property BackEmissiveColor: TCastleColorRGB read GetBackEmissiveColor write SetBackEmissiveColor;
 
     strict private FFdBackShininess: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(BackShininess). This wrapper API may change, we advise to access simpler @link(BackShininess) instead. }
     public property FdBackShininess: TSFFloat read FFdBackShininess;
     {  }
     property BackShininess: Single read GetBackShininess write SetBackShininess;
 
     strict private FFdBackSpecularColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(BackSpecularColor). This wrapper API may change, we advise to access simpler @link(BackSpecularColor) instead. }
     public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
     {  }
     property BackSpecularColor: TCastleColorRGB read GetBackSpecularColor write SetBackSpecularColor;
 
     strict private FFdBackTransparency: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(BackTransparency). This wrapper API may change, we advise to access simpler @link(BackTransparency) instead. }
     public property FdBackTransparency: TSFFloat read FFdBackTransparency;
     {  }
     property BackTransparency: Single read GetBackTransparency write SetBackTransparency;
 
     strict private FFdDiffuseColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(DiffuseColor). This wrapper API may change, we advise to access simpler @link(DiffuseColor) instead. }
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
     {  }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
 
     strict private FFdEmissiveColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(EmissiveColor). This wrapper API may change, we advise to access simpler @link(EmissiveColor) instead. }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
     {  }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdShininess: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Shininess). This wrapper API may change, we advise to access simpler @link(Shininess) instead. }
     public property FdShininess: TSFFloat read FFdShininess;
     {  }
     property Shininess: Single read GetShininess write SetShininess;
 
     strict private FFdSeparateBackColor: TSFBool;
-    {  }
+    { Internal wrapper for property @link(SeparateBackColor). This wrapper API may change, we advise to access simpler @link(SeparateBackColor) instead. }
     public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
     {  }
     property SeparateBackColor: Boolean read GetSeparateBackColor write SetSeparateBackColor;
 
     strict private FFdSpecularColor: TSFColor;
-    {  }
+    { Internal wrapper for property @link(SpecularColor). This wrapper API may change, we advise to access simpler @link(SpecularColor) instead. }
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
     {  }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
 
     strict private FFdTransparency: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
     public property FdTransparency: TSFFloat read FFdTransparency;
     {  }
     property Transparency: Single read GetTransparency write SetTransparency;

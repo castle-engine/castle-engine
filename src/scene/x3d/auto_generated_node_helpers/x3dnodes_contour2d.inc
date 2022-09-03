@@ -36,7 +36,7 @@
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
     public property FdChildren: TMFNode read FFdChildren;
 
 {$endif read_interface}

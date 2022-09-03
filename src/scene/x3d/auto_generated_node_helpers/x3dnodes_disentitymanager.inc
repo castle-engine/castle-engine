@@ -37,31 +37,31 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    {  }
+    { Internal wrapper for property @link(Address). This wrapper API may change, we advise to access simpler @link(Address) instead. }
     public property FdAddress: TSFString read FFdAddress;
     {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdApplicationID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(ApplicationID). This wrapper API may change, we advise to access simpler @link(ApplicationID) instead. }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdMapping: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Mapping). This wrapper API may change, we advise to access simpler @link(Mapping) instead. }
     public property FdMapping: TMFNode read FFdMapping;
     {  }
     procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
 
     strict private FFdPort: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Port). This wrapper API may change, we advise to access simpler @link(Port) instead. }
     public property FdPort: TSFInt32 read FFdPort;
     {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdSiteID: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(SiteID). This wrapper API may change, we advise to access simpler @link(SiteID) instead. }
     public property FdSiteID: TSFInt32 read FFdSiteID;
     {  }
     property SiteID: Integer read GetSiteID write SetSiteID;

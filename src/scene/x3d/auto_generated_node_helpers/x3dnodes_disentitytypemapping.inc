@@ -43,7 +43,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    {  }
+    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
@@ -51,43 +51,43 @@
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdCategory: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Category). This wrapper API may change, we advise to access simpler @link(Category) instead. }
     public property FdCategory: TSFInt32 read FFdCategory;
     {  }
     property Category: Integer read GetCategory write SetCategory;
 
     strict private FFdCountry: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Country). This wrapper API may change, we advise to access simpler @link(Country) instead. }
     public property FdCountry: TSFInt32 read FFdCountry;
     {  }
     property Country: Integer read GetCountry write SetCountry;
 
     strict private FFdDomain: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Domain). This wrapper API may change, we advise to access simpler @link(Domain) instead. }
     public property FdDomain: TSFInt32 read FFdDomain;
     {  }
     property Domain: Integer read GetDomain write SetDomain;
 
     strict private FFdExtra: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Extra). This wrapper API may change, we advise to access simpler @link(Extra) instead. }
     public property FdExtra: TSFInt32 read FFdExtra;
     {  }
     property Extra: Integer read GetExtra write SetExtra;
 
     strict private FFdKind: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Kind). This wrapper API may change, we advise to access simpler @link(Kind) instead. }
     public property FdKind: TSFInt32 read FFdKind;
     {  }
     property Kind: Integer read GetKind write SetKind;
 
     strict private FFdSpecific: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Specific). This wrapper API may change, we advise to access simpler @link(Specific) instead. }
     public property FdSpecific: TSFInt32 read FFdSpecific;
     {  }
     property Specific: Integer read GetSpecific write SetSpecific;
 
     strict private FFdSubcategory: TSFInt32;
-    {  }
+    { Internal wrapper for property @link(Subcategory). This wrapper API may change, we advise to access simpler @link(Subcategory) instead. }
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
     {  }
     property Subcategory: Integer read GetSubcategory write SetSubcategory;

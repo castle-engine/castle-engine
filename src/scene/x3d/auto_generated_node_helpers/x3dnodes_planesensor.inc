@@ -37,25 +37,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAxisRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(AxisRotation). This wrapper API may change, we advise to access simpler @link(AxisRotation) instead. }
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
     {  }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
 
     strict private FFdMaxPosition: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(MaxPosition). This wrapper API may change, we advise to access simpler @link(MaxPosition) instead. }
     public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
     {  }
     property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
 
     strict private FFdMinPosition: TSFVec2f;
-    {  }
+    { Internal wrapper for property @link(MinPosition). This wrapper API may change, we advise to access simpler @link(MinPosition) instead. }
     public property FdMinPosition: TSFVec2f read FFdMinPosition;
     {  }
     property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
 
     strict private FFdOffset: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
     public property FdOffset: TSFVec3f read FFdOffset;
     {  }
     property Offset: TVector3 read GetOffset write SetOffset;

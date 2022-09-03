@@ -43,25 +43,25 @@
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdDisplacers: TMFNode;
-    {  }
+    { Internal wrapper for property @link(Displacers). This wrapper API may change, we advise to access simpler @link(Displacers) instead. }
     public property FdDisplacers: TMFNode read FFdDisplacers;
     {  }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
 
     strict private FFdLimitOrientation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(LimitOrientation). This wrapper API may change, we advise to access simpler @link(LimitOrientation) instead. }
     public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
     {  }
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
 
     strict private FFdLlimit: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Llimit). This wrapper API may change, we advise to access simpler @link(Llimit) instead. }
     public property FdLlimit: TMFFloat read FFdLlimit;
     {  }
     procedure SetLlimit(const Value: array of Single); overload;
@@ -69,31 +69,31 @@
     procedure SetLlimit(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
-    {  }
+    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    {  }
+    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSkinCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(SkinCoordIndex). This wrapper API may change, we advise to access simpler @link(SkinCoordIndex) instead. }
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
     {  }
     procedure SetSkinCoordIndex(const Value: array of LongInt); overload;
@@ -101,7 +101,7 @@
     procedure SetSkinCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdSkinCoordWeight: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(SkinCoordWeight). This wrapper API may change, we advise to access simpler @link(SkinCoordWeight) instead. }
     public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
     {  }
     procedure SetSkinCoordWeight(const Value: array of Single); overload;
@@ -109,7 +109,7 @@
     procedure SetSkinCoordWeight(const Value: TSingleList); overload;
 
     strict private FFdStiffness: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Stiffness). This wrapper API may change, we advise to access simpler @link(Stiffness) instead. }
     public property FdStiffness: TMFFloat read FFdStiffness;
     {  }
     procedure SetStiffness(const Value: array of Single); overload;
@@ -117,13 +117,13 @@
     procedure SetStiffness(const Value: TSingleList); overload;
 
     strict private FFdTranslation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdUlimit: TMFFloat;
-    {  }
+    { Internal wrapper for property @link(Ulimit). This wrapper API may change, we advise to access simpler @link(Ulimit) instead. }
     public property FdUlimit: TMFFloat read FFdUlimit;
     {  }
     procedure SetUlimit(const Value: array of Single); overload;

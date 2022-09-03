@@ -35,19 +35,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAttenuation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Attenuation). This wrapper API may change, we advise to access simpler @link(Attenuation) instead. }
     public property FdAttenuation: TSFVec3f read FFdAttenuation;
     {  }
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
 
     strict private FFdLocation: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Location). This wrapper API may change, we advise to access simpler @link(Location) instead. }
     public property FdLocation: TSFVec3f read FFdLocation;
     {  }
     property Location: TVector3 read GetLocation write SetLocation;
 
     strict private FFdRadius: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;

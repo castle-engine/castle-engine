@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTexCoord: TMFNode;
-    {  }
+    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
     public property FdTexCoord: TMFNode read FFdTexCoord;
     {  }
     procedure SetTexCoord(const Value: array of TAbstractSingleTextureCoordinateNode);

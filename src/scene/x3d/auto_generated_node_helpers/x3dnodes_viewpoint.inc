@@ -33,17 +33,17 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFieldOfView: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(FieldOfView). This wrapper API may change, we advise to access simpler @link(FieldOfView) instead. }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdPosition: TSFVec3f;
-    {  }
+    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
     public property FdPosition: TSFVec3f read FFdPosition;
 
     strict private FFdFieldOfViewForceVertical: TSFBool;
-    {  }
+    { Internal wrapper for property @link(FieldOfViewForceVertical). This wrapper API may change, we advise to access simpler @link(FieldOfViewForceVertical) instead. }
     public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
     {  }
     property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;

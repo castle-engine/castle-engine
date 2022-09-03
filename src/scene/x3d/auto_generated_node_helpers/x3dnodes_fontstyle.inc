@@ -51,22 +51,22 @@
     class function ClassX3DType: string; override;
 
     strict private FFdFamily: TMFString;
-    {  }
+    { Internal wrapper for property @link(Family). This wrapper API may change, we advise to access simpler @link(Family) instead. }
     public property FdFamily: TMFString read FFdFamily;
 
     strict private FFdHorizontal: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Horizontal). This wrapper API may change, we advise to access simpler @link(Horizontal) instead. }
     public property FdHorizontal: TSFBool read FFdHorizontal;
     {  }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
 
     strict private FFdJustify: TMFString;
-    {  }
+    { Internal wrapper for property @link(Justify). This wrapper API may change, we advise to access simpler @link(Justify) instead. }
     public property FdJustify: TMFString read FFdJustify;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLanguage: TSFString;
-    {  }
+    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
     public property FdLanguage: TSFString read FFdLanguage;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -76,7 +76,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLeftToRight: TSFBool;
-    {  }
+    { Internal wrapper for property @link(LeftToRight). This wrapper API may change, we advise to access simpler @link(LeftToRight) instead. }
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -85,26 +85,26 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdSize: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
     public property FdSize: TSFFloat read FFdSize;
     {  }
     property Size: Single read GetSize write SetSize;
 
     strict private FFdSpacing: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(Spacing). This wrapper API may change, we advise to access simpler @link(Spacing) instead. }
     public property FdSpacing: TSFFloat read FFdSpacing;
     {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdStyle: TSFStringEnum;
-    {  }
+    { Internal wrapper for property @link(Style). This wrapper API may change, we advise to access simpler @link(Style) instead. }
     public property FdStyle: TSFStringEnum read FFdStyle;
     {  }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
-    {  }
+    { Internal wrapper for property @link(TopToBottom). This wrapper API may change, we advise to access simpler @link(TopToBottom) instead. }
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -113,7 +113,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdBlending: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Blending). This wrapper API may change, we advise to access simpler @link(Blending) instead. }
     public property FdBlending: TSFBool read FFdBlending;
     {  }
     property Blending: Boolean read GetBlending write SetBlending;

@@ -57,7 +57,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColorIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(ColorIndex). This wrapper API may change, we advise to access simpler @link(ColorIndex) instead. }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
     {  }
     procedure SetColorIndex(const Value: array of LongInt); overload;
@@ -65,13 +65,13 @@
     procedure SetColorIndex(const Value: TLongIntList); overload;
 
     strict private FFdConvex: TSFBool;
-    {  }
+    { Internal wrapper for property @link(Convex). This wrapper API may change, we advise to access simpler @link(Convex) instead. }
     public property FdConvex: TSFBool read FFdConvex;
     {  }
     property Convex: Boolean read GetConvex write SetConvex;
 
     strict private FFdCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of LongInt); overload;
@@ -79,13 +79,13 @@
     procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdCreaseAngle: TSFFloat;
-    {  }
+    { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdNormalIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(NormalIndex). This wrapper API may change, we advise to access simpler @link(NormalIndex) instead. }
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
     {  }
     procedure SetNormalIndex(const Value: array of LongInt); overload;
@@ -93,7 +93,7 @@
     procedure SetNormalIndex(const Value: TLongIntList); overload;
 
     strict private FFdTexCoordIndex: TMFInt32;
-    {  }
+    { Internal wrapper for property @link(TexCoordIndex). This wrapper API may change, we advise to access simpler @link(TexCoordIndex) instead. }
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
     {  }
     procedure SetTexCoordIndex(const Value: array of LongInt); overload;

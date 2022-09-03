@@ -31,7 +31,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDuration: TSFTime;
-    {  }
+    { Internal wrapper for property @link(Duration). This wrapper API may change, we advise to access simpler @link(Duration) instead. }
     public property FdDuration: TSFTime read FFdDuration;
     {  }
     property Duration: TFloatTime read GetDuration write SetDuration;

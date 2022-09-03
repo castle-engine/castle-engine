@@ -28,7 +28,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTargetObject: TSFNode;
-    {  }
+    { Internal wrapper for property @link(TargetObject). This wrapper API may change, we advise to access simpler @link(TargetObject) instead. }
     public property FdTargetObject: TSFNode read FFdTargetObject;
 
     strict private FEventOrientation_changed: TSFRotationEvent;
