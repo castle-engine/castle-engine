@@ -41,33 +41,14 @@
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
   TAbstractGeometryNode_1 = class(TAbstractGeometryNode)
-  public
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+  {$I auto_generated_node_helpers/x3dnodes_abstractvrml1geometry_1.inc}
   end;
 
   TAsciiTextNode_1 = class(TAbstractGeometryNode_1)
   strict private
     FFontTextureNode: TPixelTextureNode;
   public
-    procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdString: TMFString;
-    public property FdString: TMFString read FFdString;
-
-    strict private FFdSpacing: TSFFloat;
-    public property FdSpacing: TSFFloat read FFdSpacing;
-
-    { Text justification.
-      Use constants like JUSTIFICATION_LEFT and so on with this. }
-    strict private FFdJustification: TSFEnum;
-    public property FdJustification: TSFEnum read FFdJustification;
-
-    strict private FFdWidth: TMFFloat;
-    public property FdWidth: TMFFloat read FFdWidth;
-
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
@@ -79,21 +60,11 @@
     procedure FontChanged;
 
     function Justify: TX3DFontJustify;
+  {$I auto_generated_node_helpers/x3dnodes_asciitext_1.inc}
   end;
 
   TConeNode_1 = class(TAbstractGeometryNode_1)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdParts: TSFBitMask;
-    public property FdParts: TSFBitMask read FFdParts;
-
-    strict private FFdBottomRadius: TSFFloat;
-    public property FdBottomRadius: TSFFloat read FFdBottomRadius;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
-
+  public
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -104,21 +75,11 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_cone_1.inc}
   end;
 
   TCubeNode_1 = class(TAbstractGeometryNode_1)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdWidth: TSFFloat;
-    public property FdWidth: TSFFloat read FFdWidth;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
-
-    strict private FFdDepth: TSFFloat;
-    public property FdDepth: TSFFloat read FFdDepth;
-
+  public
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -129,21 +90,11 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_cube_1.inc}
   end;
 
   TCylinderNode_1 = class(TAbstractGeometryNode_1)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdParts: TSFBitMask;
-    public property FdParts: TSFBitMask read FFdParts;
-
-    strict private FFdRadius: TSFFloat;
-    public property FdRadius: TSFFloat read FFdRadius;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
-
+  public
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -154,29 +105,18 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_cylinder_1.inc}
   end;
 
   { Common base class for VRML 1.0 indexed nodes
     (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
   TAbstractIndexedNode_1 = class(TAbstractGeometryNode_1)
   public
-    procedure CreateNode; override;
-
-    strict private FFdCoordIndex: TMFLong;
-    public property FdCoordIndex: TMFLong read FFdCoordIndex;
-
-    strict private FFdMaterialIndex: TMFLong;
-    public property FdMaterialIndex: TMFLong read FFdMaterialIndex;
-
-    strict private FFdNormalIndex: TMFLong;
-    public property FdNormalIndex: TMFLong read FFdNormalIndex;
-
-    strict private FFdTextureCoordIndex: TMFLong;
-    public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
+  {$I auto_generated_node_helpers/x3dnodes_abstractvrml1indexed_1.inc}
   end;
 
   { Common base class for VRML 1.0 indexed polygon nodes
@@ -188,63 +128,44 @@
 
   TIndexedFaceSetNode_1 = class(TIndexedFacesOrTrianglesNode_1)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    strict private FFdRadianceTransfer: TMFVec3f;
-    public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
-
     function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_indexedfaceset_1.inc}
   end;
 
   TIndexedLineSetNode_1 = class(TAbstractIndexedNode_1)
-    class function ClassX3DType: string; override;
+  public
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-
     function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
-
     { Do we have enough normals information to render this node lit.
       VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
       specially: it's unlit if there are not enough normals specified. }
     function Lit(State: TX3DGraphTraverseState): boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_indexedlineset_1.inc}
   end;
 
   TPointSetNode_1 = class(TAbstractGeometryNode_1)
   strict private
     CoordSubrange: TMFVec3f;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdStartIndex: TSFLong;
-    public property FdStartIndex: TSFLong read FFdStartIndex;
-
-    strict private FFdNumPoints: TSFLong;
-    public property FdNumPoints: TSFLong read FFdNumPoints;
-
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_pointset_1.inc}
   end;
 
   TSphereNode_1 = class(TAbstractGeometryNode_1)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdRadius: TSFFloat;
-    public property FdRadius: TSFFloat read FFdRadius;
-
+  public
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -255,69 +176,32 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_sphere_1.inc}
   end;
 
   TCoordinate3Node_1 = class(TAbstractChildNode)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec3f;
-    public property FdPoint: TMFVec3f read FFdPoint;
+  {$I auto_generated_node_helpers/x3dnodes_coordinate3_1.inc}
   end;
 
   TFontStyleNode_1 = class(TAbstractChildNode)
-  strict private
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSize: TSFFloat;
-    public property FdSize: TSFFloat read FFdSize;
-
-    strict private FFdFamily: TSFEnum;
-    public property FdFamily: TSFEnum read FFdFamily;
-
-    strict private FFdStyle: TSFBitMask;
-    public property FdStyle: TSFBitMask read FFdStyle;
-
-    strict private FFdBlending: TSFBool;
-    public property FdBlending: TSFBool read FFdBlending;
-    property Blending: boolean read GetBlending write SetBlending;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
     function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
     function Font: TTextureFontData;
+  {$I auto_generated_node_helpers/x3dnodes_fontstyle_1.inc}
   end;
 
   TInfoNode_1 = class(TAbstractChildNode)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdString: TSFString;
-    public property FdString: TSFString read FFdString;
+  {$I auto_generated_node_helpers/x3dnodes_info_1.inc}
   end;
 
   TLODNode_1 = class(TAbstractChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdRange: TMFFloat;
-    public property FdRange: TMFFloat read FFdRange;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_lod_1.inc}
   end;
 
   TMaterialNode_1 = class(TAbstractChildNode)
@@ -352,52 +236,7 @@
     var
       FMaterialInfo: array of TMaterialInfo_1;
   public
-    procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAmbientColor: TMFColor;
-    public property FdAmbientColor: TMFColor read FFdAmbientColor;
-
-    strict private FFdDiffuseColor: TMFColor;
-    public property FdDiffuseColor: TMFColor read FFdDiffuseColor;
-
-    strict private FFdSpecularColor: TMFColor;
-    public property FdSpecularColor: TMFColor read FFdSpecularColor;
-
-    strict private FFdEmissiveColor: TMFColor;
-    public property FdEmissiveColor: TMFColor read FFdEmissiveColor;
-
-    strict private FFdShininess: TMFFloat;
-    public property FdShininess: TMFFloat read FFdShininess;
-
-    strict private FFdTransparency: TMFFloat;
-    public property FdTransparency: TMFFloat read FFdTransparency;
-
-    { Fields used by ray-tracers. } { }
-    strict private FFdMirror: TMFFloat;
-    public property FdMirror: TMFFloat read FFdMirror;
-
-    strict private FFdReflSpecular: TMFColor;
-    public property FdReflSpecular: TMFColor read FFdReflSpecular;
-
-    strict private FFdReflDiffuse: TMFColor;
-    public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
-
-    strict private FFdTransSpecular: TMFColor;
-    public property FdTransSpecular: TMFColor read FFdTransSpecular;
-
-    strict private FFdTransDiffuse: TMFColor;
-    public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
-
-    strict private FFdReflSpecularExp: TMFFloat;
-    public property FdReflSpecularExp: TMFFloat read FFdReflSpecularExp;
-
-    strict private FFdTransSpecularExp: TMFFloat;
-    public property FdTransSpecularExp: TMFFloat read FFdTransSpecularExp;
-
-    strict private FFdFogImmune: TSFBool;
-    public property FdFogImmune: TSFBool read FFdFogImmune;
 
     { Only the emissive color is not black (zero).
       This detects a special case described in VRML 1.0 specification:
@@ -412,30 +251,20 @@
       other colors to black. }
     procedure ForcePureEmissive; deprecated 'use X3D with TUnlitMaterialNode';
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
     { Material information based on this node.
       It is automatically updated when properties of this material change.
       Do not free it yourself, it will be automatically freed when
       this node is freed. }
     function MaterialInfo(const AIndex: Integer = 0): TPhongMaterialInfo;
+  {$I auto_generated_node_helpers/x3dnodes_material_1.inc}
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdValue: TSFEnum;
-    public property FdValue: TSFEnum read FFdValue;
+  {$I auto_generated_node_helpers/x3dnodes_materialbinding_1.inc}
   end;
 
   TNormalBindingNode_1 = class(TAbstractChildNode)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdValue: TSFEnum;
-    public property FdValue: TSFEnum read FFdValue;
+  {$I auto_generated_node_helpers/x3dnodes_normalbinding_1.inc}
   end;
 
   TTexture2Node_1 = class(TAbstractTexture2DNode)
@@ -452,223 +281,96 @@
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFilename: TSFString;
-    public property FdFilename: TSFString read FFdFilename;
-
-    strict private FFdImage: TSFImage;
-    public property FdImage: TSFImage read FFdImage;
-
-    strict private FFdWrapS: TSFEnum;
-    public property FdWrapS: TSFEnum read FFdWrapS;
-
-    strict private FFdWrapT: TSFEnum;
-    public property FdWrapT: TSFEnum read FFdWrapT;
-
-    { Ignored fields, some unknown extensions to VRML 1.0 spec.
-      Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
-      @groupBegin }
-    strict private FFdModel: TSFEnum;
-    public property FdModel: TSFEnum read FFdModel;
-
-    strict private FFdBlendColor: TSFVec3f;
-    public property FdBlendColor: TSFVec3f read FFdBlendColor;
-    { @groupEnd }
-
     function TextureDescription: string; override;
+  {$I auto_generated_node_helpers/x3dnodes_texture2_1.inc}
   end;
 
   TTexture2TransformNode_1 = class(TAbstractChildNode)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTranslation: TSFVec2f;
-    public property FdTranslation: TSFVec2f read FFdTranslation;
-
-    strict private FFdRotation: TSFFloat;
-    public property FdRotation: TSFFloat read FFdRotation;
-
-    strict private FFdScaleFactor: TSFVec2f;
-    public property FdScaleFactor: TSFVec2f read FFdScaleFactor;
-
-    strict private FFdCenter: TSFVec2f;
-    public property FdCenter: TSFVec2f read FFdCenter;
-
     function TextureMatrixTransformation: TMatrix4;
+  {$I auto_generated_node_helpers/x3dnodes_texture2transform_1.inc}
   end;
 
   TTextureCoordinate2Node_1 = class(TAbstractChildNode)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec2f;
-    public property FdPoint: TMFVec2f read FFdPoint;
+  {$I auto_generated_node_helpers/x3dnodes_texturecoordinate2_1.inc}
   end;
 
   TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       const APositionInParent: Integer): boolean; override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdVertexOrdering: TSFEnum;
-    public property FdVertexOrdering: TSFEnum read FFdVertexOrdering;
-
-    strict private FFdShapeType: TSFEnum;
-    public property FdShapeType: TSFEnum read FFdShapeType;
-
-    strict private FFdFaceType: TSFEnum;
-    public property FdFaceType: TSFEnum read FFdFaceType;
-
-    strict private FFdCreaseAngle: TSFFloat;
-    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
+  {$I auto_generated_node_helpers/x3dnodes_shapehints_1.inc}
   end;
 
   { Common base class for all VRML 1 nodes that modify the transformation. }
   TAbstractTransformationNode_1 = class(TAbstractChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_abstractvrml1transformation_1.inc}
   end;
 
   { VRML 1.0 MatrixTransform node. }
   TMatrixTransformNode_1 = class(TAbstractTransformationNode_1)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdMatrix: TSFMatrix;
-    public property FdMatrix: TSFMatrix read FFdMatrix;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+  {$I auto_generated_node_helpers/x3dnodes_matrixtransform_1.inc}
   end;
 
   TRotationNode_1 = class(TAbstractTransformationNode_1)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
+  {$I auto_generated_node_helpers/x3dnodes_rotation_1.inc}
   end;
 
   TScaleNode_1 = class(TAbstractTransformationNode_1)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdScaleFactor: TSFVec3f;
-    public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
+  {$I auto_generated_node_helpers/x3dnodes_scale_1.inc}
   end;
 
   TTransformNode_1 = class(TAbstractTransformationNode_1)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScaleFactor: TSFVec3f;
-    public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
-
-    strict private FFdScaleOrientation: TSFRotation;
-    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+  {$I auto_generated_node_helpers/x3dnodes_transform_1.inc}
   end;
 
   TTranslationNode_1 = class(TAbstractTransformationNode_1)
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
+  {$I auto_generated_node_helpers/x3dnodes_translation_1.inc}
   end;
 
   { Common base class for all cameras in VRML 1.0. }
   TAbstractCameraNode_1 = class(TAbstractViewpointNode)
   strict protected
     function PositionField: TSFVec3f; override;
-  public
-    procedure CreateNode; override;
-
-    strict private FFdPosition: TSFVec3f;
-    public property FdPosition: TSFVec3f read FFdPosition;
-
-    strict private FFdFocalDistance: TSFFloat;
-    public property FdFocalDistance: TSFFloat read FFdFocalDistance;
-
-    { Ignored fields, some unknown extensions to VRML 1.0 spec.
-      Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
-      @groupBegin }
-    strict private FFdNearDistance: TSFFloat;
-    public property FdNearDistance: TSFFloat read FFdNearDistance;
-
-    strict private FFdFarDistance: TSFFloat;
-    public property FdFarDistance: TSFFloat read FFdFarDistance;
-    { @groupEnd }
+  {$I auto_generated_node_helpers/x3dnodes_abstractvrml1camera_1.inc}
   end;
 
   TOrthographicCameraNode_1 = class(TAbstractCameraNode_1)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
+  {$I auto_generated_node_helpers/x3dnodes_orthographiccamera_1.inc}
   end;
 
   TPerspectiveCameraNode_1 = class(TAbstractCameraNode_1)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
-
-    strict private FFdHeightAngle: TSFFloat;
-    public property FdHeightAngle: TSFFloat read FFdHeightAngle;
+  {$I auto_generated_node_helpers/x3dnodes_perspectivecamera_1.inc}
   end;
 
   TDirectionalLightNode_1 = class(TAbstractDirectionalLightNode)
   public
-    class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
     function Scope: TLightScope; override;
+  {$I auto_generated_node_helpers/x3dnodes_directionallight_1.inc}
   end;
 
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function HasRadius: boolean; override;
     function Scope: TLightScope; override;
+  {$I auto_generated_node_helpers/x3dnodes_pointlight_1.inc}
   end;
 
   TSpotLightNode_1 = class(TAbstractPositionalLightNode)
@@ -678,17 +380,7 @@
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDirection: TSFVec3f;
-    public property FdDirection: TSFVec3f read FFdDirection;
-
-    strict private FFdDropOffRate: TSFFloat;
-    public property FdDropOffRate: TSFFloat read FFdDropOffRate;
-
-    strict private FFdCutOffAngle: TSFFloat;
-    public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Spot exponent (based on dropOffRate).
       Not normalized (i.e. is a real exponent, in VRML 1.0 expresses
@@ -708,9 +400,6 @@
 
     function SpotCosCutoff: Single;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
     function ProjectionMatrix: TMatrix4; override;
@@ -720,15 +409,13 @@
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
     function Scope: TLightScope; override;
+  {$I auto_generated_node_helpers/x3dnodes_spotlight_1.inc}
   end;
 
   TGroupNode_1 = class(TAbstractChildNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_group_1.inc}
   end;
 
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
@@ -739,30 +426,20 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_abstractvrml1separator_1.inc}
   end;
 
   TSeparatorNode_1 = class(TAbstractSeparatorNode_1)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdRenderCulling: TSFEnum;
-    public property FdRenderCulling: TSFEnum read FFdRenderCulling;
+  {$I auto_generated_node_helpers/x3dnodes_separator_1.inc}
   end;
 
   TSwitchNode_1 = class(TAbstractChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdWhichChild: TSFLong;
-    public property FdWhichChild: TSFLong read FFdWhichChild;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_switch_1.inc}
   end;
 
   TTransformSeparatorNode_1 = class(TAbstractChildNode)
@@ -772,22 +449,12 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_transformseparator_1.inc}
   end;
 
   TWWWAnchorNode_1 = class(TAbstractSeparatorNode_1)
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    strict private FFdMap: TSFEnum;
-    public property FdMap: TSFEnum read FFdMap;
+  {$I auto_generated_node_helpers/x3dnodes_wwwanchor_1.inc}
   end;
 
   { VRML 1.0 WWWInline node.
@@ -801,11 +468,8 @@
   protected
     function SeparateGroup: boolean; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSeparate: TSFBool;
-    public property FdSeparate: TSFBool read FFdSeparate;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_wwwinline_1.inc}
   end;
 {$endif read_interface}
 
@@ -830,32 +494,6 @@ const
   ShapeTypeNames1: array [0..1] of String = ('UNKNOWN_SHAPE_TYPE', 'SOLID');
   VertexOrderingNames1: array [0..2] of String = ('UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE');
 
-class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TAsciiTextNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdString := TMFString.Create(Self, true, 'string', ['']);
-   FdString.ChangeAlways := chGeometry;
-  AddField(FFdString);
-
-  FFdSpacing := TSFFloat.Create(Self, true, 'spacing', 1);
-   FdSpacing.ChangeAlways := chGeometry;
-  AddField(FFdSpacing);
-
-  FFdJustification := TSFEnum.Create(Self, true, 'justification', @JustificationNames1, High(JustificationNames1) + 1, JUSTIFICATION_LEFT);
-   FdJustification.ChangeAlways := chGeometry;
-  AddField(FFdJustification);
-
-  FFdWidth := TMFFloat.Create(Self, true, 'width', [0]);
-   FdWidth.ChangeAlways := chGeometry;
-  AddField(FFdWidth);
-end;
-
 destructor TAsciiTextNode_1.Destroy;
 begin
   if X3DCache <> nil then
@@ -867,11 +505,6 @@ procedure TAsciiTextNode_1.FontChanged;
 begin
   if X3DCache <> nil then
     X3DCache.FreeFontTexture(FFontTextureNode);
-end;
-
-class function TAsciiTextNode_1.ClassX3DType: string;
-begin
-  Result := 'AsciiText';
 end;
 
 function TAsciiTextNode_1.Justify: TX3DFontJustify;
@@ -939,58 +572,9 @@ begin
   Result := FFontTextureNode;
 end;
 
-procedure TConeNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdParts := TSFBitMask.Create(Self, true, 'parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
-   FdParts.ChangeAlways := chGeometry;
-  AddField(FFdParts);
-
-  FFdBottomRadius := TSFFloat.Create(Self, true, 'bottomRadius', 1);
-   FdBottomRadius.MustBeNonnegative := true;
-   FdBottomRadius.ChangeAlways := chGeometry;
-  AddField(FFdBottomRadius);
-
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
-   FdHeight.MustBeNonnegative := true;
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-end;
-
-class function TConeNode_1.ClassX3DType: string;
-begin
-  Result := 'Cone';
-end;
-
 function TConeNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
-end;
-
-procedure TCubeNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdWidth := TSFFloat.Create(Self, true, 'width', 2);
-   FdWidth.MustBeNonnegative := true;
-   FdWidth.ChangeAlways := chGeometry;
-  AddField(FFdWidth);
-
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
-   FdHeight.MustBeNonnegative := true;
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-
-  FFdDepth := TSFFloat.Create(Self, true, 'depth', 2);
-   FdDepth.MustBeNonnegative := true;
-   FdDepth.ChangeAlways := chGeometry;
-  AddField(FFdDepth);
-end;
-
-class function TCubeNode_1.ClassX3DType: string;
-begin
-  Result := 'Cube';
 end;
 
 function TCubeNode_1.AutoGenerate3DTexCoords: boolean;
@@ -998,56 +582,16 @@ begin
   Result := true;
 end;
 
-procedure TCylinderNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdParts := TSFBitMask.Create(Self, true, 'parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
-   FdParts.ChangeAlways := chGeometry;
-  AddField(FFdParts);
-
-  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
-   FdRadius.MustBeNonnegative := true;
-   FdRadius.ChangeAlways := chGeometry;
-  AddField(FFdRadius);
-
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
-   FdHeight.MustBeNonnegative := true;
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-end;
-
-class function TCylinderNode_1.ClassX3DType: string;
-begin
-  Result := 'Cylinder';
-end;
-
 function TCylinderNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
 end;
 
-procedure TAbstractIndexedNode_1.CreateNode;
+constructor TAbstractIndexedNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdCoordIndex := TMFLong.Create(Self, true, 'coordIndex', [0]);
-   FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangeAlways := chGeometry;
-  AddField(FFdCoordIndex);
-
-  FFdMaterialIndex := TMFLong.Create(Self, true, 'materialIndex', [-1]);
-   FdMaterialIndex.ChangeAlways := chGeometry;
-  AddField(FFdMaterialIndex);
-
-  FFdNormalIndex := TMFLong.Create(Self, true, 'normalIndex', [-1]);
-   FdNormalIndex.ChangeAlways := chGeometry;
-  AddField(FFdNormalIndex);
-
-  FFdTextureCoordIndex := TMFLong.Create(Self, true, 'textureCoordIndex', [-1]);
-   FdTextureCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdTextureCoordIndex.ChangeAlways := chGeometry;
-  AddField(FFdTextureCoordIndex);
+  FdCoordIndex.SaveToStreamLineUptoNegative := true;
+  FdTextureCoordIndex.SaveToStreamLineUptoNegative := true;
 end;
 
 function TAbstractIndexedNode_1.InternalCoord(State: TX3DGraphTraverseState;
@@ -1062,30 +606,11 @@ begin
   Result := FdCoordIndex;
 end;
 
-procedure TIndexedFaceSetNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangeAlways := chGeometry;
-  AddField(FFdRadianceTransfer);
-end;
-
-class function TIndexedFaceSetNode_1.ClassX3DType: string;
-begin
-  Result := 'IndexedFaceSet';
-end;
-
 function TIndexedFaceSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
   ATexCoord := State.VRML1State.TextureCoordinate2;
-end;
-
-class function TIndexedLineSetNode_1.ClassX3DType: string;
-begin
-  Result := 'IndexedLineSet';
 end;
 
 function TIndexedLineSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
@@ -1118,18 +643,9 @@ begin
     Result := false;
 end;
 
-procedure TPointSetNode_1.CreateNode;
+constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdStartIndex := TSFLong.Create(Self, true, 'startIndex', 0);
-   FdStartIndex.ChangeAlways := chGeometry;
-  AddField(FFdStartIndex);
-
-  FFdNumPoints := TSFLong.Create(Self, true, 'numPoints', -1);
-   FdNumPoints.ChangeAlways := chGeometry;
-  AddField(FFdNumPoints);
-
   CoordSubrange := TMFVec3f.Create(Self, true, '', []);
 end;
 
@@ -1137,11 +653,6 @@ destructor TPointSetNode_1.Destroy;
 begin
   FreeAndNil(CoordSubrange);
   inherited;
-end;
-
-class function TPointSetNode_1.ClassX3DType: string;
-begin
-  Result := 'PointSet';
 end;
 
 function TPointSetNode_1.InternalCoord(State: TX3DGraphTraverseState;
@@ -1204,67 +715,9 @@ begin
   Result := false;
 end;
 
-procedure TSphereNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
-   FdRadius.MustBeNonnegative := true;
-   FdRadius.ChangeAlways := chGeometry;
-  AddField(FFdRadius);
-end;
-
-class function TSphereNode_1.ClassX3DType: string;
-begin
-  Result := 'Sphere';
-end;
-
 function TSphereNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
-end;
-
-procedure TCoordinate3Node_1.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec3f.Create(Self, true, 'point', [Vector3(0, 0, 0)]);
-   FdPoint.ChangeAlways := chCoordinate;
-  AddField(FFdPoint);
-end;
-
-class function TCoordinate3Node_1.ClassX3DType: string;
-begin
-  Result := 'Coordinate3';
-end;
-
-procedure TFontStyleNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdSize := TSFFloat.Create(Self, true, 'size', 10);
-   FdSize.MustBeNonnegative := true;
-   FdSize.ChangeAlways := chGeometryVRML1State;
-  AddField(FFdSize);
-
-  {$warnings off}
-  FFdFamily := TSFEnum.Create(Self, true, 'family', @FamilyNames1, High(FamilyNames1) + 1, FSFAMILY_SERIF);
-  {$warnings on}
-   FdFamily.ChangeAlways := chGeometryVRML1State;
-  AddField(FFdFamily);
-
-  FFdStyle := TSFBitMask.Create(Self, true, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
-   FdStyle.ChangeAlways := chGeometryVRML1State;
-  AddField(FFdStyle);
-
-  FFdBlending := TSFBool.Create(Self, true, 'blending', true);
-   FdBlending.ChangeAlways := chGeometryVRML1State;
-  AddField(FFdBlending);
-end;
-
-class function TFontStyleNode_1.ClassX3DType: string;
-begin
-  Result := 'FontStyle';
 end;
 
 function TFontStyleNode_1.Family: TX3DFontFamily;
@@ -1284,11 +737,6 @@ begin
 end;
 {$warnings on}
 
-class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
 function TFontStyleNode_1.Font: TTextureFontData;
 var
   TemporaryFontStyle: TFontStyleNode;
@@ -1303,46 +751,11 @@ begin
   finally FreeAndNil(TemporaryFontStyle) end;
 end;
 
-function TFontStyleNode_1.GetBlending: boolean;
-begin
-  Result := FdBlending.Value;
-end;
-
-procedure TFontStyleNode_1.SetBlending(const Value: boolean);
-begin
-  FdBlending.Send(Value);
-end;
-
-procedure TInfoNode_1.CreateNode;
+constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdString := TSFString.Create(Self, true, 'string', '<Undefined info>');
-  AddField(FFdString);
-end;
-
-class function TInfoNode_1.ClassX3DType: string;
-begin
-  Result := 'Info';
-end;
-
-procedure TLODNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdRange := TMFFloat.Create(Self, true, 'range',[]);
-  AddField(FFdRange);
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-  AddField(FFdCenter);
-
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
-end;
-
-class function TLODNode_1.ClassX3DType: string;
-begin
-  Result := 'LOD';
 end;
 
 function TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1356,72 +769,6 @@ begin
   if Result <> nil then Exit;
 end;
 
-class function TLODNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TMaterialNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TPhongMaterialInfo.DefaultAmbientColor]);
-   FdAmbientColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientColor);
-
-  FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TPhongMaterialInfo.DefaultDiffuseColor]);
-   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseColor);
-
-  FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TPhongMaterialInfo.DefaultSpecularColor]);
-   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularColor);
-
-  FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TPhongMaterialInfo.DefaultEmissiveColor]);
-   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEmissiveColor);
-
-  FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TPhongMaterialInfo.DefaultShininess]);
-   FdShininess.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininess);
-
-  FFdTransparency := TMFFloat.Create(Self, true, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangeAlways := chAlphaChannel;
-  AddField(FFdTransparency);
-
-  FFdMirror := TMFFloat.Create(Self, true, 'mirror', [0.0]);
-   FdMirror.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdMirror);
-
-  FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflSpecular);
-
-  FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflDiffuse);
-
-  FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransSpecular);
-
-  FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransDiffuse);
-
-  FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TPhongMaterialInfo.DefaultReflSpecularExp]);
-   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflSpecularExp);
-
-  FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TPhongMaterialInfo.DefaultTransSpecularExp]);
-   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransSpecularExp);
-
-  FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdFogImmune);
-end;
-
 destructor TMaterialNode_1.Destroy;
 var
   I: Integer;
@@ -1429,11 +776,6 @@ begin
   for I := 0 to Length(FMaterialInfo) - 1 do
     FreeAndNil(FMaterialInfo[I]);
   inherited;
-end;
-
-class function TMaterialNode_1.ClassX3DType: string;
-begin
-  Result := 'Material';
 end;
 
 function TMaterialNode_1.PureEmissive: boolean;
@@ -1449,11 +791,6 @@ begin
   FdDiffuseColor .Count := 0; FdDiffuseColor .Changed;
   FdSpecularColor.Count := 0; FdSpecularColor.Changed;
   Assert(PureEmissive);
-end;
-
-class function TMaterialNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
 end;
 
 function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TPhongMaterialInfo;
@@ -1630,36 +967,6 @@ begin
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
-{ TMaterialBindingNode_1 ----------------------------------------------------- }
-
-procedure TMaterialBindingNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdValue := TSFEnum.Create(Self, true, 'value', @BindingNames1, High(BindingNames1) + 1, 1);
-   FdValue.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdValue);
-end;
-
-class function TMaterialBindingNode_1.ClassX3DType: string;
-begin
-  Result := 'MaterialBinding';
-end;
-
-procedure TNormalBindingNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdValue := TSFEnum.Create(Self, true, 'value', @BindingNames1, High(BindingNames1) + 1, 0);
-   FdValue.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdValue);
-end;
-
-class function TNormalBindingNode_1.ClassX3DType: string;
-begin
-  Result := 'NormalBinding';
-end;
-
 { TTexture2Node_1 ------------------------------------------------------------ }
 
 const
@@ -1684,40 +991,6 @@ begin
 
   RepeatS := FdWrapS.Value = TEXWRAP_REPEAT;
   RepeatT := FdWrapT.Value = TEXWRAP_REPEAT;
-end;
-
-procedure TTexture2Node_1.CreateNode;
-begin
-  inherited;
-
-  FFdFilename := TSFString.Create(Self, true, 'filename', '');
-   FdFilename.ChangeAlways := chTextureImage;
-  AddField(FFdFilename);
-
-  FFdImage := TSFImage.Create(Self, true, 'image', nil);
-   FdImage.ChangeAlways := chTextureImage;
-  AddField(FFdImage);
-
-  FFdWrapS := TSFEnum.Create(Self, true, 'wrapS', @WrapNames1, High(WrapNames1) + 1, TEXWRAP_REPEAT);
-   FdWrapS.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdWrapS);
-
-  FFdWrapT := TSFEnum.Create(Self, true, 'wrapT', @WrapNames1, High(WrapNames1) + 1, TEXWRAP_REPEAT);
-   FdWrapT.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdWrapT);
-
-  FFdModel := TSFEnum.Create(Self, true, 'model', @TextureModelNames1, High(TextureModelNames1) + 1, 0);
-   FdModel.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdModel);
-
-  FFdBlendColor := TSFVec3f.Create(Self, true, 'blendColor', Vector3(0, 0, 0));
-   FdBlendColor.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBlendColor);
-end;
-
-class function TTexture2Node_1.ClassX3DType: string;
-begin
-  Result := 'Texture2';
 end;
 
 procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
@@ -1771,32 +1044,6 @@ begin
     Result := 'none';
 end;
 
-procedure TTexture2TransformNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdTranslation := TSFVec2f.Create(Self, true, 'translation', Vector2(0, 0));
-   FdTranslation.ChangeAlways := chEverything;
-  AddField(FFdTranslation);
-
-  FFdRotation := TSFFloat.Create(Self, true, 'rotation', 0);
-   FdRotation.ChangeAlways := chEverything;
-  AddField(FFdRotation);
-
-  FFdScaleFactor := TSFVec2f.Create(Self, true, 'scaleFactor', Vector2(1, 1));
-   FdScaleFactor.ChangeAlways := chEverything;
-  AddField(FFdScaleFactor);
-
-  FFdCenter := TSFVec2f.Create(Self, true, 'center', Vector2(0, 0));
-   FdCenter.ChangeAlways := chEverything;
-  AddField(FFdCenter);
-end;
-
-class function TTexture2TransformNode_1.ClassX3DType: string;
-begin
-  Result := 'Texture2Transform';
-end;
-
 function TTexture2TransformNode_1.TextureMatrixTransformation: TMatrix4;
 begin
   Result :=
@@ -1811,47 +1058,6 @@ begin
   inherited;
   StateStack.Top.TextureTransform := StateStack.Top.TextureTransform *
     TextureMatrixTransformation;
-end;
-
-procedure TTextureCoordinate2Node_1.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec2f.Create(Self, true, 'point', [Vector2(0, 0)]);
-   FdPoint.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdPoint);
-end;
-
-class function TTextureCoordinate2Node_1.ClassX3DType: string;
-begin
-  Result := 'TextureCoordinate2';
-end;
-
-procedure TShapeHintsNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdVertexOrdering := TSFEnum.Create(Self, true, 'vertexOrdering', @VertexOrderingNames1, High(VertexOrderingNames1) + 1, VERTORDER_UNKNOWN);
-   FdVertexOrdering.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdVertexOrdering);
-
-  FFdShapeType := TSFEnum.Create(Self, true, 'shapeType', @ShapeTypeNames1, High(ShapeTypeNames1) + 1, SHTYPE_UNKNOWN);
-   FdShapeType.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdShapeType);
-
-  FFdFaceType := TSFEnum.Create(Self, true, 'faceType', @FaceTypeNames1, High(FaceTypeNames1) + 1, FACETYPE_CONVEX);
-   FdFaceType.ChangeAlways := chGeometryVRML1State;
-  AddField(FFdFaceType);
-
-  FFdCreaseAngle := TSFFloat.Create(Self, true, 'creaseAngle', DefaultVRML1CreaseAngle);
-   FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdCreaseAngle);
-end;
-
-class function TShapeHintsNode_1.ClassX3DType: string;
-begin
-  Result := 'ShapeHints';
 end;
 
 function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
@@ -1888,43 +1094,10 @@ begin
   end;
 end;
 
-procedure TMatrixTransformNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdMatrix := TSFMatrix.Create(Self, true, 'matrix', TMatrix4.Identity);
-   FdMatrix.ChangeAlways := chEverything;
-  AddField(FFdMatrix);
-end;
-
-class function TMatrixTransformNode_1.ClassX3DType: string;
-begin
- Result := 'MatrixTransform';
-end;
-
 procedure TMatrixTransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.Transformation.MultiplyMatrix(FdMatrix.Value);
-end;
-
-class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TRotationNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chEverything;
-  AddField(FFdRotation);
-end;
-
-class function TRotationNode_1.ClassX3DType: string;
-begin
-  Result := 'Rotation';
 end;
 
 procedure TRotationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -1933,54 +1106,10 @@ begin
   StateStack.Top.Transformation.Multiply(FdRotation.Value, Vector3(1, 1, 1), TVector3.Zero);
 end;
 
-procedure TScaleNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdScaleFactor := TSFVec3f.Create(Self, true, 'scaleFactor', Vector3(1, 1, 1));
-   FdScaleFactor.ChangeAlways := chEverything;
-  AddField(FFdScaleFactor);
-end;
-
-class function TScaleNode_1.ClassX3DType: string;
-begin
- Result := 'Scale';
-end;
-
 procedure TScaleNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.Transformation.Multiply(TVector4.Zero, FdScaleFactor.Value, TVector3.Zero);
-end;
-
-procedure TTransformNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chEverything;
-  AddField(FFdTranslation);
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chEverything;
-  AddField(FFdRotation);
-
-  FFdScaleFactor := TSFVec3f.Create(Self, true, 'scaleFactor', Vector3(1, 1, 1));
-   FdScaleFactor.ChangeAlways := chEverything;
-  AddField(FFdScaleFactor);
-
-  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangeAlways := chEverything;
-  AddField(FFdScaleOrientation);
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chEverything;
-  AddField(FFdCenter);
-end;
-
-class function TTransformNode_1.ClassX3DType: string;
-begin
-  Result := 'Transform';
 end;
 
 procedure TTransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -1994,52 +1123,10 @@ begin
     FdTranslation.Value);
 end;
 
-class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TTranslationNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chEverything;
-  AddField(FFdTranslation);
-end;
-
-class function TTranslationNode_1.ClassX3DType: string;
-begin
-  Result := 'Translation';
-end;
-
 procedure TTranslationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.Transformation.Multiply(TVector4.Zero, Vector3(1, 1, 1), FdTranslation.Value);
-end;
-
-procedure TAbstractCameraNode_1.CreateNode;
-begin
-  inherited;
-
-  { Note that the default "position" value for VRML 1.0 is different
-    than for VRML >= 2.0 (where is (0, 0, 10)). }
-  FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 1));
-   FdPosition.ChangeAlways := chViewpointVectors;
-  AddField(FFdPosition);
-
-  FFdFocalDistance := TSFFloat.Create(Self, true, 'focalDistance', 5);
-   FdFocalDistance.MustBeNonnegative := true;
-  AddField(FFdFocalDistance);
-
-  FFdNearDistance := TSFFloat.Create(Self, true, 'nearDistance', 0);
-   FdNearDistance.ChangeAlways := chViewpointProjection;
-  AddField(FFdNearDistance);
-
-  FFdFarDistance := TSFFloat.Create(Self, true, 'farDistance', 0);
-   FdFarDistance.ChangeAlways := chViewpointProjection;
-  AddField(FFdFarDistance);
 end;
 
 function TAbstractCameraNode_1.PositionField: TSFVec3f;
@@ -2047,47 +1134,14 @@ begin
   Result := FdPosition;
 end;
 
-procedure TOrthographicCameraNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
-   FdHeight.MustBeNonnegative := true;
-  AddField(FFdHeight);
-end;
-
-class function TOrthographicCameraNode_1.ClassX3DType: string;
-begin
-  Result := 'OrthographicCamera';
-end;
-
 class function TOrthographicCameraNode_1.ProjectionType: TProjectionType;
 begin
   Result := ptOrthographic;
 end;
 
-procedure TPerspectiveCameraNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdHeightAngle := TSFFloat.Create(Self, true, 'heightAngle', Pi / 4);
-   FdHeightAngle.MustBeNonnegative := true;
-  AddField(FFdHeightAngle);
-end;
-
-class function TPerspectiveCameraNode_1.ClassX3DType: string;
-begin
-  Result := 'PerspectiveCamera';
-end;
-
 class function TPerspectiveCameraNode_1.ProjectionType: TProjectionType;
 begin
   Result := ptPerspective;
-end;
-
-class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
 end;
 
 function TDirectionalLightNode_1.Scope: TLightScope;
@@ -2097,23 +1151,12 @@ begin
     Result := lsLocalVRML1;
 end;
 
-class function TDirectionalLightNode_1.ClassX3DType: string;
-begin
-  Result := 'DirectionalLight';
-end;
-
-procedure TPointLightNode_1.CreateNode;
+constructor TPointLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
   FdLocation.Value := Vector3(0, 0, 1);
   FdLocation.DefaultValue := Vector3(0, 0, 1);
-end;
-
-class function TPointLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
 end;
 
 function TPointLightNode_1.HasRadius: boolean;
@@ -2128,35 +1171,12 @@ begin
     Result := lsLocalVRML1;
 end;
 
-class function TPointLightNode_1.ClassX3DType: string;
-begin
-  Result := 'PointLight';
-end;
-
-procedure TSpotLightNode_1.CreateNode;
+constructor TSpotLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
   FdLocation.Value := Vector3(0, 0, 1);
   FdLocation.DefaultValue := Vector3(0, 0, 1);
-
-  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangeAlways := chLightLocationDirection;
-  AddField(FFdDirection);
-
-  FFdDropOffRate := TSFFloat.Create(Self, true, 'dropOffRate', 0);
-   FdDropOffRate.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDropOffRate);
-
-  FFdCutOffAngle := TSFFloat.Create(Self, true, 'cutOffAngle', Pi / 4);
-   FdCutOffAngle.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdCutOffAngle);
-end;
-
-class function TSpotLightNode_1.ClassX3DType: string;
-begin
-  Result := 'SpotLight';
 end;
 
 function TSpotLightNode_1.SpotExponent: Single;
@@ -2172,11 +1192,6 @@ end;
 function TSpotLightNode_1.SpotCosCutoff: Single;
 begin
   Result := Cos(FdCutOffAngle.Value);
-end;
-
-class function TSpotLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
 end;
 
 procedure TSpotLightNode_1.UpdateLightInstance(var LightInstance: TLightInstance);
@@ -2262,24 +1277,14 @@ begin
     Result := lsLocalVRML1;
 end;
 
-procedure TGroupNode_1.CreateNode;
+constructor TGroupNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TGroupNode_1.ClassX3DType: string;
-begin
-  Result := 'Group';
-end;
-
-class function TGroupNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TAbstractSeparatorNode_1.CreateNode;
+constructor TAbstractSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -2322,34 +1327,11 @@ begin
   inherited;
 end;
 
-procedure TSeparatorNode_1.CreateNode;
+constructor TSwitchNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdRenderCulling := TSFEnum.Create(Self, true, 'renderCulling', @RenderCullingNames1, High(RenderCullingNames1) + 1, 2);
-  AddField(FFdRenderCulling);
-end;
-
-class function TSeparatorNode_1.ClassX3DType: string;
-begin
-  Result := 'Separator';
-end;
-
-procedure TSwitchNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdWhichChild := TSFLong.Create(Self, true, 'whichChild', -1);
-   FdWhichChild.ChangeAlways := chEverything;
-  AddField(FFdWhichChild);
-
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
-end;
-
-class function TSwitchNode_1.ClassX3DType: string;
-begin
-  Result := 'Switch';
 end;
 
 function TSwitchNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -2378,21 +1360,11 @@ begin
   end;
 end;
 
-class function TSwitchNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major <= 1;
-end;
-
-procedure TTransformSeparatorNode_1.CreateNode;
+constructor TTransformSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
-end;
-
-class function TTransformSeparatorNode_1.ClassX3DType: string;
-begin
-  Result := 'TransformSeparator';
 end;
 
 procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -2411,26 +1383,7 @@ begin
   inherited;
 end;
 
-procedure TWWWAnchorNode_1.CreateNode;
-begin
-  inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FFdMap := TSFEnum.Create(Self, true, 'map', @MapNames1, High(MapNames1) + 1, 0);
-  AddField(FFdMap);
-end;
-
-class function TWWWAnchorNode_1.ClassX3DType: string;
-begin
-  Result := 'WWWAnchor';
-end;
-
-procedure TWWWInlineNode_1.CreateNode;
+constructor TWWWInlineNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
 
@@ -2439,18 +1392,9 @@ begin
   FdUrl.Items.Add('');
   FdUrl.AssignDefaultValueFromValue;
 
-  { bboxSize is (0, 0, 0) in VRMl 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }
+  { bboxSize is (0, 0, 0) in VRML 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }
   FdBboxSize.Value := Vector3(0, 0, 0);
   FdBboxSize.AssignDefaultValueFromValue;
-
-  FFdSeparate := TSFBool.Create(Self, true, 'separate', true);
-   FdSeparate.ChangeAlways := chEverything;
-  AddField(FFdSeparate);
-end;
-
-class function TWWWInlineNode_1.ClassX3DType: string;
-begin
-  Result := 'WWWInline';
 end;
 
 function TWWWInlineNode_1.SeparateGroup: boolean;

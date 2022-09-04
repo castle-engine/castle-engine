@@ -133,6 +133,11 @@
       Call this when TFontStyleNode.CustomFont, TFontStyleNode.OnFont returns something different. }
     procedure FontChanged;
 
+    {  }
+    procedure SetString(const Value: array of string); overload; deprecated 'use SetText';
+    {  }
+    procedure SetString(const Value: TCastleStringList); overload; deprecated 'use SetText';
+
     {$I auto_generated_node_helpers/x3dnodes_text.inc}
   end;
 
@@ -878,6 +883,16 @@ begin
     FFontTextureNode := X3DCache.LoadFontTexture(Font, Blending);
   end;
   Result := FFontTextureNode;
+end;
+
+procedure TTextNode.SetString(const Value: array of string);
+begin
+  SetText(Value);
+end;
+
+procedure TTextNode.SetString(const Value: TCastleStringList);
+begin
+  SetText(Value);
 end;
 
 { registration --------------------------------------------------------------- }

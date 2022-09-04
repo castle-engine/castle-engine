@@ -1051,7 +1051,7 @@ begin
         (Map.Layers.Items[I] as TTiledMap.TLayer).Name);
     end;
 
-    DebugInfoLabelGeom.SetString(InfoLabelStringList);
+    DebugInfoLabelGeom.SetText(InfoLabelStringList);
   finally
     FreeAndNil(InfoLabelStringList);
   end;
@@ -1116,10 +1116,10 @@ begin
     DebugAxisNameShape[I].Appearance := TAppearanceNode.Create;
     DebugAxisNameShape[I].Appearance.Material := DebugAxisMaterial;
     case I of
-      0: DebugAxisNameGeom[I].SetString(['X']);
-      1: DebugAxisNameGeom[I].SetString(['Y']);
-      2: DebugAxisNameGeom[I].SetString(['Z']);
-      3: DebugAxisNameGeom[I].SetString(['O']);
+      0: DebugAxisNameGeom[I].SetText(['X']);
+      1: DebugAxisNameGeom[I].SetText(['Y']);
+      2: DebugAxisNameGeom[I].SetText(['Z']);
+      3: DebugAxisNameGeom[I].SetText(['O']);
     end;
     DebugAxisNameGeom[I].FontStyle := DebugFontStyleNode;
     DebugAxisName[I] := TTransformNode.Create;
@@ -1169,7 +1169,7 @@ begin
 
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
-  DebugGeometryName.SetString(AName);
+  DebugGeometryName.SetText(AName);
   DebugGeometryName.FontStyle := DebugFontStyleNode;
   DebugShapeName.Appearance := DebugAppearanceNode;
   DebugNameGap := 0.5 * (W + H) / 10;

@@ -61,12 +61,12 @@
     property MaxDisplayChars: Integer read GetMaxDisplayChars write SetMaxDisplayChars;
 
     strict private FFdString: TMFString;
-    { Internal wrapper for property @link(String). This wrapper API may change, we advise to access simpler @link(String) instead. }
+    { Internal wrapper for property @link(Text). This wrapper API may change, we advise to access simpler @link(Text) instead. }
     public property FdString: TMFString read FFdString;
     {  }
-    procedure SetString(const Value: array of string); overload;
+    procedure SetText(const Value: array of string); overload;
     {  }
-    procedure SetString(const Value: TCastleStringList); overload;
+    procedure SetText(const Value: TCastleStringList); overload;
 
     strict private FEventLineBounds: TMFVec2fEvent;
     {  }
@@ -137,12 +137,12 @@ begin
   FdMaxDisplayChars.Send(Value);
 end;
 
-procedure TTextNode.SetString(const Value: array of string);
+procedure TTextNode.SetText(const Value: array of string);
 begin
   FdString.Send(Value);
 end;
 
-procedure TTextNode.SetString(const Value: TCastleStringList);
+procedure TTextNode.SetText(const Value: TCastleStringList);
 begin
   FdString.Send(Value);
 end;
