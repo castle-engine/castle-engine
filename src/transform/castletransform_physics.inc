@@ -1139,6 +1139,8 @@
       procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
 
+      procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); override;
+
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -4199,6 +4201,15 @@ end;
 procedure TJointRope.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointRope);
+end;
+
+procedure TJointRope.OnConnectedTransformFree(const Sender: TFreeNotificationObserver);
+begin
+  { Remove connected transform anchor visualisation because
+    its parent is freed }
+  FreeAndNil(FConnectedAnchorTransform);
+
+  inherited OnConnectedTransformFree(Sender);
 end;
 
 constructor TJointRope.Create(AOwner: TComponent);
