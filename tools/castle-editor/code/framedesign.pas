@@ -1272,6 +1272,7 @@ var
   F: TCollectionPropertyEditorForm;
 begin
   FreeAndNil(TreeNodeMap);
+  FreeAndNil(CameraPreview);
 
   if CollectionPropertyEditorForm <> nil then
   begin
