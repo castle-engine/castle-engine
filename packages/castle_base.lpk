@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <Name Value="castle_base"/>
     <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
@@ -9,33 +9,33 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui;../src/services;../src/transform;../src/base_rendering;../src/fonts;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
-//if TargetOS='darwin' then
-//  LinkerOptions := ' -framework OpenGL';
+//if TargetOS=&apos;darwin&apos; then
+//  LinkerOptions := &apos; -framework OpenGL&apos;;
 
 // example for adding a unit and include path on Windows
-//if SrcOS='win' then begin
-//  UnitPath += ';win';
-//  IncPath += ';win';
+//if SrcOS=&apos;win&apos; then begin
+//  UnitPath += &apos;;win&apos;;
+//  IncPath += &apos;;win&apos;;
 //end;
 
 // See http://wiki.freepascal.org/Macros_and_Conditionals
 
 // Make Generics.Collections unit available even on FPC 3.0.x
-if GetProjValue('FPC_FULLVERSION') &lt; 30101 then
+if GetProjValue(&apos;FPC_FULLVERSION&apos;) &lt; 30101 then
 begin
-  UnitPath += ';../src/compatibility/generics.collections/src/';
+  UnitPath += &apos;;../src/compatibility/generics.collections/src/&apos;;
 
-  { Since we don't add the Generics.Collections units
-    to the package (because we can't do it only for specific
+  { Since we don&apos;t add the Generics.Collections units
+    to the package (because we can&apos;t do it only for specific
     FPC versions), they may not be compiled.
     (At least now, when engine does not use them yet,
     but it seeems like a good safeguard for the future too.)
     So expose path to their sources for dependent projects. }
-  UsageUnitPath += ';../src/compatibility/generics.collections/src/';
+  UsageUnitPath += &apos;;../src/compatibility/generics.collections/src/&apos;;
 end;"/>
       <Parsing>
         <SyntaxOptions>
@@ -68,13 +68,13 @@ end;"/>
 
 This package, castle_base.lpk, contains the core engine units. It is not dependent on CastleWindow or Lazarus LCL.
 
-You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
+You can install this package in Lazarus, it&apos;s required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="1022">
+    <Files Count="1027">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4193,7 +4193,28 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalTDxInput_TLB"/>
       </Item1022>
+      <Item1023>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cone_1.inc"/>
+        <Type Value="Include"/>
+      </Item1023>
+      <Item1024>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_fontstyle_1.inc"/>
+        <Type Value="Include"/>
+      </Item1024>
+      <Item1025>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_separator_1.inc"/>
+        <Type Value="Include"/>
+      </Item1025>
+      <Item1026>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texture2transform_1.inc"/>
+        <Type Value="Include"/>
+      </Item1026>
+      <Item1027>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate2_1.inc"/>
+        <Type Value="Include"/>
+      </Item1027>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="VampyreImagingPackageExt"/>
