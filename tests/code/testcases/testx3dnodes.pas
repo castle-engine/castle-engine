@@ -439,7 +439,7 @@ begin
 
     { Inventor spec nodes }
     TIndexedTriangleMeshNode_1,
-    TRotationXYZNode,
+    TRotationXYZNode_1,
 
     { VRML 1.0 spec nodes }
     TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
