@@ -752,16 +752,14 @@ type
     { Should DoKeyDown be able to call DoMenuClick, that is should
       we handle menu key shortcuts ourselves.
 
-      This is implemented in backend-specific CastleWindow parts.
-      When in DoKeyDown we get some key event that specifies that
-      some menu item should be called -- if RedirectKeyDownToMenuClick,
-      DoKeyDown will do DoMenuClick. Else DoKeyDown will do nothing.
+      The implementation (usually just hardcoded true or false result)
+      is backend-specific.
 
-      This should be implemened as "Result := true" if we have to process
-      keypresses in CastleWindow to pass them as menu commands, e.g. when CastleWindow
-      works on top of Xlib.
-      When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
-      menu, this should be implemented as "Result := false". }
+      - If @true, and in DoKeyDown we get some key event that specifies menu item,
+        then DoKeyDown calls DoMenuClick (and not calls EventKeyDown).
+
+      - If @false, then DoKeyDown doesn't check whether key corresponds to menu item.
+        It just calls EventKeyDown. }
     function RedirectKeyDownToMenuClick: boolean;
 
     { DoXxx methods ------------------------------------------------------------
@@ -3389,13 +3387,42 @@ begin
 
   Pressed.KeyDown(Key, KeyString);
 
-  MatchingMI := SeekMatchingMenuItem;
-  if (MainMenu <> nil) and
-     MainMenu.Enabled and
-     (MatchingMI <> nil) then
+  { This implementation guarantees that
+
+    A. we call some menu item
+    B. *or* we call Container.EventPress.
+
+    There is *no* situation possible in which we don't handle key
+    (because it matches menu item) but we also don't pass it to DoMenuClick.
+    This also avoids some inconsistencies between SeekMatchingMenuItem
+    and what GUI toolkit actually does, in case RedirectKeyDownToMenuClick = false
+    (like on GTK): e.g. we had situation when SeekMatchingMenuItem was finding a menu
+    item (for Key=keyNumPad7, KeyString='7') but for GTK it didn't match corresponding
+    menu item.
+
+    It also means it is undefined (backend-specific) whether Container.EventPress
+    *does* receive keys that triggered some menu items,
+    when RedirectKeyDownToMenuClick = false.
+    Some backends may hide such keys, some don't, and in case of
+    RedirectKeyDownToMenuClick = false we dont' control it at all.
+
+    Only when RedirectKeyDownToMenuClick = true we guarantee that only *one*
+    of A or B fires.
+
+    So:
+    - We always guarantee that A or B occurs.
+    - Only when RedirectKeyDownToMenuClick = true we guarantee that exactly one
+      of A or B occurs.
+  }
+
+  MatchingMI := nil;
+  if (RedirectKeyDownToMenuClick or (not MainMenuVisible)) and
+     (MainMenu <> nil) and
+     MainMenu.Enabled then
+    MatchingMI := SeekMatchingMenuItem;
+  if MatchingMI <> nil then
   begin
-    if (not MainMenuVisible) or RedirectKeyDownToMenuClick then
-      DoMenuClick(MatchingMI);
+    DoMenuClick(MatchingMI);
   end else
   begin
     MakeCurrent;
@@ -3403,7 +3430,8 @@ begin
     Container.EventPress(Event);
 
     if Event.IsKey(Close_KeyString) then
-      Close else
+      Close
+    else
     if Event.IsKey(SwapFullScreen_Key) then
       FullScreen := not FullScreen;
   end;

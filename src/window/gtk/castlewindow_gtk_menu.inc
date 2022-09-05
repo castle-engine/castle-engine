@@ -15,7 +15,7 @@
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
- Result := false;
+  Result := false;
 end;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
