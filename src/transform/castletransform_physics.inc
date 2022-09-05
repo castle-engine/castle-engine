@@ -1096,6 +1096,8 @@
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
+      procedure WorldBeforeDetach; override;
+
       procedure InternalSelectionStart; override;
       procedure InternalSelectionEnd; override;
 
@@ -1140,6 +1142,8 @@
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+
+      procedure WorldBeforeDetach; override;
 
       procedure InternalSelectionStart; override;
       procedure InternalSelectionEnd; override;
@@ -3893,6 +3897,7 @@ end;
 destructor TTemporaryTransform.Destroy;
 begin
   FreeAndNil(FSphere);
+  inherited Destroy;
 end;
 
 procedure TTemporaryTransform.Update(const SecondsPassed: Single;
@@ -4096,13 +4101,20 @@ begin
   inherited Destroy;
 end;
 
+procedure TJointHinge.WorldBeforeDetach;
+begin
+  FreeAndNil(FAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
 procedure TJointHinge.InternalSelectionStart;
 begin
   inherited InternalSelectionStart;
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(Self, Self);
+    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Value := Anchor;
   end;
@@ -4110,8 +4122,6 @@ end;
 
 procedure TJointHinge.InternalSelectionEnd;
 begin
-  // TODO: when remove anchor transform? -  we can't do it here because this
-  // FreeAndNil(FAnchorTransform);
   inherited InternalSelectionEnd;
 end;
 
@@ -4212,20 +4222,29 @@ begin
   inherited Destroy;
 end;
 
+procedure TJointRope.WorldBeforeDetach;
+begin
+  FreeAndNil(FAnchorTransform);
+  FreeAndNil(FConnectedAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
 procedure TJointRope.InternalSelectionStart;
 begin
   inherited InternalSelectionStart;
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(Self, Self);
+    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
   end;
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(FConnectedRigidBody.Parent, Self);
+    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform.Name := 'ConnectedAnchorHandle';
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
   end;
@@ -4233,8 +4252,6 @@ end;
 
 procedure TJointRope.InternalSelectionEnd;
 begin
-  //FreeAndNil(FAnchorTransform);
-  //FreeAndNil(FConnectedAnchorTransform);
   inherited InternalSelectionEnd;
 end;
 
