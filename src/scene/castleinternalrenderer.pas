@@ -1511,7 +1511,7 @@ begin
     begin
       Result := Caches[I];
       if (Result.Geometry = Shape.Geometry) and
-         Result.RenderOptions.EqualForShapeCache(ARenderer.RenderOptions) and
+         Result.RenderOptions.EqualForShapeCache(ARenderer.EffectiveRenderOptions) and
          Result.State.Equals(Shape.State, IgnoreStateTransform) and
          FogVolumetricEqual(
            Result.FogVolumetric,
@@ -1532,7 +1532,7 @@ begin
 
   Result := TShapeCache.Create;
   Caches.Add(Result);
-  Result.RenderOptions := ARenderer.RenderOptions;
+  Result.RenderOptions := ARenderer.EffectiveRenderOptions;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
   Result.FogVolumetric := FogVolumetric;
@@ -2033,12 +2033,12 @@ end;
 
 function TGLRenderer.BumpMapping: TBumpMapping;
 begin
-  if (RenderOptions.BumpMapping <> bmNone) and
-    RenderOptions.Textures and
-    (RenderOptions.Mode = rmFull) and
+  if (EffectiveRenderOptions.BumpMapping <> bmNone) and
+    EffectiveRenderOptions.Textures and
+    (EffectiveRenderOptions.Mode = rmFull) and
     GLFeatures.UseMultiTexturing and
     (GLFeatures.Shaders <> gsNone) then
-    Result := RenderOptions.BumpMapping else
+    Result := EffectiveRenderOptions.BumpMapping else
     Result := bmNone;
 end;
 
@@ -2071,7 +2071,7 @@ procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
-  Enabled := (RenderOptions.Mode = rmFull) and
+  Enabled := (EffectiveRenderOptions.Mode = rmFull) and
     (AFogFunctionality <> nil) and
     (AFogFunctionality.VisibilityRange <> 0.0);
   Volumetric := Enabled and
@@ -2129,8 +2129,8 @@ begin
     {$endif}
   end;
 
-  RenderContext.PointSize := RenderOptions.PointSize;
-  RenderContext.LineWidth := RenderOptions.LineWidth;
+  RenderContext.PointSize := EffectiveRenderOptions.PointSize;
+  RenderContext.LineWidth := EffectiveRenderOptions.LineWidth;
 
   if Beginning then
   begin
@@ -2141,9 +2141,9 @@ begin
   end else
     LineType := ltSolid;
 
-  GLSetEnabled(GL_DEPTH_TEST, Beginning and RenderOptions.DepthTest);
+  GLSetEnabled(GL_DEPTH_TEST, Beginning and EffectiveRenderOptions.DepthTest);
 
-  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
+  if GLFeatures.EnableFixedFunction and (EffectiveRenderOptions.Mode in [rmDepth, rmFull]) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
@@ -2161,7 +2161,7 @@ begin
     {$endif}
   end;
 
-  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode = rmFull) then
+  if GLFeatures.EnableFixedFunction and (EffectiveRenderOptions.Mode = rmFull) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
@@ -2195,7 +2195,7 @@ begin
     if Beginning then
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := RenderOptions.Lighting;
+      FFixedFunctionLighting := EffectiveRenderOptions.Lighting;
       {$ifndef OpenGLES}
       GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
       {$endif}
@@ -2230,7 +2230,7 @@ begin
     FSmoothShading := true;
     if Beginning then
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := RenderOptions.Lighting;
+      FFixedFunctionLighting := EffectiveRenderOptions.Lighting;
   end;
 end;
 
@@ -2283,15 +2283,15 @@ begin
     {$ifndef OpenGLES}
     glPushMatrix;
 
-    if RenderOptions.Mode = rmSolidColor then
-      glColorv(RenderOptions.SolidColor);
+    if EffectiveRenderOptions.Mode = rmSolidColor then
+      glColorv(EffectiveRenderOptions.SolidColor);
     {$endif}
   end;
 
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
+  LightsRenderer := TLightsRenderer.Create(LightRenderEvent, EffectiveRenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
@@ -2383,7 +2383,7 @@ begin
   Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
-  PhongShading := RenderOptions.PhongShading;
+  PhongShading := EffectiveRenderOptions.PhongShading;
   { if Shape specifies Shading = Gouraud or Phong, use it }
   if Shape.Node <> nil then
     if Shape.Node.Shading = shPhong then
@@ -2411,7 +2411,7 @@ begin
 
   Shader.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
   Shader.SceneTransform := Shape.SceneTransform;
-  Shader.ShadowSampling := RenderOptions.ShadowSampling;
+  Shader.ShadowSampling := EffectiveRenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
 
@@ -2425,11 +2425,11 @@ begin
     LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
-    RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    RenderContext.LineWidth := Max(1.0, EffectiveRenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
     LineType := LP.LineType;
   end else
   begin
-    RenderContext.LineWidth := RenderOptions.LineWidth;
+    RenderContext.LineWidth := EffectiveRenderOptions.LineWidth;
     LineType := ltSolid;
   end;
 
@@ -2462,7 +2462,7 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if RenderOptions.ReceiveSceneLights then
+    if EffectiveRenderOptions.ReceiveSceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
@@ -3069,7 +3069,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    if RenderOptions.Mode = rmSolidColor then
+    if EffectiveRenderOptions.Mode = rmSolidColor then
       Exit;
 
     AlphaTest := false;
@@ -3094,7 +3094,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if RenderOptions.Textures and
+    if EffectiveRenderOptions.Textures and
        NodeTextured(Shape.Geometry) then
     begin
       AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;
@@ -3546,7 +3546,7 @@ begin
       Otherwise we could modify it, but not reset in RenderCleanState,
       leaving other rendering (like TDrawableImage) be unexpectedly done with alpha test
       even when not desired. }
-    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
+    if GLFeatures.EnableFixedFunction and (EffectiveRenderOptions.Mode in [rmDepth, rmFull]) then
       {$ifndef OpenGLES}
       GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
       {$endif}
@@ -3558,7 +3558,7 @@ begin
   if FFixedFunctionAlphaCutoff <> Value then
   begin
     FFixedFunctionAlphaCutoff := Value;
-    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
+    if GLFeatures.EnableFixedFunction and (EffectiveRenderOptions.Mode in [rmDepth, rmFull]) then
       {$ifndef OpenGLES}
       glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
       {$endif}

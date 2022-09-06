@@ -962,7 +962,7 @@ begin
       else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
     end;
   end else
-    Result := RenderOptions.BlendingSort;
+    Result := EffectiveRenderOptions.BlendingSort;
 end;
 
 procedure TCastleScene.RenderShape_NoTests(const Shape: TGLShape);
@@ -986,7 +986,7 @@ end;
 
 function TCastleScene.ReallyDynamicBatching: Boolean;
 begin
-  Result := DynamicBatching and not ReallyAnyOcclusionQuery(RenderOptions);
+  Result := DynamicBatching and not ReallyAnyOcclusionQuery(EffectiveRenderOptions);
 end;
 
 procedure TCastleScene.RenderShape_BatchingTest(const Shape: TGLShape);
@@ -1022,14 +1022,14 @@ begin
       octree nodes (for hierarchical occ query), so all these things
       should have a map "target->oq state" for various rendering targets. }
 
-    if ReallyOcclusionQuery(RenderOptions) and
+    if ReallyOcclusionQuery(EffectiveRenderOptions) and
        (Render_Params.RenderingCamera.Target = rtScreen) then
     begin
       SimpleOcclusionQueryRenderer.Render(Shape, {$ifdef FPC}@{$endif}RenderShape_BatchingTest, Render_Params);
     end else
     {$warnings off}
-    if RenderOptions.DebugHierOcclusionQueryResults and
-       RenderOptions.HierarchicalOcclusionQuery then
+    if EffectiveRenderOptions.DebugHierOcclusionQueryResults and
+       EffectiveRenderOptions.HierarchicalOcclusionQuery then
     {$warnings on}
     begin
       if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
@@ -1156,8 +1156,8 @@ procedure TCastleScene.LocalRenderInside(
   var
     I: Integer;
   begin
-    if ReallyHierarchicalOcclusionQuery(RenderOptions) and
-       (not RenderOptions.DebugHierOcclusionQueryResults) and
+    if ReallyHierarchicalOcclusionQuery(EffectiveRenderOptions) and
+       (not EffectiveRenderOptions.DebugHierOcclusionQueryResults) and
        (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
     begin
@@ -1165,12 +1165,12 @@ procedure TCastleScene.LocalRenderInside(
         RenderCameraPosition);
     end else
     begin
-      if RenderOptions.Blending then
+      if EffectiveRenderOptions.Blending then
       begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort then
+          if ReallyOcclusionQuery(EffectiveRenderOptions) or EffectiveRenderOptions.OcclusionSort then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1241,7 +1241,7 @@ begin
   Render_TestShapeVisibility := TestShapeVisibility;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if ReallyAnyOcclusionQuery(RenderOptions) then
+  if ReallyAnyOcclusionQuery(EffectiveRenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * Render_ModelView;
@@ -1256,7 +1256,7 @@ begin
   end;
   {$endif}
 
-  if RenderOptions.ReceiveGlobalLights then
+  if EffectiveRenderOptions.ReceiveGlobalLights then
     ReceivedGlobalLights := Params.GlobalLights as TLightInstancesList
   else
     ReceivedGlobalLights := nil;
@@ -1264,7 +1264,7 @@ begin
   Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
-    case RenderOptions.Mode of
+    case EffectiveRenderOptions.Mode of
       rmDepth:
         { When not rmFull, we don't want to do anything with
           glDepthMask (RenderContext.DepthBufferUpdate)
@@ -1272,7 +1272,7 @@ begin
           (except: don't render partially transparent stuff for shadow maps). }
         RenderAllAsOpaque(true);
       rmSolidColor:
-        RenderAllAsOpaque(false, RenderOptions.SolidColorBlendingPipeline);
+        RenderAllAsOpaque(false, EffectiveRenderOptions.SolidColorBlendingPipeline);
       rmFull:
         RenderModeFull;
       {$ifndef COMPILER_CASE_ANALYSIS}
@@ -1494,15 +1494,15 @@ procedure TCastleScene.LocalRenderOutside(
 
       if UseWireframeColor then
       begin
-        SavedMode := RenderOptions.Mode;
-        SavedSolidColor := RenderOptions.SolidColor;
-        RenderOptions.Mode := rmSolidColor;
-        RenderOptions.SolidColor := RenderOptions.WireframeColor;
+        SavedMode := EffectiveRenderOptions.Mode;
+        SavedSolidColor := EffectiveRenderOptions.SolidColor;
+        EffectiveRenderOptions.Mode := rmSolidColor;
+        EffectiveRenderOptions.SolidColor := EffectiveRenderOptions.WireframeColor;
 
         RenderNormal;
 
-        RenderOptions.Mode := SavedMode;
-        RenderOptions.SolidColor := SavedSolidColor;
+        EffectiveRenderOptions.Mode := SavedMode;
+        EffectiveRenderOptions.SolidColor := SavedSolidColor;
       end else
       begin
         RenderNormal;
@@ -1523,7 +1523,7 @@ procedure TCastleScene.LocalRenderOutside(
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
   begin
-    case RenderOptions.WireframeEffect of
+    case EffectiveRenderOptions.WireframeEffect of
       weNormal:
         begin
           InternalScenePass := 0;
@@ -1532,7 +1532,7 @@ procedure TCastleScene.LocalRenderOutside(
       weWireframeOnly:
         begin
           InternalScenePass := 1;
-          RenderWireframe(RenderOptions.Mode = rmSolidColor);
+          RenderWireframe(EffectiveRenderOptions.Mode = rmSolidColor);
         end;
       weSolidWireframe:
         begin
@@ -1542,7 +1542,7 @@ procedure TCastleScene.LocalRenderOutside(
             glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(EffectiveRenderOptions.SolidWireframeScale, EffectiveRenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
             RenderNormal;
           glPopAttrib;
 
@@ -1557,7 +1557,7 @@ procedure TCastleScene.LocalRenderOutside(
           InternalScenePass := 1;
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(EffectiveRenderOptions.SilhouetteScale, EffectiveRenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
 
             (* Old idea, may be resurrected one day:
 
@@ -1576,7 +1576,7 @@ procedure TCastleScene.LocalRenderOutside(
               What we really would like to is to negate the FrontFaceCcw
               interpretation inside this RenderWireframe call.
             }
-            if RenderOptions.Mode = rmSolidColor then
+            if EffectiveRenderOptions.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
             *)
 
@@ -1603,8 +1603,8 @@ procedure TCastleScene.LocalRenderOutside(
       depth output. Also set up specialized shaders. }
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
-      SavedMode := RenderOptions.Mode;
-      RenderOptions.Mode := rmDepth;
+      SavedMode := EffectiveRenderOptions.Mode;
+      EffectiveRenderOptions.Mode := rmDepth;
 
       if Params.RenderingCamera.Target = rtVarianceShadowMap then
       begin
@@ -1622,20 +1622,20 @@ procedure TCastleScene.LocalRenderOutside(
 
       {$ifdef FPC}
       {$warnings off}
-      SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
-      SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
-      RenderOptions.CustomShader          := NewShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
+      SavedShaders.Shader          := EffectiveRenderOptions.CustomShader as TX3DShaderProgramBase;
+      SavedShaders.ShaderAlphaTest := EffectiveRenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
+      EffectiveRenderOptions.CustomShader          := NewShaders.Shader;
+      EffectiveRenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
       {$warnings on}
       {$endif}
 
       RenderWithWireframeEffect;
 
-      RenderOptions.Mode := SavedMode;
+      EffectiveRenderOptions.Mode := SavedMode;
       {$ifdef FPC}
       {$warnings off}
-      RenderOptions.CustomShader          := SavedShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
+      EffectiveRenderOptions.CustomShader          := SavedShaders.Shader;
+      EffectiveRenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
       {$warnings on}
       {$endif}
     end else
@@ -1762,7 +1762,7 @@ begin
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
-    ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
+    ForceOpaque := not (EffectiveRenderOptions.Blending and (EffectiveRenderOptions.Mode = rmFull));
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
@@ -2203,7 +2203,7 @@ var
 begin
   inherited;
 
-  if ReallyOcclusionQuery(RenderOptions) then
+  if ReallyOcclusionQuery(EffectiveRenderOptions) then
   begin
     WritelnLog('Occlusion query', 'View changed suddenly');
 
