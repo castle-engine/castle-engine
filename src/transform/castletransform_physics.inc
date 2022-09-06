@@ -1017,13 +1017,10 @@
       FColor: TCastleColor;
       FWireframeColor: TCastleColorRGB;
       FJoint: TAbstractJoint;
-      FParentWireframed: Boolean;
-      FParentWireframeEffect: TWireframeEffect;
-      FParentWireframeColor: TCastleColorRGB;
 
       procedure SetColor(const Value: TCastleColor);
-      procedure ApplyWireframeEffectToParent(const RenderOptions: TCastleRenderOptions);
-      procedure RemoveWireframeEffectFromParent(const RenderOptions: TCastleRenderOptions);
+      procedure ApplyWireframeEffectToParent;
+      procedure RemoveWireframeEffectFromParent;
     protected
       FSphere: TCastleTransform;
 
@@ -3786,32 +3783,28 @@ begin
   end;
 end;
 
-procedure TTemporaryTransform.ApplyWireframeEffectToParent(
-  const RenderOptions: TCastleRenderOptions);
+procedure TTemporaryTransform.ApplyWireframeEffectToParent;
 begin
-  if FParentWireframed then
-    Exit;
+  if InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)] = nil then
+    InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)] := TCastleRenderOptions.Create(nil);
 
-  if RenderOptions.WireframeEffect <> weWireframeOnly then
-  begin
-    FParentWireframeEffect := RenderOptions.WireframeEffect;
-    FParentWireframeColor := RenderOptions.WireframeColor;
+  InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)].WireframeEffect := weWireframeOnly;
+  InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)].WireframeColor := FWireframeColor;
 
-    RenderOptions.WireframeEffect := weWireframeOnly;
-    RenderOptions.WireframeColor := FWireframeColor;
-    FParentWireframed := true;
-  end;
+  if Parent is TCastleScene then
+    TCastleScene(Parent).InternalGlobalRenderOptionsLayer := rolAnchorsLayer
+  else
+  if Parent is TCastleAbstractPrimitive then
+    TCastleAbstractPrimitive(Parent).InternalGlobalRenderOptionsLayer := rolAnchorsLayer;
 end;
 
-procedure TTemporaryTransform.RemoveWireframeEffectFromParent(
-  const RenderOptions: TCastleRenderOptions);
+procedure TTemporaryTransform.RemoveWireframeEffectFromParent;
 begin
-  if not FParentWireframed then
-    Exit;
-
-  RenderOptions.WireframeEffect := FParentWireframeEffect;
-  RenderOptions.WireframeColor := FParentWireframeColor;
-  FParentWireframed := false;
+  if Parent is TCastleScene then
+    TCastleScene(Parent).InternalGlobalRenderOptionsLayer := rolDefaultLayer
+  else
+  if Parent is TCastleAbstractPrimitive then
+    TCastleAbstractPrimitive(Parent).InternalGlobalRenderOptionsLayer := rolDefaultLayer;
 end;
 
 function TTemporaryTransform.EstimateSphereRadius: Single;
@@ -3830,45 +3823,14 @@ begin
 end;
 
 procedure TTemporaryTransform.CheckTransformInsideParent;
-var
-  Scene: TCastleScene;
-  Primitive: TCastleAbstractPrimitive;
 begin
   if Parent = nil then
     Exit;
 
   if Parent.LocalBoundingBox.Contains(Translation) then
-  begin
-    if Parent is TCastleScene then
-    begin
-      Scene := TCastleScene(Parent);
-      ApplyWireframeEffectToParent(Scene.RenderOptions);
-      Exit;
-    end;
-
-    if Parent is TCastleAbstractPrimitive then
-    begin
-      Primitive := TCastleAbstractPrimitive(Parent);
-      ApplyWireframeEffectToParent(Primitive.RenderOptions);
-      Exit;
-    end;
-  end else
-  if FParentWireframed then
-  begin
-    if Parent is TCastleScene then
-    begin
-      Scene := TCastleScene(Parent);
-      RemoveWireframeEffectFromParent(Scene.RenderOptions);
-      Exit;
-    end;
-
-    if Parent is TCastleAbstractPrimitive then
-    begin
-      Primitive := TCastleAbstractPrimitive(Parent);
-      RemoveWireframeEffectFromParent(Primitive.RenderOptions);
-      Exit;
-    end;
-  end;
+    ApplyWireframeEffectToParent
+  else
+    RemoveWireframeEffectFromParent;
 end;
 
 procedure TTemporaryTransform.ChangedTransform;
@@ -3890,7 +3852,7 @@ begin
 
   FSphere := TCastleSphere.Create(nil);
   FSphere.SetTransient;
-  TCastleSphere(FSphere).InternalGlobalRenderOptionsThreshold := InternalEditorGizmoRenderOptionsThreshold;
+  TCastleSphere(FSphere).InternalGlobalRenderOptionsLayer := rolNone; // never change rendering to global
   TCastleSphere(FSphere).Color := FColor;
   TCastleSphere(FSphere).Material := pmUnlit;
   TCastleSphere(FSphere).Radius := EstimateSphereRadius;
