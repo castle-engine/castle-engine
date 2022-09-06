@@ -704,17 +704,17 @@ end;
 
 procedure TProjectForm.ActionViewportRenderNormalExecute(Sender: TObject);
 begin
-  if InternalGlobalRenderOptions <> nil then
-    FreeAndNil(InternalGlobalRenderOptions);
+  if InternalGlobalRenderOptionsArray[Integer(rolDefaultLayer)] <> nil then
+    FreeAndNil(InternalGlobalRenderOptionsArray[Integer(rolDefaultLayer)]);
   ActionViewportRenderNormal.Checked := true;
 end;
 
 procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject
   );
 begin
-  if InternalGlobalRenderOptions = nil then
-    InternalGlobalRenderOptions := TCastleRenderOptions.Create(Self);
-  InternalGlobalRenderOptions.WireframeEffect := weWireframeOnly;
+  if InternalGlobalRenderOptionsArray[Integer(rolDefaultLayer)] = nil then
+    InternalGlobalRenderOptionsArray[Integer(rolDefaultLayer)] := TCastleRenderOptions.Create(Self);
+  InternalGlobalRenderOptionsArray[Integer(rolDefaultLayer)].WireframeEffect := weWireframeOnly;
   ActionViewportRenderWireframeOnly.Checked := true;
 end;
 
