@@ -249,6 +249,24 @@ a.screenshot:hover img { border: 2pt solid #888; }
     margin-bottom: 1rem;
 }
 
+.main-page-action {
+    display: inline-block;
+    width: 100%;
+    vertical-align: middle;
+    line-height: 6em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.main-page-action.btn-info {
+    line-height: 2em; /* override height to be smaller */
+}
+
+.banner-container {
+    width: 100%;
+    margin-bottom: 3em !important;
+}
+
 .donate-photo {
     float: right;
     width: 300px;
@@ -579,6 +597,11 @@ span.news_title.only_anchor {
 }
 
 /* header ------------------------------------------------------------------- */
+
+/* override bottom margin on main page, to touch banner image */
+.navbar-main-page {
+  margin-bottom: 0 !important;
+}
 
 .header_breadcrumbs {
   color: #222;

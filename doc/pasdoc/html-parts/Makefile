@@ -23,6 +23,7 @@ clean:
 CGE_WWW_PATH := ../../../../cge-www/
 
 images:
+	rm -Rf images
 	mkdir -p images
 	cp -Rf $(CGE_WWW_PATH)htdocs/images/header_icon.png \
 	       $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon.png \
@@ -31,10 +32,10 @@ images:
 	       images/
 
 castle-engine-website-base:
+	rm -Rf castle-engine-website-base
 	mkdir -p castle-engine-website-base
 	cp -Rf $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.css \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.js \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/bootstrap \
-	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/colorbox \
-	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/js \
+	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/node_modules \
 	       castle-engine-website-base/
