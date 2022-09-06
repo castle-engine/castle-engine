@@ -335,11 +335,22 @@ var
 {$I castlerenderoptions_renderoptions.inc}
 {$undef read_interface}
 
+var
+  { Render options used by editor in various situations, e.g. displaying anchor
+  visualizations in joints }
+  InternalGlobalRenderOptions: TCastleRenderOptions;
+
 implementation
 
 uses SysUtils;
 
 {$define read_implementation}
 {$I castlerenderoptions_renderoptions.inc}
+
+initialization
+  InternalGlobalRenderOptions := nil;
+
+finalization
+  FreeAndNil(InternalGlobalRenderOptions);
 
 end.

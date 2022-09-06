@@ -677,13 +677,16 @@ type
       );
     var
       RenderMode: TRenderMode;
+      { By default true to use InternalGlobalRenderOptions when available }
+      UseInternalGlobalRenderOptions: Boolean;
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
     constructor Create(const RenderOptionsClass: TCastleRenderOptionsClass;
       const ACache: TGLRendererContextCache);
-
     destructor Destroy; override;
+
+    function EffectiveRenderOptions: TCastleRenderOptions;
 
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
@@ -1686,6 +1689,7 @@ begin
   inherited Create;
 
   FRenderOptions := RenderOptionsClass.Create(nil);
+  UseInternalGlobalRenderOptions := true;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1710,6 +1714,15 @@ begin
   FCache := nil; // we don't own cache
 
   inherited;
+end;
+
+function TGLRenderer.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  if (UseInternalGlobalRenderOptions) and (InternalGlobalRenderOptions <> nil) then
+  begin
+    Result := InternalGlobalRenderOptions
+  end else
+    Result := FRenderOptions;
 end;
 
 { TShapeCache ---------------------------------------------------------------- }
@@ -3524,7 +3537,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: boolean);
+procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: Boolean);
 begin
   if FFixedFunctionAlphaTest <> Value then
   begin

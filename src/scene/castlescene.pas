@@ -303,6 +303,9 @@ type
 
     function GetRenderOptions: TCastleRenderOptions;
     procedure SetCastGlobalLights(const Value: Boolean);
+
+    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
+    function GetUseInternalGlobalRenderOptions: Boolean;
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -360,6 +363,9 @@ type
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); override;
 
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
+
+
+    function EffectiveRenderOptions: TCastleRenderOptions;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -492,6 +498,11 @@ type
       then it is enough that at least one shape in one of the scene instances
       was visible last frame.  }
     function WasVisible: Boolean;
+
+    { Should this scene use InternalGlobalRenderOptions if available.
+      Sets, and get value in Renderer. }
+    property UseInternalGlobalRenderOptions: Boolean read GetUseInternalGlobalRenderOptions
+      write SetUseInternalGlobalRenderOptions default true;
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -2327,6 +2338,11 @@ begin
   end;
 end;
 
+function TCastleScene.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  Result := Renderer.EffectiveRenderOptions;
+end;
+
 procedure TCastleScene.SetCastGlobalLights(const Value: Boolean);
 begin
   if FCastGlobalLights <> Value then
@@ -2340,6 +2356,26 @@ begin
         (World as TCastleRootTransform).UnregisterCastGlobalLights(Self);
     end;
   end;
+end;
+
+procedure TCastleScene.SetUseInternalGlobalRenderOptions(const AValue: Boolean);
+begin
+  Assert(Renderer <> nil,
+    'Cant use UseInternalGlobalRenderOptions before Renderer creation');
+
+  { This value is stored in Renderer so don't use it in constructor before
+    Renderer creation. }
+  Renderer.UseInternalGlobalRenderOptions := AValue;
+end;
+
+function TCastleScene.GetUseInternalGlobalRenderOptions: Boolean;
+begin
+  Assert(Renderer <> nil,
+  'Cant use UseInternalGlobalRenderOptions before Renderer creation');
+
+  { This value is stored in Renderer so don't use it in constructor before
+    Renderer creation. }
+  Result := Renderer.UseInternalGlobalRenderOptions;
 end;
 
 function TCastleScene.PropertySections(
