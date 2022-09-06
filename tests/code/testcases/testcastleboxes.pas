@@ -672,8 +672,10 @@ procedure TTestCastleBoxes.TestBox3DTransform;
   begin
     for I := 0 to 2 do
     begin
-      Val1 := 50 - Random * 100;
-      Val2 := 50 - Random * 100;
+      repeat
+        Val1 := 50 - Random * 100;
+        Val2 := 50 - Random * 100;
+      until Abs(Val2 - Val1) > 1; // do not accept too close Val1 and Val2 values
       OrderUp(Val1, Val2);
       {$warnings off} // silence FPC warning about Normal uninitialized
       Result.Data[0].InternalData[I] := Val1;
