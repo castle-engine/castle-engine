@@ -3890,6 +3890,7 @@ begin
 
   FSphere := TCastleSphere.Create(nil);
   FSphere.SetTransient;
+  TCastleSphere(FSphere).InternalGlobalRenderOptionsThreshold := InternalEditorGizmoRenderOptionsThreshold;
   TCastleSphere(FSphere).Color := FColor;
   TCastleSphere(FSphere).Material := pmUnlit;
   TCastleSphere(FSphere).Radius := EstimateSphereRadius;
