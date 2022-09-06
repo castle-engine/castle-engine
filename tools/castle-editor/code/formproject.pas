@@ -42,6 +42,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportRenderWireframeOnly: TAction;
+    ActionViewportRenderNormal: TAction;
     ActionComponentDuplicate: TAction;
     ActionComponentSaveSelected: TAction;
     ActionComponentDelete: TAction;
@@ -76,6 +78,9 @@ type
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    Separator6: TMenuItem;
     MenuSeparator6123: TMenuItem;
     MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
@@ -246,6 +251,8 @@ type
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
     procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
     procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
+    procedure ActionViewportRenderNormalExecute(Sender: TObject);
+    procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
@@ -465,7 +472,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils, CastleLclEditHack,
+  CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait,
@@ -693,6 +700,22 @@ procedure TProjectForm.ActionViewportAlignViewToCameraExecute(Sender: TObject);
 begin
   if Design <> nil then
     Design.ViewportAlignViewToCamera;
+end;
+
+procedure TProjectForm.ActionViewportRenderNormalExecute(Sender: TObject);
+begin
+  if InternalGlobalRenderOptions <> nil then
+    FreeAndNil(InternalGlobalRenderOptions);
+  ActionViewportRenderNormal.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject
+  );
+begin
+  if InternalGlobalRenderOptions = nil then
+    InternalGlobalRenderOptions := TCastleRenderOptions.Create(Self);
+  InternalGlobalRenderOptions.WireframeEffect := weWireframeOnly;
+  ActionViewportRenderWireframeOnly.Checked := true;
 end;
 
 procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);

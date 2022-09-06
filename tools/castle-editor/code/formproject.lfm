@@ -429,6 +429,15 @@ object ProjectForm: TProjectForm
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
       end
+      object Separator6: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem22: TMenuItem
+        Action = ActionViewportRenderNormal
+      end
+      object MenuItem23: TMenuItem
+        Action = ActionViewportRenderWireframeOnly
+      end
     end
     object MenuItemCode: TMenuItem
       Caption = 'Code'
@@ -1006,6 +1015,18 @@ object ProjectForm: TProjectForm
       Caption = 'Duplicate'
       OnExecute = ActionDuplicateComponentExecute
       ShortCut = 16452
+    end
+    object ActionViewportRenderNormal: TAction
+      Category = 'Viewport'
+      Caption = 'Render Normal'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderNormalExecute
+    end
+    object ActionViewportRenderWireframeOnly: TAction
+      Category = 'Viewport'
+      Caption = 'Render Wireframe Only'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderWireframeOnlyExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
