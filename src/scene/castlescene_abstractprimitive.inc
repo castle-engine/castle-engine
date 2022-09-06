@@ -55,6 +55,9 @@ type
     procedure UpdateMaterialNode;
     procedure SetPreciseCollisions(const Value: Boolean);
     function GetRenderOptions: TCastleRenderOptions;
+
+    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
+    function GetUseInternalGlobalRenderOptions: Boolean;
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
@@ -79,6 +82,11 @@ type
       )
     }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Should this scene use InternalGlobalRenderOptions if available.
+      Sets, and gets value from internal Castle Scene Renderer. }
+    property UseInternalGlobalRenderOptions: Boolean read GetUseInternalGlobalRenderOptions
+      write SetUseInternalGlobalRenderOptions;
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -330,6 +338,17 @@ end;
 function TCastleAbstractPrimitive.GetRenderOptions: TCastleRenderOptions;
 begin
   Result := FScene.RenderOptions;
+end;
+
+procedure TCastleAbstractPrimitive.SetUseInternalGlobalRenderOptions(
+  const AValue: Boolean);
+begin
+  FScene.UseInternalGlobalRenderOptions := AValue;
+end;
+
+function TCastleAbstractPrimitive.GetUseInternalGlobalRenderOptions: Boolean;
+begin
+  Result := FScene.UseInternalGlobalRenderOptions;
 end;
 
 {$define read_implementation_methods}
