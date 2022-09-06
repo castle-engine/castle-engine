@@ -56,8 +56,8 @@ type
     procedure SetPreciseCollisions(const Value: Boolean);
     function GetRenderOptions: TCastleRenderOptions;
 
-    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
-    function GetUseInternalGlobalRenderOptions: Boolean;
+    procedure SetInternalGlobalRenderOptionsThreshold(const AValue: Integer);
+    function GetInternalGlobalRenderOptionsThreshold: Integer;
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
@@ -83,10 +83,11 @@ type
     }
     property Color: TCastleColor read FColor write SetColor;
 
-    { Should this scene use InternalGlobalRenderOptions if available.
+    { Should this scene use InternalGlobalRenderOptions if InternalGlobalRenderOptionsLevel
+      is greater than treshold it will be.
       Sets, and gets value from internal Castle Scene Renderer. }
-    property UseInternalGlobalRenderOptions: Boolean read GetUseInternalGlobalRenderOptions
-      write SetUseInternalGlobalRenderOptions;
+    property InternalGlobalRenderOptionsThreshold: Integer read GetInternalGlobalRenderOptionsThreshold
+      write SetInternalGlobalRenderOptionsThreshold;
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -340,15 +341,15 @@ begin
   Result := FScene.RenderOptions;
 end;
 
-procedure TCastleAbstractPrimitive.SetUseInternalGlobalRenderOptions(
-  const AValue: Boolean);
+procedure TCastleAbstractPrimitive.SetInternalGlobalRenderOptionsThreshold(
+  const AValue: Integer);
 begin
-  FScene.UseInternalGlobalRenderOptions := AValue;
+  FScene.InternalGlobalRenderOptionsThreshold := AValue;
 end;
 
-function TCastleAbstractPrimitive.GetUseInternalGlobalRenderOptions: Boolean;
+function TCastleAbstractPrimitive.GetInternalGlobalRenderOptionsThreshold: Integer;
 begin
-  Result := FScene.UseInternalGlobalRenderOptions;
+  Result := FScene.InternalGlobalRenderOptionsThreshold;
 end;
 
 {$define read_implementation_methods}

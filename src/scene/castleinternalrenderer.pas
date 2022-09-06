@@ -677,8 +677,9 @@ type
       );
     var
       RenderMode: TRenderMode;
-      { By default true to use InternalGlobalRenderOptions when available }
-      UseInternalGlobalRenderOptions: Boolean;
+      { InternalGlobalRenderOptionsLevel needs to exceed this threshold to
+        make this renderer use InternalGlobalRenderOptions }
+      InternalGlobalRenderOptionsThreshold: Integer;
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
@@ -1689,7 +1690,7 @@ begin
   inherited Create;
 
   FRenderOptions := RenderOptionsClass.Create(nil);
-  UseInternalGlobalRenderOptions := true;
+  InternalGlobalRenderOptionsThreshold := InternalDefaultRenderOptionsThreshold;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1718,7 +1719,8 @@ end;
 
 function TGLRenderer.EffectiveRenderOptions: TCastleRenderOptions;
 begin
-  if (UseInternalGlobalRenderOptions) and (InternalGlobalRenderOptions <> nil) then
+  if (InternalGlobalRenderOptionsLevel > InternalGlobalRenderOptionsThreshold)
+     and (InternalGlobalRenderOptions <> nil) then
   begin
     Result := InternalGlobalRenderOptions
   end else

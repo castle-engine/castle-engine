@@ -304,8 +304,8 @@ type
     function GetRenderOptions: TCastleRenderOptions;
     procedure SetCastGlobalLights(const Value: Boolean);
 
-    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
-    function GetUseInternalGlobalRenderOptions: Boolean;
+    procedure SetInternalGlobalRenderOptionsThreshold(const AValue: Integer);
+    function GetInternalGlobalRenderOptionsThreshold: Integer;
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -499,10 +499,13 @@ type
       was visible last frame.  }
     function WasVisible: Boolean;
 
-    { Should this scene use InternalGlobalRenderOptions if available.
-      Sets, and get value in Renderer. }
-    property UseInternalGlobalRenderOptions: Boolean read GetUseInternalGlobalRenderOptions
-      write SetUseInternalGlobalRenderOptions default true;
+    { Should this scene use InternalGlobalRenderOptions if InternalGlobalRenderOptionsLevel
+      is greater than treshold it will be.
+      Sets, and gets value from Renderer. }
+    property InternalGlobalRenderOptionsThreshold: Integer
+      read GetInternalGlobalRenderOptionsThreshold
+      write SetInternalGlobalRenderOptionsThreshold
+      default InternalDefaultRenderOptionsThreshold;
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -2358,24 +2361,25 @@ begin
   end;
 end;
 
-procedure TCastleScene.SetUseInternalGlobalRenderOptions(const AValue: Boolean);
+procedure TCastleScene.SetInternalGlobalRenderOptionsThreshold(
+    const AValue: Integer);
 begin
   Assert(Renderer <> nil,
-    'Cant use UseInternalGlobalRenderOptions before Renderer creation');
+    'Can''t use InternalGlobalRenderOptionsThreshold before Renderer creation');
 
   { This value is stored in Renderer so don't use it in constructor before
     Renderer creation. }
-  Renderer.UseInternalGlobalRenderOptions := AValue;
+  Renderer.InternalGlobalRenderOptionsThreshold := AValue;
 end;
 
-function TCastleScene.GetUseInternalGlobalRenderOptions: Boolean;
+function TCastleScene.GetInternalGlobalRenderOptionsThreshold: Integer;
 begin
   Assert(Renderer <> nil,
-  'Cant use UseInternalGlobalRenderOptions before Renderer creation');
+  'Can''t use UseInternalGlobalRenderOptionsThreshold before Renderer creation');
 
   { This value is stored in Renderer so don't use it in constructor before
     Renderer creation. }
-  Result := Renderer.UseInternalGlobalRenderOptions;
+  Result := Renderer.InternalGlobalRenderOptionsThreshold;
 end;
 
 function TCastleScene.PropertySections(
