@@ -36,6 +36,5 @@ castle-engine-website-base:
 	mkdir -p castle-engine-website-base
 	cp -Rf $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.css \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.js \
-	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/bootstrap \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/node_modules \
 	       castle-engine-website-base/
