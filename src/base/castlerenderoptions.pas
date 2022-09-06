@@ -340,6 +340,16 @@ var
   visualizations in joints }
   InternalGlobalRenderOptions: TCastleRenderOptions;
 
+  { Every castle scene has InternalGlobalRenderOptionsThreshold if
+    InternalGlobalRenderOptionsLevel is greater than this threshold
+    scene start using InternalGlobalRenderOptions }
+  InternalGlobalRenderOptionsLevel: Integer;
+
+const
+  { Threshold used by editor gizmos and anchor visualisations }
+  InternalDefaultRenderOptionsThreshold = 0;
+  InternalEditorGizmoRenderOptionsThreshold = 100000;
+
 implementation
 
 uses SysUtils;
@@ -349,6 +359,9 @@ uses SysUtils;
 
 initialization
   InternalGlobalRenderOptions := nil;
+  InternalGlobalRenderOptionsLevel := 1;
+  {InternalGlobalRenderOptions := TCastleRenderOptions.Create(nil);
+  InternalGlobalRenderOptions.WireframeEffect := weWireframeOnly;}
 
 finalization
   FreeAndNil(InternalGlobalRenderOptions);
