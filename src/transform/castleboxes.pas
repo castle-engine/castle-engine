@@ -1553,7 +1553,7 @@ function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
 
 { Implementation based on
   [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
-  by Tomas Akenine-Möller, described
+  by Tomas Akenine-MÃ¶ller, described
   in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
   "Fast 3D Triangle-Box Overlap Testing", downloadable from
   [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
