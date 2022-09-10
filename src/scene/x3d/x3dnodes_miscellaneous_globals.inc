@@ -159,8 +159,7 @@ var
 
     These variables @italic(must) always honour
     @link(MinTriangulationSlices),
-    @link(MinTriangulationStacks),
-    @link(MinTriangulationDivisions) limits.
+    @link(MinTriangulationStacks) limits.
 
     @groupBegin }
   DefaultTriangulationSlices: Cardinal = 30;

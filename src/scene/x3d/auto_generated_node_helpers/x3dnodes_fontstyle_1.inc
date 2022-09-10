@@ -98,7 +98,9 @@ begin
    FdSize.MustBeNonnegative := true;
   AddField(FFdSize);
 
+  {$warnings off} // using deprecated FSFAMILY_SERIF in deprecated VRML 1 node
   FFdFamily := TSFEnum.Create(Self, True, 'family', @FamilyNames1, Ord(High(FamilyNames1)) + 1, FSFAMILY_SERIF);
+  {$warnings on}
    FdFamily.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFamily);
 

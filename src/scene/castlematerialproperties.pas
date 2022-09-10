@@ -40,20 +40,26 @@ type
   public
     { Texture basename to associate this property will all appearances
       using given texture. For now, this is the only way to associate
-      property, but more are possible in the future (like MaterialNodeName). }
-    property TextureBaseName: String read FTextureBaseName write FTextureBaseName;
+      property, but more are possible in the future (like MaterialNodeName).
+
+      @deprecated All properties affected by this filter are deprecated. }
+    property TextureBaseName: String read FTextureBaseName write FTextureBaseName; {$ifdef FPC}deprecated;{$endif}
 
     { Footsteps sound to make when player is walking on this material.
-      nil if no information is available. }
-    property FootstepsSound: TCastleSound read FFootstepsSound write FFootstepsSound;
+      nil if no information is available.
+
+      @deprecated }
+    property FootstepsSound: TCastleSound read FFootstepsSound write FFootstepsSound; {$ifdef FPC}deprecated;{$endif}
 
     { Is the floor toxic when walking on it.
       Taken into account only if you assign @link(TLevel.Player).
+
+      @deprecated Just like @link(TLevel.Player).
       @groupBegin }
-    property Toxic: Boolean read FToxic write FToxic;
-    property ToxicDamageConst: Single read FToxicDamageConst write FToxicDamageConst;
-    property ToxicDamageRandom: Single read FToxicDamageRandom write FToxicDamageRandom;
-    property ToxicDamageTime: Single read FToxicDamageTime write FToxicDamageTime;
+    property Toxic: Boolean read FToxic write FToxic; {$ifdef FPC}deprecated;{$endif}
+    property ToxicDamageConst: Single read FToxicDamageConst write FToxicDamageConst; {$ifdef FPC}deprecated;{$endif}
+    property ToxicDamageRandom: Single read FToxicDamageRandom write FToxicDamageRandom; {$ifdef FPC}deprecated;{$endif}
+    property ToxicDamageTime: Single read FToxicDamageTime write FToxicDamageTime; {$ifdef FPC}deprecated;{$endif}
     { @groupEnd }
 
     { Normal map texture URL. This is a simple method to activate bump mapping,
@@ -61,16 +67,20 @@ type
       https://castle-engine.io/x3d_extensions.php#section_ext_bump_mapping .
 
       In case both VRML/X3D Appearance specifies normalMap and we have
-      NormalMap defined here, the VRML/X3D Appearance is used. }
-    property NormalMap: String read FNormalMap write FNormalMap;
+      NormalMap defined here, the VRML/X3D Appearance is used.
+
+      @deprecated Normal maps can be specified comfortably in glTF, X3D, Blender files. }
+    property NormalMap: String read FNormalMap write FNormalMap; {$ifdef FPC}deprecated;{$endif}
 
     { Override alpha channel type for diffuse texture.
       The meaning and allowed values for this are the same as for
       alphaChannel field for texture nodes, see
       https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection .
       Empty value (default) doesn't change the alpha channel type
-      (set in VRML/X3D or auto-detected). }
-    property AlphaChannel: String read FAlphaChannel write FAlphaChannel;
+      (set in VRML/X3D or auto-detected).
+
+      @deprecated Alpha can be specified comfortably in glTF, X3D, Blender files. }
+    property AlphaChannel: String read FAlphaChannel write FAlphaChannel; {$ifdef FPC}deprecated;{$endif}
   end;
 
   TMaterialPropertyList = {$ifdef FPC}specialize{$endif} TObjectList<TMaterialProperty>;
@@ -862,9 +872,11 @@ function TMaterialProperties.FindTextureBaseName(const TextureBaseName: String):
 var
   I: Integer;
 begin
+  {$warnings off} // using deprecated material props to keep them working
   for I := 0 to FMaterialPropertyList.Count - 1 do
     if SameText(FMaterialPropertyList[I].TextureBaseName, TextureBaseName) then
       Exit(FMaterialPropertyList[I]);
+  {$warnings on}
   Result := nil;
 end;
 
