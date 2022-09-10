@@ -598,6 +598,28 @@ span.news_title.only_anchor {
 
 /* header ------------------------------------------------------------------- */
 
+.container-nav {
+  padding-left: 5px !important;
+}
+.navbar-brand {
+  padding: 5px !important;
+  margin-left: -5px !important;
+}
+.navbar-brand a {
+  display: block;
+  padding: 5px 10px;
+  color: #5e5e5e !important;
+}
+.navbar-brand a img {
+  margin-right: 0.25em;
+}
+/* present main page link similar to menu items, to communicate it is useful to click */
+.navbar-brand a:hover,
+.navbar-brand a:focus {
+  text-decoration: none !important;
+  background-color: #eeeeee !important;
+}
+
 /* override bottom margin on main page, to touch banner image */
 .navbar-main-page {
   margin-bottom: 0 !important;
