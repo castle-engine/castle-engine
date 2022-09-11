@@ -36,17 +36,18 @@ pipeline {
         sh 'make clean tools'
       }
     }
-    stage('Build Examples (Default FPC)') {
-      steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'make clean examples'
-      }
-    }
-    stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
-      steps {
-        sh 'make clean examples-laz'
-      }
-    }
+    // Temp commented out at release to rebuild package quicker.
+    // stage('Build Examples (Default FPC)') {
+    //   steps {
+    //     /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+    //     sh 'make clean examples'
+    //   }
+    // }
+    // stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
+    //   steps {
+    //     sh 'make clean examples-laz'
+    //   }
+    // }
     stage('Build And Run Auto-Tests (Default FPC)') {
       steps {
         sh 'make clean tests'
@@ -67,17 +68,17 @@ pipeline {
         sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools'
       }
     }
-    stage('Build Examples (FPC 3.2.0)') {
-      steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
-      }
-    }
-    stage('Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
-      steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
-      }
-    }
+    // stage('Build Examples (FPC 3.2.0)') {
+    //   steps {
+    //     /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+    //     sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
+    //   }
+    // }
+    // stage('Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+    //   steps {
+    //     sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
+    //   }
+    // }
     stage('Build And Run Auto-Tests (FPC 3.2.0)') {
       steps {
         sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests'
@@ -98,17 +99,17 @@ pipeline {
         sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
       }
     }
-    stage('Build Examples (FPC trunk)') {
-      steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
-      }
-    }
-    stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
-      steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
-      }
-    }
+    // stage('Build Examples (FPC trunk)') {
+    //   steps {
+    //     /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+    //     sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
+    //   }
+    // }
+    // stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+    //   steps {
+    //     sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
+    //   }
+    // }
     stage('Build And Run Auto-Tests (FPC trunk)') {
       steps {
         sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
