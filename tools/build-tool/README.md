@@ -16,12 +16,14 @@ To compile the build tool, all you need is an FPC installed.
 - Unix:
 
     ```
+    cd castle-engine/tools/build-tool/ # first enter the build tool directory
     ./castle-engine_compile.sh
     ```
 
-- Windows (PowerShell):
+- Windows (execute this in PowerShell):
 
     ```
+    cd castle-engine/tools/build-tool/ # first enter the build tool directory
     ./castle-engine_compile.ps1
     ```
 
