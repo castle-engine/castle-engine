@@ -265,20 +265,30 @@
 { OpenGL[ES] ------------------------------------------------------------------ }
 
 (*Whether we use OpenGL ES or normal OpenGL.
-  OpenGL ES is generally for mobile devices.
+  OpenGL ES is by default used for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
-  (see https://castle-engine.io/android-FAQ#testing-mobile-opengl-es-rendering-without-an-android
+  (see https://castle-engine.io/android_faq#testing-mobile-opengl-es-rendering-without-an-android
   for instructions how to install OpenGL ES on desktop).
 
   CGE units that directly access OpenGL(ES) should use this line:
 
     {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
 
-  CGE examples don't have castleconf.inc defined, and in general should
-  not need to access OpenGL(ES). But if they have to, they should do
+  Applications using CGE (including CGE examples) cannot include castleconf.inc
+  (it's internal what it defines) and usually should not need to access OpenGL(ES)
+  API directly (to stay independent from OpenGL(ES) details or any future renderer API).
+  But if you really have to use OpenGL(ES) API directly, you can do this:
 
-    {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
+    {$ifdef ANDROID} {$define OpenGLES} {$endif}
+    {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
+    {$ifdef FPC}
+      {$ifdef OpenGLES} CastleGLES, {$else} GL, GLExt, {$endif}
+    {$else}
+      OpenGL, OpenGLext,
+    {$endif}
 
+  The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
+  You can simplify it in a particular application, if you don't support e.g. both FPC and Delphi.
 *)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
