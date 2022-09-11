@@ -46,7 +46,8 @@
               {
                 "$$ClassName" : "TCastleSpotLight",
                 "Intensity" : 2.0000000000000000E+000,
-                "Name" : "SpotLight1"
+                "Name" : "SpotLight1",
+                "Radius" : 1.0000000000000000E+006
               }
             ]
           }
@@ -70,10 +71,15 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 1.1823388338088989E+000,
-          "X" : -3.4037941694259644E-001,
-          "Y" : 9.1825044155120850E-001,
-          "Z" : 2.0238126814365387E-001
+          "W" : 1.1240427494049072E+000,
+          "X" : -3.2497099041938782E-001,
+          "Y" : 9.2801946401596069E-001,
+          "Z" : 1.8213689327239990E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 1.0000001192092896E+000,
+          "Z" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
@@ -109,7 +115,7 @@
       "Height" : 2.4000000000000000E+002,
       "HorizontalAnchorDelta" : 1.7961181640625000E+001,
       "Name" : "Rectangle1",
-      "VerticalAnchorDelta" : -3.0000000000000000E+001,
+      "VerticalAnchorDelta" : -6.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 8.2000000000000000E+002,
@@ -122,24 +128,6 @@
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
-            {
-              "$$ClassName" : "TCastleLabel",
-              "ColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Alpha" : 5.0000000000000000E-001,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
-              },
-              "FontSize" : 2.5000000000000000E+001,
-              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-              "Name" : "LabelLoadedUrl",
-              "Text" : [
-                "Loaded: <url>"
-              ],
-              "VerticalAnchorDelta" : -1.0000000000000000E+001,
-              "VerticalAnchorParent" : "vpTop",
-              "VerticalAnchorSelf" : "vpTop"
-            },
             {
               "$$ClassName" : "TCastleButton",
               "Caption" : "Load Knight Model",
@@ -155,14 +143,14 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "FontSize" : 5.0000000000000000E+001,
+              "FontSize" : 2.5000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "MinWidth" : 6.0000000000000000E+002,
+              "MinWidth" : 4.0000000000000000E+002,
               "Name" : "ButtonLoadKnight",
-              "VerticalAnchorDelta" : -4.7500000000000000E+001,
+              "VerticalAnchorDelta" : -1.0000000000000000E+001,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
@@ -181,14 +169,14 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "FontSize" : 5.0000000000000000E+001,
+              "FontSize" : 2.5000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "MinWidth" : 6.0000000000000000E+002,
+              "MinWidth" : 4.0000000000000000E+002,
               "Name" : "ButtonLoadCar",
-              "VerticalAnchorDelta" : -1.2500000000000000E+002,
+              "VerticalAnchorDelta" : -6.3749996185302734E+001,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
@@ -207,23 +195,23 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "FontSize" : 5.0000000000000000E+001,
+              "FontSize" : 2.5000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "MinWidth" : 6.0000000000000000E+002,
+              "MinWidth" : 4.0000000000000000E+002,
               "Name" : "ButtonLoadCustom",
-              "VerticalAnchorDelta" : -2.0250000000000000E+002,
+              "VerticalAnchorDelta" : -1.1749999237060547E+002,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
             {
               "$$ClassName" : "TCastleUserInterface",
-              "Height" : 5.0000000000000000E+001,
+              "Height" : 2.0000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Name" : "Spacer",
-              "VerticalAnchorDelta" : -2.8000000000000000E+002,
+              "VerticalAnchorDelta" : -1.7124998474121094E+002,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
@@ -242,14 +230,14 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "FontSize" : 5.0000000000000000E+001,
+              "FontSize" : 2.5000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "MinWidth" : 6.0000000000000000E+002,
+              "MinWidth" : 4.0000000000000000E+002,
               "Name" : "ButtonPlayAnimation",
-              "VerticalAnchorDelta" : -3.4000000000000000E+002,
+              "VerticalAnchorDelta" : -2.0124998474121094E+002,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
@@ -268,14 +256,14 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "FontSize" : 5.0000000000000000E+001,
+              "FontSize" : 2.5000000000000000E+001,
               "HorizontalAnchorDelta" : 1.0000000000000000E+001,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "MinWidth" : 6.0000000000000000E+002,
+              "MinWidth" : 4.0000000000000000E+002,
               "Name" : "ButtonStopAnimation",
-              "VerticalAnchorDelta" : -4.1750000000000000E+002,
+              "VerticalAnchorDelta" : -2.5499998474121094E+002,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             }
@@ -297,6 +285,24 @@
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.0000000000000000E-001,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.5000000000000000E+001,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "LabelLoadedUrl",
+      "Text" : [
+        "Loaded: <url>"
       ],
       "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
