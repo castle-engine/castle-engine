@@ -73,7 +73,7 @@ You can install this package in Lazarus, it&apos;s required by all other program
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
-    <Version Major="6" Minor="5"/>
+    <Version Major="6" Minor="92"/>
     <Files Count="1027">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>

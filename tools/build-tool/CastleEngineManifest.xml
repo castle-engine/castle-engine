@@ -4,7 +4,7 @@
   <icons>
     <icon path="icon.ico"/>
   </icons>
-  <version value="7.0-alpha.snapshot" code="14" />
+  <version value="7.0-alpha.2" code="15" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

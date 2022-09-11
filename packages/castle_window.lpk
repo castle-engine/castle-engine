@@ -48,7 +48,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
-    <Version Major="6" Minor="5"/>
+    <Version Major="6" Minor="92"/>
     <Files Count="33">
       <Item1>
         <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
