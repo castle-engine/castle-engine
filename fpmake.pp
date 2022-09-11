@@ -187,7 +187,8 @@ begin
     P.Targets.AddUnit('ImagingCompare.pas');
     P.Targets.AddUnit('ImagingExtFileFormats.pas');
     P.Targets.AddUnit('ImagingJpeg2000.pas');
-    P.Targets.AddUnit('OpenJpeg.pas');
+    // TODO: not for Raspberry Pi (Linux/Arm), make this conditional
+    // P.Targets.AddUnit('OpenJpeg.pas');
     P.Targets.AddUnit('ImagingPcx.pas');
     P.Targets.AddUnit('ImagingPsd.pas');
     P.Targets.AddUnit('ImagingTiff.pas');
