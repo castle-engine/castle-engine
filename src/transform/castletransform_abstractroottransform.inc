@@ -250,16 +250,7 @@
       where player and creatures go.
       Player is honoring this if it uses @link(WorldMoveAllowed),
       in particular our @link(TCastleWalkNavigation) navigation honors it.
-      Creatures honor it if they use @link(WorldMoveAllowed)
-      for their decision,
-      in particular all creatures in @link(CastleCreatures) use it.
-
-      Note that the @link(TLevel.Load) always
-      assigns this property to be non-empty.
-      It either determines it by CasMoveLimit placeholder
-      in the level 3D model, or by calculating
-      to include level bounding box + some space for flying.
-    }
+      Creatures honor it if they use @link(WorldMoveAllowed) for their decision. }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
     { Central camera, that controls the features that require

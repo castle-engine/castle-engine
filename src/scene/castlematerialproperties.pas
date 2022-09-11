@@ -52,9 +52,9 @@ type
     property FootstepsSound: TCastleSound read FFootstepsSound write FFootstepsSound; {$ifdef FPC}deprecated;{$endif}
 
     { Is the floor toxic when walking on it.
-      Taken into account only if you assign @link(TLevel.Player).
+      Taken into account only if you assign @code(TLevel.Player).
 
-      @deprecated Just like @link(TLevel.Player).
+      @deprecated Just like @code(TLevel.Player).
       @groupBegin }
     property Toxic: Boolean read FToxic write FToxic; {$ifdef FPC}deprecated;{$endif}
     property ToxicDamageConst: Single read FToxicDamageConst write FToxicDamageConst; {$ifdef FPC}deprecated;{$endif}

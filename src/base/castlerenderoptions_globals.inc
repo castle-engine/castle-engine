@@ -22,7 +22,7 @@ type
 
   { What to do when shader uniform variable is set
     but doesn't exist in the shader.
-    See @link(TEffectPartNode.UniformMissing). }
+    See @link(TGLSLProgram.UniformMissing). }
   TUniformMissing = (
     { Report that uniform variable not found to WritelnWarning. }
     umWarning,

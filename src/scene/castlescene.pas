@@ -1331,7 +1331,7 @@ procedure TCastleScene.PrepareResources(
     { calculate OwnParams, GoodParams }
     if Params = nil then
     begin
-      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
       OwnParams := TPrepareParams.Create;
       GoodParams := OwnParams;
     end else

@@ -848,10 +848,7 @@ type
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
       or player collision volume (in 1st person view)
-      to allow player to move, not colliding with its own body.
-
-      In case of using @link(TLevel), this is automatically
-      set when you set @link(TLevel.Player). }
+      to allow player to move, not colliding with its own body. }
     property AvoidNavigationCollisions: TCastleTransform
       read FAvoidNavigationCollisions
       write SetAvoidNavigationCollisions;

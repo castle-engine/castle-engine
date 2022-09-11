@@ -27,9 +27,8 @@ type
   TProjectionTypeCore = (ptOrthographic, ptPerspective, ptFrustum);
   TProjectionType = ptOrthographic .. ptPerspective;
 
-  { Projection determines how does the 3D world map onto 2D.
-    To change the currently displayed projection,
-    you usually want to override the @link(TCastleCamera.InternalProjection). }
+  { Projection determines how does the 3D world map onto 2D screen.
+    To change the currently used projection, change the TCastleCamera parameters. }
   TProjection = record
     ProjectionType: TProjectionTypeCore;
 

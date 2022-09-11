@@ -229,9 +229,7 @@ type
       Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy.
 
       This scene should be part of @link(TCastleViewport.Items)
-      to make this navigation work, in particular when you call @link(Init).
-      Only in a special case of using @link(TPlayer.ThirdPersonNavigation)
-      with @link(TLevel), the contents of this property will be automatically added to the viewport. }
+      to make this navigation work, in particular when you call @link(Init). }
     property Avatar: TCastleScene read FAvatar write SetAvatar;
 
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
@@ -243,9 +241,7 @@ type
       (it is equivalent to just leaving @link(AvatarHierarchy) as @nil).
 
       This object should be part of @link(TCastleViewport.Items)
-      to make this navigation work, in particular when you call @link(Init).
-      Only in a special case of using @link(TPlayer.ThirdPersonNavigation)
-      with @link(TLevel), the contents of this property will be automatically added to the viewport. }
+      to make this navigation work, in particular when you call @link(Init). }
     property AvatarHierarchy: TCastleTransform read FAvatarHierarchy write SetAvatarHierarchy;
 
     { When @link(AimAvatar), this is avatar's rotation speed (in radians per second).
