@@ -15,6 +15,7 @@ New-Item -Path tools/build-tool/castle-engine-output/ -Name build-tool-compilati
 
 fpc `
   -dRELEASE `
+  -dCASTLE_STRICT_CLI `
   @castle-fpc.cfg `
   -FEtools/build-tool/ `
   -FUtools/build-tool/castle-engine-output/build-tool-compilation `

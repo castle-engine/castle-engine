@@ -166,6 +166,10 @@ unit X3DNodes;
   {$define CASTLE_SCRIPT}
 {$endif}
 
+{$ifdef CASTLE_STRICT_CLI}
+  {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
+{$endif}
+
 interface
 
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
