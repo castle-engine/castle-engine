@@ -17,3 +17,15 @@ You can define custom components, specific to your project, that are available i
     In this example, we placed `TImageGrid` in our main design, `data/gamestatemain.castle-user-interface`.
 
 See https://castle-engine.io/manual_editor.php#section_custom_components for more information.
+
+Using [Castle Game Engine](https://castle-engine.io/).
+
+## Building
+
+Compile by:
+
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+
+- Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
+
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `custom_component_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
