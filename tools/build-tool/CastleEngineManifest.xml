@@ -11,5 +11,8 @@
       <path value="../common-code/" />
       <path value="embedded_images/" />
     </search_paths>
+    <defines>
+      <define>CASTLE_STRICT_CLI</define>
+    </defines>
   </compiler_options>
 </project>
