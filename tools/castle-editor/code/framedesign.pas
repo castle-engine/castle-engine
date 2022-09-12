@@ -292,7 +292,8 @@ type
       call InternalSelectionEnd }
     procedure CheckBehaviorsStillSelected;
 
-    procedure DoInternalSelectionStart(const Behavior: TCastleBehavior);
+    procedure DoInternalSelectionStart(const Behavior: TCastleBehavior;
+      const TransformsToSynchronize: TCastleTransformList);
     procedure DoInternalSelectionEnd(const Behavior: TCastleBehavior);
     procedure DoAllInternalSelectionEnd;
 
@@ -3611,9 +3612,10 @@ begin
   end;
 end;
 
-procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior);
+procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior;
+  const TransformsToSynchronize: TCastleTransformList);
 begin
-  Behavior.InternalSelectionStart;
+  Behavior.InternalSelectionStart(TransformsToSynchronize);
   FSelectionStartBehaviorList.Add(Behavior);
 end;
 
@@ -3739,6 +3741,7 @@ var
   V: TCastleViewport;
   T: TCastleTransform;
   ParentNode: TTreeNode;
+  TransformList: TCastleTransformList;
 begin
   OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
@@ -3793,11 +3796,21 @@ begin
     this should be done on end of this function }
   if SelectedComponent is TCastleBehavior then
   begin
-    TCastleBehavior(SelectedComponent).InternalSelectionStart;
-    FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
+    try
+      TransformList := TCastleTransformList.Create(false);
 
-    if TreeNodeMap.TryGetValue(TCastleBehavior(SelectedComponent).Parent, ParentNode) then
-      SynchronizeTreeNodeChildTransforms(ParentNode);
+      TCastleBehavior(SelectedComponent).InternalSelectionStart(TransformList);
+      FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
+
+      for I := 0 to TransformList.Count - 1 do
+      begin
+        if TreeNodeMap.TryGetValue(TransformList[I], ParentNode) then
+          SynchronizeTreeNodeChildTransforms(ParentNode);
+      end;
+
+    finally
+      FreeAndNil(TransformList);
+    end;
   end;
 end;
 

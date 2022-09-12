@@ -1095,7 +1095,7 @@
 
       procedure WorldBeforeDetach; override;
 
-      procedure InternalSelectionStart; override;
+      procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
       procedure InternalSelectionEnd; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -1144,7 +1144,8 @@
 
       procedure WorldBeforeDetach; override;
 
-      procedure InternalSelectionStart; override;
+      procedure InternalSelectionStart(
+        TransformsToSynchronize: TCastleTransformList); override;
       procedure InternalSelectionEnd; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -4072,15 +4073,18 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TJointHinge.InternalSelectionStart;
+procedure TJointHinge.InternalSelectionStart(TransformsToSynchronize: TCastleTransformList);
 begin
-  inherited InternalSelectionStart;
+  inherited InternalSelectionStart(TransformsToSynchronize);
+
+  TransformsToSynchronize.Clear;
 
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(FAnchorTransform);
     FAnchorTransform.Value := Anchor;
   end;
 end;
@@ -4203,15 +4207,18 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TJointRope.InternalSelectionStart;
+procedure TJointRope.InternalSelectionStart(
+  TransformsToSynchronize: TCastleTransformList);
 begin
-  inherited InternalSelectionStart;
+  inherited InternalSelectionStart(TransformsToSynchronize);
+  TransformsToSynchronize.Clear;
 
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(Parent);
     FAnchorTransform.Translation := Anchor;
   end;
 
@@ -4220,6 +4227,7 @@ begin
     FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(nil, Self);
     FConnectedAnchorTransform.Name := 'ConnectedAnchorHandle';
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
+    TransformsToSynchronize.Add(FConnectedRigidBody.Parent);
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
   end;
 end;
