@@ -297,16 +297,6 @@ type
     bs3D
   );
 
-  TInternalRenderOptionsLayer = (
-    { Used in scenes that never uses global RenderOptions e.g. gizmos,  }
-     rolNone = -1,
-     { Used in scenes that uses default global RenderOptions when availble
-       this value allows the editor to change the rendering (Normal, WireframeOnly) }
-     rolDefaultLayer = 0,
-     { Used in scenes that are currently being modified by the editor tool }
-     rolAnchorsLayer = 1
-  );
-
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
@@ -346,9 +336,9 @@ var
 {$undef read_interface}
 
 var
-  { Render options used by editor in various situations, e.g. displaying anchor
-  visualizations in joints, change rendering to wireframe }
-  InternalGlobalRenderOptionsArray: array [0..1] of TCastleRenderOptions;
+  { Render options used by editor in various situations, e.g.
+    change rendering to wireframe }
+  InternalGlobalRenderOptions: TCastleRenderOptions;
 
 implementation
 
@@ -357,18 +347,10 @@ uses SysUtils;
 {$define read_implementation}
 {$I castlerenderoptions_renderoptions.inc}
 
-var
-  I: Integer;
-
 initialization
-  for I := 0 to 1 do
-    InternalGlobalRenderOptionsArray[I] := nil;
+  InternalGlobalRenderOptions := nil;
 
 finalization
-  for I := 0 to 1 do
-  begin
-    if InternalGlobalRenderOptionsArray[I] <> nil then
-      FreeAndNil(InternalGlobalRenderOptionsArray[I]);
-  end;
+  FreeAndNil(InternalGlobalRenderOptions);
 
 end.

@@ -119,4 +119,8 @@ initialization
   RegisterSerializableComponent(TJointGrab, 'Joint Grab');
   RegisterSerializableComponent(TJointPulley, 'Joint Pulley');
   RegisterSerializableComponent(TJointWorldPlaneDistance, 'Joint World Plane Distance');
+
+finalization
+  FreeAndNil(TTemporaryTransform.RenderOptionsForParentScene);
+
 end.

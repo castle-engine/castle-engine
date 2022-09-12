@@ -592,6 +592,7 @@ type
     FogVolumetricVisibilityStart: Single;
 
     FRenderOptions: TCastleRenderOptions;
+    FInternalRenderOptions: TCastleRenderOptions;
 
     FCache: TGLRendererContextCache;
 
@@ -664,6 +665,7 @@ type
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
+
   public
     type
       TRenderMode = (
@@ -677,8 +679,8 @@ type
       );
     var
       RenderMode: TRenderMode;
-      { Defines which Internal Global Render Options the scene should use }
-      InternalGlobalRenderOptionsLayer: TInternalRenderOptionsLayer;
+      { Should we use InternalGlobalRenderOptions when it is available. }
+      UseInternalGlobalRenderOptions: Boolean;
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
@@ -692,6 +694,9 @@ type
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
     property RenderOptions: TCastleRenderOptions read FRenderOptions;
+
+    property InternalRenderOptions: TCastleRenderOptions read FInternalRenderOptions
+      write FInternalRenderOptions;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -1689,7 +1694,7 @@ begin
   inherited Create;
 
   FRenderOptions := RenderOptionsClass.Create(nil);
-  InternalGlobalRenderOptionsLayer := rolDefaultLayer;
+  UseInternalGlobalRenderOptions := true;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1718,11 +1723,12 @@ end;
 
 function TGLRenderer.EffectiveRenderOptions: TCastleRenderOptions;
 begin
-  if (InternalGlobalRenderOptionsLayer <> rolNone) and
-    (InternalGlobalRenderOptionsArray[Integer(InternalGlobalRenderOptionsLayer)] <> nil) then
-  begin
-    Result := InternalGlobalRenderOptionsArray[Integer(InternalGlobalRenderOptionsLayer)]
-  end else
+  if FInternalRenderOptions <> nil then
+    Exit(FInternalRenderOptions);
+
+  if (UseInternalGlobalRenderOptions) and (InternalGlobalRenderOptions <> nil) then
+    Result := InternalGlobalRenderOptions
+  else
     Result := FRenderOptions;
 end;
 

@@ -1015,12 +1015,13 @@
   TTemporaryTransform = class(TCastleTransform)
     strict private
       FColor: TCastleColor;
-      FWireframeColor: TCastleColorRGB;
       FJoint: TAbstractJoint;
 
       procedure SetColor(const Value: TCastleColor);
       procedure ApplyWireframeEffectToParent;
       procedure RemoveWireframeEffectFromParent;
+    private
+      class var RenderOptionsForParentScene: TCastleRenderOptions;
     protected
       FSphere: TCastleTransform;
 
@@ -1040,7 +1041,6 @@
       procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
       property Value: TVector3 read GetObservedValue write SetValue;
-      property WireframeColor: TCastleColorRGB read FWireframeColor write FWireframeColor;
       property Joint: TAbstractJoint read FJoint;
       property Color: TCastleColor read FColor write SetColor;
   end;
@@ -3785,26 +3785,27 @@ end;
 
 procedure TTemporaryTransform.ApplyWireframeEffectToParent;
 begin
-  if InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)] = nil then
-    InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)] := TCastleRenderOptions.Create(nil);
-
-  InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)].WireframeEffect := weWireframeOnly;
-  InternalGlobalRenderOptionsArray[Integer(rolAnchorsLayer)].WireframeColor := FWireframeColor;
+  if RenderOptionsForParentScene = nil then
+  begin
+    RenderOptionsForParentScene := TCastleRenderOptions.Create(nil);
+    RenderOptionsForParentScene.WireframeEffect := weWireframeOnly;
+    RenderOptionsForParentScene.WireframeColor := Vector3(1.0, 0, 1.0);
+  end;
 
   if Parent is TCastleScene then
-    TCastleScene(Parent).InternalGlobalRenderOptionsLayer := rolAnchorsLayer
+    TCastleScene(Parent).InternalRenderOptions := RenderOptionsForParentScene
   else
   if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalGlobalRenderOptionsLayer := rolAnchorsLayer;
+    TCastleAbstractPrimitive(Parent).InternalRenderOptions := RenderOptionsForParentScene;
 end;
 
 procedure TTemporaryTransform.RemoveWireframeEffectFromParent;
 begin
   if Parent is TCastleScene then
-    TCastleScene(Parent).InternalGlobalRenderOptionsLayer := rolDefaultLayer
+    TCastleScene(Parent).InternalRenderOptions := nil
   else
   if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalGlobalRenderOptionsLayer := rolDefaultLayer;
+    TCastleAbstractPrimitive(Parent).InternalRenderOptions := nil;
 end;
 
 function TTemporaryTransform.EstimateSphereRadius: Single;
@@ -3846,13 +3847,12 @@ begin
   inherited Create(AOwner);
 
   FColor := Red;
-  FWireframeColor := Vector3(0.75, 0.75, 0.75);
   FJoint := AJoint;
   SetTransient;
 
   FSphere := TCastleSphere.Create(nil);
   FSphere.SetTransient;
-  TCastleSphere(FSphere).InternalGlobalRenderOptionsLayer := rolNone; // never change rendering to global
+  TCastleSphere(FSphere).UseInternalGlobalRenderOptions := false; // never change rendering to global
   TCastleSphere(FSphere).Color := FColor;
   TCastleSphere(FSphere).Material := pmUnlit;
   TCastleSphere(FSphere).Radius := EstimateSphereRadius;

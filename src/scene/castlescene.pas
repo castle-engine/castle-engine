@@ -304,8 +304,8 @@ type
     function GetRenderOptions: TCastleRenderOptions;
     procedure SetCastGlobalLights(const Value: Boolean);
 
-    procedure SetInternalGlobalRenderOptionsLayer(const AValue: TInternalRenderOptionsLayer);
-    function GetInternalGlobalRenderOptionsLayer: TInternalRenderOptionsLayer;
+    procedure SetInternalRenderOptions(const AValue: TCastleRenderOptions);
+    function GetInternalRenderOptions: TCastleRenderOptions;
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -411,7 +411,9 @@ type
       this will automatically call FreeAndNil(FBackgroundRenderer) before setting
       FBackgroundRendererValid to false. }
     FBackgroundRendererValid: boolean;
+    function GetUseInternalGlobalRenderOptions: Boolean;
     procedure PrepareBackground;
+    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
   public
     { Internal override test visibility. }
     InternalVisibilityTest: TTestShapeVisibility;
@@ -499,10 +501,14 @@ type
       was visible last frame.  }
     function WasVisible: Boolean;
 
-     { Defines which Internal Global Render Options the scene should use. }
-     property InternalGlobalRenderOptionsLayer: TInternalRenderOptionsLayer
-      read GetInternalGlobalRenderOptionsLayer
-      write SetInternalGlobalRenderOptionsLayer default rolDefaultLayer;
+     { Internal Render Options the scene should use (used by editor). }
+    property InternalRenderOptions: TCastleRenderOptions
+      read GetInternalRenderOptions write SetInternalRenderOptions;
+
+    { Should we use InternalGlobalRenderOptions when it is available. }
+    property UseInternalGlobalRenderOptions: Boolean
+      read GetUseInternalGlobalRenderOptions
+      write SetUseInternalGlobalRenderOptions;
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -2171,6 +2177,16 @@ begin
   FBackgroundRendererValid := true;
 end;
 
+function TCastleScene.GetUseInternalGlobalRenderOptions: Boolean;
+begin
+  Result := Renderer.UseInternalGlobalRenderOptions;
+end;
+
+procedure TCastleScene.SetUseInternalGlobalRenderOptions(const AValue: Boolean);
+begin
+  Renderer.UseInternalGlobalRenderOptions := AValue;
+end;
+
 function TCastleScene.InternalBackgroundRenderer: TBackgroundRenderer;
 var
   BackgroundNode: TAbstractBackgroundNode;
@@ -2358,25 +2374,24 @@ begin
   end;
 end;
 
-procedure TCastleScene.SetInternalGlobalRenderOptionsLayer(
-    const AValue: TInternalRenderOptionsLayer);
+procedure TCastleScene.SetInternalRenderOptions(const AValue: TCastleRenderOptions);
 begin
   Assert(Renderer <> nil,
-    'Can''t use InternalGlobalRenderOptionsLayer before Renderer creation');
+    'Can''t use SetInternalRenderOptions before Renderer creation');
 
   { This value is stored in Renderer so don't use it in constructor before
     Renderer creation. }
-  Renderer.InternalGlobalRenderOptionsLayer := AValue;
+  Renderer.InternalRenderOptions := AValue;
 end;
 
-function TCastleScene.GetInternalGlobalRenderOptionsLayer: TInternalRenderOptionsLayer;
+function TCastleScene.GetInternalRenderOptions: TCastleRenderOptions;
 begin
   Assert(Renderer <> nil,
-  'Can''t use InternalGlobalRenderOptionsLayer before Renderer creation');
+  'Can''t use GetInternalRenderOptions before Renderer creation');
 
   { This value is stored in Renderer so don't use it in constructor before
     Renderer creation. }
-  Result := Renderer.InternalGlobalRenderOptionsLayer;
+  Result := Renderer.InternalRenderOptions;
 end;
 
 function TCastleScene.PropertySections(
