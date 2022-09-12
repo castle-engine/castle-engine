@@ -91,7 +91,7 @@
     procedure BeforeDestruction;override;
 
     { Internal procedure called when behavior is selected in castle editor. }
-    procedure InternalSelectionStart; virtual;
+    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); virtual;
     { Internal procedure called when behavior is deselected in castle editor. }
     procedure InternalSelectionEnd; virtual;
 
@@ -199,7 +199,7 @@ begin
   inherited BeforeDestruction;
 end;
 
-procedure TCastleBehavior.InternalSelectionStart;
+procedure TCastleBehavior.InternalSelectionStart(TransformsToSynchronize: TCastleTransformList);
 begin
   // nothing by default
   WritelnLog('Behavior ' + Name +  ' selected in editor');
