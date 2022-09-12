@@ -45,12 +45,11 @@ pipeline {
         sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
       }
     }
-    // Temp commented out at release to rebuild package quicker.
-    // stage('Build Examples') {
-    //   steps {
-    //     sh 'make clean examples'
-    //   }
-    // }
+    stage('Build Examples') {
+      steps {
+        sh 'make clean examples'
+      }
+    }
     stage('Build And Run Auto-Tests') {
       steps {
         sh 'make tests'
