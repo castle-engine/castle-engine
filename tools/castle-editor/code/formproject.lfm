@@ -434,9 +434,11 @@ object ProjectForm: TProjectForm
       end
       object MenuItem22: TMenuItem
         Action = ActionViewportRenderNormal
+        RadioItem = True
       end
       object MenuItem23: TMenuItem
         Action = ActionViewportRenderWireframeOnly
+        RadioItem = True
       end
     end
     object MenuItemCode: TMenuItem
