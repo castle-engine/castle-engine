@@ -3875,6 +3875,7 @@ end;
 
 destructor TTemporaryTransform.Destroy;
 begin
+  RemoveWireframeEffectFromParent;
   FreeAndNil(FSphere);
   inherited Destroy;
 end;
