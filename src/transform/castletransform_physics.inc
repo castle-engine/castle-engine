@@ -936,6 +936,9 @@
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
 
+    { Removes anchors and adds transforms to synchronize to TransformsToSynchronize list. }
+    procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); virtual;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Breakable: Boolean read FBreakable write SetBreakable;
@@ -1098,6 +1101,8 @@
       procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
       procedure InternalSelectionEnd; override;
 
+      procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
+
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
       // TODO: This is local point should be world?
@@ -1149,6 +1154,8 @@
       procedure InternalSelectionEnd; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
+
+      procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
       // TODO: This is local point should be world?
       property Anchor: TVector3 read FAnchor write SetAnchor;
@@ -3761,6 +3768,12 @@ begin
   inherited ParentBeforeDetach;
 end;
 
+procedure TAbstractJoint.RemoveAuxiliaryEditorUi(const TransformsToSynchronize:
+  TCastleTransformList);
+begin
+  // default implementation do nothing
+end;
+
 function TAbstractJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -4094,6 +4107,17 @@ begin
   inherited InternalSelectionEnd;
 end;
 
+procedure TJointHinge.RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+
+  if FAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FAnchorTransform.Parent);
+    FreeAndNil(FAnchorTransform);
+  end;
+end;
+
 function TJointHinge.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -4246,6 +4270,24 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TJointRope.RemoveAuxiliaryEditorUi(const TransformsToSynchronize:
+  TCastleTransformList);
+begin
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+
+  if FAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FAnchorTransform.Parent);
+    FreeAndNil(FAnchorTransform);
+  end;
+
+  if FConnectedAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FConnectedAnchorTransform.Parent);
+    FreeAndNil(FConnectedAnchorTransform);
+  end;
 end;
 
 {$define read_implementation_methods}
