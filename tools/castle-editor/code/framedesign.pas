@@ -3639,11 +3639,12 @@ procedure TDesignFrame.UpdateSelectedControl;
 
   procedure SynchronizeTreeNodeChildTransforms(Parent: TTreeNode);
   var
-    C: TComponent;
+    C, ChildComponent: TComponent;
     ParentTransform, ChildTransform: TCastleTransform;
     ChildNode: TTreeNode;
-    I: Integer;
+    I, J: Integer;
     Title: String;
+    Found: Boolean;
   begin
     C := TComponent(Parent.Data);
     if C = nil then
@@ -3653,6 +3654,36 @@ procedure TDesignFrame.UpdateSelectedControl;
     begin
       ParentTransform := TCastleTransform(C);
 
+      // remove elements
+      for I := Parent.Count -1 downto 0 do
+      begin
+        ChildNode := Parent.Items[I];
+        ChildComponent := TComponent(ChildNode.Data);
+
+        if ChildComponent = nil then
+          continue;
+
+        if ChildComponent is TCastleTransform then
+        begin
+          for J := ParentTransform.Count - 1 downto 0 do
+          begin
+            if ParentTransform.Items[J] = ChildComponent then
+            begin
+              Found := true;
+              break;
+            end;
+          end;
+
+          if not Found then
+          begin
+            // remove tree node if not found
+            TreeNodeMap.Remove(ChildComponent);
+            ChildNode.Delete;
+          end;
+        end;
+      end;
+
+      // add elements
       for I := 0 to ParentTransform.Count -1 do
       begin
         ChildTransform := ParentTransform.Items[I];
