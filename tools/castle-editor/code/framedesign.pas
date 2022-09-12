@@ -3883,6 +3883,9 @@ begin
     try
       TransformList := TCastleTransformList.Create(false);
 
+      if TCastleBehavior(SelectedComponent) is TAbstractJoint then
+        RemoveJointsAnchors;
+
       TCastleBehavior(SelectedComponent).InternalSelectionStart(TransformList);
       FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
 
