@@ -366,6 +366,9 @@ pipeline {
         }
       }
       steps {
+        unarchive
+        sh 'ls castle-engine*.zip'
+
         // TODO: Here we can upload GitHub Relase from Jenkins job on CGE master
         // (currently this is done by independent Jenkins job, but I plan to consolidate it all into one big job).
         sh 'echo "GIT branch is ${GIT_BRANCH}"'
