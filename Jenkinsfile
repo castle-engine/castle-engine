@@ -365,25 +365,18 @@ pipeline {
           image 'kambi/castle-engine-cloud-builds-tools:cge-none'
         }
       }
+      environment {
+        // GitHub release (tag in GIT) to
+        // - update the GIT hash
+        // - upload the build results
+        UPLOAD_GITHUB_TAG = 'snapshot'
+      }
       steps {
         unarchive
-        sh 'ls castle-engine*.zip'
-
-        // TODO: Here we can upload GitHub Relase from Jenkins job on CGE master
-        // (currently this is done by independent Jenkins job, but I plan to consolidate it all into one big job).
-        sh 'echo "GIT branch is ${GIT_BRANCH}"'
-        sh 'echo "GIT URL is ${GIT_URL}"'
-        // TODO: tools/internal/upload_github_release could double-check branch and URL (even though we have "when").
-
-        sh 'echo "GIT commit is ${GIT_COMMIT}"'
-
         withCredentials([
             string(credentialsId: 'cge-github-upload-token', variable: 'GITHUB_TOKEN')
           ]) {
-          sh 'git --no-pager log --pretty=medium --max-count 1 "${GIT_COMMIT}"'
-          sh 'gh auth status'
-          sh 'gh release list --repo castle-engine/castle-engine'
-          sh 'gh auth setup-git'
+          sh 'tools/internal/upload_github_release'
         }
       }
     }

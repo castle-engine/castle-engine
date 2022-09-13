@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ----------------------------------------------------------------------------
+# Upload to GitHub Castle Game Engine release.
+#
+# This is expected to be run from Jenkins job.
+#
+# The current dir should be top-level of CGE repo,
+# it should also contain the artifacts from this run,
+# and some environment variables are expected (see Jenkinsfile).
+#
+# Depends on GH CLI, which should be available in CGE Docker image.
+# ----------------------------------------------------------------------------
+
+echo 'CGE zip files to upload'
+ls castle-engine*.zip # it will fail if no such file exists, and that's good
+
+# TODO: Here we can upload GitHub Relase from Jenkins job on CGE master
+# (currently this is done by independent Jenkins job, but I plan to consolidate it all into one big job).
+
+echo "GIT branch is ${GIT_BRANCH}"
+echo "GIT URL is ${GIT_URL}"
+# tools/internal/upload_github_release could double-check branch and URL (even though we have "when" in Jenkinsfile).
+
+echo "GIT commit is ${GIT_COMMIT}"
+
+echo "GitHub release (tag) to upload is ${UPLOAD_GITHUB_TAG}"
+
+echo 'Last commit log is'
+git --no-pager log --pretty=medium --max-count 1 "${GIT_COMMIT}"
+
+gh auth status
+gh release list --repo castle-engine/castle-engine
+gh auth setup-git
