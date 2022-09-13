@@ -3717,7 +3717,7 @@ begin
 
       if not Found then
       begin
-        // remove tree node if not found
+        { remove tree node if not found }
         TreeNodeMap.Remove(ChildComponent);
 
         ChildNode.Data := nil; { Needed because selection is changed when we
@@ -3728,7 +3728,7 @@ begin
       end;
     end;
 
-    // add elements
+    { add elements }
     for I := 0 to ParentTransform.Count -1 do
     begin
       ChildTransform := ParentTransform.Items[I];
