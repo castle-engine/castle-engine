@@ -4107,8 +4107,6 @@ procedure TJointHinge.InternalSelectionStart(TransformsToSynchronize: TCastleTra
 begin
   inherited InternalSelectionStart(TransformsToSynchronize);
 
-  TransformsToSynchronize.Clear;
-
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
@@ -4247,7 +4245,6 @@ procedure TJointRope.InternalSelectionStart(
   TransformsToSynchronize: TCastleTransformList);
 begin
   inherited InternalSelectionStart(TransformsToSynchronize);
-  TransformsToSynchronize.Clear;
 
   if FAnchorTransform = nil then
   begin
