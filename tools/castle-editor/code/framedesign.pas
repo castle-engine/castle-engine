@@ -1338,7 +1338,9 @@ end;
 
 procedure TDesignFrame.ClearDesign;
 begin
+  RemoveJointsAnchors;
   ControlsTree.Items.Clear;
+  FSelectionStartBehaviorList.Clear;
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
   FDesignRoot := nil;
@@ -3642,6 +3644,7 @@ begin
   begin
     DoInternalSelectionEnd(FSelectionStartBehaviorList[I]);
   end;
+  FSelectionStartBehaviorList.Clear;
 end;
 
 procedure TDesignFrame.RemoveJointsAnchors;
