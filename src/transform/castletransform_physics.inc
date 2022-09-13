@@ -1063,6 +1063,16 @@
       constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
 
+  TTemporaryWorldPoint = class(TTemporaryTransform)
+    protected
+      procedure SetObservedValue(const AValue: TVector3); override;
+      function GetObservedValue: TVector3; override;
+
+    public
+      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  end;
+
+
 
   TJointHinge = class(TAbstractTwoBodiesJoint)
     private
@@ -1186,9 +1196,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    { Called by editor when behavior is selected, adds anchor and connected anchor handle transform. }
+    { Called by editor when behavior is selected, adds anchor handle transform. }
     procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
-    { Called by editor to remove anchor and connected anchor handle transform. }
+    { Called by editor to remove anchor handle transform. }
     procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -1206,6 +1216,8 @@
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
 
+    FAnchorTransform: TTemporaryAnchor;
+
     procedure SetAnchor(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1214,6 +1226,13 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure WorldBeforeDetach; override;
+
+    { Called by editor when behavior is selected, adds anchor handle transform. }
+    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
+    { Called by editor to remove anchor handle transform. }
+    procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1233,6 +1252,9 @@
     FFrequencyHz: Single;
     FDampingRatio: Single;
 
+    FAnchorTransform: TTemporaryAnchor;
+    FConnectedAnchorTransform: TTemporaryConnectedAnchor;
+
     procedure SetAnchor(const AValue: TVector3);
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
@@ -1242,9 +1264,17 @@
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure WorldBeforeDetach; override;
+
+    { Called by editor when behavior is selected, adds anchor and connected anchor handle transform. }
+    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
+    { Called by editor to remove anchor and connected anchor handle transform. }
+    procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1253,6 +1283,7 @@
     // TODO: This is local point should be world?
     property ConnectedAnchor: TVector3 read FConnectedAnchor
       write SetConnectedAnchor;
+
   published
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
@@ -1270,6 +1301,8 @@
     FMaximalForce: Single;
     FWorldPoint: TVector3;
 
+    FWorldPointTransform: TTemporaryWorldPoint;
+
     procedure SetWorldPoint(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
@@ -1283,13 +1316,20 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure WorldBeforeDetach; override;
+
+    { Called by editor when behavior is selected, adds anchor handle transform. }
+    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
+    { Called by editor to remove anchor handle transform. }
+    procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is world point should be local? Should be synchronized per update?
     property WorldPoint: TVector3 read FWorldPoint write SetWorldPoint;
   published
-    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
-    property DampingRatio: Single read FDampingRatio write SetDampingRatio;
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 5{$endif};
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
     property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
 
     {$define read_interface_class}
@@ -3779,7 +3819,7 @@ end;
 procedure TAbstractJoint.RemoveAuxiliaryEditorUi(const TransformsToSynchronize:
   TCastleTransformList);
 begin
-  // default implementation do nothing
+  // default implementation does nothing
 end;
 
 function TAbstractJoint.PropertySections(const PropertyName: String
@@ -3948,6 +3988,18 @@ begin
     if not TVector3.PerfectlyEquals(TJointFixed(Joint).Anchor, AValue) then
       TJointFixed(Joint).Anchor := AValue;
   end;
+
+  if Joint is TJointBall then
+  begin
+    if not TVector3.PerfectlyEquals(TJointBall(Joint).Anchor, AValue) then
+      TJointBall(Joint).Anchor := AValue;
+  end;
+
+  if Joint is TJointDistance then
+  begin
+    if not TVector3.PerfectlyEquals(TJointDistance(Joint).Anchor, AValue) then
+      TJointDistance(Joint).Anchor := AValue;
+  end;
 end;
 
 function TTemporaryAnchor.GetObservedValue: TVector3;
@@ -3962,6 +4014,12 @@ begin
 
   if Joint is TJointFixed then
     Exit(TJointFixed(Joint).Anchor);
+
+  if Joint is TJointBall then
+    Exit(TJointBall(Joint).Anchor);
+
+  if Joint is TJointDistance then
+    Exit(TJointDistance(Joint).Anchor);
 end;
 
 { TTemporaryConnectedAnchor -------------------------------------------------- }
@@ -3972,6 +4030,12 @@ begin
   begin
     if not TVector3.PerfectlyEquals(TJointRope(Joint).ConnectedAnchor, AValue) then
       TJointRope(Joint).ConnectedAnchor := AValue;
+  end;
+
+  if Joint is TJointDistance then
+  begin
+    if not TVector3.PerfectlyEquals(TJointDistance(Joint).ConnectedAnchor, AValue) then
+      TJointDistance(Joint).ConnectedAnchor := AValue;
   end;
 end;
 
@@ -3988,7 +4052,32 @@ begin
   Color := Green;
 end;
 
-{ TJointHinge --------------------------------------------------------------- }
+{ TTemporaryWorldPoint ------------------------------------------------------- }
+
+procedure TTemporaryWorldPoint.SetObservedValue(const AValue: TVector3);
+begin
+  if Joint is TJointGrab then
+  begin
+    if not TVector3.PerfectlyEquals(TJointGrab(Joint).WorldPoint, AValue) then
+      TJointGrab(Joint).WorldPoint := AValue;
+  end;
+end;
+
+function TTemporaryWorldPoint.GetObservedValue: TVector3;
+begin
+  if Joint is TJointGrab then
+    Exit(TJointGrab(Joint).WorldPoint);
+end;
+
+constructor TTemporaryWorldPoint.Create(AOwner: TComponent;
+  const AJoint: TAbstractJoint);
+begin
+  inherited Create(AOwner, AJoint);
+  Color := Blue;
+end;
+
+
+{ TJointHinge ---------------------------------------------------------------- }
 
 procedure TJointHinge.SetAnchor(const AValue: TVector3);
 begin
@@ -4141,13 +4230,13 @@ end;
 
 procedure TJointHinge.RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList);
 begin
-  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-
   if FAnchorTransform <> nil then
   begin
     TransformsToSynchronize.Add(FAnchorTransform.Parent);
     FreeAndNil(FAnchorTransform);
   end;
+
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
 end;
 
 function TJointHinge.PropertySections(const PropertyName: String
@@ -4301,8 +4390,6 @@ end;
 procedure TJointRope.RemoveAuxiliaryEditorUi(const TransformsToSynchronize:
   TCastleTransformList);
 begin
-  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-
   if FAnchorTransform <> nil then
   begin
     TransformsToSynchronize.Add(FAnchorTransform.Parent);
@@ -4314,6 +4401,8 @@ begin
     TransformsToSynchronize.Add(FConnectedAnchorTransform.Parent);
     FreeAndNil(FConnectedAnchorTransform);
   end;
+
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
 end;
 
 {$define read_implementation_methods}
@@ -4328,6 +4417,8 @@ begin
     Exit;
 
   FAnchor := AValue;
+  if FAnchorTransform <> nil then
+    FAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4395,13 +4486,13 @@ end;
 procedure TJointFixed.RemoveAuxiliaryEditorUi(
   const TransformsToSynchronize: TCastleTransformList);
 begin
-  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-
   if FAnchorTransform <> nil then
   begin
     TransformsToSynchronize.Add(FAnchorTransform.Parent);
     FreeAndNil(FAnchorTransform);
   end;
+
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
 end;
 
 function TJointFixed.PropertySections(const PropertyName: String
@@ -4425,6 +4516,8 @@ begin
     Exit;
 
   FAnchor := AValue;
+  if FAnchorTransform <> nil then
+    FAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4468,6 +4561,39 @@ begin
   inherited Destroy;
 end;
 
+procedure TJointBall.WorldBeforeDetach;
+begin
+  FreeAndNil(FAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
+procedure TJointBall.InternalSelectionStart(
+  TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited InternalSelectionStart(TransformsToSynchronize);
+
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform.Name := 'AnchorHandle';
+    Parent.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(Parent);
+    FAnchorTransform.Value := Anchor;
+  end;
+end;
+
+procedure TJointBall.RemoveAuxiliaryEditorUi(
+  const TransformsToSynchronize: TCastleTransformList);
+begin
+  if FAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FAnchorTransform.Parent);
+    FreeAndNil(FAnchorTransform);
+  end;
+
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+end;
+
 function TJointBall.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -4489,6 +4615,8 @@ begin
     Exit;
 
   FAnchor := AValue;
+  if FAnchorTransform <> nil then
+    FAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4498,6 +4626,8 @@ begin
     Exit;
 
   FConnectedAnchor := AValue;
+  if FConnectedAnchorTransform <> nil then
+    FConnectedAnchorTransform.Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4564,6 +4694,55 @@ begin
   inherited Destroy;
 end;
 
+procedure TJointDistance.WorldBeforeDetach;
+begin
+  FreeAndNil(FAnchorTransform);
+  FreeAndNil(FConnectedAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
+procedure TJointDistance.InternalSelectionStart(
+  TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited InternalSelectionStart(TransformsToSynchronize);
+
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform.Name := 'AnchorHandle';
+    Parent.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(Parent);
+    FAnchorTransform.Translation := Anchor;
+  end;
+
+  if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
+  begin
+    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform.Name := 'ConnectedAnchorHandle';
+    FConnectedAnchorTransform.Translation := ConnectedAnchor;
+    TransformsToSynchronize.Add(FConnectedRigidBody.Parent);
+    FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
+  end;
+end;
+
+procedure TJointDistance.RemoveAuxiliaryEditorUi(
+  const TransformsToSynchronize: TCastleTransformList);
+begin
+  if FAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FAnchorTransform.Parent);
+    FreeAndNil(FAnchorTransform);
+  end;
+
+  if FConnectedAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FConnectedAnchorTransform.Parent);
+    FreeAndNil(FConnectedAnchorTransform);
+  end;
+
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+end;
+
 function TJointDistance.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -4586,6 +4765,10 @@ end;
 procedure TJointGrab.SetWorldPoint(const AValue: TVector3);
 begin
   FWorldPoint := AValue;
+
+  if FWorldPointTransform <> nil then
+    FWorldPointTransform.Value := FWorldPoint;
+
   if FKraftJointGrab <> nil then
     FKraftJointGrab.SetWorldPoint(VectorToKraft(FWorldPoint));
 end;
@@ -4647,6 +4830,8 @@ begin
   NeedWorldChangeNotification := true;
   FWorldPoint := CastleVectors.Vector3(0, 0, 0);
   FMaximalForce := MaxSingle;
+  FFrequencyHz := 5.0;
+  FDampingRatio := 0.7;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -4659,6 +4844,39 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
+end;
+
+procedure TJointGrab.WorldBeforeDetach;
+begin
+  FreeAndNil(FWorldPointTransform);
+  inherited WorldBeforeDetach;
+end;
+
+procedure TJointGrab.InternalSelectionStart(
+  TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited InternalSelectionStart(TransformsToSynchronize);
+
+  if FWorldPointTransform = nil then
+  begin
+    FWorldPointTransform := TTemporaryWorldPoint.Create(nil, Self);
+    FWorldPointTransform.Name := 'WorldPointHandle';
+    Parent.World.Add(FWorldPointTransform);
+    TransformsToSynchronize.Add(Parent.World);
+    FWorldPointTransform.Translation := WorldPoint;
+  end;
+end;
+
+procedure TJointGrab.RemoveAuxiliaryEditorUi(
+  const TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+
+  if FWorldPointTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FWorldPointTransform.Parent);
+    FreeAndNil(FWorldPointTransform);
+  end;
 end;
 
 function TJointGrab.PropertySections(const PropertyName: String
