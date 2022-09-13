@@ -1098,9 +1098,9 @@
 
       procedure WorldBeforeDetach; override;
 
+      { Called by editor when behavior is selected, adds anchor handle transform. }
       procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
-      procedure InternalSelectionEnd; override;
-
+      { Called by editor to remove anchor handle transform. }
       procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -1149,13 +1149,12 @@
 
       procedure WorldBeforeDetach; override;
 
-      procedure InternalSelectionStart(
-        TransformsToSynchronize: TCastleTransformList); override;
-      procedure InternalSelectionEnd; override;
+      { Called by editor when behavior is selected, adds anchor and connected anchor handle transform. }
+      procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
+      { Called by editor to remove anchor and connected anchor handle transform. }
+      procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
-
-      procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
       // TODO: This is local point should be world?
       property Anchor: TVector3 read FAnchor write SetAnchor;
@@ -4120,11 +4119,6 @@ begin
   end;
 end;
 
-procedure TJointHinge.InternalSelectionEnd;
-begin
-  inherited InternalSelectionEnd;
-end;
-
 procedure TJointHinge.RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList);
 begin
   inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
@@ -4272,11 +4266,6 @@ begin
     TransformsToSynchronize.Add(FConnectedRigidBody.Parent);
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
   end;
-end;
-
-procedure TJointRope.InternalSelectionEnd;
-begin
-  inherited InternalSelectionEnd;
 end;
 
 function TJointRope.PropertySections(const PropertyName: String
