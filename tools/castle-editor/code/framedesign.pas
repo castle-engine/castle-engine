@@ -3719,6 +3719,11 @@ begin
       begin
         // remove tree node if not found
         TreeNodeMap.Remove(ChildComponent);
+
+        ChildNode.Data := nil; { Needed because selection is changed when we
+                                 remove ChildNode and removed component with
+                                 dangling pointer is here. So trying access it
+                                 ends with crash }
         ChildNode.Delete;
       end;
     end;
