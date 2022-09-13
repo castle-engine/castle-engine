@@ -4115,7 +4115,7 @@ begin
     FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
-    TransformsToSynchronize.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(Parent);
     FAnchorTransform.Value := Anchor;
   end;
 end;
