@@ -1173,6 +1173,8 @@
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
 
+    FAnchorTransform: TTemporaryAnchor;
+
     procedure SetAnchor(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1181,6 +1183,13 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure WorldBeforeDetach; override;
+
+    { Called by editor when behavior is selected, adds anchor and connected anchor handle transform. }
+    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); override;
+    { Called by editor to remove anchor and connected anchor handle transform. }
+    procedure RemoveAuxiliaryEditorUi(const TransformsToSynchronize: TCastleTransformList); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3920,6 +3929,8 @@ end;
 
 procedure TTemporaryAnchor.SetObservedValue(const AValue: TVector3);
 begin
+  // TODO: move anchor to abstract anchor class or virtual function?
+
   if Joint is TJointHinge then
   begin
     if not TVector3.PerfectlyEquals(TJointHinge(Joint).Anchor, AValue) then
@@ -3931,15 +3942,26 @@ begin
     if not TVector3.PerfectlyEquals(TJointRope(Joint).Anchor, AValue) then
       TJointRope(Joint).Anchor := AValue;
   end;
+
+  if Joint is TJointFixed then
+  begin
+    if not TVector3.PerfectlyEquals(TJointFixed(Joint).Anchor, AValue) then
+      TJointFixed(Joint).Anchor := AValue;
+  end;
 end;
 
 function TTemporaryAnchor.GetObservedValue: TVector3;
 begin
+  // TODO: move anchor to abstract anchor class or virtual function?
+
   if Joint is TJointHinge then
     Exit(TJointHinge(Joint).Anchor);
 
   if Joint is TJointRope then
     Exit(TJointRope(Joint).Anchor);
+
+  if Joint is TJointFixed then
+    Exit(TJointFixed(Joint).Anchor);
 end;
 
 { TTemporaryConnectedAnchor -------------------------------------------------- }
@@ -4347,6 +4369,39 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
+end;
+
+procedure TJointFixed.WorldBeforeDetach;
+begin
+  FreeAndNil(FAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
+procedure TJointFixed.InternalSelectionStart(
+  TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited InternalSelectionStart(TransformsToSynchronize);
+
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform.Name := 'AnchorHandle';
+    Parent.Add(FAnchorTransform);
+    TransformsToSynchronize.Add(Parent);
+    FAnchorTransform.Value := Anchor;
+  end;
+end;
+
+procedure TJointFixed.RemoveAuxiliaryEditorUi(
+  const TransformsToSynchronize: TCastleTransformList);
+begin
+  inherited RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+
+  if FAnchorTransform <> nil then
+  begin
+    TransformsToSynchronize.Add(FAnchorTransform.Parent);
+    FreeAndNil(FAnchorTransform);
+  end;
 end;
 
 function TJointFixed.PropertySections(const PropertyName: String
