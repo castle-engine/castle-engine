@@ -356,6 +356,34 @@ pipeline {
         }
       }
     }
+    stage('Upload as GitHub Relase') {
+      when {
+        branch "master"
+      }
+      agent {
+        docker {
+          image 'kambi/castle-engine-cloud-builds-tools:cge-none'
+        }
+      }
+      steps {
+        // TODO: Here we can upload GitHub Relase from Jenkins job on CGE master
+        // (currently this is done by independent Jenkins job, but I plan to consolidate it all into one big job).
+        sh 'echo "GIT branch is ${GIT_BRANCH}"'
+        sh 'echo "GIT URL is ${GIT_URL}"'
+        // TODO: tools/internal/upload_github_release could double-check branch and URL (even though we have "when").
+
+        sh 'echo "GIT commit is ${GIT_COMMIT}"'
+
+        withCredentials([
+            string(credentialsId: 'cge-github-upload-token', variable: 'GITHUB_TOKEN')
+          ]) {
+          sh 'git --no-pager log --pretty=medium --max-count 1 "${GIT_COMMIT}"'
+          sh 'gh auth status'
+          sh 'gh release list --repo castle-engine/castle-engine'
+          sh 'gh auth setup-git'
+        }
+      }
+    }
   }
   post {
     regression {
