@@ -21,7 +21,7 @@ pipeline {
        for parallel syntax. */
     stage('Run parallel builds') {
       parallel {
-        stage('Linux (Docker)') {
+        stage('Docker (Linux)') {
           agent {
             docker {
               image 'kambi/castle-engine-cloud-builds-tools:cge-none'
@@ -35,7 +35,7 @@ pipeline {
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
           }
           stages {
-            stage('Cleanup') {
+            stage('(Docker) Cleanup') {
               steps {
                 sh "repository_cleanup . --remove-unversioned"
               }
@@ -43,28 +43,28 @@ pipeline {
 
             /* Commands with default FPC version
                (latest stable FPC, most of the time; see https://castle-engine.io/docker ). */
-            stage('Build Tools (Default FPC)') {
+            stage('(Docker) Build Tools (Default FPC)') {
               steps {
                 sh 'make clean tools'
               }
             }
-            stage('Build Examples (Default FPC)') {
+            stage('(Docker) Build Examples (Default FPC)') {
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'make clean examples'
               }
             }
-            stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
+            stage('(Docker) Build Examples Using Lazarus (Default FPC/Lazarus)') {
               steps {
                 sh 'make clean examples-laz'
               }
             }
-            stage('Build And Run Auto-Tests (Default FPC)') {
+            stage('(Docker) Build And Run Auto-Tests (Default FPC)') {
               steps {
                 sh 'make clean tests'
               }
             }
-            stage('Build Using FpMake (Default FPC)') {
+            stage('(Docker) Build Using FpMake (Default FPC)') {
               steps {
                 sh 'make clean test-fpmake'
               }
@@ -74,28 +74,28 @@ pipeline {
                We could use a script to reuse the code,
                but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
-            stage('Build Tools (FPC 3.2.0)') {
+            stage('(Docker) Build Tools (FPC 3.2.0)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools'
               }
             }
-            stage('Build Examples (FPC 3.2.0)') {
+            stage('(Docker) Build Examples (FPC 3.2.0)') {
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
               }
             }
-            stage('Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
               }
             }
-            stage('Build And Run Auto-Tests (FPC 3.2.0)') {
+            stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests'
               }
             }
-            stage('Build Using FpMake (FPC 3.2.0)') {
+            stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake'
               }
@@ -105,34 +105,34 @@ pipeline {
                We could use a script to reuse the code,
                but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
-            stage('Build Tools (FPC trunk)') {
+            stage('(Docker) Build Tools (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
               }
             }
-            stage('Build Examples (FPC trunk)') {
+            stage('(Docker) Build Examples (FPC trunk)') {
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
               }
             }
-            stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+            stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
               }
             }
-            stage('Build And Run Auto-Tests (FPC trunk)') {
+            stage('(Docker) Build And Run Auto-Tests (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
               }
             }
-            stage('Build Using FpMake (FPC trunk)') {
+            stage('(Docker) Build Using FpMake (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
               }
             }
 
-            stage('Pack Release') {
+            stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh'
@@ -154,7 +154,7 @@ pipeline {
             PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
           }
           stages {
-            stage('Info') {
+            stage('(RPi) Info') {
               steps {
                 // check versions (and availability) of our requirements early
                 sh 'fpc -iV'
@@ -162,35 +162,35 @@ pipeline {
                 sh 'make --version'
               }
             }
-            stage('Cleanup') {
+            stage('(RPi) Cleanup') {
               steps {
                 sh "repository_cleanup . --remove-unversioned"
               }
             }
-            stage('Build Tools') {
+            stage('(RPi) Build Tools') {
               steps {
                 sh 'rm -Rf installed/'
                 sh 'mkdir -p installed/'
                 sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
               }
             }
-            stage('Build Examples') {
+            stage('(RPi) Build Examples') {
               steps {
                 sh 'make clean examples'
               }
             }
-            stage('Build And Run Auto-Tests') {
+            stage('(RPi) Build And Run Auto-Tests') {
               steps {
                 sh 'make tests'
               }
             }
-            stage('Build Using FpMake') {
+            stage('(RPi) Build Using FpMake') {
               steps {
                 sh 'make clean test-fpmake'
               }
             }
 
-            stage('Pack Release') {
+            stage('(RPi) Pack Release') {
               steps {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh linux arm'
@@ -216,7 +216,7 @@ pipeline {
             // CASTLE_LAZBUILD_OPTIONS = "--widgetset=cocoa"
           }
           stages {
-            stage('Info') {
+            stage('(macOS) Info') {
               steps {
                 // check versions (and availability) of our requirements early
                 sh 'fpc -iV'
@@ -224,24 +224,24 @@ pipeline {
                 sh 'make --version'
               }
             }
-            stage('Cleanup') {
+            stage('(macOS) Cleanup') {
               steps {
                 sh "repository_cleanup . --remove-unversioned"
               }
             }
-            stage('Build Tools') {
+            stage('(macOS) Build Tools') {
               steps {
                 sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
                 sh 'mkdir -p ${CGE_INSTALL_PREFIX}'
                 sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
               }
             }
-            stage('Build Examples') {
+            stage('(macOS) Build Examples') {
               steps {
                 sh 'make clean examples'
               }
             }
-            stage('Build And Run Auto-Tests') {
+            stage('(macOS) Build And Run Auto-Tests') {
               steps {
                 sh 'make tests'
               }
@@ -254,7 +254,7 @@ pipeline {
               }
             }
             */
-            stage('Build Lazarus Packages') {
+            stage('(macOS) Build Lazarus Packages') {
               steps {
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk'
@@ -264,14 +264,14 @@ pipeline {
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk'
               }
             }
-            stage('Build Editor') {
+            stage('(macOS) Build Editor') {
               steps {
                 dir ('tools/castle-editor/') {
                   sh 'castle-engine package'
                 }
               }
             }
-            stage('Get PasDoc') {
+            stage('(macOS) Get PasDoc') {
               steps {
                 /* remove older PasDoc versions, so that later "pasdoc-*-darwin-x86_64.zip"
                    expands "pasdoc-*-darwin-x86_64.zip" only to one file.
@@ -282,7 +282,7 @@ pipeline {
                 sh 'unzip pasdoc-*-darwin-x86_64.zip'
               }
             }
-            stage('Pack Release') {
+            stage('(macOS) Pack Release') {
               steps {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh darwin x86_64'
@@ -304,7 +304,7 @@ pipeline {
             PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
           }
           stages {
-            stage('Info') {
+            stage('(Windows) Info') {
               steps {
                 // check versions (and availability) of our requirements early
                 sh 'fpc -iV'
@@ -312,12 +312,12 @@ pipeline {
                 sh 'make --version'
               }
             }
-            stage('Cleanup') {
+            stage('(Windows) Cleanup') {
               steps {
                 sh "repository_cleanup . --remove-unversioned"
               }
             }
-            stage('Build Tools') {
+            stage('(Windows) Build Tools') {
               steps {
                 sh 'rm -Rf installed/'
                 sh 'mkdir -p installed/'
@@ -332,17 +332,17 @@ pipeline {
                 sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
               }
             }
-            stage('Build Examples') {
+            stage('(Windows) Build Examples') {
               steps {
                 sh 'make clean examples'
               }
             }
-            stage('Build And Run Auto-Tests') {
+            stage('(Windows) Build And Run Auto-Tests') {
               steps {
                 sh 'make tests'
               }
             }
-            stage('Build Using FpMake') {
+            stage('(Windows) Build Using FpMake') {
               steps {
                 sh 'make clean test-fpmake'
               }
