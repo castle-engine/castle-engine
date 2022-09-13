@@ -3823,9 +3823,26 @@ begin
 end;
 
 function TTemporaryTransform.EstimateSphereRadius: Single;
+var
+  Viewport: TCastleViewport;
+  SphereWorldPos1, SphereWorldPos2: TVector3;
+  SphereViewportPos1, SphereViewportPos2: TVector2;
+  DistanceOnViewport: Single;
 begin
-  if Parent <> nil then
-    Result := Parent.World.BoundingBox.AverageSize(false, 100) / 200
+  if (Parent <> nil) and (Parent.World <> nil) and (Parent.World.Owner <> nil) and
+     (Parent.World.Owner is TCastleViewport) then
+  begin
+    Viewport := Parent.World.Owner as TCastleViewport;
+    SphereWorldPos1 := FSphere.LocalToWorld(Vector3(0, 0, 0));
+    SphereViewportPos1 := Viewport.PositionFromWorld(SphereWorldPos1);
+
+    SphereWorldPos2 := SphereWorldPos1 + Vector3(0, 1, 0);
+    SphereViewportPos2 := Viewport.PositionFromWorld(SphereWorldPos2);
+    DistanceOnViewport := PointsDistance(SphereViewportPos1, SphereViewportPos2);
+
+    { Make size about 10 pixels }
+    Result := 10 / DistanceOnViewport;
+  end
   else
     Result := 1;
 end;
