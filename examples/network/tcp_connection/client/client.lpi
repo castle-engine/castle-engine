@@ -44,8 +44,8 @@
       <Filename Value="client"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;/your/path/to/Indy10/Core;/your/path/to/Indy10/System"/>
-      <OtherUnitFiles Value="code/;/your/path/to/Indy10/Core;/your/path/to/Indy10/System"/>
+      <IncludeFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
+      <OtherUnitFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
     </SearchPaths>
