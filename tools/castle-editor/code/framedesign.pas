@@ -3609,7 +3609,7 @@ begin
 
   { If behavior is not on selected list call InternalSelectionEnd and
     remove it from FSelectionStartBehaviorList }
-  for I := 0 to BehaviorCount - 1 do
+  for I := BehaviorCount - 1 to 0 do
   begin
     B := FSelectionStartBehaviorList[I];
     if SelectedComponents <> nil then
