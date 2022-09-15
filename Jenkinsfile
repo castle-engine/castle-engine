@@ -365,32 +365,6 @@ pipeline {
         }
       }
     }
-    stage('Upload as GitHub Relase') {
-      when {
-        branch "master"
-      }
-      agent {
-        docker {
-          image 'kambi/castle-engine-cloud-builds-tools:cge-none'
-        }
-      }
-      environment {
-        // GitHub release (tag in GIT) to
-        // - update the GIT hash
-        // - upload the build results
-        UPLOAD_GITHUB_TAG = 'snapshot'
-      }
-      steps {
-        unstash name: 'cge-build-docker'
-        unstash name: 'cge-build-rpi'
-        unstash name: 'cge-build-macos'
-        withCredentials([
-            string(credentialsId: 'cge-github-upload-token', variable: 'GITHUB_TOKEN')
-          ]) {
-          sh 'tools/internal/upload_github_release'
-        }
-      }
-    }
   }
   post {
     regression {
