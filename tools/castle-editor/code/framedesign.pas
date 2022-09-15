@@ -3640,11 +3640,8 @@ procedure TDesignFrame.DoAllInternalSelectionEnd;
 var
   I: Integer;
 begin
-  for I := FSelectionStartBehaviorList.Count - 1 to 0 do
-  begin
+  for I := FSelectionStartBehaviorList.Count - 1 downto 0 do
     DoInternalSelectionEnd(FSelectionStartBehaviorList[I]);
-  end;
-  FSelectionStartBehaviorList.Clear;
 end;
 
 procedure TDesignFrame.RemoveJointsAnchors;
