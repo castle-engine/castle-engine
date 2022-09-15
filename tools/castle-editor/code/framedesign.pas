@@ -3640,7 +3640,7 @@ procedure TDesignFrame.DoAllInternalSelectionEnd;
 var
   I: Integer;
 begin
-  for I := 0 to FSelectionStartBehaviorList.Count - 1 do
+  for I := FSelectionStartBehaviorList.Count - 1 to 0 do
   begin
     DoInternalSelectionEnd(FSelectionStartBehaviorList[I]);
   end;
