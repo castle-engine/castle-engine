@@ -839,7 +839,27 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
+
+  {$ifdef LCLCocoa}
+  procedure FixCocoa;
+  var
+    FirstCol: TListColumn;
+  begin
+    // on Cocoa, image list crashes TListView usage
+    ListViewFrames.LargeImages := nil;
+
+    // on Cocoa, list always behaves like ViewStyle = vsReport and shows nothing when no columns
+    FirstCol := ListViewFrames.Columns.Add;
+    FirstCol.Caption := 'Frame name';
+    FirstCol.Width := 200;
+  end;
+  {$endif}
+
+
 begin
+  {$ifdef LCLCocoa}
+  FixCocoa;
+  {$endif}
   FSelectNewAnimation := true;
   FSpriteSheet := nil;
   FWindowTitle := Caption;
