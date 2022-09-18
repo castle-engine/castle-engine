@@ -61,6 +61,7 @@ castle-game-engine-*.fpm
 /doc/reference/
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
+/examples/animations/animate_bones_by_code/animate_bones_by_code
 /examples/animations/animate_transform_by_code/animate_transform_by_code
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/deprecated_resource_animations/resource_animations
