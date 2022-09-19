@@ -2532,8 +2532,18 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
     Distance: Single;
     OldPickable: Boolean;
     PlaneZ: Single;
+    Cam: TCastleCamera;
   begin
     Result := true;
+
+    Cam := Viewport.InternalCamera;
+    if Cam = nil then
+    begin
+      WritelnWarning('Cannot drop on the viewport %s, as it has no camera (not even a design-time camera)', [
+        Viewport.Name
+      ]);
+      Exit(false);
+    end;
 
     { Make gizmos not pickable when looking for new scene position,
       because ray can hit on gizmo. }
@@ -2546,14 +2556,14 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
       VisualizeTransformSelected.Pickable := OldPickable;
     end;
 
-    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+    if (RayHit = nil) and (Cam.ProjectionType = ptOrthographic) then
     begin
       { Note that EffectiveProjectionNear / Far may be zero if not initialized yet
         (nothing rendered yet from this camera).
         Though this cannot really happen at CastleControlDragDrop point (as we probably
         evaluated this camera for gizmo display).
         In any case, PlaneZ is then 0, and this is good. }
-      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+      PlaneZ := (Cam.EffectiveProjectionNear + Cam.EffectiveProjectionFar) / 2;
       if not TrySimplePlaneRayIntersection(DropPos, 2, PlaneZ, RayOrigin, RayDirection) then
         Exit(false); // camera direction parallel to 3D plane with Z = constant
     end else
@@ -2570,8 +2580,8 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
       DropPos := RayOrigin + (RayDirection * Distance);
 
       { In case of 2D game move scene a little closser to camera }
-      if Viewport.Camera.ProjectionType = ptOrthographic then
-        DropPos := DropPos - Viewport.Camera.Direction;
+      if Cam.ProjectionType = ptOrthographic then
+        DropPos := DropPos - Cam.Direction;
     end;
   end;
 
@@ -2589,11 +2599,25 @@ begin
   begin
     SourceShellList := TCastleShellListView(Source);
     DropPosition2D := Vector2(X, CastleControl.Height - Y);
-    UI := FDesignerLayer.HoverUserInterface(DropPosition2D);
-    if (UI is TCastleViewport) and not (ssShift in GetKeyShiftState) then
-      ParentComponent := TCastleViewport(UI).Items
-    else
-      ParentComponent := UI;
+
+    { calculate ParentComponent and UI }
+    if DesignRoot is TCastleTransform then
+    begin
+      { When we edit .castle-transform design, then the parent to drop must be DesignRoot.
+        Not the Viewport, not even Viewport.Items -- only things inside DesignRoot
+        are the hierarchy edited by user. }
+      ParentComponent := DesignRoot;
+      Assert(FDesignViewportForTransforms <> nil);
+      UI := FDesignViewportForTransforms;
+    end else
+    begin
+      UI := FDesignerLayer.HoverUserInterface(DropPosition2D);
+      if (UI is TCastleViewport) and not (ssShift in GetKeyShiftState) then
+        ParentComponent := TCastleViewport(UI).Items
+      else
+        ParentComponent := UI;
+    end;
+
     if ParentComponent = nil then // may happen because UI was nil
       Exit;
 
@@ -2626,6 +2650,12 @@ begin
         returned non-nil TCastleTransform descendant. }
       Transform := ShellListAddComponent(SourceShellList, ParentComponent) as TCastleTransform;
       Transform.Translation := DropPos;
+      WritelnLog('Dropped transform %s:%s into viewport %s at translation %s', [
+        Transform.Name,
+        Transform.ClassName,
+        Viewport.Name,
+        DropPos.ToString
+      ]);
     end else
     if NewComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
@@ -4264,7 +4294,9 @@ begin
   if Source is TCastleShellListView then
   begin
     if SelectedComponent <> nil then
-      ShellListAddComponent(TCastleShellListView(Source), SelectedComponent);
+      ShellListAddComponent(TCastleShellListView(Source), SelectedComponent)
+    else
+      WritelnWarning('Select a component in hierarchy, to allow to drag-and-drop children into it');
   end;
 end;
 
