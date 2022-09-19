@@ -2359,6 +2359,35 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 var
   SelectedFileName, Ext, SelectedURL: String;
 begin
+  { Forcefully stop dragging.
+
+    This workarounds LCL error with GTK 2 backend:
+    1. if you open another design (xxx.castle-transform
+       or xxx.castle-user-interface) by double-clicking (*not* by menu item "open...")
+    2. and it causes a dialog box "save this design" (you can answer yes or no,
+       doesn't matter)
+    3. .. then the dragging remains "true" (even though you're no longer pressing
+       down the mouse button).
+
+    This causes weird behavior if you then do some mouse-down + move + mouse-up
+    in newly opened design.
+    - e.g. mouse look by right-click on any viewport in newly opened design.
+    - or left click (mouse down and up) anywhere on UI.
+    ... They will all try to drag-and-drop the design you have just opened onto
+    itself.
+
+    TODO: There remains a problem in the above case, even after this fix:
+    First mouse down after such "forceful break of dragging" is not passed to TCastleControl.
+    So you need to click again to actually start e.g. mouse look on a viewport.
+  }
+  if DragManager.IsDragging then
+  begin
+    DragManager.DragStop(false);
+    WritelnLog('Forcefully breaking drag-and-drop on double-click to workaround LCL bug, afterwards IsDragging: %s', [
+      BoolToStr(DragManager.IsDragging, true)
+    ]);
+  end;
+
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
