@@ -624,7 +624,6 @@ type
     FMouseLook: boolean;
     procedure SetMouseLook(const Value: boolean);
   protected
-    function UsingMouseLook: Boolean;
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
     const
@@ -635,6 +634,8 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function Motion(const Event: TInputMotion): boolean; override;
+
+    function InternalUsingMouseLook: Boolean;
 
     { Use mouse look to navigate (rotate the camera).
 
@@ -2628,7 +2629,7 @@ procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
 
   procedure MouseLookUpdate;
   begin
-    if UsingMouseLook and (Container <> nil) then
+    if InternalUsingMouseLook and (Container <> nil) then
       Container.MouseLookUpdate;
   end;
 
@@ -2642,7 +2643,7 @@ begin
   if FMouseLook <> Value then
   begin
     FMouseLook := Value;
-    if UsingMouseLook then
+    if InternalUsingMouseLook then
     begin
       Cursor := mcForceNone;
       if Container <> nil then
@@ -2680,7 +2681,7 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if UsingMouseLook and
+  if InternalUsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
     Valid then
@@ -2690,7 +2691,7 @@ begin
   end;
 end;
 
-function TCastleMouseLookNavigation.UsingMouseLook: Boolean;
+function TCastleMouseLookNavigation.InternalUsingMouseLook: Boolean;
 begin
   Result := MouseLook and (niNormal in UsingInput);
 
@@ -3106,7 +3107,7 @@ end;
 
 function TCastleWalkNavigation.ReallyEnableMouseDragging: boolean;
 begin
-  Result := (inherited ReallyEnableMouseDragging) and not UsingMouseLook;
+  Result := (inherited ReallyEnableMouseDragging) and not InternalUsingMouseLook;
 end;
 
 procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
@@ -3704,8 +3705,8 @@ begin
   inherited;
 
   { update Cursor every frame, in case InternalViewport.Paused changed
-    (which changes UsingInput and UsingMouseLook) }
-  if UsingMouseLook then
+    (which changes UsingInput and InternalUsingMouseLook) }
+  if InternalUsingMouseLook then
     Cursor := mcForceNone
   else
     Cursor := mcDefault;
@@ -4119,7 +4120,7 @@ begin
     // ReallyEnableMouseDragging and
     (MouseDragMode = mdRotate) and
     Valid and
-    (not UsingMouseLook) then
+    (not InternalUsingMouseLook) then
   begin
     HandleMouseDrag;
     Result := ExclusiveEvents;

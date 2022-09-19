@@ -3322,7 +3322,12 @@ begin
   begin
     {$warnings off} // TODO: using deprecated Navigation for now
     if (Navigation is TCastleMouseLookNavigation) and
-       TCastleMouseLookNavigation(Navigation).MouseLook then
+       { Note: We need to check InternalUsingMouseLook, not just MouseLook,
+         to prevent from honoring MouseLook on user-designed TCastleWalkNavigation component
+         at design-time. At design-time, only MouseLook on TCastleWalkNavigationDesign
+         should have any effect.
+         See https://forum.castle-engine.io/t/gizmos-for-transforming-objects-stopped-working/643/5 . }
+       TCastleMouseLookNavigation(Navigation).InternalUsingMouseLook then
     {$warnings on}
       MousePosition := RenderRect.Center
     else
