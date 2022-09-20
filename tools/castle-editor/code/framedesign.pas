@@ -4296,6 +4296,9 @@ begin
     if SelectedComponent <> nil then
       ShellListAddComponent(TCastleShellListView(Source), SelectedComponent)
     else
+      { TODO: This is never displayed, since Accept=false in this case.
+        But it's a pity -- we should communicate to user better why drag-and-drop
+        is not allowed now. }
       WritelnWarning('Select a component in hierarchy, to allow to drag-and-drop children into it');
   end;
 end;
