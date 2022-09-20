@@ -21,7 +21,7 @@ find . '(' -type d -name .git -prune -false ')' -or \
        '(' -type f '(' -name '*.sh' -or \
                        -name '*~' -or \
                        -name 'gradlew' -or \
-                       -name 'instant_fpc_*' -or \
+                       -name './examples/instantfpc/castle_*' -or \
                        -name 'astcenc-*' -or \
                        -path './tools/internal/lazbuild_retry' -or \
                        -path './tools/internal/check_no_accidental_executable' -or \

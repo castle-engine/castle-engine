@@ -1,0 +1,53 @@
+#!/usr/bin/env instantfpc
+
+{
+  Copyright 2020-2022 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Show the 1st command-line parameter in a CGE window.
+
+  To make this work,
+  - install FPC, which should include the instantfpc binary
+  - install CGE using FpMake/FpPkg following https://castle-engine.io/fpmake
+
+  Then run like
+    ./castle_open_dialog
+    ./castle_open_dialog 'Hello!!'
+}
+
+uses CastleParameters, CastleWindow, CastleControls, CastleColors, CastleUIControls,
+  CastleUtils;
+
+var
+  DisplayCaption: String = 'Hello world' + NL + 'from Castle Game Engine' + NL + 'run through instantfpc';
+  Window: TCastleWindow;
+  L: TCastleLabel;
+begin
+  if Parameters.High >= 1 then
+    DisplayCaption := Parameters[1];
+
+  Window := TCastleWindow.Create(Application);
+  Window.Open;
+
+  L := TCastleLabel.Create(Application);
+  L.FontSize := 40;
+  L.Color := White;
+  L.Anchor(vpMiddle);
+  L.Anchor(hpMiddle);
+  L.Caption := DisplayCaption;
+  L.Alignment := hpMiddle;
+  Window.Controls.InsertFront(L);
+
+  Application.Run;
+end.
