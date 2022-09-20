@@ -5740,6 +5740,7 @@ begin
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
+    FKraftEngine.AllowSleep := false;
     if PhysicsProperties.ContinuousCD then
     begin
       { I tested all options:
