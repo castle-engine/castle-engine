@@ -10,13 +10,13 @@ You can define custom components, specific to your project, that are available i
 
 - Set `editor_units` in `CastleEngineManifest.xml` to include the unit with your components.
 
-- Run the custom version of the editor, with your custom components, using _"Project -> Restart Editor (With Custom Components)"_ from the normal editor. Or use `castle-engine editor` from command-line, when inside the project. The custom editor will be automatically build.
+- Run the custom version of the editor, with your custom components, using _"Project -> Restart Editor (With Custom Components)"_ from the normal editor.
 
 - Done. Use the new component as a regular component.
 
     In this example, we placed `TImageGrid` in our main design, `data/gamestatemain.castle-user-interface`.
 
-See https://castle-engine.io/manual_editor.php#section_custom_components for more information.
+See https://castle-engine.io/custom_components for more information how you can extend custom components to look great in CGE editor.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
