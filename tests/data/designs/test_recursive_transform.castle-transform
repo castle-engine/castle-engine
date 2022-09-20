@@ -1,0 +1,17 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Car",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleTransformDesign",
+      "Name" : "TransformDesign1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -3.2225112915039063E+000,
+        "Y" : 2.0189139842987061E+000,
+        "Z" : 1.9085661315917969E+002
+      },
+      "URL" : "castle-data:/designs/test_recursive_transform.castle-transform"
+    }
+  ]
+}

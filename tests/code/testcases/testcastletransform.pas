@@ -63,6 +63,7 @@ type
     procedure TestCameraDefaults;
     procedure TestExcludeBoundingVolume;
     procedure TestProjectionEmptyBox;
+    procedure TestRecursiveTransformDesign;
   end;
 
 implementation
@@ -70,7 +71,7 @@ implementation
 uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection;
+  CastleProjection, CastleStringUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1928,6 +1929,25 @@ end;
 function TTestCastleTransform.ReturnEmptyBox: TBox3D;
 begin
   Result := TBox3D.Empty;
+end;
+
+procedure TTestCastleTransform.TestRecursiveTransformDesign;
+var
+  Owner: TComponent;
+  //T: TCastleTransform;
+begin
+  try
+    Owner := TComponent.Create(nil);
+    try
+      {T := }TransformLoad('castle-data:/designs/test_recursive_transform.castle-transform', Owner);
+      Fail('Loading test_recursive_transform.castle-transform should have raised an exception');
+    except
+      on E: Exception do
+        { We expect Exception with message "Exceeded maximum depth..." }
+        if not IsPrefix('Exceeded maximum depth', E.Message) then
+          raise;
+    end;
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization
