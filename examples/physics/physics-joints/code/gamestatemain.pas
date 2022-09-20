@@ -37,7 +37,10 @@ uses SysUtils;
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  //DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  //DesignUrl := 'castle-data:/01_hinge_simple_2d.castle-user-interface';
+  DesignUrl := 'castle-data:/pulley.castle-user-interface';
+  //DesignUrl := 'castle-data:/02_joint_hinge_door.castle-user-interface';
 end;
 
 procedure TStateMain.Start;
@@ -45,15 +48,15 @@ begin
   inherited;
 
   { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  //LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  //Viewport := DesignedComponent('Viewport') as TCastleViewport;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  //LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
