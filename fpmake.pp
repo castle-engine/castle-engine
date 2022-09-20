@@ -186,13 +186,37 @@ begin
     P.Targets.AddUnit('ImagingBinary.pas');
     P.Targets.AddUnit('ImagingCompare.pas');
     P.Targets.AddUnit('ImagingExtFileFormats.pas');
-    P.Targets.AddUnit('ImagingJpeg2000.pas');
-    // TODO: not for Raspberry Pi (Linux/Arm), make this conditional
-    // P.Targets.AddUnit('OpenJpeg.pas');
     P.Targets.AddUnit('ImagingPcx.pas');
     P.Targets.AddUnit('ImagingPsd.pas');
     P.Targets.AddUnit('ImagingTiff.pas');
     P.Targets.AddUnit('ImagingXpm.pas');
+
+    { We don't link Jpeg2000 or Tiff from Vampyre when CGE is compiled by fpmake.
+      These units are not portable (though this can be worked around with,
+      using conditional as below for OpenJpeg.pas)
+      and also they require external .o/.a files which I don't know how to make
+      work with fpmake "install" (so that other applications can use them too).
+    }
+
+    (*
+    //P.Targets.AddUnit('ImagingJpeg2000.pas');
+
+    { OpenJpeg only compiles on certain platforms,
+      see $ifdef in ImagingJpeg2000 (ImagingJpeg2000 compiles but is empty
+      on unsupported platforms). }
+    if ((Defaults.OS in AllWindowsOSes) and (Defaults.CPU in [x86])) or
+       ((Defaults.OS = Linux) and (Defaults.CPU in [x86, x86_64])) or
+       ((Defaults.OS = macOS) and (Defaults.CPU in [x86])) then
+    begin
+      P.Targets.AddUnit('OpenJpeg.pas');
+    end;
+    *)
+
+    P.Options.Add('-dDONT_LINK_JPEG2000');
+    { Tiff is actually already disabled in ImagingExtFileFormats.pas,
+      in Vampyre version distributed in CGE,
+      see comments there -- it is not portable. }
+    P.Options.Add('-dDONT_LINK_TIFF');
 
     { Add our unit groups.
       For simplicity, keep things in alphabetical order in each group. }
