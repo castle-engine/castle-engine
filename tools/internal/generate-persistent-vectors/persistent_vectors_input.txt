@@ -82,6 +82,8 @@
 ../../../src/transform/ TJointPulley ConnectedWorldGroundAnchor TVector3
 ../../../src/transform/ TJointWorldPlaneDistance Anchor TVector3
 ../../../src/transform/ TJointWorldPlaneDistance PlaneNormal TVector3
+../../../src/transform/ TJointSlider WorldAnchor TVector3
+../../../src/transform/ TJointSlider WorldSliderAxis TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
