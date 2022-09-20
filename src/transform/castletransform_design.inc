@@ -87,7 +87,7 @@ end;
 
 procedure TCastleTransformDesign.SetURL(const Value: String);
 const
-  MaxLoadDepth = 1024;
+  MaxLoadDepth = 64; // 128 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
   if FURL <> Value then
   begin
