@@ -44,6 +44,8 @@ uses
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
 
 type
+  TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
+
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ButtonResetTransformation: TButton;
@@ -386,6 +388,7 @@ type
     OnSelectionChanged: TNotifyEvent;
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
+    OnProposeOpenDesign: TProposeOpenDesignEvent;
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -405,11 +408,22 @@ type
     function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent): TComponent;
     procedure DeleteComponent;
+    { Free component C (which should be part of this designed, owned by DesignOwner)
+      and all children.
+
+      We have to delete things recursively, otherwise they would keep existing,
+      taking resources and reserving names in DesignOwner,
+      even though they would not be visible when disconnected from parent
+      hierarchy.
+
+      This does nothing if you try to free some internal component
+      (like csTransient) or the design root (which can never be freed). }
+    procedure FreeComponentRecursively(const C: TComponent);
     procedure CopyComponent;
     procedure PasteComponent;
     procedure CutComponent;
     procedure DuplicateComponent;
-    { set UIScaling values. }
+    { Set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
       const UIReferenceWidth, UIReferenceHeight: Single);
 
@@ -1197,7 +1211,7 @@ begin
 
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
-  FComponentEditorDesigner := TCastleComponentEditorDesigner.Create(Self, PropertyEditorHook);
+  FComponentEditorDesigner := TConcreteEditorDesigner.Create(Self, PropertyEditorHook);
 
   FUndoSystem := TUndoSystem.Create(Self);
 
@@ -1710,6 +1724,81 @@ begin
       [ParentComponent.ClassName]))
 end;
 
+procedure TDesignFrame.FreeComponentRecursively(const C: TComponent);
+
+  procedure FreeNonVisualChildren(const C: TCastleComponent);
+  var
+    I: Integer;
+  begin
+    for I := C.NonVisualComponentsCount - 1 downto 0 do
+      if Deletable(C.NonVisualComponents[I]) then
+        FreeComponentRecursively(C.NonVisualComponents[I]);
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.Count - 1 downto 0 do
+      if Deletable(T[I]) then
+        FreeComponentRecursively(T[I]);
+  end;
+
+  procedure FreeBehaviorChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.BehaviorsCount - 1 downto 0 do
+      if Deletable(T.Behaviors[I]) then
+        FreeComponentRecursively(T.Behaviors[I]);
+  end;
+
+  procedure FreeUiChildren(const C: TCastleUserInterface);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      if Deletable(C.Controls[I]) then
+        FreeComponentRecursively(C.Controls[I]);
+  end;
+
+begin
+  if not Deletable(C) then
+    Exit;
+
+  { Check this assertion after Deletable check, as it may be invalid
+    e.g. for gizmos that are csTransient. }
+  Assert(C.Owner = DesignOwner);
+
+  if C is TCastleComponent then
+  begin
+    FreeNonVisualChildren(TCastleComponent(C));
+    if C is TCastleTransform then
+    begin
+      FreeBehaviorChildren(TCastleTransform(C));
+      FreeTransformChildren(TCastleTransform(C));
+    end else
+    if C is TCastleUserInterface then
+    begin
+      FreeUiChildren(TCastleUserInterface(C));
+      if C is TCastleViewport then
+      begin
+        FreeBehaviorChildren(TCastleViewport(C).Items);
+        FreeTransformChildren(TCastleViewport(C).Items);
+      end;
+    end;
+  end;
+  C.Free;
+
+  // temporarily disable this event, as some pointers are invalid now
+  ControlsTree.OnSelectionChanged := nil;
+  ControlsTree.Items.Clear;
+  TreeNodeMap.Clear;
+  ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
+
+  UpdateDesign;
+end;
+
 procedure TDesignFrame.DeleteComponent;
 
   function FirstDeletableComponent(const List: TComponentList): TComponent;
@@ -1720,77 +1809,6 @@ procedure TDesignFrame.DeleteComponent;
       if Deletable(List[I]) then
         Exit(List[I]);
     Result := nil;
-  end;
-
-  procedure FreeBehaviorChildren(const T: TCastleTransform); forward;
-  procedure FreeTransformChildren(const T: TCastleTransform); forward;
-  procedure FreeUiChildren(const C: TCastleUserInterface); forward;
-  procedure FreeNonVisualChildren(const C: TCastleComponent); forward;
-
-  { Delete C and all children.
-    We have to delete things recursively, otherwise they would keep existing,
-    taking resources and reserving names in DesignRoot,
-    even though they would not be visible when disconnected from parent
-    hierarchy. }
-  procedure FreeRecursively(const C: TComponent);
-  begin
-    if not Deletable(C) then
-      Exit;
-    if C is TCastleComponent then
-    begin
-      FreeNonVisualChildren(TCastleComponent(C));
-      if C is TCastleTransform then
-      begin
-        FreeBehaviorChildren(TCastleTransform(C));
-        FreeTransformChildren(TCastleTransform(C));
-      end else
-      if C is TCastleUserInterface then
-      begin
-        FreeUiChildren(TCastleUserInterface(C));
-        if C is TCastleViewport then
-        begin
-          FreeBehaviorChildren(TCastleViewport(C).Items);
-          FreeTransformChildren(TCastleViewport(C).Items);
-        end;
-      end;
-    end;
-    C.Free;
-  end;
-
-  procedure FreeNonVisualChildren(const C: TCastleComponent);
-  var
-    I: Integer;
-  begin
-    for I := C.NonVisualComponentsCount - 1 downto 0 do
-      if Deletable(C.NonVisualComponents[I]) then
-        FreeRecursively(C.NonVisualComponents[I]);
-  end;
-
-  procedure FreeTransformChildren(const T: TCastleTransform);
-  var
-    I: Integer;
-  begin
-    for I := T.Count - 1 downto 0 do
-      if Deletable(T[I]) then
-        FreeRecursively(T[I]);
-  end;
-
-  procedure FreeBehaviorChildren(const T: TCastleTransform);
-  var
-    I: Integer;
-  begin
-    for I := T.BehaviorsCount - 1 downto 0 do
-      if Deletable(T.Behaviors[I]) then
-        FreeRecursively(T.Behaviors[I]);
-  end;
-
-  procedure FreeUiChildren(const C: TCastleUserInterface);
-  var
-    I: Integer;
-  begin
-    for I := C.ControlsCount - 1 downto 0 do
-      if Deletable(C.Controls[I]) then
-        FreeRecursively(C.Controls[I]);
   end;
 
 var
@@ -1817,18 +1835,10 @@ begin
       repeat
         C := FirstDeletableComponent(Selected);
         if C <> nil then
-          FreeRecursively(C)
+          FreeComponentRecursively(C)
         else
           Break;
       until false;
-
-      // temporarily disable this event, as some pointers are invalid now
-      ControlsTree.OnSelectionChanged := nil;
-      ControlsTree.Items.Clear;
-      TreeNodeMap.Clear;
-      ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
-
-      UpdateDesign;
 
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }

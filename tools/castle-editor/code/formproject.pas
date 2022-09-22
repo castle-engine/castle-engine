@@ -435,6 +435,9 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveDesign: Boolean;
+    { Propose saving the current design (if any) and then (unless user said "cancel")
+      open the given design URL. }
+    procedure ProposeOpenDesign(const DesignUrl: String);
     { Call always when Design<>nil value changed. }
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
@@ -1823,6 +1826,12 @@ begin
   LabelNoDesign.Visible := Design = nil;
 end;
 
+procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
+begin
+  if ProposeSaveDesign then
+    OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.NeedsDesignFrame;
 begin
   if Design = nil then
@@ -1834,6 +1843,7 @@ begin
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
+    Design.OnProposeOpenDesign := @ProposeOpenDesign;
 
     DesignExistenceChanged;
     if Docking then
@@ -2428,8 +2438,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') or
        AnsiSameText(Ext, '.castle-component') then
     begin
-      if ProposeSaveDesign then
-        OpenDesign(SelectedURL);
+      ProposeOpenDesign(SelectedURL);
       Exit;
     end;
 

@@ -29,6 +29,7 @@
       FDesign: TCastleUserInterface;
       FDesignObserver: TFreeNotificationObserver;
       FURL: String;
+      FRevertURL: String;
       FStretchWhenNotLoaded: Boolean;
     procedure SetURL(const Value: String);
     function GetStretch: Boolean;
@@ -83,6 +84,9 @@
       TCastleDesign instance to the child.
     }
     property Stretch: Boolean read GetStretch write SetStretch default true;
+
+    { URL used to perform editor "Revert" operation. }
+    property RevertURL: String read FRevertURL write FRevertURL;
   end;
 
 {$endif read_interface}

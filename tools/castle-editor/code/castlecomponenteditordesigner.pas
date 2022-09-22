@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Define TCastleComponentEditorDesigner, necessary to use LCL component editors
+{ Define TConcreteEditorDesigner, necessary to use LCL component editors
   from CGE editor. }
 unit CastleComponentEditorDesigner;
 
@@ -22,7 +22,9 @@ interface
 uses Classes, Controls, ComponentReg, ComponentEditors, PropEdits, Menus,
   LMessages, LCLType,
   // CGE units
-  FrameDesign, DesignUndoSystem, CastleClassUtils;
+  CastleClassUtils, CastleEditorAccess,
+  // editor units
+  FrameDesign, DesignUndoSystem;
 
 type
   { To get registered component editors (and our CastlePropEdits registers some,
@@ -32,7 +34,7 @@ type
 
     An instance of this corresponds 1-1 to each TDesignFrame,
     and will be passed as parameter of GetComponentEditor. }
-  TCastleComponentEditorDesigner = class(TComponentEditorDesigner)
+  TConcreteEditorDesigner = class(TCastleComponentEditorDesigner)
   strict private
     FDesignFrame: TDesignFrame;
     FPropertyEditorHook: TPropertyEditorHook;
@@ -82,6 +84,8 @@ type
     procedure SelectOnlyThisComponent(AComponent: TComponent); override;
     function UniqueName(const BaseName: string): string; override;
     procedure PrepareFreeDesigner(AFreeComponent: boolean); override;
+    procedure ProposeOpenDesign(const DesignUrl: String); override;
+    procedure FreeComponentRecursively(const C: TComponent); override;
   end;
 
   { Helpful class to put in menu to execute a verb from given component editor. }
@@ -103,9 +107,9 @@ implementation
 
 uses CastleLog;
 
-{ TCastleComponentEditorDesigner --------------------------------------------- }
+{ TConcreteEditorDesigner --------------------------------------------- }
 
-constructor TCastleComponentEditorDesigner.Create(const ADesignFrame: TDesignFrame;
+constructor TConcreteEditorDesigner.Create(const ADesignFrame: TDesignFrame;
   const APropertyEditorHook: TPropertyEditorHook);
 begin
   inherited Create;
@@ -113,120 +117,120 @@ begin
   FPropertyEditorHook := APropertyEditorHook;
 end;
 
-function TCastleComponentEditorDesigner.GetPropertyEditorHook: TPropertyEditorHook;
+function TConcreteEditorDesigner.GetPropertyEditorHook: TPropertyEditorHook;
 begin
   Result := FPropertyEditorHook;
 end;
 
-function TCastleComponentEditorDesigner.GetShowNonVisualComponents: boolean;
+function TConcreteEditorDesigner.GetShowNonVisualComponents: boolean;
 begin
   Result := true; // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.SetShowNonVisualComponents(
+procedure TConcreteEditorDesigner.SetShowNonVisualComponents(
   AValue: boolean);
 begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.Modified;
+procedure TConcreteEditorDesigner.Modified;
 begin
   inherited;
   FDesignFrame.ModifiedOutsideObjectInspector('', ucLow);
 end;
 
-function TCastleComponentEditorDesigner.CopySelection: boolean;
+function TConcreteEditorDesigner.CopySelection: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CutSelection: boolean;
+function TConcreteEditorDesigner.CutSelection: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CanCopy: Boolean;
+function TConcreteEditorDesigner.CanCopy: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CanPaste: Boolean;
+function TConcreteEditorDesigner.CanPaste: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.PasteSelection(
+function TConcreteEditorDesigner.PasteSelection(
   Flags: TComponentPasteSelectionFlags): boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.ClearSelection: boolean;
+function TConcreteEditorDesigner.ClearSelection: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.DeleteSelection: boolean;
+function TConcreteEditorDesigner.DeleteSelection: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CopySelectionToStream(s: TStream
+function TConcreteEditorDesigner.CopySelectionToStream(s: TStream
   ): boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.InsertFromStream(s: TStream;
+function TConcreteEditorDesigner.InsertFromStream(s: TStream;
   Parent: TWinControl; Flags: TComponentPasteSelectionFlags): Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.InvokeComponentEditor(
+function TConcreteEditorDesigner.InvokeComponentEditor(
   AComponent: TComponent): boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.ChangeClass: boolean;
+function TConcreteEditorDesigner.ChangeClass: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CanUndo: Boolean;
+function TConcreteEditorDesigner.CanUndo: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CanRedo: Boolean;
+function TConcreteEditorDesigner.CanRedo: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.Undo: Boolean;
+function TConcreteEditorDesigner.Undo: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.Redo: Boolean;
+function TConcreteEditorDesigner.Redo: Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.AddUndoAction(
+function TConcreteEditorDesigner.AddUndoAction(
   const aPersistent: TPersistent; aOpType: TUndoOpType; IsSetNewId: boolean;
   aFieldName: string; const aOldVal, aNewVal: variant): boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.IsUndoLocked: boolean;
+function TConcreteEditorDesigner.IsUndoLocked: boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.AddComponent(
+procedure TConcreteEditorDesigner.AddComponent(
   const NewRegisteredComponent: TRegisteredComponent;
   const NewComponentClass: TComponentClass; const NewParent: TComponent;
   const NewLeft, NewTop, NewWidth, NewHeight: Integer);
@@ -234,7 +238,7 @@ begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.AddComponentCheckParent(
+procedure TConcreteEditorDesigner.AddComponentCheckParent(
   var NewParent: TComponent; const OriginComponent: TComponent;
   const OriginWinControl: TWinControl; const NewComponentClass: TComponentClass
   );
@@ -242,68 +246,79 @@ begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.DrawDesignerItems(OnlyIfNeeded: boolean
+procedure TConcreteEditorDesigner.DrawDesignerItems(OnlyIfNeeded: boolean
   );
 begin
   // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.CreateUniqueComponentName(
+function TConcreteEditorDesigner.CreateUniqueComponentName(
   const AClassName: string): string;
 begin
   // TODO, unused in practice by CGE components
   Result := AClassName;
 end;
 
-function TCastleComponentEditorDesigner.IsDesignMsg(Sender: TControl;
+function TConcreteEditorDesigner.IsDesignMsg(Sender: TControl;
   var Message: TLMessage): Boolean;
 begin
   Result := false; // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.UTF8KeyPress(var UTF8Key: TUTF8Char);
+procedure TConcreteEditorDesigner.UTF8KeyPress(var UTF8Key: TUTF8Char);
 begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.Notification(AComponent: TComponent;
+procedure TConcreteEditorDesigner.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.PaintGrid;
+procedure TConcreteEditorDesigner.PaintGrid;
 begin
   // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.ValidateRename(AComponent: TComponent;
+procedure TConcreteEditorDesigner.ValidateRename(AComponent: TComponent;
   const CurName, NewName: string);
 begin
   // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.GetShiftState: TShiftState;
+function TConcreteEditorDesigner.GetShiftState: TShiftState;
 begin
   Result := []; // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.SelectOnlyThisComponent(
+procedure TConcreteEditorDesigner.SelectOnlyThisComponent(
   AComponent: TComponent);
 begin
   // TODO, unused in practice by CGE components
 end;
 
-function TCastleComponentEditorDesigner.UniqueName(const BaseName: string
+function TConcreteEditorDesigner.UniqueName(const BaseName: string
   ): string;
 begin
   Result := BaseName; // TODO, unused in practice by CGE components
 end;
 
-procedure TCastleComponentEditorDesigner.PrepareFreeDesigner(
+procedure TConcreteEditorDesigner.PrepareFreeDesigner(
   AFreeComponent: boolean);
 begin
   // TODO, unused in practice by CGE components
+end;
+
+procedure TConcreteEditorDesigner.ProposeOpenDesign(const DesignUrl: String);
+begin
+  if Assigned(FDesignFrame.OnProposeOpenDesign) then
+    FDesignFrame.OnProposeOpenDesign(DesignUrl);
+end;
+
+procedure TConcreteEditorDesigner.FreeComponentRecursively(const C: TComponent);
+begin
+  FDesignFrame.FreeComponentRecursively(C);
 end;
 
 { TMenuItemToExecuteVerb ----------------------------------------------------- }

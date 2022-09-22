@@ -30,6 +30,7 @@
       FDesign: TCastleTransform;
       FDesignObserver: TFreeNotificationObserver;
       FURL: String;
+      FRevertURL: String;
     procedure SetURL(const Value: String);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
   public
@@ -60,6 +61,9 @@
       #)
     }
     property URL: String read FURL write SetURL;
+
+    { URL used to perform editor "Revert" operation. }
+    property RevertURL: String read FRevertURL write FRevertURL;
   end;
 
 {$endif read_interface}
