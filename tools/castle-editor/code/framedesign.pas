@@ -153,6 +153,9 @@ type
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
+          out Vertical: TVerticalPosition; out Hint: String): Boolean;
+        function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
+          out Horizontal: THorizontalPosition;
           out Vertical: TVerticalPosition): Boolean;
       public
         Frame: TDesignFrame;
@@ -694,37 +697,64 @@ end;
 
 function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
   const Position: TVector2; out Horizontal: THorizontalPosition;
-  out Vertical: TVerticalPosition): Boolean;
+  out Vertical: TVerticalPosition; out Hint: String): Boolean;
 const
   BorderDragMargin = 10;
 var
   R: TFloatRectangle;
-  ResizeWidth, ResizeHeight: Boolean;
+  ResizeWidth, ResizeHeight, IsTop, IsBottom, IsRight, IsLeft: Boolean;
   ResizeDisabledReason: String;
 begin
   R := UI.RenderRectWithBorder;
 
   UI.EditorAllowResize(ResizeWidth, ResizeHeight, ResizeDisabledReason);
 
+  Hint := '';
+
+  IsTop := R.TopPart(BorderDragMargin).Contains(Position);
+  IsBottom := R.BottomPart(BorderDragMargin).Contains(Position);
+  IsRight := R.RightPart(BorderDragMargin).Contains(Position);
+  IsLeft := R.LeftPart(BorderDragMargin).Contains(Position);
+
   { the order of checking (top or bottom) matters in case of very
     small heights. }
-  if ResizeHeight and R.TopPart(BorderDragMargin).Contains(Position) then
+  if ResizeHeight and IsTop then
     Vertical := vpTop
   else
-  if ResizeHeight and R.BottomPart(BorderDragMargin).Contains(Position) then
+  if ResizeHeight and IsBottom then
     Vertical := vpBottom
   else
+  begin
     Vertical := vpMiddle;
+    if IsTop or IsBottom then
+      Hint := ResizeDisabledReason;
+  end;
 
-  if ResizeWidth and R.RightPart(BorderDragMargin).Contains(Position) then
+  if ResizeWidth and IsRight then
     Horizontal := hpRight
   else
-  if ResizeWidth and R.LeftPart(BorderDragMargin).Contains(Position) then
+  if ResizeWidth and IsLeft then
     Horizontal := hpLeft
   else
+  begin
     Horizontal := hpMiddle;
+    if IsLeft or IsRight then
+      Hint := ResizeDisabledReason;
+  end;
+
+  if Hint <> '' then
+    Hint := UI.Name + ':' + NL + Hint;
 
   Result := (Vertical <> vpMiddle) or (Horizontal <> hpMiddle);
+end;
+
+function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
+  const Position: TVector2; out Horizontal: THorizontalPosition;
+  out Vertical: TVerticalPosition): Boolean;
+var
+  Hint: String;
+begin
+  Result := IsResizing(UI, Position, Horizontal, Vertical, Hint);
 end;
 
 function TDesignFrame.TDesignerLayer.Press(
@@ -996,7 +1026,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     WouldResizeHorizontal: THorizontalPosition;
     WouldResizeVertical: TVerticalPosition;
     NewCursor: TMouseCursor;
+    Hint: String;
   begin
+    Hint := '';
     if Frame.Mode <> moModifyUi then
       NewCursor := mcDefault
     else
@@ -1008,7 +1040,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
           if UI <> nil then
           begin
             if IsResizing(UI, Event.Position,
-              WouldResizeHorizontal, WouldResizeVertical) then
+              WouldResizeHorizontal, WouldResizeVertical, Hint) then
             begin
               NewCursor := ResizingCursor(
                 WouldResizeHorizontal, WouldResizeVertical);
@@ -1023,6 +1055,8 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
         NewCursor := ResizingCursor(ResizingHorizontal, ResizingVertical);
     end;
     Frame.CastleControl.Container.OverrideCursor := NewCursor;
+    Frame.CastleControl.Hint := Hint;
+    Frame.CastleControl.ShowHint := Hint <> '';
   end;
 
   procedure UpdateHoverTransform;

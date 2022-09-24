@@ -4,10 +4,6 @@
 Lower priority:
 OK if after 7.0 release:
 
-* when trying to drag to resize, we could show a hint from EditorAllowResize
-  (ResizeDisabledReason) somewhere
-  (at tooltip)?
-
 * Define EditorAllowResize for
   castledialogstates_dialog.inc
   castlecontrols_progressbar.inc
@@ -36,7 +32,7 @@ OK if after 7.0 release:
 * more colors, vectors published props:
 
   grep for TCastleColor*, TVector* properties and add everything.
-  For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
+  For now we only browsed stuff in src/ui/ , and TCastleTransform.
 
 * When adding new item to hierarchy,
   in general: when doing UpdateDesign,
@@ -51,7 +47,6 @@ OK if after 7.0 release:
       Right now we are more like Blender, only movement amount is snapped.
     * open last design in the project,
       open the only scene in the project, if only one exists?
-    * does recursive saving work when Tcastletransform is present multiple times in graph?
     * after adding, keep previously selected still selected
     * removing - keep selected above?
 
@@ -71,7 +66,7 @@ OK if after 7.0 release:
 
     (From code, you can control this using Window.Container.UIScalingXxx properties.)
 
-* Make files browser with features as documented.
+* Make files browser with features as planned.
     * allow dropping scenes/images on UI design - done, but show preview when dropping
     * on audio files, you can open them with `examples/audio/audio_player/` (should this be moved to tools directory? probably!)
 
