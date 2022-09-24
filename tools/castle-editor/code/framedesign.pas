@@ -1033,6 +1033,54 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       Frame.VisualizeTransformHover.Parent := nil;
   end;
 
+  { Sometimes, trying to drag (translate/resize) UI,
+    should actually drag the UI's parent (or parent's parent...).
+    This happens when UI has FullSize,
+    or it is within a group that auto-aligns children.
+
+    The DragAllowed is such case would block some actions on UI,
+    and it is intuitive to perform them on parent.
+
+    TODO: This has hardcoded logic for FullSize and group cases.
+    There should be a virtual method instead like
+      TCastleUserInterface.EditorDragParent(DraggingMode)
+      TCastleUserInterface.EditorDragMeInsteadOfChild(DraggingMode)
+  }
+  procedure ChangeDraggedUI(var UI: TCastleUserInterface);
+  begin
+    if (DraggingMode in [dmResize, dmTranslate]) and
+       UI.FullSize and
+       (UI.Parent <> nil) then
+    begin
+      UI := UI.Parent;
+      ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
+    end;
+
+    if (DraggingMode in [dmResize, dmTranslate]) and
+       (UI.Parent <> nil) and
+       { When the parent uses AutoSizeToChildren on a single child, then the effect is similar
+         as it child had FullSize. }
+       UI.Parent.AutoSizeToChildren and
+       (UI.Parent.ControlsCount = 1) and
+       (UI.Left = 0) and
+       (UI.Bottom = 0) and
+       (UI.HorizontalAnchorDelta = 0) and
+       (UI.VerticalAnchorDelta = 0) then
+    begin
+      UI := UI.Parent;
+      ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
+    end;
+
+    if (DraggingMode in [dmTranslate]) and
+       (UI.Parent <> nil) and
+       ( (UI.Parent is TCastleHorizontalGroup) or
+         (UI.Parent is TCastleVerticalGroup) ) then
+    begin
+      UI := UI.Parent;
+      ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
+    end;
+  end;
+
 var
   UI: TCastleUserInterface;
   Move: TVector2;
@@ -1059,6 +1107,8 @@ begin
     UI := Frame.SelectedUserInterface;
     if UI <> nil then
     begin
+      ChangeDraggedUI(UI);
+
       Move := (Event.Position - Event.OldPosition) / UI.UIScale;
 
       Snap := Frame.SpinEditSnap.Value;
