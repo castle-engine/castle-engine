@@ -19,12 +19,6 @@ unit FrameDesign;
 
 {$mode objfpc}{$H+}
 
-{ Show additional UI over CastleControl to show selected/hover UI.
-  While these labels can be helpful, they often obscure important UI
-  (even the one you're trying to edit) so it is also causing trouble.
-  For now, by default we disable them. }
-{.$define CASTLE_DESIGNER_LABELS}
-
 interface
 
 uses
@@ -1105,8 +1099,20 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
-    {$ifdef CASTLE_DESIGNER_LABELS}
-    if UI <> nil then
+    { Show additional UI to show selected UI.
+      While these labels can be helpful, they often obscure important UI
+      (even the one you're trying to edit) so it is also causing trouble.
+
+      After some experimenting, we only show them on components with zero size.
+      This allows to e.g. know where is new TCastleVertical/HorizontalGroup
+      (as it is selected right after addition, and has zero size since has
+      no children, and AutoSize=true).
+    }
+    if (UI <> nil) and
+       (
+         (UI.EffectiveWidth = 0) or
+         (UI.EffectiveHeight = 0)
+       ) then
     begin
       Lab.Caption := Frame.ComponentCaption(UI);
       Lab.Color := LabelColor;
@@ -1126,7 +1132,6 @@ procedure TDesignFrame.TDesignerLayer.Render;
         // put Rect inside UI, otherwise it would be offscreen
         Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
-    {$endif}
       Rect.Exists := false;
   end;
 
@@ -1162,6 +1167,10 @@ begin
     }
   end;
 
+  { Note: HoverUI is in practice never visible now,
+    as UpdateAttachedLabel makes it visible only for components with size zero.
+    This code can be simplified, to remove HoverUI, LabelHover, RectHover
+    -- once we're sure that showing "hover" is a useless idea at some point. }
   if (HoverUI <> nil) and (HoverUI = SelectedUI) then
   begin
     UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
