@@ -50,6 +50,25 @@ initialization
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
+  { Adjust window fullscreen state and size.
+    Note that some platforms (like mobile) may ignore it.
+    Examples how to set window fullscreen state and size:
+
+      Window.FullScreen := true;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+  }
+
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.
     In particular, it is not allowed to read files before ApplicationInitialize
