@@ -2661,12 +2661,15 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
 
     if (RayHit = nil) and (Cam.ProjectionType = ptOrthographic) then
     begin
-      { Note that EffectiveProjectionNear / Far may be zero if not initialized yet
-        (nothing rendered yet from this camera).
-        Though this cannot really happen at CastleControlDragDrop point (as we probably
-        evaluated this camera for gizmo display).
-        In any case, PlaneZ is then 0, and this is good. }
-      PlaneZ := (Cam.EffectiveProjectionNear + Cam.EffectiveProjectionFar) / 2;
+      { In the past, we used to calculate this as
+        "(Cam.EffectiveProjectionNear + Cam.EffectiveProjectionFar) / 2".
+
+        But now that we auto-calculate projection, the above "smart" calculation is
+        - unnecessary (projection will adjust to new item)
+        - often results in weird values (as projection near/far are often "around zero"
+          but usually their average is not exactly zero, as users expect zero).
+      }
+      PlaneZ := 0;
       if not TrySimplePlaneRayIntersection(DropPos, 2, PlaneZ, RayOrigin, RayDirection) then
         Exit(false); // camera direction parallel to 3D plane with Z = constant
     end else
