@@ -248,11 +248,11 @@ type
     procedure RecalculateCursor(Sender: TObject);
 
     { Bounding box of everything non-design.
-      Similar to just usign Items.BoundingBox, but
+      Similar to just using Items.BoundingBox, but
 
       1. handles Items=nil case OK
 
-      2. ignores bbox at design-time of gizmos (lights and cameras).
+      2. ignores bbox at design-time of gizmos (lights, cameras, visualize transform).
       This is important to avoid AutoCamera at design-time to calculate something unexpected
       (move camera far away), because it would adjust to the camera and lights gizmo bbox
       (see TTestCastleViewport.TestAutoCameraIgnoresGizmos). }
@@ -2120,8 +2120,12 @@ end;
 function TCastleViewport.ItemsWithGizmosBoundingBox: TBox3D;
 begin
   if Items <> nil then
-    Result := Items.BoundingBox
-  else
+  begin
+    Inc(InternalGizmoBoundingBox);
+    try
+      Result := Items.BoundingBox;
+    finally Dec(InternalGizmoBoundingBox) end;
+  end else
     Result := TBox3D.Empty;
 end;
 
