@@ -1,5 +1,4 @@
 X3DNode {
-  auto-generate-more: true
   SFNode [in,out] metadata NULL
     range: X3DMetadataNode
     not-slim
@@ -7,7 +6,6 @@ X3DNode {
 }
 
 X3DBindableNode : X3DChildNode {
-  auto-generate-more: true
   SFBool [in]     set_bind
   SFTime [out]    bindTime
     not-slim
@@ -15,12 +13,10 @@ X3DBindableNode : X3DChildNode {
 }
 
 X3DChildNode : X3DNode {
-  auto-generate-more: true
   default-container-field: children
 }
 
 X3DInfoNode : X3DChildNode {
-  auto-generate-more: true
 }
 
 # Note that we change hierarchy from X3D spec:
@@ -35,7 +31,6 @@ X3DInfoNode : X3DChildNode {
 # Note that we rename X3DMetadataObject -> X3DMetadataNode, makes it a natural class.
 
 X3DMetadataNode : X3DNode {
-  auto-generate-more: true
   default-container-field: metadata
   SFString [in,out] name      ""
     change: chNone
@@ -44,51 +39,43 @@ X3DMetadataNode : X3DNode {
 }
 
 X3DSensorNode  : X3DChildNode {
-  auto-generate-more: true
   SFBool [in,out] enabled  TRUE
     change: chNone
   SFBool [out]    isActive
 }
 
 MetadataBoolean : X3DMetadataNode {
-  auto-generate-more: true
   MFBool   [in,out] value     []
     change: chNone
 }
 
 MetadataDouble : X3DMetadataNode {
-  auto-generate-more: true
   MFDouble [in,out] value     []
     change: chNone
 }
 
 MetadataFloat : X3DMetadataNode {
-  auto-generate-more: true
   MFFloat  [in,out] value     []
     change: chNone
 }
 
 MetadataInteger : X3DMetadataNode {
-  auto-generate-more: true
   MFInt32  [in,out] value     []
     change: chNone
 }
 
 MetadataSet : X3DMetadataNode {
-  auto-generate-more: true
   MFNode   [in,out] value     []
     range: X3DMetadataNode
     change: chNone
 }
 
 MetadataString : X3DMetadataNode {
-  auto-generate-more: true
   MFString [in,out] value     []
     change: chNone
 }
 
 WorldInfo : X3DInfoNode {
-  auto-generate-more: true
   MFString []       info     []
     change: chNone
   SFString []       title    ""

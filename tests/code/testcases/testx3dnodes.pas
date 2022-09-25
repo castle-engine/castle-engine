@@ -98,13 +98,18 @@ type
     procedure TestTextureProperties;
     procedure TestFixNames;
     procedure TestAutomaticWeakLink;
+    procedure TestNonGenericFind;
+    {$ifdef GENERIC_METHODS}
+    procedure TestGenericFind;
+    {$endif}
+    procedure TestProtoExpansion;
   end;
 
 implementation
 
 uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
-  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime,
+  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
@@ -144,8 +149,8 @@ begin
 
   InstantiableNodes.Add(TX3DRootNode);
   InstantiableNodes.Add(TX3DNode);
+  InstantiableNodes.Add(TAbstractInternalGroupingNode);
   InstantiableNodes.Add(TAbstractGroupingNode);
-  InstantiableNodes.Add(TAbstractX3DGroupingNode);
 end;
 
 procedure TTestX3DNodes.TearDown;
@@ -434,7 +439,7 @@ begin
 
     { Inventor spec nodes }
     TIndexedTriangleMeshNode_1,
-    TRotationXYZNode,
+    TRotationXYZNode_1,
 
     { VRML 1.0 spec nodes }
     TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
@@ -465,7 +470,6 @@ begin
     TWWWInlineNode_1,
 
     { Kambi non-standard nodes }
-    TKambiHeadLightNode,
     //TText3DNode,
     //TBlendModeNode,
     //TKambiAppearanceNode,
@@ -483,10 +487,6 @@ begin
     //TConeNode,
     //TContour2DNode,
     //TCoordinateNode,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is CoordinateDeformer allowed or not as children node.
-      To be fixed when I'll implement CoordinateDeformer handling. }
-    TCoordinateDeformerNode,
     TCoordinateInterpolatorNode,
     //TCylinderNode,
     TCylinderSensorNode,
@@ -528,11 +528,6 @@ begin
     TNormalInterpolatorNode,
     //TNurbsCurveNode,
     //TNurbsCurve2DNode,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is NurbsGroup allowed or not as children node.
-      To be fixed when I'll implement NurbsGroup handling. }
-    TNurbsGroupNode,
-    TNurbsPositionInterpolatorNode_2,
     //TNurbsSurfaceNode,
     //TNurbsTextureSurfaceNode,
     TOrientationInterpolatorNode,
@@ -579,7 +574,6 @@ begin
   AllowedGeometryNodes.AssignArray([
     TBoxNode,
     TConeNode,
-    TContour2DNode_2,
     TCylinderNode,
     TElevationGridNode,
     TExtrusionNode,
@@ -587,12 +581,10 @@ begin
     TIndexedFaceSetNode,
     TIndexedLineSetNode,
     TNurbsCurveNode,
-    TNurbsSurfaceNode,
     TPointSetNode,
     TSphereNode,
     TTextNode,
-    TText3DNode,
-    TTrimmedSurfaceNode
+    TText3DNode
   ]);
 
   try
@@ -917,12 +909,7 @@ begin
   begin
     N := InstantiableNodes[I].Create;
     try
-      if (N is TAbstractGeometryNode) and
-         { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
-           This isn't really mandated by any specification,
-           as VRML 97 spec doesn't use XML encoding,
-           so it doesn't specify containerField. }
-         (not (N is TContour2DNode_2)) then
+      if N is TAbstractGeometryNode then
       try
         AssertTrue(N.DefaultContainerField = 'geometry');
       except
@@ -992,15 +979,13 @@ begin
 
           { test proxy may be created }
           ProxyState := State;
-          ProxyGeometry := G.Proxy(ProxyState, false);
+          ProxyGeometry := G.Proxy(ProxyState);
 
           { test that methods are overriden correctly, and don't crash }
           G.BoundingBox(State, ProxyGeometry, ProxyState);
           G.LocalBoundingBox(State, ProxyGeometry, ProxyState);
-          G.VerticesCount(State, true, ProxyGeometry, ProxyState);
-          G.VerticesCount(State, false, ProxyGeometry, ProxyState);
-          G.TrianglesCount(State, true, ProxyGeometry, ProxyState);
-          G.TrianglesCount(State, false, ProxyGeometry, ProxyState);
+          G.VerticesCount(State, ProxyGeometry, ProxyState);
+          G.TrianglesCount(State, ProxyGeometry, ProxyState);
 
           { free proxy temp objects }
           if ProxyGeometry <> nil then FreeAndNil(ProxyGeometry);
@@ -2193,6 +2178,8 @@ var
 begin
   R := LoadNode('castle-data:/test_fix_names.x3dv');
   try
+    { We no longer do renames, so this test outcome just checks that nothing changed }
+    {
     AssertEquals('AA', R.FdChildren[0].X3DName);
     AssertEquals('AA_2', R.FdChildren[1].X3DName);
     AssertEquals('AA_3', R.FdChildren[2].X3DName);
@@ -2222,6 +2209,36 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
+    }
+    AssertEquals('AA', R.FdChildren[0].X3DName);
+    AssertEquals('AA', R.FdChildren[1].X3DName);
+    AssertEquals('AA', R.FdChildren[2].X3DName);
+    AssertEquals('AA', R.FdChildren[3].X3DName);
+    AssertEquals('AA', R.FdChildren[4].X3DName);
+
+    AssertEquals('BB_1', R.FdChildren[5].X3DName);
+    AssertEquals('BB_1', R.FdChildren[6].X3DName);
+    AssertEquals('BB_1', R.FdChildren[7].X3DName);
+    AssertEquals('BB_1', R.FdChildren[8].X3DName);
+    AssertEquals('BB_1', R.FdChildren[9].X3DName);
+
+    AssertEquals('CC_1a1', R.FdChildren[10].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[11].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[12].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[13].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[14].X3DName);
+
+    AssertEquals('DD_3', R.FdChildren[15].X3DName);
+    AssertEquals('DD_3', R.FdChildren[16].X3DName);
+    AssertEquals('DD_3', R.FdChildren[17].X3DName);
+    AssertEquals('DD_3', R.FdChildren[18].X3DName);
+    AssertEquals('DD_3', R.FdChildren[19].X3DName);
+
+    AssertEquals('EE_3', R.FdChildren[20].X3DName);
+    AssertEquals('EE_3', R.FdChildren[21].X3DName);
+    AssertEquals('EE_4', R.FdChildren[22].X3DName);
+    AssertEquals('EE_4', R.FdChildren[23].X3DName);
+    AssertEquals('EE_5', R.FdChildren[24].X3DName);
   finally FreeAndNil(R) end;
 end;
 
@@ -2248,6 +2265,126 @@ begin
     AssertTrue((Script.Field('container4', true) as TSFNode).Value =
                (Script.Field('container6', true) as TSFNode).Value);
   finally FreeAndNil(R) end;
+end;
+
+procedure TTestX3DNodes.TestNonGenericFind;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  try
+    RootNode.AddChildren(Switch);
+
+    AssertTrue(RootNode.FindNode(TX3DNode, 'Foo') <> nil); // undefined which node it will be
+
+    AssertTrue((RootNode.FindNode(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode) <> nil);
+    AssertVectorEquals(RedRGB, (RootNode.FindNode(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode).BaseColor);
+
+    AssertTrue((RootNode.FindNode(TBoxNode, 'Foo') as TBoxNode) <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), (RootNode.FindNode(TBoxNode, 'Foo') as TBoxNode).Size);
+  finally FreeAndNil(RootNode) end;
+end;
+
+{$ifdef GENERIC_METHODS}
+
+procedure TTestX3DNodes.TestGenericFind;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  try
+    RootNode.AddChildren(Switch);
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TX3DNode>('Foo') <> nil); // undefined which node it will be
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TPhysicalMaterialNode>('Foo') <> nil);
+    AssertVectorEquals(RedRGB, RootNode.{$ifdef FPC}specialize{$endif} Find<TPhysicalMaterialNode>('Foo').BaseColor);
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TBoxNode>('Foo') <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), RootNode.{$ifdef FPC}specialize{$endif} Find<TBoxNode>('Foo').Size);
+  finally FreeAndNil(RootNode) end;
+end;
+
+{$endif GENERIC_METHODS}
+
+procedure TTestX3DNodes.TestProtoExpansion;
+var
+  RootNode: TX3DRootNode;
+
+  procedure CheckProtoInstance(const ProtoIndex: Integer; const CorrectPaletteUrl: String);
+  var
+    T: TTransformNode;
+    S: TShapeNode;
+    CS: TComposedShaderNode;
+    PalleteField: TSFNode;
+    IT: TImageTextureNode;
+  begin
+    AssertTrue(RootNode.FdChildren[ProtoIndex] is TTransformNode);
+    T := RootNode.FdChildren[ProtoIndex] as TTransformNode;
+    AssertEquals(1, T.FdChildren.Count);
+    AssertTrue(T.FdChildren[0] is TShapeNode);
+    S := T.FdChildren[0] as TShapeNode;
+    AssertEquals(1, S.Appearance.FdShaders.Count);
+    AssertTrue(S.Appearance.FdShaders[0] is TComposedShaderNode);
+    CS := S.Appearance.FdShaders[0] as TComposedShaderNode;
+    PalleteField := CS.Field('palette') as TSFNode;
+    AssertTrue(PalleteField <> nil);
+    AssertTrue(PalleteField.Value is TImageTextureNode);
+    IT := PalleteField.Value as TImageTextureNode;
+    AssertEquals(1, IT.FdUrl.Count);
+    AssertEquals(CorrectPaletteUrl, IT.FdUrl.Items[0]);
+  end;
+
+begin
+  RootNode := LoadNode('castle-data:/proto_copy_test/model.x3dv');
+  try
+    AssertEquals(2, RootNode.FdChildren.Count);
+    AssertTrue(RootNode.FdChildren[1] is TTransformNode);
+    CheckProtoInstance(0, 'palette1.png');
+    CheckProtoInstance(1, 'palette2.png');
+  finally FreeAndNil(RootNode) end;
 end;
 
 initialization

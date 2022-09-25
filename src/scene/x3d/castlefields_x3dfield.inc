@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -323,8 +323,10 @@
     property ValueFromIsClause: boolean
       read FValueFromIsClause write FValueFromIsClause;
 
-    { Zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
-      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
+    { Whether the value is equal to default.
+      Returns always @false in TX3DField, descendants should override it.
+      It is used when writing the field value to X3D file (values that are default
+      do not have to be written, ever). }
     function EqualsDefaultValue: boolean; virtual;
 
     { @true if the SecondValue object has exactly the same type and properties.
@@ -458,6 +460,10 @@
       for prototypes, since then user can assign any value as default value.
       May be corrected in the future. }
     procedure AssignDefaultValueFromValue; virtual;
+
+    { Remove default value, recording that "no default is known".
+      In effect EqualsDefaultValue will always return @false. }
+    procedure UnassignDefaultValue; virtual;
 
     { Assigns value to this node calculated from linear interpolation
       between two given nodes Value1, Value2. Just like other lerp
@@ -1137,6 +1143,11 @@ begin
 end;
 
 procedure TX3DField.AssignDefaultValueFromValue;
+begin
+  { do nothing in this class }
+end;
+
+procedure TX3DField.UnassignDefaultValue;
 begin
   { do nothing in this class }
 end;

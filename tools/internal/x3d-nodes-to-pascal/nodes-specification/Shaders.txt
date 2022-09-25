@@ -1,24 +1,35 @@
 X3DShaderNode : X3DAppearanceChildNode {
+  default-container-field: shaders
+
   SFBool   [in]     activate
   SFBool   [out]    isSelected
   SFBool   [out]    isValid
   SFString []       language   ""
     range: ["CG"|"GLSL"|"HLSL"|...]
     enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
+    doc: Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL.
+    change: chEverything
 }
 
 X3DVertexAttributeNode : X3DGeometricPropertyNode {
+  default-container-field: attrib
+
   SFString []       name     ""
 }
 
 ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
   MFNode    [in,out] parts      []
     range: ShaderPart
-  # And any number of:
+    change: chEverything
+  SFString   []            uniformMissing    "WARNING"
+    range: ["WARNING", "IGNORE"]
+    enumerated-type: TUniformMissing UniformMissingNames umWarning
+    change: chEverything
+    doc: Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene.
 }
 
 FloatVertexAttribute : X3DVertexAttributeNode {
-  MFFloat  [in,out] value  		  []
+  MFFloat  [in,out] value                 []
     range: (-Inf,Inf)
   SFInt32  []       numComponents 4
     range: [1..4]
@@ -37,7 +48,6 @@ Matrix4VertexAttribute : X3DVertexAttributeNode {
 PackagedShader : X3DShaderNode, X3DUrlObject, X3DProgrammableShaderObject {
   MFString  [in,out] url        []
     range: [URI]
-  # And any number of:
 }
 
 ProgramShader : X3DShaderNode {
@@ -46,17 +56,23 @@ ProgramShader : X3DShaderNode {
 }
 
 ShaderPart : X3DNode, X3DUrlObject {
+  default-container-field: parts
+
   MFString [in,out] url      []
     range: [URI]
+    change: chEverything
   SFString []       type     "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
     enumerated-type: TShaderType ShaderTypeNameX3D stVertex
+    change: chEverything
 }
 
 ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
+  default-container-field: programs
+
   MFString  [in,out] url       []
     range: [URI]
   SFString  []       type      "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
-  # And any number of:
+    enumerated-type: TShaderType ShaderTypeNameX3D stVertex
 }

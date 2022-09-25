@@ -33,7 +33,9 @@ if [ -f castle-engine.lpr ]; then cd ../../; fi
 
 mkdir -p tools/build-tool/castle-engine-output/build-tool-compilation
 
-COMPILE_OPTIONS='-dRELEASE @castle-fpc.cfg
+COMPILE_OPTIONS='-dRELEASE
+  -dCASTLE_STRICT_CLI
+  @castle-fpc.cfg
   -FEtools/build-tool/
   -FUtools/build-tool/castle-engine-output/build-tool-compilation
   -Futools/common-code/

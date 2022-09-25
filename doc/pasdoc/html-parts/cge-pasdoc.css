@@ -95,12 +95,26 @@
   border-spacing: 0;
 }
 
+/* Small screens, like phones */
+@media (max-width: 1000px) {
+  /* nothing necessary now */
+}
+
+/* Large screens, like desktops */
+@media (min-width: 1001px) {
+  .pasdoc-container .navigation {
+    float: left;
+    width: 20em; /* must match .content margin-left */
+    height: 100%;
+    position: fixed;
+  }
+  .pasdoc-container .content {
+    margin-left: 20em; /* must match .navigation width */
+  }
+}
+
 .pasdoc-container .navigation {
-  float: left;
-  width: 20em; /* must match .content margin-left */
-  height: 100%;
   background-color: #787878;
-  position: fixed;
   margin: 0;
   box-sizing: border-box; /* without this, you could not have padding here, it would overlap with .content, causing errors on narrow screens */
   padding: 1em;
@@ -121,7 +135,6 @@
 }
 
 .pasdoc-container .content {
-  margin-left: 20em; /* must match .navigation width */
   box-sizing: border-box; /* without this, you could not have padding here, it would overlap with .navigation, causing errors on narrow screens */
   padding: 1em;
 }

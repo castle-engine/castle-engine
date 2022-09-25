@@ -73,6 +73,8 @@
 
 ../../../src/transform/ TCastleBillboard AxisOfRotation TVector3
 
+../../../src/transform/ TCastleStickToSurface Direction TVector3
+
 ../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
 ../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
 ../../../src/scene/ TCastleBox Size TVector3
@@ -91,6 +93,8 @@
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground Rotation TVector4
 
+../../../src/scene/ TCastleFog Color TCastleColorRGB
+
 ../../../src/scene/ TCastlePointLight Color TCastleColorRGB
 ../../../src/scene/ TCastlePointLight Attenuation TVector3
 
@@ -98,3 +102,8 @@
 
 ../../../src/scene/ TCastleSpotLight Color TCastleColorRGB
 ../../../src/scene/ TCastleSpotLight Attenuation TVector3
+
+../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
+
+../../../src/scene/ TCastleTerrain Size TVector2
+../../../src/scene/ TCastleTerrain Subdivisions TVector2

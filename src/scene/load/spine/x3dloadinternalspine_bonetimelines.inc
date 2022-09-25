@@ -262,14 +262,10 @@ procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TPositionInterpolatorNode;
-  {$ifdef FPC}
   NC: TCubicBezierPositionInterpolatorNode;
-  {$endif}
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  // TODO: Delphi support
-  {$ifdef FPC}
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
@@ -286,7 +282,6 @@ begin
     Node := NC;
     //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
   end else
-  {$endif}
   begin
     N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
@@ -351,14 +346,10 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TPositionInterpolatorNode;
-  {$ifdef FPC}
   NC: TCubicBezierPositionInterpolatorNode;
-  {$endif}
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  // TODO: Delphi support
-  {$ifdef FPC}
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
@@ -372,7 +363,6 @@ begin
     Node := NC;
     //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
   end else
-  {$endif}
   begin
     N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
@@ -439,15 +429,11 @@ procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TOrientationInterpolator2DNode;
-  {$ifdef FPC}
   NC: TCubicBezier2DOrientationInterpolatorNode;
-  {$endif}
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
   AngleValue: Single;
 begin
-  // TODO: Delphi support
-  {$ifdef FPC}
   if Curve then
   begin
     NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
@@ -464,7 +450,6 @@ begin
     Node := NC;
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);
   end else
-  {$endif}
   begin
     { We use TOrientationInterpolator2DNode instead of
       TOrientationInterpolatorNode with constant axis.

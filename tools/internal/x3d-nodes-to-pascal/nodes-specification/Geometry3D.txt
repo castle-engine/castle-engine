@@ -1,6 +1,4 @@
 Box : X3DGeometryNode {
-  auto-generate-more: true
-
   SFVec3f []       size     2 2 2
     range: (0,Inf)
     change: chGeometry
@@ -12,14 +10,9 @@ Box : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
-  SFInt32    [in,out]      divisions   -1
-    range: [-1, infinity)
-    change: chGeometry
 }
 
 Cone : X3DGeometryNode {
-  auto-generate-more: true
-
   SFBool  []       bottom       TRUE
     change: chGeometry
   SFFloat []       bottomRadius 1
@@ -45,8 +38,6 @@ Cone : X3DGeometryNode {
 }
 
 Cylinder : X3DGeometryNode {
-  auto-generate-more: true
-
   SFBool  []       bottom   TRUE
     change: chGeometry
   SFFloat []       height   2
@@ -74,8 +65,6 @@ Cylinder : X3DGeometryNode {
 }
 
 ElevationGrid : X3DGeometryNode {
-  auto-generate-more: true
-
   MFFloat [in]     set_height
     change: chGeometry
   MFNode  [in,out] attrib          []
@@ -123,8 +112,6 @@ ElevationGrid : X3DGeometryNode {
 }
 
 Extrusion : X3DGeometryNode {
-  auto-generate-more: true
-
   MFVec2f    [in]     set_crossSection
     change: chGeometry
   MFRotation [in]     set_orientation
@@ -167,8 +154,6 @@ Extrusion : X3DGeometryNode {
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
-  auto-generate-more: true
-
   MFInt32 [in]     set_colorIndex
     not-slim
     change: chGeometry
@@ -202,8 +187,6 @@ IndexedFaceSet : X3DComposedGeometryNode {
 }
 
 Sphere : X3DGeometryNode {
-  auto-generate-more: true
-
   SFFloat []       radius   1
     range: (0,Inf)
     change: chGeometry

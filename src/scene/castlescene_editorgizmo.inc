@@ -31,6 +31,8 @@ type
 
     { Set various properties for internal TCastleTransform, shown only for debug. }
     procedure InternalTransform(const T: TCastleTransform);
+    function GetSelectBoxTranslation: TVector3;
+    procedure SetSelectBoxTranslation(const Value: TVector3);
   protected
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
@@ -43,8 +45,6 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
     function LocalBoundingBox: TBox3D; override;
 
-    { You have to call it once, right after creating. }
-    procedure SetParent(const AOwner: TCastleTransform);
     { Show given node graph as the gizmo visualization.
       The given RootNode will become owned by this instance. }
     procedure LoadVisualization(const RootNode: TX3DRootNode);
@@ -55,6 +55,7 @@ type
     function LinesShape(out Coord: TCoordinateNode; const VertexCount: array of Integer): TShapeNode; overload;
     { Set the image to display as icon. }
     procedure SetIconUrl(const Url: String);
+    property SelectBoxTranslation: TVector3 read GetSelectBoxTranslation write SetSelectBoxTranslation;
   end;
 
 {$endif read_interface}
@@ -64,24 +65,12 @@ type
 { TInternalCastleEditorGizmo ------------------------------------------------- }
 
 constructor TInternalCastleEditorGizmo.Create(AOwner: TComponent);
-begin
-  inherited;
-  SetTransient;
-end;
-
-procedure TInternalCastleEditorGizmo.InternalTransform(const T: TCastleTransform);
-begin
-  T.InternalExcludeFromParentBoundingVolume := true;
-  T.Pickable := false;
-  T.Collides := false;
-  T.CastShadowVolumes := false;
-  T.ExcludeFromStatistics := true;
-end;
-
-procedure TInternalCastleEditorGizmo.SetParent(const AOwner: TCastleTransform);
 const
   GizmoSize = 1.0;
 begin
+  inherited;
+  SetTransient;
+
   // This allows user to select parent (camera, light etc.) by clicking in CGE editor
   GizmoSelect := TCastleBox.Create(Self);
   GizmoSelect.Size := CastleVectors.Vector3(GizmoSize, GizmoSize, GizmoSize);
@@ -95,12 +84,22 @@ begin
   GizmoImage := TCastleImageTransform.Create(Self);
   GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
   GizmoImage.Mipmaps := true;
+  GizmoImage.Exists := false; // will change to true in SetIconUrl, just a tiny optimization to not use GizmoImage when no icon
   InternalTransform(GizmoImage);
   Add(GizmoImage);
 
   GizmoBillboard := TCastleBillboard.Create(Self);
   GizmoBillboard.AxisOfRotation := TVector3.Zero;
   GizmoImage.AddBehavior(GizmoBillboard);
+end;
+
+procedure TInternalCastleEditorGizmo.InternalTransform(const T: TCastleTransform);
+begin
+  T.InternalExcludeFromParentBoundingVolume := true;
+  T.Pickable := false;
+  T.Collides := false;
+  T.CastShadowVolumes := false;
+  T.ExcludeFromStatistics := true;
 end;
 
 procedure TInternalCastleEditorGizmo.LoadVisualization(const RootNode: TX3DRootNode);
@@ -131,8 +130,18 @@ var
   LineSet: TLineSetNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
+  ThisVertexCount: Integer;
+  TotalVertexCount: Cardinal;
+  InitialVertexes: array of TVector3;
 begin
+  TotalVertexCount := 0;
+  for ThisVertexCount in VertexCount do
+    TotalVertexCount := TotalVertexCount + ThisVertexCount;
+
   Coord := TCoordinateNode.Create;
+  // Initialize with zero vectors, to allow to initialize VBO and avoid warnings about not enough coordinates.
+  SetLength(InitialVertexes, TotalVertexCount);
+  Coord.SetPoint(InitialVertexes);
 
   LineSet := TLineSetNode.Create;
   LineSet.Coord := Coord;
@@ -196,6 +205,17 @@ end;
 procedure TInternalCastleEditorGizmo.SetIconUrl(const Url: String);
 begin
   GizmoImage.Url := Url;
+  GizmoImage.Exists := Url <> '';
+end;
+
+function TInternalCastleEditorGizmo.GetSelectBoxTranslation: TVector3;
+begin
+  Result := GizmoSelect.Translation;
+end;
+
+procedure TInternalCastleEditorGizmo.SetSelectBoxTranslation(const Value: TVector3);
+begin
+  GizmoSelect.Translation := Value;
 end;
 
 {$endif read_implementation}

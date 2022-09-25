@@ -1,0 +1,105 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "AutoCamera" : true,
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.0871795564889908E-001,
+          "Y" : -5.7986038923263550E-001,
+          "Z" : 8.0742943286895752E-001
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.3964990377426147E+000,
+          "Y" : 1.1744249343872070E+001,
+          "Z" : -1.0371550559997559E+001
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 7.7378094196319580E-002,
+          "Y" : 8.1471586227416992E-001,
+          "Z" : 5.7467442750930786E-001
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "FieldOfView" : 6.9111120700836182E-001,
+          "Name" : "Perspective"
+        }
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "MainScene" : "Scene1",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "rotate_cam_rotor",
+            "ExposeTransforms" : [
+              "BirdObject"
+            ],
+            "Name" : "Scene1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "URL" : "castle-data:/demo_animation/demo_animation.gltf",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BirdObject",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.8313063383102417E-001,
+                  "Y" : 4.8313063383102417E-001,
+                  "Z" : 4.8313063383102417E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 7.2157044410705566E+000,
+                  "Z" : -4.9594073295593262E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSoundSource",
+                    "Name" : "SoundSource1",
+                    "Sound" : "Sound1",
+                    "Volume" : 5.0000000000000000E-001,
+                    "$NonVisualComponents" : [
+                      {
+                        "$$ClassName" : "TCastleSound",
+                        "Name" : "Sound1",
+                        "URL" : "castle-data:/demo_animation/amb_bird_cricket_frog/amb_bird_2.wav"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1"
+    }
+  ]
+}

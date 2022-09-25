@@ -1,0 +1,357 @@
+AbstractVrml1Geometry : X3DGeometryNode {
+  vrml1
+}
+
+AsciiText : AbstractVrml1Geometry {
+  vrml1
+  MFString [in,out] string ['']
+    change: chGeometry
+  SFFloat [in,out] spacing 1
+    change: chGeometry
+  SFEnum [in,out] justification JUSTIFICATION_LEFT
+    change: chGeometry
+    enumerated-type-vrml1: JustificationNames1
+  MFFloat [in,out] width [0]
+    change: chGeometry
+}
+
+Cone : AbstractVrml1Geometry {
+  vrml1
+  SFBitMask [in,out] parts [true, true]
+    bit-mask-vrml1: ['SIDES', 'BOTTOM'], 'NONE', 'ALL'
+    change: chGeometry
+  SFFloat [in,out] bottomRadius 1
+    range: (0,Inf)
+    change: chGeometry
+  SFFloat [in,out] height 2
+    range: (0,Inf)
+    change: chGeometry
+}
+
+Cube : AbstractVrml1Geometry {
+  vrml1
+  SFFloat [in,out] width 2
+    range: (0,Inf)
+    change: chGeometry
+  SFFloat [in,out] height 2
+    range: (0,Inf)
+    change: chGeometry
+  SFFloat [in,out] depth 2
+    range: (0,Inf)
+    change: chGeometry
+}
+
+Cylinder : AbstractVrml1Geometry {
+  vrml1
+  SFBitMask [in,out] parts [true, true, true]
+    bit-mask-vrml1: ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL'
+    change: chGeometry
+  SFFloat [in,out] radius 1
+    range: (0,Inf)
+    change: chGeometry
+  SFFloat [in,out] height 2
+    range: (0,Inf)
+    change: chGeometry
+}
+
+AbstractVrml1Indexed : AbstractVrml1Geometry {
+  vrml1
+  MFLong [in,out] coordIndex [0]
+    change: chGeometry
+  MFLong [in,out] materialIndex [-1]
+    change: chGeometry
+  MFLong [in,out] normalIndex [-1]
+    change: chGeometry
+  MFLong [in,out] textureCoordIndex [-1]
+    change: chGeometry
+}
+
+IndexedFaceSet : TIndexedFacesOrTrianglesNode_1 {
+  vrml1
+  MFVec3f [in,out] radianceTransfer []
+    change: chGeometry
+}
+
+IndexedLineSet : AbstractVrml1Indexed {
+  vrml1
+}
+
+PointSet : AbstractVrml1Geometry {
+  vrml1
+  SFLong [in,out] startIndex 0
+    change: chGeometry
+  SFLong [in,out] numPoints -1
+    change: chGeometry
+}
+
+Sphere : AbstractVrml1Geometry {
+  vrml1
+  SFFloat [in,out] radius 1
+    range: (0,Inf)
+    change: chGeometry
+}
+
+Coordinate3 : X3DChildNode {
+  vrml1
+  MFVec3f [in,out] point [Vector3(0, 0, 0)]
+    change: chCoordinate
+}
+
+FontStyle : X3DChildNode {
+  vrml1
+  SFFloat [in,out] size 10
+    range: (0,Inf)
+    change: chGeometryVRML1State
+  SFEnum [in,out] family FSFAMILY_SERIF
+    enumerated-type-vrml1: FamilyNames1
+    change: chGeometryVRML1State
+  SFBitMask [in,out] style [false, false]
+    bit-mask-vrml1: ['BOLD', 'ITALIC'], 'NONE', ''
+    change: chGeometryVRML1State
+  SFBool [in,out] blending TRUE
+    change: chGeometryVRML1State
+}
+
+Info : X3DChildNode {
+  vrml1
+  SFString [in,out] string "<Undefined info>"
+}
+
+LOD : X3DChildNode {
+  vrml1
+  MFFloat [in,out] range []
+  SFVec3f [in,out] center 0 0 0
+}
+
+Material : X3DChildNode {
+  vrml1
+  MFColor [in,out] ambientColor [TPhongMaterialInfo.DefaultAmbientColor]
+    change: chVisibleNonGeometry
+  MFColor [in,out] diffuseColor [TPhongMaterialInfo.DefaultDiffuseColor]
+    change: chVisibleNonGeometry
+  MFColor [in,out] specularColor [TPhongMaterialInfo.DefaultSpecularColor]
+    change: chVisibleNonGeometry
+  MFColor [in,out] emissiveColor [TPhongMaterialInfo.DefaultEmissiveColor]
+    change: chVisibleNonGeometry
+  MFFloat [in,out] shininess [TPhongMaterialInfo.DefaultShininess]
+    change: chVisibleNonGeometry
+  MFFloat [in,out] transparency [TMaterialInfo.DefaultTransparency]
+    change: chAlphaChannel
+  MFFloat [in,out] mirror [0.0]
+    change: chVisibleNonGeometry
+  MFColor [in,out] reflSpecular []
+    change: chVisibleNonGeometry
+  MFColor [in,out] reflDiffuse []
+    change: chVisibleNonGeometry
+  MFColor [in,out] transSpecular []
+    change: chVisibleNonGeometry
+  MFColor [in,out] transDiffuse []
+    change: chVisibleNonGeometry
+  MFFloat [in,out] reflSpecularExp [TPhongMaterialInfo.DefaultReflSpecularExp]
+    change: chVisibleNonGeometry
+  MFFloat [in,out] transSpecularExp [TPhongMaterialInfo.DefaultTransSpecularExp]
+    change: chVisibleNonGeometry
+  SFBool [in,out] fogImmune FALSE
+    change: chVisibleNonGeometry
+}
+
+MaterialBinding : X3DChildNode {
+  vrml1
+  SFEnum [in,out] value BIND_OVERALL
+    enumerated-type-vrml1: BindingNames1
+    change: chVisibleVRML1State
+}
+
+NormalBinding : X3DChildNode {
+  vrml1
+  SFEnum [in,out] value BIND_DEFAULT
+    enumerated-type-vrml1: BindingNames1
+    change: chVisibleVRML1State
+}
+
+Texture2 : X3DTexture2D {
+  vrml1
+  SFString [in,out] filename ""
+    change: chTextureImage
+  SFImage [in,out] image nil
+    change: chTextureImage
+  SFEnum [in,out] wrapS TEXWRAP_REPEAT
+    enumerated-type-vrml1: WrapNames1
+    change: chTexturePropertiesNode
+  SFEnum [in,out] wrapT TEXWRAP_REPEAT
+    enumerated-type-vrml1: WrapNames1
+    change: chTexturePropertiesNode
+  SFEnum [in,out] model 0
+    enumerated-type-vrml1: TextureModelNames1
+    change: chTexturePropertiesNode
+    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+  SFVec3f [in,out] blendColor 0 0 0
+    change: chTexturePropertiesNode
+    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+}
+
+Texture2Transform : X3DChildNode {
+  vrml1
+  SFVec2f [in,out] translation 0 0
+    change: chEverything
+  SFFloat [in,out] rotation 0
+    change: chEverything
+  SFVec2f [in,out] scaleFactor 1 1
+    change: chEverything
+  SFVec2f [in,out] center 0 0
+    change: chEverything
+}
+
+TextureCoordinate2 : X3DChildNode {
+  vrml1
+  MFVec2f [in,out] point [Vector2(0, 0)]
+    change: chVisibleVRML1State
+}
+
+TextureCoordinate2 : X3DChildNode {
+  vrml1
+  MFVec2f [in,out] point [Vector2(0, 0)]
+    change: chVisibleVRML1State
+}
+
+ShapeHints : X3DChildNode {
+  vrml1
+  SFEnum [in,out] vertexOrdering VERTORDER_UNKNOWN
+    enumerated-type-vrml1: VertexOrderingNames1
+    change: chVisibleVRML1State
+  SFEnum [in,out] shapeType SHTYPE_UNKNOWN
+    enumerated-type-vrml1: ShapeTypeNames1
+    change: chVisibleVRML1State
+  SFEnum [in,out] faceType FACETYPE_CONVEX
+    enumerated-type-vrml1: FaceTypeNames1
+    change: chVisibleVRML1State
+  SFFloat [in,out] creaseAngle DefaultVRML1CreaseAngle
+    angle
+    change: chVisibleVRML1State
+}
+
+AbstractVrml1Transformation : X3DChildNode {
+  vrml1
+}
+
+MatrixTransform : AbstractVrml1Transformation {
+  vrml1
+  SFMatrix [in,out] matrix identity
+    change: chEverything
+}
+
+Rotation : AbstractVrml1Transformation {
+  vrml1
+  SFRotation [in,out] rotation 0 0 1 0
+    change: chEverything
+}
+
+Scale : AbstractVrml1Transformation {
+  vrml1
+  SFVec3f [in,out] scaleFactor 1 1 1
+    change: chEverything
+}
+
+Transform : AbstractVrml1Transformation {
+  vrml1
+  SFVec3f [in,out] translation 0 0 0
+    change: chEverything
+  SFRotation [in,out] rotation 0 0 1 0
+    change: chEverything
+  SFVec3f [in,out] scaleFactor 1 1 1
+    change: chEverything
+  SFRotation [in,out] scaleOrientation 0 0 1 0
+    change: chEverything
+  SFVec3f [in,out] center 0 0 0
+    change: chEverything
+}
+
+Translation : AbstractVrml1Transformation {
+  vrml1
+  SFVec3f [in,out] translation 0 0 0
+    change: chEverything
+}
+
+AbstractVrml1Camera : X3DViewpointNode {
+  vrml1
+  SFVec3f [in,out] position 0 0 1
+    change: chViewpointVectors
+  SFFloat [in,out] focalDistance 5
+    range: (0,Inf)
+  SFFloat [in,out] nearDistance 0
+    change: chViewpointVectors
+    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+  SFFloat [in,out] farDistance 0
+    change: chViewpointVectors
+    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+}
+
+OrthographicCamera : AbstractVrml1Camera {
+  vrml1
+  SFFloat [in,out] height 2
+    range: (0,Inf)
+}
+
+PerspectiveCamera : AbstractVrml1Camera {
+  vrml1
+  SFFloat [in,out] heightAngle Pi/4
+    range: (0,Inf)
+}
+
+DirectionalLight : X3DDirectionalLight {
+  vrml1
+}
+
+PointLight : X3DPointLight {
+  vrml1
+  # Note: default "location" for VRML 1.0 changes, compared to ancestor X3DPointLight
+}
+
+SpotLight : X3DPositionalLight {
+  vrml1
+  # Note: default "location" for VRML 1.0 changes, compared to ancestor X3DPointLight
+  SFVec3f [in,out] direction 0 0 -1
+    change: chLightLocationDirection
+  SFFloat [in,out] dropOffRate 0
+    change: chVisibleNonGeometry
+  SFFloat [in,out] cutOffAngle Pi/4
+    change: chVisibleNonGeometry
+}
+
+Group : X3DChildNode {
+  vrml1
+}
+
+AbstractVrml1Separator : X3DChildNode {
+  vrml1
+}
+
+Separator : AbstractVrml1Separator {
+  vrml1
+  SFEnum [in,out] renderCulling 2
+    enumerated-type-vrml1: RenderCullingNames1
+}
+
+Switch : X3DChildNode {
+  vrml1
+  SFLong [in,out] whichChild -1
+    change: chEverything
+}
+
+TransformSeparator : X3DChildNode {
+  vrml1
+}
+
+WWWAnchor : AbstractVrml1Separator {
+  vrml1
+  SFString [in,out] name ""
+  SFString [in,out] description ""
+  SFEnum [in,out] map 0
+    enumerated-type-vrml1: MapNames1
+}
+
+WWWInline : Inline {
+  vrml1
+  SFBool [in,out] separate TRUE
+    change: chEverything
+}

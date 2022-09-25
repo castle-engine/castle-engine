@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 
 { I initially rendered ElevationGrid directly, by GL_QUAD_STRIP
   for each row. Fast, but has troubles:
@@ -154,10 +153,5 @@ begin
     IFS.FdAttrib.AssignValue(FdAttrib);
     {$endif}
   except FreeAndNil(Result); raise end;
-end;
-
-function TElevationGridNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 

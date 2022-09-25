@@ -1,13 +1,9 @@
 X3DScriptNode : X3DChildNode, X3DURLObject {
-  auto-generate-more: true
-
   MFString [in,out] url      []
     range: [URI]
 }
 
 Script : X3DScriptNode {
-  auto-generate-more: true
-
   SFBool    []       directOutput FALSE
   SFBool    []       mustEvaluate FALSE
 }

@@ -27,9 +27,8 @@ type
   TProjectionTypeCore = (ptOrthographic, ptPerspective, ptFrustum);
   TProjectionType = ptOrthographic .. ptPerspective;
 
-  { Projection determines how does the 3D world map onto 2D.
-    To change the currently displayed projection,
-    you usually want to override the @link(TCastleViewport.CalculateProjection). }
+  { Projection determines how does the 3D world map onto 2D screen.
+    To change the currently used projection, change the TCastleCamera parameters. }
   TProjection = record
     ProjectionType: TProjectionTypeCore;
 
@@ -57,12 +56,6 @@ type
       Note that it have a special value ZFarInfinity, which means that
       no far clipping plane is used. E.g. shadow volumes require this. }
     ProjectionFar: Single;
-
-    { Far clipping distance to be used in cases when it cannot be infinite.
-      Unlike ProjectionFar, this property cannot have a magical value ZFarInfinity.
-      It should be calculated just like ProjectionFar,
-      except it's never changed to be ZFarInfinity. }
-    ProjectionFarFinite: Single;
 
     { Projection matrix, adjusted to given viewport aspect ratio (width/height). }
     function Matrix(const AspectRatio: Single): TMatrix4;
@@ -149,7 +142,7 @@ begin
       Result := OrthoProjectionMatrix(
         Dimensions,
         ProjectionNear,
-        ProjectionFarFinite);
+        ProjectionFar);
     ptFrustum:
       Result := FrustumProjectionMatrix(
         Dimensions,
@@ -168,7 +161,8 @@ begin
       see TCastleViewport.CalculateProjection .
       Testcase: glTF-Sample-Models/2.0/Cameras/glTF/Cameras.gltf , switch to ortho viewpoint. }
     // (ProjectionNear <> 0) and
-    (ProjectionFarFinite <> 0) and
+    { ProjectionFar may remain = 0 = ZFarInfinity. }
+    // (ProjectionFar <> 0) and
     (Dimensions.Width <> 0) and
     (Dimensions.Height <> 0);
 end;

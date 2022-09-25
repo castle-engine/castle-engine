@@ -207,13 +207,8 @@ begin
   Color4 := Vector4(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
-  if LightNode.FdAmbientIntensity.Value < 0 then
-    AmbientColor4 := Color4 else
-  begin
-    AmbientColor3 := LightNode.FdColor.Value *
-      LightNode.FdAmbientIntensity.Value;
-    AmbientColor4 := Vector4(AmbientColor3, 1);
-  end;
+  AmbientColor3 := LightNode.FdColor.Value * LightNode.FdAmbientIntensity.Value;
+  AmbientColor4 := Vector4(AmbientColor3, 1);
 
   glLightv(glLightNum, GL_AMBIENT, AmbientColor4);
   glLightv(glLightNum, GL_DIFFUSE, Color4);

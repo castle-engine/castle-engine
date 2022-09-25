@@ -32,8 +32,7 @@
       The purpose of such global input map is to be able to detect key conflicts,
       be able to restore whole input map to default,
       load/save them to the user config file, and so on.
-      @link(CastleViewport.Input_Interact) is global,
-      various inputs defined in @link(CastlePlayer) unit are global too.
+      For example @link(CastleViewport.Input_Interact) is global.
 
       Global shortcuts are owned (they will be freed by) this unit
       (more specifically, they will be freed by InputsAll).
@@ -71,9 +70,10 @@ interface
 
 uses Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleXMLConfig, CastleUIControls;
+  CastleXMLConfig {$ifndef CASTLE_STRICT_CLI} , CastleUIControls {$endif};
 
 type
+  { Type of input, for TInputShortcut.Group. }
   TInputGroup = (igLocal, igBasic, igItems, igOther);
   TInputGroupNotLocal = igBasic..High(TInputGroup);
 
@@ -223,9 +223,11 @@ type
     function IsPressed(const Pressed: TKeysPressed;
       const MousePressed: TCastleMouseButtons): boolean; overload;
 
+    {$ifndef CASTLE_STRICT_CLI}
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
     function IsPressed(const Container: TCastleContainer): boolean; overload;
+    {$endif}
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
@@ -673,10 +675,12 @@ begin
     );
 end;
 
+{$ifndef CASTLE_STRICT_CLI}
 function TInputShortcut.IsPressed(const Container: TCastleContainer): boolean;
 begin
   Result := IsPressed(Container.Pressed, Container.MousePressed);
 end;
+{$endif}
 
 function TInputShortcut.IsKey(const Key: TKey; AKeyString: String): boolean;
 begin

@@ -1174,7 +1174,11 @@
     function MoveAllowed(const OldPos, NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; overload;
 
-    { Cast a ray, see what is hit.
+    { Check for ray collisions within this TCastleTransform and children.
+      @exclude }
+    function InternalRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
+
+    { Cast a ray, see what is hit (checks the whole world, not just this TCastleTransform hierarchy).
 
       The given RayOrigin, RayDirection are in the parent
       coordinate system of this TCastleTransform.
@@ -1185,7 +1189,7 @@
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    { Cast a ray, see what is hit.
+    { Cast a ray, see what is hit (checks the whole world, not just this TCastleTransform hierarchy).
 
       The given RayOrigin, RayDirection are in the parent
       coordinate system of this TCastleTransform.
@@ -1494,7 +1498,7 @@
 
     { Rotation in 3D, around a specified axis.
       Rotation is expressed as a 4D vector, in which the first 3 components
-      specify the rotation axis (does not need to be normalized, but must be non-zero),
+      specify the rotation axis (does not need to be normalized, but must be non-zero)
       and the last component is the rotation angle @italic(in radians).
 
       Note: the Rotation axis (first 3 components) must not be a zero vector,
@@ -1543,7 +1547,7 @@
           negative scale is Ok.
 
           If you really need to use negative scale and lighting,
-          enable @link(TRenderOptions.RobustNegativeScale).)
+          enable @link(TCastleRenderOptions.RobustNegativeScale).)
 
         @item(At least, keep all scale components non-zero.
           Otherwise the scaling operation is not invertible,
@@ -2474,7 +2478,21 @@ begin
   if Exists then
   begin
     for I := 0 to List.Count - 1 do
-      if not List[I].InternalExcludeFromParentBoundingVolume then
+      { Ignoring InternalExcludeFromParentBoundingVolume when
+        InternalGizmoBoundingBox <> 0 is a hack,
+        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then TGizmoScene box is taken into account.
+        Otherwise 2D projection in editor could cut off the TGizmoScene.
+
+        Testcase:
+        - 2d viewport
+        - add a few TCastleImageTransform with some image loaded with Z = -1000.
+        - add TCastleTransform with translation 0,0,0, select it
+        - -> the gizmo of it has to be visible, even though everything visible
+          (excluding gizmos) is at Z = -1000.
+      }
+      if not (List[I].InternalExcludeFromParentBoundingVolume and
+              (InternalGizmoBoundingBox = 0)) then
         Result.Include(List[I].BoundingBox);
   end;
 end;

@@ -134,7 +134,7 @@
 
   { Abstract node type that indicates that the node may be used as
     a child of a grouping node,
-    e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
+    e.g. inside @link(TAbstractGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;

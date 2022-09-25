@@ -22,7 +22,11 @@ jobs:
         # TODO: Not including windows-latest, as it fails:
         # ./tools/build-tool/castle-engine_compile.sh: line 43: fpc: command not found
         # Looks like https://github.com/gcarreno/setup-lazarus doesn't put FPC on $PATH on Windows?
-        operating-system: [ubuntu-latest, macos-latest]
+        #
+        # Not using macos-latest as it randomly fails because of timeouts
+        # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
+        # Looks like GH hosted macOS runner is just too busy.
+        operating-system: [ubuntu-latest]
         lazarus-versions: [stable]
     runs-on: ${{ matrix.operating-system }}
     steps:

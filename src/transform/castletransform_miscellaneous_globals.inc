@@ -32,6 +32,9 @@ const
 
 function StrToOrientationType(const S: String): TOrientationType;
 
+var
+  InternalGizmoBoundingBox: Cardinal;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

@@ -59,7 +59,6 @@ begin
   if CastleDesignMode then
   begin
     FGizmo := TInternalCastleEditorGizmo.Create(Self);
-    FGizmo.SetParent(Self);
     Add(FGizmo);
   end;
 end;

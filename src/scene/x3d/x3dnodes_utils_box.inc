@@ -22,8 +22,7 @@
 procedure Box_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List; MaterialIndex: TLongIntList;
-  OverTriangulate: boolean; Sizes: TVector3;
-  const Divisions: Cardinal);
+  Sizes: TVector3);
 
 var
   Detail: TVector3Cardinal;
@@ -128,12 +127,11 @@ begin
 
   { Currently, all three Detail* used are always equal.
     Although the code is written to support different Detail* values,
-    just in case in the future it will be useful. }
-  if OverTriangulate then
-    Detail.X := Divisions else
-    Detail.X := 0;
-  Detail.Y := Detail.X;
-  Detail.Z := Detail.X;
+    just in case in the future it will be useful.
+
+    TODO: simplify the surrounding code, because right now
+    Detail is always 0. }
+  Detail := TVector3Cardinal.Zero;
 
   Sizes := Sizes / 2;
 
@@ -173,8 +171,7 @@ begin
   ]);
 end;
 
-function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TBoxNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 
   procedure BoxWireframe;
   var
@@ -222,7 +219,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
 
       Box_Proxy(IFS.FdCoordIndex.Items,
         CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-        OverTriangulate, FdSize.Value, CalculateDivisions);
+        FdSize.Value);
 
       IFS.FdSolid.Value := FdSolid.Value;
       IFS.FdCcw.Value := FdCcw.Value;
@@ -245,8 +242,7 @@ begin
     BoxFilled;
 end;
 
-function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
@@ -303,9 +299,7 @@ begin
     Box_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items, MaterialIndex,
-      OverTriangulate,
-      Vector3(FdWidth.Value, FdHeight.Value, FdDepth.Value),
-      DefaultTriangulationDivisions);
+      Vector3(FdWidth.Value, FdHeight.Value, FdDepth.Value));
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

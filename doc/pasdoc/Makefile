@@ -70,8 +70,6 @@ clean: clean-cache
 SSH_USERNAME=michalis
 SSH_HOST=ssh.castle-engine.io
 SSH_PATH=/home/michalis/cge-html/apidoc/
-# Use this for unstable docs:
-#SSH_PATH=/home/michalis/cge-html/apidoc-unstable/
 
 # Prepare and upload all the stuff referenced under
 # https://castle-engine.io/apidoc/html/ .

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFindFiles" -*-
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,7 +37,7 @@ uses CastleFindFiles;
 
 procedure TTestCastleFindFiles.TestNilHandler;
 begin
-  AssertEquals(2, FindFiles('castle-data:/designs/', '*.castle-user-interface', false, nil, [ffRecursive]));
+  AssertEquals(3, FindFiles('castle-data:/designs/', '*.castle-user-interface', false, nil, [ffRecursive]));
 end;
 
 initialization

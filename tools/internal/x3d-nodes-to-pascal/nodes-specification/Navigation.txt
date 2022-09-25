@@ -1,12 +1,11 @@
 X3DViewpointNode : X3DBindableNode {
-  auto-generate-more: true
-
   SFVec3f    [in,out] centerOfRotation  0 0 0
     range: (-Inf,Inf)
   SFString   [in,out] description       ""
   SFBool     [in,out] jump              TRUE
   SFRotation [in,out] orientation       0 0 1 0
     range: [-1,1],(-Inf,Inf)
+    doc: Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp).
   SFBool     [in,out] retainUserOffsets FALSE
 
   # CASTLE GAME ENGINE EXTENSIONS:
@@ -18,19 +17,18 @@ X3DViewpointNode : X3DBindableNode {
   MFVec3f    [in,out]      direction   []
   MFVec3f    [in,out]      up          []
   SFVec3f    [in,out]      gravityUp   0 1 0
+    doc: Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated
   SFBool     [in,out]      gravityTransform  TRUE
+    doc: Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode.
 }
 
 Billboard : X3DGroupingNode {
-  auto-generate-more: true
-
   SFVec3f [in,out] axisOfRotation 0 1 0
     range: (-Inf,Inf)
+    doc: Axis around which the billboard rotates to face the camera. Can be zero to rotate freely.
 }
 
 Collision : X3DGroupingNode, X3DSensorNode {
-  auto-generate-more: true
-
   SFBool  [in,out] enabled TRUE
     change: chEverything
   SFTime  [out]    collideTime
@@ -41,8 +39,6 @@ Collision : X3DGroupingNode, X3DSensorNode {
 }
 
 LOD : X3DGroupingNode {
-  auto-generate-more: true
-
   SFInt32 [out]    level_changed
   SFVec3f []       center           0 0 0
     range: (-Inf,Inf)
@@ -56,16 +52,16 @@ LOD : X3DGroupingNode {
 }
 
 NavigationInfo : X3DBindableNode {
-  auto-generate-more: true
-
   MFFloat  [in,out] avatarSize      [0.25, 1.6, 0.75]
     range: [0,Inf)
     change: chNavigationInfo
   SFBool   [in,out] headlight       TRUE
     change: chHeadLightOn
+    doc: Control the headlight. @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera.
   SFFloat  [in,out] speed           1.0
     range: [0,Inf)
     change: chNavigationInfo
+    doc: Movement speed. @deprecated Instead of this, control the move speed using @link(TCastleWalkNavigation.MoveSpeed).
   SFTime   [in,out] transitionTime  1.0
     range: [0, Inf)
   MFString [in,out] transitionType  ["LINEAR"]
@@ -82,11 +78,23 @@ NavigationInfo : X3DBindableNode {
     range: ["DEFAULT", "NONE", "2D", "3D"]
     enumerated-type: TOptionalBlendingSort BlendingSortNames obsDefault
     change: chRedisplay
+    doc: Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort).
+  SFBool [] timeOriginAtLoad FALSE
+    doc: @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion.
+  SFFloat [in,out] headBobbing TCastleWalkNavigation.DefaultHeadBobbing
+    range: [0,1)
+    change: chNavigationInfo
+    doc: Intensity of head bobbing. 0 means to not do head bobbing. Must be >= 0 and < 1, but sensible values are close to 0 (while any values < 1 are technically allowed, but they make the head bobbing effect crazily exaggerated). See https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_head_bobbing .
+  SFFloat [in,out] headBobbingTime TCastleWalkNavigation.DefaultHeadBobbingTime
+    range: (0,Inf)
+    change: chNavigationInfo
+    doc: How much time passes to make full head bobbing sequence (camera swing up and then down back to original height). See https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_head_bobbing .
+  SFNode     [in,out]      headlightNode           NULL
+    range: X3DLightNode
+    doc: Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight . @deprecated Instead of this, control the headlight by placing light component (like TCastleDirectionalLight or TCastleSpotLight) as child of TCastleCamera.
 }
 
 OrthoViewpoint : X3DViewpointNode {
-  auto-generate-more: true
-
   MFFloat    [in,out] fieldOfView       [-1, -1, 1, 1]
     range: (-Inf,Inf)
     change: chViewpointProjection
@@ -96,8 +104,6 @@ OrthoViewpoint : X3DViewpointNode {
 }
 
 Viewpoint : X3DViewpointNode {
-  auto-generate-more: true
-
   SFFloat    [in,out] fieldOfView       Pi/4
     range: (0,Pi)
     change: chViewpointProjection
@@ -111,8 +117,6 @@ Viewpoint : X3DViewpointNode {
 }
 
 ViewpointGroup : X3DChildNode {
-  auto-generate-more: true
-
   SFVec3f  [in,out] center            0 0 0
     range: (-Inf,Inf)
   MFNode   [in,out] children          []

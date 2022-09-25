@@ -625,7 +625,9 @@ begin
     See CGE examples/viewport_and_scenes/multiple_viewports ,
     examples/user_interface/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
+  ExtraViewport.Items.Remove(ExtraViewport.Camera);
   ExtraViewport.Items := Viewport.Items; // share the same world as Viewport
+  ExtraViewport.Items.Add(ExtraViewport.Camera);
   ExtraViewport.FullSize := false;
   ExtraViewport.Width := 150;
   ExtraViewport.Height := 400;

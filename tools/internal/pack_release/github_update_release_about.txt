@@ -1,0 +1,16 @@
+The file github_update_release.txt contains the name of GitHub release (Git tag)
+where the current release should be uploaded.
+This is only relevant for CGE master branch.
+
+Example values:
+- "snapshot" ( https://github.com/castle-engine/castle-engine/releases/tag/snapshot )
+- "v7.0-alpha.2" ( https://github.com/castle-engine/castle-engine/releases/tag/v7.0-alpha.2 )
+
+The github_update_release.txt file can have a newline after the release name.
+Other than that, it cannot contain any extra comments or whitespace.
+
+If github_update_release.txt is empty, this commit is not uploaded as any GitHub release.
+
+Note: The Jenkins job that uploads GitHub releases is hosted outside of CGE repo,
+for security (it needs to use GitHub token with write permissions,
+so only CGE admins should have ability to interact with it).

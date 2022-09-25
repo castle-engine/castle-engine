@@ -22,6 +22,10 @@ unit CastleGLVersion;
 
 {$I castleconf.inc}
 
+{$ifdef CASTLE_STRICT_CLI}
+  {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
+{$endif}
+
 interface
 
 type

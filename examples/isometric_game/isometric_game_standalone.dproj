@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{EBE7AD98-BB9A-4425-BB05-25D208A7B0F6}</ProjectGuid>
+        <ProjectGuid>{841B66D1-1A7D-4289-953E-63CF9F73EE37}</ProjectGuid>
         <MainSource>isometric_game_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

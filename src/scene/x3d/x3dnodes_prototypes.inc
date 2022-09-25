@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,7 @@
     @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)). }
   EX3DPrototypeInstantiateError = class(EX3DError);
 
-  { Node with information about a VRML/X3D prototype.
+  { Node with information about X3D prototype.
 
     This node will have fields
     initialized according to associated Prototype.InterfaceDeclarations.
@@ -35,7 +35,7 @@
 
     The prototype may be instantiated. After parsing you can
     do it by @link(Instantiate) method. In case of non-external prototype,
-    this should always be possible (for a valid VRML files, that is),
+    this should always be possible (for a valid X3D files, that is),
     in case of external prototype this may requite loading the external
     prototype file.
 
@@ -122,7 +122,7 @@
 
     property Prototype: TX3DPrototypeBase read FPrototype;
 
-    { Instantiate the prototype, that is create new VRML node
+    { Instantiate the prototype, that is create new X3D node
       (of "normal" classs, not TX3DPrototypeNode) using prototype description.
 
       For non-external prototype, in essense it just takes Prototype.Node
@@ -174,6 +174,8 @@
     function Instantiate: TX3DNode;
   end;
 
+  { Common class to represent X3D external prototypes (referencing another file)
+    or non-external prototypes (describing how to expand the prototype into other nodes). }
   TX3DPrototypeBase = class(TX3DFileItem)
   private
     FX3DName: string;
@@ -225,6 +227,7 @@
 
   TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
 
+  { X3D non-external prototype (describing how to expand the prototype into other nodes). }
   TX3DPrototype = class(TX3DPrototypeBase)
   strict private
     FNode: TX3DRootNode;
@@ -239,6 +242,7 @@
     property Node: TX3DRootNode read FNode;
   end;
 
+  { X3D external prototype (referencing another file). }
   TX3DExternalPrototype = class(TX3DPrototypeBase)
   strict private
     FURLList: TMFString;

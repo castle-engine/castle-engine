@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
 procedure Sphere_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List;
-  OverTriangulate: boolean; const Radius: Single;
+  const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
@@ -271,8 +271,7 @@ begin
   end;
 end;
 
-function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TSphereNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 
   procedure SphereWireframe;
   var
@@ -320,7 +319,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
 
       Sphere_Proxy(IFS.FdCoordIndex.Items,
         CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
-        OverTriangulate, FdRadius.Value,
+        FdRadius.Value,
         CalculateSlices, CalculateStacks);
 
       IFS.FdSolid.Value := FdSolid.Value;
@@ -338,8 +337,7 @@ begin
     SphereFilled;
 end;
 
-function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
@@ -385,7 +383,7 @@ begin
     Sphere_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
-      OverTriangulate, FdRadius.Value,
+      FdRadius.Value,
       DefaultTriangulationSlices, DefaultTriangulationStacks);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set

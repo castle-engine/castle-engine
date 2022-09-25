@@ -19,13 +19,15 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  Classes, SysUtils, CastleBoxes,
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
   CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleTransform = class(TCastleTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
+    function ReturnEmptyBox: TBox3D;
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -60,13 +62,16 @@ type
     procedure TestGetSetWorldView;
     procedure TestCameraDefaults;
     procedure TestExcludeBoundingVolume;
+    procedure TestProjectionEmptyBox;
+    procedure TestRecursiveTransformDesign;
   end;
 
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
+  CastleVectors, CastleTransform, CastleViewport, CastleClassUtils,
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
+  CastleProjection, CastleStringUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1902,6 +1907,47 @@ begin
     FreeAndNil(T);
     FreeAndNil(Box);
   end;
+end;
+
+procedure TTestCastleTransform.TestProjectionEmptyBox;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    C := V.Camera;
+    C.ProjectionType := ptOrthographic;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.ProjectionType := ptPerspective;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+  finally FreeAndNil(V) end;
+end;
+
+function TTestCastleTransform.ReturnEmptyBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
+end;
+
+procedure TTestCastleTransform.TestRecursiveTransformDesign;
+var
+  Owner: TComponent;
+  //T: TCastleTransform;
+begin
+  try
+    Owner := TComponent.Create(nil);
+    try
+      {T := }TransformLoad('castle-data:/designs/test_recursive_transform.castle-transform', Owner);
+      Fail('Loading test_recursive_transform.castle-transform should have raised an exception');
+    except
+      on E: Exception do
+        { We expect Exception with message "Exceeded maximum depth..." }
+        if not IsPrefix('Exceeded maximum depth', E.Message) then
+          raise;
+    end;
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization

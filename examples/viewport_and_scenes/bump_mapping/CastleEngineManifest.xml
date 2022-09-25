@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="bump_mapping"
+  standalone_source="bump_mapping_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.bump.mapping"
+  caption="Bump Mapping Demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

@@ -1,54 +1,66 @@
 X3DTextureCoordinateNode : X3DGeometricPropertyNode {
+  # X3D XML spec doesn't specify containerField for abstract X3D classes.
+  # But texCoord seems most sensible for this.
+  default-container-field: texCoord
 }
 
 X3DTextureNode : X3DAppearanceChildNode {
+  default-container-field: texture
 }
 
 X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
-  auto-generate-more: true
   SFString [in,out] mapping  ""
+    change: chTextureCoordinate
 }
 
 X3DSingleTextureNode : X3DTextureNode {
   # CASTLE GAME ENGINE EXTENSIONS:
-  MFNode     []            effects          []
+  MFNode     []   effects          []
     range: Effect
+    change: chEverything
 
   # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
   # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
   SFString   []   crossOrigin  ""
     not-slim
+    change: chNone
+    doc: X3DOM extension, not implemented in CGE.
+
+  SFString   []   alphaChannel     "AUTO"
+    range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+    enumerated-type: TAutoAlphaChannel AlphaToString acAuto
+    change: chVisibleVRML1State
 }
 
 X3DSingleTextureTransformNode : X3DTextureTransformNode {
-  auto-generate-more: true
   SFString [in,out] mapping  ""
+    # TODO is chTextureTransform enough? chTextureTransform will not free proxy?
+    change: chTextureTransform
 }
 
 X3DTexture2DNode : X3DSingleTextureNode {
   SFBool []       repeatS           TRUE
+    change: chTextureRendererProperties
   SFBool []       repeatT           TRUE
+    change: chTextureRendererProperties
   SFNode []       textureProperties NULL
     range: TextureProperties
-
-  # CASTLE GAME ENGINE EXTENSIONS:
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially in Pascal.
-  # SFString   []            alphaChannel  "AUTO"
-  #   range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+    change: chTextureRendererProperties
 }
 
 X3DTextureTransformNode : X3DAppearanceChildNode {
+  default-container-field: textureTransform
 }
 
 ImageTexture : X3DTexture2DNode, X3DUrlObject {
   MFString [in,out] url               []
     range: [URI]
+    change: chTextureImage
   SFBool   []       flipVertically    FALSE
+    change: chTextureImage
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
-  auto-generate-more: true
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0
@@ -69,6 +81,7 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
     range: [URI]
     change: chTextureImage
   SFBool   []       flipVertically    FALSE
+    change: chTextureImage
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
   SFBool   [out]    isActive
@@ -76,7 +89,6 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 }
 
 MultiTexture : X3DTextureNode {
-  auto-generate-more: true
   SFFloat  [in,out] alpha    1
     range: [0,1]
     change: chTextureRendererProperties
@@ -97,32 +109,46 @@ MultiTexture : X3DTextureNode {
 MultiTextureCoordinate : X3DTextureCoordinateNode {
   MFNode [in,out] texCoord NULL
     range: X3DSingleTextureCoordinateNode
+    change: chTextureCoordinate
 }
 
 MultiTextureTransform : X3DTextureTransformNode {
   MFNode [in,out] textureTransform NULL
     range: X3DSingleTextureTransformNode
+    change: chEverything
 }
 
 PixelTexture : X3DTexture2DNode {
-  SFImage [in,out] image             no-image
-    # our x3d-nodes-to-pascal ignores the SFImage default value for now, it is always no-image
+  SFImage [in,out] image nil
+    change: chTextureImage
 }
 
 TextureCoordinate : X3DSingleTextureCoordinateNode {
   MFVec2f [in,out] point    []
     range: (-Inf,Inf)
+    change: chTextureCoordinate
 }
 
 TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
   SFString [in,out] mode      "SPHERE"
-    range: see Table 18.6
+    change: chTextureCoordinate
+    # TODO: should be defined as enum
+
   MFFloat  [in,out] parameter []
-    range: see Table 18.6
+    change: chTextureCoordinate
+
+  # Implementation note:
+  # Note that projectedLight node is not enumerated as an active node
+  # for traversing (in TTextureCoordinateGeneratorNode.DirectEnumerateActive),
+  # because the light doesn't shine here. We don't want
+  # to override it's transform with transformation of this
+  # TextureCoordinateGenerator.
+  SFNode   [in,out] projectedLight NULL
+    range: SpotLight, DirectionalLight, TSpotLightNode_1, TDirectionalLightNode_1
+    change: chTextureCoordinate
 }
 
 TextureProperties : X3DNode {
-  auto-generate-more: true
   default-container-field: textureProperties
   SFFloat     [in,out] anisotropicDegree   1.0
     range: [1,Inf)
@@ -167,11 +193,12 @@ TextureProperties : X3DNode {
 
 TextureTransform : X3DSingleTextureTransformNode {
   SFVec2f [in,out] center      0 0
-    range: (-Inf,Inf)
+    change: chTextureTransform
   SFFloat [in,out] rotation    0
-    range: (-Inf,Inf)
+    change: chTextureTransform
+    angle
   SFVec2f [in,out] scale       1 1
-    range: (-Inf,Inf)
+    change: chTextureTransform
   SFVec2f [in,out] translation 0 0
-    range: (-Inf,Inf)
+    change: chTextureTransform
 }

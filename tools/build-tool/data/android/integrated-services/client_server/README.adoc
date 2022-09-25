@@ -16,4 +16,4 @@ Request this service in link:https://castle-engine.io/project_manifest[CastleEng
 </project>
 ----
 
-Then use https://castle-engine.io/apidoc-unstable/html/CastleClientServer.html[CastleClientServer] in your application. Examples how to use it are inside https://github.com/castle-engine/castle-engine/tree/master/examples/network/tcp_connection[Castle Game Engine examples/network/tcp_connection subdirectory].
+Then use https://castle-engine.io/apidoc/html/CastleClientServer.html[CastleClientServer] in your application. Examples how to use it are inside https://github.com/castle-engine/castle-engine/tree/master/examples/network/tcp_connection[Castle Game Engine examples/network/tcp_connection subdirectory].

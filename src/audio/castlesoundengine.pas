@@ -25,6 +25,10 @@ unit CastleSoundEngine;
   {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
 {$endif}
 
+{$ifdef CASTLE_STRICT_CLI}
+  {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,

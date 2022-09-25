@@ -61,6 +61,7 @@ castle-game-engine-*.fpm
 /doc/reference/
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
+/examples/animations/animate_bones_by_code/animate_bones_by_code
 /examples/animations/animate_transform_by_code/animate_transform_by_code
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/deprecated_resource_animations/resource_animations
@@ -86,7 +87,7 @@ castle-game-engine-*.fpm
 /examples/deprecated_random_generator/random_speed_test/random_speed_test
 /examples/deprecated_random_generator/random_threads_test/random_threads_test
 /examples/deprecated_random_generator/testhash/testhash
-/examples/fixed_camera_game/rift
+/examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text
@@ -107,7 +108,8 @@ castle-game-engine-*.fpm
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
-/examples/joystick/joystick_demo
+/examples/deprecated_to_upgrade/isometric_game/isometric_game
+/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
@@ -122,7 +124,7 @@ castle-game-engine-*.fpm
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/simple_3d_demo/simple_3d_demo
-/examples/mobile/test_bump_mapping/test_bump_mapping
+/examples/viewport_and_scenes/bump_mapping/bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip

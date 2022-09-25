@@ -926,7 +926,7 @@ begin
 
     { We potentially override the fog already set
       by TGLRenderer.RenderShapeFog here. }
-    Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1, { doesn't matter, it's for ftExp only } 1 );
+    Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
 
@@ -1056,9 +1056,19 @@ begin
       Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
-    Shader.GammaCorrection :=
-      (GammaCorrection = gcAlways) or
-      ((GammaCorrection = gcPhysicalMaterial) and
+    (*
+    { For now we decided to not implement per-scene RenderOptions.ColorSpace,
+      as use-case would be low.
+      In all practical cases, adjusting global ColorSpace seems like a better idea,
+      as this should really apply to all your rendering. }
+    if RenderOptions.ColorSpace <> csDefault then
+      FinalColorSpace := RenderOptions.ColorSpace // use per-scene value
+    else
+      FinalColorSpace := CastleRenderOptions.ColorSpace; // use global variable
+    *)
+    Shader.ColorSpaceLinear :=
+      (ColorSpace = csLinear) or
+      ((ColorSpace = csLinearWhenPhysicalMaterial) and
        (Shader.Material is TPhysicalMaterialInfo));
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}

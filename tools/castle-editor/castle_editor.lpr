@@ -43,7 +43,7 @@ uses
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
   FormPreferences, DesignVisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
   FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools,
-  CastleShellCtrls, FormSystemInformation;
+  CastleShellCtrls, FormSystemInformation, CastleComponentEditorDesigner;
 
 {$R *.res}
 

@@ -1,0 +1,52 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# ----------------------------------------------------------------------------
+# Includes castle.gltf with 2 effects:
+#
+# - MyShaderEffect, using Effect node, see https://castle-engine.io/compositing_shaders.php .
+#   These effects allow to modify rendering using GLSL.
+#
+# - MyScreenEffect, using ScreenEffect node, see https://castle-engine.io/x3d_extensions_screen_effects.php .
+#   These effects allow to post-process rendering using GLSL.
+# ----------------------------------------------------------------------------
+
+DEF MyShaderEffect Effect {
+  language "GLSL"
+  enabled FALSE
+  parts EffectPart {
+    type "FRAGMENT"
+    url "data:text/plain,
+    void PLUG_main_texture_apply(
+      inout vec4 color,
+      const in vec3 normal)
+    {
+      color.rgb = pow(color.rgb, vec3(2.2));
+    }"
+  }
+}
+
+DEF MyScreenEffect ScreenEffect {
+  enabled FALSE
+  shaders ComposedShader {
+    language "GLSL"
+    parts ShaderPart {
+      type "FRAGMENT"
+      url "data:text/plain,
+      ivec2 screen_position();
+      vec4 screen_get_color(ivec2 position);
+      void main (void)
+      {
+        gl_FragColor = screenf_get_original_color();
+        float factor_x = screenf_x() / float(screen_width);
+        float factor_y = screenf_y() / float(screen_height);
+        float factor = min(min(factor_x, 1.0 - factor_x), min(factor_y, 1.0 - factor_y));
+        factor = pow(factor, 0.2);
+        gl_FragColor.rgb = mix(vec3(0.5, 0.5, 0.0), gl_FragColor.rgb, factor);
+      }
+      "
+    }
+  }
+}
+
+Inline { url "castle.gltf" }

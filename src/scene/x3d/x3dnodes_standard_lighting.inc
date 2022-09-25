@@ -89,13 +89,7 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
-  { Base class for all "punctual" light nodes (that have a position and/or direction).
-
-    Note that even the old VRML 1.0 light nodes inherit from this.
-    Although they interpret some bits differently
-    ("ambientIntensity" < 0 has special meaning).
-    But most of the fields behave identically, they only have different
-    default values. }
+  { Base class for all "punctual" light nodes (that have a position and/or direction). }
   TAbstractPunctualLightNode = class(TAbstractLightNode)
   strict private
     function  GetProjectionSceneLocation: TVector3;
@@ -359,7 +353,7 @@ begin
       to the current State.
 
       It may seem wasteful to enumerate children twice
-      (first we enumerate in TAbstractGroupingNode.BeforeTraverse,
+      (first we enumerate in TAbstractInternalGroupingNode.BeforeTraverse,
       then actual TX3DNode.Traverse enumerates again,
       this time recursively time). But it turned out to
       be the fastest and simplest method of propagating lsLocal lights
@@ -405,7 +399,7 @@ begin
 
     *)
 
-    { Note: We do CreateLightInstance with State from TAbstractGroupingNode node,
+    { Note: We do CreateLightInstance with State from TAbstractInternalGroupingNode node,
       while precisely we should rather use State from TAbstractLightNode
       traverse. But, fortunately, State of TAbstractLightNode doesn't
       change inside (TAbstractLightNode doesn't do anything inside

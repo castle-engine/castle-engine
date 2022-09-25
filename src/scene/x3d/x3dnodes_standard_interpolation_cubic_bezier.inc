@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 }
-{$ifdef FPC}
+
 {$ifdef read_interface}
   TAbstractCubicBezierInterpolatorNode = class(TAbstractInterpolatorNode)
   strict private
@@ -49,7 +49,6 @@
   public
     destructor Destroy; override;
 
-
     { Once the FdControlPoints value is settled, call this to precalculate
       curve parameters. This makes the following interpolation using this node
       work fast.
@@ -60,32 +59,6 @@
       const CopyOptimizedDataFrom: TAbstractCubicBezierInterpolatorNode = nil);
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
-  end;
-  { Basis for all nodes interpolating (animating) an array of values using cubic Bezier curve. }
-  {$ifdef FPC}generic{$endif}
-  TAbstractCubicBezierArrayInterpolatorNode<
-    // TInterpolatedValue, // unused for now
-    TKeyValue,
-    TKeyValueEvent> = class(TAbstractCubicBezierInterpolatorNode)
-  strict private
-    function KeyValue(const Index, KeyCount: Integer): TKeyValue;
-    function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
-      const Time: TX3DTime);
-  strict protected
-    procedure InterpolatorLerp(const Target: TKeyValue;
-      const Fraction: Single; const F1, F2: TKeyValue;
-      const Index1, Index2, ACount: Integer); virtual;
-  public
-    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-
-    strict private FFdKeyValue: TKeyValue;
-    public property FdKeyValue: TKeyValue read FFdKeyValue;
-
-    { Event out } { }
-    strict private FEventValue_changed: TKeyValueEvent;
-    public property EventValue_changed: TKeyValueEvent read FEventValue_changed;
   end;
 
   { Interpolate (animate) a set of 2D rotations,
@@ -115,11 +88,18 @@
   { Interpolate (animate) a set of 3D vertices,
     using cubic Bezier curve instead of linear interpolation.
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
-  TCubicBezierCoordinateInterpolatorNode = class({$ifdef FPC}specialize{$endif}
-    TAbstractCubicBezierArrayInterpolatorNode<
-    // TVector3, // unused for now
-    TMFVec3f,
-    TMFVec3fEvent>)
+  TCubicBezierCoordinateInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
+  strict private
+    function KeyValue(const Index, KeyCount: Integer): TMFVec3f;
+    function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TMFVec3f;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
+      const Time: TX3DTime);
+  strict protected
+    procedure InterpolatorLerp(const Target: TMFVec3f;
+      const Fraction: Single; const F1, F2: TMFVec3f;
+      const Index1, Index2, ACount: Integer); virtual;
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
   end;
 {$endif read_interface}
@@ -289,131 +269,6 @@ begin
   Res.OptimizeControlPoints(Self);
 end;
 
-{ TAbstractCubicBezierArrayInterpolatorNode --------------------------------------------- }
-
-constructor TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  EventSet_Fraction.AddNotification(
-    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
-end;
-
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  CreateNode;
-begin
-  inherited;
-
-  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-end;
-
-function TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  KeyValue(const Index, KeyCount: Integer): TKeyValue;
-var
-  FrameValues: Integer;
-begin
-  FrameValues := FdKeyValue.Items.Count div KeyCount;
-
-  // We pass Self as ParentNode to
-  // TKeyValue.CreateUndefined.
-  // This is not required, ParentNode could be @nil and everything
-  // will work Ok, but setting ParentNode allows InstantReality Logger node
-  // to display "sending node" information, useful for debugging.
-  Result := TKeyValue.CreateUndefined(Self, false, '');
-
-  if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
-  begin
-    Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
-  end else
-    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-      [X3DType]));
-end;
-
-function TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-var
-  FrameValues: Integer;
-begin
-  // This actually knows that Index2 = Index1 + 1, but assumes only
-  // Index2 > Index1
-
-  FrameValues := FdKeyValue.Items.Count div KeyCount;
-  Result := TKeyValue.CreateUndefined(Self, false, '');
-
-  if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
-  begin
-    InterpolatorLerp(Result, T, FdKeyValue, FdKeyValue,
-      Index1 * FrameValues, Index2 * FrameValues, FrameValues);
-  end else
-    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-      [X3DType]));
-end;
-
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-var
-  KeyCount: Integer;
-  T: Single;
-  OutputValue: TKeyValue;
-  Range: Integer;
-begin
-  if not EventValue_Changed.SendNeeded then Exit;
-
-  KeyCount := FdKey.Items.Count;
-  if KeyCount = 0 then
-  begin
-    // Interpolator nodes containing no keys in the key field
-    // shall not produce any events.
-    // Moreover, "div KeyCount" would cause errors if we would try
-    // to get some KeyValue or KeyValueLerp.
-    Exit;
-  end;
-
-  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
-  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
-  Range := KeyRange((Value as TSFFloat).Value, T);
-  if Range = 0 then
-    OutputValue := KeyValue(0, KeyCount)
-  else
-  if Range = KeyCount then
-    OutputValue := KeyValue(KeyCount - 1, KeyCount)
-  else
-  begin
-    if Range - 1 < FdControlPoints.Items.Count then
-      T := CubicBezierValue(T, Range - 1);
-    OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
-  end;
-  OutputValue.InternalPartialSend := Value.InternalPartialSend;
-  try
-    EventValue_Changed.Send(OutputValue, Time);
-  finally
-    FreeAndNil(OutputValue);
-  end;
-end;
-
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  InterpolatorLerp(const Target: TKeyValue;
-  const Fraction: Single; const F1, F2: TKeyValue;
-  const Index1, Index2, ACount: Integer);
-begin
-  Target.Items.AssignLerpRange(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
-end;
-
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
 
 constructor TCubicBezier2DOrientationInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
@@ -510,6 +365,103 @@ begin
   EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
 
+{ TCubicBezierCoordinateInterpolatorNode ------------------------------------- }
+
+constructor TCubicBezierCoordinateInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
+end;
+
+function TCubicBezierCoordinateInterpolatorNode.KeyValue(const Index, KeyCount: Integer): TMFVec3f;
+var
+  FrameValues: Integer;
+begin
+  FrameValues := FdKeyValue.Items.Count div KeyCount;
+
+  // We pass Self as ParentNode to
+  // TMFVec3f.CreateUndefined.
+  // This is not required, ParentNode could be @nil and everything
+  // will work Ok, but setting ParentNode allows InstantReality Logger node
+  // to display "sending node" information, useful for debugging.
+  Result := TMFVec3f.CreateUndefined(Self, false, '');
+
+  if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
+  begin
+    Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
+  end else
+    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
+      [X3DType]));
+end;
+
+function TCubicBezierCoordinateInterpolatorNode.KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TMFVec3f;
+var
+  FrameValues: Integer;
+begin
+  // This actually knows that Index2 = Index1 + 1, but assumes only
+  // Index2 > Index1
+
+  FrameValues := FdKeyValue.Items.Count div KeyCount;
+  Result := TMFVec3f.CreateUndefined(Self, false, '');
+
+  if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
+  begin
+    InterpolatorLerp(Result, T, FdKeyValue, FdKeyValue,
+      Index1 * FrameValues, Index2 * FrameValues, FrameValues);
+  end else
+    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
+      [X3DType]));
+end;
+
+procedure TCubicBezierCoordinateInterpolatorNode.EventSet_FractionReceive(
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+var
+  KeyCount: Integer;
+  T: Single;
+  OutputValue: TMFVec3f;
+  Range: Integer;
+begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  KeyCount := FdKey.Items.Count;
+  if KeyCount = 0 then
+  begin
+    // Interpolator nodes containing no keys in the key field
+    // shall not produce any events.
+    // Moreover, "div KeyCount" would cause errors if we would try
+    // to get some KeyValue or KeyValueLerp.
+    Exit;
+  end;
+
+  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
+  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
+  Range := KeyRange((Value as TSFFloat).Value, T);
+  if Range = 0 then
+    OutputValue := KeyValue(0, KeyCount)
+  else
+  if Range = KeyCount then
+    OutputValue := KeyValue(KeyCount - 1, KeyCount)
+  else
+  begin
+    if Range - 1 < FdControlPoints.Items.Count then
+      T := CubicBezierValue(T, Range - 1);
+    OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+  end;
+  OutputValue.InternalPartialSend := Value.InternalPartialSend;
+  try
+    EventValue_Changed.Send(OutputValue, Time);
+  finally
+    FreeAndNil(OutputValue);
+  end;
+end;
+
+procedure TCubicBezierCoordinateInterpolatorNode.InterpolatorLerp(const Target: TMFVec3f;
+  const Fraction: Single; const F1, F2: TMFVec3f;
+  const Index1, Index2, ACount: Integer);
+begin
+  Target.Items.AssignLerpRange(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+end;
+
 { registration --------------------------------------------------------------- }
 
 procedure RegisterInterpolationCubicBezierNodes;
@@ -522,5 +474,3 @@ begin
 end;
 
 {$endif read_implementation}
-
-{$endif FPC}

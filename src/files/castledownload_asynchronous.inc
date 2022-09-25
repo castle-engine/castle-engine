@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,21 @@ type
     You can register a callback @link(OnFinish) or watch
     when the @link(Status) property changes from dsDownloading to dsError or dsSuccess
     to detect when this finished downloading.
+
+    See the example
+    https://github.com/castle-engine/castle-engine/blob/master/examples/network/asynchronous_download/ .
+
+    Features:
+
+    @unorderedList(
+      @item(The download can be observed (looking at @link(Status), @link(DownloadedBytes), @link(TotalBytes)).)
+
+      @item(When the downlad is finished, look at @link(Contents) (if success) or @link(ErrorMessage) (if error, that is @link(Status) = @link(dsError)).)
+
+      @item(We can read MIME type from server (can be used throughout our engine to designate file type).)
+
+      @item(For downloading over HTTP, this is a way to make a full-featured HTTP(S) web request. You can specify HttpMethod, like GET, POST, PUT etc. For POST, you can provide form data as PostData. Arbitrary HTTP headers can be specified using AddHeader.)
+    )
 
     The download starts when you call @link(Start).
     Be sure to configure the properties, including @link(OnFinish),

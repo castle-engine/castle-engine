@@ -729,78 +729,20 @@ begin
 end;
 
 function ConvertUTF16ToUTF8(const aUTF16String:TPasJSONUTF16String):TPasJSONUTF8String;
-var i,j:TPasJSONInt32;
-    w:UInt16;
-    u4c:TPasJSONUInt32;
 begin
- result:='';
- j:=0;
- i:=1;
- while i<=length(aUTF16String) do begin
-  w:=UInt16(TPasJSONUTF16Char(aUTF16String[i]));
-  if (w<=$d7ff) or (w>=$e000) then begin
-   u4c:=w;
-   inc(i);
-  end else if ((i+1)<=length(aUTF16String)) and ((w>=$d800) and (w<=$dbff)) and ((UInt16(aUTF16String[i+1])>=$dc00) and (UInt16(aUTF16String[i+1])<=$dfff)) then begin
-   u4c:=(TPasJSONUInt32(TPasJSONUInt32(w and $3ff) shl 10) or TPasJSONUInt32(UInt16(TPasJSONUTF16Char(aUTF16String[i+1])) and $3ff))+$10000;
-   inc(i,2);
-  end else begin
-   u4c:=$fffd;
-   inc(i);
-  end;
-  if u4c<=$7f then begin
-   inc(j);
-  end else if u4c<=$7ff then begin
-   inc(j,2);
-  end else if u4c<=$ffff then begin
-   inc(j,3);
-  end else if u4c<=$1fffff then begin
-   inc(j,4);
-  end else begin
-   inc(j,3);
-  end;
- end;
- SetLength(result,j);
- j:=1;
- i:=1;
- while i<=length(aUTF16String) do begin
-  w:=UInt16(TPasJSONUTF16Char(aUTF16String[i]));
-  if (w<=$d7ff) or (w>=$e000) then begin
-   u4c:=w;
-   inc(i);
-  end else if ((i+1)<=length(aUTF16String)) and ((w>=$d800) and (w<=$dbff)) and ((UInt16(aUTF16String[i+1])>=$dc00) and (UInt16(aUTF16String[i+1])<=$dfff)) then begin
-   u4c:=(TPasJSONUInt32(TPasJSONUInt32(w and $3ff) shl 10) or TPasJSONUInt32(UInt16(TPasJSONUTF16Char(aUTF16String[i+1])) and $3ff))+$10000;
-   inc(i,2);
-  end else begin
-   u4c:=$fffd;
-   inc(i);
-  end;
-  if u4c<=$7f then begin
-   result[j]:=ansichar(byte(u4c));
-   inc(j);
-  end else if u4c<=$7ff then begin
-   result[j]:=ansichar(byte($c0 or ((u4c shr 6) and $1f)));
-   result[j+1]:=ansichar(byte($80 or (u4c and $3f)));
-   inc(j,2);
-  end else if u4c<=$ffff then begin
-   result[j]:=ansichar(byte($e0 or ((u4c shr 12) and $0f)));
-   result[j+1]:=ansichar(byte($80 or ((u4c shr 6) and $3f)));
-   result[j+2]:=ansichar(byte($80 or (u4c and $3f)));
-   inc(j,3);
-  end else if u4c<=$1fffff then begin
-   result[j]:=ansichar(byte($f0 or ((u4c shr 18) and $07)));
-   result[j+1]:=ansichar(byte($80 or ((u4c shr 12) and $3f)));
-   result[j+2]:=ansichar(byte($80 or ((u4c shr 6) and $3f)));
-   result[j+3]:=ansichar(byte($80 or (u4c and $3f)));
-   inc(j,4);
-  end else begin
-   u4c:=$fffd;
-   result[j]:=ansichar(byte($e0 or (u4c shr 12)));
-   result[j+1]:=ansichar(byte($80 or ((u4c shr 6) and $3f)));
-   result[j+2]:=ansichar(byte($80 or (u4c and $3f)));
-   inc(j,3);
-  end;
- end;
+  { Castle Game Engine:
+    We removed PasJSON algorithm for UTF-16 -> UTF-8 conversion.
+    Instead just let the compiler do automatic conversion UTF-16 -> UTF-8.
+    This works reliably and
+
+    - Fixes reading Chinese characters in texture in
+      https://github.com/castle-engine/castle-engine/issues/355
+
+    - Fixes Unicode test in glTF-Sample-Models on
+      https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Unicode%E2%9D%A4%E2%99%BBTest
+  }
+
+ result:=aUTF16String;
 end;
 
 constructor EPasJSONSyntaxError.Create(const aMessage:string;const aPosition:TPasJSONSizeInt);

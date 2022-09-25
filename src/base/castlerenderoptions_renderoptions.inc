@@ -34,6 +34,7 @@ type
     FPointSize: Single;
     FLineWidth: Single;
     FBumpMapping: TBumpMapping;
+    FBumpMappingParallaxHeight: Single;
     FCustomShader, FCustomShaderAlphaTest: TObject;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
@@ -97,7 +98,8 @@ type
     const
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
-      DefaultBumpMapping = bmSteepParallaxShadowing;
+      DefaultBumpMapping = bmBasic;
+      DefaultBumpMappingParallaxHeight = 0.01;
       DefaultPhongShading = true;
       DefaultMaxLightsPerShape = 64;
 
@@ -338,13 +340,13 @@ type
       Note: This property controls whether lights defined within a model (TCastleScene)
       affect the shapes in the same model.
       In case of such lights, the value of @link(TCastleScene.CastGlobalLights)
-      and @link(GlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
+      and @link(ReceiveGlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
       whether such lights work.
 
       The other lights are controlled by @link(ReceiveGlobalLights).
 
       This doesn't matter if @link(Lighting) is @false.
-      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveSceneLights: boolean
       read FReceiveSceneLights write FReceiveSceneLights default true;
@@ -356,7 +358,7 @@ type
       as well as headlight, shine on this scene.
 
       This doesn't matter if @link(Lighting) is @false.
-      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveGlobalLights: boolean
       read FReceiveGlobalLights write FReceiveGlobalLights default true;
@@ -394,6 +396,7 @@ type
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
+      See https://castle-engine.io/bump_mapping .
 
       The normal map is usually provided in
       the @link(TAbstractOneSidedMaterialNode.NormalTexture) field.
@@ -403,24 +406,22 @@ type
       @link(TUnlitMaterialNode) (unlit -- doesn't use normals for lighting,
       but may still use them e.g. for tex coord generation).
       So all material nodes allow to specify normal map.
-      In CGE we also provide a number of alternative ways to provide normal maps
-      ( https://castle-engine.io/x3d_implementation_texturing_extensions.php ),
-      but the @code(NormalTexture) field is most advised.
 
-      See TBumpMapping for various possible values.
-
-      Simple bump mapping (when only normal map is available)
-      means that normals are provided in the texture, and lighting
-      is calculated per-fragment.
-
-      Parallax bump mapping means that additionally the texture coordinate
-      is perturbed, based on height map and camera direction, to create
-      illusion of 3D shape instead of flat surface.
-      This makes e.g. the bricks on the texture really
-      visible as "standing out", in 3D, from the wall. And self-shadowing
-      means that these bricks even cast appropriate shadows on each other. }
+      See TBumpMapping for various possible values. }
     property BumpMapping: TBumpMapping
       read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
+
+    { Maximum height expressed in the normal map alpha channel,
+      used only when @link(BumpMapping) indicates one of the "parallax" options.
+
+      By default this is ignored because @link(BumpMapping) by default is just bmBasic,
+      which ignores the height map in the normal map alpha channel.
+      If your normal map includes an alpha channel,
+      and you set @link(BumpMapping) to a value bmParallax, bmSteepParallax,
+      bmSteepParallaxShadowing then this property is used to interpret the height information. }
+    property BumpMappingParallaxHeight: Single
+      read FBumpMappingParallaxHeight write FBumpMappingParallaxHeight
+      {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
 
     { Whether to use Phong shading by default.
 
@@ -567,6 +568,7 @@ begin
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
+  FBumpMappingParallaxHeight := DefaultBumpMappingParallaxHeight;
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
   FPhongShading := DefaultPhongShading;

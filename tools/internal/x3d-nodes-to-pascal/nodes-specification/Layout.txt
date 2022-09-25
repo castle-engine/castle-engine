@@ -1,29 +1,26 @@
-X3DLayoutNode : X3DChildNode {
-  auto-generate-more: true
+        X3DLayoutNode : X3DChildNode {
 }
 
 Layout : X3DLayoutNode {
-  auto-generate-more: true
-   MFString [in,out] align       ["CENTER","CENTER"]
-     range: TODO: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
-     # TODO: enumerated-type: ...
-   MFFloat  [in,out] offset      [0,0]
-     range: (-Inf,Inf)
-   MFString [in,out] offsetUnits ["WORLD","WORLD"]
-     range: TODO: ["WORLD","FRACTION","PIXEL"]
-     # TODO: enumerated-type: ...
-   MFString [in,out] scaleMode   ["NONE","NONE"]
-     range: TODO: ["NONE","FRACTION","STRETCH","PIXEL"]
-     # TODO: enumerated-type: ...
-   MFFloat  [in,out] size        [1,1]
-     range: (0,Inf)
-   MFString [in,out] sizeUnits   ["WORLD","WORLD"]
-     range: TODO: ["WORLD","FRACTION","PIXEL"]
-     # TODO: enumerated-type: ...
+  MFString [in,out] align       ["CENTER","CENTER"]
+    range: TODO: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
+    # TODO: enumerated-type: ...
+  MFFloat  [in,out] offset      [0,0]
+    range: (-Inf,Inf)
+  MFString [in,out] offsetUnits ["WORLD","WORLD"]
+    range: TODO: ["WORLD","FRACTION","PIXEL"]
+    # TODO: enumerated-type: ...
+  MFString [in,out] scaleMode   ["NONE","NONE"]
+    range: TODO: ["NONE","FRACTION","STRETCH","PIXEL"]
+    # TODO: enumerated-type: ...
+  MFFloat  [in,out] size        [1,1]
+    range: (0,Inf)
+  MFString [in,out] sizeUnits   ["WORLD","WORLD"]
+    range: TODO: ["WORLD","FRACTION","PIXEL"]
+    # TODO: enumerated-type: ...
 }
 
 LayoutGroup : X3DGroupingNode {
-  auto-generate-more: true
   SFNode  [in,out] layout         NULL
     range: X3DLayoutNode
   SFNode  [in,out] viewport       NULL
@@ -31,7 +28,6 @@ LayoutGroup : X3DGroupingNode {
 }
 
 LayoutLayer : X3DLayerNode {
-  auto-generate-more: true
   MFNode [in]     addChildren    []
     range: X3DChildNode
   MFNode [in]     removeChildren []
@@ -43,7 +39,6 @@ LayoutLayer : X3DLayerNode {
 }
 
 ScreenFontStyle : X3DFontStyleNode {
-  auto-generate-more: true
   MFString []       family      ["SERIF"]
   SFBool   []       horizontal  TRUE
   MFString []       justify     ["BEGIN"]
@@ -62,5 +57,4 @@ ScreenFontStyle : X3DFontStyleNode {
 }
 
 ScreenGroup : X3DGroupingNode {
-  auto-generate-more: true
 }

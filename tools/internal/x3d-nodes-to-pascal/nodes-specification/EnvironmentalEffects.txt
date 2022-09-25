@@ -1,5 +1,4 @@
 X3DBackgroundNode : X3DBindableNode {
-  auto-generate-more: true
   MFNode     [in,out]      shaders          []
     range: X3DShaderNode
     change: chEverything
@@ -14,7 +13,6 @@ X3DBackgroundNode : X3DBindableNode {
 # We split in into (empty) X3DBackgroundNode and X3D3DBackgroundNode (with colors and angles).
 # This allows to cleanly define ImageBackground.
 X3D3DBackgroundNode : X3DBindableNode {
-  auto-generate-more: true
   MFFloat [in,out] groundAngle   []
     range: [0,Pi/2]
     change: chBackground
@@ -35,7 +33,6 @@ X3D3DBackgroundNode : X3DBindableNode {
 }
 
 X3DFogObject {
-  auto-generate-more: true
   SFColor  [in,out] color           1 1 1
     range: [0,1]
     change: chRedisplay
@@ -59,7 +56,6 @@ X3DFogObject {
 }
 
 Background : X3D3DBackgroundNode {
-  auto-generate-more: true
   MFString [in,out] backUrl      []
     range: [URI]
     # TODO: chEverything is very unoptimal.
@@ -85,7 +81,6 @@ Background : X3D3DBackgroundNode {
 }
 
 Fog : X3DBindableNode, X3DFogObject {
-  auto-generate-more: true
   # Although some of these fields are already present in X3DFogObject,
   # but we repeat them here, because only the fields from 1st ancestor
   # (X3DBindableNode here) are automatically inherited.
@@ -114,14 +109,12 @@ Fog : X3DBindableNode, X3DFogObject {
 }
 
 FogCoordinate : X3DGeometricPropertyNode {
-  auto-generate-more: true
   default-container-field: fogCoord
   MFFloat [in,out] depth    []
     range: [0,1]
 }
 
 LocalFog : X3DChildNode, X3DFogObject {
-  auto-generate-more: true
   # Although some of these fields are already present in X3DFogObject,
   # but we repeat them here, because only the fields from 1st ancestor
   # (X3DBindableNode here) are automatically inherited.
@@ -149,7 +142,6 @@ LocalFog : X3DChildNode, X3DFogObject {
 }
 
 TextureBackground : X3D3DBackgroundNode {
-  auto-generate-more: true
   SFNode  [in,out] backTexture   NULL
     range: X3DTextureNode
   SFNode  [in,out] bottomTexture NULL

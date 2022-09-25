@@ -29,7 +29,7 @@
 
   { Load the URL when the user activates (clicks)
     some geometry contained within the Anchor node's children. }
-  TAnchorNode = class(TAbstractX3DGroupingNode)
+  TAnchorNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -89,7 +89,7 @@
   end;
 
   { Embed another X3D scene into the current scene. }
-  TInlineNode = class(TAbstractGroupingNode)
+  TInlineNode = class(TAbstractInternalGroupingNode)
   strict private
     procedure EventLoadReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
@@ -240,8 +240,8 @@ begin
       begin
         if CurrentRootNode <> nil then
         begin
-          NewViewpoint := CurrentRootNode.TryFindNodeByName(TAbstractViewpointNode,
-            NewViewpointName, true) as TAbstractViewpointNode;
+          NewViewpoint := CurrentRootNode.FindNode(TAbstractViewpointNode,
+            NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
             Exit(true) else
             ViewpointNameInvalid(NewViewpointName);
@@ -291,8 +291,8 @@ begin
         NewViewpoint := nil;
       end else
       begin
-        NewViewpoint := NewRootNode.TryFindNodeByName(TAbstractViewpointNode,
-          NewViewpointName, true) as TAbstractViewpointNode;
+        NewViewpoint := NewRootNode.FindNode(TAbstractViewpointNode,
+          NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
         if NewViewpoint = nil then
           ViewpointNameInvalid(NewViewpointName);
 

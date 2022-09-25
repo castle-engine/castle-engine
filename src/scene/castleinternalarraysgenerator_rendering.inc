@@ -30,7 +30,7 @@ type
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -45,7 +45,7 @@ type
       out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -66,7 +66,7 @@ type
       out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -92,7 +92,7 @@ type
       out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -108,7 +108,7 @@ type
       out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -129,13 +129,13 @@ type
   { Generator for VRML <= 1.0 TIndexedLineSetNode_1 }
   TIndexedLineSet_1Generator = class(TAbstractLineSetGenerator)
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   { Generator for VRML >= 2.0 TIndexedLineSetNode and X3D TLineSetNode. }
   TLineSetGenerator = class(TAbstractLineSetGenerator)
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -175,7 +175,7 @@ end;
 
 { TPointSetGenerator -------------------------------------------------------- }
 
-constructor TPointSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TPointSetGenerator.Create(AShape: TShape);
 var
   Node: TPointSetNode;
 begin
@@ -264,7 +264,7 @@ end;
 
 { TTriangleSetGenerator ------------------------------------------------------- }
 
-constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TTriangleSetGenerator.Create(AShape: TShape);
 begin
   inherited;
 
@@ -297,7 +297,7 @@ begin
   if (Geometry is TIndexedTriangleSetNode) and
      TIndexedTriangleSetNode(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsSmooth(NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
@@ -411,7 +411,7 @@ end;
 
 { TTriangleFanSetGenerator ---------------------------------------------------- }
 
-constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TTriangleFanSetGenerator.Create(AShape: TShape);
 begin
   inherited;
 
@@ -443,7 +443,7 @@ begin
   end else
   if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsSmooth(NormalsCcw);
     if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed
     else
@@ -591,7 +591,7 @@ end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
 
-constructor TTriangleStripSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TTriangleStripSetGenerator.Create(AShape: TShape);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -663,7 +663,7 @@ begin
   end else
   if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsSmooth(NormalsCcw);
     if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed
     else
@@ -829,7 +829,7 @@ end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
 
-constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TQuadSetGenerator.Create(AShape: TShape);
 begin
   inherited;
 
@@ -865,7 +865,7 @@ begin
   if (Geometry is TIndexedQuadSetNode) and
      TIndexedQuadSetNode(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsSmooth(NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
@@ -1082,7 +1082,7 @@ end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedLineSet_1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TIndexedLineSet_1Generator.Create(AShape: TShape);
 var
   Node: TIndexedLineSetNode_1;
 begin
@@ -1106,7 +1106,7 @@ end;
 
 { TLineSetGenerator --------------------------------------------------------- }
 
-constructor TLineSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TLineSetGenerator.Create(AShape: TShape);
 var
   NodeLS: TLineSetNode;
   NodeILS: TIndexedLineSetNode;

@@ -1,5 +1,6 @@
+{%MainUnit castleutils.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -274,6 +275,8 @@ function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, Des
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float; overload;
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
 { @groupEnd }
+
+function MapRangeTo01(const SourceVal, SourceBegin, SourceEnd: Single): Single;
 
 { Random Float value in the given range,
   result is between RangeBegin and RangeEnd.
@@ -861,6 +864,11 @@ begin
     Result := Clamped(Result, DestEnd, DestBegin)
   else
     Result := Clamped(Result, DestBegin, DestEnd);
+end;
+
+function MapRangeTo01(const SourceVal, SourceBegin, SourceEnd: Single): Single;
+begin
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;

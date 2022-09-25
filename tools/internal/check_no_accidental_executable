@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ----------------------------------------------------------------------------
+# Test there are no files with accidentally set executable attribute.
+# (This may happen if commiting from FAT filesystems on Unix.)
+# ----------------------------------------------------------------------------
+
+cd "$CASTLE_ENGINE_PATH"
+
+make clean BUILD_TOOL=castle-engine > /dev/null # use build tool on $PATH
+
+# Note: we allow executable bit on libraries in
+# tools/build-tool/data/android/integrated-services/*.so .
+# The ndk-build indeed sets executable bit on them,
+# can be tested by "make build" in https://github.com/castle-engine/libpng-android .
+# Reasons unknown, we could fight with it (doing "chmod -x ...")
+# but it seems pointless, so we leave the executable bit.
+
+find . '(' -type d -name .git -prune -false ')' -or \
+       '(' -type f '(' -name '*.sh' -or \
+                       -name '*~' -or \
+                       -name 'gradlew' -or \
+                       -path './examples/instantfpc/castle_*' -or \
+                       -name 'astcenc-*' -or \
+                       -path './tools/internal/lazbuild_retry' -or \
+                       -path './tools/internal/check_no_accidental_executable' -or \
+                       -path './tools/internal/upload_github_release' -or \
+                       -path './tools/build-tool/data/android/integrated-services/*.so' \
+                   ')' ')' -or \
+       '(' -executable -type f -print ')'

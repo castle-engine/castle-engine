@@ -224,8 +224,15 @@ procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4); overload; deprecated 'use DrawRectangle';
 
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
+{ Call OpenGL glBlendFunc,
+  https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml .
+  Accepts parameters as enumerated types TBlendingSourceFactor, TBlendingDestinationFactor.
+  Secures from using source or destination factor unsupported on current OpenGL version:
+  makes a warnings and falls back on a sensible default (so it will always call
+  glBlendFunc anyway). }
+procedure GLBlendFunction(
+  SourceFactor: TBlendingSourceFactor;
+  DestinationFactor: TBlendingDestinationFactor);
 
 {$endif read_interface}
 
@@ -715,9 +722,31 @@ end;
 
 { GLBlendFunction ------------------------------------------------------------ }
 
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
+procedure GLBlendFunction(
+  SourceFactor: TBlendingSourceFactor;
+  DestinationFactor: TBlendingDestinationFactor);
 begin
+  {$ifndef OpenGLES}
+  if not GLFeatures.Version_1_4 then
+  begin
+    if SourceFactor in [bsSrcColor, bsOneMinusSrcColor] then
+    begin
+      WritelnWarning('Blending', 'Blending factor "%s" as "source" requires OpenGL 1.4', [
+        BlendingSourceFactorNames[SourceFactor]
+      ]);
+      SourceFactor := bsSrcAlpha;
+    end;
+
+    if DestinationFactor in [bdDstColor, bdOneMinusDstColor] then
+    begin
+      WritelnWarning('Blending', 'Blending factor "%s" as "destination" requires OpenGL 1.4', [
+        BlendingDestinationFactorNames[DestinationFactor]
+      ]);
+      DestinationFactor := bdOneMinusSrcAlpha;
+    end;
+ end;
+ {$endif}
+
   glBlendFunc(
     BlendingSourceFactorToGL[SourceFactor],
     BlendingDestinationFactorToGL[DestinationFactor]);

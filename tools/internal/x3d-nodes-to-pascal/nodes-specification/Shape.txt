@@ -1,13 +1,10 @@
 X3DAppearanceChildNode : X3DNode {
-  auto-generate-more: true
 }
 
 X3DAppearanceNode : X3DNode {
-  auto-generate-more: true
 }
 
 X3DMaterialNode : X3DAppearanceChildNode {
-  auto-generate-more: true
   # This is not actually specified anywhere (X3D XML encoding spec
   # doesn't specify containerField for abstract X3DXxxNode classes)
   # but it seems most sensible to have all X3DMaterialNode with containerField=material.
@@ -15,7 +12,6 @@ X3DMaterialNode : X3DAppearanceChildNode {
 }
 
 X3DOneSidedMaterialNode : X3DMaterialNode {
-  auto-generate-more: true
   default-container-field: material
 
   SFColor  [in,out] emissiveColor           0 0 0
@@ -28,15 +24,16 @@ X3DOneSidedMaterialNode : X3DMaterialNode {
   SFNode   [in,out] normalTexture           NULL
     range: X3DTexture2DNode
     change: chEverything
+    doc: Normalmap texture to perform bump mapping. See https://castle-engine.io/bump_mapping .
   SFString [in,out] normalTextureMapping    ""
+    doc: Determines texture coordinates used by @link(NormalTexture).
   SFFloat  [in,out] normalScale             1
     range: [0,Inf)
     change: chEverything
+    doc: Emphasize (when > 1) or deemphasize (< 1) the effect of @link(NormalTexture) on the model.
 }
 
 X3DShapeNode : X3DChildNode, X3DBoundedObject {
-  auto-generate-more: true
-
   # In X3D specificaction, appearance can be [X3DAppearanceNode].
   # But X3DAppearanceNode type is not useful, as the only possible descendant of it is Appearance,
   # so we change the type to allow Appearance.
@@ -50,6 +47,19 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   # i.e. they are [in,out] not only [].
   SFVec3f [in,out] bboxCenter 0 0 0
     range: (-Inf,Inf)
+    # Note that bboxCenter documentation string it used for generated "BBox: TBox3D" property.
+    doc: """
+      You can provide a manually-calculated bounding box of the shape here, for optimization purposes. Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically.
+
+      Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
+
+      The glTF skinned animation automatically fills this field for the affected shapes.
+
+      @italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
+
+      To read the calculated bounding box, load the nodes to TCastleScene. You can then use @link(TCastleTransform.BoundingBox Scene.BoundingBox), @link(TCastleTransform.LocalBoundingBox Scene.LocalBoundingBox), @link(TCastleTransform.WorldBoundingBox Scene.WorldBoundingBox) to know bounding box of the scene. To get bounding box of a particular shape, enumerate @link(TCastleSceneCore.Shapes) to find the correct shape (using any criteria you want -- note that the same TShapeNode may be reused multiple times), and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox).
+      """
+
   SFVec3f [in,out] bboxSize -1 -1 -1
     range: [0,Inf) or -1 -1 -1
 
@@ -57,12 +67,8 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFString [in,out]     shading            "DEFAULT"
     range: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
     enumerated-type: TShading ShadingNames shDefault
-  SFNode   []           octreeTriangles    NULL
-    range: KambiOctreeProperties
-    not-slim
-  # Whether to render this shape.
-  # See https://castle-engine.io/x3d_implementation_shape_extensions.php .
   SFBool   [in,out]     render             TRUE
+    doc: Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shape_render .
   SFString []           collision          "DEFAULT"
     range: ["DEFAULT"|"BOX"|"NONE"]
     enumerated-type: TShapeCollision ShapeCollisionNames scDefault
@@ -74,8 +80,6 @@ Appearance : X3DAppearanceNode {
   # Appearance node may only occur within Shape.appearance field.
 
   default-container-field: appearance
-  auto-generate-more: true
-
   SFNode [in,out] fillProperties   NULL
     range: FillProperties
     not-slim
@@ -94,7 +98,7 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] texture          NULL
     range: X3DTextureNode
     change: chEverything
-    doc: Texture used by this appearance. Deprecated, as it is better to specify textures inside material nodes. @deprecated
+    doc: Main texture used by this appearance (diffuse texture for Phong lighting model, base texture for physical lighting model, emissive texture for the unlit lighting model). @deprecated It is more flexible to set the relevant texture inside material node, like @link(TMaterialNode.DiffuseTexture), @link(TPhysicalMaterialNode.BaseTexture), @link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture).
   SFNode [in,out] textureTransform NULL
     range: X3DTextureTransformNode
     change: chEverything
@@ -104,7 +108,7 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] backMaterial     NULL
     range: X3DOneSidedMaterialNode
     change: chNone
-    doc: Alternative material to use for back faces (@italic(not implemented yet)).
+    doc: Alternative material to use for back faces (@italic(not implemented)).
   SFString   [in,out]      alphaMode     "AUTO"
     range: ["AUTO"|"OPAQUE"|"MASK"|"BLEND"]
     enumerated-type: TAlphaMode AlphaModeToString amAuto
@@ -120,13 +124,16 @@ Appearance : X3DAppearanceNode {
   SFNode     [in,out]      normalMap        NULL
     range: X3DTexture2DNode
     change: chEverything
+    doc: Normal map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping . @deprecated It is better to set normal map within the material node, using the @link(TAbstractOneSidedMaterialNode.NormalTexture).
   SFNode     [in,out]      heightMap        NULL
     range: X3DTexture2DNode
     not-slim
+    doc: Height map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping . @deprecated
   SFFloat    [in,out]      heightMapScale   0.01
   SFNode     [in,out]      blendMode        NULL
     range: BlendMode
     change: chEverything
+    doc: Determines the exact blending equation used, in case @link(AlphaMode) indicates blending. See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
   MFNode     []            effects          []
     range: Effect
     change: chEverything
@@ -138,8 +145,6 @@ Appearance : X3DAppearanceNode {
 
 FillProperties : X3DAppearanceChildNode {
   default-container-field: fillProperties
-  auto-generate-more: true
-
   SFBool  [in,out] filled     TRUE
   SFColor [in,out] hatchColor 1 1 1
     range: [0,1]
@@ -150,8 +155,6 @@ FillProperties : X3DAppearanceChildNode {
 
 LineProperties : X3DAppearanceChildNode {
   default-container-field: lineProperties
-  auto-generate-more: true
-
   SFBool  [in,out] applied              TRUE
   SFInt32 [in,out] linetype             1
     range: [1,Inf)
@@ -161,8 +164,6 @@ LineProperties : X3DAppearanceChildNode {
 
 Material : X3DOneSidedMaterialNode {
   default-container-field: material
-  auto-generate-more: true
-
   SFFloat  [in,out] ambientIntensity         0.2
     range: [0,1]
   SFNode   [in,out] ambientTexture           NULL
@@ -172,9 +173,11 @@ Material : X3DOneSidedMaterialNode {
 
   SFColor  [in,out] diffuseColor             0.8 0.8 0.8
     range: [0,1]
+    doc: The primary way to control the color of object with Phong material. The object reflects light sources depending on the angle of the surface with respect to the light source. The more directly the surface faces the light, the more diffuse light reflects.
   SFNode   [in,out] diffuseTexture           NULL
     range: X3DSingleTextureNode
     change: chEverything
+    doc: The primary texture to control the color of object with Phong material. The RGB channel of this texture is multiplied with @link(DiffuseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)).
   SFString [in,out] diffuseTextureMapping    ""
 
   SFFloat  [in,out] occlusionStrength        1
@@ -193,6 +196,7 @@ Material : X3DOneSidedMaterialNode {
 
   SFColor  [in,out] specularColor            0 0 0
     range: [0,1]
+    doc: Color of specular highlight, on shiny objects.
   SFNode   [in,out] specularTexture          NULL
     range: X3DSingleTextureNode
     change: chEverything
@@ -200,6 +204,7 @@ Material : X3DOneSidedMaterialNode {
 
   SFFloat  [in,out] transparency                    0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out]      fogImmune             FALSE
@@ -221,22 +226,27 @@ Material : X3DOneSidedMaterialNode {
 }
 
 PhysicalMaterial : X3DOneSidedMaterialNode {
-  auto-generate-more: true
   default-container-field: material
 
   SFColor  [in,out] baseColor                       1 1 1
     range: [0,1]
+    doc: The primary way to control the color of object with physical (PBR) material.
   SFNode   [in,out] baseTexture                     NULL
     range: X3DSingleTextureNode
     change: chEverything
+    doc: The primary texture to control the color of object with physical (PBR) material. The RGB channel of this texture is multiplied with @link(BaseColor), and alpha channel is multiplied with the opacity (1-@link(Transparency)).
   SFString [in,out] baseTextureMapping              ""
+    doc: Determines texture coordinates used by @link(BaseTexture).
 
   SFFloat  [in,out] metallic                        1
     range: [0,1]
+    doc: The metalness of the material; values range from 0.0 (non-metal) to 1.0 (metal).
   SFNode   [in,out] metallicRoughnessTexture        NULL
     range: X3DSingleTextureNode
     change: chEverything
+    doc: Control the @link(Metallic) and @link(Roughness) using a texture. The @italic(Blue) channel of this texture is multiplied with @link(Metallic). The @link(Green) channel is multiplied with @link(Roughness). The other channels are ignored.
   SFString [in,out] metallicRoughnessTextureMapping ""
+    doc: Determines texture coordinates used by @link(MetallicRoughnessTexture).
 
   SFFloat  [in,out] occlusionStrength               1
     range: [0,1]
@@ -247,18 +257,17 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
 
   SFFloat  [in,out] roughness                       1
     range: [0,1]
+    doc: The roughness of the material; values range from 0.0 (smooth) to 1.0 (rough).
 
   SFFloat  [in,out] transparency                    0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 }
 
 Shape : X3DShapeNode {
-  auto-generate-more: true
 }
 
 TwoSidedMaterial : X3DMaterialNode {
-  auto-generate-more: true
-
   SFFloat [in,out] ambientIntensity     0.2
     range: [0,1]
   SFFloat [in,out] backAmbientIntensity 0.2
@@ -287,11 +296,11 @@ TwoSidedMaterial : X3DMaterialNode {
 }
 
 UnlitMaterial : X3DOneSidedMaterialNode {
-  auto-generate-more: true
   default-container-field: material
 
   # Note: emissiveColor default also changes to 1 1 1
 
   SFFloat [in,out] transparency             0
     range: [0,1]
+    doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
 }

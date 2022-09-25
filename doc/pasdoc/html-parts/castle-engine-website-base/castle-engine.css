@@ -48,10 +48,16 @@ code, kbd, pre, samp {
     margin-right: auto;
 }
 
-.media-responsive,
 /* all images, movies responsive */
-img, iframe {
+.media-responsive, img, iframe {
   max-width: 100%;
+}
+/* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given.
+   Note: *Do not* do this for iframe, it would break the height for some reason.
+   Testcase: https://castle-engine.io/sprite_sheets , with height:auto it would have very small height.
+*/
+.media-responsive, img {
+  height: auto;
 }
 
 
@@ -190,6 +196,7 @@ dl.vrml_ver_differences > dt {
 .cge-gallery-link img {
   border: none;
   max-width: 100%; /* force scaling down on narrow window width, for 3-column layout of all_programs.php */
+  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
 }
 
 @media only screen and (min-width : 768px) {
@@ -227,11 +234,37 @@ a.screenshot:hover img { border: 2pt solid #888; }
 }
 */
 
-.main-subtitle { color: #777; }
+.main-subtitle {
+  font-size: medium;
+  color: #444;
+  line-height: 1.5; /* default line-height from <body>, to make this look like <p> */
+  margin-top: 0;
+}
 
 .main-page-thumbnail {
     width: 100%;
+    /* This way image height is also adjusted, to follow image aspect ratio.
+       And we can still specify img intrinsic size in <img> element. */
+    height: auto;
     margin-bottom: 1rem;
+}
+
+.main-page-action {
+    display: inline-block;
+    width: 100%;
+    vertical-align: middle;
+    line-height: 6em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.main-page-action.btn-info {
+    line-height: 2em; /* override height to be smaller */
+}
+
+.banner-container {
+    width: 100%;
+    margin-bottom: 3em !important;
 }
 
 .donate-photo {
@@ -284,6 +317,14 @@ article.post .entry-content ul.list-no-margin {
   font-style: italic;
 }
 
+/* Make long words, like MultiGeneratedTextureCoordinate or MovieTexture.flipVertically,
+   broken -- good for mobile usability.
+   See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Text/Wrapping_Text */
+h2, code {
+  /* word-break: break-all; */
+  overflow-wrap: break-word;
+}
+
 /* main page stuff ----------------------------------------------------------- */
 
 .centered-wrapper {
@@ -318,6 +359,7 @@ article.post .entry-content ul.list-no-margin {
 div.main-cge-download {
   padding-left: 2em !important;
   padding-right: 2em !important;
+  max-width: 100%; /* otherwise it could want to be wider than viewport on mobile */
 }
 
 /* news on main page --------------------------------------------------------- */
@@ -336,15 +378,16 @@ div.main-cge-download {
         padding-bottom: 1em;
     }
 }
-.news-row-wrapper .row-title {
+.main-page-header {
+    clear: both;
     border-top: thin solid #dcdcdc;
-    margin-bottom: 1em;
+    margin-bottom: 2em;
     padding-left: 15px;
     padding-top: 0.5em;
     font-size: larger;
     font-weight: bold;
+    text-align: center;
 }
-.news-row-wrapper .row-title,
 .news-row-wrapper .row {
     width: 1200px;
     max-width: 100%;
@@ -430,30 +473,6 @@ table.specification td {
   border-width:medium;
   padding:8px;
   /* white-space:nowrap; */
-}
-
-table.x3dtests {
-  border-collapse: collapse;
-}
-table.x3dtests td {
-  border: thin solid #888;
-  padding:8px;
-}
-table.x3dtests td.x3dtests-links {
-  padding:0px;
-  /* white-space: nowrap; */
-}
-table.x3dtests td.x3dtests-links ul {
-  padding: 0 0 0 1em;
-  margin: 0;
-  font-size: smaller;
-}
-table.x3dtests tr.x3dtests-results td {
-  font-size: smaller;
-  padding: 0.1em;
-}
-table.x3dtests .x3dtests-screens {
-  width: 210px;
 }
 
 div.sidebar_title {
@@ -578,6 +597,33 @@ span.news_title.only_anchor {
 }
 
 /* header ------------------------------------------------------------------- */
+
+.container-nav {
+  padding-left: 5px !important;
+}
+.navbar-brand {
+  padding: 5px !important;
+  margin-left: -5px !important;
+}
+.navbar-brand a {
+  display: block;
+  padding: 5px 10px;
+  color: #5e5e5e !important;
+}
+.navbar-brand a img {
+  margin-right: 0.25em;
+}
+/* present main page link similar to menu items, to communicate it is useful to click */
+.navbar-brand a:hover,
+.navbar-brand a:focus {
+  text-decoration: none !important;
+  background-color: #eeeeee !important;
+}
+
+/* override bottom margin on main page, to touch banner image */
+.navbar-main-page {
+  margin-bottom: 0 !important;
+}
 
 .header_breadcrumbs {
   color: #222;
@@ -841,7 +887,8 @@ div.download .download_platform {
   margin-right: auto;
   margin-left: auto;
   display: block;
-  width: 80%;
+  /* Use min-width not width, as on narrow mobile it may want to be a big larger */
+  min-width: 80%;
 }
 
 .centered-download-wrapper .btn-primary .download-button-hint {
@@ -935,4 +982,80 @@ div.download .download_platform {
 .talk-button > p > img {
   width: 100px;
   height: 100px;
+}
+
+/* features list ------------------------------------------------------------- */
+
+.feature-title {
+  margin-top: 2em;
+  font-weight: bold;
+  text-align: center;
+  font-size: larger;
+}
+.feature-description {
+}
+.feature-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Mobile view: single column */
+@media only screen and (max-width : 767px) {
+  .feature-row {
+    border-width: thin;
+    border-style: solid;
+    border-radius: 4px;
+    border-color: #dcdcdc;
+    -webkit-box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    -moz-box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    box-shadow: 0px 1px 2px 1px rgba(0,0,0,0.1);
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+  }
+  .feature-title {
+    margin-top: 0.5em;
+  }
+  .feature-description {
+    padding-bottom: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+/* Desktop view: two columns */
+@media only screen and (min-width : 768px) {
+  .feature-title {
+    margin-top: 2em;
+  }
+  .feature-row {
+    clear: both;
+
+    /* margin-left: 8.33333333%; */ /* like .col-sm-1 in bootstrap */
+    /* width: 82%; */ /* like 2x .col-sm-5 in bootstrap */
+    /*
+    background: #DDD;
+    display: table-row;
+    */
+  }
+  .feature-column-image,
+  .feature-column-text {
+    width: 50%;
+  }
+  .feature-column-text {
+    padding-right: 2em;
+    padding-left: 2em;
+    text-align: center;
+  }
+  .feature-row-odd .feature-column-text {
+    float: left;
+  }
+  .feature-row-odd .feature-column-image {
+    float: right;
+  }
+  .feature-row-even .feature-column-text {
+    float: right;
+  }
+  .feature-row-even .feature-column-image {
+    float: left;
+  }
 }

@@ -1,5 +1,4 @@
 X3DParticleEmitterNode : X3DNode {
-  auto-generate-more: true
   default-container-field: emitter
   SFFloat [in,out] speed       0
     range: [0,Inf)
@@ -12,19 +11,16 @@ X3DParticleEmitterNode : X3DNode {
 }
 
 X3DParticlePhysicsModelNode : X3DNode {
-  auto-generate-more: true
   default-container-field: physics
   SFBool [in,out] enabled  TRUE
 }
 
 BoundedPhysicsModel : X3DParticlePhysicsModelNode {
-  auto-generate-more: true
   SFNode [in,out] geometry NULL
     range: X3DGeometryNode
 }
 
 ConeEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   SFFloat [in,out] angle       Pi/4
     range: [0,Pi]
   SFVec3f [in,out] direction   0 1 0
@@ -32,18 +28,15 @@ ConeEmitter : X3DParticleEmitterNode {
 }
 
 ExplosionEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   SFVec3f [in,out] position    0 0 0
 }
 
 ForcePhysicsModel : X3DParticlePhysicsModelNode {
-  auto-generate-more: true
   SFVec3f [in,out] force    0 -9.8 0
     range: (Inf,Inf)
 }
 
 ParticleSystem : X3DShapeNode {
-  auto-generate-more: true
   SFBool   [in,out] createParticles   TRUE
   SFBool   [in,out] enabled           TRUE
   SFFloat  [in,out] lifetimeVariation 0.25
@@ -73,13 +66,11 @@ ParticleSystem : X3DShapeNode {
 }
 
 PointEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   SFVec3f [in,out] direction   0 1 0
   SFVec3f [in,out] position    0 0 0
 }
 
 PolylineEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   MFInt32 [in]     set_coordIndex
   SFNode  [in,out] coord         NULL
     range: X3DCoordinateNode
@@ -90,7 +81,6 @@ PolylineEmitter : X3DParticleEmitterNode {
 }
 
 SurfaceEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   MFInt32 [in]     set_coordIndex
   MFInt32 []       coordIndex    [ -1]
     range: [0,Inf) or -1
@@ -99,7 +89,6 @@ SurfaceEmitter : X3DParticleEmitterNode {
 }
 
 VolumeEmitter : X3DParticleEmitterNode {
-  auto-generate-more: true
   MFInt32 [in]     set_coordIndex
   SFNode  [in,out] coord         NULL
     range: X3DCoordinateNode
@@ -111,7 +100,6 @@ VolumeEmitter : X3DParticleEmitterNode {
 }
 
 WindPhysicsModel : X3DParticlePhysicsModelNode {
-  auto-generate-more: true
   SFVec3f [in,out] direction  0 0 0
     range: (Inf,Inf)
   SFFloat [in,out] gustiness  0.1

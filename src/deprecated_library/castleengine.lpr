@@ -89,7 +89,6 @@ begin
     begin
       DefaultTriangulationSlices := 16;
       DefaultTriangulationStacks := 16;
-      DefaultTriangulationDivisions := 0;
     end;
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;
