@@ -1734,7 +1734,7 @@ begin
   ShapesList := Shapes.TraverseList(true);
     for I := 0 to ShapesList.Count - 1 do
       if ShapesList[I].Collidable then
-        ShapesList[I].Triangulate(false, TriangleEvent);
+        ShapesList[I].Triangulate(TriangleEvent);
 end;
 
 { Shadow volumes ------------------------------------------------------------- }
