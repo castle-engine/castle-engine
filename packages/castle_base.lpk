@@ -8,7 +8,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts"/>
+        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors"/>
         <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1027">
+    <Files Count="1031">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4213,7 +4213,22 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate2_1.inc"/>
         <Type Value="Include"/>
       </Item1027>
->>>>>>> master
+      <Item1028>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1028>
+      <Item1029>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1029>
+      <Item1030>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1030>
+      <Item1031>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1031>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
