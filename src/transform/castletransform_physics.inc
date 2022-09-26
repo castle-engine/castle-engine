@@ -5177,10 +5177,11 @@ begin
   if TVector3.PerfectlyEquals(FConnectedWorldGroundAnchor, AValue) then
     Exit;
 
+  FConnectedWorldGroundAnchor := AValue;
+
   if FConnectedWorldGroundAnchorTransform <> nil then
     FConnectedWorldGroundAnchorTransform.Value := AValue;
 
-  FConnectedWorldGroundAnchor := AValue;
   RecreateKraftJoint;
 end;
 
