@@ -24,37 +24,12 @@
     },
     {
       "$$ClassName" : "TCastleViewport",
-      "Camera" : {
-        "$$ClassName" : "TCastleCamera",
-        "InitialPositionPersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Z" : 5.0000000000000000E+002
-        },
-        "Name" : "Camera",
-        "Orthographic" : {
-          "$$ClassName" : "TCastleOrthographic",
-          "Name" : "Orthographic",
-          "OriginPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 5.0000000000000000E-001,
-            "Y" : 5.0000000000000000E-001
-          }
-        },
-        "Perspective" : {
-          "$$ClassName" : "TCastlePerspective",
-          "Name" : "Perspective"
-        },
-        "ProjectionFar" : 1.0000000000000000E+003,
-        "ProjectionNear" : -1.0000000000000000E+003,
-        "ProjectionType" : "ptOrthographic"
-      },
+      "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
-        "Name" : "Items",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties",
-          "Name" : "PhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties"
         },
         "$Children" : [
           {
@@ -64,8 +39,7 @@
             "Name" : "Sphere1",
             "Radius" : 1.0000000000000000E+002,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -121,8 +95,7 @@
             "Material" : "pmUnlit",
             "Name" : "SmallBox",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -177,8 +150,7 @@
             "Material" : "pmUnlit",
             "Name" : "SmallBoxCentral",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -208,10 +180,6 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider8",
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "Y" : 1.0000000000000000E+000
-                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
@@ -236,8 +204,7 @@
             "Material" : "pmUnlit",
             "Name" : "SmallBoxImpulse",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -264,10 +231,6 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider9",
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "Y" : 1.0000000000000000E+000
-                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
@@ -296,8 +259,7 @@
             "Material" : "pmUnlit",
             "Name" : "SmallBoxTorque",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -323,10 +285,6 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider10",
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "Y" : 1.0000000000000000E+000
-                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
@@ -358,8 +316,7 @@
                 "Material" : "pmUnlit",
                 "Name" : "BigBox",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "Name" : "RenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "SizePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -426,8 +383,7 @@
                 "Material" : "pmUnlit",
                 "Name" : "BigBox2",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "Name" : "RenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "SizePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -480,8 +436,7 @@
             "Material" : "pmUnlit",
             "Name" : "BigBox3",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -531,8 +486,7 @@
             "Material" : "pmUnlit",
             "Name" : "BigBox4",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -576,8 +530,7 @@
             "Material" : "pmUnlit",
             "Name" : "Box2",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -619,8 +572,7 @@
             "Material" : "pmUnlit",
             "Name" : "Box3",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -670,8 +622,7 @@
             "Name" : "ExplosionPoint",
             "Radius" : 1.0000000000000000E+001,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -698,8 +649,7 @@
             "Name" : "GravityPoint",
             "Radius" : 1.0000000000000000E+001,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -735,8 +685,7 @@
                 "Name" : "WindForcePoint",
                 "Radius" : 1.0000000000000000E+001,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "Name" : "RenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -753,10 +702,75 @@
                 ]
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              },
+              "Width" : 1.6000000000000000E+003
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionType" : "ptOrthographic",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 5.0000000000000000E+002
+            }
           }
         ]
       },
-      "Name" : "Viewport1"
+      "Name" : "Viewport1",
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E-001,
+            "Y" : 5.0000000000000000E-001
+          },
+          "Width" : 1.7682735595703125E+003
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionType" : "ptOrthographic",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "Z" : 1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 1.6000000000000000E+003
+        }
+      },
+      "InternalDesignNavigationType" : 2,
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Name" : ""
+      }
     }
   ]
 }
