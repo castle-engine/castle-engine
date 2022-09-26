@@ -57,6 +57,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
+                "CollisionDetectionType" : "cdtContinuous",
                 "Dynamic" : false,
                 "LockRotation" : [
                 ],
