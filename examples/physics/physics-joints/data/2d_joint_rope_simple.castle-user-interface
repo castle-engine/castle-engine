@@ -45,11 +45,58 @@
             }
           },
           {
+            "$$ClassName" : "TCastleSphere",
+            "CollisionSphereRadius" : 2.0000000000000000E+001,
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 5.8431375026702881E-001,
+              "Green" : 4.7843137383460999E-001,
+              "Red" : 7.8431377187371254E-003
+            },
+            "Material" : "pmUnlit",
+            "Name" : "Sphere1",
+            "Radius" : 2.0000000000000000E+001,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Dynamic" : false,
+                "Gravity" : false,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody1"
+              },
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mode2D" : true,
+                "Name" : "SphereCollider1"
+              },
+              {
+                "$$ClassName" : "TJointRope",
+                "Breakable" : false,
+                "ConnectedAnchorPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.7346038818359375E+001
+                },
+                "ConnectedTransform" : "Box1",
+                "Distance" : 5.0000000000000000E+001,
+                "Name" : "JointRope1"
+              }
+            ]
+          },
+          {
             "$$ClassName" : "TCastleBox",
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent",
-              "Blue" : 1.7647059261798859E-001,
-              "Green" : 1.7647059261798859E-001
+              "Green" : 5.0980395078659058E-001,
+              "Red" : 8.4705883264541626E-001
             },
             "Material" : "pmUnlit",
             "Name" : "Box1",
@@ -58,18 +105,16 @@
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 3.0000000000000000E+001,
-              "Y" : 3.0000000000000000E+001,
-              "Z" : 3.0000000000000000E+001
+              "X" : 5.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 6.5971809387207031E+001
+              "X" : 5.6420879364013672E+001
             },
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "Gravity" : false,
                 "LockRotation" : [
                   0,
                   1
@@ -77,74 +122,7 @@
                 "LockTranslation" : [
                   2
                 ],
-                "Name" : "RigidBody4"
-              },
-              {
-                "$$ClassName" : "TCastleBoxCollider",
-                "Mode2D" : true,
-                "Name" : "BoxCollider2"
-              },
-              {
-                "$$ClassName" : "TJointPulley",
-                "Breakable" : false,
-                "ConnectedTransform" : "Box2",
-                "ConnectedWorldAnchorPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 5.0000000000000000E+001
-                },
-                "ConnectedWorldGroundAnchorPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.3104293823242188E+002,
-                  "Y" : -9.4824409484863281E-001
-                },
-                "Name" : "JointPulley1",
-                "WorldAnchorPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 6.7109260559082031E+001
-                },
-                "WorldGroundAnchorPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.2853128051757812E+002,
-                  "Y" : 6.6445373535156250E+001
-                }
-              }
-            ]
-          },
-          {
-            "$$ClassName" : "TCastleBox",
-            "ColorPersistent" : {
-              "$$ClassName" : "TCastleColorPersistent",
-              "Blue" : 3.1764706969261169E-001,
-              "Green" : 9.5686274766921997E-001,
-              "Red" : 2.9803922772407532E-001
-            },
-            "Material" : "pmUnlit",
-            "Name" : "Box2",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
-            "SizePersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 3.0000000000000000E+001,
-              "Y" : 3.0000000000000000E+001,
-              "Z" : 3.0000000000000000E+001
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 5.0000000000000000E+001
-            },
-            "$Behaviors" : [
-              {
-                "$$ClassName" : "TCastleRigidBody",
-                "Gravity" : false,
-                "LockRotation" : [
-                  0,
-                  1
-                ],
-                "LockTranslation" : [
-                  2
-                ],
-                "Name" : "RigidBody3"
+                "Name" : "RigidBody2"
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -179,8 +157,7 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 5.4312431335449219E+001,
-          "Y" : 2.7583045959472656E+001,
+          "X" : 3.0710456848144531E+001,
           "Z" : 1.6233146972656250E+003
         }
       },

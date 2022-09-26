@@ -7,9 +7,9 @@
       "$$ClassName" : "TCastleViewport",
       "BackgroundColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 6.0000002384185791E-001,
-        "Green" : 3.1372550129890442E-001,
-        "Red" : 2.7450981736183167E-001
+        "Blue" : 3.2156863808631897E-001,
+        "Green" : 2.7058824896812439E-001,
+        "Red" : 2.6274511218070984E-001
       },
       "Camera" : "Camera1",
       "FullSize" : true,
