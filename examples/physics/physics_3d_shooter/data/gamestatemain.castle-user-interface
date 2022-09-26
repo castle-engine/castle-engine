@@ -654,16 +654,6 @@
                   }
                 ]
               }
-            ],
-            "$Behaviors" : [
-              {
-                "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
-                "Name" : "RigidBody14"
-              }
             ]
           }
         ]
@@ -697,22 +687,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 9.2935925722122192E-001,
-          "X" : 1.0947011411190033E-001,
-          "Y" : 9.9243372678756714E-001,
-          "Z" : -5.5603191256523132E-002
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 9.9999994039535522E-001,
-          "Z" : 9.9999994039535522E-001
+          "W" : 5.7872235774993896E-001,
+          "X" : -7.8654140233993530E-001,
+          "Y" : -5.9991174936294556E-001,
+          "Z" : -1.4648857712745667E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.2658592224121094E+001,
-          "Y" : 3.9637122154235840E+000,
-          "Z" : 2.7414049148559570E+001
+          "X" : -1.8842105865478516E+001,
+          "Y" : 4.7808227539062500E+001,
+          "Z" : 8.1847351074218750E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

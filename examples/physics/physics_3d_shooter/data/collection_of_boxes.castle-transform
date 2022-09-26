@@ -539,15 +539,5 @@
         }
       ]
     }
-  ],
-  "$Behaviors" : [
-    {
-      "$$ClassName" : "TCastleRigidBody",
-      "LockRotation" : [
-      ],
-      "LockTranslation" : [
-      ],
-      "Name" : "RigidBody14"
-    }
   ]
 }
