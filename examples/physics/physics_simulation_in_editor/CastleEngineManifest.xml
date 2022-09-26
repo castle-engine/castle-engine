@@ -2,7 +2,7 @@
 <project name="physics-simulation-in-editor"
   standalone_source="physics_simulation_in_editor.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicssimulationineditor"
+  qualified_name="io.castleengine.physics.simulation.in.editor"
   caption="Physics Simulation In Editor"
   editor_units="AddForceBehavior,AddCentralForceBehavior,AddVelocityBehavior,ApplyImpulseBehavior,AddTorqueBehavior,ForceBehavior,GravityForceBehavior, ExplosionBehavior, WindForceBehavior"
 >

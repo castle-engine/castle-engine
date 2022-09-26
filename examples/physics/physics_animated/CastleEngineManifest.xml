@@ -2,7 +2,7 @@
 <project name="physics-animated"
   standalone_source="physics_animated_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicsanimated"
+  qualified_name="io.castleengine.physics.animated"
   caption="Physics Animated"
 >
   <compiler_options>

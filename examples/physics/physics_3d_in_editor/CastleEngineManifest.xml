@@ -2,7 +2,7 @@
 <project name="physics_3d_in_editor"
   standalone_source="physics_3d_in_editor_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physics3dineditor"
+  qualified_name="io.castleengine.physics.threed.in.editor"
   caption="Physics 3D In Editor"
 >
   <compiler_options>
