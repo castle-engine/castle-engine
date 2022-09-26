@@ -101,6 +101,10 @@ function TStateMain.Press(const Event: TInputPressRelease): Boolean;
     Bullet.Collides := false; // do not collide with player
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
     BulletRigidBody.LinearVelocity := Viewport.Camera.Direction * 100;
+    { You can turn off gravity for Bullet to make it easier to shoot high objects
+      even when initial LinearVelocity would be low.
+      Of course this is non-realistic. }
+    //BulletRigidBody.Gravity := false;
     //BulletRigidBody.AddForce(, Viewport.Camera.Translation); // TODO
     Viewport.Items.Add(Bullet);
   end;
