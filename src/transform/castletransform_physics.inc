@@ -5225,15 +5225,15 @@ begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
 
-  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
+  {FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
   FWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);
   FConnectedWorldAnchor := CastleVectors.Vector3(0, 0, 0);
-  FConnectedWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);
+  FConnectedWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);}
 
-  {FWorldAnchor := CastleVectors.Vector3(-1, -1, 0);
+  FWorldAnchor := CastleVectors.Vector3(-1, -1, 0);
   FWorldGroundAnchor := CastleVectors.Vector3(-1, 0, 0);
   FConnectedWorldAnchor := CastleVectors.Vector3(1, -1, 0);
-  FConnectedWorldGroundAnchor := CastleVectors.Vector3(1, 0, 0);}
+  FConnectedWorldGroundAnchor := CastleVectors.Vector3(1, 0, 0);
 
   FRatio := 1.0;
 
