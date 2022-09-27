@@ -553,12 +553,18 @@
     procedure UpdateExistBody;
     { Updates colision detection type (discrete, continous) of physics engine body. }
     procedure UpdateCollisionDetectionType;
+    { Updates axes that have translation lock and call Finish if needed }
+    procedure UpdateLockTranslation;
+    { Updates axes that have rotation lock and call Finish if needed }
+    procedure UpdateLockRotation;
 
     { Sets all values from Kraft to CGE private fields. Currently angular and
       linear velocity. }
     procedure SynchronizeFromKraft;
 
     procedure SetWorldTransformation(const WorldTransform: TMatrix4);
+    procedure SetLockTranslation(const AValue: T3DCoords);
+    procedure SetLockRotation(const AValue: T3DCoords);
 
     procedure SetAngularVelocity(const AVelocity: TVector3);
     procedure SetAngularVelocityDamp(const AValue: Single);
@@ -939,7 +945,7 @@
       For 2D games, you will usually want to disable motion along the Z axis.
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
-    property LockTranslation: T3DCoords read FLockTranslation write FLockTranslation;
+    property LockTranslation: T3DCoords read FLockTranslation write SetLockTranslation;
 
     { Disable rotation (@link(TCastleTransform.Rotation) change) along
       the particular (world) axis.
@@ -947,7 +953,7 @@
       For 2D games, you will usually want to disable rotation along the X and Y axes.
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
-    property LockRotation: T3DCoords read FLockRotation write FLockRotation;
+    property LockRotation: T3DCoords read FLockRotation write SetLockRotation;
 
     { Controls whether the rigid body is actually processed by the physics engine.
       When this is @false, the rigid body is not updated by the physics engine,
@@ -1996,6 +2002,8 @@ begin
   FOnCollisionExit := nil;
   FTransform := nil;
   FState := crbsNotInitialized;
+  FLockRotation := [];
+  FLockTranslation := [];
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
@@ -2126,12 +2134,8 @@ begin
   UpdateKraftRigidBodyType;
 
   FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
-  if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
-  if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY];
-  if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ];
-  if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
-  if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
-  if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
+  UpdateLockRotation;
+  UpdateLockTranslation;
 
   UpdateExistBody;
   UpdateCollisionDetectionType;
@@ -2507,6 +2511,54 @@ begin
   end;
 end;
 
+procedure TCastleRigidBody.UpdateLockTranslation;
+begin
+  if Assigned(FKraftBody) then
+  begin
+    if 0 in FLockTranslation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisX];
+    if 1 in FLockTranslation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisY];
+    if 2 in FLockTranslation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisZ];
+
+    { Changing translation lock needs to call Finish again we do it again
+      only when rigid body is ready now. }
+    if FState = crbsInitialized then
+      FKraftBody.Finish;
+  end;
+end;
+
+procedure TCastleRigidBody.UpdateLockRotation;
+begin
+  if Assigned(FKraftBody) then
+  begin
+    if 0 in FLockRotation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisX];
+    if 1 in FLockRotation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisY];
+    if 2 in FLockRotation then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisZ];
+
+    { Changing rotation lock needs to call Finish again we do it again only when
+      rigid body is ready now }
+    if FState = crbsInitialized then
+      FKraftBody.Finish;
+  end;
+end;
+
 procedure TCastleRigidBody.SetMaximalAngularVelocity(const AValue: Single);
 begin
   FMaximalAngularVelocity := AValue;
@@ -2638,6 +2690,24 @@ begin
     it for correct result. }
   FKraftBody.SynchronizeTransformIncludingShapes;
   GetKraftShape.StoreWorldTransform;
+end;
+
+procedure TCastleRigidBody.SetLockTranslation(const AValue: T3DCoords);
+begin
+  if FLockTranslation = AValue then
+    Exit;
+
+  FLockTranslation := AValue;
+  UpdateLockTranslation;
+end;
+
+procedure TCastleRigidBody.SetLockRotation(const AValue: T3DCoords);
+begin
+  if FLockRotation = AValue then
+    Exit;
+
+  FLockRotation := AValue;
+  UpdateLockRotation;
 end;
 
 procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
