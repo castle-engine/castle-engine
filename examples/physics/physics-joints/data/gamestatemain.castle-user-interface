@@ -260,10 +260,6 @@
               },
               {
                 "$$ClassName" : "TJointHinge",
-                "AnchorPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+002
-                },
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : true,
@@ -843,6 +839,8 @@
                 "$$ClassName" : "TJointDistance",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxDistance",
+                "DampingRatio" : 6.9999998807907104E-001,
+                "FrequencyHz" : 5.0000000000000000E+000,
                 "Name" : "JointDistance1"
               }
             ]
@@ -977,6 +975,11 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
+                "Gravity" : false,
+                "LinearVelocityPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -1.0000000000000000E+002
+                },
                 "LockRotation" : [
                 ],
                 "LockTranslation" : [
@@ -990,6 +993,8 @@
               {
                 "$$ClassName" : "TJointWorldPlaneDistance",
                 "Breakable" : false,
+                "DampingRatio" : 6.9999998807907104E-001,
+                "FrequencyHz" : 5.0000000000000000E+000,
                 "Name" : "JointWorldPlaneDistance1"
               }
             ]
@@ -1069,14 +1074,13 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 9.2412805175781250E+002,
-              "Y" : 1.2468772888183594E+002
+              "X" : 9.2413000488281250E+002,
+              "Y" : 1.1601000213623047E+002
             },
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
                 "AngularVelocityDamp" : 0.0000000000000000E+000,
-                "Gravity" : false,
                 "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LockRotation" : [
                 ],
@@ -1097,21 +1101,23 @@
                 "ConnectedWorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003,
-                  "Y" : 1.7136999511718750E+002
+                  "Y" : 1.1181330871582031E+002
                 },
                 "ConnectedWorldGroundAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.3080999755859375E+003
+                  "X" : 1.3080999755859375E+003,
+                  "Y" : 5.2327685546875000E+002
                 },
                 "Name" : "JointPulley1",
                 "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002,
-                  "Y" : 1.7469000244140625E+002
+                  "Y" : 1.1600976562500000E+002
                 },
                 "WorldGroundAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 9.2413000488281250E+002
+                  "X" : 9.2413000488281250E+002,
+                  "Y" : 5.0966494750976562E+002
                 }
               }
             ]
@@ -1137,8 +1143,8 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.3081049804687500E+003,
-              "Y" : 1.3137203979492188E+002
+              "X" : 1.3080999755859375E+003,
+              "Y" : 1.1180999755859375E+002
             },
             "$Behaviors" : [
               {
@@ -1146,10 +1152,6 @@
                 "AngularVelocityDamp" : 0.0000000000000000E+000,
                 "Gravity" : false,
                 "LinearVelocityDamp" : 0.0000000000000000E+000,
-                "LinearVelocityPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : -1.2000000000000000E+002
-                },
                 "LockRotation" : [
                 ],
                 "LockTranslation" : [
@@ -1202,6 +1204,7 @@
                 ],
                 "LockTranslation" : [
                 ],
+                "MaximalLinearVelocity" : 1.0000000000000000E+002,
                 "Name" : "RigidBody21"
               },
               {
@@ -1211,10 +1214,11 @@
               {
                 "$$ClassName" : "TJointGrab",
                 "Breakable" : false,
+                "DampingRatio" : 1.0000000149011612E-001,
                 "Name" : "JointGrab1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.2818100585937500E+003,
+                  "X" : 1.7077658691406250E+003,
                   "Y" : -2.3260000610351562E+002
                 }
               }
@@ -1238,9 +1242,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 7.9978448486328125E+002,
-          "Y" : 6.8881915283203125E+002,
-          "Z" : 1.4284116210937500E+003
+          "X" : 7.9978918457031250E+002,
+          "Y" : 6.8883886718750000E+002,
+          "Z" : 3.8682436523437500E+003
         }
       },
       "InternalDesignNavigationType" : 2,
