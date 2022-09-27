@@ -1472,9 +1472,9 @@
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TJointSlider = class (TAbstractTwoBodiesJoint)
