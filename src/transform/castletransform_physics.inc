@@ -717,12 +717,13 @@
       TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddCentralForce(const Force: TVector3);
 
-    { Apply a one-time force impulse, that will push the body for subsequent frames.
-      Impulse is a direction along which something pushes, Point is the position of that "something".
+    { Apply a one-time force, that pushes the body (increasing velocity).
+      Impulse is a direction along which to push, Point is the position from which you push.
       Longer length of Impulse makes a stronger push.
 
-      Adding impulese means @code(Velocity += Force / Mass).
-      Unlike AddForce, this is not multiplied by the delta of time,
+      Adding impulse means @code(Velocity += Force / Mass).
+      To be more precise, adding impulse directly increases @link(LinearVelocity) and @link(AngularVelocity).
+      Unlike AddForce, the velocity increase is not multiplied by the delta of time,
       so it is not expected you will call this every frame.
       (If you do, you should take care to multiply Force by TimeDelta.)
 
@@ -740,13 +741,12 @@
 
     { Apply a one-time force impulse, that will push to rotate the body for subsequent frames.
       Longer length of Torque makes a stronger push.
+      Torque is in world coordinates.
 
       TODO: explain better, why is this not necessary to be called every frame?
       Why AddForce, if called once, doesn't act as "impulse"?
 
       TODO: params: Direction?
-
-      TODO: in local or world coordinates? check.
 
       TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddTorque(const Torque: TVector3);
@@ -764,8 +764,14 @@
 
     procedure Sleep;
 
+    { Current rotating velocity of this body.
+      You can query it (as it changes, affected by forces) and set it at any point.
+      In world coordinates. }
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
 
+    { Current moving velocity of this body.
+      You can query it (as it changes, affected by forces) and set it at any point.
+      In world coordinates. }
     property LinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
 
     {$ifdef FPC}
