@@ -3143,16 +3143,18 @@ end;
 procedure TCastleTransform.WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
 begin
   WritelnWarning('Transform', Format(
-    'Inverse transform matrix has NaN value inside:' + NL +
+    'Inverse transform of "%s" (%s) matrix has NaN value inside:' + NL +
     '%s' + NL +
-    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-    [NewParamsInverseTransformValue.ToString('  '),
-     FCenter.ToString,
-     FRotation.ToString,
-     FScale.ToString,
-     FScaleOrientation.ToString,
-     FTranslation.ToString
-    ]));
+    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s', [
+    Name,
+    ClassName,
+    NewParamsInverseTransformValue.ToString('  '),
+    FCenter.ToString,
+    FRotation.ToString,
+    FScale.ToString,
+    FScaleOrientation.ToString,
+    FTranslation.ToString
+  ]));
 end;
 
 procedure TCastleTransform.Render(const Params: TRenderParams);
