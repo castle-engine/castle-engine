@@ -149,8 +149,8 @@ begin
       Delta := Container.MouseLookDelta(Event, RenderRect)
     else
       Delta := Event.Position - Event.OldPosition;
-    DraggedRect.AnchorDelta := DraggedRect.AnchorDelta + Delta / UIScale;
-    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.AnchorDelta.ToString]);
+    DraggedRect.Translation := DraggedRect.Translation + Delta / UIScale;
+    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.Translation.ToString]);
     Exit(ExclusiveEvents);
   end;
 end;
