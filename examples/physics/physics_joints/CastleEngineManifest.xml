@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="physics-joints"
+<project name="physics_joints"
   standalone_source="physics_joints_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="com.mycompany.physicsjoints"
