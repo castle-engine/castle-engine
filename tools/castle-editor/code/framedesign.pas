@@ -924,11 +924,11 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     case DraggingMode of
       dmTranslate:
         begin
-          UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
-          UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Y;
+          UI.Translation := UI.Translation + Vector2(X, Y);
         end;
       dmResize:
         begin
+          {$warnings off} // TODO: using deprecated Horizontal/VerticalAnchorDelta
           case ResizingHorizontal of
             hpLeft:
               begin
@@ -985,6 +985,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 end;
               end;
           end;
+          {$warnings on}
         end;
     end;
 
@@ -1096,10 +1097,11 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
          as it child had FullSize. }
        UI.Parent.AutoSizeToChildren and
        (UI.Parent.ControlsCount = 1) and
+       {$warnings off} // looking at deprecated Left, Bottom to keep them working
        (UI.Left = 0) and
        (UI.Bottom = 0) and
-       (UI.HorizontalAnchorDelta = 0) and
-       (UI.VerticalAnchorDelta = 0) then
+       {$warnings on}
+       TVector2.PerfectlyEquals(UI.Translation, TVector2.Zero) then
     begin
       UI := UI.Parent;
       ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
@@ -1276,8 +1278,7 @@ begin
        (RectSelected.RenderRect.Bottom = RectHover.RenderRect.Bottom) and
        (RectSelected.RenderRect.Left   = RectHover.RenderRect.Left  ) then
     begin
-      RectHover.VerticalAnchorDelta := RectHover.VerticalAnchorDelta -
-        RectSelected.EffectiveHeight;
+      RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
   end;
 end;
@@ -2769,7 +2770,7 @@ begin
       if (NewComponent is TCastleUserInterface) and
          (ParentComponent is TCastleUserInterface) then
       begin
-        TCastleUserInterface(NewComponent).AnchorDelta :=
+        TCastleUserInterface(NewComponent).Translation :=
           TCastleUserInterface(ParentComponent).ContainerToLocalPosition(DropPosition2D, true);
       end;
     end else
@@ -4101,14 +4102,12 @@ begin
   if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
   begin
     // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
-    UI.HorizontalAnchorDelta := 0;
-    UI.VerticalAnchorDelta := 0;
+    UI.Translation := TVector2.Zero;
   end else
   begin
-    UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta +
-      (RenderRectBeforeChange.Left - NewRect.Left) / UI.UIScale;
-    UI.VerticalAnchorDelta := UI.VerticalAnchorDelta +
-      (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale;
+    UI.Translation := UI.Translation + Vector2(
+      (RenderRectBeforeChange.Left   - NewRect.Left) / UI.UIScale,
+      (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale);
   end;
 
   ModifiedOutsideObjectInspector('', ucLow);
@@ -4519,8 +4518,7 @@ begin
   UI := SelectedUserInterface;
   if UI <> nil then
   begin
-    UI.HorizontalAnchorDelta := 0;
-    UI.VerticalAnchorDelta := 0;
+    UI.Translation := TVector2.Zero;
     ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, ucHigh);
   end;
 end;
