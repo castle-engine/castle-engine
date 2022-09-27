@@ -348,14 +348,14 @@ object ProjectForm: TProjectForm
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
       end
-      object Separator6: TMenuItem
+      object Separator8: TMenuItem
         Caption = '-'
       end
-      object MenuItem22: TMenuItem
+      object MenuItem24: TMenuItem
         Action = ActionViewportRenderNormal
         RadioItem = True
       end
-      object MenuItem23: TMenuItem
+      object MenuItem27: TMenuItem
         Action = ActionViewportRenderWireframeOnly
         RadioItem = True
       end
