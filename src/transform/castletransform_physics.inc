@@ -676,14 +676,79 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Force and position is in world coordinate system }
+    { Push this rigid body.
+      The body is pushed from a Position and along the direction of Force.
+      Longer length of Force makes a stronger push.
+
+      The forces affecting each body are reset every frame
+      (only the body velocity is preserved across frames).
+      If you want to keep applying this force (e.g. it is a wind that continues pushing in given direction)
+      you should call this method every frame.
+      (TODO: check this sentence.)
+      It is automatically multiplied by the delta time, no need to account for that.
+      That is, adding force means @code(Velocity += Force * TimeDelta / Mass).
+
+      Force and position is in world coordinate system.
+
+      TODO: rename params and invert order to Position, Direction?
+
+      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddForce(const Force, Position: TVector3);
 
-    { Force is in local rigid body coordinate system (need WorldToLocal()) }
+    { Push this rigid body.
+      The body is pushed along the direction of Force.
+      Longer length of Force makes a stronger push.
+
+      This is similar to @link(AddForce), but the Force is in local coordinate system
+      (use @link(TCastleTransform.WorldToLocal) to convert coordinates).
+      Moreover it doesn't take as parameter Position: the force always acts from the origin
+      (0,0,0 - TODO check) of this body.
+
+      Just like with @link(AddForce),
+      the forces affecting each body are reset every frame
+      (only the body velocity is preserved across frames).
+      If you want to keep applying this force (e.g. it is a wind that continues pushing in given direction)
+      you should call this method every frame.
+      (TODO: check this sentence.)
+      It is automatically multiplied by the delta time, no need to account for that.
+
+      TODO: rename param to Direction?
+
+      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddCentralForce(const Force: TVector3);
 
+    { Apply a one-time force impulse, that will push the body for subsequent frames.
+      Impulse is a direction along which something pushes, Point is the position of that "something".
+      Longer length of Impulse makes a stronger push.
+
+      Adding impulese means @code(Velocity += Force / Mass).
+      Unlike AddForce, this is not multiplied by the delta of time,
+      so it is not expected you will call this every frame.
+      (If you do, you should take care to multiply Force by TimeDelta.)
+
+      TODO: Is the difference from AddForce really that simple?
+      And if so, do we even need a separate method for it -- user could multiply
+      by SecondsPassed whenever needed.
+      And if user does it, it will work better with Viewport/Scene.TimeScale.
+
+      TODO: params: Position and Direction, in this order?
+
+      TODO: in local or world coordinates? check.
+
+      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure ApplyImpulse(const Impulse, Point: TVector3);
 
+    { Apply a one-time force impulse, that will push to rotate the body for subsequent frames.
+      Longer length of Torque makes a stronger push.
+
+      TODO: explain better, why is this not necessary to be called every frame?
+      Why AddForce, if called once, doesn't act as "impulse"?
+
+      TODO: params: Direction?
+
+      TODO: in local or world coordinates? check.
+
+      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddTorque(const Torque: TVector3);
 
     { Returns true when rigid body behavior exists, and is added to Castle

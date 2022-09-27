@@ -105,7 +105,6 @@ function TStateMain.Press(const Event: TInputPressRelease): Boolean;
       even when initial LinearVelocity would be low.
       Of course this is non-realistic. }
     //BulletRigidBody.Gravity := false;
-    //BulletRigidBody.AddForce(, Viewport.Camera.Translation); // TODO
     Viewport.Items.Add(Bullet);
   end;
 
