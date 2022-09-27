@@ -440,8 +440,7 @@ begin
     (FKraftEngine <> nil) and
     ( (not CastleDesignMode) or
       (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
-    )
-  );
+    );
 end;
 
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
