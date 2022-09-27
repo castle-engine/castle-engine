@@ -83,7 +83,7 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 1.0000000000000000E+002
+              "Z" : 2.0000000000000000E+001
             }
           },
           {
