@@ -372,6 +372,7 @@ object DesignFrame: TDesignFrame
       ShowHint = True
       TabOrder = 0
       OnAdvancedCustomDrawItem = ControlsTreeAdvancedCustomDrawItem
+      OnChanging = ControlsTreeBeforeSelectionChange
       OnDragDrop = ControlsTreeDragDrop
       OnDragOver = ControlsTreeDragOver
       OnEditing = ControlsTreeEditing
