@@ -435,8 +435,10 @@ end;
 
 function TCastleAbstractRootTransform.IsPhysicsRunning: Boolean;
 begin
-  Result := (EnablePhysics and (FKraftEngine <> nil) and
-    ( (CastleDesignMode = false) or
+  Result :=
+    EnablePhysics and
+    (FKraftEngine <> nil) and
+    ( (not CastleDesignMode) or
       (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
     )
   );
