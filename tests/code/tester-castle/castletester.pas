@@ -193,6 +193,10 @@ type
       AddrOfError: Pointer = nil); overload;
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
+      AddrOfError: Pointer = nil); overload;
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
+      const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
       AddrOfError: Pointer = nil);
@@ -647,6 +651,25 @@ end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
   const Epsilon: Double; AddrOfError: Pointer);
+begin
+  if AddrOfError = nil then
+    AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  AssertBoxesEqual('', Expected, Actual, Epsilon, AddrOfError);
+end;
+
+procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
+  AddrOfError: Pointer);
+begin
+  if AddrOfError = nil then
+    AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  AssertBoxesEqual('', Expected, Actual, AddrOfError);
+end;
+
+procedure TCastleTestCase.AssertBoxesEqual(const Msg: String;
+  const Expected, Actual: TBox3D;
+  const Epsilon: Double; AddrOfError: Pointer);
 var
   I: Integer;
 begin
@@ -657,27 +680,28 @@ begin
     Exit; // OK
 
   if Expected.IsEmpty then
-    Fail(Format('Expected empty box, actual box is NOT empty (%s)',
+    Fail(Format('Expected empty box, actual box is NOT empty (%s). ' + Msg,
       [Actual.ToRawString]));
 
   if Actual.IsEmpty then
-    Fail(Format('Expected NOT empty box (%s), actual box is empty',
+    Fail(Format('Expected NOT empty box (%s), actual box is empty. ' + Msg,
       [Expected.ToRawString]), AddrOfError);
 
   for I := 0 to 2 do
     if (not SameValue(Expected.Data[0][I], Actual.Data[0][I], Epsilon)) or
        (not SameValue(Expected.Data[1][I], Actual.Data[1][I], Epsilon)) then
-      Fail(Format('Boxes are not equal: expected: %s, actual: %s',
+      Fail(Format('Boxes are not equal: expected: %s, actual: %s. ' + Msg,
         [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
 end;
 
-procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
+procedure TCastleTestCase.AssertBoxesEqual(const Msg: String;
+  const Expected, Actual: TBox3D;
   AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
-  AssertBoxesEqual(Expected, Actual, SingleEpsilon, AddrOfError);
+  AssertBoxesEqual(Msg, Expected, Actual, SingleEpsilon, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: Single);
@@ -1201,8 +1225,8 @@ end;
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} true
-    {$else} false
+    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} false
+    {$else} true
     {$endif};
 end;
 

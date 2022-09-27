@@ -283,15 +283,18 @@ function TRegionAttachment.BuildGeometry(const BaseUrl: string;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
-  Faces: TIndexedFaceSetNode;
+  Faces: TIndexedTriangleSetNode;
   Rect: array [0..1] of TVector2;
 begin
-  Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+  { We use here TIndexedTriangleSetNode, not TIndexedFaceSetNode,
+    to allow DynamicBatching to merge TRegionAttachment with TMeshAttachment
+    into one shape. }
+  Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
   Result := Faces;
 
-  Faces.CreaseAngle := 0; // optimization: do not try to smooth normals, no point
+  Faces.NormalPerVertex := false; // optimization: do not try to smooth normals, no point
   Faces.Solid := false;
-  Faces.SetCoordIndex([0, 1, 2, 3]);
+  Faces.SetIndex([0, 1, 2, 0, 2, 3]); // 2 triangles forming a quad
 
   Coord := TCoordinateNode.Create(
     Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
@@ -660,6 +663,9 @@ procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
     Node.AddChildren(Shape);
 
     Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+    Faces.NormalPerVertex := false; // optimization: do not try to smooth normals, no point
+    Faces.CreaseAngle := 0; // optimization: do not try to smooth normals, no point
+    Faces.Solid := false;
 
     Coordinates := TCoordinateNode.Create('', BaseUrl);
     for I := 0 to Vertices.Count - 1 do

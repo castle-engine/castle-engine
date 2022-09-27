@@ -47,8 +47,8 @@ This package, castle_components.lpk, contains the Lazarus visual components that
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
-    <Version Major="6" Minor="5"/>
-    <Files Count="18">
+    <Version Major="6" Minor="92"/>
+    <Files Count="25">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -93,7 +93,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/lcl/castlepropedits_float.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_number.inc"/>
         <Type Value="Include"/>
       </Item11>
       <Item12>
@@ -113,17 +113,46 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item15>
       <Item16>
-        <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
-        <UnitName Value="castlepropedits_rangeset"/>
+        <Filename Value="../src/lcl/castleinternallcldesign.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastleInternalLclDesign"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
         <Type Value="Include"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_imagecontrol.inc"/>
         <Type Value="Include"/>
       </Item18>
+      <Item19>
+        <Filename Value="../src/lcl/castlepropedits_component_imagetransform.inc"/>
+        <Type Value="Include"/>
+      </Item19>
+      <Item20>
+        <Filename Value="../src/lcl/castlepropedits_component_scene.inc"/>
+        <Type Value="Include"/>
+      </Item20>
+      <Item21>
+        <Filename Value="../src/lcl/castleeditoraccess.pas"/>
+        <UnitName Value="CastleEditorAccess"/>
+      </Item21>
+      <Item22>
+        <Filename Value="../src/lcl/castlepropedits_component_transformdesign.inc"/>
+        <Type Value="Include"/>
+      </Item22>
+      <Item23>
+        <Filename Value="../src/lcl/castlepropedits_component_design.inc"/>
+        <Type Value="Include"/>
+      </Item23>
+      <Item24>
+        <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
+        <Type Value="Include"/>
+      </Item24>
+      <Item25>
+        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Type Value="Include"/>
+      </Item25>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">

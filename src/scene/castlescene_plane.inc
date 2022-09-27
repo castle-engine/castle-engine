@@ -118,11 +118,13 @@ var
   V3D: array [0..3] of TVector3;
   I: Integer;
   C1, C2: T3DAxis;
+  Size2: TVector2;
 begin
-  V[0] := Vector2(-FSize.X, -FSize.Y);
-  V[1] := Vector2( FSize.X, -FSize.Y);
-  V[2] := Vector2( FSize.X,  FSize.Y);
-  V[3] := Vector2(-FSize.X,  FSize.Y);
+  Size2 := FSize * 0.5;
+  V[0] := Vector2(-Size2.X, -Size2.Y);
+  V[1] := Vector2( Size2.X, -Size2.Y);
+  V[2] := Vector2( Size2.X,  Size2.Y);
+  V[3] := Vector2(-Size2.X,  Size2.Y);
 
   RestOf3DCoordsCycle(FAxis, C1, C2);
   for I := Low(V) to High(V) do

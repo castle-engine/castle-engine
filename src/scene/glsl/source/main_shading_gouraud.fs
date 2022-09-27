@@ -29,9 +29,6 @@ void main(void)
   /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ // deprecated
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
-  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
-
-#undef normal_eye_fragment
 
   /* PLUG: fragment_modify (fragment_color) */
 
@@ -44,6 +41,10 @@ void main(void)
   /* Optimization to not call castle_linear_to_screen always:
      it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */
   #endif
+
+  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
+
+#undef normal_eye_fragment
 
   gl_FragColor = fragment_color;
 

@@ -63,12 +63,12 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   TIndexedFaceSetGenerator = class(TAbstractIndexedFaceSetGenerator)
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
 { TAbstractIndexedFaceSetGenerator ------------------------------------------- }
@@ -145,16 +145,16 @@ begin
 
   if CreaseAngle >= Pi then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsSmooth(NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   if CreaseAngle <> 0 then
   begin
-    Normals := Shape.NormalsCreaseAngle(OverTriangulate, NormalsCcw, CreaseAngle);
+    Normals := Shape.NormalsCreaseAngle(NormalsCcw, CreaseAngle);
     NorImplementation := niPerVertexNonIndexed;
   end else
   begin
-    Normals := Shape.NormalsFlat(OverTriangulate, NormalsCcw);
+    Normals := Shape.NormalsFlat(NormalsCcw);
     NorImplementation := niPerFace;
   end;
 end;
@@ -300,7 +300,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSet_1Generator.Create(AShape: TShape);
 var
   SH: TShapeHintsNode_1;
   ANode: TIndexedFaceSetNode_1;
@@ -347,7 +347,7 @@ end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSetGenerator.Create(AShape: TShape);
 var
   ANode: TIndexedFaceSetNode;
 begin

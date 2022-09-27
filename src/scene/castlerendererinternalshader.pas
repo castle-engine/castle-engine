@@ -173,7 +173,9 @@ type
         So invalid uniform names should be always catched.
         We also catch type mismatches.) }
     procedure SetUniformFromField(const UniformName: string;
-      const UniformValue: TX3DField; const EnableDisable: boolean);
+      const UniformValue: TX3DField;
+      const AUniformMissing: TUniformMissing;
+      const EnableDisable: boolean);
 
     procedure EventReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
@@ -183,6 +185,7 @@ type
       and will automatically update uniform value when we receive an event. }
     procedure BindNonTextureUniform(
       const FieldOrEvent: TX3DInterfaceDeclaration;
+      const AUniformMissing: TUniformMissing;
       const EnableDisable: boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
@@ -414,8 +417,7 @@ type
     FFogEnabled: boolean;
     FFogType: TFogType;
     FFogColor: TVector3;
-    FFogLinearEnd: Single;
-    FFogExpDensity: Single;
+    FFogVisibilityRange: Single;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
     TextureMatrix: TCardinalList;
@@ -512,7 +514,7 @@ type
 
     MainTextureMapping: Integer;
 
-    GammaCorrection: Boolean;
+    ColorSpaceLinear: Boolean;
 
     { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
     MultiTextureColor: TCastleColor;
@@ -619,14 +621,13 @@ type
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
-      const FogColor: TVector3; const FogLinearEnd: Single;
-      const FogExpDensity: Single);
+      const FogColor: TVector3; const FogVisibilityRange: Single);
     { Modify some fog parameters, relevant only if fog already enabled.
       Used by FogCoordinate, that changes some fog settings,
       but does not change fog color.  }
     procedure ModifyFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
-      const FogLinearEnd: Single; const FogExpDensity: Single);
+      const FogVisibilityRange: Single);
     function EnableCustomShaderCode(const Shaders: TMFNode;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
@@ -667,6 +668,10 @@ type
     function ShapeBoundingBoxInWorld: TBox3D;
   end;
 
+{ Derive UniformMissing behavior for fields within given node.
+  Accepts Node = @nil too. }
+function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
+
 implementation
 
 uses SysUtils, StrUtils,
@@ -689,6 +694,17 @@ var
 
 const
   Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};
+
+function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
+begin
+  if Node is TEffectNode then
+    Result := TEffectNode(Node).UniformMissing
+  else
+  if Node is TComposedShaderNode then
+    Result := TComposedShaderNode(Node).UniformMissing
+  else
+    Result := umWarning;
+end;
 
 { String helpers ------------------------------------------------------------- }
 
@@ -1058,10 +1074,7 @@ begin
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
 
   { calculate AmbientColor3 = light color * light ambient intensity }
-  if Node.FdAmbientIntensity.Value < 0 then
-    AmbientColor3 := Color3
-  else
-    AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
+  AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
 
   if Node is TAbstractPunctualLightNode then
   begin
@@ -1153,20 +1166,20 @@ procedure TX3DShaderProgramBase.Link;
 begin
   inherited;
 
-  UniformCastle_ModelViewMatrix       := Uniform('castle_ModelViewMatrix'      , uaIgnore);
-  UniformCastle_ProjectionMatrix      := Uniform('castle_ProjectionMatrix'     , uaIgnore);
-  UniformCastle_NormalMatrix          := Uniform('castle_NormalMatrix'         , uaIgnore);
-  UniformCastle_MaterialDiffuseAlpha  := Uniform('castle_MaterialDiffuseAlpha' , uaIgnore);
-  UniformCastle_MaterialBaseAlpha     := Uniform('castle_MaterialBaseAlpha'    , uaIgnore);
-  UniformCastle_MaterialEmissiveAlpha := Uniform('castle_MaterialEmissiveAlpha', uaIgnore);
-  UniformCastle_MaterialShininess     := Uniform('castle_MaterialShininess'    , uaIgnore);
-  UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , uaIgnore);
-  UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , uaIgnore);
-  UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , uaIgnore);
-  UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
-  UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
-  UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
-  UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
+  UniformCastle_ModelViewMatrix       := Uniform('castle_ModelViewMatrix'      , umIgnore);
+  UniformCastle_ProjectionMatrix      := Uniform('castle_ProjectionMatrix'     , umIgnore);
+  UniformCastle_NormalMatrix          := Uniform('castle_NormalMatrix'         , umIgnore);
+  UniformCastle_MaterialDiffuseAlpha  := Uniform('castle_MaterialDiffuseAlpha' , umIgnore);
+  UniformCastle_MaterialBaseAlpha     := Uniform('castle_MaterialBaseAlpha'    , umIgnore);
+  UniformCastle_MaterialEmissiveAlpha := Uniform('castle_MaterialEmissiveAlpha', umIgnore);
+  UniformCastle_MaterialShininess     := Uniform('castle_MaterialShininess'    , umIgnore);
+  UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , umIgnore);
+  UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , umIgnore);
+  UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , umIgnore);
+  UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , umIgnore);
+  UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , umIgnore);
+  UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , umIgnore);
+  UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , umIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
@@ -1234,6 +1247,7 @@ end;
 
 procedure TX3DShaderProgram.BindNonTextureUniform(
   const FieldOrEvent: TX3DInterfaceDeclaration;
+  const AUniformMissing: TUniformMissing;
   const EnableDisable: boolean);
 var
   UniformField: TX3DField;
@@ -1246,20 +1260,10 @@ begin
     from X3D field or exposedField }
 
   if UniformField <> nil then
-  try
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
-    SetUniformFromField(UniformField.X3DName, UniformField, EnableDisable);
-  except
-    { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
-      This way we will not add this field to EventsObserved. }
-    on E: EGLSLUniformInvalid do
-    begin
-      WritelnWarning('VRML/X3D', E.Message);
-      Exit;
-    end;
-  end;
+    SetUniformFromField(UniformField.X3DName, UniformField, AUniformMissing, EnableDisable);
 
   { Allow future changing of this GLSL uniform variable,
     from VRML eventIn or exposedField }
@@ -1280,7 +1284,8 @@ end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TX3DField;
-  const EnableDisable: boolean);
+  const AUniformMissing: TUniformMissing;
+  const EnableDisable: Boolean);
 var
   TempF: TSingleList;
   TempVec2f: TVector2List;
@@ -1294,12 +1299,12 @@ begin
     Enable;
 
   if UniformValue is TSFBool then
-    SetUniform(UniformName, TSFBool(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFBool(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFLong then
     { Handling of SFLong also takes care of SFInt32. }
-    SetUniform(UniformName, TSFLong(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFLong(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFVec2f then
-    SetUniform(UniformName, TSFVec2f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec2f(UniformValue).Value, AUniformMissing) else
 
   (*
   { Old approach: Check TSFColor first, otherwise TSFVec3f would also catch and handle
@@ -1311,24 +1316,24 @@ begin
     We now pass SFColor as vec3, it can fallback TSFVec3f clause. }
 
   // if UniformValue is TSFColor then
-  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), AUniformMissing) else
   *)
 
   if UniformValue is TSFVec3f then
-    SetUniform(UniformName, TSFVec3f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec3f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFVec4f then
-    SetUniform(UniformName, TSFVec4f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec4f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFRotation then
-    SetUniform(UniformName, TSFRotation(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFRotation(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFMatrix3f then
-    SetUniform(UniformName, TSFMatrix3f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFMatrix3f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFMatrix4f then
-    SetUniform(UniformName, TSFMatrix4f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFMatrix4f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFFloat then
-    SetUniform(UniformName, TSFFloat(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFFloat(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFDouble then
     { SFDouble also takes care of SFTime }
-    SetUniform(UniformName, TSFDouble(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFDouble(UniformValue).Value, AUniformMissing) else
 
   { Double-precision vector and matrix types.
 
@@ -1341,23 +1346,23 @@ begin
     the reasonable approach: support all double-precision vectors and matrices,
     just like single-precision. }
   if UniformValue is TSFVec2d then
-    SetUniform(UniformName, Vector2(TSFVec2d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector2(TSFVec2d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFVec3d then
-    SetUniform(UniformName, Vector3(TSFVec3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector3(TSFVec3d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFVec4d then
-    SetUniform(UniformName, Vector4(TSFVec4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector4(TSFVec4d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFMatrix3d then
-    SetUniform(UniformName, Matrix3(TSFMatrix3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix3(TSFMatrix3d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFMatrix4d then
-    SetUniform(UniformName, Matrix4(TSFMatrix4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix4(TSFMatrix4d(UniformValue).Value), AUniformMissing) else
 
   { Now repeat this for array types }
   if UniformValue is TMFBool then
-    SetUniform(UniformName, TMFBool(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFBool(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFLong then
-    SetUniform(UniformName, TMFLong(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFLong(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFVec2f then
-    SetUniform(UniformName, TMFVec2f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec2f(UniformValue).Items, AUniformMissing) else
   (* Old approach: follow X3D spec, and map MFColor to vec4[].
      New approach: ignore nonsense X3D spec, and map MFColor to vec3[].
      Just allow TMFColor to fallback to TMFVec3f.
@@ -1365,62 +1370,62 @@ begin
   begin
     TempVec4f := TMFColor(UniformValue).Items.ToVector4(1.0);
     try
-      SetUniform(UniformName, TempVec4f, true);
+      SetUniform(UniformName, TempVec4f, AUniformMissing);
     finally FreeAndNil(TempVec4f) end;
   end else
   *)
   if UniformValue is TMFVec3f then
-    SetUniform(UniformName, TMFVec3f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec3f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFVec4f then
-    SetUniform(UniformName, TMFVec4f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec4f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFRotation then
-    SetUniform(UniformName, TMFRotation(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFRotation(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFMatrix3f then
-    SetUniform(UniformName, TMFMatrix3f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFMatrix3f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFMatrix4f then
-    SetUniform(UniformName, TMFMatrix4f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFMatrix4f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFFloat then
-    SetUniform(UniformName, TMFFloat(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFFloat(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFDouble then
   begin
     TempF := TMFDouble(UniformValue).Items.ToSingle;
     try
-      SetUniform(UniformName, TempF, true);
+      SetUniform(UniformName, TempF, AUniformMissing);
     finally FreeAndNil(TempF) end;
   end else
   if UniformValue is TMFVec2d then
   begin
     TempVec2f := TMFVec2d(UniformValue).Items.ToVector2;
     try
-      SetUniform(UniformName, TempVec2f, true);
+      SetUniform(UniformName, TempVec2f, AUniformMissing);
     finally FreeAndNil(TempVec2f) end;
   end else
   if UniformValue is TMFVec3d then
   begin
     TempVec3f := TMFVec3d(UniformValue).Items.ToVector3;
     try
-      SetUniform(UniformName, TempVec3f, true);
+      SetUniform(UniformName, TempVec3f, AUniformMissing);
     finally FreeAndNil(TempVec3f) end;
   end else
   if UniformValue is TMFVec4d then
   begin
     TempVec4f := TMFVec4d(UniformValue).Items.ToVector4;
     try
-      SetUniform(UniformName, TempVec4f, true);
+      SetUniform(UniformName, TempVec4f, AUniformMissing);
     finally FreeAndNil(TempVec4f) end;
   end else
   if UniformValue is TMFMatrix3d then
   begin
     TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3;
     try
-      SetUniform(UniformName, TempMat3f, true);
+      SetUniform(UniformName, TempMat3f, AUniformMissing);
     finally FreeAndNil(TempMat3f) end;
   end else
   if UniformValue is TMFMatrix4d then
   begin
     TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4;
     try
-      SetUniform(UniformName, TempMat4f, true);
+      SetUniform(UniformName, TempMat4f, AUniformMissing);
     finally FreeAndNil(TempMat4f) end;
   end else
 
@@ -1431,7 +1436,7 @@ begin
     { Nothing to do, these will be set by TGLSLRenderer.Enable.
       Right now, these are never passed here. }
   end else
- *)
+  *)
 
     { TODO: other field types, full list is in X3D spec in
       "OpenGL shading language (GLSL) binding".
@@ -1455,19 +1460,7 @@ begin
   else
     UniformName := Event.ParentExposedField.X3DName;
 
-  try
-    SetUniformFromField(UniformName, Value, true);
-  except
-    { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
-      This way we can remove ourselves (EventReceive) from event notifications. }
-    on E: EGLSLUniformInvalid do
-    begin
-      WritelnWarning('VRML/X3D', E.Message);
-      Event.RemoveNotification({$ifdef FPC}@{$endif}EventReceive);
-      EventsObserved.Remove(Event);
-      Exit;
-    end;
-  end;
+  SetUniformFromField(UniformName, Value, UniformMissingFromNode(Event.ParentNode as TX3DNode), true);
 
   { Although ExposedEvents implementation already sends notification
     about changes to Scene, we can also get here
@@ -1497,8 +1490,9 @@ begin
     if (IDecl.Field <> nil) and
        ((IDecl.Field is TSFNode) or
         (IDecl.Field is TMFNode)) then
-      UniformsTextures.Add(IDecl.Field) else
-      BindNonTextureUniform(IDecl, EnableDisable);
+      UniformsTextures.Add(IDecl.Field)
+    else
+      BindNonTextureUniform(IDecl, UniformMissingFromNode(Node), EnableDisable);
   end;
 end;
 
@@ -1879,9 +1873,9 @@ begin
       if TextureType <> ttShader then
       begin
         { Optimization to not call castle_texture_color_to_linear when not needed.
-          Although it should do nothing when GammaCorrection=false,
+          Although it should do nothing when ColorSpaceLinear=false,
           but to make sure it takes zero time we just not call it at all. }
-        if Shader.GammaCorrection and (TextureType <> tt2DShadow) then
+        if Shader.ColorSpaceLinear and (TextureType <> tt2DShadow) then
           TextureSampleCall := 'castle_texture_color_to_linear(' + TextureSampleCall + ')';
         Code[stFragment].Add(Format(
           'texture_color = ' + TextureSampleCall + ';' +NL+
@@ -2061,7 +2055,7 @@ begin
   RenderingCamera := nil;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
-  GammaCorrection := false;
+  ColorSpaceLinear := false;
   MultiTextureColor := White;
 end;
 
@@ -2861,20 +2855,17 @@ var
         '  castle_FogFragCoord = ' + CoordinateSource + ';' +NL+
         '}');
 
+      FogUniforms := 'uniform float castle_FogVisibilityRange;';
+
+      // See equations in https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD1/Part01/components/lighting.html#t-foginterpolant
       case FFogType of
         ftLinear:
           begin
-            FogUniforms := 'uniform float castle_FogLinearEnd;';
-            { The fixed-function fog equation multiply by gl_Fog.scale,
-              which is a precomputed 1.0 / (gl_Fog.end - gl_Fog.start),
-              which is just 1.0 / gl_Fog.end for us.
-              So we just divide by castle_FogLinearEnd. }
-            FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
+            FogFactor := '1.0 - castle_FogFragCoord / castle_FogVisibilityRange';
           end;
-        ftExp:
+        ftExponential:
           begin
-            FogUniforms := 'uniform float castle_FogExpDensity;';
-            FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
+            FogFactor := '(castle_FogFragCoord < castle_FogVisibilityRange ? exp(-castle_FogFragCoord / (castle_FogVisibilityRange - castle_FogFragCoord)) : 0.0)';
           end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
@@ -2887,7 +2878,7 @@ var
         FogUniforms + NL +
         'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
         '{' +NL+
-        '  fragment_color.rgb = mix(fragment_color.rgb, castle_FogColor,' +NL+
+        '  fragment_color.rgb = mix(castle_FogColor, fragment_color.rgb, ' +NL+
         '    clamp(' + FogFactor + ', 0.0, 1.0));' +NL+
         '}');
     end;
@@ -3027,7 +3018,7 @@ begin
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
   if GLVersion.BuggyGLSLBumpMappingNumSteps then
     Define('CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS', stFragment);
-  if GammaCorrection then
+  if ColorSpaceLinear then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
     tmNone: ;
@@ -3068,26 +3059,17 @@ begin
     raise;
   end;
 
-  { All user VRML/X3D uniform values go through SetUniformFromField,
-    that always raises exception on invalid names/types, regardless
-    of UniformNotFoundAction / UniformTypeMismatchAction values.
+  { Note that user X3D uniform values go through SetUniformFromField,
+    which passes UniformMissing based on node configuration
+    (TEffectNode.UniformMissing, TComposedShaderNode.UniformMissing).
 
-    So settings below only control what happens on our uniform values.
-    - Missing uniform name should be ignored, as it's normal in some cases:
-      - When all the lights are off (including headlight) then normal vectors
-        are unused, and so the normalmap texture is unused.
+    So setting AProgram.UniformMissing below only controls what happens on our
+    built-in uniform values.
 
-      Avoid producing any warnings in this case, as this is normal situation.
-      Actually needed at least on NVidia GeForce 450 GTS (proprietary OpenGL
-      under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
-      this doesn't seem needed (less aggressive removal of unused vars).
-
-    - Invalid types should always be reported in debug mode, as OpenGL errors.
-      This is the fastest option (other values for UniformTypeMismatchAction
-      are not good for performance, causing glGetError around every
-      TGLSLUniform.SetValue call, very very slow). We carefully code to
-      always specify correct types for our uniform variables. }
-  AProgram.UniformNotFoundAction := uaIgnore;
+    Missing uniform name should be ignored, as it's normal in some cases:
+    When all the lights are off (including headlight) then normal vectors
+    are unused, and so the normalmap texture is unused. }
+  AProgram.UniformMissing := umIgnore;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
@@ -3106,7 +3088,7 @@ begin
   AProgram.AttachShader(stFragment, FS);
   AProgram.Link;
 
-  AProgram.UniformNotFoundAction := uaIgnore;
+  AProgram.UniformMissing := umIgnore;
 end;
 
 function TShader.CodeHash: TShaderCodeHash;
@@ -3118,7 +3100,7 @@ function TShader.CodeHash: TShaderCodeHash;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
     FCodeHash.AddInteger(Ord(LightingModel) * 503);
-    FCodeHash.AddInteger(Ord(GammaCorrection) * 347);
+    FCodeHash.AddInteger(Ord(ColorSpaceLinear) * 347);
     FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
     FCodeHash.AddFloat(MultiTextureColor.X, 5821);
@@ -3575,8 +3557,7 @@ end;
 
 procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
-  const FogColor: TVector3; const FogLinearEnd: Single;
-  const FogExpDensity: Single);
+  const FogColor: TVector3; const FogVisibilityRange: Single);
 var
   UColor: TDynamicUniformVec3;
   USingle: TDynamicUniformSingle;
@@ -3585,30 +3566,17 @@ begin
   FFogType := FogType;
   FFogCoordinateSource := FogCoordinateSource;
   FFogColor := FogColor;
-  FFogLinearEnd := FogLinearEnd;
-  FFogExpDensity := FogExpDensity;
+  FFogVisibilityRange := FogVisibilityRange;
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
 
   if FFogEnabled then
   begin
-    case FFogType of
-      ftLinear:
-        begin
-          USingle := TDynamicUniformSingle.Create;
-          USingle.Name := 'castle_FogLinearEnd';
-          USingle.Value := FFogLinearEnd;
-          DynamicUniforms.Add(USingle);
-        end;
-      ftExp:
-        begin
-          USingle := TDynamicUniformSingle.Create;
-          USingle.Name := 'castle_FogExpDensity';
-          USingle.Value := FFogExpDensity;
-          DynamicUniforms.Add(USingle);
-        end;
-    end;
+    USingle := TDynamicUniformSingle.Create;
+    USingle.Name := 'castle_FogVisibilityRange';
+    USingle.Value := FFogVisibilityRange;
+    DynamicUniforms.Add(USingle);
 
     UColor := TDynamicUniformVec3.Create;
     UColor.Name := 'castle_FogColor';
@@ -3622,13 +3590,12 @@ end;
 
 procedure TShader.ModifyFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
-  const FogLinearEnd: Single; const FogExpDensity: Single);
+  const FogVisibilityRange: Single);
 begin
   { Do not enable fog, or change it's color. Only work if fog already enabled. }
   FFogType := FogType;
   FFogCoordinateSource := FogCoordinateSource;
-  FFogLinearEnd := FogLinearEnd;
-  FFogExpDensity := FogExpDensity;
+  FFogVisibilityRange := FogVisibilityRange;
 
   FCodeHash.AddInteger(
     431 * (Ord(FFogType) + 1) +

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +19,11 @@
 
 type
   { OpenGL error.
-    Usually OpenGL error indicates a bug in our code (or shader code,
-    depending on TUniformNotFoundAction and TUniformTypeMismatchAction;
-    by default, they do not cause errors).
-    Except the @link(EOpenGLOutOfMemoryError), which may happen regardless
+    Usually OpenGL error indicates a bug in our code.
+    Invalid uniform types for GLSL uniforms (including in user provided shaders)
+    can also result in this error.
+
+    Note: @link(EOpenGLOutOfMemoryError) may happen regardless
     of what we do, and depends on the device. }
   EOpenGLError = class(Exception)
   public

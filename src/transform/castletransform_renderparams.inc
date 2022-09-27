@@ -252,6 +252,11 @@
       i.e. outside of TCastleTransformReference.Reference. }
     InMeaningfulParent: Boolean;
 
+    { At design-time, cameras update their own projection, to show camera gizmo.
+      These are parameters to do this. }
+    ProjectionBox: TBox3DEvent;
+    ProjectionViewportWidth, ProjectionViewportHeight: Single;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
@@ -268,9 +273,8 @@
 
     The only official usage allowed is to pass an instance of this class
     taken from @link(TCastleViewport.PrepareParams)
-    as a parameter to @link(TCastleTransform.PrepareResources) and friends
-    like @link(T3DResource.Prepare). You should treat this class as a "black box"
-    in normal applications. }
+    as a parameter to @link(TCastleTransform.PrepareResources).
+    You should treat this class as a "black box" in normal applications. }
   TPrepareParams = class
     { Include a headlight and all lights that shine on all
       scenes (thanks to @link(TCastleScene.CastGlobalLights)).

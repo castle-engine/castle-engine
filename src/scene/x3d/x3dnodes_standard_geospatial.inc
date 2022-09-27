@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,18 +42,18 @@
   public
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   {$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
   end;
 
-  TGeoLocationNode = class(TAbstractX3DGroupingNode)
+  TGeoLocationNode = class(TAbstractGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
   end;
 
-  TGeoLODNode = class(TAbstractGroupingNode)
+  TGeoLODNode = class(TAbstractInternalGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geolod.inc}
   end;
 
@@ -77,7 +77,7 @@
   {$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
   end;
 
-  TGeoTransformNode = class(TAbstractX3DGroupingNode)
+  TGeoTransformNode = class(TAbstractGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
   end;
 
@@ -112,14 +112,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TGeoElevationGridNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TGeoElevationGridNode.VerticesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TGeoElevationGridNode not implemented. }
   Result := 0;
 end;
 
-function TGeoElevationGridNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TGeoElevationGridNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TGeoElevationGridNode not implemented. }

@@ -511,6 +511,11 @@ begin
   Result := Distance * S;
 end;
 
+function TCastleTransform.InternalRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
+begin
+  Result := RayCollision(RayOrigin, RayDirection, nil);
+end;
+
 function TCastleTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var

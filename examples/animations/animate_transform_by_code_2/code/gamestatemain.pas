@@ -93,9 +93,6 @@ begin
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   MainScene := DesignedComponent('MainScene') as TCastleScene;
 
-  { We use a lot of boxes, so make their rendering fastest. }
-  DefaultTriangulationDivisions := 0;
-
   MainScene.Load(BuildSceneNode, { MainScene owns new node } true);
 end;
 

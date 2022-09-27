@@ -179,7 +179,14 @@ begin
   FAppearanceNode.Material := FMaterialNode;
 
   FCoordinateNode := TCoordinateNode.Create;
-  FCoordinateNode.SetPoint([]);
+  { Add some zero vectors, this way renderer can prepare VBO
+    and we avoid X3D warnings about invalid vertex index when FCoordinateNode is empty. }
+  FCoordinateNode.SetPoint([
+    TVector3.Zero,
+    TVector3.Zero,
+    TVector3.Zero,
+    TVector3.Zero
+  ]);
 
   FTexCoordNode := TTextureCoordinateNode.Create;
   FTexCoordNode.SetPoint([]);
@@ -193,6 +200,9 @@ begin
   FShapeNode := TShapeNode.Create;
   FShapeNode.Appearance := FAppearanceNode;
   FShapeNode.Geometry := FIndexedTriangleSetNode;
+  { Render will change to true once some image is loaded.
+    This way we avoid rendering FCoordinateNode with zero contents. }
+  FShapeNode.Render := false;
 
   FRootNode := TX3DRootNode.Create;
   FRootNode.AddChildren(FShapeNode);
@@ -233,6 +243,8 @@ var
   X1, Y1, X2, Y2, W, H: Single;
 begin
   FTextureNode.IsTextureLoaded := true;
+  { Render is true if and only if FCoordinateNode contains useful content (not just zeros) }
+  FShapeNode.Render := FTextureNode.IsTextureImage;
   if FTextureNode.IsTextureImage then
   begin
     W := FTextureNode.TextureImage.Width;
@@ -288,7 +300,12 @@ begin
     FTexPropertiesNode.BoundaryModeT := BoolRepeatToBoundaryMode[(FShift.Y <> 0) or (FRepeatImage.Y > 1)];
   end else
   begin
-    FCoordinateNode.SetPoint([]);
+    FCoordinateNode.SetPoint([
+      TVector3.Zero,
+      TVector3.Zero,
+      TVector3.Zero,
+      TVector3.Zero
+    ]);
     FTexCoordNode.SetPoint([]);
   end;
 end;

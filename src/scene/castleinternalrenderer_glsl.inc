@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -72,45 +72,37 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
     J: Integer;
     BoundValue: LongInt;
     UniformValue: TLongIntList;
+    AUniformMissing: TUniformMissing;
   begin
-    try
-      if TextureField is TSFNode then
-      begin
-        BoundValue := BindSingleTexture(TSFNode(TextureField).Value);
-        if BoundValue <> -1 then
-          SetUniform(TextureField.X3DName, BoundValue, true);
-      end else
-      begin
-        Assert(TextureField is TMFNode);
+    AUniformMissing := UniformMissingFromNode(TextureField.ParentNode as TX3DNode);
 
-        UniformValue := TLongIntList.Create;
-        try
-          UniformValue.Count := TMFNode(TextureField).Count;
-          for J := 0 to TMFNode(TextureField).Count - 1 do
-          begin
-            BoundValue := BindSingleTexture(TMFNode(TextureField)[J]);
-            { We cannot just resign from setting the field entirely,
-              and setting to -1 would likely produce wild OpenGL warnings
-              (setting texture sampler to -1...).
-              So on failure, assume safe 0. BindTexture already did
-              necessary warnings for user. }
-            if BoundValue = -1 then BoundValue := 0;
-            UniformValue[J] := BoundValue;
-          end;
-          SetUniform(TextureField.X3DName, UniformValue, true);
-        finally FreeAndNil(UniformValue) end;
-      end;
-      Result := true;
-    except
-      { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
-        This way we can set Result := false, which will prevent
-        from wasting time and repeating the same warning on every frame. }
-      on E: EGLSLUniformInvalid do
-      begin
-        WritelnWarning('VRML/X3D', E.Message);
-        Result := false;
-      end;
+    if TextureField is TSFNode then
+    begin
+      BoundValue := BindSingleTexture(TSFNode(TextureField).Value);
+      if BoundValue <> -1 then
+        SetUniform(TextureField.X3DName, BoundValue, AUniformMissing);
+    end else
+    begin
+      Assert(TextureField is TMFNode);
+
+      UniformValue := TLongIntList.Create;
+      try
+        UniformValue.Count := TMFNode(TextureField).Count;
+        for J := 0 to TMFNode(TextureField).Count - 1 do
+        begin
+          BoundValue := BindSingleTexture(TMFNode(TextureField)[J]);
+          { We cannot just resign from setting the field entirely,
+            and setting to -1 would likely produce wild OpenGL warnings
+            (setting texture sampler to -1...).
+            So on failure, assume safe 0. BindTexture already did
+            necessary warnings for user. }
+          if BoundValue = -1 then BoundValue := 0;
+          UniformValue[J] := BoundValue;
+        end;
+        SetUniform(TextureField.X3DName, UniformValue, AUniformMissing);
+      finally FreeAndNil(UniformValue) end;
     end;
+    Result := true;
   end;
 
 var
@@ -121,7 +113,8 @@ begin
   while I < UniformsTextures.Count do
   begin
     if BindTextureUniform(UniformsTextures[I]) then
-      Inc(I) else
+      Inc(I)
+    else
       UniformsTextures.Delete(I);
   end;
 end;

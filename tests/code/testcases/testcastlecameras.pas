@@ -76,7 +76,7 @@ begin
   CamOrientToDirUp(TestOrients[i], Dir, Up);
   NewOrient := OrientationFromDirectionUp(Dir, Up);
   if not ( (IsZero(NewOrient[3]) and IsZero(TestOrients[i][3])) or
-	   TVector4.Equals(NewOrient, TestOrients[i], EqEpsilon) ) then
+           TVector4.Equals(NewOrient, TestOrients[i], EqEpsilon) ) then
   begin
    Writeln(Format(
      'failed z TestOrients[%d] = %s' +nl+

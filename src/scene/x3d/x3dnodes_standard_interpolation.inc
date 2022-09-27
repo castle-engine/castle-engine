@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,13 +35,6 @@
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   strict protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
-  protected
-    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
-  public
-    { TODO: Interpolation is now a regular Pascal class field,
-      not X3D field, to conserve memory use.
-      This matters greatly in case of e.g. https://github.com/castle-engine/castle-engine/issues/285 }
-    Interpolation: TInterpolation;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
   end;
@@ -259,13 +252,11 @@
 
 {$ifdef read_implementation}
 
-{ // unused for now
 const
   InterpolationNames: array [TInterpolation] of String = (
     'LINEAR',
     'STEP'
   );
-}
 
 { TAbstractInterpolatorNode -------------------------------------------------- }
 
@@ -273,18 +264,6 @@ function TAbstractInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
   Result := X3DNodes.KeyRange(FdKey.Items, Fraction, T);
-end;
-
-function TAbstractInterpolatorNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
-var
-  ResultI: TAbstractInterpolatorNode;
-begin
-  Result := inherited DeepCopyCore(CopyState);
-  ResultI := Result as TAbstractInterpolatorNode;
-
-  { TODO: As Interpolation is now a regular Pascal class field, not X3D field,
-    it needs to be copied manually. }
-  ResultI.Interpolation := Interpolation;
 end;
 
 { TAbstractCommonInterpolatorNode -------------------------------------------- }

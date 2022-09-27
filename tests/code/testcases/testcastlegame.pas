@@ -203,6 +203,13 @@ begin
     AssertFloat(Player.WalkNavigation.HeadBobbing, 2.3);
 
   finally FreeAndNil(Player) end;
+
+  { clear global stuff, so that other tests (or this one test, run 2nd time)
+    go without errors }
+  SoundEngine.RepositoryURL := '';
+  MaterialProperties.URL := '';
+  Resources.Clear;
+  Levels.Clear;
 end;
 
 initialization

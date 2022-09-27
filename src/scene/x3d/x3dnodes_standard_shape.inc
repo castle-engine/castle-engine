@@ -17,7 +17,6 @@
 
 {$ifdef read_interface}
   { }
-  TKambiOctreePropertiesNode = class;
   TAbstractShaderNode = class;
   TAbstractOneSidedMaterialNode = class;
   TAbstractSingleTextureNode = class;
@@ -455,9 +454,6 @@ begin
   FdBboxSize.ChangeAlways := chBBox;
   FdAppearance.ChangeAlways := chEverything;
   FdGeometry.ChangeAlways := chEverything;
-  {$ifndef CASTLE_SLIM_NODES}
-  FdOctreeTriangles.ChangeAlways := chEverything;
-  {$endif}
 end;
 
 procedure TAbstractShapeNode.SetAppearanceBefore(const Value: TAppearanceNode);
@@ -821,6 +817,7 @@ var
 begin
   inherited;
 
+  {$warnings off} // using deprecated material props to keep them working
   MP := InternalMaterialProperty;
 
   if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
@@ -835,6 +832,7 @@ begin
      (MP.AlphaChannel <> '') and
      (Texture is TAbstractSingleTextureNode) { checks also Texture <> nil } then
     TAbstractSingleTextureNode(Texture).FdAlphaChannel.Value := MP.AlphaChannel;
+  {$warnings on}
 end;
 
 function TLinePropertiesNode.GetLineType: TLineType;

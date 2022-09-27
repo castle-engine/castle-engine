@@ -42,6 +42,10 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionWarningsCopyAll: TAction;
+    ActionWarningsCopySelected: TAction;
+    ActionWarningsClean: TAction;
+    ActionViewportGridAxis: TAction;
     ActionViewportRenderWireframeOnly: TAction;
     ActionViewportRenderNormal: TAction;
     ActionComponentDuplicate: TAction;
@@ -79,8 +83,12 @@ type
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
-    MenuItem23: TMenuItem;
+    Separator7: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
+    MenuItem23: TMenuItem;
     MenuSeparator6123: TMenuItem;
     MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
@@ -145,7 +153,6 @@ type
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
-    ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
     MenuItemRegenerateProject: TMenuItem;
     MenuItemSeparator123123345: TMenuItem;
@@ -247,10 +254,12 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
     procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
     procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
+    procedure ActionViewportGridAxisUpdate(Sender: TObject);
     procedure ActionViewportRenderNormalExecute(Sender: TObject);
     procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
@@ -285,9 +294,11 @@ type
     procedure ActionViewportViewAllExecute(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
     procedure ActionViewportUpdate(Sender: TObject);
+    procedure ActionWarningsCleanExecute(Sender: TObject);
+    procedure ActionWarningsCopyAllExecute(Sender: TObject);
+    procedure ActionWarningsCopySelectedExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
-    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -428,6 +439,9 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveDesign: Boolean;
+    { Propose saving the current design (if any) and then (unless user said "cancel")
+      open the given design URL. }
+    procedure ProposeOpenDesign(const DesignUrl: String);
     { Call always when Design<>nil value changed. }
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
@@ -614,11 +628,6 @@ begin
     CanClose := false;
 end;
 
-procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
-begin
-  ClearAllWarnings;
-end;
-
 procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
@@ -702,6 +711,15 @@ begin
     Design.ViewportAlignViewToCamera;
 end;
 
+procedure TProjectForm.ActionViewportGridAxisUpdate(Sender: TObject);
+begin
+  ActionViewportGridAxis.Checked :=
+    (Design <> nil) and
+    (Design.CurrentViewport <> nil) and
+    Design.CurrentViewport.InternalGridAxis;
+  ActionViewportUpdate(Sender);
+end;
+
 procedure TProjectForm.ActionViewportRenderNormalExecute(Sender: TObject);
 begin
   if InternalGlobalRenderOptions <> nil then
@@ -728,6 +746,12 @@ procedure TProjectForm.ActionComponentCutExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CutComponent;
+end;
+
+procedure TProjectForm.ActionViewportGridAxisExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+    Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -836,17 +860,12 @@ end;
 
 procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
 begin
-  { Although ActionOutputCopySelectedUpdate should secure from it too,
-    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
-  if ListOutput.ItemIndex <> -1 then
-  begin
-    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
-  end;
+  Clipboard.AsText := ListOutput.GetSelectedText;
 end;
 
 procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
+  (Sender as TAction).Enabled := ListOutput.SelCount <> 0;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -922,6 +941,27 @@ begin
   ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
   (Sender as TAction).Enabled := ViewportActionsAllowed;
   // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
+end;
+
+procedure TProjectForm.ActionWarningsCleanExecute(Sender: TObject);
+begin
+  ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionWarningsCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListWarnings.Items.Text;
+end;
+
+procedure TProjectForm.ActionWarningsCopySelectedExecute(Sender: TObject);
+//var
+//  S: String;
+begin
+  Clipboard.AsText := ListWarnings.GetSelectedText;
+  //S := '';
+  //for I := 0 to ListWarnings.SelCount - 1 do
+  //  S := SAppendPart(S, NL, ListWarnings.Selected[I]);
+  //Clipboard.AsText := S;
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
@@ -1223,7 +1263,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
     AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
     AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
@@ -1414,55 +1454,9 @@ end;
 
 procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-
-  {$if LCL_FULLVERSION >= 2020000}
-    {$define HAS_COMBO_EDIT_BOX}
-  {$endif}
-
-  {$ifndef HAS_COMBO_EDIT_BOX}
-  // Adjusted from TComboBoxStyleHelper.HasEditBox in latest LCL.
-  function ComboHasEditBox(const Style: TComboBoxStyle): Boolean;
-  const
-    ArrHasEditBox: array[TComboBoxStyle] of Boolean = (
-      True,  // csDropDown
-      True,  // csSimple
-      False, // csDropDownList
-      False, // csOwnerDrawFixed
-      False, // csOwnerDrawVariable
-      True,  // csOwnerDrawEditableFixed
-      True   // csOwnerDrawEditableVariable
-    );
-  begin
-    Result := ArrHasEditBox[Style];
-  end;
-  {$endif}
-
-var
-  E: TEditBox;
 begin
   { See CastleLclEditHack for an expanation of this hack. }
-
-  if (ActiveControl is TComboBox) and
-     {$ifdef HAS_COMBO_EDIT_BOX}
-     (TComboBox(ActiveControl).Style.HasEditBox)
-     {$else}
-     ComboHasEditBox(TComboBox(ActiveControl).Style)
-     {$endif}
-     then
-  begin
-    E := TEditBoxForComboBox.Create(TComboBox(ActiveControl));
-    try
-      E.ProcessKey(Key, Shift);
-    finally FreeAndNil(E) end;
-  end;
-
-  if ActiveControl is TEdit then
-  begin
-    E := TEditBoxForEdit.Create(TEdit(ActiveControl));
-    try
-      E.ProcessKey(Key, Shift);
-    finally FreeAndNil(E) end;
-  end;
+  ProcessKeyToPerformEdit(ActiveControl, Key, Shift);
 end;
 
 procedure TProjectForm.FormShow(Sender: TObject);
@@ -1883,6 +1877,12 @@ begin
   LabelNoDesign.Visible := Design = nil;
 end;
 
+procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
+begin
+  if ProposeSaveDesign then
+    OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.NeedsDesignFrame;
 begin
   if Design = nil then
@@ -1894,6 +1894,7 @@ begin
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
+    Design.OnProposeOpenDesign := @ProposeOpenDesign;
 
     DesignExistenceChanged;
     if Docking then
@@ -2458,6 +2459,35 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 var
   SelectedFileName, Ext, SelectedURL: String;
 begin
+  { Forcefully stop dragging.
+
+    This workarounds LCL error with GTK 2 backend:
+    1. if you open another design (xxx.castle-transform
+       or xxx.castle-user-interface) by double-clicking (*not* by menu item "open...")
+    2. and it causes a dialog box "save this design" (you can answer yes or no,
+       doesn't matter)
+    3. .. then the dragging remains "true" (even though you're no longer pressing
+       down the mouse button).
+
+    This causes weird behavior if you then do some mouse-down + move + mouse-up
+    in newly opened design.
+    - e.g. mouse look by right-click on any viewport in newly opened design.
+    - or left click (mouse down and up) anywhere on UI.
+    ... They will all try to drag-and-drop the design you have just opened onto
+    itself.
+
+    TODO: There remains a problem in the above case, even after this fix:
+    First mouse down after such "forceful break of dragging" is not passed to TCastleControl.
+    So you need to click again to actually start e.g. mouse look on a viewport.
+  }
+  if DragManager.IsDragging then
+  begin
+    DragManager.DragStop(false);
+    WritelnLog('Forcefully breaking drag-and-drop on double-click to workaround LCL bug, afterwards IsDragging: %s', [
+      BoolToStr(DragManager.IsDragging, true)
+    ]);
+  end;
+
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
@@ -2498,8 +2528,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') or
        AnsiSameText(Ext, '.castle-component') then
     begin
-      if ProposeSaveDesign then
-        OpenDesign(SelectedURL);
+      ProposeOpenDesign(SelectedURL);
       Exit;
     end;
 

@@ -86,7 +86,7 @@
     The local Z axis of the children faces the camera,
     rotating around @link(AxisOfRotation) (it it is non-zero)
     or rotating freely in 3D (when @link(AxisOfRotation) is exactly zero). }
-  TBillboardNode = class(TAbstractX3DGroupingNode)
+  TBillboardNode = class(TAbstractGroupingNode)
   strict private
     type
       TBillboardNodeTransformFunctionality = class(TTransformFunctionality)
@@ -115,7 +115,7 @@
 
   { Grouping node that specifies the collision detection properties
     for its children. }
-  TCollisionNode = class(TAbstractX3DGroupingNode)
+  TCollisionNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function DirectEnumerateActiveForTraverse(
@@ -154,7 +154,7 @@
     In X3D "level_changed" indicates just integer.
     We don't implement VRML 97 version due to low usage.
   }
-  TLODNode = class(TAbstractX3DGroupingNode)
+  TLODNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public

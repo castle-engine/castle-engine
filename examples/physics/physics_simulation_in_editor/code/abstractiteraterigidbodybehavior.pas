@@ -1,6 +1,20 @@
-unit AbstractIterateRigidBodyBehavior;
+{
+  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
 
-{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ TAbstractIterateRigidBodyBehavior }
+unit AbstractIterateRigidBodyBehavior;
 
 interface
 
@@ -8,11 +22,11 @@ uses
   Classes, SysUtils, CastleTransform, AbstractTimeDurationBehavior;
 
 type
-  { Inherite from this class if you want update all other rigid bodies in world.
+  { Inherit from this class if you want update all other rigid bodies in world.
     It searches for TCastleRigidBody in world items list and its childern if
     castle transform doesn't have rigid body. All you need to do is
     override UpdateRigidBody(). }
-  TAbstractIterateRigidBodyBehavior = class (TAbstractTimeDurationBehavior)
+  TAbstractIterateRigidBodyBehavior = class(TAbstractTimeDurationBehavior)
   private
     { Check for rigid bodies in transform children and call on it
       UpdateRigidBody method. }
@@ -28,7 +42,7 @@ type
 
 implementation
 
-{ TAbstractIterateRigidBodyBehavior }
+{ TAbstractIterateRigidBodyBehavior ------------------------------------------ }
 
 procedure TAbstractIterateRigidBodyBehavior.UpdateTransformChildren(
   const ParentTransform: TCastleTransform; const SecondsPassed: Single;

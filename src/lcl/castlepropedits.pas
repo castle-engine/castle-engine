@@ -13,15 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Property and component editors for components.
-  These are used by object inspectors (inside Lazarus or CGE editor).
+{ Property and component editors using LCL.
+  These can be used when we're inside Lazarus IDE or inside CGE editor.
 
   For documentation how to create property editors, component editors etc. see
   - http://wiki.freepascal.org/How_To_Write_Lazarus_Component#Component_editors
-  - comments of Lazarus ideintf/propedits.pp sources.
-
-  @exclude This unit is not supposed to be used by normal developers.
-  It should only be used to register the editors (in Lazarus, in CGE editor). }
+  - comments of Lazarus ideintf/propedits.pp sources. }
 unit CastlePropEdits;
 
 {$I castleconf.inc}
@@ -30,6 +27,9 @@ interface
 
 uses PropEdits;
 
+{ Some of the property editors are publicly exposed,
+  to enable using them for your own properties in custom components too.
+  See examples/advanced_editor/custom_component/code/gamecontrols.pas . }
 {$define read_interface}
 {$I castlepropedits_url.inc}
 {$undef read_interface}
@@ -38,32 +38,19 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes, TypInfo, Forms,
-  ComponentEditors, LResources, Dialogs, Controls, LCLVersion, LazIDEIntf,
-  OpenGLContext, Graphics, ObjInspStrConsts,
+uses // FPC and LCL units
+  SysUtils, Classes, TypInfo, Forms,
+  LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
+  // Lazarus design-time (IDE) units
+  ComponentEditors,
+  // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
-  CastleScriptParser, CastleRenderOptions;
-
-function PropertyEditorsAdviceDataDirectory: Boolean;
-begin
-  { There's no reason to leave it false, in practice. }
-  Result := true;
-
-  if CastleDesignMode and
-     (LazarusIDE <> nil) and
-     (LazarusIDE.ActiveProject <> nil) then
-  begin
-    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning.
-      This allows PropertyEditorsAdviceDataDirectory to work
-      inside Lazarus IDE, e.g. when setting TCastleControl.DesignUrl. }
-    ApplicationDataOverride := FilenameToURISafeUTF8(
-      InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
-  end;
-end;
+  CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
+  CastleEditorAccess, CastleRenderOptions;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -76,9 +63,15 @@ end;
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_float.inc}
+{$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_rangeset.inc}
+{$I castlepropedits_component_transform.inc}
+{$I castlepropedits_component_scene.inc}
+{$I castlepropedits_component_imagetransform.inc}
+{$I castlepropedits_component_imagecontrol.inc}
+{$I castlepropedits_component_transformdesign.inc}
+{$I castlepropedits_component_design.inc}
 {$I castlepropedits_abstracttwobodiesjoint.inc}
 
 procedure Register;
@@ -98,6 +91,10 @@ begin
     'ImageUrl', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
     'Url', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
+    'Url', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainLayer,
+    'Texture', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
@@ -123,14 +120,17 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
     'DesignUrl', TDesignURLPropertyEditor);
 
-  { Improved float properties }
-  RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
-    TCastleFloatRotationPropertyEditor);
+  { Improved numeric properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Double), nil, '', TCastleFloatPropertyEditor);
   {$ifndef EXTENDED_EQUALS_DOUBLE}
   RegisterPropertyEditor(TypeInfo(Extended), nil, '', TCastleFloatPropertyEditor);
   {$endif}
+  {$ifdef CPU64}
+  RegisterPropertyEditor(TypeInfo(PtrInt), TComponent, 'Tag', TCastleTagPropertyEditor);
+  {$endif}
+  RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
+    TCastleFloatRotationPropertyEditor);
 
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
@@ -152,6 +152,10 @@ begin
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',
     TScalePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBox, 'SizePersistent',
+    TScalePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastlePlane, 'SizePersistent',
+    TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
@@ -171,6 +175,13 @@ begin
     T3DCoordsRangeSetPropertyEditor);
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockRotation',
     T3DCoordsRangeSetPropertyEditor);
+
+  RegisterComponentEditor(TCastleTransform, TCastleTransformComponentEditor);
+  RegisterComponentEditor(TCastleScene, TCastleSceneComponentEditor);
+  RegisterComponentEditor(TCastleImageTransform, TCastleImageTransformComponentEditor);
+  RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
+  RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
+  RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
 end;
 
 initialization

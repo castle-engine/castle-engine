@@ -31,9 +31,6 @@
 '  /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ // deprecated' + LineEnding +
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
-'  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
-'' + LineEnding +
-'#undef normal_eye_fragment' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: fragment_modify (fragment_color) */' + LineEnding +
 '' + LineEnding +
@@ -46,6 +43,10 @@
 '  /* Optimization to not call castle_linear_to_screen always:' + LineEnding +
 '     it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */' + LineEnding +
 '  #endif' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'' + LineEnding +
+'#undef normal_eye_fragment' + LineEnding +
 '' + LineEnding +
 '  gl_FragColor = fragment_color;' + LineEnding +
 '' + LineEnding +

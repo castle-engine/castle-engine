@@ -17,9 +17,9 @@ function read_cge_version()
     return trim($line, "\t\n'");
 }
 
+// Right now we only show 7.0-alpha.snapshot version
 $cgeVersions = array(
-    '6.4' => array('url' => CASTLE_FINAL_URL . 'apidoc/html/'),
-    '7.0-alpha.snapshot (unstable)' => array('url' => CASTLE_FINAL_URL . 'apidoc-unstable/html/'),
+    '7.0-alpha.snapshot' => array('url' => CASTLE_PROD_URL . 'apidoc/html/'),
 );
 
 $cgeCurrentVersion = read_cge_version();
@@ -47,25 +47,25 @@ echo_footer();
 -->
 <script type="text/javascript">
     if(typeof jQuery == 'undefined'){
-        document.write('<script type="text/javascript" src="<?php echo page_requisite('castle-engine-website-base/js/jquery.min.js'); ?>"></'+'script>');
+        document.write('<script type="text/javascript" src="<?php echo page_requisite('castle-engine-website-base/node_modules/jquery/dist/jquery.min.js'); ?>"></'+'script>');
 
         /* This looks nicer, but to make it work, also the following colorbox and bootstrap JS
            have to be loaded the same way. Otherwise, colorbox and bootstrap JS are loaded
            too early, and they don't work.
         var oScriptElem = document.createElement("script");
         oScriptElem.type = "text/javascript";
-        oScriptElem.src = "<?php echo page_requisite('castle-engine-website-base/js/jquery.min.js'); ?>";
+        oScriptElem.src = "<?php echo page_requisite('castle-engine-website-base/node_modules/jquery/dist/jquery.min.js'); ?>";
         document.head.insertBefore(oScriptElem, document.head.getElementsByTagName("script")[0])
         */
     }
 </script>
 <!-- Include colorbox after jQuery is known -->
-<script src="<?php echo page_requisite('castle-engine-website-base/colorbox/jquery.colorbox-min.js'); ?>" type="text/javascript"></script>
+<script src="<?php echo page_requisite('castle-engine-website-base/node_modules/jquery-colorbox/jquery.colorbox-min.js'); ?>" type="text/javascript"></script>
 <script type="text/javascript">
   jQuery('a.screenshot').colorbox({opacity: 0.9, rel:'screenshot', maxWidth:'90%', maxHeight:'90%'});
 </script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="<?php echo page_requisite('castle-engine-website-base/bootstrap/js/bootstrap.min.js'); ?>"></script>
+<script src="<?php echo page_requisite('castle-engine-website-base/node_modules/bootstrap/dist/js/bootstrap.min.js'); ?>"></script>
 <!-- JS using jquery -->
 <script type="text/javascript" src="<?php echo page_requisite('castle-engine-website-base/castle-engine.js'); ?>"></script>
 

@@ -2,7 +2,7 @@
 <project name="physics-scale-colliders"
   standalone_source="physics_scale_colliders_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicsscalecolliders"
+  qualified_name="io.castleengine.physics.scale.colliders"
   caption="Physics scale colliders"
 >
   <compiler_options>

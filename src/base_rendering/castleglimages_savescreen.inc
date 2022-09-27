@@ -19,6 +19,7 @@
 
 {$ifdef read_interface_type}
 // type (continue type section from previous include file)
+  { Color buffer to grab, used by @link(SaveScreen_NoFlush). }
   TColorBuffer = (
     cbFront,
     cbBack,

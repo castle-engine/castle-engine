@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -115,7 +115,6 @@ procedure TStateMain.InitializeUserInterface;
     FontStyle := TFontStyleNode.Create;
     FontStyle.Justify := fjMiddle;
     FontStyle.JustifyMinor := fjMiddle;
-    FontStyle.Size := 100;
 
     TextNode := TTextNode.CreateWithTransform(TextShape, TextTransform);
     TextNode.FontStyle := FontStyle;
@@ -150,7 +149,6 @@ begin
   Scene.Load(BuildScene, true);
   Scene.ProcessEvents := true;
   Viewport.Items.Add(Scene);
-  Viewport.Items.MainScene := Scene;
 
   { assign callbacks }
   ButtonSwitchEnglish.OnClick := {$ifdef FPC}@{$endif} ClickButtonEnglish;

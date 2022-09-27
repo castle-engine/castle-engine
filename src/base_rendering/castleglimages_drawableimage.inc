@@ -1639,10 +1639,19 @@ var
 begin
   if FURL <> Value then
   begin
-    NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
-    FURL := Value;
-    Load(NewImage);
-    FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
+    if Value = '' then
+    begin
+      // following CGE conventions, we allow to set URL to '' to clear loaded contentds
+      Load(nil);
+      FURL := Value;
+      FOwnsImage := true;
+    end else
+    begin
+      NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
+      FURL := Value;
+      Load(NewImage);
+      FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
+    end;
   end;
 end;
 

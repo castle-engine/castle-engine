@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -56,7 +56,9 @@ uses SysUtils,
   CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
   CastleUtils, CastleLog, CastleURIUtils
   { Use CastlePropEdits, and thus LCL and castle_components, only when part of the editor. }
-  {$ifdef CASTLE_DESIGN_MODE} , PropEdits, CastlePropEdits {$endif};
+  {$ifdef CASTLE_DESIGN_MODE} , PropEdits, ComponentEditors, CastlePropEdits {$endif};
+
+{ TImageGrid ----------------------------------------------------------------- }
 
 constructor TImageGrid.Create(AOwner: TComponent);
 var
@@ -155,9 +157,62 @@ begin
   end;
 end;
 
+{ TImageGridEditor ----------------------------------------------------------- }
+
+{$ifdef CASTLE_DESIGN_MODE}
+type
+  { Editor for TImageGrid. }
+  TImageGridEditor = class(TComponentEditor)
+  public
+    function GetVerbCount: Integer; override;
+    function GetVerb(Index: Integer): string; override;
+    procedure ExecuteVerb(Index: Integer); override;
+  end;
+
+function TImageGridEditor.GetVerbCount: Integer;
+begin
+  Result := (inherited GetVerbCount) + 1;
+end;
+
+function TImageGridEditor.GetVerb(Index: Integer): string;
+var
+  InheritedCount: Integer;
+begin
+  InheritedCount := inherited GetVerbCount;
+  if Index < InheritedCount then
+    Result := inherited GetVerb(Index)
+  else
+  if Index = InheritedCount then
+  begin
+    Result := 'Reload URL';
+  end else
+    Result := '';
+end;
+
+procedure TImageGridEditor.ExecuteVerb(Index: Integer);
+var
+  InheritedCount: Integer;
+  SavedUrl: String;
+begin
+  InheritedCount := inherited GetVerbCount;
+  if Index < InheritedCount then
+    inherited ExecuteVerb(Index)
+  else
+  if Index = InheritedCount then
+  begin
+    SavedUrl := (Component as TImageGrid).Url;
+    (Component as TImageGrid).Url := '';
+    (Component as TImageGrid).Url := SavedUrl;
+    // Note: GetDesigner.Modified is not necessary here, as reopening this design would reload referenced URL too
+  end else
+    WritelnWarning('TImageGridEditor.ExecuteVerb invalid verb index: %d', [Index]);
+end;
+{$endif}
+
 initialization
   RegisterSerializableComponent(TImageGrid, 'Image Grid');
   {$ifdef CASTLE_DESIGN_MODE}
   RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'URL', TImageURLPropertyEditor);
+  RegisterComponentEditor(TImageGrid, TImageGridEditor);
   {$endif}
 end.

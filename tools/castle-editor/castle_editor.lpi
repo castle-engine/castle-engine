@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="24">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -186,6 +186,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleLclEditHack"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="code/castlecomponenteditordesigner.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleComponentEditorDesigner"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

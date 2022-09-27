@@ -1072,6 +1072,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
   var
     NewIsToxic: boolean;
   begin
+    {$warnings off} // using deprecated material props in deprecated CastlePlayer
     NewIsToxic := (GroundProperty <> nil) and GroundProperty.Toxic;
     if NewIsToxic then
     begin
@@ -1081,15 +1082,14 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
-          {$warnings off} // just to keep deprecated working
           SoundEngine.Play(stPlayerToxicPain);
-          {$warnings on}
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
             Random * GroundProperty.ToxicDamageRandom), Green);
         end;
       end;
     end;
     IsToxic := NewIsToxic;
+    {$warnings on}
   end;
 
   { Update FootstepsSound and related variables.

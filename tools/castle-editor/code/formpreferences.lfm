@@ -310,7 +310,7 @@ object PreferencesForm: TPreferencesForm
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       MaxLength = 0
-      TabOrder = 6
+      TabOrder = 7
     end
     object RadioCodeEditorLazarus: TRadioButton
       AnchorSideLeft.Control = LabelCodeEditorHeader
@@ -435,7 +435,7 @@ object PreferencesForm: TPreferencesForm
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       MaxLength = 0
-      TabOrder = 7
+      TabOrder = 6
     end
   end
   object PanelFpcLazarusConfig: TPanel

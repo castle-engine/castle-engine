@@ -2,7 +2,7 @@
 
 Demo of various _Castle Game Engine_ components that you can use and design using the editor.
 
-TODO: For now, the demo features only a single component `TCastleButton` (though with lots of options). More components will come.
+The demo features multiple tabs demonstrating the use of various CGE user interface components. See https://castle-engine.io/user_interface for a description of all the components and links to API reference.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

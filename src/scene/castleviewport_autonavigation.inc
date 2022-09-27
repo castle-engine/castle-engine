@@ -554,7 +554,7 @@ begin
   begin
     C := InternalExamineNavigation;
     C.ModelBox := Box;
-    C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
+    C.Radius := DefaultCameraRadius;
     Navigation := C;
   end;
   {$warnings on}

@@ -23,11 +23,9 @@
 # to declare KambiAppearance by EXTERNPROTO and fallback on standard
 # Appearance.
 KambiAppearance : Appearance {
-  auto-generate-more: true
 }
 
 GeneratedShadowMap : X3DSingleTextureNode {
-  auto-generate-more: true
   SFString   [in,out]      update           "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
     enumerated-type: TTextureUpdate TextureUpdateNames upNone
@@ -54,14 +52,12 @@ GeneratedShadowMap : X3DSingleTextureNode {
 }
 
 Text3D : Text {
-  auto-generate-more: true
   SFFloat    [in,out]      depth       0.1
     range: >= 0
     change: chGeometry
 }
 
 KambiInline : Inline {
-  auto-generate-more: true
   MFString   [in,out]      replaceNames  []
     change: chEverything
   MFNode     [in,out]      replaceNodes  []
@@ -70,46 +66,9 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
-  SFBool []            timeOriginAtLoad           FALSE
-  SFNode []            octreeRendering            NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeDynamicCollisions    NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeVisibleTriangles     NULL
-    range: KambiOctreeProperties
-  SFNode []            octreeStaticCollisions     NULL
-    range: KambiOctreeProperties
-  SFFloat    [in,out]      headBobbing             0.02
-    range: [0, 1)
-  SFFloat    [in,out]      headBobbingTime         0.5
-    range: > 0
-  SFNode     [in,out]      headlightNode           NULL
-    range: X3DLightNode
-}
-
-KambiHeadLight : X3DChildNode {
-  SFFloat    [in,out]      ambientIntensity      0
-    range: [0.0, 1.0]
-  SFVec3f    [in,out]      attenuation           1 0 0
-    range: [0, infinity)
-  SFColor    [in,out]      color                 1 1 1
-    range: [0, 1]
-  SFFloat    [in,out]      intensity             1
-    range: [0, 1]
-  SFBool     [in,out]      spot                  FALSE
-  SFFloat    [in,out]      spotDropOffRate       0
-  SFFloat    [in,out]      spotCutOffAngle       0.785398
-}
-
-KambiOctreeProperties : X3DNode {
-  SFInt32 []            maxDepth              -1
-    range:  >= -1
-  SFInt32 []            leafCapacity          -1
-    range:  >= -1
 }
 
 Teapot : X3DGeometryNode {
-  auto-generate-more: true
   SFVec3f    []            size        3 3 3
   SFBool     []            solid       TRUE
   SFBool     []            manifold    FALSE
@@ -118,7 +77,6 @@ Teapot : X3DGeometryNode {
 }
 
 RenderedTexture : X3DSingleTextureNode {
-  auto-generate-more: true
   SFNode     [in,out]      background       NULL
     range: X3DBackgroundNode
     change: chGeneratedTextureUpdateNeeded
@@ -177,105 +135,104 @@ RenderedTexture : X3DSingleTextureNode {
 }
 
 Logger : X3DChildNode {
-  auto-generate-more: true
   SFInt32    [in,out]      level       1
   SFString   []            logFile     ""
   SFBool     [in,out]      enabled     TRUE
   XFAny      [in]          write
 }
 
-MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
-  MFNode [in,out] texCoord NULL
-    range: TextureCoordinateGenerator, ProjectedTextureCoordinate
+# MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
+# #
+#   MFNode [in,out] texCoord NULL
+#     range: TextureCoordinateGenerator, ProjectedTextureCoordinate
+# }
+#
+# Implementation detail: instead of being a new class
+# derived from abstract X3DTextureCoordinateNode,
+# MultiGeneratedTextureCoordinate now descends from MultiTextureCoordinate.
+# See TMultiGeneratedTextureCoordinateNode comments for reasons.
+MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
 }
 
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
   SFNode     [in,out]      projector   NULL
-    range: SpotLight, DirectionalLight, X3DViewpointNode
+    range: SpotLight, DirectionalLight, X3DViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1
+    change: chTextureCoordinate
+    doc: Viewpoint or light that determine how is the texture projected.
 }
 
 # See https://castle-engine.io/x3d_extensions_screen_effects.php
 ScreenEffect : X3DChildNode {
   SFBool     [in,out]      enabled     TRUE
+    change: chScreenEffectEnabled
   SFBool     [in,out]      needsDepth  FALSE
+    change: chRedisplay
   MFNode     [in,out]      shaders     []
     range: X3DShaderNode
+    change: chEverything
 }
 
 # See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
+
   SFString   []            language    ""
-    range: ["CG"|"GLSL"|"HLSL"]
-    # TODO: use enumerated-type:.... allowed values are like ComposedShader.language
+    range: ["CG"|"GLSL"|"HLSL"|...]
+    enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
+    change: chEverything
+    doc: Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL.
   SFBool     [in,out]      enabled     TRUE
+    change: chVisibleNonGeometry
   MFNode     []            parts       []
     range: EffectPart
-
-  # And any number of uniform variables, just like for ComposedShader node:
-  fieldType []       fieldName
-  fieldType [in]     fieldName
-  fieldType [out]    fieldName
-  fieldType [in,out] fieldName
+    change: chEverything
+  SFString   []            uniformMissing    "WARNING"
+    range: ["WARNING", "IGNORE"]
+    enumerated-type: TUniformMissing UniformMissingNames umWarning
+    change: chEverything
+    doc: Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene.
 }
 
 # See https://castle-engine.io/compositing_shaders.php
 EffectPart : X3DNode, X3DUrlObject {
   default-container-field: parts
-  # may be changed to [in,out] one day
-  MFString []       url      []
+
+  MFString [in,out] url      []
+    change: chEverything
   SFString []       type     "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
-    # TODO: use enumerated-type:....
+    enumerated-type: TShaderType ShaderTypeNameX3D stVertex
+    change: chEverything
 }
 
 # See https://castle-engine.io/compositing_shaders.php
 ShaderTexture : X3DSingleTextureNode {
-  MFNode   []       effects         []
-    range: Effect
   SFString []       defaultTexCoord "BOUNDS2D"
-    range: ["BOUNDS2D"|"BOUNDS3D"]
+    #range: ["BOUNDS2D"|"BOUNDS3D"]
+    change: chEverything
     # TODO: use enumerated-type:....
 }
 
 # See https://castle-engine.io/x3d_extensions.php#section_ext_blending
 BlendMode {
+  default-container-field: blendMode
   SFString   [in,out]      srcFactor   "src_alpha"
-    range: [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
-    # TODO: use enumerated-type:....
+    range: ["zero", ..., "one_minus_constant_alpha"]
+    enumerated-type: TBlendingSourceFactor BlendingSourceFactorNames bsSrcAlpha
   SFString   [in,out]      destFactor  "one_minus_src_alpha"
-    range: [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
-    # TODO: use enumerated-type:....
+    range: ["zero", ..., "one_minus_constant_alpha"]
+    enumerated-type: TBlendingDestinationFactor BlendingDestinationFactorNames bdOneMinusSrcAlpha
   SFColor    [in,out]      color       1 1 1
   SFFloat    [in,out]      colorTransparency  0
 }
 
-# See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php
-Toggler  : X3DChildNode {
-  SFBool     [in,out]      status      FALSE
-  SFBool     [in,out]      notStatus   TRUE
-  XFAny      [in]          toggle
-    # the type/value send here is ignored
-  XFAny      [in]          set
-    # the type/value send here is ignored
-  XFAny      [in]          reset
-    # the type/value send here is ignored
-  SFBool     [out]         changed
-    # always sends TRUE
-  SFBool     [out]         on
-    # always sends TRUE
-  SFBool     [out]         off
-    # always sends TRUE
-  SFBool     [in,out]      enabled     TRUE
-}
-
 ViewpointMirror {
-  auto-generate-more: true
   default-container-field: viewpoint
   SFFloat   [in,out]      distanceFromShape 0.01
 }
 
 OrientationInterpolator2D : X3DInterpolatorNode {
   MFFloat    [in,out] keyValue      []
+    change: chNone
   SFVec3f    [in,out] axis          0 0 1
   SFRotation [out]    value_changed
 }

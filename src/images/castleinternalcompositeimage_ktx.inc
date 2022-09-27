@@ -518,7 +518,7 @@ begin
           Whether the image is assumed to be in sRGB or linear color-space
           depends in CGE on the image function (whether it is placed in
           e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
-          and global @link(GammaCorrection) variable. }
+          and global @link(ColorSpace) variable. }
        (Header.GlInternalFormat = GL_SRGB8) ) and
      (Header.GlBaseInternalFormat = GL_RGB) then
   begin

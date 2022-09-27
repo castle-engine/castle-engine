@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,10 +23,14 @@
     (serialized by CastleComponentSerialize routines) with .castle-user-interface extension. }
   TCastleDesign = class(TCastleUserInterface)
   strict private
-    FDesign: TCastleUserInterface;
-    FDesignObserver: TFreeNotificationObserver;
-    FURL: String;
-    FStretchWhenNotLoaded: Boolean;
+    class var
+      LoadDepth: Cardinal;
+    var
+      FDesign: TCastleUserInterface;
+      FDesignObserver: TFreeNotificationObserver;
+      FURL: String;
+      FRevertURL: String;
+      FStretchWhenNotLoaded: Boolean;
     procedure SetURL(const Value: String);
     function GetStretch: Boolean;
     procedure SetStretch(const Value: Boolean);
@@ -80,6 +84,9 @@
       TCastleDesign instance to the child.
     }
     property Stretch: Boolean read GetStretch write SetStretch default true;
+
+    { URL used to perform editor "Revert" operation. }
+    property RevertURL: String read FRevertURL write FRevertURL;
   end;
 
 {$endif read_interface}
@@ -107,6 +114,8 @@ begin
 end;
 
 procedure TCastleDesign.SetURL(const Value: String);
+const
+  MaxLoadDepth = 32; // 64 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
   if FURL <> Value then
   begin
@@ -121,7 +130,15 @@ begin
     if Value <> '' then
     begin
       try
-        FDesign := UserInterfaceLoad(Value, Self);
+        { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
+        if LoadDepth = MaxLoadDepth then
+          raise Exception.CreateFmt('Exceeded maximum depth (%d) when loading TCastleDesign within TCastleDesign. It is possible that TCastleDesign references its own design', [
+            MaxLoadDepth
+          ]);
+        Inc(LoadDepth);
+        try
+          FDesign := UserInterfaceLoad(Value, Self);
+        finally Dec(LoadDepth) end;
       except
         { If loading design file failed, and we're inside CGE editor,
           merely report a warning. This allows deserializing in CGE editor

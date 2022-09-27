@@ -9,7 +9,7 @@ interface
 
 uses CastleImages;
 
-function Panel: TRGBAlphaImage;
+function Panel: TGrayscaleAlphaImage;
 
 function WindowDarkTransparent: TRGBAlphaImage;
 

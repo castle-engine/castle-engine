@@ -33,6 +33,7 @@ type
     procedure TestVariousTypesPrograms;
     procedure TestArrays;
     procedure TestBools;
+    procedure TestParseConstantIntExpression;
     procedure TestInvalidOps;
     procedure TestTryExecuteMath;
     procedure TestCoalesce;
@@ -491,6 +492,14 @@ begin
 
   AssertTrue(ParseConstantFloatExpression('not(false)') = 1);
   AssertTrue(ParseConstantFloatExpression('not(true)') = 0);
+end;
+
+procedure TTestCastleScript.TestParseConstantIntExpression;
+begin
+  AssertTrue(ParseConstantIntExpression('123') = 123);
+  AssertTrue(ParseConstantIntExpression('123 + 78 * 2') = 123 + 78 * 2);
+  AssertTrue(ParseConstantIntExpression('false') = 0);
+  AssertTrue(ParseConstantIntExpression('true') = 1);
 end;
 
 procedure TTestCastleScript.TestInvalidOps;

@@ -1,6 +1,20 @@
-unit AddForceBehavior;
+{
+  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
 
-{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ TAddForceBehavior }
+unit AddForceBehavior;
 
 interface
 
@@ -9,7 +23,7 @@ uses
   CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
-  TAddForceBehavior = class (TAbstractTimeDurationBehavior)
+  TAddForceBehavior = class(TAbstractTimeDurationBehavior)
   private
     FForce: TVector3;
     FPosition: TVector3;

@@ -428,13 +428,16 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Scale" : 1.2214027643203735E+000
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              },
+              "Width" : 1.6000000000000000E+003
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
             },
-            "ProjectionFar" : 1.0000000000000000E+003,
-            "ProjectionNear" : -1.0000000000000000E+003,
             "ProjectionType" : "ptOrthographic",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -442,6 +445,8 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 8.2041241455078125E+002,
+              "Y" : 6.3426843261718750E+002,
               "Z" : 5.0000000000000000E+002
             }
           }
@@ -463,7 +468,8 @@
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          }
+          },
+          "Width" : 3.5608654785156250E+003
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
@@ -475,8 +481,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 8.0826281738281250E+002,
-          "Y" : 4.4619720458984375E+002,
+          "X" : 8.6867205810546875E+002,
+          "Y" : 3.8607641601562500E+002,
           "Z" : 1.6000000000000000E+003
         }
       },

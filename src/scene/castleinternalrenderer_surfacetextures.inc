@@ -194,7 +194,7 @@ begin
       begin
         MatOneSided := TAbstractOneSidedMaterialNode(Mat);
         Shape.Geometry.FindTextureMapping(MatOneSided.NormalTextureMapping, TexCoordIndex, true);
-        Enable(MatOneSided.NormalTexture, TexCoordIndex, MatOneSided.NormalScale, 0.0);
+        Enable(MatOneSided.NormalTexture, TexCoordIndex, MatOneSided.NormalScale, RenderOptions.BumpMappingParallaxHeight);
       end else
       begin
         Enable(Appearance.NormalMap, 0, 1, Appearance.HeightMapScale);

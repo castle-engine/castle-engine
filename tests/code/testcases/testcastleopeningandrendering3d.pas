@@ -63,8 +63,8 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties;
-
+  CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties,
+  CastleTransform;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -74,7 +74,9 @@ begin
 
     FreeAndNil(Scene);
     AssertTrue(Viewport.Items.MainScene = nil);
-    AssertTrue(Viewport.Items.Count = 0);
+    { the only remaining things should be TCastleCamera }
+    AssertEquals(1, Viewport.Items.Count);
+    AssertTrue(Viewport.Items[0] is TCastleCamera);
 
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];

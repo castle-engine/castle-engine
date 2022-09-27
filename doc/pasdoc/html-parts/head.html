@@ -1,11 +1,11 @@
 
 <!-- Bootstrap -->
-<link href="castle-engine-website-base/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="castle-engine-website-base/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Bootstrap theme -->
-<link href="castle-engine-website-base/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+<link href="castle-engine-website-base/node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
 
 <!-- Colorbox -->
-<link href="castle-engine-website-base/colorbox/example3/colorbox.css" type="text/css" rel="stylesheet">
+<link href="castle-engine-website-base/node_modules/jquery-colorbox/example3/colorbox.css" type="text/css" rel="stylesheet">
 
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,11 +19,14 @@
   title="Castle Game Engine - News Feed"
   href="https://castle-engine.io/news_feed.php">
 
-<!-- Add Inter font, https://developers.google.com/fonts/docs/getting_started -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter">
+<!--
+  Add Inter font, https://developers.google.com/fonts/docs/getting_started .
+  Add &display=swap to render text ASAP, see https://web.dev/font-display/?utm_source=lighthouse&utm_medium=lr
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter&display=swap">
 
-<link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-engine.css?version=22">
-<link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-asciidoctor.css?version=22">
+<link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-engine.css?version=39">
+<link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-asciidoctor.css?version=39">
 
 
 <style type="text/css">
@@ -185,3 +188,14 @@ var _bftn_options = {
 </script>
 <!-- script src="https://widget.battleforthenet.com/widget.js" async></script -->
 
+    <link rel="icon" href="images/castle_game_engine_icon_fit_in_square.png" sizes="256x256" />
+    <link rel="apple-touch-icon-precomposed" href="images/castle_game_engine_icon_fit_in_square.png" />
+    <meta name="msapplication-TileImage" content="images/castle_game_engine_icon_fit_in_square.png" />
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://castle-engine.io/",
+  "logo": "https://castle-engine.io/images/castle_game_engine_icon.png"
+}
+</script>

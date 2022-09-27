@@ -419,7 +419,7 @@ end;
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
- Result := true;
+  Result := true;
 end;
 
 procedure TCastleWindow.BackendMenuInitialize;

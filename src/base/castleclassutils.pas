@@ -478,7 +478,10 @@ type
       can interpret old values in design files, even though it no longer publishes
       given property.
 
-      @seealso ReadWrite }
+      @seealso ReadWriteInteger
+      @seealso ReadWriteBoolean
+      @seealso ReadWriteSingle
+      @seealso ReadWriteString }
     procedure ReadWriteSubComponent(const Key: String; const Value: TComponent;
       const IsStored: Boolean); virtual; abstract;
 

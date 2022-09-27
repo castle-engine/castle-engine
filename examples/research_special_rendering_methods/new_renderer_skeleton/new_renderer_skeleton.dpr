@@ -38,7 +38,7 @@
 
 uses SysUtils, TypInfo, Classes,
   CastleVectors, CastleCameras, X3DNodes, CastleSceneCore, CastleShapes,
-  CastleTransform, CastleProjection, CastleFrustum,
+  CastleTransform, CastleProjection, CastleFrustum, CastleViewport, CastleScene,
   CastleInternalGeometryArrays;
 
 var
@@ -148,7 +148,7 @@ begin
     Writeln('Modelview matrix: ');
     Writeln(ShapeModelView.ToString('    '));
 
-    GeometryArrays := Shape.GeometryArrays(true);
+    GeometryArrays := Shape.GeometryArrays;
     try
       Writeln('Geometry:',
         ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
@@ -189,6 +189,7 @@ end;
 var
   Application: TVulkanApplication;
   Window: TVulkanWindow;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneVulkan;
   Camera: TCastleCamera;
   RenderParams: TRenderParams;
@@ -200,12 +201,15 @@ begin
     Window.Height := 768;
     Window.Open;
 
-    Camera := TCastleCamera.Create(Application);
-    Camera.Init(
+    Viewport := TCastleViewport.Create(Application);
+    Viewport.FullSize := true;
+    //Window.Controls.InsertFront(Viewport);
+
+    Camera := Viewport.Camera;
+    Camera.SetWorldView(
       Vector3(0, 0, 0), // position
       Vector3(0, 0, -1), // direction
-      Vector3(0, 0, 1), // up
-      Vector3(0, 0, 1) // gravity up
+      Vector3(0, 0, 1) // up
     );
 
     Scene := TCastleSceneVulkan.Create(Application);
@@ -220,18 +224,13 @@ begin
 
       - The API of TRenderParams is internal, it may change at any moment.
 
-      - Moreover here we create TRenderParams with abstract methods (GlobalLights).
-        Ignore this temporarily, you don't need GlobalLights to test your new renderer
-        (GlobalLights are only used for a configurable headlight, and for shining
-        lights from one TCastleScene over another TCastleScene).
-
-      - You should not do this in a normal CGE application. In normal application,
-        TCastleViewport prepares render
-        parameters, and TCastleScene uses them.
-        How are they are prepared, and how are they used -- it's
+      - You should not construct or modify TRenderParams in a normal CGE application.
+        In normal application, TCastleViewport prepares TRenderParams instance,
+        and TCastleScene uses it.
+        How the TRenderParams is prepared, and how is it used -- it's
         internal for normal applications.
     }
-    RenderParams := TRenderParams.Create;
+    RenderParams := TBasicRenderParams.Create;
     RenderParams.RenderingCamera := TRenderingCamera.Create;
     RenderParams.RenderingCamera.Target := rtScreen;
     RenderParams.RenderingCamera.FromCameraObject(Camera);

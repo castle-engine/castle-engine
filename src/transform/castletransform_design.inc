@@ -24,9 +24,13 @@
     (serialized by CastleComponentSerialize routines) with .castle-transform extension. }
   TCastleTransformDesign = class(TCastleTransform)
   strict private
-    FDesign: TCastleTransform;
-    FDesignObserver: TFreeNotificationObserver;
-    FURL: String;
+    class var
+      LoadDepth: Cardinal;
+    var
+      FDesign: TCastleTransform;
+      FDesignObserver: TFreeNotificationObserver;
+      FURL: String;
+      FRevertURL: String;
     procedure SetURL(const Value: String);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
   public
@@ -57,6 +61,9 @@
       #)
     }
     property URL: String read FURL write SetURL;
+
+    { URL used to perform editor "Revert" operation. }
+    property RevertURL: String read FRevertURL write FRevertURL;
   end;
 
 {$endif read_interface}
@@ -83,6 +90,8 @@ begin
 end;
 
 procedure TCastleTransformDesign.SetURL(const Value: String);
+const
+  MaxLoadDepth = 64; // 128 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
   if FURL <> Value then
   begin
@@ -96,7 +105,15 @@ begin
     if Value <> '' then
     begin
       try
-        FDesign := TransformLoad(Value, Self);
+        { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
+        if LoadDepth = MaxLoadDepth then
+          raise Exception.CreateFmt('Exceeded maximum depth (%d) when loading TCastleTransformDesign within TCastleTransformDesign. It is possible that TCastleTransformDesign references its own design', [
+            MaxLoadDepth
+          ]);
+        Inc(LoadDepth);
+        try
+          FDesign := TransformLoad(Value, Self);
+        finally Dec(LoadDepth) end;
       except
         { If loading design file failed, and we're inside CGE editor,
           merely report a warning. This allows deserializing in CGE editor

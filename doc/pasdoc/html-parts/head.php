@@ -6,12 +6,12 @@ require_once 'cge-www-configure.php';
 ?>
 
 <!-- Bootstrap -->
-<link href="<?php echo page_requisite('castle-engine-website-base/bootstrap/css/bootstrap.min.css'); ?>" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/node_modules/bootstrap/dist/css/bootstrap.min.css'); ?>" rel="stylesheet">
 <!-- Bootstrap theme -->
-<link href="<?php echo page_requisite('castle-engine-website-base/bootstrap/css/bootstrap-theme.min.css'); ?>" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/node_modules/bootstrap/dist/css/bootstrap-theme.min.css'); ?>" rel="stylesheet">
 
 <!-- Colorbox -->
-<link href="<?php echo page_requisite('castle-engine-website-base/colorbox/example3/colorbox.css'); ?>" type="text/css" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/node_modules/jquery-colorbox/example3/colorbox.css'); ?>" type="text/css" rel="stylesheet">
 
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

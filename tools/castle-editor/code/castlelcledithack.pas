@@ -111,7 +111,7 @@ type
 
   { Wrapper around TEdit. }
   TEditBoxForEdit = class(TEditBox)
-  strict private
+  private
     E: TEdit;
   protected
     function GetSelLength: Integer; override;
@@ -134,7 +134,7 @@ type
 
   { Wrapper around TComboBox. }
   TEditBoxForComboBox = class(TEditBox)
-  strict private
+  private
     E: TComboBox;
   protected
     function GetSelLength: Integer; override;
@@ -151,9 +151,21 @@ type
     constructor Create(const AEdit: TComboBox);
   end;
 
+{ Process a key pressed with given ActiveControl being focused.
+
+  If this was a key that typically interacts with TEdit controls,
+  then perform the typical TEdit action directly
+  (do not allow menu item to catch it) and set Key to 0.
+
+  Does something only for keys that are used as some menu shortcut
+  in CGE editor, and are also used to edit text. Like Delete or Ctrl+Z
+  or 1. }
+procedure ProcessKeyToPerformEdit(const ActiveControl: TComponent;
+  var Key: Word; const Shift: TShiftState);
+
 implementation
 
-uses LCLType, StrUtils, Clipbrd,
+uses LCLType, LCLVersion, StrUtils, Clipbrd,
   CastleStringUtils, CastleUnicode;
 
 { TEditBox ------------------------------------------------------------------- }
@@ -216,7 +228,12 @@ begin
           SelStart := UTF8Length(Text);
       end;
     {.$endif}
-    VK_0..VK_9: InsertChar(Chr(Ord('0') + Key - VK_0));
+    VK_0..VK_9:
+      begin
+        if ssShift in Shift then
+          Exit; // resign from special handling, to allow to type !@#$... using alphanumeric keys
+        InsertChar(Chr(Ord('0') + Key - VK_0));
+      end;
     VK_F: InsertChar(IfThen(LettersUpCase, 'F', 'f'));
     VK_Z:
       if Shift = [ssCtrl] then
@@ -445,4 +462,69 @@ begin
   Result := E.ReadOnly;
 end;
 
+{ global --------------------------------------------------------------------- }
+
+var
+  CachedForComboBox: TEditBoxForComboBox;
+  CachedForEdit: TEditBoxForEdit;
+
+procedure ProcessKeyToPerformEdit(const ActiveControl: TComponent; var Key: Word; const Shift: TShiftState);
+
+  {$if LCL_FULLVERSION >= 2020000}
+    {$define HAS_COMBO_EDIT_BOX}
+  {$endif}
+
+  {$ifndef HAS_COMBO_EDIT_BOX}
+  // Adjusted from TComboBoxStyleHelper.HasEditBox in latest LCL.
+  function ComboHasEditBox(const Style: TComboBoxStyle): Boolean;
+  const
+    ArrHasEditBox: array[TComboBoxStyle] of Boolean = (
+      True,  // csDropDown
+      True,  // csSimple
+      False, // csDropDownList
+      False, // csOwnerDrawFixed
+      False, // csOwnerDrawVariable
+      True,  // csOwnerDrawEditableFixed
+      True   // csOwnerDrawEditableVariable
+    );
+  begin
+    Result := ArrHasEditBox[Style];
+  end;
+  {$endif}
+
+var
+  EditBox: TEditBox;
+begin
+  if (ActiveControl is TComboBox) and
+     {$ifdef HAS_COMBO_EDIT_BOX}
+     (TComboBox(ActiveControl).Style.HasEditBox)
+     {$else}
+     ComboHasEditBox(TComboBox(ActiveControl).Style)
+     {$endif}
+     then
+  begin
+    { Instead of creating new TEditBoxForComboBox instance at each ProcessKeyToPerformEdit
+      call, we just reuse one cached instance. }
+    if CachedForComboBox = nil then
+      CachedForComboBox := TEditBoxForComboBox.Create(nil);
+    CachedForComboBox.E := TComboBox(ActiveControl);
+    EditBox := CachedForComboBox;
+  end else
+
+  if ActiveControl is TEdit then
+  begin
+    if CachedForEdit = nil then
+      CachedForEdit := TEditBoxForEdit.Create(nil);
+    CachedForEdit.E := TEdit(ActiveControl);
+    EditBox := CachedForEdit;
+  end else
+    EditBox := nil;
+
+  if EditBox <> nil then
+    EditBox.ProcessKey(Key, Shift);
+end;
+
+finalization
+  FreeAndNil(CachedForComboBox);
+  FreeAndNil(CachedForEdit);
 end.

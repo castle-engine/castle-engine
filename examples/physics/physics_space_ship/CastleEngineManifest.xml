@@ -2,7 +2,7 @@
 <project name="physics-space-ship"
   standalone_source="physics_space_ship_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicsspaceship"
+  qualified_name="io.castleengine.physics.space.ship"
   caption="Space Ship"
 >
   <compiler_options>

@@ -628,6 +628,7 @@ const
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
@@ -656,6 +657,7 @@ uses Math,
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
@@ -1351,7 +1353,7 @@ procedure TCastleScene.PrepareResources(
     { calculate OwnParams, GoodParams }
     if Params = nil then
     begin
-      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
       OwnParams := TPrepareParams.Create;
       GoodParams := OwnParams;
     end else
@@ -1749,7 +1751,7 @@ begin
   ShapesList := Shapes.TraverseList(true);
     for I := 0 to ShapesList.Count - 1 do
       if ShapesList[I].Collidable then
-        ShapesList[I].Triangulate(false, TriangleEvent);
+        ShapesList[I].Triangulate(TriangleEvent);
 end;
 
 { Shadow volumes ------------------------------------------------------------- }
@@ -2460,6 +2462,7 @@ initialization
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
+  RegisterSerializableComponent(TCastleFog, 'Fog');
   RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
   RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
   RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');

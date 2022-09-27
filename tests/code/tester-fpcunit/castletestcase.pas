@@ -66,6 +66,8 @@ type
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; AddrOfError: Pointer = nil);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double; AddrOfError: Pointer = nil);
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D; AddrOfError: Pointer = nil);
+    procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D; const Epsilon: Double; AddrOfError: Pointer = nil);
     procedure AssertFilenamesEqual(const Expected, Actual: string; AddrOfError: Pointer = nil);
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage; AddrOfError: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TRectangle; AddrOfError: Pointer = nil);
@@ -360,15 +362,15 @@ begin
       [Expected, Actual]), AddrOfError);
 end;
 
-procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D; AddrOfError: Pointer);
+procedure TCastleTestCase.AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D; AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := CallerAddr;
 
-  AssertBoxesEqual(Expected, Actual, SingleEpsilon, AddrOfError);
+  AssertBoxesEqual(Msg, Expected, Actual, SingleEpsilon, AddrOfError);
 end;
 
-procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
+procedure TCastleTestCase.AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
   const Epsilon: Double; AddrOfError: Pointer);
 var
   I: Integer;
@@ -380,18 +382,34 @@ begin
     Exit; // OK
 
   if Expected.IsEmpty then
-    Fail(Format('Expected empty box, actual box is NOT empty (%s)',
+    Fail(Format('Expected empty box, actual box is NOT empty (%s). ' + Msg,
       [Actual.ToRawString]));
 
   if Actual.IsEmpty then
-    Fail(Format('Expected NOT empty box (%s), actual box is empty',
+    Fail(Format('Expected NOT empty box (%s), actual box is empty. ' + Msg,
       [Expected.ToRawString]), AddrOfError);
 
   for I := 0 to 2 do
     if (not SameValue(Expected.Data[0][I], Actual.Data[0][I], Epsilon)) or
        (not SameValue(Expected.Data[1][I], Actual.Data[1][I], Epsilon)) then
-      Fail(Format('Boxes are not equal: expected: %s, actual: %s',
+      Fail(Format('Boxes are not equal: expected: %s, actual: %s. ' + Msg,
         [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
+end;
+
+procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D; AddrOfError: Pointer = nil);
+begin
+  if AddrOfError = nil then
+    AddrOfError := CallerAddr;
+
+  AssertBoxesEqual('', Expected, Actual, AddrOfError);
+end;
+
+procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double; AddrOfError: Pointer = nil);
+begin
+  if AddrOfError = nil then
+    AddrOfError := CallerAddr;
+
+  AssertBoxesEqual('', Expected, Actual, Epsilon, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: string; AddrOfError: Pointer);

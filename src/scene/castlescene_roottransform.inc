@@ -80,6 +80,7 @@ type
   protected
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; override;
+    procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -143,7 +144,11 @@ type
           we advise to leave
           @link(TCastleViewport.AutoCamera) and
           @link(TCastleAutoNavigationViewport.AutoNavigation) as @false,
-          and set proper camera and navigation at design-time.)
+          and set proper camera and navigation at design-time.
+          If you want to animate the camera usin animation designed in glTF or X3D,
+          then make TCastleCamera a parent of animated transformation exposed using
+          @link(TCastleSceneCore.ExposeTransforms).
+          )
         )
 
         @item(Determines what background is rendered.
@@ -210,8 +215,7 @@ type
 
       Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
-      // {$ifdef FPC} deprecated 'leave MainScene unset; almost all useful MainScene features can be now achieved without setting MainScene'; {$endif}
-      // TODO: Not deprecated *yet*, only because AutoCamera is the only way to run camera animation designed in glTF / X3D, and AutoCamera depends on MainScene
+      {$ifdef FPC} deprecated 'leave MainScene unset; almost all useful MainScene features can be now achieved without setting MainScene'; {$endif}
 
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
@@ -395,6 +399,17 @@ begin
   end;
 
   FInternalScenesCastGlobalLights.Delete(I);
+end;
+
+procedure TCastleRootTransform.Loaded;
+begin
+  inherited;
+  {$warnings off} // using deprecated just to make a warning
+  if UseHeadlight = hlOn then
+    WritelnWarning('UseHeadlight is deprecated (on TCastleViewport.Items). Instead: Add light component as a child of TCastleCamera');
+  if MainScene <> nil then
+    WritelnWarning('MainScene is deprecated (on TCastleViewport.Items). Instead: Almost all features are available without the need to set MainScene');
+  {$warnings on}
 end;
 
 {$endif read_implementation}
