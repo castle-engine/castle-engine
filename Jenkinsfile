@@ -137,13 +137,6 @@ pipeline {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh'
                 archiveArtifacts artifacts: 'castle-engine*.zip'
-                /* We send the same file to both artifact and stash,
-                   as Jenkins "unarchive" is somewhat undocumented (no idea how to specify the mappping...)
-                   and https://issues.jenkins.io/browse/JENKINS-26134 suggests it *may*
-                   be deprecated.
-                   There's not much official info on "unarchive", while there's lots of info
-                   on stash + unstash. */
-                stash name: 'cge-build-docker', includes: 'castle-engine*.zip'
               }
             }
           }
@@ -202,7 +195,6 @@ pipeline {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh linux arm'
                 archiveArtifacts artifacts: 'castle-engine*.zip'
-                stash name: 'cge-build-rpi', includes: 'castle-engine*.zip'
               }
             }
           }
@@ -295,7 +287,6 @@ pipeline {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh darwin x86_64'
                 archiveArtifacts artifacts: 'castle-engine*.zip'
-                stash name: 'cge-build-macos', includes: 'castle-engine*.zip'
               }
             }
           }
