@@ -1316,4 +1316,25 @@ object DesignFrame: TDesignFrame
     Left = 445
     Top = 307
   end
+  object ActionListDesign: TActionList
+    Images = Icons.ToolbarStroke1_5
+    Left = 790
+    Top = 201
+    object ActionPhysicsPlayStopSimulation: TAction
+      Category = 'Physics'
+      Caption = 'Play/Stop Physics Simulation'
+      GroupIndex = 10
+      Hint = 'Play/Stop Physics Simulation '
+      ImageIndex = 5
+      OnExecute = ActionPhysicsPlayStopSimulationExecute
+    end
+    object ActionPhysicsPauseSimulation: TAction
+      Category = 'Physics'
+      Caption = 'Pause Physics Simulation'
+      GroupIndex = 9
+      ImageIndex = 7
+      OnExecute = ActionPhysicsPauseSimulationExecute
+      OnUpdate = ActionPhysicsPauseSimulationUpdate
+    end
+  end
 end
