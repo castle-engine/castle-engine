@@ -389,7 +389,7 @@ type
     procedure SaveDesign(const Url: String);
     { Changes DesignRoot, DesignUrl and all the associated user-interface. }
     procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
-      const NewDesignUrl: String);
+      NewDesignUrl: String);
     procedure OpenDesign(const NewDesignUrl: String);
     procedure NewDesign(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
@@ -1489,7 +1489,22 @@ begin
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
-  const NewDesignUrl: String);
+  NewDesignUrl: String);
+
+  { Note: NewDesignUrl parameter is *not* const.
+
+    Because OpenDesign uses ClearDesign which destroys some components,
+    and one of these components may be the owner of AnsiString with NewDesignUrl.
+    So we have to keep refcount of NewDesignUrl,
+    otherwise ClearDesign could free NewDesignUrl and then all its
+    refences are invalid pointers, and OnUpdateFormCaption will crash.
+
+    Testcase: Open any UI state design that uses TCastleDesign, click
+    "Open Referenced Design".
+    In this case, TCastleDesignComponentEditor.ExecuteVerb passes
+    TCastleDesign.URL and NewDesignUrl, and ClearDesign removes this
+    TCastleDesign instance.
+  }
 
   { Initialize TCastleViewport that is internal, and used to edit
     .castle-transform. It requires some special considerations,
