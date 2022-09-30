@@ -14,8 +14,8 @@ Press (you can press once, or hold the key down to keep applying):
 
 - Key 7: `TCastleRigidBody.AddForce`
 - Key 8: `TCastleRigidBody.AddCentralForce`
-- Key 9: `TCastleRigidBody.ApplyImpulse`
-- Key 0: `TCastleRigidBody.AddTorque`
+- Key 9: `TCastleRigidBody.AddTorque`
+- Key 0: `TCastleRigidBody.ApplyImpulse`
 
 The idea is that you can play this weird game with both hands. Left hand controls the arrow (force position/direction), right hand makes given force active.
 

@@ -709,9 +709,15 @@
       (only the body velocity is preserved across frames).
       If you want to keep applying this force (e.g. it is a wind that continues pushing in given direction)
       you should call this method every frame.
-      (TODO: check this sentence.)
-      It is automatically multiplied by the delta time, no need to account for that.
+      It automatically accounts for the delta time (because the force will actually
+      be applied later, with delta time, to velocity) so no need to multiply the arguments with SecondsPassed.
       That is, adding force means @code(Velocity += Force * TimeDelta / Mass).
+
+      By changing Position from which you push,
+      you can change the angular velocity,
+      i.e. different Position makes the body spin in different ways.
+      Note that Position too distant from the body center may result in unrealistically strong push.
+      If Position is exactly at body center, then angular velocity will not be affected.
 
       Force and position is in world coordinate system.
 
@@ -734,13 +740,33 @@
       (only the body velocity is preserved across frames).
       If you want to keep applying this force (e.g. it is a wind that continues pushing in given direction)
       you should call this method every frame.
-      (TODO: check this sentence.)
-      It is automatically multiplied by the delta time, no need to account for that.
+      It automatically accounts for the delta time (because the force will actually
+      be applied later, with delta time, to velocity) so no need to multiply the arguments with SecondsPassed.
 
       TODO: rename param to Direction?
 
       TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure AddCentralForce(const Force: TVector3);
+
+    { Rotate this rigid body with physics.
+      Longer length of Torque makes a stronger push.
+      Torque is in world coordinates.
+
+      Just like with @link(AddForce),
+      the forces affecting each body are reset every frame
+      (only the body velocity is preserved across frames).
+      If you want to keep applying this force (e.g. it is a whirlwind that continues rotating)
+      you should call this method every frame.
+      It automatically accounts for the delta time (because the force will actually
+      be applied later, with delta time, to velocity) so no need to multiply the arguments with SecondsPassed.
+
+      TODO: explain better, why is this not necessary to be called every frame?
+      Why AddForce, if called once, doesn't act as "impulse"?
+
+      TODO: params: Direction?
+
+      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
+    procedure AddTorque(const Torque: TVector3);
 
     { Apply a one-time force, that pushes the body (increasing velocity).
       Impulse is a direction along which to push, Point is the position from which you push.
@@ -751,6 +777,13 @@
       Unlike AddForce, the velocity increase is not multiplied by the delta of time,
       so it is not expected you will call this every frame.
       (If you do, you should take care to multiply Force by TimeDelta.)
+
+      Same notes as for Position of @link(AddForce):
+      By changing Point from which you push,
+      you can change the angular velocity,
+      i.e. different Point makes the body spin in different ways.
+      Note that Point too distant from the body center may result in unrealistically strong push.
+      If Point is exactly at body center, then angular velocity will not be affected.
 
       TODO: Is the difference from AddForce really that simple?
       And if so, do we even need a separate method for it -- user could multiply
@@ -763,18 +796,6 @@
 
       TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
     procedure ApplyImpulse(const Impulse, Point: TVector3);
-
-    { Apply a one-time force impulse, that will push to rotate the body for subsequent frames.
-      Longer length of Torque makes a stronger push.
-      Torque is in world coordinates.
-
-      TODO: explain better, why is this not necessary to be called every frame?
-      Why AddForce, if called once, doesn't act as "impulse"?
-
-      TODO: params: Direction?
-
-      TODO: add parameter that determines coordinate system, make it consistent with friend methods. }
-    procedure AddTorque(const Torque: TVector3);
 
     { Returns true when rigid body behavior exists, and is added to Castle
       Transform, and this transform ExistsInRoot = true. }
@@ -791,7 +812,13 @@
 
     { Current rotating velocity of this body.
       You can query it (as it changes, affected by forces) and set it at any point.
-      In world coordinates. }
+      In world coordinates.
+
+      See https://en.wikipedia.org/wiki/Angular_velocity
+      about the exact meaning of angular velocity. The vector direction
+      (AngularVelocity.Normalize) determines the axis around which we rotate.
+      The vector length (AngularVelocity.Length) determines the speed (in radians/second)
+      with which we rotate. }
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
 
     { Current moving velocity of this body.
@@ -3649,19 +3676,6 @@ begin
     WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
 
-procedure TCastleRigidBody.ApplyImpulse(const Impulse, Point: TVector3);
-begin
-  if FKraftBody <> nil then
-  begin
-    if ExistsInRoot then
-    begin
-      FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
-      WakeUp;
-    end;
-  end else
-    WritelnWarning('Attempting to apply impulse before physics engine initialization.');
-end;
-
 procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
 begin
   if FKraftBody <> nil then
@@ -3673,6 +3687,19 @@ begin
     end;
   end else
     WritelnWarning('Attempting to add torque before physics engine initialization.');
+end;
+
+procedure TCastleRigidBody.ApplyImpulse(const Impulse, Point: TVector3);
+begin
+  if FKraftBody <> nil then
+  begin
+    if ExistsInRoot then
+    begin
+      FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
+      WakeUp;
+    end;
+  end else
+    WritelnWarning('Attempting to apply impulse before physics engine initialization.');
 end;
 
 function TCastleRigidBody.ExistsInRoot: Boolean;

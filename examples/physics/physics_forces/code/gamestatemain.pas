@@ -35,8 +35,8 @@ type
     RigidBodies: TCastleRigidBodyList;
     procedure AddForce;
     procedure AddCentralForce;
-    procedure AddImpulse;
     procedure AddTorque;
+    procedure ApplyImpulse;
     function ForceScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
@@ -124,6 +124,8 @@ begin
     AddForce;
   if Container.Pressed[key8] then
     AddCentralForce;
+  if Container.Pressed[key9] then
+    AddTorque;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -131,14 +133,9 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey(key9) then
-  begin
-    AddImpulse;
-    Exit(true);
-  end;
   if Event.IsKey(key0) then
   begin
-    AddTorque;
+    ApplyImpulse;
     Exit(true);
   end;
 end;
@@ -169,20 +166,20 @@ begin
   end;
 end;
 
-procedure TStateMain.AddImpulse;
-var
-  RBody: TCastleRigidBody;
-begin
-  for RBody in RigidBodies do
-    RBody.ApplyImpulse(SceneArrow.Direction * ForceScale, SceneArrow.Translation);
-end;
-
 procedure TStateMain.AddTorque;
 var
   RBody: TCastleRigidBody;
 begin
   for RBody in RigidBodies do
     RBody.AddTorque(SceneArrow.Direction * ForceScale);
+end;
+
+procedure TStateMain.ApplyImpulse;
+var
+  RBody: TCastleRigidBody;
+begin
+  for RBody in RigidBodies do
+    RBody.ApplyImpulse(SceneArrow.Direction * ForceScale, SceneArrow.Translation);
 end;
 
 end.

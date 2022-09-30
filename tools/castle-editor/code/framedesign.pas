@@ -50,8 +50,6 @@ type
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
     LabelPhysics: TLabel;
-    ButtonViewportMenu: TSpeedButton;
-    LabelHeaderTransform: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
@@ -91,13 +89,12 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ButtonInteractMode: TSpeedButton;
-    ButtonModifyUiMode: TSpeedButton;
-    ButtonTransformSelectMode: TSpeedButton;
-    ButtonTransformTranslateMode: TSpeedButton;
-    ButtonTransformRotateMode: TSpeedButton;
-    ButtonTransformScaleMode: TSpeedButton;
     ButtonPhysicsPlayStop: TSpeedButton;
     ButtonPhysicsPause: TSpeedButton;
+    ButtonSelectMode: TSpeedButton;
+    ButtonTranslateMode: TSpeedButton;
+    ButtonRotateMode: TSpeedButton;
+    ButtonScaleMode: TSpeedButton;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
     SpinEditSnap: TSpinEdit;
@@ -113,10 +110,10 @@ type
     procedure ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
-    procedure ButtonTransformRotateModeClick(Sender: TObject);
-    procedure ButtonTransformScaleModeClick(Sender: TObject);
-    procedure ButtonTransformSelectModeClick(Sender: TObject);
-    procedure ButtonTransformTranslateModeClick(Sender: TObject);
+    procedure ButtonRotateModeClick(Sender: TObject);
+    procedure ButtonScaleModeClick(Sender: TObject);
+    procedure ButtonSelectModeClick(Sender: TObject);
+    procedure ButtonTranslateModeClick(Sender: TObject);
     procedure CheckParentSelfAnchorsEqualChange(Sender: TObject);
     procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
@@ -135,7 +132,6 @@ type
     procedure ControlsTreeBeforeSelectionChange(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure ButtonInteractModeClick(Sender: TObject);
-    procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
@@ -159,12 +155,12 @@ type
       TDesignerLayer = class(TCastleUserInterface)
       strict private
         type
-          TDraggingMode = (dmNone, dmTranslate, dmResize);
+          TUiDraggingMode = (dmNone, dmTranslate, dmResize);
         var
-          PendingMove: TVector2;
-          DraggingMode: TDraggingMode;
-          ResizingHorizontal: THorizontalPosition; //< Defined only when DraggingMode=dmResize
-          ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
+          UiPendingMove: TVector2;
+          UiDraggingMode: TUiDraggingMode;
+          ResizingHorizontal: THorizontalPosition; //< Defined only when UiDraggingMode=dmResize
+          ResizingVertical: TVerticalPosition; //< Defined only when UiDraggingMode=dmResize
           LabelHover, LabelSelected: TCastleLabel;
           RectHover, RectSelected: TCastleRectangleControl;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
@@ -181,11 +177,19 @@ type
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
         procedure Render; override;
+
         { UI under given mouse position.
           AMousePosition is in coordinates local to TCastleControl and follows
-          CGE conventions that Y goes from bottom to top. }
+          CGE conventions that Y goes from bottom to top.
+
+          Note: In most cases, prefer to call HoverComponent.
+          HoverUserInterface *does not* consider transforms within TCastleViewport,
+          it will just return TCastleViewport if mouse is over it. }
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
-        function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
+
+        { UI or transform under given mouse position.
+          AMousePosition is like for HoverUserInterface. }
+        function HoverComponent(const AMousePosition: TVector2): TCastleComponent;
       end;
 
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
@@ -193,24 +197,15 @@ type
 
       TMode = (
         moInteract,
-        moModifyUi,
-        moTransformSelect,
-        moTransformTranslate,
-        moTransformRotate,
-        moTransformScale
+        moSelect,
+        moTranslate,
+        moRotate,
+        moScale
       );
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
-
-    const
-      TransformModes = [
-        moTransformSelect,
-        moTransformTranslate,
-        moTransformRotate,
-        moTransformScale
-      ];
 
     var
       Inspector: array [TInspectorType] of TOIPropertyGrid;
@@ -433,7 +428,7 @@ type
     procedure SaveDesign(const Url: String);
     { Changes DesignRoot, DesignUrl and all the associated user-interface. }
     procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
-      const NewDesignUrl: String);
+      NewDesignUrl: String);
     procedure OpenDesign(const NewDesignUrl: String);
     procedure NewDesign(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
@@ -658,8 +653,7 @@ begin
   end;
 end;
 
-function TDesignFrame.TDesignerLayer.HoverTransform(
-  const AMousePosition: TVector2): TCastleTransform;
+function TDesignFrame.TDesignerLayer.HoverComponent(const AMousePosition: TVector2): TCastleComponent;
 
   function SelectionFromRayHit(const RayHit: TRayCollision): TCastleTransform;
   var
@@ -696,43 +690,31 @@ function TDesignFrame.TDesignerLayer.HoverTransform(
   end;
 
 var
-  UI: TCastleUserInterface;
   Viewport: TCastleViewport;
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
 begin
-  { Note: We don't call here CurrentViewport, even though we perform
-    similar checks -- HoverUserInterface, SelectedViewport.
-    That is because here:
-    - we check HoverUserInterface first, SelectedViewport last
-    - we don't remember last hovered/selected viewport, it would be weird for HoverTransform
-  }
+  { Note: We don't call here CurrentViewport.
 
-  UI := HoverUserInterface(AMousePosition);
-  if UI is TCastleViewport then // also checks UI <> nil
-    Viewport := TCastleViewport(UI)
-  else
-    Viewport := nil;
+    Unlike with CurrentViewport, here we don't try to forcefully select viewport
+    (from hover or selection). If the mouse is over non-viewport, then this
+    should return non-viewport.
 
-  { If HoverUserInterface didn't have a useful viewport, try SelectedViewport.
-    This way you can select stuff in viewport, even when it's obscured
-    e.g. by a TCastleButton. }
-  if (Viewport = nil) and
-     (Frame.SelectedViewport <> nil) and
-     Frame.SelectedViewport.RenderRectWithBorder.Contains(AMousePosition) then
-    Viewport := Frame.SelectedViewport;
+    Also, unlike CurrentViewport,
+    we don't want to remember last hovered/selected viewport here,
+    it would be weird for user here. }
 
-  if Viewport = nil then
-    Exit(nil);
-
-  Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
-  RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-  try
-    if RayHit <> nil then
-      Result := SelectionFromRayHit(RayHit)
-    else
-      Result := nil;
-  finally FreeAndNil(RayHit) end;
+  Result := HoverUserInterface(AMousePosition);
+  if Result is TCastleViewport then // also checks Result <> nil
+  begin
+    Viewport := TCastleViewport(Result);
+    Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
+    RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    try
+      if RayHit <> nil then
+        Result := SelectionFromRayHit(RayHit);
+    finally FreeAndNil(RayHit) end;
+  end;
 end;
 
 function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
@@ -801,7 +783,6 @@ function TDesignFrame.TDesignerLayer.Press(
   const Event: TInputPressRelease): Boolean;
 var
   UI: TCastleUserInterface;
-  T: TCastleTransform;
 begin
   Result := inherited Press(Event);
   if Result then Exit;
@@ -836,53 +817,40 @@ begin
      Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
     Exit;
 
-  if (Frame.Mode = moModifyUi) and Event.IsMouseButton(buttonLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
-    { Without shift pressed, we select before moving/resizing.
-      With shift pressed we don't change selection.
+    { Below we will always calculate correct UiDraggingMode }
+    UiDraggingMode := dmNone;
 
-      This allows to change the position/size of the control
-      without changing the selected control, e.g. when you want to change
-      the size of TCastleScrollView without
-      selecting TCastleScrollView.ScrollArea inside. }
-    if (not (mkShift in Event.ModifiersDown)) then
-      Frame.SelectedUserInterface := HoverUserInterface(Event.Position);
-
-    UI := Frame.SelectedUserInterface;
-    if UI <> nil then
+    if Frame.Mode <> moInteract then
     begin
-      if IsResizing(UI, Event.Position, ResizingHorizontal, ResizingVertical) then
-        DraggingMode := dmResize
-      else
-        DraggingMode := dmTranslate;
-      Exit(ExclusiveEvents);
-    end;
+      { Calculate Frame.SelectedComponent.
+        Without shift pressed, we select before moving/resizing.
+        With shift pressed we don't change selection.
+        This allows to change the component without changing the selected component. }
+      if (not (mkShift in Event.ModifiersDown)) then
+      begin
+        Frame.SelectedComponent := HoverComponent(Event.Position);
+      end;
 
-    PendingMove := TVector2.Zero;
-  end;
+      if Frame.Mode <> moSelect then
+      begin
+        UI := Frame.SelectedUserInterface;
+        if UI <> nil then
+        begin
+          if IsResizing(UI, Event.Position, ResizingHorizontal, ResizingVertical) then
+            UiDraggingMode := dmResize
+          else
+            UiDraggingMode := dmTranslate;
 
-  if (Frame.Mode in TransformModes) and
-      Event.IsMouseButton(buttonLeft) and
-      { When Shift is pressed, left mouse button should not change the selection,
-        only Move/Rotate/Scale. And Move/Rotate/Scale is not handled here,
-        it's done by TVisualizeTransform. }
-      (not (mkShift in Event.ModifiersDown)) then
-  begin
-    T := HoverTransform(Event.Position);
-    { Do not change Frame.SelectedTransform in case T is nil,
-      as then clicking in moTransformXxx modes at some place where no scene
-      exists would deselect UI item, also deselecting current viewport.
-      So it's not useful, and not expected. }
-    if T <> nil then
-    begin
-      Frame.SelectedTransform := T;
-      { No need for this Exit(true).
-        In practice, it is acceptable and even comfortable that a single click
-        both selects a transform, and allows to navigate (e.g. TCastleExamineNavigation
-        will handle this click too, and allow to rotate).
-        Even when Exit(true) was done only when "Frame.SelectedTransform <> T",
-        it seemed unnecessary. }
-      //Exit(ExclusiveEvents);
+          { No need for this Exit(true) otherwise.
+            In particular if we selected transform, we should not do Exit(ExclusiveEvents),
+            to allow gizmos to start dragging. }
+          Exit(ExclusiveEvents);
+        end;
+      end;
+
+      UiPendingMove := TVector2.Zero;
     end;
   end;
 end;
@@ -902,7 +870,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    DraggingMode := dmNone;
+    UiDraggingMode := dmNone;
 
     { Note, that we may want to have better comment message here }
     if Frame.UndoSystem.ScheduleRecordUndoOnRelease then
@@ -938,7 +906,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     CurrentRect, ResultingRect, ParentR: TFloatRectangle;
   begin
     CurrentRect := UI.RenderRectWithBorder;
-    case DraggingMode of
+    case UiDraggingMode of
       dmTranslate: ResultingRect := CurrentRect.Translate(Move);
       dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
     end;
@@ -961,14 +929,14 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     MinHeight = 10;
   begin
     if not DragAllowed(UI, Vector2(X, Y)) then Exit;
-    case DraggingMode of
+    case UiDraggingMode of
       dmTranslate:
         begin
-          UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
-          UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Y;
+          UI.Translation := UI.Translation + Vector2(X, Y);
         end;
       dmResize:
         begin
+          {$warnings off} // TODO: using deprecated Horizontal/VerticalAnchorDelta
           case ResizingHorizontal of
             hpLeft:
               begin
@@ -1025,6 +993,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 end;
               end;
           end;
+          {$warnings on}
         end;
     end;
 
@@ -1062,24 +1031,24 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
 
   procedure UpdateCursor;
   var
-    UI: TCastleUserInterface;
     WouldResizeHorizontal: THorizontalPosition;
     WouldResizeVertical: TVerticalPosition;
     NewCursor: TMouseCursor;
     Hint: String;
+    HoverC: TCastleComponent;
   begin
     Hint := '';
-    if Frame.Mode <> moModifyUi then
+    if Frame.Mode = moInteract then
       NewCursor := mcDefault
     else
-    case DraggingMode of
+    case UiDraggingMode of
       dmNone:
         begin
           // calculate cursor based on what would happen if you Press
-          UI := HoverUserInterface(Event.Position);
-          if UI <> nil then
+          HoverC := HoverComponent(Event.Position);
+          if HoverC is TCastleUserInterface then
           begin
-            if IsResizing(UI, Event.Position,
+            if IsResizing(HoverC as TCastleUserInterface, Event.Position,
               WouldResizeHorizontal, WouldResizeVertical, Hint) then
             begin
               NewCursor := ResizingCursor(
@@ -1099,11 +1068,18 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     Frame.CastleControl.ShowHint := Hint <> '';
   end;
 
-  procedure UpdateHoverTransform;
+  procedure UpdateHoverComponent;
+  var
+    HoverC: TCastleComponent;
   begin
-    if Frame.Mode in TransformModes then
-      Frame.VisualizeTransformHover.Parent := HoverTransform(Event.Position) // works also in case HoverTransform is nil
-    else
+    if Frame.Mode <> moInteract then
+    begin
+      HoverC := HoverComponent(Event.Position); // may also return nil
+      if HoverC is TCastleTransform then
+        Frame.VisualizeTransformHover.Parent := TCastleTransform(HoverC)
+      else
+        Frame.VisualizeTransformHover.Parent := nil;
+    end else
       Frame.VisualizeTransformHover.Parent := nil;
   end;
 
@@ -1117,12 +1093,12 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
 
     TODO: This has hardcoded logic for FullSize and group cases.
     There should be a virtual method instead like
-      TCastleUserInterface.EditorDragParent(DraggingMode)
-      TCastleUserInterface.EditorDragMeInsteadOfChild(DraggingMode)
+      TCastleUserInterface.EditorDragParent(UiDraggingMode)
+      TCastleUserInterface.EditorDragMeInsteadOfChild(UiDraggingMode)
   }
   procedure ChangeDraggedUI(var UI: TCastleUserInterface);
   begin
-    if (DraggingMode in [dmResize, dmTranslate]) and
+    if (UiDraggingMode in [dmResize, dmTranslate]) and
        UI.FullSize and
        (UI.Parent <> nil) then
     begin
@@ -1130,22 +1106,23 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
     end;
 
-    if (DraggingMode in [dmResize, dmTranslate]) and
+    if (UiDraggingMode in [dmResize, dmTranslate]) and
        (UI.Parent <> nil) and
        { When the parent uses AutoSizeToChildren on a single child, then the effect is similar
          as it child had FullSize. }
        UI.Parent.AutoSizeToChildren and
        (UI.Parent.ControlsCount = 1) and
+       {$warnings off} // looking at deprecated Left, Bottom to keep them working
        (UI.Left = 0) and
        (UI.Bottom = 0) and
-       (UI.HorizontalAnchorDelta = 0) and
-       (UI.VerticalAnchorDelta = 0) then
+       {$warnings on}
+       TVector2.PerfectlyEquals(UI.Translation, TVector2.Zero) then
     begin
       UI := UI.Parent;
       ChangeDraggedUI(UI); // act recursively if necessary, to choose parent's parent...
     end;
 
-    if (DraggingMode in [dmTranslate]) and
+    if (UiDraggingMode in [dmTranslate]) and
        (UI.Parent <> nil) and
        ( (UI.Parent is TCastleHorizontalGroup) or
          (UI.Parent is TCastleVerticalGroup) ) then
@@ -1171,12 +1148,13 @@ begin
 
   { in case user released mouse button, but the event didn't reach us for some reason
     (maybe can happen e.g. if you Alt+Tab during dragging?),
-    reset DraggingMode. }
-  if (DraggingMode <> dmNone) and
+    reset UiDraggingMode. }
+  if (UiDraggingMode <> dmNone) and
      (not (buttonLeft in Event.Pressed)) then
-    DraggingMode := dmNone;
+    UiDraggingMode := dmNone;
 
-  if (Frame.Mode = moModifyUi) and (DraggingMode <> dmNone) then
+  if (Frame.Mode <> moInteract) and
+     (UiDraggingMode <> dmNone) then
   begin
     UI := Frame.SelectedUserInterface;
     if UI <> nil then
@@ -1188,16 +1166,16 @@ begin
       Snap := Frame.SpinEditSnap.Value;
       if Snap <> 0 then
       begin
-        PendingMove += Move;
-        while Abs(PendingMove.X) >= Snap do
+        UiPendingMove += Move;
+        while Abs(UiPendingMove.X) >= Snap do
         begin
-          ApplyDrag(UI, Sign(PendingMove.X) * Snap, 0);
-          PendingMove.X := PendingMove.X - Sign(PendingMove.X) * Snap;
+          ApplyDrag(UI, Sign(UiPendingMove.X) * Snap, 0);
+          UiPendingMove.X := UiPendingMove.X - Sign(UiPendingMove.X) * Snap;
         end;
-        while Abs(PendingMove.Y) >= Snap do
+        while Abs(UiPendingMove.Y) >= Snap do
         begin
-          ApplyDrag(UI, 0, Sign(PendingMove.Y) * Snap);
-          PendingMove.Y := PendingMove.Y - Sign(PendingMove.Y) * Snap;
+          ApplyDrag(UI, 0, Sign(UiPendingMove.Y) * Snap);
+          UiPendingMove.Y := UiPendingMove.Y - Sign(UiPendingMove.Y) * Snap;
         end;
       end else
       begin
@@ -1213,7 +1191,7 @@ begin
       to allow mouse look to hide cursor. }
     UpdateCursor;
 
-  UpdateHoverTransform;
+  UpdateHoverComponent;
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
@@ -1316,8 +1294,7 @@ begin
        (RectSelected.RenderRect.Bottom = RectHover.RenderRect.Bottom) and
        (RectSelected.RenderRect.Left   = RectHover.RenderRect.Left  ) then
     begin
-      RectHover.VerticalAnchorDelta := RectHover.VerticalAnchorDelta -
-        RectSelected.EffectiveHeight;
+      RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
   end;
 end;
@@ -1413,8 +1390,7 @@ begin
 
   SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
 
-  //ChangeMode(moInteract);
-  ChangeMode(moModifyUi); // most expected default, it seems
+  ChangeMode(moTranslate); // most expected default
 
   BuildComponentsMenu(
     MenuTreeViewItemAddUserInterface,
@@ -1567,7 +1543,22 @@ begin
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
-  const NewDesignUrl: String);
+  NewDesignUrl: String);
+
+  { Note: NewDesignUrl parameter is *not* const.
+
+    Because OpenDesign uses ClearDesign which destroys some components,
+    and one of these components may be the owner of AnsiString with NewDesignUrl.
+    So we have to keep refcount of NewDesignUrl,
+    otherwise ClearDesign could free NewDesignUrl and then all its
+    refences are invalid pointers, and OnUpdateFormCaption will crash.
+
+    Testcase: Open any UI state design that uses TCastleDesign, click
+    "Open Referenced Design".
+    In this case, TCastleDesignComponentEditor.ExecuteVerb passes
+    TCastleDesign.URL and NewDesignUrl, and ClearDesign removes this
+    TCastleDesign instance.
+  }
 
   { Initialize TCastleViewport that is internal, and used to edit
     .castle-transform. It requires some special considerations,
@@ -2855,7 +2846,7 @@ begin
       if (NewComponent is TCastleUserInterface) and
          (ParentComponent is TCastleUserInterface) then
       begin
-        TCastleUserInterface(NewComponent).AnchorDelta :=
+        TCastleUserInterface(NewComponent).Translation :=
           TCastleUserInterface(ParentComponent).ContainerToLocalPosition(DropPosition2D, true);
       end;
     end else
@@ -4388,14 +4379,12 @@ begin
   if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
   begin
     // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
-    UI.HorizontalAnchorDelta := 0;
-    UI.VerticalAnchorDelta := 0;
+    UI.Translation := TVector2.Zero;
   end else
   begin
-    UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta +
-      (RenderRectBeforeChange.Left - NewRect.Left) / UI.UIScale;
-    UI.VerticalAnchorDelta := UI.VerticalAnchorDelta +
-      (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale;
+    UI.Translation := UI.Translation + Vector2(
+      (RenderRectBeforeChange.Left   - NewRect.Left) / UI.UIScale,
+      (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale);
   end;
 
   ModifiedOutsideObjectInspector('', ucLow);
@@ -4806,8 +4795,7 @@ begin
   UI := SelectedUserInterface;
   if UI <> nil then
   begin
-    UI.HorizontalAnchorDelta := 0;
-    UI.VerticalAnchorDelta := 0;
+    UI.Translation := TVector2.Zero;
     ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, ucHigh);
   end;
 end;
@@ -4869,35 +4857,35 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ButtonTransformRotateModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonRotateModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moTransformRotate);
+  ChangeMode(moRotate);
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ButtonTransformScaleModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonScaleModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moTransformScale);
+  ChangeMode(moScale);
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ButtonTransformSelectModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonSelectModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moTransformSelect);
+  ChangeMode(moSelect);
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ButtonTransformTranslateModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonTranslateModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moTransformTranslate);
+  ChangeMode(moTranslate);
   InsideToggleModeClick := false;
 end;
 
@@ -4906,14 +4894,6 @@ begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
   ChangeMode(moInteract);
-  InsideToggleModeClick := false;
-end;
-
-procedure TDesignFrame.ButtonModifyUiModeClick(Sender: TObject);
-begin
-  if InsideToggleModeClick then Exit;
-  InsideToggleModeClick := true;
-  ChangeMode(moModifyUi);
   InsideToggleModeClick := false;
 end;
 
@@ -5256,22 +5236,15 @@ begin
   Mode := NewMode;
 
   ButtonInteractMode.Down := Mode = moInteract;
-  ButtonModifyUiMode.Down := Mode = moModifyUi;
-
-  { Hiding this is not nice for user, as then clicking on ButtonTransformSelectMode
-    when current mode is moModifyUi will shift the position of the
-    ButtonTransformSelectMode under your mouse. }
-  //SetEnabledVisible(SpinEditSnap, Mode = moModifyUi);
-
-  ButtonTransformSelectMode.Down := Mode = moTransformSelect;
-  ButtonTransformTranslateMode.Down := Mode = moTransformTranslate;
-  ButtonTransformRotateMode.Down := Mode = moTransformRotate;
-  ButtonTransformScaleMode.Down := Mode = moTransformScale;
+  ButtonSelectMode.Down := Mode = moSelect;
+  ButtonTranslateMode.Down := Mode = moTranslate;
+  ButtonRotateMode.Down := Mode = moRotate;
+  ButtonScaleMode.Down := Mode = moScale;
 
   case Mode of
-    moTransformTranslate: VisualizeTransformSelected.Operation := voTranslate;
-    moTransformRotate: VisualizeTransformSelected.Operation := voRotate;
-    moTransformScale: VisualizeTransformSelected.Operation := voScale;
+    moTranslate: VisualizeTransformSelected.Operation := voTranslate;
+    moRotate: VisualizeTransformSelected.Operation := voRotate;
+    moScale: VisualizeTransformSelected.Operation := voScale;
     else VisualizeTransformSelected.Operation := voSelect;
   end;
 end;

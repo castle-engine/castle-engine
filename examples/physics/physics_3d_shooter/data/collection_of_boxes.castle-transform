@@ -186,6 +186,14 @@
             "Y" : 1.0000000000000000E+000,
             "Z" : 1.0000000000000000E+000
           }
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "LockRotation" : [
+          ],
+          "LockTranslation" : [
+          ],
+          "Name" : "RigidBody1"
         }
       ]
     },

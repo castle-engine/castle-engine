@@ -1,6 +1,7 @@
 ../../../src/base/ TCastleRenderOptions WireframeColor TCastleColorRGB
 
 ../../../src/ui/ TCastleUserInterface BorderColor TCastleColor
+../../../src/ui/ TCastleUserInterface Translation TVector2
 
 ../../../src/ui/ TCastleRectangleControl Color TCastleColor
 ../../../src/ui/ TStateDialog BackgroundColor TCastleColor

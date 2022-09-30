@@ -302,6 +302,14 @@
                       "Y" : 1.0000000000000000E+000,
                       "Z" : 1.0000000000000000E+000
                     }
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody14"
                   }
                 ]
               },
@@ -723,27 +731,33 @@
         "Green" : 5.0196081399917603E-001
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleLabel",
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "Label1",
       "Text" : [
         "Hold Right mouse button: mouse look",
         "Left mouse button click: shoot rocket",
         "Shift + Left mouse button click: drop moar boxes"
       ],
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     }
