@@ -1142,7 +1142,7 @@
       procedure ChangedTransform; override;
     public
       constructor Create(AOwner: TComponent;
-        const AJoint: TAbstractJoint); virtual; reintroduce;
+        const AJoint: TAbstractJoint); reintroduce; virtual;
       destructor Destroy; override;
 
       procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
