@@ -1,9 +1,4 @@
-{ Compile Castle Game Engine by fpmake.
-  This can be used to compile and install the engine units.
 
-  See https://castle-engine.io/fpmake
-  for the detailed instructions.
-}
 
 program fpmake;
 
