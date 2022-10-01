@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1031">
+    <Files Count="1040">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4229,6 +4229,42 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1031>
+      <Item1032>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1032>
+      <Item1033>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1033>
+      <Item1034>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1034>
+      <Item1035>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointball_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1035>
+      <Item1036>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1036>
+      <Item1037>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1037>
+      <Item1038>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1038>
+      <Item1039>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1039>
+      <Item1040>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item1040>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
