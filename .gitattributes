@@ -1,15 +1,4 @@
-# See https://github.com/github/linguist about the linguist attributes.
-#
-# See https://help.github.com/en/articles/dealing-with-line-endings
-# about line endings.
-# We expect that you commit text files with Unix line endings to the repository.
-# If you work on Windows, you can configure GIT to either automatically convert
-# between Windows/Unix on download/upload (so you will see Windows line endings,
-# but you will still commit Unix line endings),
-# or you can let GIT to preserve line endings from the repository
-# (in which case you will see, and commit, Unix line endings;
-# make sure that your text editor handles Unix line endings,
-# and that you create new lines with Unix line endings).
+
 
 *.inc linguist-language=Pascal text eol=auto
 *.lpr linguist-language=Pascal text eol=auto
