@@ -341,19 +341,24 @@ type
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
     function Deletable(const Child: TComponent): Boolean;
-    { Rebuild from scratch the hierarchy tree (ControlsTree),
-      also clearing the selection along the way.
 
-      This guarantees that editor UI shows the correct state of everything
-      -- but it is also rather "brutal" solution, rebuilding the hierarchy tree
-      from scratch, resetting tree expand/collapsed state, resetting selection.
-      When possible, use a different, "less brutal" solution
-      to update the hierarchy.
-      To validate hierarchy tree use TDesignFrame.ValidateHierarchy. }
+    { Internal helper for UpdateDesign or ValidateHierarchy,
+      should only be used by these 2 methods. }
+    procedure ValidateOrUpdateHierarchy(const Validate: Boolean);
+
+    { Make sure the hierarchy tree (ControlsTree) reflects current DesignRoot state.
+      Add/remove tree nodes from ControlsTree as necessary.
+
+      Also set TreeNodeMap (unconditionally, i.e. it is always cleared and filled
+      from scratch by this method).
+
+      This guarantees that editor UI shows the correct state of everything. }
     procedure UpdateDesign;
+
     { Returns a warning and false value when hierarchy tree (ControlsTree) differs from
       castle design hierarchy (DesignRoot). }
     function ValidateHierarchy: Boolean;
+
     procedure UpdateSelectedControl;
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     { Update anchors shown, based on UI state.
@@ -1437,7 +1442,9 @@ end;
 
 procedure TDesignFrame.ClearDesign;
 begin
-  ControlsTree.Items.Clear;
+  // ControlsTree.Items.Clear; // do not clear, we will always rebuild ControlsTree to just apply differences
+  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it in some cases
+
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
   FDesignRoot := nil;
@@ -1803,12 +1810,12 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     end else
     if ComponentClass.InheritsFrom(TCastleTransform) then
     begin
-      raise Exception.Create(Format('Too add TCastleTransform descendant (%s), select a parent that descends from TCastleTransform, for example select Viewport.Items.',
+      raise Exception.Create(Format('To add TCastleTransform descendant (%s), select a parent that descends from TCastleTransform, for example select Viewport.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
     end else
     if ComponentClass.InheritsFrom(TCastleBehavior) then
     begin
-      raise Exception.Create(Format('Too add TCastleBehavior descendant (%s), select a parent that descends from TCastleTransform, like TCastleTransform itself or TCastleScene.',
+      raise Exception.Create(Format('To add TCastleBehavior descendant (%s), select a parent that descends from TCastleTransform, like TCastleTransform itself or TCastleScene.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
     end else
     begin
@@ -1905,12 +1912,6 @@ begin
     end;
   end;
   C.Free;
-
-  // temporarily disable this event, as some pointers are invalid now
-  ControlsTree.OnSelectionChanged := nil;
-  ControlsTree.Items.Clear;
-  TreeNodeMap.Clear;
-  ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
   UpdateDesign;
 end;
@@ -3310,382 +3311,336 @@ begin
     (Child <> DesignRoot);
 end;
 
-procedure TDesignFrame.UpdateDesign;
+type
+  EHierarchyValidationFailed = class(Exception);
+const
+  ValidationError = 'Hierarchy view desynchronized with CGE internal hierarchy. 1. Please submit a bug, this should never happen. 2. To workaround it for now, save and reopen the design file.';
+
+procedure TDesignFrame.ValidateOrUpdateHierarchy(const Validate: Boolean);
+var
+  NodesToExpand: TObjectList;
+
+  { Make sure that given parent, at given index, has given child.
+    Return this child (TTreeNode),
+    and increase IndexInParent by 1.
+
+    Parent may be nil, indicating the root of ControlsTree.
+    (It's a bit uncomfortable, but there's no single "root" node for
+    ControlsTree. At the top level there is TTreeNodes, which is already
+    a list.)
+
+    In case of Validate = false: if there is a mismatch,
+    it fixes the mismatch by adding a new child.
+    But it assumes that Parent has at least IndexInParent-1 children,
+    i.e. all previous children (with smaller IndexInParent) are matching.
+
+    In case of Validate = true: if there is a mismatch,
+    raises EHierarchyValidationFailed. }
+  function EnsureChildNodeIs(const Parent: TTreeNode; var IndexInParent: Integer;
+    const ChildNodeCaption: String; const ChildNodeData: Pointer): TTreeNode;
+  var
+    Valid, NextIsValid: Boolean;
+  begin
+    if Parent = nil then
+    begin
+      Assert(ControlsTree.Items.TopLvlCount >= IndexInParent);
+      Valid := (ControlsTree.Items.TopLvlCount > IndexInParent) and
+        (ControlsTree.Items.TopLvlItems[IndexInParent].Text = ChildNodeCaption) and
+        (ControlsTree.Items.TopLvlItems[IndexInParent].Data = ChildNodeData);
+      NextIsValid := (ControlsTree.Items.TopLvlCount > IndexInParent + 1) and
+        (ControlsTree.Items.TopLvlItems[IndexInParent + 1].Text = ChildNodeCaption) and
+        (ControlsTree.Items.TopLvlItems[IndexInParent + 1].Data = ChildNodeData);
+    end else
+    begin
+      Assert(Parent.Count >= IndexInParent);
+      Valid := (Parent.Count > IndexInParent) and
+        (Parent.Items[IndexInParent].Text = ChildNodeCaption) and
+        (Parent.Items[IndexInParent].Data = ChildNodeData);
+      NextIsValid := (Parent.Count > IndexInParent + 1) and
+        (Parent.Items[IndexInParent + 1].Text = ChildNodeCaption) and
+        (Parent.Items[IndexInParent + 1].Data = ChildNodeData);
+    end;
+
+    // observe this log after delete/add operation
+    {
+    WritelnLog('Child node %s valid? %s', [
+      ChildNodeCaption,
+      BoolToStr(Valid, true)
+    ]);
+    }
+
+    if Valid then
+    begin
+      if Parent = nil then
+        Result := ControlsTree.Items.TopLvlItems[IndexInParent]
+      else
+        Result := Parent.Items[IndexInParent];
+    end else
+    begin
+      if Validate then
+      begin
+        raise EHierarchyValidationFailed.Create(ValidationError);
+      end;
+
+      // now we know Validate = false
+
+      if NextIsValid then
+      begin
+        // delete the IndexInParent child of Parent and we will be OK
+        if Parent = nil then
+        begin
+          ControlsTree.Items.Delete(ControlsTree.Items.TopLvlItems[IndexInParent]);
+          Result := ControlsTree.Items.TopLvlItems[IndexInParent];
+        end else
+        begin
+          ControlsTree.Items.Delete(Parent.Items[IndexInParent]);
+          Result := Parent.Items[IndexInParent];
+        end;
+      end else
+      begin
+        { insert new child at position IndexInParent to Parent.
+
+          Looks like TTreeNode doesn't give nice API to Insert at specified
+          position into an indicated parent. But we can just remove
+          all excessive nodes -- they are all likely invalid at this point. }
+
+        if Parent = nil then
+        begin
+          while ControlsTree.Items.TopLvlCount > IndexInParent do
+            ControlsTree.Items.Delete(ControlsTree.Items.TopLvlItems[IndexInParent]);
+          Assert(IndexInParent = ControlsTree.Items.TopLvlCount); // this should be true if previous children were valid
+        end else
+        begin
+          while Parent.Count > IndexInParent do
+            ControlsTree.Items.Delete(Parent.Items[IndexInParent]);
+          Assert(IndexInParent = Parent.Count); // this should be true if previous children were valid
+        end;
+
+        // this works for Parent = nil or non-nil
+        Result := ControlsTree.Items.AddChildObject(Parent, ChildNodeCaption, ChildNodeData);
+
+        { Expand newly added nodes.
+          Note that we cannot call now Result.Expand(true),
+          because Result has no children and calling Expand() on it does nothing. }
+        if not Validate then
+          NodesToExpand.Add(Result);
+      end;
+    end;
+
+    Assert(Result.Text = ChildNodeCaption);
+    Assert(Result.Data = ChildNodeData);
+    Inc(IndexInParent);
+  end;
+
+  { Make sure given Parent node has *at most* ParentCount children.
+
+    In case of Validate = false: if there is a mismatch,
+    it removes excessive children.
+
+    In case of Validate = true: if there is a mismatch,
+    raises EHierarchyValidationFailed. }
+  procedure EnsureChildrenNodesCount(const Parent: TTreeNode; const ParentCount: Integer);
+  var
+    Valid: Boolean;
+  begin
+    if Parent = nil then
+    begin
+      Valid := ControlsTree.Items.TopLvlCount <= ParentCount;
+    end else
+    begin
+      Valid := Parent.Count <= ParentCount;
+    end;
+
+    if not Valid then
+    begin
+      if Validate then
+      begin
+        raise EHierarchyValidationFailed.Create(ValidationError);
+      end;
+
+      // now we know Validate = false
+
+      if Parent = nil then
+      begin
+        while ControlsTree.Items.TopLvlCount > ParentCount do
+          ControlsTree.Items.Delete(ControlsTree.Items.TopLvlItems[ParentCount]);
+      end else
+      begin
+        while Parent.Count > ParentCount do
+          ControlsTree.Items.Delete(Parent.Items[ParentCount]);
+      end;
+    end;
+  end;
+
+  { Update TreeNodeMap, mapping components -> to their corresponding tree node.
+    Ignored when Validate = false. }
+  procedure UpdateTreeNodeMap(const C: TComponent; const Node: TTreeNode);
+  begin
+    if not Validate then
+      TreeNodeMap.AddOrSetValue(C, Node);
+  end;
 
   { Add given component, and its children in C.NonVisualComponents }
-  function AddNonVisualComponent(const Parent: TTreeNode; const C: TComponent): TTreeNode;
+  function AddNonVisualComponent(const Parent: TTreeNode; var IndexInParent: Integer; const C: TComponent): TTreeNode;
   var
     S: String;
     Child: TComponent;
+    ChildrenNodesCount: Integer;
   begin
     S := TreeNodeCaption(C);
-    Result := ControlsTree.Items.AddChildObject(Parent, S, C);
-    TreeNodeMap.AddOrSetValue(C, Result);
+    Result := EnsureChildNodeIs(Parent, IndexInParent, S, C);
+    UpdateTreeNodeMap(C, Result);
+
     if C is TCastleComponent then
     begin
+      ChildrenNodesCount := 0;
       for Child in TCastleComponent(C).NonVisualComponentsEnumerate do
         if Selectable(Child) then
-          AddNonVisualComponent(Result, Child);
+          AddNonVisualComponent(Result, ChildrenNodesCount, Child);
+      EnsureChildrenNodesCount(Result, ChildrenNodesCount);
     end;
   end;
 
   { If C has some NonVisualComponents, then create a tree item
     'Non-Visual Components' and add them to it. }
-  function AddNonVisualComponentsSection(const Parent: TTreeNode; const C: TCastleComponent): TTreeNode;
+  function AddNonVisualComponentsSection(const Parent: TTreeNode; var IndexInParent: Integer; const C: TCastleComponent): TTreeNode;
   var
     Child: TComponent;
+    ChildrenNodesCount: Integer;
   begin
     if C.NonVisualComponentsCount <> 0 then
     begin
-      Result := ControlsTree.Items.AddChildObject(Parent, 'Non-Visual Components', nil);
+      Result := EnsureChildNodeIs(Parent, IndexInParent, 'Non-Visual Components', nil);
+
+      ChildrenNodesCount := 0;
       for Child in C.NonVisualComponentsEnumerate do
         if Selectable(Child) then
-          AddNonVisualComponent(Result, Child);
+          AddNonVisualComponent(Result, ChildrenNodesCount, Child);
+      EnsureChildrenNodesCount(Result, ChildrenNodesCount);
     end;
   end;
 
   { If T has some Behaviors, then create a tree item
     'Behaviors' and add them to it. }
-  function AddBehaviorsSection(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
+  function AddBehaviorsSection(const Parent: TTreeNode; var IndexInParent: Integer; const T: TCastleTransform): TTreeNode;
   var
     Child: TCastleBehavior;
+    ChildrenNodesCount: Integer;
   begin
     if T.BehaviorsCount <> 0 then
     begin
-      Result := ControlsTree.Items.AddChildObject(Parent, 'Behaviors', nil);
+      Result := EnsureChildNodeIs(Parent, IndexInParent, 'Behaviors', nil);
+
+      ChildrenNodesCount := 0;
       for Child in T.BehaviorsEnumerate do
         if Selectable(Child) then
-          AddNonVisualComponent(Result, Child);
+          AddNonVisualComponent(Result, ChildrenNodesCount, Child);
+      EnsureChildrenNodesCount(Result, ChildrenNodesCount);
     end;
   end;
 
   { Add given transform, and its children
     (transform children, T.NonVisualComponents, T.Behaviors). }
-  function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
+  function AddTransform(const Parent: TTreeNode; var IndexInParent: Integer; const T: TCastleTransform): TTreeNode;
   var
     S: String;
-    I: Integer;
+    I, ChildrenNodesCount: Integer;
   begin
     S := TreeNodeCaption(T);
-    Result := ControlsTree.Items.AddChildObject(Parent, S, T);
-    TreeNodeMap.AddOrSetValue(T, Result);
+    Result := EnsureChildNodeIs(Parent, IndexInParent, S, T);
+    UpdateTreeNodeMap(T, Result);
 
-    AddNonVisualComponentsSection(Result, T);
-    AddBehaviorsSection(Result, T);
+    ChildrenNodesCount := 0;
+    AddNonVisualComponentsSection(Result, ChildrenNodesCount, T);
+    AddBehaviorsSection(Result, ChildrenNodesCount, T);
 
     for I := 0 to T.Count - 1 do
       if Selectable(T[I]) then
-        AddTransform(Result, T[I]);
+        AddTransform(Result, ChildrenNodesCount, T[I]);
+
+    EnsureChildrenNodesCount(Result, ChildrenNodesCount);
   end;
 
   { Add given UI control, and its children. }
-  function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
+  function AddControl(const Parent: TTreeNode; var IndexInParent: Integer; const C: TCastleUserInterface): TTreeNode;
   var
     S: String;
-    I: Integer;
+    I, ChildrenNodesCount: Integer;
     Viewport: TCastleViewport;
   begin
     S := TreeNodeCaption(C);
-    Result := ControlsTree.Items.AddChildObject(Parent, S, C);
-    TreeNodeMap.AddOrSetValue(C, Result);
+    Result := EnsureChildNodeIs(Parent, IndexInParent, S, C);
+    UpdateTreeNodeMap(C, Result);
 
-    AddNonVisualComponentsSection(Result, C);
+    ChildrenNodesCount := 0;
+    AddNonVisualComponentsSection(Result, ChildrenNodesCount, C);
 
     for I := 0 to C.ControlsCount - 1 do
     begin
       if Selectable(C.Controls[I]) then
-        AddControl(Result, C.Controls[I]);
+        AddControl(Result, ChildrenNodesCount, C.Controls[I]);
     end;
 
     if C is TCastleViewport then
     begin
       Viewport := TCastleViewport(C);
       if Selectable(Viewport.Items) then
-        AddTransform(Result, Viewport.Items);
+        AddTransform(Result, ChildrenNodesCount, Viewport.Items);
     end;
+    EnsureChildrenNodesCount(Result, ChildrenNodesCount);
   end;
 
 var
-  Node: TTreeNode;
+  ChildrenNodesCount: Integer;
+  O: Pointer;
 begin
-  ControlsTree.Items.Clear;
-  TreeNodeMap.Clear;
+  if not Validate then
+    NodesToExpand := TObjectList.Create(false);
+  try
+    ChildrenNodesCount := 0;
+    if DesignRoot is TCastleUserInterface then
+      AddControl(nil, ChildrenNodesCount, DesignRoot as TCastleUserInterface)
+    else
+    if DesignRoot is TCastleTransform then
+      AddTransform(nil, ChildrenNodesCount, DesignRoot as TCastleTransform)
+    else
+      AddNonVisualComponent(nil, ChildrenNodesCount, DesignRoot);
+    EnsureChildrenNodesCount(nil, ChildrenNodesCount);
 
-  if DesignRoot is TCastleUserInterface then
-    Node := AddControl(nil, DesignRoot as TCastleUserInterface)
-  else
-  if DesignRoot is TCastleTransform then
-    Node := AddTransform(nil, DesignRoot as TCastleTransform)
-  else
-    Node := AddNonVisualComponent(nil, DesignRoot);
+    if not Validate then
+    begin
+      for O in NodesToExpand do
+        TTreeNode(O).Expand(false); // no need for recurse=true, because we will call this on children too
+    end;
+  finally
+    FreeAndNil(NodesToExpand);
+  end;
+end;
 
-  // show expanded by default
-  Node.Expand(true);
+procedure TDesignFrame.UpdateDesign;
+begin
+  // temporarily disable this event, as some pointers are invalid now
+  ControlsTree.OnSelectionChanged := nil;
+  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it
+
+  TreeNodeMap.Clear; // ValidateOrUpdateHierarchy(false) will fill TreeNodeMap
+
+  ValidateOrUpdateHierarchy(false);
+
+  ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
   UpdateSelectedControl;
 
   InternalCastleDesignInvalidate := false;
 end;
 
-type
-  EHierarchyValidationFailed = class(Exception);
-
 function TDesignFrame.ValidateHierarchy: Boolean;
-const
-  ExceptionMessage: String = 'Hierarchy view desynchronized with CGE internal hierarchy. 1. Please submit a bug, this should never happen. 2. To workaround it for now, save and reopen the design file.';
-
-  { Verify given component, and its children in C.NonVisualComponents }
-  procedure VerifyNonVisualComponent(const NonVisualComponentNode: TTreeNode;
-    const C: TComponent);
-  var
-    S: String;
-    Child: TComponent;
-    I: Integer;
-  begin
-    S := TreeNodeCaption(C);
-
-    { Check component caption and pointer in tree node }
-    if (NonVisualComponentNode.Data <> Pointer(C)) or (NonVisualComponentNode.Text <> S) then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    { Check tree node in node tree component map }
-    if TreeNodeMap[C] <> NonVisualComponentNode then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    I := 0;
-    if C is TCastleComponent then
-    begin
-      for Child in TCastleComponent(C).NonVisualComponentsEnumerate do
-      begin
-        if Selectable(Child) then
-        begin
-          { Check tree node has enough number of child items }
-          if NonVisualComponentNode.Count < I + 1 then
-            raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-          { Check child and its children }
-          VerifyNonVisualComponent(NonVisualComponentNode.Items[I], Child);
-          Inc(I);
-        end;
-      end;
-
-      { Check maybe there are more tree items than components }
-      if NonVisualComponentNode.Count > I then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-    end;
-  end;
-
-  { If C has some NonVisualComponents, then check a tree item
-    'Non-Visual Components' and its children. Returns last checked child index
-    of Parent or -1 for none }
-  function VerifyNonVisualComponentsSection(const Parent: TTreeNode; const C: TCastleComponent): Integer;
-  var
-    Child: TComponent;
-    GroupingNode: TTreeNode;
-    I: Integer;
-  begin
-    if C.NonVisualComponentsCount <> 0 then
-    begin
-      { Check tree node has enough number of child items }
-      if Parent.Count < 1 then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-      { First child should be grouping tree node, check text and data }
-      GroupingNode := Parent.Items[0];
-      Result := 0;
-      if (GroupingNode.Text <> 'Non-Visual Components') or (GroupingNode.Data <> nil) then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-      I := 0;
-      for Child in C.NonVisualComponentsEnumerate do
-      begin
-        if Selectable(Child) then
-        begin
-          { Check tree node has enough number of child items }
-          if GroupingNode.Count < I + 1 then
-            raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-          { Check child and child children }
-          VerifyNonVisualComponent(GroupingNode.Items[I], Child);
-          Inc(I);
-        end;
-      end;
-
-      { Check maybe there are more tree items than components }
-      if GroupingNode.Count > I then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-    end else
-      Result := -1;
-  end;
-
-  { If T has some Behaviors, then verify a tree item
-    'Behaviors' and next its children. }
-  function VerifyBehaviorsSection(LastCheckedChildNodeIndex: Integer;
-    const Parent: TTreeNode; const T: TCastleTransform): Integer;
-  var
-    Child: TCastleBehavior;
-    GroupingNode: TTreeNode;
-    I: Integer;
-  begin
-    if T.BehaviorsCount <> 0 then
-    begin
-      { Check tree node has enough number of child items }
-      if Parent.Count < LastCheckedChildNodeIndex + 2 then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-      { LastCheckedChildNodeIndex + 1 should be grouping tree node, check
-        text and data }
-      GroupingNode := Parent.Items[LastCheckedChildNodeIndex + 1];
-      Result := 0;
-
-      if (GroupingNode.Text <> 'Behaviors') or (GroupingNode.Data <> nil) then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-      I := 0;
-      for Child in T.BehaviorsEnumerate do
-      begin
-        if Selectable(Child) then
-        begin
-          { Check tree node has enough number of child items }
-          if GroupingNode.Count < I + 1 then
-            raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-          { Check child and child children }
-           VerifyNonVisualComponent(GroupingNode.Items[I], Child);
-          Inc(I);
-        end;
-      end;
-
-      { Check maybe there are more tree items than components }
-      if GroupingNode.Count > I then
-        raise EHierarchyValidationFailed.Create(ExceptionMessage);
-    end else
-      Result := LastCheckedChildNodeIndex;
-  end;
-
-  { Verify given transform, and its children
-    (transform children, T.NonVisualComponents, T.Behaviors). }
-  procedure VerifyTransform(const TransformNode: TTreeNode;
-    const T: TCastleTransform);
-  var
-    S: String;
-    I: Integer;
-    NodeIndex: Integer;
-    LastCheckedChildNodeIndex: Integer;
-  begin
-    S := TreeNodeCaption(T);
-
-    { Check component caption and pointer in tree node }
-    if (TransformNode.Data <> Pointer(T)) or (TransformNode.Text <> S) then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    { Check tree node in node tree component map }
-    if TreeNodeMap[T] <> TransformNode then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    LastCheckedChildNodeIndex := VerifyNonVisualComponentsSection(TransformNode, T);
-    LastCheckedChildNodeIndex := VerifyBehaviorsSection(LastCheckedChildNodeIndex,
-      TransformNode, T);
-
-    { VerifyNonVisualComponentsSection or VerifyBehaviorsSection returns -1 when
-      no non visual component/behaviors was there }
-    NodeIndex := LastCheckedChildNodeIndex + 1;
-
-    for I := 0 to T.Count - 1 do
-    begin
-      if Selectable(T[I]) then
-      begin
-        { Check tree node has enough number of child items }
-        if TransformNode.Count < NodeIndex + 1 then
-          raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-        { Check child and its children }
-        VerifyTransform(TransformNode.Items[NodeIndex], T[I]);
-        Inc(NodeIndex);
-      end;
-    end;
-
-  end;
-
-  { Verify given UI control, and its children. }
-  procedure VerifyControl(const ControlNode: TTreeNode; const C: TCastleUserInterface);
-  var
-    S: String;
-    I: Integer;
-    NodeIndex: Integer;
-    LastCheckedChildNodeIndex: Integer;
-    Viewport: TCastleViewport;
-  begin
-    S := TreeNodeCaption(C);
-
-    { Check component caption and pointer in tree node }
-    if (ControlNode.Data <> Pointer(C)) or (ControlNode.Text <> S) then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    { Check tree node in node tree component map }
-    if TreeNodeMap[C] <> ControlNode then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-    LastCheckedChildNodeIndex := VerifyNonVisualComponentsSection(ControlNode, C);
-    { VerifyNonVisualComponentsSection returns -1 when no non visual component
-      was there, or 0 when there was gropuping node }
-    NodeIndex := LastCheckedChildNodeIndex + 1;
-
-    for I := 0 to C.ControlsCount - 1 do
-    begin
-      if Selectable(C.Controls[I]) then
-      begin
-        { Check tree node has enough number of child items }
-        if ControlNode.Count < NodeIndex + 1 then
-          raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-        { Check child and its children }
-        VerifyControl(ControlNode.Items[NodeIndex], C.Controls[I]);
-        Inc(NodeIndex);
-      end;
-    end;
-
-    { Verify the viewport case }
-    if C is TCastleViewport then
-    begin
-      Viewport := TCastleViewport(C);
-      if Selectable(Viewport.Items) then
-      begin
-        { Check tree node has enough number of child items }
-        if ControlNode.Count < NodeIndex + 1 then
-          raise EHierarchyValidationFailed.Create(ExceptionMessage);
-
-        { Check Items transform and its children }
-        VerifyTransform(ControlNode.Items[NodeIndex], Viewport.Items);
-        Inc(NodeIndex);
-      end;
-    end;
-
-    { Check maybe there are more tree items than controls }
-    if ControlNode.Count > NodeIndex then
-      raise EHierarchyValidationFailed.Create(ExceptionMessage);
-  end;
-
 begin
-  Result := true;
-
-  { Check tree has at least one node }
-  if ControlsTree.Items.Count < 1 then
-  begin
-    WritelnWarning(ExceptionMessage);
-    Exit(false);
-  end;
-
   try
-    if DesignRoot is TCastleUserInterface then
-      VerifyControl(ControlsTree.Items[0], DesignRoot as TCastleUserInterface)
-    else
-    if DesignRoot is TCastleTransform then
-      VerifyTransform(ControlsTree.Items[0], DesignRoot as TCastleTransform)
-    else
-      VerifyNonVisualComponent(ControlsTree.Items[0], DesignRoot);
+    ValidateOrUpdateHierarchy(true);
+    Result := true;
   except
-    on E:EHierarchyValidationFailed do
+    on E: EHierarchyValidationFailed do
     begin
       Result := false;
       WritelnWarning(E.Message);
