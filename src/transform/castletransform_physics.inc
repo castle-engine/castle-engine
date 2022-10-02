@@ -4175,8 +4175,7 @@ begin
 
     { Make size about 10 pixels }
     Result := 10 / DistanceOnViewport;
-  end
-  else
+  end else
     Result := 1;
 end;
 
