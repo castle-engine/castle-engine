@@ -1142,7 +1142,7 @@ begin
   {$warnings off} // using deprecated in deprecated unit
   Items.MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
   Items.MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
-  Items.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Items.MainScene.PreciseCollisions := true;
   Items.MainScene.PrepareResources([prSpatial], false, Viewport.PrepareParams);
   {$warnings on}
 
@@ -1513,7 +1513,7 @@ begin
   Result.PrepareResources(Options, false, FLevel.PrepareParams);
 
   if PrepareForCollisions then
-    Result.Spatial := [ssDynamicCollisions];
+    Result.PreciseCollisions := true;
 
   Result.FreeResources([frTextureDataInNodes]);
 

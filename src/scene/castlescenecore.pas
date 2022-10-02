@@ -892,6 +892,8 @@ type
     function ShapeOctreeLimits: POctreeLimits;
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
+    function GetPreciseCollisions: Boolean;
+    procedure SetPreciseCollisions(const Value: Boolean);
   private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4;
@@ -2279,7 +2281,8 @@ type
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed {$ifdef FPC}default 1.0{$endif};
 
-    { Which spatial structures (octrees) should be created and used.
+    { In most cases you should get / set simpler @link(PreciseCollisions) property, not this.
+      Which spatial structures (octrees) should be created and used.
 
       Using "spatial structures" allows to achieve various things:
 
@@ -2378,7 +2381,19 @@ type
         @item(Allow developer to adjust TriangleOctreeLimits
           before creating the octree.)
       ) }
-    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial default [];
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial
+      stored false default [];
+      {$ifdef FPC}deprecated 'use PreciseCollisions';{$endif}
+
+    { Resolve collisions precisely with the scene triangles.
+      When this is @false we will only consider the bounding box of scene for collisions.
+
+      Internal notes:
+      When @true, this sets @link(TCastleSceneCore.Spatial) to [ssRendering, ssDynamicCollisions].
+      This is a good setting for scenes that may be dynamic.
+      When @false, this sets @link(TCastleSceneCore.Spatial) to [].
+      When reading, any @link(TCastleSceneCore.Spatial) <> [] means "precise collisions". }
+    property PreciseCollisions: Boolean read GetPreciseCollisions write SetPreciseCollisions default false;
 
     { Should the event mechanism (a basic of animations and interactions) work.
 
@@ -3859,7 +3874,7 @@ begin
       shape must have octree created. Normally, this is watched over by
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
-    if (ssDynamicCollisions in ParentScene.Spatial) and
+    if (ssDynamicCollisions in ParentScene.FSpatial) and
        Shape.Collidable then
     begin
       Shape.InternalTriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
@@ -5767,11 +5782,19 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 var
   Old, New: boolean;
 begin
-  if Value <> Spatial then
+  if Value <> FSpatial then
   begin
+    if ( (Value <> []) and
+         (Value <> [ssRendering, ssDynamicCollisions]) and
+         (Value <> [ssDynamicCollisions])
+       ) then
+      WritelnWarning('%s: Spatial values different than [], [ssRendering,ssDynamicCollisions], [ssDynamicCollisions] may not be allowed in future engine versions. We advise to use TCastleScene.PreciseCollisions instead of TCastleScene.Spatial.', [
+        Name
+      ]);
+
     { Handle OctreeRendering }
 
-    Old := ssRendering in Spatial;
+    Old := ssRendering in FSpatial;
     New := ssRendering in Value;
 
     if Old and not New then
@@ -5779,7 +5802,7 @@ begin
 
     { Handle OctreeDynamicCollisions and Shapes[I].Spatial }
 
-    Old := ssDynamicCollisions in Spatial;
+    Old := ssDynamicCollisions in FSpatial;
     New := ssDynamicCollisions in Value;
 
     if Old and not New then
@@ -5798,7 +5821,7 @@ begin
 
     { Handle OctreeVisibleTriangles }
 
-    Old := ssVisibleTriangles in Spatial;
+    Old := ssVisibleTriangles in FSpatial;
     New := ssVisibleTriangles in Value;
 
     if Old and not New then
@@ -5806,7 +5829,7 @@ begin
 
     { Handle OctreeStaticCollisions }
 
-    Old := ssStaticCollisions in Spatial;
+    Old := ssStaticCollisions in FSpatial;
     New := ssStaticCollisions in Value;
 
     if Old and not New then
@@ -5819,9 +5842,26 @@ begin
   end;
 end;
 
+function TCastleSceneCore.GetPreciseCollisions: Boolean;
+begin
+  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
+  Result := Spatial <> [];
+  {$warnings on}
+end;
+
+procedure TCastleSceneCore.SetPreciseCollisions(const Value: Boolean);
+begin
+  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
+  if Value then
+    Spatial := [ssRendering, ssDynamicCollisions]
+  else
+    Spatial := [];
+  {$warnings on}
+end;
+
 function TCastleSceneCore.InternalOctreeRendering: TShapeOctree;
 begin
-  if (ssRendering in Spatial) and (FOctreeRendering = nil) then
+  if (ssRendering in FSpatial) and (FOctreeRendering = nil) then
   begin
     FOctreeRendering := CreateShapeOctree(
       FShapeOctreeLimits,
@@ -5836,7 +5876,7 @@ end;
 
 function TCastleSceneCore.InternalOctreeDynamicCollisions: TShapeOctree;
 begin
-  if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
+  if (ssDynamicCollisions in FSpatial) and (FOctreeDynamicCollisions = nil) then
   begin
     FOctreeDynamicCollisions := CreateShapeOctree(
       FShapeOctreeLimits,
@@ -5851,7 +5891,7 @@ end;
 
 function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
 begin
-  if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
+  if (ssVisibleTriangles in FSpatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
       FTriangleOctreeLimits,
       TriangleOctreeProgressTitle,
@@ -5861,7 +5901,7 @@ end;
 
 function TCastleSceneCore.InternalOctreeStaticCollisions: TTriangleOctree;
 begin
-  if (ssStaticCollisions in Spatial) and (FOctreeStaticCollisions = nil) then
+  if (ssStaticCollisions in FSpatial) and (FOctreeStaticCollisions = nil) then
     FOctreeStaticCollisions := CreateTriangleOctree(
       FTriangleOctreeLimits,
       TriangleOctreeProgressTitle,
@@ -5880,7 +5920,7 @@ end;
 
 function TCastleSceneCore.UseInternalOctreeCollisions: boolean;
 begin
-  Result := Spatial * [ssStaticCollisions, ssDynamicCollisions] <> [];
+  Result := FSpatial * [ssStaticCollisions, ssDynamicCollisions] <> [];
   Assert((not Result) or (InternalOctreeCollisions <> nil));
 
   { We check whether to use InternalOctreeCollisions
@@ -8567,7 +8607,7 @@ begin
      (PropertyName = 'AutoAnimation') or
      (PropertyName = 'AutoAnimationLoop') or
      (PropertyName = 'DefaultAnimationTransition') or
-     (PropertyName = 'Spatial') or
+     (PropertyName = 'PreciseCollisions') or
      (PropertyName = 'ExposeTransforms') or
      (PropertyName = 'TimePlaying') or
      (PropertyName = 'TimePlayingSpeed') then

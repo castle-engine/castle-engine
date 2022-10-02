@@ -301,10 +301,12 @@ begin
   if FPreciseCollisions <> Value then
   begin
     FPreciseCollisions := Value;
+    {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
     if Value then
       FScene.Spatial := [ssDynamicCollisions]
     else
       FScene.Spatial := [];
+    {$warnings on}
     { Note that we don't add ssRendering,
       would be largely useless as primitives are usually just 1 shape in an internal scene. }
   end;

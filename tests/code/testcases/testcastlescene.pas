@@ -99,6 +99,13 @@ begin
     AssertTrue(SceneSpatialOnlyDynamicCollisions.Spatial = [ssDynamicCollisions]);
     AssertTrue(SceneSpatialOnlyVisibleTriangles.Spatial = [ssVisibleTriangles]);
     AssertTrue(SceneSpatialOnlyStaticCollisions.Spatial = [ssStaticCollisions]);
+
+    AssertFalse(SceneSpatialNone.PreciseCollisions);
+    AssertTrue(SceneSpatialPreciseCollisions.PreciseCollisions);
+    AssertTrue(SceneSpatialOnlyRendering.PreciseCollisions);
+    AssertTrue(SceneSpatialOnlyDynamicCollisions.PreciseCollisions);
+    AssertTrue(SceneSpatialOnlyVisibleTriangles.PreciseCollisions);
+    AssertTrue(SceneSpatialOnlyStaticCollisions.PreciseCollisions);
   finally FreeAndNil(UiOwner) end;
 end;
 
