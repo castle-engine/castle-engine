@@ -3844,10 +3844,10 @@ begin
     Exit;
 
   FConnectedTransform.AddNotificationOnBehaviorAdded(
-    @OnConnectedTransformAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnConnectedTransformAddBehavior, TCastleRigidBody);
 
   FConnectedTransform.AddNotificationBeforeBehaviorRemove(
-    @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
 
   if FConnectedTransfromFreeObserver = nil then
   begin
@@ -3864,10 +3864,10 @@ begin
   begin
     { Remove events from previous connected castle transform }
     FConnectedTransform.AddNotificationOnBehaviorAdded(
-      @OnConnectedTransformAddBehavior, TCastleRigidBody);
+      {$ifdef FPC}@{$endif} OnConnectedTransformAddBehavior, TCastleRigidBody);
 
     FConnectedTransform.AddNotificationBeforeBehaviorRemove(
-      @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+      {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
   end;
 
   { Stop watching this transform }
@@ -3879,8 +3879,8 @@ procedure TAbstractTwoBodiesJoint.SetConnectedRigidBodyEvents;
 begin
   if FConnectedRigidBody <> nil then
   begin
-    FConnectedRigidBody.AddNotificationOnInitialized(@OnConnectedRigidBodyInitialized);
-    FConnectedRigidBody.AddNotificationBeforeDeinitialized(@OnBeforeConnectedRigidBodyDeinitialized);
+    FConnectedRigidBody.AddNotificationOnInitialized({$ifdef FPC}@{$endif} OnConnectedRigidBodyInitialized);
+    FConnectedRigidBody.AddNotificationBeforeDeinitialized({$ifdef FPC}@{$endif} OnBeforeConnectedRigidBodyDeinitialized);
   end;
 end;
 
@@ -3888,8 +3888,8 @@ procedure TAbstractTwoBodiesJoint.RemoveConnectedRigidBodyEvents;
 begin
   if FConnectedRigidBody <> nil then
   begin
-    FConnectedRigidBody.RemoveNotificationOnInitialized(@OnConnectedRigidBodyInitialized);
-    FConnectedRigidBody.RemoveNotificationBeforeDeinitialized(@OnBeforeConnectedRigidBodyDeinitialized);
+    FConnectedRigidBody.RemoveNotificationOnInitialized({$ifdef FPC}@{$endif} OnConnectedRigidBodyInitialized);
+    FConnectedRigidBody.RemoveNotificationBeforeDeinitialized({$ifdef FPC}@{$endif} OnBeforeConnectedRigidBodyDeinitialized);
   end;
 end;
 
@@ -4004,8 +4004,8 @@ procedure TAbstractJoint.SetParentRigidBodyEvents;
 begin
   if FParentRigidBody <> nil then
   begin
-    FParentRigidBody.AddNotificationOnInitialized(@OnParentRigidBodyInitialized);
-    FParentRigidBody.AddNotificationBeforeDeinitialized(@OnBeforeParentRigidBodyDeinitialized);
+    FParentRigidBody.AddNotificationOnInitialized({$ifdef FPC}@{$endif} OnParentRigidBodyInitialized);
+    FParentRigidBody.AddNotificationBeforeDeinitialized({$ifdef FPC}@{$endif} OnBeforeParentRigidBodyDeinitialized);
   end;
 end;
 
@@ -4013,8 +4013,8 @@ procedure TAbstractJoint.RemoveParentRigidBodyEvents;
 begin
   if FParentRigidBody <> nil then
   begin
-    FParentRigidBody.RemoveNotificationOnInitialized(@OnParentRigidBodyInitialized);
-    FParentRigidBody.RemoveNotificationBeforeDeinitialized(@OnBeforeParentRigidBodyDeinitialized);
+    FParentRigidBody.RemoveNotificationOnInitialized({$ifdef FPC}@{$endif} OnParentRigidBodyInitialized);
+    FParentRigidBody.RemoveNotificationBeforeDeinitialized({$ifdef FPC}@{$endif} OnBeforeParentRigidBodyDeinitialized);
   end;
 end;
 
@@ -4073,10 +4073,10 @@ begin
     Parent has rigid body if has we should try recreate kraft joint. }
 
   Parent.AddNotificationOnBehaviorAdded(
-    @OnParentTransformAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior, TCastleRigidBody);
 
   Parent.AddNotificationBeforeBehaviorRemove(
-    @OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
 
   FParentRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if FParentRigidBody <> nil then
@@ -4092,10 +4092,10 @@ begin
   remove all callbacks also rigid body callbacks }
 
   Parent.RemoveNotificationOnBehaviorAdded(
-    @OnParentTransformAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior, TCastleRigidBody);
 
   Parent.RemoveNotificationBeforeBehaviorRemove(
-    @OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
 
   RemoveParentRigidBodyEvents;
   inherited ParentBeforeDetach;
@@ -4136,7 +4136,7 @@ begin
   begin
     RenderOptionsForParentScene := TCastleRenderOptions.Create(nil);
     RenderOptionsForParentScene.WireframeEffect := weWireframeOnly;
-    RenderOptionsForParentScene.WireframeColor := Vector3(1.0, 0, 1.0);
+    RenderOptionsForParentScene.WireframeColor := CastleVectors.Vector3(1.0, 0, 1.0);
   end;
 
   if Parent is TCastleScene then
@@ -4166,10 +4166,10 @@ begin
      (Parent.World.Owner is TCastleViewport) then
   begin
     Viewport := Parent.World.Owner as TCastleViewport;
-    SphereWorldPos1 := FSphere.LocalToWorld(Vector3(0, 0, 0));
+    SphereWorldPos1 := FSphere.LocalToWorld(CastleVectors.Vector3(0, 0, 0));
     SphereViewportPos1 := Viewport.PositionFromWorld(SphereWorldPos1);
 
-    SphereWorldPos2 := SphereWorldPos1 + Vector3(0, 1, 0);
+    SphereWorldPos2 := SphereWorldPos1 + CastleVectors.Vector3(0, 1, 0);
     SphereViewportPos2 := Viewport.PositionFromWorld(SphereWorldPos2);
     DistanceOnViewport := PointsDistance(SphereViewportPos1, SphereViewportPos2);
 
@@ -4593,8 +4593,8 @@ constructor TJointHinge.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FRotationAxis:= Vector3(0, 0, 1);
-  FAnchor := Vector3(0, 0, 0);
+  FRotationAxis:= CastleVectors.Vector3(0, 0, 1);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
@@ -4730,8 +4730,8 @@ constructor TJointRope.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchor := Vector3(0, 0, 0);
-  FConnectedAnchor := Vector3(0, 0, 0);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
@@ -4849,7 +4849,7 @@ constructor TJointFixed.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchor := Vector3(0, 0, 0);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -4948,7 +4948,7 @@ constructor TJointBall.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchor := Vector3(0, 0, 0);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -5798,8 +5798,8 @@ constructor TJointSlider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FWorldSliderAxis := Vector3(0, 1, 0);
-  FWorldAnchor := Vector3(0, 0, 0);
+  FWorldSliderAxis := CastleVectors.Vector3(0, 1, 0);
+  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc}
