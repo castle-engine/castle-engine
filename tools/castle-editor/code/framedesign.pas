@@ -3319,6 +3319,14 @@ var
         (Parent.Items[IndexInParent + 1].Data = ChildNodeData);
     end;
 
+    // observe this log after delete/add operation
+    {
+    WritelnLog('Child node %s valid? %s', [
+      ChildNodeCaption,
+      BoolToStr(Valid, true)
+    ]);
+    }
+
     if Valid then
     begin
       if Parent = nil then
