@@ -52,6 +52,8 @@
 
 ../../../src/ui/ TCastleTiledMapControl Origin TVector2
 
+../../../src/ui/ TCastleCrosshair Color TCastleColor
+
 ../../../src/transform/ TCastleTransform Center TVector3
 ../../../src/transform/ TCastleTransform Rotation TVector4
 ../../../src/transform/ TCastleTransform Scale TVector3
