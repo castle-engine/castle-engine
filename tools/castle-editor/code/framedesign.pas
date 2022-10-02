@@ -1991,16 +1991,6 @@ begin
           Break;
       until false;
 
-      // temporarily disable this event, as some pointers are invalid now
-      ControlsTree.OnSelectionChanged := nil;
-      ControlsTree.OnChanging := nil;
-      ControlsTree.Items.Clear;
-      TreeNodeMap.Clear;
-      ControlsTree.OnChanging := @ControlsTreeBeforeSelectionChange;
-      ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
-
-      UpdateDesign;
-
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }
       ModifiedOutsideObjectInspector('Delete ' + UndoSummary, ucHigh);
@@ -3663,14 +3653,18 @@ end;
 
 procedure TDesignFrame.UpdateDesign;
 begin
-  // temporarily disable this event, as some pointers are invalid now
+  // temporarily disable events, as some pointers in ControlsTree data are invalid now
   ControlsTree.OnSelectionChanged := nil;
+  ControlsTree.OnChanging := nil;
+
   ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it
 
   TreeNodeMap.Clear; // ValidateOrUpdateHierarchy(false) will fill TreeNodeMap
 
   ValidateOrUpdateHierarchy(false);
 
+  // restore events
+  ControlsTree.OnChanging := @ControlsTreeBeforeSelectionChange;
   ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
   UpdateSelectedControl;
