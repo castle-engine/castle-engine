@@ -125,10 +125,10 @@
                 "Name" : "RigidBody5"
               },
               {
-                "$$ClassName" : "TJointFixed",
+                "$$ClassName" : "TJointHinge",
                 "Breakable" : false,
                 "ConnectedTransform" : "ChainElement3",
-                "Name" : "JointFixed1"
+                "Name" : "JointHinge1"
               }
             ]
           },
