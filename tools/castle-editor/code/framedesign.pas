@@ -3341,7 +3341,7 @@ function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot);
+    (Child <> DesignRoot) and (not (Child is TTemporaryTransform));
 end;
 
 type
