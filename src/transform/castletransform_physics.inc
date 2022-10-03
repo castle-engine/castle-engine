@@ -202,9 +202,10 @@
       {$ifdef FPC}default DefaultRestitution{$endif};
     property Friction: Single read FFriction write SetFriction
       {$ifdef FPC}default DefaultFriction{$endif};
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
-    {$undef read_interface_class}
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
