@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,8 +90,6 @@ initialization
   { Assign initial window size and configuration.
     This can be overridden by parsing command-line options for standalone platform. }
   Window.FpsShowOnCaption := true;
-  // for shadow volumes to be possible
-  Window.StencilBits := 8;
   Window.Width := DefaultWindowWidth;
   Window.Height := DefaultWindowHeight;
   Window.FullScreen := true;

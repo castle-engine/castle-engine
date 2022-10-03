@@ -107,8 +107,6 @@ Transform {
 #   # Also our shadow volumes implementation is a little limited now: only 1 light.
 #   # Only 2-manifold objects cast shadows by shadow volumes, which include
 #   # only medkit item right now.
-#   # Remember to add "Window.StencilBits := 8;" before "Window.Open;"
-#   # if you want to use shadow volumes.
 #
 #   # shadowVolumesMain TRUE
 #   # shadowVolumes TRUE
