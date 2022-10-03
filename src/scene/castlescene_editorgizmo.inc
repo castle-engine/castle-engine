@@ -99,7 +99,7 @@ begin
   T.InternalExcludeFromParentBoundingVolume := true;
   T.Pickable := false;
   T.Collides := false;
-  T.CastShadowVolumes := false;
+  T.CastShadows := false;
   T.ExcludeFromStatistics := true;
 end;
 

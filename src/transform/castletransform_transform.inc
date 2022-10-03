@@ -80,7 +80,7 @@
     class var
       NextTransformId: Cardinal;
     var
-      FCastShadowVolumes: Boolean;
+      FCastShadows: Boolean;
       FExists: Boolean;
       FParentExistsInRoot: Boolean;
       FExistsInRoot: Boolean;
@@ -753,10 +753,11 @@
     { Does the 3D object cast shadows by shadow volumes.
       See also TCastleScene.ReceiveShadowVolumes. }
     property CastShadowVolumes: boolean
-      read FCastShadowVolumes write FCastShadowVolumes default true;
+      read FCastShadows write FCastShadows default true;
+      {$ifdef FPC}deprecated 'use CastShadows';{$endif}
 
     { Render shadow quads for all the things rendered by @link(Render).
-      This is done only if @link(Exists) and @link(CastShadowVolumes).
+      This is done only if @link(Exists) and @link(CastShadows).
 
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
@@ -1873,6 +1874,13 @@
       This usually makes dynamic objects, like player and creatures, collide better. }
     property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
+    { Does the object cast shadows.
+
+      TODO: Right now this only affects casting shadows by shadow volumes.
+      It will be extended to account for shadow maps. }
+    property CastShadows: boolean
+      read FCastShadows write FCastShadows default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1907,7 +1915,7 @@ end;
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;
-  FCastShadowVolumes := true;
+  FCastShadows := true;
   FCollides := true;
   FPickable := true;
   FVisible := true;
@@ -2465,7 +2473,7 @@ procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams;
 var
   I: Integer;
 begin
-  if Exists and CastShadowVolumes then
+  if Exists and CastShadows then
   begin
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(Params, ShadowVolumeRenderer);
@@ -3351,16 +3359,19 @@ end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Exists') then
+  if ArrayContainsString(PropertyName, [
+       'Exists', 'CastShadows'
+     ]) then
       Result := [psBasic]
   else
-  if (PropertyName = 'CenterPersistent') or
-     (PropertyName = 'ScaleOrientationPersistent') then
+  if ArrayContainsString(PropertyName, [
+       'CenterPersistent', 'ScaleOrientationPersistent'
+     ]) then
     Result := [psLayout]
   else
-  if (PropertyName = 'RotationPersistent') or
-     (PropertyName = 'ScalePersistent') or
-     (PropertyName = 'TranslationPersistent') then
+  if ArrayContainsString(PropertyName, [
+       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent'
+     ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

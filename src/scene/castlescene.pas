@@ -324,7 +324,7 @@ type
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
       Will not do anything (treat scene like not casting shadows,
-      like CastShadowVolumes = false) if the model is not perfect 2-manifold,
+      like CastShadows = false) if the model is not perfect 2-manifold,
       i.e. has some BorderEdges (although we could handle some BorderEdges
       for some points of view, this could leading to rendering artifacts).
 
@@ -1728,7 +1728,7 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if CheckVisible and CastShadowVolumes then
+  if CheckVisible and CastShadows then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 

@@ -672,7 +672,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
     Result := TGizmoScene.Create(Self);
     Result.Collides := false;
     Result.Pickable := FPickable;
-    Result.CastShadowVolumes := false;
+    Result.CastShadows := false;
     Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
     {$warnings off} // TODO: Change this to Result.PreciseCollisions := true, once tested it equally performs
