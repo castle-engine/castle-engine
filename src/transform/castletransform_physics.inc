@@ -1009,7 +1009,7 @@
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
     { Tries to deinitialize and initialize kraft object }
     procedure RecreateKraftJoint;
-    procedure InitializeKraftJoint;
+    procedure InitializeKraftJoint; virtual;
     procedure DeinitializeKraftJoint; virtual; abstract;
     { Means that we can create joint object }
     function AllNeededKraftObjectsInitialized: Boolean; virtual;
@@ -1071,6 +1071,8 @@
     FConnectedTransfromFreeObserver: TFreeNotificationObserver;
 
   strict protected
+    procedure InitializeKraftJoint; override;
+
     procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
     procedure SetConnectedCollide(const AValue: Boolean); virtual;
 
@@ -3826,6 +3828,14 @@ begin
   end;
 end;
 
+procedure TAbstractTwoBodiesJoint.InitializeKraftJoint;
+begin
+  inherited InitializeKraftJoint;
+
+  // make sure connected rigid body is active after joint creation
+  FConnectedRigidBody.WakeUp;
+end;
+
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
   const AConnectedTransform: TCastleTransform);
 begin
@@ -3873,6 +3883,8 @@ end;
 procedure TAbstractJoint.InitializeKraftJoint;
 begin
   CreateKraftJoint;
+  // make sure rigid body is active after joint creation
+  FParentRigidBody.WakeUp;
   UpdateBreakableInKraft;
   UpdateBreakThresholdForceInKraft;
   UpdateBreakThresholdTorqueInKraft;
