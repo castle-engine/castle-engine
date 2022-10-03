@@ -117,10 +117,10 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointFixed",
+                "$$ClassName" : "TJointRope",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box3",
-                "Name" : "JointFixed1"
+                "Name" : "JointRope1"
               }
             ]
           },
@@ -131,7 +131,6 @@
               "Blue" : 1.7647059261798859E-001,
               "Green" : 1.7647059261798859E-001
             },
-            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "Box2",
             "RenderOptions" : {
@@ -139,8 +138,8 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.1078773498535156E+001,
-              "Y" : -5.6949253082275391E+000
+              "X" : -3.0350742340087891E+000,
+              "Y" : -7.3374519348144531E+000
             },
             "$Behaviors" : [
               {
@@ -198,7 +197,7 @@
                 "Gravity" : false,
                 "LinearVelocityPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+001
+                  "X" : 5.0000000000000000E+000
                 },
                 "LockRotation" : [
                   0,
@@ -207,12 +206,12 @@
                 "LockTranslation" : [
                   2
                 ],
-                "MaximalAngularVelocity" : 5.0000000000000000E+000,
                 "MaximalLinearVelocity" : 8.0000000000000000E+001,
                 "Name" : "RigidBody6"
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
+                "Density" : 1.0000000000000000E+002,
                 "Mode2D" : true,
                 "Name" : "BoxCollider4"
               }
