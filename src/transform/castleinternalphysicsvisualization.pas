@@ -257,11 +257,13 @@ begin
       TJointRope(Joint).Anchor := AValue;
   end;
 
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointFixed then
   begin
     if not TVector3.PerfectlyEquals(TJointFixed(Joint).Anchor, AValue) then
       TJointFixed(Joint).Anchor := AValue;
   end;
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
   if Joint is TJointBall then
   begin
@@ -275,12 +277,13 @@ begin
       TJointDistance(Joint).Anchor := AValue;
   end;
 
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointWorldPlaneDistance then
   begin
     if not TVector3.PerfectlyEquals(TJointWorldPlaneDistance(Joint).Anchor, AValue) then
       TJointWorldPlaneDistance(Joint).Anchor := AValue;
   end;
-
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 function TTemporaryJointAnchor.GetObservedValue: TVector3;
@@ -293,8 +296,10 @@ begin
   if Joint is TJointRope then
     Exit(TJointRope(Joint).Anchor);
 
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointFixed then
     Exit(TJointFixed(Joint).Anchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
   if Joint is TJointBall then
     Exit(TJointBall(Joint).Anchor);
@@ -302,8 +307,10 @@ begin
   if Joint is TJointDistance then
     Exit(TJointDistance(Joint).Anchor);
 
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointWorldPlaneDistance then
     Exit(TJointWorldPlaneDistance(Joint).Anchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 { TTemporaryJointConnectedAnchor --------------------------------------------- }
@@ -365,6 +372,7 @@ end;
 
 procedure TTemporaryJointWorldAnchor.SetObservedValue(const AValue: TVector3);
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
   begin
     if not TVector3.PerfectlyEquals(TJointPulley(Joint).WorldAnchor, AValue) then
@@ -376,15 +384,18 @@ begin
     if not TVector3.PerfectlyEquals(TJointSlider(Joint).WorldAnchor, AValue) then
       TJointSlider(Joint).WorldAnchor := AValue;
   end;
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 function TTemporaryJointWorldAnchor.GetObservedValue: TVector3;
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).WorldAnchor);
 
   if Joint is TJointSlider then
     Exit(TJointSlider(Joint).WorldAnchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 constructor TTemporaryJointWorldAnchor.Create(AOwner: TComponent;
@@ -399,17 +410,21 @@ end;
 procedure TTemporaryJointConnectedWorldAnchor.SetObservedValue(const AValue: TVector3
   );
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
   begin
     if not TVector3.PerfectlyEquals(TJointPulley(Joint).ConnectedWorldAnchor, AValue) then
       TJointPulley(Joint).ConnectedWorldAnchor := AValue;
   end;
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 function TTemporaryJointConnectedWorldAnchor.GetObservedValue: TVector3;
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).ConnectedWorldAnchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 constructor TTemporaryJointConnectedWorldAnchor.Create(AOwner: TComponent;
@@ -424,17 +439,21 @@ end;
 
 procedure TTemporaryJointWorldGroundAnchor.SetObservedValue(const AValue: TVector3);
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
   begin
     if not TVector3.PerfectlyEquals(TJointPulley(Joint).WorldGroundAnchor, AValue) then
       TJointPulley(Joint).WorldGroundAnchor := AValue;
   end;
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 function TTemporaryJointWorldGroundAnchor.GetObservedValue: TVector3;
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).WorldGroundAnchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 constructor TTemporaryJointWorldGroundAnchor.Create(AOwner: TComponent;
@@ -449,17 +468,21 @@ end;
 procedure TTemporaryJointConnectedWorldGroundAnchor.SetObservedValue(
   const AValue: TVector3);
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
   begin
     if not TVector3.PerfectlyEquals(TJointPulley(Joint).ConnectedWorldGroundAnchor, AValue) then
       TJointPulley(Joint).ConnectedWorldGroundAnchor := AValue;
   end;
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 function TTemporaryJointConnectedWorldGroundAnchor.GetObservedValue: TVector3;
 begin
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).ConnectedWorldGroundAnchor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 constructor TTemporaryJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;

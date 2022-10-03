@@ -1223,6 +1223,8 @@
       {$undef read_interface_class}
   end;
 
+{$ifdef CASTLE_EXPERIMENTAL_JOINTS}
+
   TJointFixed = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
@@ -1255,6 +1257,8 @@
     {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
     {$undef read_interface_class}
   end;
+
+{$endif CASTLE_EXPERIMENTAL_JOINTS}
 
   TJointBall = class(TAbstractTwoBodiesJoint)
   private
@@ -1382,6 +1386,8 @@
     {$undef read_interface_class}
   end;
 
+
+{$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   TJointPulley = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointPulley: TKraftConstraintJointPulley;
@@ -1543,7 +1549,7 @@
     {$I auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc}
     {$undef read_interface_class}
   end;
-
+{$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 {$endif read_interface}
 
@@ -4354,6 +4360,8 @@ end;
 {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+
+{$ifdef CASTLE_EXPERIMENTAL_JOINTS}
 { TJointFixed --------------------------------------------------------------- }
 
 procedure TJointFixed.SetAnchor(const AValue: TVector3);
@@ -4452,6 +4460,8 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 { TJointBall --------------------------------------------------------------- }
 
@@ -4840,6 +4850,7 @@ end;
 {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+{$ifdef CASTLE_EXPERIMENTAL_JOINTS}
 { TJointPulley ---------------------------------------------------------------- }
 
 procedure TJointPulley.SetWorldAnchor(const AValue: TVector3);
@@ -5410,6 +5421,8 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 { TCastleTransform ---------------------------------------------------------- }
 

@@ -113,12 +113,14 @@ initialization
   RegisterSerializableComponent(R);
   RegisterSerializableComponent(TJointRope, 'Joint Rope');
   RegisterSerializableComponent(TJointHinge, 'Joint Hinge');
-  RegisterSerializableComponent(TJointFixed, 'Joint Fixed');
   RegisterSerializableComponent(TJointBall, 'Joint Ball');
   RegisterSerializableComponent(TJointDistance, 'Joint Distance');
   RegisterSerializableComponent(TJointGrab, 'Joint Grab');
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
+  RegisterSerializableComponent(TJointFixed, 'Joint Fixed');
   RegisterSerializableComponent(TJointPulley, 'Joint Pulley');
   RegisterSerializableComponent(TJointWorldPlaneDistance, 'Joint World Plane Distance');
   RegisterSerializableComponent(TJointSlider, 'Joint Slider');
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 end.
