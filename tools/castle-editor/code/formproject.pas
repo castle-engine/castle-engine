@@ -1859,6 +1859,12 @@ end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
 begin
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
     OpenDesign(DesignUrl);
 end;
