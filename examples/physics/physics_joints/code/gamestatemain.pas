@@ -14,10 +14,6 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
-    Viewport: TCastleViewport;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -37,26 +33,25 @@ uses SysUtils;
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
-//  DesignUrl := 'castle-data:/2d_joint_distance_example.castle-user-interface';
+  DesignUrl := 'castle-data:/2d_joint_distance_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_distance_spring_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_fixed_example.castle-user-interface';
-  DesignUrl := 'castle-data:/2d_joint_fixed_example_small_width.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/2d_joint_fixed_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_grab_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_hinge_break_force_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_hinge_car.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_hinge_limits_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_hinge_simple_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_plane_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_pulley_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/2d_joint_plane_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/2d_joint_pulley_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_rope_chain.castle-user-interface';
 //  DesignUrl := 'castle-data:/2d_joint_rope_simple.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_slide_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_fixed_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/2d_joint_slide_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/3d_joint_fixed_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/3d_joint_hinge_door_break_force_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/3d_joint_hinge_door_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_pulley_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/3d_joint_pulley_example.castle-user-interface';
 //  DesignUrl := 'castle-data:/3d_joint_rope_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_slide_example.castle-user-interface';
+//  DesignUrl := 'castle-data:/experimental/3d_joint_slide_example.castle-user-interface';
 end;
 
 procedure TStateMain.Start;
@@ -64,15 +59,12 @@ begin
   inherited;
 
   { Find components, by name, that we need to access from code }
-  //LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  //Viewport := DesignedComponent('Viewport') as TCastleViewport;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
-  //LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
