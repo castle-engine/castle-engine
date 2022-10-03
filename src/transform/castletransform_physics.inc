@@ -4725,7 +4725,12 @@ begin
     TTemporaryJointWorldPoint(FWorldPointTransform).Value := FWorldPoint;
 
   if FKraftJointGrab <> nil then
+  begin
     FKraftJointGrab.SetWorldPoint(VectorToKraft(FWorldPoint));
+    // Kraft needs to set rigis body WakeUp to body start moving
+    // https://github.com/BeRo1985/kraft/issues/26
+    FParentRigidBody.WakeUp;
+  end;
 end;
 
 procedure TJointGrab.SetFrequencyHz(const AValue: Single);
@@ -5464,7 +5469,7 @@ begin
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
-    FKraftEngine.AllowSleep := false;
+    //FKraftEngine.AllowSleep := false;
     if PhysicsProperties.ContinuousCD then
     begin
       { I tested all options:
