@@ -2270,7 +2270,6 @@ begin
     if Result then
       Exit;
   end;
-  {$warnings on}
 
   { scan InternalScenesCastGlobalLights }
   if Items.InternalScenesCastGlobalLights <> nil then
@@ -2281,6 +2280,7 @@ begin
         if Result then
           Exit;
       end;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.Render3D(const Params: TRenderParams);
