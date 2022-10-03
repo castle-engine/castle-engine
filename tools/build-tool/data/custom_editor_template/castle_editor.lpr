@@ -47,6 +47,21 @@ uses
 
 {$R *.res}
 
+{ Do not auto-create below forms that use TCastleControl, and would initialize OpenGL
+  right when the CGE editor opens.
+
+  Reason: In case someone has broken OpenGL library installation
+  we don't want to have CGE editor just crash at start, it's better if it will crash
+  later -- allowing us to recognize this case (e.g. because it crashes when you open any
+  design or "System Information").
+
+  If there's a single variable to hold single form instance, you can initialize it on-demand, like
+
+    if SystemInformationForm = nil then
+      SystemInformationForm := TSystemInformationForm.Create(Application);
+    SystemInformationForm.Show;
+}
+
 begin
   RequireDerivedFormResource := True;
   Application.Scaled := True;
@@ -59,6 +74,5 @@ begin
   Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
   Application.CreateForm(TImportStarlingForm, ImportStarlingForm);
   Application.CreateForm(TNewUnitForm, NewUnitForm);
-  Application.CreateForm(TSystemInformationForm, SystemInformationForm);
   Application.Run;
 end.

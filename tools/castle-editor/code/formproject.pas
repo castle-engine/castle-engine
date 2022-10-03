@@ -623,6 +623,8 @@ end;
 
 procedure TProjectForm.ActionSystemInformationExecute(Sender: TObject);
 begin
+  if SystemInformationForm = nil then
+    SystemInformationForm := TSystemInformationForm.Create(Application);
   SystemInformationForm.Show;
 end;
 
