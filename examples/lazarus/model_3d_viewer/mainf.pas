@@ -322,14 +322,6 @@ begin
 
   UpdateCaption;
 
-  { Uncomment these to enable shadow volumes (your model must have appropriate
-    light). This is *not* necessary if you want to use only shadow maps.
-    Note that TOpenGLControl.StencilBits is only available in new Lazarus,
-    http://bugs.freepascal.org/view.php?id=22170 .
-  Browser.StencilBits := 8;
-  // Browser.ShadowVolumes := true; // not necessary, this is true by default
-  }
-
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
   Console := TConsole.Create(Application);

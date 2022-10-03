@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -186,9 +186,9 @@ begin
   { The shadows are already drawn on location Image,
     so no need to cast them on location again.
     TODO: This also means that location cannot cast shadows on Player.
-    A better approach would be to leave CastShadowVolumes = true (default),
+    A better approach would be to leave CastShadows = true (default),
     and change location Image to *not* contain location shadows "baked". }
-  FScene.CastShadowVolumes := false;
+  FScene.CastShadows := false;
   FScene.Load(SceneURL);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], false, PrepareParams);
   FScene.Image := Image;

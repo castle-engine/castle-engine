@@ -1341,7 +1341,6 @@ begin
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
-  CastleControl.StencilBits := 8; // enable shadow volumes
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
@@ -3595,7 +3594,9 @@ var
   O: Pointer;
 begin
   if not Validate then
-    NodesToExpand := TObjectList.Create(false);
+    NodesToExpand := TObjectList.Create(false)
+  else
+    NodesToExpand := nil;
   try
     ChildrenNodesCount := 0;
     if DesignRoot is TCastleUserInterface then

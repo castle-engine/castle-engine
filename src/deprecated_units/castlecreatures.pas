@@ -1195,7 +1195,7 @@ begin
   Result.FallSpeed := FallSpeed;
   Result.GrowSpeed := GrowSpeed;
   {$warnings on}
-  Result.CastShadowVolumes := CastShadowVolumes;
+  Result.CastShadows := CastShadowVolumes;
   Result.MiddleHeight := MiddleHeight;
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
   Result.Scale := Vector3(Scale, Scale, Scale);

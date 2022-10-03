@@ -1746,7 +1746,7 @@ begin
   Scene := TCastleScene.Create(Self);
   //Scene.ProcessEvents := true; // not necessary right now for anything
   Scene.SetTransient;
-  Scene.Spatial := [ssDynamicCollisions]; // following FPreciseCollisions = true
+  Scene.PreciseCollisions := true;
   Add(Scene);
 
   Appearance := TAppearanceNode.Create;
@@ -1978,12 +1978,7 @@ begin
   if FPreciseCollisions <> Value then
   begin
     FPreciseCollisions := Value;
-    if Value then
-      Scene.Spatial := [ssDynamicCollisions]
-    else
-      Scene.Spatial := [];
-    { Note that we don't add ssRendering,
-      would be largely useless as primitives are usually just 1 shape in an internal scene. }
+    Scene.PreciseCollisions := Value;
   end;
 end;
 

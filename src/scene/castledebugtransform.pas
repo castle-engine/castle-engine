@@ -530,7 +530,7 @@ begin
   FScene.Load(Root, true);
   FScene.Collides := false;
   FScene.Pickable := false;
-  FScene.CastShadowVolumes := false;
+  FScene.CastShadows := false;
   FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;
