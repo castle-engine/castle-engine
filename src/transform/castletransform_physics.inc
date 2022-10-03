@@ -1119,109 +1119,13 @@
 
   EConnectedTransformTheSameAsParent = class (Exception);
 
-  TTemporaryTransform = class(TCastleTransform)
-    strict private
-      FColor: TCastleColor;
-      FJoint: TAbstractJoint;
-
-      procedure SetColor(const Value: TCastleColor);
-      procedure ApplyWireframeEffectToParent;
-      procedure RemoveWireframeEffectFromParent;
-    private
-      class var RenderOptionsForParentScene: TCastleRenderOptions;
-    protected
-      FSphere: TCastleTransform;
-
-      function EstimateSphereRadius: Single;
-
-      procedure SetValue(const AValue: TVector3);
-      procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
-      function GetObservedValue: TVector3; virtual; abstract;
-
-      procedure CheckTransformInsideParent;
-      procedure ChangedTransform; override;
-    public
-      constructor Create(AOwner: TComponent;
-        const AJoint: TAbstractJoint); reintroduce; virtual;
-      destructor Destroy; override;
-
-      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-
-      property Value: TVector3 read GetObservedValue write SetValue;
-      property Joint: TAbstractJoint read FJoint;
-      property Color: TCastleColor read FColor write SetColor;
-  end;
-
-  TTemporaryAnchor = class(TTemporaryTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-  end;
-
-  TTemporaryConnectedAnchor = class(TTemporaryTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-  TTemporaryWorldPoint = class(TTemporaryTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-
-  TTemporaryWorldAnchor = class(TTemporaryTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-  TTemporaryConnectedWorldAnchor = class(TTemporaryTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-
-  TTemporaryWorldGroundAnchor = class(TTemporaryTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-  TTemporaryConnectedWorldGroundAnchor = class(TTemporaryTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
-  end;
-
-
   TJointHinge = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointHinge: TKraftConstraintJointHinge;
       FMotorSpeed: Single;
       FRotationAxis: TVector3;
       FAnchor: TVector3;
-      FAnchorTransform: TTemporaryAnchor;
+      FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
       FMinAngleLimit: Single;
       FMaxAngleLimit: Single;
       FEnableLimits: Boolean;
@@ -1281,8 +1185,8 @@
       FConnectedAnchor: TVector3;
       FDistance: Single;
 
-      FAnchorTransform: TTemporaryAnchor;
-      FConnectedAnchorTransform: TTemporaryConnectedAnchor;
+      FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
+      FConnectedAnchorTransform: TCastleTransform; // TTemporaryConnectedAnchor;
 
       procedure SetAnchor(const AValue: TVector3);
       procedure SetConnectedAnchor(const AValue: TVector3);
@@ -1324,7 +1228,7 @@
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
 
-    FAnchorTransform: TTemporaryAnchor;
+    FAnchorTransform: TCastleTransform; //TTemporaryJointAnchor
 
     procedure SetAnchor(const AValue: TVector3);
   strict protected
@@ -1357,7 +1261,7 @@
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
 
-    FAnchorTransform: TTemporaryAnchor;
+    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
 
     procedure SetAnchor(const AValue: TVector3);
   strict protected
@@ -1393,8 +1297,8 @@
     FFrequencyHz: Single;
     FDampingRatio: Single;
 
-    FAnchorTransform: TTemporaryAnchor;
-    FConnectedAnchorTransform: TTemporaryConnectedAnchor;
+    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
+    FConnectedAnchorTransform: TCastleTransform; // TTemporaryJointConnectedAnchor
 
     procedure SetAnchor(const AValue: TVector3);
     procedure SetConnectedAnchor(const AValue: TVector3);
@@ -1442,7 +1346,7 @@
     FMaximalForce: Single;
     FWorldPoint: TVector3;
 
-    FWorldPointTransform: TTemporaryWorldPoint;
+    FWorldPointTransform: TCastleTransform; // TTemporaryJointWorldPoint;
 
     procedure SetWorldPoint(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
@@ -1487,10 +1391,10 @@
       FConnectedWorldGroundAnchor: TVector3;
       FRatio: Single;
 
-      FWorldAnchorTransform: TTemporaryWorldAnchor;
-      FConnectedWorldAnchorTransform: TTemporaryConnectedWorldAnchor;
-      FWorldGroundAnchorTransform: TTemporaryWorldGroundAnchor;
-      FConnectedWorldGroundAnchorTransform: TTemporaryConnectedWorldGroundAnchor;
+      FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
+      FConnectedWorldAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldAnchor;
+      FWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointWorldGroundAnchor;
+      FConnectedWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldGroundAnchor;
 
       procedure SetWorldAnchor(const AValue: TVector3);
       procedure SetConnectedWorldAnchor(const AValue: TVector3);
@@ -1541,7 +1445,7 @@
     FFrequencyHz: Single;
     FDampingRatio: Single;
 
-    FAnchorTransform: TTemporaryAnchor;
+    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor;
 
     procedure SetAnchor(const AValue: TVector3);
     procedure SetPlaneNormal(const AValue: TVector3);
@@ -1588,7 +1492,7 @@
     FWorldSliderAxis: TVector3;
 
     FWorldAnchor: TVector3;
-    FWorldAnchorTransform: TTemporaryWorldAnchor;
+    FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
 
     FEnableLimits: Boolean;
     FMinTranslationLimit: Single;
@@ -4118,367 +4022,6 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-{ TTemporaryTransform ------------------------------------------------------- }
-
-procedure TTemporaryTransform.SetColor(const Value: TCastleColor);
-begin
-  if not TCastleColor.PerfectlyEquals(FColor, Value) then
-  begin
-    FColor := Value;
-    if FSphere <> nil then
-      TCastleSphere(FSphere).Color := FColor;
-  end;
-end;
-
-procedure TTemporaryTransform.ApplyWireframeEffectToParent;
-begin
-  if RenderOptionsForParentScene = nil then
-  begin
-    RenderOptionsForParentScene := TCastleRenderOptions.Create(nil);
-    RenderOptionsForParentScene.WireframeEffect := weWireframeOnly;
-    RenderOptionsForParentScene.WireframeColor := CastleVectors.Vector3(1.0, 0, 1.0);
-  end;
-
-  if Parent is TCastleScene then
-    TCastleScene(Parent).InternalRenderOptions := RenderOptionsForParentScene
-  else
-  if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalRenderOptions := RenderOptionsForParentScene;
-end;
-
-procedure TTemporaryTransform.RemoveWireframeEffectFromParent;
-begin
-  if Parent is TCastleScene then
-    TCastleScene(Parent).InternalRenderOptions := nil
-  else
-  if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalRenderOptions := nil;
-end;
-
-function TTemporaryTransform.EstimateSphereRadius: Single;
-var
-  Viewport: TCastleViewport;
-  SphereWorldPos1, SphereWorldPos2: TVector3;
-  SphereViewportPos1, SphereViewportPos2: TVector2;
-  DistanceOnViewport: Single;
-begin
-  if (Parent <> nil) and (Parent.World <> nil) and (Parent.World.Owner <> nil) and
-     (Parent.World.Owner is TCastleViewport) then
-  begin
-    Viewport := Parent.World.Owner as TCastleViewport;
-    SphereWorldPos1 := FSphere.LocalToWorld(CastleVectors.Vector3(0, 0, 0));
-    SphereViewportPos1 := Viewport.PositionFromWorld(SphereWorldPos1);
-
-    SphereWorldPos2 := SphereWorldPos1 + CastleVectors.Vector3(0, 1, 0);
-    SphereViewportPos2 := Viewport.PositionFromWorld(SphereWorldPos2);
-    DistanceOnViewport := PointsDistance(SphereViewportPos1, SphereViewportPos2);
-
-    { Make size about 10 pixels }
-    Result := 10 / DistanceOnViewport;
-  end else
-    Result := 1;
-end;
-
-procedure TTemporaryTransform.SetValue(const AValue: TVector3);
-begin
-  SetObservedValue(AValue);
-  if not TVector3.PerfectlyEquals(Translation, AValue) then
-    Translation := AValue;
-end;
-
-procedure TTemporaryTransform.CheckTransformInsideParent;
-begin
-  if Parent = nil then
-    Exit;
-
-  if Parent.LocalBoundingBox.Contains(Translation) then
-    ApplyWireframeEffectToParent
-  else
-    RemoveWireframeEffectFromParent;
-end;
-
-procedure TTemporaryTransform.ChangedTransform;
-begin
-  inherited ChangedTransform;
-  if not TVector3.PerfectlyEquals(Translation, Value) then
-    Value := Translation;
-end;
-
-constructor TTemporaryTransform.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner);
-
-  FColor := Red;
-  FJoint := AJoint;
-  SetTransient;
-
-  FSphere := TCastleSphere.Create(nil);
-  FSphere.SetTransient;
-  TCastleSphere(FSphere).UseInternalGlobalRenderOptions := false; // never change rendering to global
-  TCastleSphere(FSphere).Color := FColor;
-  TCastleSphere(FSphere).Material := pmUnlit;
-  TCastleSphere(FSphere).Radius := EstimateSphereRadius;
-  Add(FSphere);
-end;
-
-destructor TTemporaryTransform.Destroy;
-begin
-  RemoveWireframeEffectFromParent;
-  FreeAndNil(FSphere);
-  inherited Destroy;
-end;
-
-procedure TTemporaryTransform.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
-var
-  NewRadius: Single;
-begin
-  inherited Update(SecondsPassed, RemoveMe);
-
-  if FSphere <> nil then
-  begin
-    NewRadius := EstimateSphereRadius;
-
-    if not SameValue(NewRadius, TCastleSphere(FSphere).Radius) then
-    begin
-      TCastleSphere(FSphere).Radius := NewRadius;
-    end;
-  end;
-
-  CheckTransformInsideParent;
-end;
-
-{ TTemporaryAnchor ----------------------------------------------------------- }
-
-procedure TTemporaryAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  // TODO: move anchor to abstract anchor class or virtual function?
-
-  if Joint is TJointHinge then
-  begin
-    if not TVector3.PerfectlyEquals(TJointHinge(Joint).Anchor, AValue) then
-      TJointHinge(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TJointRope then
-  begin
-    if not TVector3.PerfectlyEquals(TJointRope(Joint).Anchor, AValue) then
-      TJointRope(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TJointFixed then
-  begin
-    if not TVector3.PerfectlyEquals(TJointFixed(Joint).Anchor, AValue) then
-      TJointFixed(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TJointBall then
-  begin
-    if not TVector3.PerfectlyEquals(TJointBall(Joint).Anchor, AValue) then
-      TJointBall(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TJointDistance then
-  begin
-    if not TVector3.PerfectlyEquals(TJointDistance(Joint).Anchor, AValue) then
-      TJointDistance(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TJointWorldPlaneDistance then
-  begin
-    if not TVector3.PerfectlyEquals(TJointWorldPlaneDistance(Joint).Anchor, AValue) then
-      TJointWorldPlaneDistance(Joint).Anchor := AValue;
-  end;
-
-end;
-
-function TTemporaryAnchor.GetObservedValue: TVector3;
-begin
-  // TODO: move anchor to abstract anchor class or virtual function?
-
-  if Joint is TJointHinge then
-    Exit(TJointHinge(Joint).Anchor);
-
-  if Joint is TJointRope then
-    Exit(TJointRope(Joint).Anchor);
-
-  if Joint is TJointFixed then
-    Exit(TJointFixed(Joint).Anchor);
-
-  if Joint is TJointBall then
-    Exit(TJointBall(Joint).Anchor);
-
-  if Joint is TJointDistance then
-    Exit(TJointDistance(Joint).Anchor);
-
-  if Joint is TJointWorldPlaneDistance then
-    Exit(TJointWorldPlaneDistance(Joint).Anchor);
-end;
-
-{ TTemporaryConnectedAnchor -------------------------------------------------- }
-
-procedure TTemporaryConnectedAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TJointRope then
-  begin
-    if not TVector3.PerfectlyEquals(TJointRope(Joint).ConnectedAnchor, AValue) then
-      TJointRope(Joint).ConnectedAnchor := AValue;
-  end;
-
-  if Joint is TJointDistance then
-  begin
-    if not TVector3.PerfectlyEquals(TJointDistance(Joint).ConnectedAnchor, AValue) then
-      TJointDistance(Joint).ConnectedAnchor := AValue;
-  end;
-end;
-
-function TTemporaryConnectedAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TJointRope then
-    Exit(TJointRope(Joint).ConnectedAnchor);
-end;
-
-constructor TTemporaryConnectedAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Green;
-end;
-
-{ TTemporaryWorldPoint ------------------------------------------------------- }
-
-procedure TTemporaryWorldPoint.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TJointGrab then
-  begin
-    if not TVector3.PerfectlyEquals(TJointGrab(Joint).WorldPoint, AValue) then
-      TJointGrab(Joint).WorldPoint := AValue;
-  end;
-end;
-
-function TTemporaryWorldPoint.GetObservedValue: TVector3;
-begin
-  if Joint is TJointGrab then
-    Exit(TJointGrab(Joint).WorldPoint);
-end;
-
-constructor TTemporaryWorldPoint.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Blue;
-end;
-
-
-{ TTemporaryWorldAnchor ------------------------------------------------------ }
-
-procedure TTemporaryWorldAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TJointPulley then
-  begin
-    if not TVector3.PerfectlyEquals(TJointPulley(Joint).WorldAnchor, AValue) then
-      TJointPulley(Joint).WorldAnchor := AValue;
-  end;
-
-  if Joint is TJointSlider then
-  begin
-    if not TVector3.PerfectlyEquals(TJointSlider(Joint).WorldAnchor, AValue) then
-      TJointSlider(Joint).WorldAnchor := AValue;
-  end;
-end;
-
-function TTemporaryWorldAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TJointPulley then
-    Exit(TJointPulley(Joint).WorldAnchor);
-
-  if Joint is TJointSlider then
-    Exit(TJointSlider(Joint).WorldAnchor);
-end;
-
-constructor TTemporaryWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Red;
-end;
-
-{ TTemporaryConnectedWorldAnchor --------------------------------------------- }
-
-procedure TTemporaryConnectedWorldAnchor.SetObservedValue(const AValue: TVector3
-  );
-begin
-  if Joint is TJointPulley then
-  begin
-    if not TVector3.PerfectlyEquals(TJointPulley(Joint).ConnectedWorldAnchor, AValue) then
-      TJointPulley(Joint).ConnectedWorldAnchor := AValue;
-  end;
-end;
-
-function TTemporaryConnectedWorldAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TJointPulley then
-    Exit(TJointPulley(Joint).ConnectedWorldAnchor);
-end;
-
-constructor TTemporaryConnectedWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Green;
-end;
-
-
-{ TTemporaryWorldGroundAnchor ------------------------------------------------ }
-
-procedure TTemporaryWorldGroundAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TJointPulley then
-  begin
-    if not TVector3.PerfectlyEquals(TJointPulley(Joint).WorldGroundAnchor, AValue) then
-      TJointPulley(Joint).WorldGroundAnchor := AValue;
-  end;
-end;
-
-function TTemporaryWorldGroundAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TJointPulley then
-    Exit(TJointPulley(Joint).WorldGroundAnchor);
-end;
-
-constructor TTemporaryWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Orange;
-end;
-
-{ TTemporaryConnectedWorldGroundAnchor --------------------------------------- }
-
-procedure TTemporaryConnectedWorldGroundAnchor.SetObservedValue(
-  const AValue: TVector3);
-begin
-  if Joint is TJointPulley then
-  begin
-    if not TVector3.PerfectlyEquals(TJointPulley(Joint).ConnectedWorldGroundAnchor, AValue) then
-      TJointPulley(Joint).ConnectedWorldGroundAnchor := AValue;
-  end;
-end;
-
-function TTemporaryConnectedWorldGroundAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TJointPulley then
-    Exit(TJointPulley(Joint).ConnectedWorldGroundAnchor);
-end;
-
-constructor TTemporaryConnectedWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Teal;
-end;
-
 { TJointHinge ---------------------------------------------------------------- }
 
 procedure TJointHinge.SetAnchor(const AValue: TVector3);
@@ -4488,7 +4031,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    FAnchorTransform.Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4622,11 +4165,11 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
-    FAnchorTransform.Value := Anchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
   end;
 end;
 
@@ -4671,7 +4214,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    FAnchorTransform.Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4682,7 +4225,7 @@ begin
 
   FConnectedAnchor := AValue;
   if FConnectedAnchorTransform <> nil then
-    FConnectedAnchorTransform.Value := FConnectedAnchor;
+    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := FConnectedAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4761,7 +4304,7 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
@@ -4770,7 +4313,7 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
     FConnectedAnchorTransform.Name := 'ConnectedAnchorHandle';
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     TransformsToSynchronize.Add(FConnectedRigidBody.Parent);
@@ -4820,7 +4363,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    FAnchorTransform.Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4877,11 +4420,11 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
-    FAnchorTransform.Value := Anchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
   end;
 end;
 
@@ -4919,7 +4462,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    FAnchorTransform.Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4976,11 +4519,11 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
-    FAnchorTransform.Value := Anchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
   end;
 end;
 
@@ -5018,7 +4561,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    FAnchorTransform.Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -5029,7 +4572,7 @@ begin
 
   FConnectedAnchor := AValue;
   if FConnectedAnchorTransform <> nil then
-    FConnectedAnchorTransform.Value := FAnchor;
+    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -5110,7 +4653,7 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
@@ -5119,7 +4662,7 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TTemporaryConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
     FConnectedAnchorTransform.Name := 'ConnectedAnchorHandle';
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     TransformsToSynchronize.Add(FConnectedRigidBody.Parent);
@@ -5169,7 +4712,7 @@ begin
   FWorldPoint := AValue;
 
   if FWorldPointTransform <> nil then
-    FWorldPointTransform.Value := FWorldPoint;
+    TTemporaryJointWorldPoint(FWorldPointTransform).Value := FWorldPoint;
 
   if FKraftJointGrab <> nil then
     FKraftJointGrab.SetWorldPoint(VectorToKraft(FWorldPoint));
@@ -5261,7 +4804,7 @@ begin
 
   if FWorldPointTransform = nil then
   begin
-    FWorldPointTransform := TTemporaryWorldPoint.Create(nil, Self);
+    FWorldPointTransform := TTemporaryJointWorldPoint.Create(nil, Self);
     FWorldPointTransform.Name := 'WorldPointHandle';
     Parent.World.Add(FWorldPointTransform);
     TransformsToSynchronize.Add(Parent.World);
@@ -5307,7 +4850,7 @@ begin
   FWorldAnchor := AValue;
 
   if FWorldAnchorTransform <> nil then
-    FWorldAnchorTransform.Value := AValue;
+    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5320,7 +4863,7 @@ begin
   FConnectedWorldAnchor := AValue;
 
   if FConnectedWorldAnchorTransform <> nil then
-    FConnectedWorldAnchorTransform.Value := AValue;
+    TTemporaryJointConnectedWorldAnchor(FConnectedWorldAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5333,7 +4876,7 @@ begin
   FWorldGroundAnchor := AValue;
 
   if FWorldGroundAnchorTransform <> nil then
-    FWorldGroundAnchorTransform.Value := AValue;
+    TTemporaryJointWorldGroundAnchor(FWorldGroundAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5347,7 +4890,7 @@ begin
   FConnectedWorldGroundAnchor := AValue;
 
   if FConnectedWorldGroundAnchorTransform <> nil then
-    FConnectedWorldGroundAnchorTransform.Value := AValue;
+    TTemporaryJointConnectedWorldGroundAnchor(FConnectedWorldGroundAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5434,7 +4977,7 @@ begin
 
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TTemporaryWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
     FWorldAnchorTransform.Name := 'WorldAnchorHandle';
     Parent.World.Add(FWorldAnchorTransform);
     TransformsToSynchronize.Add(Parent.World);
@@ -5443,7 +4986,7 @@ begin
 
   if FConnectedWorldAnchorTransform = nil then
   begin
-    FConnectedWorldAnchorTransform := TTemporaryConnectedWorldAnchor.Create(nil, Self);
+    FConnectedWorldAnchorTransform := TTemporaryJointConnectedWorldAnchor.Create(nil, Self);
     FConnectedWorldAnchorTransform.Name := 'ConnectedWorldAnchorHandle';
     Parent.World.Add(FConnectedWorldAnchorTransform);
     TransformsToSynchronize.Add(Parent.World);
@@ -5452,7 +4995,7 @@ begin
 
   if FWorldGroundAnchorTransform = nil then
   begin
-    FWorldGroundAnchorTransform := TTemporaryWorldGroundAnchor.Create(nil, Self);
+    FWorldGroundAnchorTransform := TTemporaryJointWorldGroundAnchor.Create(nil, Self);
     FWorldGroundAnchorTransform.Name := 'WorldGroundAnchorHandle';
     Parent.World.Add(FWorldGroundAnchorTransform);
     TransformsToSynchronize.Add(Parent.World);
@@ -5461,7 +5004,7 @@ begin
 
   if FConnectedWorldGroundAnchorTransform = nil then
   begin
-    FConnectedWorldGroundAnchorTransform := TTemporaryConnectedWorldGroundAnchor.Create(nil, Self);
+    FConnectedWorldGroundAnchorTransform := TTemporaryJointConnectedWorldGroundAnchor.Create(nil, Self);
     FConnectedWorldGroundAnchorTransform.Name := 'ConnectedWorldGroundAnchorHandle';
     Parent.World.Add(FConnectedWorldGroundAnchorTransform);
     TransformsToSynchronize.Add(Parent.World);
@@ -5644,11 +5187,11 @@ begin
 
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryAnchor.Create(nil, Self);
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
     FAnchorTransform.Name := 'AnchorHandle';
     Parent.Add(FAnchorTransform);
     TransformsToSynchronize.Add(Parent);
-    FAnchorTransform.Value := Anchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
   end;
 end;
 
@@ -5692,7 +5235,7 @@ begin
 
   FWorldAnchor := AValue;
   if FWorldAnchorTransform <> nil then
-    FWorldAnchorTransform.Value := FWorldAnchor;
+    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := FWorldAnchor;
   RecreateKraftJoint;
 end;
 
@@ -5828,11 +5371,11 @@ begin
 
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TTemporaryWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
     FWorldAnchorTransform.Name := 'WorldAnchorHandle';
     Parent.World.Add(FWorldAnchorTransform);
     TransformsToSynchronize.Add(Parent.World);
-    FWorldAnchorTransform.Value := WorldAnchor;
+    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
   end;
 end;
 

@@ -510,7 +510,7 @@ uses
   { CGE units }
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
-  CastleURIUtils, X3DLoad, CastleFilesUtils,
+  CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -3334,14 +3334,14 @@ begin
     as it will not be saved.
     Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
-  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TTemporaryTransform);
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TTemporaryJointTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot) and (not (Child is TTemporaryTransform));
+    (Child <> DesignRoot) and (not (Child is TTemporaryJointTransform));
 end;
 
 type
