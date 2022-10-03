@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'my-new-project-sv';
-  ApplicationProperties.Caption := 'My New Project';
+  ApplicationProperties.ApplicationName := 'shadows';
+  ApplicationProperties.Caption := 'Shadows';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
