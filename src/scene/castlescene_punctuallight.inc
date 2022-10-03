@@ -63,7 +63,7 @@ type
         )
       )
     }
-    property Shadows: Boolean read FShadows write SetShadows default false; experimental;
+    property Shadows: Boolean read FShadows write SetShadows default false;
   end;
 
 {$endif read_interface}
