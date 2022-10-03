@@ -1177,9 +1177,10 @@
       property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
       property MaxMotorTorque: Single read FMaxMotorTorque
         write SetMaxMotorTorque;
-      {$define read_interface_class}
-      {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
-      {$undef read_interface_class}
+
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
   TJointRope = class(TAbstractTwoBodiesJoint)
@@ -1222,9 +1223,10 @@
 
     published
       property Distance: Single read FDistance write SetDistance;
-      {$define read_interface_class}
-      {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
-      {$undef read_interface_class}
+
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
 {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
@@ -1256,10 +1258,10 @@
 
     // TODO: This is local point should be world?
     property Anchor: TVector3 read FAnchor write SetAnchor;
-  published
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
-    {$undef read_interface_class}
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif CASTLE_EXPERIMENTAL_JOINTS}
@@ -1291,10 +1293,10 @@
 
     // TODO: This is local point should be world?
     property Anchor: TVector3 read FAnchor write SetAnchor;
-  published
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
-    {$undef read_interface_class}
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TJointDistance = class(TAbstractTwoBodiesJoint)
@@ -1341,9 +1343,9 @@
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TJointGrab = class (TAbstractOneBodyJoint)
@@ -1385,9 +1387,9 @@
     property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
     property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 
@@ -1439,9 +1441,9 @@
     published
       property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
 
-      {$define read_interface_class}
-      {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
-      {$undef read_interface_class}
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
   TJointWorldPlaneDistance = class (TAbstractOneBodyJoint)
@@ -1549,9 +1551,10 @@
     property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
     property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
     property MaxMotorForce: Single read FMaxMotorForce write SetMaxMotorForce;
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc}
-    {$undef read_interface_class}
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tjointslider_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
