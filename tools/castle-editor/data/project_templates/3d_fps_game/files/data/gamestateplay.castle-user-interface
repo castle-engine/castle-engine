@@ -33,7 +33,7 @@
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneSoldier1",
+            "Name" : "SceneEnemy1",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -54,7 +54,7 @@
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneSoldier2",
+            "Name" : "SceneEnemy2",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -75,7 +75,7 @@
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneSoldier3",
+            "Name" : "SceneEnemy3",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -96,7 +96,7 @@
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneSoldier4",
+            "Name" : "SceneEnemy4",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"

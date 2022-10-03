@@ -14,7 +14,9 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TState${MAIN_STATE} = class(TUIState)
-  private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     { Components designed using CGE editor, loaded from gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface. }
     Viewport: TCastleViewport;
     SceneMain: TCastleScene;
@@ -24,7 +26,7 @@ type
     ButtonPlayAnimation: TCastleButton;
     ButtonStopAnimation: TCastleButton;
     LabelLoadedUrl, LabelFps: TCastleLabel;
-
+  private
     procedure Load(const Url: String);
     { Methods assigned to handle buttons' OnClick events. }
     procedure ClickLoadKnight(Sender: TObject);
@@ -58,17 +60,6 @@ end;
 procedure TState${MAIN_STATE}.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  LabelLoadedUrl := DesignedComponent('LabelLoadedUrl') as TCastleLabel;
-  ButtonLoadKnight := DesignedComponent('ButtonLoadKnight') as TCastleButton;
-  ButtonLoadCar := DesignedComponent('ButtonLoadCar') as TCastleButton;
-  ButtonLoadCustom := DesignedComponent('ButtonLoadCustom') as TCastleButton;
-  ButtonPlayAnimation := DesignedComponent('ButtonPlayAnimation') as TCastleButton;
-  ButtonStopAnimation := DesignedComponent('ButtonStopAnimation') as TCastleButton;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
-  SceneMain := DesignedComponent('SceneMain') as TCastleScene;
 
   { Assign OnClick handler to buttons }
   ButtonLoadKnight.OnClick := {$ifdef FPC}@{$endif} ClickLoadKnight;

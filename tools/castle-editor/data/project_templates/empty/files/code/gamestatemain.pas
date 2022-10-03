@@ -14,8 +14,9 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TState${MAIN_STATE} = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
@@ -42,9 +43,6 @@ end;
 procedure TState${MAIN_STATE}.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInput: Boolean);

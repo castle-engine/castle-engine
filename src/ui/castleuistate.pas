@@ -83,21 +83,30 @@ type
     override in your state descendants to capture various events. }
   TUIState = class(TCastleUserInterface)
   private
-    FStartContainer: TCastleContainer;
-    FStartContainerObserver: TFreeNotificationObserver;
-    FInterceptInput, FFreeWhenStopped: boolean;
-    FFreeAtStop: TComponent;
-    FWaitingForRender: TNotifyEventList;
-    FCallBeforeUpdate: TNotifyEventList;
+    type
+      TDesignOwner = class(TComponent)
+      protected
+        ParentState: TUIState;
+        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+        procedure ValidateRename(AComponent: TComponent; const CurName, NewName: String); override;
+      end;
 
-    { Design* private fields }
-    FDesignUrl: String;
-    FDesignLoaded: TCastleUserInterface;
-    FDesignLoadedOwner: TComponent;
-    FDesignPreload: Boolean;
-    FDesignPreloadedSerialized: TSerializedComponent;
-    FDesignPreloaded: TCastleUserInterface;
-    FDesignPreloadedOwner: TComponent;
+    var
+      FStartContainer: TCastleContainer;
+      FStartContainerObserver: TFreeNotificationObserver;
+      FInterceptInput, FFreeWhenStopped: boolean;
+      FFreeAtStop: TComponent;
+      FWaitingForRender: TNotifyEventList;
+      FCallBeforeUpdate: TNotifyEventList;
+
+      { Design* private fields }
+      FDesignUrl: String;
+      FDesignLoaded: TCastleUserInterface;
+      FDesignLoadedOwner: TDesignOwner;
+      FDesignPreload: Boolean;
+      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloaded: TCastleUserInterface;
+      FDesignPreloadedOwner: TComponent;
 
     procedure InternalStart;
     procedure InternalStop;
@@ -112,6 +121,11 @@ type
     procedure UnLoadDesign;
     procedure PreloadDesign;
     procedure UnPreloadDesign;
+
+    { Set the published field corresponding to ReferenceName (usually equal to AComponent.Name).
+      If Enable=true: set it to AComponent.
+      If Enable=false: set it to nil. }
+    procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
 
     class var FStateStack: TUIStateList;
     class var FDisableStackChange: Cardinal;
@@ -433,13 +447,12 @@ type
         DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
         // DesignPreload := true; // to make future "TUIState.Current := StatePlay" faster
       end;
-
-      procedure TStatePlay.Start;
-      begin
-        inherited;
-        MyButton := DesignedComponent('MyButton') as TCastleButton;
-      end;
       #)
+
+      The published fields of this class,
+      if they have equal name to any component in the design,
+      are automatically initialized to the instance of this component.
+      (And they will be set to @nil when the design is destroyed, typically at @link(Stop).)
 
       You can also modify this property when the state has already started
       (after @link(Start) and before @link(Stop)) in which case
@@ -451,11 +464,10 @@ type
       A more general approach is to use @link(UserInterfaceLoad),
       and call @link(InsertFront) to add it to the state UI.
       Using this property just adds some comfortable automatic behavior
-      (state is freed at stop, and you can use comfortable
-      @link(DesignedComponent) or @link(DesignPreload)).
+      (state is freed at stop, published fields of state are set,
+      you can use comfortable @link(DesignPreload)).
 
       @seealso DesignPreload
-      @seealso DesignedComponent
     }
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
 
@@ -487,10 +499,14 @@ type
       MyButton := DesignedComponent('MyButton') as TCastleButton;
       #)
 
-      See @link(DesignUrl) for full usage example.
+      This method is seldom useful now.
+      The published fields of the state are automatically initialized when
+      loading / unloading design using @link(DesignUrl).
+      There's no need to use DesignedComponent for them.
 
       @seealso DesignUrl }
     function DesignedComponent(const ComponentName: String): TComponent;
+      deprecated 'published state fields are automatically initialized now, no need to use this method';
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
@@ -536,6 +552,31 @@ type
 function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
+end;
+
+{ TUIState.TDesignOwner --------------------------------------------------------------- }
+
+procedure TUIState.TDesignOwner.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  { TComponent.InsertComponent and TComponent.RemoveComponent are called on FDesignLoadedOwner
+    and they do Notification.
+    Rely on it to set field name.
+
+    Note that opInsert in practice doesn't do anything, as the component will have no name
+    at creation. It will be fixed by ValidateRename. }
+  case Operation of
+    opInsert: ParentState.SetNameReference(AComponent, AComponent.Name, true);
+    opRemove: ParentState.SetNameReference(AComponent, AComponent.Name, false);
+    else ;
+  end;
+  inherited;
+end;
+
+procedure TUIState.TDesignOwner.ValidateRename(AComponent: TComponent; const CurName, NewName: String);
+begin
+  inherited;
+  ParentState.SetNameReference(AComponent, CurName, false);
+  ParentState.SetNameReference(AComponent, NewName, true);
 end;
 
 { TUIState --------------------------------------------------------------------- }
@@ -916,7 +957,8 @@ procedure TUIState.LoadDesign;
 begin
   if DesignUrl <> '' then
   begin
-    FDesignLoadedOwner := TComponent.Create(nil);
+    FDesignLoadedOwner := TDesignOwner.Create(nil);
+    FDesignLoadedOwner.ParentState := Self;
     if FDesignPreloadedSerialized <> nil then
       FDesignLoaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignLoadedOwner)
     else
@@ -1045,6 +1087,22 @@ begin
     Result := StateContainer.UIScale
   else
     Result := 1.0;
+end;
+
+procedure TUIState.SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
+var
+  FieldAddr: ^TComponent;
+begin
+  if ReferenceName = '' then
+    Exit;
+  FieldAddr := FieldAddress(ReferenceName);
+  if FieldAddr <> nil then
+  begin
+    if Enable then
+      FieldAddr^ := AComponent
+    else
+      FieldAddr^ := nil;
+  end;
 end;
 
 end.
