@@ -4017,6 +4017,7 @@ begin
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
+
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
   var
     I: Integer;
@@ -4146,8 +4147,7 @@ begin
       if TCastleBehavior(SelectedComponent) is TAbstractJoint then
         RemoveJointsAnchors;
 
-      TCastleBehavior(SelectedComponent).InternalSelectionStart(TransformList);
-      FSelectionStartBehaviorList.Add(TCastleBehavior(SelectedComponent));
+      DoInternalSelectionStart(TCastleBehavior(SelectedComponent), TransformList);
 
       for I := 0 to TransformList.Count - 1 do
       begin
