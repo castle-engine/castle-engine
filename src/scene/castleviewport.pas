@@ -281,10 +281,10 @@ type
       so you can do shadow volumes culling. }
     procedure RenderShadowVolume(const Params: TRenderParams);
 
-    { Detect position/direction of the main light that produces shadows.
-      Looks at MainScene.InternalMainLightForShadows.
+    { Detect position/direction of the main light that produces shadow volumes.
+      Looks at MainScene.InternalMainLightForShadowVolumes.
       Returns light position (or direction, if W = 0) in world space. }
-    function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
+    function MainLightForShadowVolumes(out AMainLightPosition: TVector4): boolean;
 
     { Pass pointing device (mouse or touch) press event
       to TCastleTransform instances in @link(Items).
@@ -2225,35 +2225,62 @@ begin
     InternalCamera = InternalDesignCamera);
 end;
 
-function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
-var
-  AMainLightPosition3D: PVector3;
-begin
-  {$warnings off} // using deprecated MainScene to keep it working
-  if Items.MainScene <> nil then
+function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVector4): boolean;
+
+  { Check does scene define light for shadow volumes,
+    if yes - calculate the position/direction of it in world space to AMainLightPosition
+    and return @true.
+
+    May modify AMainLightPosition even when returns @false, the value AMainLightPosition
+    is undefined after returning @false. }
+  function LightForShadowVolumesFromScene(const Scene: TCastleScene;
+    out AMainLightPosition: TVector4): Boolean;
+  var
+    AMainLightPosition3D: PVector3;
   begin
     Result :=
-      Items.MainScene.InternalMainLightForShadows(AMainLightPosition) and
+      Scene.InternalMainLightForShadowVolumes(AMainLightPosition) and
       { We need WorldTransform for below conversion local<->world space.
         It may not be available, if
-        - MainScene is present multiple times in Items
-        - MainScene is not present in Items at all, temporarily, but is still a MainScene.
-        Testcase: castle-game, change from level to level using debug menu.
+        - Scene is present multiple times in Items
+        - Scene is not present in Items at all, temporarily, but is still a MainScene.
+          Testcase: castle-game, change from level to level using debug menu.
       }
-      Items.MainScene.HasWorldTransform;
-    { Transform AMainLightPosition to world space.
-      This matters in case MainScene (that contains shadow-casting light) has some transformation. }
+      Scene.HasWorldTransform;
+    { Transform AMainLightPosition to world space. }
     if Result then
     begin
       AMainLightPosition3D := PVector3(@AMainLightPosition);
       if AMainLightPosition.W = 0 then
-        AMainLightPosition3D^ := Items.MainScene.LocalToWorldDirection(AMainLightPosition3D^)
+        AMainLightPosition3D^ := Scene.LocalToWorldDirection(AMainLightPosition3D^)
       else
-        AMainLightPosition3D^ := Items.MainScene.LocalToWorld(AMainLightPosition3D^);
+        AMainLightPosition3D^ := Scene.LocalToWorld(AMainLightPosition3D^);
     end;
-  end else
-    Result := false;
+  end;
+
+var
+  SceneCastingLights: TCastleScene;
+begin
+  Result := false;
+
+  {$warnings off} // using deprecated MainScene to keep it working
+  if Items.MainScene <> nil then
+  begin
+    Result := LightForShadowVolumesFromScene(Items.MainScene, AMainLightPosition);
+    if Result then
+      Exit;
+  end;
   {$warnings on}
+
+  { scan InternalScenesCastGlobalLights }
+  if Items.InternalScenesCastGlobalLights <> nil then
+    for SceneCastingLights in Items.InternalScenesCastGlobalLights do
+      if Items.MainScene <> SceneCastingLights then // MainScene is already accounted for above
+      begin
+        Result := LightForShadowVolumesFromScene(SceneCastingLights, AMainLightPosition);
+        if Result then
+          Exit;
+      end;
 end;
 
 procedure TCastleViewport.Render3D(const Params: TRenderParams);
@@ -2392,7 +2419,7 @@ end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
-  procedure RenderNoShadows;
+  procedure RenderNoShadowVolumes;
   begin
     { We must first render all non-transparent objects,
       then all transparent objects. Otherwise transparent objects
@@ -2406,7 +2433,7 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
   end;
 
-  procedure RenderWithShadows(const MainLightPosition: TVector4);
+  procedure RenderWithShadowVolumes(const MainLightPosition: TVector4);
   begin
     if (FProjection.ProjectionFar <> ZFarInfinity) and (not FWarningZFarInfinityDone) then
     begin
@@ -2424,10 +2451,10 @@ var
 begin
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
-    RenderWithShadows(MainLightPosition)
+     MainLightForShadowVolumes(MainLightPosition) then
+    RenderWithShadowVolumes(MainLightPosition)
   else
-    RenderNoShadows;
+    RenderNoShadowVolumes;
 end;
 
 procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
@@ -2475,7 +2502,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
 
     if GLFeatures.ShadowVolumesPossible and
        ShadowVolumes and
-       MainLightForShadows(MainLightPosition) then
+       MainLightForShadowVolumes(MainLightPosition) then
       Include(ClearBuffers, cbStencil);
 
     RenderContext.Clear(ClearBuffers, ClearColor);
@@ -3270,7 +3297,7 @@ begin
 
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
+     MainLightForShadowVolumes(MainLightPosition) then
     Include(Options, prShadowVolume);
 
   { call TCastleScreenEffects.PrepareResources. }

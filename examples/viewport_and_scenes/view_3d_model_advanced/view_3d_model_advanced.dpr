@@ -71,18 +71,6 @@ begin
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
-  { Enable rendering models using shadow volumes. This requires some special
-    code, as OpenGL must be prepared in a special way to enable it,
-    and some GPUs (really ancient ones) may simply not support it.
-    See https://castle-engine.io/x3d_extensions.php#section_ext_shadows
-    for documentation how to prepare your model to have shadow volumes,
-    and for links to demo models using shadow volumes.
-
-    Note that for (really really old) GPUs that don't support stencil buffer,
-    our Window.Open call will automatically turn StencilBits to 0 and fallback
-    to OpenGL context without shadow volumes. }
-  // Window.ShadowVolumes := true; // not necessary, this is true by default
-  Window.StencilBits := 8;
   Window.Open;
 
   { Show progress bar in our window }

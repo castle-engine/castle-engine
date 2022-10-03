@@ -609,6 +609,7 @@ const
 {$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
@@ -638,6 +639,7 @@ uses Math,
 {$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}

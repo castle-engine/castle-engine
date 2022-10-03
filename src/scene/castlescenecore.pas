@@ -1838,7 +1838,7 @@ type
 
       @exclude
       Should only be used internally by TCastleViewport. }
-    function InternalMainLightForShadows(out AMainLightPosition: TVector4): boolean;
+    function InternalMainLightForShadowVolumes(out AMainLightPosition: TVector4): boolean;
 
     { Light node that should be used for headlight, or @nil if default
       directional headlight is suitable.
@@ -7873,7 +7873,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InternalMainLightForShadows(
+function TCastleSceneCore.InternalMainLightForShadowVolumes(
   out AMainLightPosition: TVector4): boolean;
 begin
   ValidateMainLightForShadows;

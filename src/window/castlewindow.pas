@@ -307,7 +307,7 @@ uses {$define read_interface_uses}
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleVectors, CastleRectangles, CastleColors,
+  CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls,
@@ -1330,7 +1330,7 @@ type
       and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
       when window is open to query current (actual) buffer size. }
     property StencilBits: Cardinal
-      read FStencilBits write FStencilBits default 0;
+      read FStencilBits write FStencilBits default DefaultStencilBits;
 
     { How many samples are required for multi-sampling (anti-aliasing).
 
@@ -2813,6 +2813,7 @@ begin
   minWidth := 100;  maxWidth := 4000;
   minHeight := 100; maxHeight := 4000;
   DepthBits := DefaultDepthBits;
+  StencilBits := DefaultStencilBits;
   FCursor := mcDefault;
   FMultiSampling := 1;
   FVisible := true;
