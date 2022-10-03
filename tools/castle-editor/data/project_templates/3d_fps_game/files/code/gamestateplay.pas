@@ -16,12 +16,14 @@ uses Classes,
 type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestateplay.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
-
+    SceneEnemy1, SceneEnemy2, SceneEnemy3, SceneEnemy4: TCastleScene;
+  private
     { Enemies behaviors }
     Enemies: TEnemyList;
   public
@@ -50,29 +52,27 @@ begin
 end;
 
 procedure TStatePlay.Start;
-var
-  SoldierScene: TCastleScene;
-  Enemy: TEnemy;
-  I: Integer;
-begin
-  inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
-
-  { Create TEnemy instances, add them to Enemies list }
-  Enemies := TEnemyList.Create(true);
-  for I := 1 to 4 do
+  procedure InitializeEnemy(const SceneEnemy: TCastleScene);
+  var
+    Enemy: TEnemy;
   begin
-    SoldierScene := DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
     { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
       instances of this class, i.e. it will free them. }
     Enemy := TEnemy.Create(nil);
-    SoldierScene.AddBehavior(Enemy);
+    SceneEnemy.AddBehavior(Enemy);
     Enemies.Add(Enemy);
   end;
+
+begin
+  inherited;
+
+  { Create TEnemy instances, add them to Enemies list }
+  Enemies := TEnemyList.Create(true);
+  InitializeEnemy(SceneEnemy1);
+  InitializeEnemy(SceneEnemy2);
+  InitializeEnemy(SceneEnemy3);
+  InitializeEnemy(SceneEnemy4);
 end;
 
 procedure TStatePlay.Stop;
