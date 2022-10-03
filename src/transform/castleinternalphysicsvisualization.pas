@@ -396,6 +396,8 @@ begin
   if Joint is TJointSlider then
     Exit(TJointSlider(Joint).WorldAnchor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  Result := TVector3.Zero;
 end;
 
 constructor TTemporaryJointWorldAnchor.Create(AOwner: TComponent;
@@ -425,6 +427,8 @@ begin
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).ConnectedWorldAnchor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  Result := TVector3.Zero;
 end;
 
 constructor TTemporaryJointConnectedWorldAnchor.Create(AOwner: TComponent;
@@ -454,6 +458,8 @@ begin
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).WorldGroundAnchor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  Result := TVector3.Zero;
 end;
 
 constructor TTemporaryJointWorldGroundAnchor.Create(AOwner: TComponent;
@@ -483,6 +489,8 @@ begin
   if Joint is TJointPulley then
     Exit(TJointPulley(Joint).ConnectedWorldGroundAnchor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  Result := TVector3.Zero;
 end;
 
 constructor TTemporaryJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;
@@ -494,6 +502,4 @@ end;
 
 finalization
   FreeAndNil(TTemporaryJointTransform.RenderOptionsForParentScene);
-
 end.
-
