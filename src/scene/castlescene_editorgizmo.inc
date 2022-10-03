@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -98,7 +99,7 @@ begin
   T.InternalExcludeFromParentBoundingVolume := true;
   T.Pickable := false;
   T.Collides := false;
-  T.CastShadowVolumes := false;
+  T.CastShadows := false;
   T.ExcludeFromStatistics := true;
 end;
 

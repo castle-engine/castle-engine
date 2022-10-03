@@ -467,6 +467,17 @@ const
 
   DefaultColorSpace = csLinearWhenPhysicalMaterial;
 
+  { Default for TCastleWindow.StencilBits and TCastleControl.StencilBits.
+
+    Non-zero now, which means that in both TCastleWindow and TCastleControl,
+    shadow volumes should work by default.
+
+    Note that TCastleWindow implementation makes a smooth fallback:
+    if we cannot get stencil, we retry initialization without stencil buffer.
+    This way we will open the window reliably, and in the worst case -- shadow volumes
+    will not work. }
+  DefaultStencilBits = 8;
+
 var
   { Log shadow volume information.
     See https://castle-engine.io/manual_log.php about the log. }

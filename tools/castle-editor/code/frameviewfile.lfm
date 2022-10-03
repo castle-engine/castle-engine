@@ -16,7 +16,6 @@ object ViewFileFrame: TViewFileFrame
     Top = 0
     Width = 400
     Align = alClient
-    StencilBits = 8
     Options = []
     TabOrder = 0
   end

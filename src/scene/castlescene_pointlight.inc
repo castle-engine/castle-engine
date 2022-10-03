@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -23,7 +24,7 @@ type
 
     See @url(https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#PointLight
     X3D PointLight specification) for various details. }
-  TCastlePointLight = class(TCastleAbstractLight)
+  TCastlePointLight = class(TCastlePunctualLight)
   strict private
     { Same thing as FLightNode, but with proper type. }
     FPointLight: TPointLightNode;
@@ -82,6 +83,7 @@ begin
   { internal stuff create }
   FPointLight := TPointLightNode.Create;
   LightNode := FPointLight;
+  FPunctualLight := FPointLight;
   if Gizmo <> nil then
     Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_point.png');
 

@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -23,7 +24,7 @@ type
 
     See @url(https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#SpotLight
     X3D SpotLight specification) for various details. }
-  TCastleSpotLight = class(TCastleAbstractLight)
+  TCastleSpotLight = class(TCastlePunctualLight)
   strict private
     { Same thing as FLightNode, but with proper type. }
     FSpotLight: TSpotLightNode;
@@ -120,6 +121,7 @@ begin
   { internal stuff create }
   FSpotLight := TSpotLightNode.Create;
   LightNode := FSpotLight;
+  FPunctualLight := FSpotLight;
 
   if Gizmo <> nil then
   begin

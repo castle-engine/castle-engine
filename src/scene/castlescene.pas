@@ -327,7 +327,7 @@ type
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
       Will not do anything (treat scene like not casting shadows,
-      like CastShadowVolumes = false) if the model is not perfect 2-manifold,
+      like CastShadows = false) if the model is not perfect 2-manifold,
       i.e. has some BorderEdges (although we could handle some BorderEdges
       for some points of view, this could leading to rendering artifacts).
 
@@ -631,6 +631,7 @@ const
 {$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
@@ -660,6 +661,7 @@ uses Math,
 {$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
@@ -1766,7 +1768,7 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if CheckVisible and CastShadowVolumes then
+  if CheckVisible and CastShadows then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 

@@ -25,7 +25,7 @@ uses
   Classes, SysUtils,
   StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
-  CastleUIControls,
+  CastleUIControls, CastleRenderOptions,
   CastleImages, CastleGLVersion, CastleLCLUtils,
   CastleGLImages, CastleApplicationProperties;
 
@@ -329,7 +329,7 @@ type
     property MultiSampling;
     property AlphaBits;
     property DepthBits;
-    property StencilBits;
+    property StencilBits default DefaultStencilBits;
     property AUXBuffers;
     {$ifdef HAS_RENDER_AT_DESIGN_TIME}
     property Options;
@@ -826,6 +826,7 @@ begin
   FAutoRedisplay := true;
   FKeyPressHandler := TLCLKeyPressHandler.Create;
   FKeyPressHandler.OnPress := @KeyPressHandlerPress;
+  StencilBits := DefaultStencilBits;
 
   FContainer := TContainer.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
