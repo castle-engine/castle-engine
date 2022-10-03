@@ -1733,7 +1733,7 @@ begin
      { Do not render shadow volumes when rendering wireframe.
        Shadow volumes assume that object is closed (2-manifold),
        otherwise weird artifacts are visible. }
-     (EffectiveRenderOptions.WireframeEffect <> weWireframeOnly) then
+     (RenderOptions.WireframeEffect <> weWireframeOnly) then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
