@@ -295,9 +295,10 @@
     property Normal: TVector3 read FNormal write SetNormal stored StoredWithAutoSize;
   published
     property Distance: Single read FDistance write SetDistance stored StoredWithAutoSize;
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
-    {$undef read_interface_class}
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Collide as a box.
@@ -340,9 +341,9 @@
       and scale is calculated. }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 
@@ -966,9 +967,9 @@
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TRigidBody = class(TCastleRigidBody)
