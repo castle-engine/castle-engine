@@ -3552,7 +3552,9 @@ var
   O: Pointer;
 begin
   if not Validate then
-    NodesToExpand := TObjectList.Create(false);
+    NodesToExpand := TObjectList.Create(false)
+  else
+    NodesToExpand := nil;
   try
     ChildrenNodesCount := 0;
     if DesignRoot is TCastleUserInterface then
