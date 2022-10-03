@@ -4141,9 +4141,8 @@ begin
     this should be done on end of this function }
   if SelectedComponent is TCastleBehavior then
   begin
+    TransformList := TCastleTransformList.Create(false);
     try
-      TransformList := TCastleTransformList.Create(false);
-
       if TCastleBehavior(SelectedComponent) is TAbstractJoint then
         RemoveJointsAnchors;
 
@@ -4154,10 +4153,7 @@ begin
         if TreeNodeMap.TryGetValue(TransformList[I], ParentNode) then
           SynchronizeTreeNodeChildTransforms(ParentNode);
       end;
-
-    finally
-      FreeAndNil(TransformList);
-    end;
+    finally FreeAndNil(TransformList) end;
   end;
 end;
 
