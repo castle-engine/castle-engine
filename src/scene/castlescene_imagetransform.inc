@@ -190,7 +190,16 @@ begin
   ]);
 
   FTexCoordNode := TTextureCoordinateNode.Create;
-  FTexCoordNode.SetPoint([]);
+  { Add some zero vectors, this way we avoid warnings that 4 tex coords are expected.
+    Testcase: Add TCastleImageTransform, or any TCastleCamera or TCastlePunctualLight
+    (since they all use TCastleImageTransform for design-time visualization),
+    to a viewport and activate shadow volumes by setting Shadows=true on some light. }
+  FTexCoordNode.SetPoint([
+    TVector2.Zero,
+    TVector2.Zero,
+    TVector2.Zero,
+    TVector2.Zero
+  ]);
 
   FIndexedTriangleSetNode := TIndexedTriangleSetNode.Create;
   FIndexedTriangleSetNode.SetIndex([0, 1, 2, 0, 2, 3]);
@@ -307,7 +316,12 @@ begin
       TVector3.Zero,
       TVector3.Zero
     ]);
-    FTexCoordNode.SetPoint([]);
+    FTexCoordNode.SetPoint([
+      TVector2.Zero,
+      TVector2.Zero,
+      TVector2.Zero,
+      TVector2.Zero
+    ]);
   end;
 end;
 
