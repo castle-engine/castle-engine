@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, Math,
   CastleTransform, CastleColors, CastleRenderOptions,
-  CastleVectors, CastleScene, CastleViewport;
+  CastleVectors, CastleScene;
 
 type
   TSphereVisualization = class(TCastleSphere)

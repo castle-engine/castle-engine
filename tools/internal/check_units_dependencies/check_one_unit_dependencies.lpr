@@ -99,8 +99,8 @@ const
     'Category transform uses scene. Unit ./transform/castletransform.pas uses CastleScene',
     'Category transform uses scene. Unit ./transform/castletransform.pas uses X3DNodes',
 
-    // Because TTemporaryTransform.EstimateSphereRadius uses viewport API
-    'Category transform uses scene. Unit ./transform/castletransform.pas uses CastleViewport',
+    // Because TTemporaryTransform uses CastleScene
+    'Category transform uses scene. Unit ./transform/castleinternalphysicsvisualization.pas uses CastleScene',
 
     // Because TCastleInspector accesses some key engine classes for some functionality.
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
