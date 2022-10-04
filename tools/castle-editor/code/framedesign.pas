@@ -3965,16 +3965,13 @@ begin
     begin
       ChildNode := ParentNode.Items[I];
 
-
-      WritelnLog('ChildNode ' + ChildNode.Text);
-
       if ChildNode.Data = nil then
         continue;
 
       ChildComponent := TComponent(ChildNode.Data);
 
 
-      { if ChildComponent is TCastleTransform then -  weacnt do that because
+      { if ChildComponent is TCastleTransform then -  we can't do that because
         some pointers can be dangling pointers - we know here that with
         Data are only transforms }
       Found := false;
