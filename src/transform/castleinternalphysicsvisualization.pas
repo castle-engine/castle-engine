@@ -30,84 +30,77 @@ type
   end;
 
   TTemporaryJointTransform = class(TCastleTransform)
-    strict private
-      FColor: TCastleColor;
-      FJoint: TAbstractJoint;
+  strict private
+    FColor: TCastleColor;
+    FJoint: TAbstractJoint;
 
-      procedure SetColor(const Value: TCastleColor);
-    protected
-      FSphere: TSphereVisualization;
+    procedure SetColor(const Value: TCastleColor);
+  protected
+    FSphere: TSphereVisualization;
 
-      // For now it's actually more natural to just *not* adjust sphere size
-      //function EstimateSphereRadius: Single;
+    // For now it's actually more natural to just *not* adjust sphere size
+    //function EstimateSphereRadius: Single;
 
-      procedure SetValue(const AValue: TVector3);
-      procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
-      function GetObservedValue: TVector3; virtual; abstract;
+    procedure SetValue(const AValue: TVector3);
+    procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
+    function GetObservedValue: TVector3; virtual; abstract;
 
-      procedure CheckTransformInsideParent;
-      procedure ChangedTransform; override;
-    public
-      constructor Create(AOwner: TComponent;
-        const AJoint: TAbstractJoint); reintroduce; virtual;
-      destructor Destroy; override;
+    procedure CheckTransformInsideParent;
+    procedure ChangedTransform; override;
+  public
+    constructor Create(AOwner: TComponent;
+      const AJoint: TAbstractJoint); reintroduce; virtual;
+    destructor Destroy; override;
 
-      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-      property Value: TVector3 read GetObservedValue write SetValue;
-      property Joint: TAbstractJoint read FJoint;
-      property Color: TCastleColor read FColor write SetColor;
+    property Value: TVector3 read GetObservedValue write SetValue;
+    property Joint: TAbstractJoint read FJoint;
+    property Color: TCastleColor read FColor write SetColor;
   end;
 
   TTemporaryJointAnchor = class(TTemporaryJointTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
+  protected
+    procedure SetObservedValue(const AValue: TVector3); override;
+    function GetObservedValue: TVector3; override;
   end;
 
   TTemporaryJointConnectedAnchor = class(TTemporaryJointTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  protected
+    procedure SetObservedValue(const AValue: TVector3); override;
+    function GetObservedValue: TVector3; override;
+  public
+    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
 
   TTemporaryJointWorldPoint = class(TTemporaryJointTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  protected
+    procedure SetObservedValue(const AValue: TVector3); override;
+    function GetObservedValue: TVector3; override;
+  public
+    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
 
-
   TTemporaryJointWorldAnchor = class(TTemporaryJointTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  protected
+    procedure SetObservedValue(const AValue: TVector3); override;
+    function GetObservedValue: TVector3; override;
+  public
+    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
 
   TTemporaryJointConnectedWorldAnchor = class(TTemporaryJointTransform)
-    protected
-      procedure SetObservedValue(const AValue: TVector3); override;
-      function GetObservedValue: TVector3; override;
-
-    public
-      constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+  protected
+    procedure SetObservedValue(const AValue: TVector3); override;
+    function GetObservedValue: TVector3; override;
+  public
+    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
-
 
   TTemporaryJointWorldGroundAnchor = class(TTemporaryJointTransform)
   protected
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
-
   public
     constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
@@ -116,11 +109,9 @@ type
   protected
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
-
   public
     constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
   end;
-
 
 implementation
 
