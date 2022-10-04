@@ -3894,10 +3894,12 @@ procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior;
 begin
   Behavior.InternalSelectionStart(TransformsToSynchronize);
 
-  { Do not allow duplicates.
+  { Do not allow duplicates. Because CheckBehaviorsStillSelected() and
+    other methods iterates list from end to start but list Remove() function
+    removes pointers from start to end. So when we remove one pointer
+    its removed from begining and we can come across a dangling pointer.
 
-    Reason: TODO: not understood to the end, but testcase:
-
+    Testcase:
     To any TCastleTransform, add 2 behaviors (like TCastleRigidBody
     and TCastleXxxCollider), select 2nd one and Delete, select the 1st
     one, reopen design by double-clicking (do not save it), press "End" key. }
