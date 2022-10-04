@@ -9,7 +9,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleViewport;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -18,6 +18,19 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    ButtonHinge:TCastleButton;
+    ButtonBall:TCastleButton;
+    ButtonGrab:TCastleButton;
+    ButtonRope:TCastleButton;
+    ButtonDistance:TCastleButton;
+    ViewportHinge:TCastleViewport;
+    ViewportBall:TCastleViewport;
+    ViewportGrab:TCastleViewport;
+    ViewportRope:TCastleViewport;
+    ViewportDistance:TCastleViewport;
+
+    procedure ClickButton(Sender: TObject);
+
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -34,6 +47,15 @@ uses SysUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
+procedure TStateMain.ClickButton(Sender: TObject);
+begin
+  ViewportBall.Exists := (Sender = ButtonBall);
+  ViewportDistance.Exists := (Sender = ButtonDistance);
+  ViewportGrab.Exists := (Sender = ButtonGrab);
+  ViewportHinge.Exists := (Sender = ButtonHinge);
+  ViewportRope.Exists := (Sender = ButtonRope);
+end;
+
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
@@ -43,6 +65,12 @@ end;
 procedure TStateMain.Start;
 begin
   inherited;
+
+  ButtonBall.OnClick := {$ifdef FPC}@{$endif}ClickButton;
+  ButtonDistance.OnClick := {$ifdef FPC}@{$endif}ClickButton;
+  ButtonGrab.OnClick := {$ifdef FPC}@{$endif}ClickButton;
+  ButtonHinge.OnClick := {$ifdef FPC}@{$endif}ClickButton;
+  ButtonRope.OnClick := {$ifdef FPC}@{$endif}ClickButton;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
