@@ -1,6 +1,20 @@
-unit CastleInternalPhysicsVisualization;
+{
+  Copyright 2022-2022 Andrzej Kilijański, Michalis Kamburelis.
 
-{$mode objfpc}{$H+}
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Visualization of physics stuff. }
+unit CastleInternalPhysicsVisualization;
 
 interface
 
@@ -10,20 +24,22 @@ uses
   CastleVectors, CastleScene, CastleViewport;
 
 type
+  TSphereVisualization = class(TCastleSphere)
+  public
+    procedure LocalRender(const Params: TRenderParams); override;
+  end;
+
   TTemporaryJointTransform = class(TCastleTransform)
     strict private
       FColor: TCastleColor;
       FJoint: TAbstractJoint;
 
       procedure SetColor(const Value: TCastleColor);
-      procedure ApplyWireframeEffectToParent;
-      procedure RemoveWireframeEffectFromParent;
-    private
-      class var RenderOptionsForParentScene: TCastleRenderOptions;
     protected
-      FSphere: TCastleTransform;
+      FSphere: TSphereVisualization;
 
-      function EstimateSphereRadius: Single;
+      // For now it's actually more natural to just *not* adjust sphere size
+      //function EstimateSphereRadius: Single;
 
       procedure SetValue(const AValue: TVector3);
       procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
@@ -108,6 +124,21 @@ type
 
 implementation
 
+uses CastleRenderContext;
+
+{ TSphereVisualization ------------------------------------------------------- }
+
+procedure TSphereVisualization.LocalRender(const Params: TRenderParams);
+const
+  RenderOnTop = true;
+begin
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
+    RenderContext.DepthRange := drNear;
+  inherited;
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
+    RenderContext.DepthRange := drFar;
+end;
+
 { TTemporaryJointTransform --------------------------------------------------- }
 
 procedure TTemporaryJointTransform.SetColor(const Value: TCastleColor);
@@ -116,35 +147,11 @@ begin
   begin
     FColor := Value;
     if FSphere <> nil then
-      TCastleSphere(FSphere).Color := FColor;
+      FSphere.Color := FColor;
   end;
 end;
 
-procedure TTemporaryJointTransform.ApplyWireframeEffectToParent;
-begin
-  if RenderOptionsForParentScene = nil then
-  begin
-    RenderOptionsForParentScene := TCastleRenderOptions.Create(nil);
-    RenderOptionsForParentScene.WireframeEffect := weWireframeOnly;
-    RenderOptionsForParentScene.WireframeColor := CastleVectors.Vector3(1.0, 0, 1.0);
-  end;
-
-  if Parent is TCastleScene then
-    TCastleScene(Parent).InternalRenderOptions := RenderOptionsForParentScene
-  else
-  if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalRenderOptions := RenderOptionsForParentScene;
-end;
-
-procedure TTemporaryJointTransform.RemoveWireframeEffectFromParent;
-begin
-  if Parent is TCastleScene then
-    TCastleScene(Parent).InternalRenderOptions := nil
-  else
-  if Parent is TCastleAbstractPrimitive then
-    TCastleAbstractPrimitive(Parent).InternalRenderOptions := nil;
-end;
-
+(*
 function TTemporaryJointTransform.EstimateSphereRadius: Single;
 var
   Viewport: TCastleViewport;
@@ -168,6 +175,7 @@ begin
   end else
     Result := 1;
 end;
+*)
 
 procedure TTemporaryJointTransform.SetValue(const AValue: TVector3);
 begin
@@ -180,11 +188,6 @@ procedure TTemporaryJointTransform.CheckTransformInsideParent;
 begin
   if Parent = nil then
     Exit;
-
-  if Parent.LocalBoundingBox.Contains(Translation) then
-    ApplyWireframeEffectToParent
-  else
-    RemoveWireframeEffectFromParent;
 end;
 
 procedure TTemporaryJointTransform.ChangedTransform;
@@ -203,38 +206,38 @@ begin
   FJoint := AJoint;
   SetTransient;
 
-  FSphere := TCastleSphere.Create(nil);
+  FSphere := TSphereVisualization.Create(nil);
   FSphere.SetTransient;
-  TCastleSphere(FSphere).UseInternalGlobalRenderOptions := false; // never change rendering to global
-  TCastleSphere(FSphere).Color := FColor;
-  TCastleSphere(FSphere).Material := pmUnlit;
-  TCastleSphere(FSphere).Radius := EstimateSphereRadius;
+  FSphere.UseInternalGlobalRenderOptions := false; // never change rendering to global
+  FSphere.Color := FColor;
+  FSphere.Material := pmUnlit;
+  FSphere.Radius := 0.1;
   Add(FSphere);
 end;
 
 destructor TTemporaryJointTransform.Destroy;
 begin
-  RemoveWireframeEffectFromParent;
   FreeAndNil(FSphere);
   inherited Destroy;
 end;
 
 procedure TTemporaryJointTransform.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
-var
-  NewRadius: Single;
+// var
+//   NewRadius: Single;
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
+  (*
   if FSphere <> nil then
   begin
     NewRadius := EstimateSphereRadius;
-
-    if not SameValue(NewRadius, TCastleSphere(FSphere).Radius) then
+    if not SameValue(NewRadius, FSphere.Radius) then
     begin
-      TCastleSphere(FSphere).Radius := NewRadius;
+      FSphere.Radius := NewRadius;
     end;
   end;
+  *)
 
   CheckTransformInsideParent;
 end;
@@ -500,6 +503,4 @@ begin
   Color := Teal;
 end;
 
-finalization
-  FreeAndNil(TTemporaryJointTransform.RenderOptionsForParentScene);
 end.
