@@ -47,7 +47,7 @@ implementation
 
 uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
   // TODO: this breaks unit dependencies, transform->scene
-  X3DNodes, CastleScene, CastleViewport, CastleInternalPhysicsVisualization;
+  X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
