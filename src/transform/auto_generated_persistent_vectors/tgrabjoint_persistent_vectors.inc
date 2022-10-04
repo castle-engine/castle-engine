@@ -24,39 +24,39 @@
 
 {$ifdef read_interface_class}
 strict private
-  FAnchorPersistent: TCastleVector3Persistent;
-  function GetAnchorForPersistent: TVector3;
-  procedure SetAnchorForPersistent(const AValue: TVector3);
+  FWorldPointPersistent: TCastleVector3Persistent;
+  function GetWorldPointForPersistent: TVector3;
+  procedure SetWorldPointForPersistent(const AValue: TVector3);
 published
-  { @link(Anchor) that can be visually edited in
+  { @link(WorldPoint) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(Anchor) directly.
+    instead read or write @link(WorldPoint) directly.
 
-    @seealso Anchor }
-  property AnchorPersistent: TCastleVector3Persistent read FAnchorPersistent ;
+    @seealso WorldPoint }
+  property WorldPointPersistent: TCastleVector3Persistent read FWorldPointPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointBall.GetAnchorForPersistent: TVector3;
+function TGrabJoint.GetWorldPointForPersistent: TVector3;
 begin
-  Result := Anchor;
+  Result := WorldPoint;
 end;
 
-procedure TJointBall.SetAnchorForPersistent(const AValue: TVector3);
+procedure TGrabJoint.SetWorldPointForPersistent(const AValue: TVector3);
 begin
-  Anchor := AValue;
+  WorldPoint := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAnchorPersistent := TCastleVector3Persistent.Create;
-  FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
-  FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
-  FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
+  FWorldPointPersistent := TCastleVector3Persistent.Create;
+  FWorldPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldPointForPersistent;
+  FWorldPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldPointForPersistent;
+  FWorldPointPersistent.InternalDefaultValue := WorldPoint; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FAnchorPersistent);
+  FreeAndNil(FWorldPointPersistent);
 {$endif read_implementation_destructor}
 

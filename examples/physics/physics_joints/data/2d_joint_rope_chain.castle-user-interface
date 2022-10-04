@@ -125,10 +125,10 @@
                 "Name" : "RigidBody5"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "ChainElement3",
-                "Name" : "JointHinge1"
+                "Name" : "HingeJoint1"
               }
             ]
           },
@@ -172,7 +172,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -184,7 +184,7 @@
                 },
                 "ConnectedTransform" : "Box1",
                 "Distance" : 1.0000000000000000E+001,
-                "Name" : "JointRope1"
+                "Name" : "RopeJoint1"
               }
             ]
           },
@@ -228,7 +228,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -240,7 +240,7 @@
                 },
                 "ConnectedTransform" : "ChainElement",
                 "Distance" : 1.0000000000000000E+001,
-                "Name" : "JointRope2"
+                "Name" : "RopeJoint2"
               }
             ]
           },
@@ -280,7 +280,7 @@
                 "Name" : "BoxCollider4"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -292,7 +292,7 @@
                 },
                 "ConnectedTransform" : "ChainElement1",
                 "Distance" : 1.0000000000000000E+001,
-                "Name" : "JointRope3"
+                "Name" : "RopeJoint3"
               }
             ]
           },
@@ -336,7 +336,7 @@
                 "Name" : "BoxCollider5"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -348,7 +348,7 @@
                 },
                 "ConnectedTransform" : "ChainElement2",
                 "Distance" : 1.0000000000000000E+001,
-                "Name" : "JointRope4"
+                "Name" : "RopeJoint4"
               }
             ]
           },

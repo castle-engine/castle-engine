@@ -79,12 +79,12 @@
                 "Name" : "RigidBody1"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box1",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
-                "Name" : "JointHinge1"
+                "Name" : "HingeJoint1"
               }
             ]
           },

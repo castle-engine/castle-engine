@@ -97,13 +97,13 @@
                 "Restitution" : 3.0000001192092896E-001
               },
               {
-                "$$ClassName" : "TJointSlider",
+                "$$ClassName" : "TSliderJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxB",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
                 "MaxTranslationLimit" : 1.0000000000000000E+002,
-                "Name" : "JointSlider1",
+                "Name" : "SliderJoint1",
                 "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 5.0271501541137695E+000

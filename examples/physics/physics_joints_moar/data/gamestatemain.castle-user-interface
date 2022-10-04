@@ -182,6 +182,7 @@
           "$$ClassName" : "TCastleViewport",
           "Background" : "Background1",
           "Camera" : "Camera1",
+          "Exists" : false,
           "FullSize" : true,
           "Items" : {
             "$$ClassName" : "TCastleRootTransform",
@@ -284,7 +285,7 @@
                     "Name" : "BoxCollider1"
                   },
                   {
-                    "$$ClassName" : "TJointHinge",
+                    "$$ClassName" : "THingeJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "X" : 5.5375045537948608E-001
@@ -294,7 +295,7 @@
                     "ConnectedTransform" : "Wall",
                     "EnableLimits" : false,
                     "EnableMotor" : false,
-                    "Name" : "JointHinge1",
+                    "Name" : "HingeJoint1",
                     "RotationAxisPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 1.0000000000000000E+000,
@@ -636,14 +637,14 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TJointBall",
+                    "$$ClassName" : "TBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
                     },
                     "Breakable" : false,
                     "ConnectedTransform" : "Center",
-                    "Name" : "JointBall1"
+                    "Name" : "BallJoint1"
                   }
                 ]
               },
@@ -695,14 +696,14 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TJointBall",
+                    "$$ClassName" : "TBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
                     },
                     "Breakable" : false,
                     "ConnectedTransform" : "Center",
-                    "Name" : "JointBall2"
+                    "Name" : "BallJoint2"
                   }
                 ]
               },
@@ -754,14 +755,14 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TJointBall",
+                    "$$ClassName" : "TBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
                     },
                     "Breakable" : false,
                     "ConnectedTransform" : "Center",
-                    "Name" : "JointBall3"
+                    "Name" : "BallJoint3"
                   }
                 ]
               }
@@ -1336,9 +1337,9 @@
                     "Name" : "RigidBody17"
                   },
                   {
-                    "$$ClassName" : "TJointGrab",
+                    "$$ClassName" : "TGrabJoint",
                     "Breakable" : false,
-                    "Name" : "JointGrab1"
+                    "Name" : "GrabJoint1"
                   },
                   {
                     "$$ClassName" : "TCastleBoxCollider",
@@ -1551,11 +1552,11 @@
                     "Name" : "RigidBody29"
                   },
                   {
-                    "$$ClassName" : "TJointRope",
+                    "$$ClassName" : "TRopeJoint",
                     "Breakable" : false,
                     "ConnectedTransform" : "RopeBottom",
                     "Distance" : 4.0000000000000000E+000,
-                    "Name" : "JointRope1"
+                    "Name" : "RopeJoint1"
                   }
                 ]
               },
@@ -1650,7 +1651,6 @@
           "$$ClassName" : "TCastleViewport",
           "Background" : "Background1",
           "Camera" : "Camera3",
-          "Exists" : false,
           "FullSize" : true,
           "Items" : {
             "$$ClassName" : "TCastleRootTransform",
@@ -1799,10 +1799,10 @@
                     "Name" : "RigidBody32"
                   },
                   {
-                    "$$ClassName" : "TJointDistance",
+                    "$$ClassName" : "TDistanceJoint",
                     "Breakable" : false,
                     "ConnectedTransform" : "RopeBottom1",
-                    "Name" : "JointDistance1"
+                    "Name" : "DistanceJoint1"
                   }
                 ]
               },
@@ -1860,26 +1860,25 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.9271264076232910E+000,
-              "X" : -1.9032026827335358E-001,
-              "Y" : 9.4736582040786743E-001,
-              "Z" : 2.5744199752807617E-001
+              "W" : 1.9263272285461426E+000,
+              "X" : -6.7367382347583771E-002,
+              "Y" : 9.9330204725265503E-001,
+              "Z" : 9.3876644968986511E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 9.9999994039535522E-001,
-              "Y" : 9.9999988079071045E-001
+              "Y" : 1.0000002384185791E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.7408960342407227E+001,
-              "Y" : 1.6441577911376953E+001,
-              "Z" : -4.9074215888977051E+000
+              "X" : 9.2349195480346680E+000,
+              "Y" : 6.2130622863769531E+000,
+              "Z" : -5.5430903434753418E+000
             }
           },
           "InternalDesignNavigations[dnFly]" : {
             "$$ClassName" : "TCastleWalkNavigationDesign",
-            "MoveSpeed" : 7.9432830810546875E+000,
+            "MoveSpeed" : 9.2611875534057617E+000,
             "Name" : ""
           },
           "InternalDesignNavigations[dnExamine]" : {

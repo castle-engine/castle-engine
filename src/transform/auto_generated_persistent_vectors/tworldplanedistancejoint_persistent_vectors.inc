@@ -24,40 +24,40 @@
 
 {$ifdef read_interface_class}
 strict private
-  FWorldAnchorPersistent: TCastleVector3Persistent;
-  function GetWorldAnchorForPersistent: TVector3;
-  procedure SetWorldAnchorForPersistent(const AValue: TVector3);
+  FAnchorPersistent: TCastleVector3Persistent;
+  function GetAnchorForPersistent: TVector3;
+  procedure SetAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(WorldAnchor) that can be visually edited in
+  { @link(Anchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(WorldAnchor) directly.
+    instead read or write @link(Anchor) directly.
 
-    @seealso WorldAnchor }
-  property WorldAnchorPersistent: TCastleVector3Persistent read FWorldAnchorPersistent ;
+    @seealso Anchor }
+  property AnchorPersistent: TCastleVector3Persistent read FAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointSlider.GetWorldAnchorForPersistent: TVector3;
+function TWorldPlaneDistanceJoint.GetAnchorForPersistent: TVector3;
 begin
-  Result := WorldAnchor;
+  Result := Anchor;
 end;
 
-procedure TJointSlider.SetWorldAnchorForPersistent(const AValue: TVector3);
+procedure TWorldPlaneDistanceJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
-  WorldAnchor := AValue;
+  Anchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldAnchorPersistent := TCastleVector3Persistent.Create;
-  FWorldAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldAnchorForPersistent;
-  FWorldAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldAnchorForPersistent;
-  FWorldAnchorPersistent.InternalDefaultValue := WorldAnchor; // current value is default
+  FAnchorPersistent := TCastleVector3Persistent.Create;
+  FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
+  FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
+  FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FWorldAnchorPersistent);
+  FreeAndNil(FAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FWorldSliderAxisPersistent: TCastleVector3Persistent;
-  function GetWorldSliderAxisForPersistent: TVector3;
-  procedure SetWorldSliderAxisForPersistent(const AValue: TVector3);
+  FPlaneNormalPersistent: TCastleVector3Persistent;
+  function GetPlaneNormalForPersistent: TVector3;
+  procedure SetPlaneNormalForPersistent(const AValue: TVector3);
 published
-  { @link(WorldSliderAxis) that can be visually edited in
+  { @link(PlaneNormal) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(WorldSliderAxis) directly.
+    instead read or write @link(PlaneNormal) directly.
 
-    @seealso WorldSliderAxis }
-  property WorldSliderAxisPersistent: TCastleVector3Persistent read FWorldSliderAxisPersistent ;
+    @seealso PlaneNormal }
+  property PlaneNormalPersistent: TCastleVector3Persistent read FPlaneNormalPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointSlider.GetWorldSliderAxisForPersistent: TVector3;
+function TWorldPlaneDistanceJoint.GetPlaneNormalForPersistent: TVector3;
 begin
-  Result := WorldSliderAxis;
+  Result := PlaneNormal;
 end;
 
-procedure TJointSlider.SetWorldSliderAxisForPersistent(const AValue: TVector3);
+procedure TWorldPlaneDistanceJoint.SetPlaneNormalForPersistent(const AValue: TVector3);
 begin
-  WorldSliderAxis := AValue;
+  PlaneNormal := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldSliderAxisPersistent := TCastleVector3Persistent.Create;
-  FWorldSliderAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldSliderAxisForPersistent;
-  FWorldSliderAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldSliderAxisForPersistent;
-  FWorldSliderAxisPersistent.InternalDefaultValue := WorldSliderAxis; // current value is default
+  FPlaneNormalPersistent := TCastleVector3Persistent.Create;
+  FPlaneNormalPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPlaneNormalForPersistent;
+  FPlaneNormalPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPlaneNormalForPersistent;
+  FPlaneNormalPersistent.InternalDefaultValue := PlaneNormal; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FWorldSliderAxisPersistent);
+  FreeAndNil(FPlaneNormalPersistent);
 {$endif read_implementation_destructor}
 

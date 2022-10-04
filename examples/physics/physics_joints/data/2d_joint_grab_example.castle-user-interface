@@ -121,9 +121,9 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointGrab",
+                "$$ClassName" : "TGrabJoint",
                 "Breakable" : false,
-                "Name" : "JointGrab1",
+                "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -2.5542148590087891E+001

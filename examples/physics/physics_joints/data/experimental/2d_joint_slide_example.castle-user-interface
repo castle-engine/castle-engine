@@ -87,7 +87,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointSlider",
+                "$$ClassName" : "TSliderJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box2",
                 "EnableLimits" : true,
@@ -96,7 +96,7 @@
                 "MaxTranslationLimit" : 1.0000000000000000E+002,
                 "MinTranslationLimit" : 5.0000000000000000E+001,
                 "MotorSpeed" : 1.0000000000000000E+003,
-                "Name" : "JointSlider1",
+                "Name" : "SliderJoint1",
                 "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000
@@ -197,9 +197,9 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TJointGrab",
+                "$$ClassName" : "TGrabJoint",
                 "Breakable" : false,
-                "Name" : "JointGrab1",
+                "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -4.8215503692626953E+001,

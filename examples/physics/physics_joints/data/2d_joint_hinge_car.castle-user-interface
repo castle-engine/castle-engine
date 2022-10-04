@@ -246,7 +246,7 @@
                 "Name" : "RigidBody3"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -4.4599426269531250E+001,
@@ -256,10 +256,10 @@
                 "ConnectedTransform" : "Wheel1",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
-                "Name" : "JointHingeW1"
+                "Name" : "HingeJointW1"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 4.0084320068359375E+001,
@@ -271,7 +271,7 @@
                 "EnableMotor" : true,
                 "MaxMotorTorque" : -1.0000000000000000E+007,
                 "MotorSpeed" : 1.0000000000000000E+003,
-                "Name" : "JointHingeW2"
+                "Name" : "HingeJointW2"
               }
             ]
           }

@@ -95,10 +95,10 @@
                 "Name" : "BoxCollider1"
               },
               {
-                "$$ClassName" : "TJointFixed",
+                "$$ClassName" : "TFixedJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxB",
-                "Name" : "JointFixed1"
+                "Name" : "FixedJoint1"
               }
             ]
           },

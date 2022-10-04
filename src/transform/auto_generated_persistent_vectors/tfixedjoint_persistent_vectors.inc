@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointFixed.GetAnchorForPersistent: TVector3;
+function TFixedJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TJointFixed.SetAnchorForPersistent(const AValue: TVector3);
+procedure TFixedJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;

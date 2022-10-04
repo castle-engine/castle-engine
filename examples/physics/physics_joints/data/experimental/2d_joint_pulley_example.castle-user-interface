@@ -81,7 +81,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointPulley",
+                "$$ClassName" : "TPulleyJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box2",
                 "ConnectedWorldAnchorPersistent" : {
@@ -93,7 +93,7 @@
                   "X" : 5.0000000000000000E+001,
                   "Y" : 1.0000000000000000E+002
                 },
-                "Name" : "JointPulley1",
+                "Name" : "PulleyJoint1",
                 "WorldGroundAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 1.0000000000000000E+002

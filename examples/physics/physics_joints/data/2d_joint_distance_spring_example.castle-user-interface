@@ -125,12 +125,12 @@
                 "Name" : "RigidBody1"
               },
               {
-                "$$ClassName" : "TJointDistance",
+                "$$ClassName" : "TDistanceJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxTop",
                 "DampingRatio" : 5.0000000745058060E-002,
                 "FrequencyHz" : 2.0000000298023224E-001,
-                "Name" : "JointDistance1"
+                "Name" : "DistanceJoint1"
               }
             ]
           },
@@ -178,10 +178,10 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TJointGrab",
+                "$$ClassName" : "TGrabJoint",
                 "Breakable" : false,
                 "DampingRatio" : 1.0000000000000000E+000,
-                "Name" : "JointGrab1",
+                "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.0173663330078125E+002,
@@ -241,7 +241,7 @@
             "Text" : [
               "Settings:",
               "",
-              "- Joint Distance with:",
+              "- Distance Joint with:",
               "   - Frequency 0.2",
               "   - DumpingRatio 0.05",
               "",

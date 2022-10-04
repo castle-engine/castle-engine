@@ -79,14 +79,14 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box1",
                 "EnableLimits" : true,
                 "EnableMotor" : false,
                 "MaxAngleLimit" : 1.0000000000000000E+000,
                 "MinAngleLimit" : -1.0000000000000000E+000,
-                "Name" : "JointHinge1"
+                "Name" : "HingeJoint1"
               }
             ]
           },

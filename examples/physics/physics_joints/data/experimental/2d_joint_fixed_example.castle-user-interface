@@ -123,10 +123,10 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TJointFixed",
+                "$$ClassName" : "TFixedJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box3",
-                "Name" : "JointFixed1"
+                "Name" : "FixedJoint1"
               }
             ]
           },
@@ -174,10 +174,10 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TJointGrab",
+                "$$ClassName" : "TGrabJoint",
                 "Breakable" : false,
                 "DampingRatio" : 1.0000000000000000E+000,
-                "Name" : "JointGrab1",
+                "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.0173663330078125E+002,

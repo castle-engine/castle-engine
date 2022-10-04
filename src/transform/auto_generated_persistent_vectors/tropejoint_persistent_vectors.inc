@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointWorldPlaneDistance.GetAnchorForPersistent: TVector3;
+function TRopeJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TJointWorldPlaneDistance.SetAnchorForPersistent(const AValue: TVector3);
+procedure TRopeJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FPlaneNormalPersistent: TCastleVector3Persistent;
-  function GetPlaneNormalForPersistent: TVector3;
-  procedure SetPlaneNormalForPersistent(const AValue: TVector3);
+  FConnectedAnchorPersistent: TCastleVector3Persistent;
+  function GetConnectedAnchorForPersistent: TVector3;
+  procedure SetConnectedAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(PlaneNormal) that can be visually edited in
+  { @link(ConnectedAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(PlaneNormal) directly.
+    instead read or write @link(ConnectedAnchor) directly.
 
-    @seealso PlaneNormal }
-  property PlaneNormalPersistent: TCastleVector3Persistent read FPlaneNormalPersistent ;
+    @seealso ConnectedAnchor }
+  property ConnectedAnchorPersistent: TCastleVector3Persistent read FConnectedAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointWorldPlaneDistance.GetPlaneNormalForPersistent: TVector3;
+function TRopeJoint.GetConnectedAnchorForPersistent: TVector3;
 begin
-  Result := PlaneNormal;
+  Result := ConnectedAnchor;
 end;
 
-procedure TJointWorldPlaneDistance.SetPlaneNormalForPersistent(const AValue: TVector3);
+procedure TRopeJoint.SetConnectedAnchorForPersistent(const AValue: TVector3);
 begin
-  PlaneNormal := AValue;
+  ConnectedAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FPlaneNormalPersistent := TCastleVector3Persistent.Create;
-  FPlaneNormalPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPlaneNormalForPersistent;
-  FPlaneNormalPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPlaneNormalForPersistent;
-  FPlaneNormalPersistent.InternalDefaultValue := PlaneNormal; // current value is default
+  FConnectedAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedAnchorForPersistent;
+  FConnectedAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedAnchorForPersistent;
+  FConnectedAnchorPersistent.InternalDefaultValue := ConnectedAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FPlaneNormalPersistent);
+  FreeAndNil(FConnectedAnchorPersistent);
 {$endif read_implementation_destructor}
 

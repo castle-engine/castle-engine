@@ -24,40 +24,40 @@
 
 {$ifdef read_interface_class}
 strict private
-  FAnchorPersistent: TCastleVector3Persistent;
-  function GetAnchorForPersistent: TVector3;
-  procedure SetAnchorForPersistent(const AValue: TVector3);
+  FWorldAnchorPersistent: TCastleVector3Persistent;
+  function GetWorldAnchorForPersistent: TVector3;
+  procedure SetWorldAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(Anchor) that can be visually edited in
+  { @link(WorldAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(Anchor) directly.
+    instead read or write @link(WorldAnchor) directly.
 
-    @seealso Anchor }
-  property AnchorPersistent: TCastleVector3Persistent read FAnchorPersistent ;
+    @seealso WorldAnchor }
+  property WorldAnchorPersistent: TCastleVector3Persistent read FWorldAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointHinge.GetAnchorForPersistent: TVector3;
+function TSliderJoint.GetWorldAnchorForPersistent: TVector3;
 begin
-  Result := Anchor;
+  Result := WorldAnchor;
 end;
 
-procedure TJointHinge.SetAnchorForPersistent(const AValue: TVector3);
+procedure TSliderJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
 begin
-  Anchor := AValue;
+  WorldAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAnchorPersistent := TCastleVector3Persistent.Create;
-  FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
-  FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
-  FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
+  FWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldAnchorForPersistent;
+  FWorldAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldAnchorForPersistent;
+  FWorldAnchorPersistent.InternalDefaultValue := WorldAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FAnchorPersistent);
+  FreeAndNil(FWorldAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FRotationAxisPersistent: TCastleVector3Persistent;
-  function GetRotationAxisForPersistent: TVector3;
-  procedure SetRotationAxisForPersistent(const AValue: TVector3);
+  FWorldSliderAxisPersistent: TCastleVector3Persistent;
+  function GetWorldSliderAxisForPersistent: TVector3;
+  procedure SetWorldSliderAxisForPersistent(const AValue: TVector3);
 published
-  { @link(RotationAxis) that can be visually edited in
+  { @link(WorldSliderAxis) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(RotationAxis) directly.
+    instead read or write @link(WorldSliderAxis) directly.
 
-    @seealso RotationAxis }
-  property RotationAxisPersistent: TCastleVector3Persistent read FRotationAxisPersistent ;
+    @seealso WorldSliderAxis }
+  property WorldSliderAxisPersistent: TCastleVector3Persistent read FWorldSliderAxisPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointHinge.GetRotationAxisForPersistent: TVector3;
+function TSliderJoint.GetWorldSliderAxisForPersistent: TVector3;
 begin
-  Result := RotationAxis;
+  Result := WorldSliderAxis;
 end;
 
-procedure TJointHinge.SetRotationAxisForPersistent(const AValue: TVector3);
+procedure TSliderJoint.SetWorldSliderAxisForPersistent(const AValue: TVector3);
 begin
-  RotationAxis := AValue;
+  WorldSliderAxis := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRotationAxisPersistent := TCastleVector3Persistent.Create;
-  FRotationAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationAxisForPersistent;
-  FRotationAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationAxisForPersistent;
-  FRotationAxisPersistent.InternalDefaultValue := RotationAxis; // current value is default
+  FWorldSliderAxisPersistent := TCastleVector3Persistent.Create;
+  FWorldSliderAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldSliderAxisForPersistent;
+  FWorldSliderAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldSliderAxisForPersistent;
+  FWorldSliderAxisPersistent.InternalDefaultValue := WorldSliderAxis; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FRotationAxisPersistent);
+  FreeAndNil(FWorldSliderAxisPersistent);
 {$endif read_implementation_destructor}
 

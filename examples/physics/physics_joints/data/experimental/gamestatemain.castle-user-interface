@@ -86,7 +86,7 @@
                 "Name" : "BoxCollider1"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 8.9754158020019531E+001
@@ -96,7 +96,7 @@
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxRopeEndPoint",
                 "Distance" : 3.0000000000000000E+002,
-                "Name" : "JointRope1"
+                "Name" : "RopeJoint1"
               }
             ]
           },
@@ -259,7 +259,7 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : true,
@@ -269,7 +269,7 @@
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
-                "Name" : "JointHinge",
+                "Name" : "HingeJoint",
                 "RotationAxisPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -1.0000000000000000E+000
@@ -415,7 +415,7 @@
                 "Name" : "SphereCollider7"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : false,
@@ -425,7 +425,7 @@
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -1.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
-                "Name" : "JointHinge2",
+                "Name" : "HingeJoint2",
                 "RotationAxisPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -1.0000000000000000E+000
@@ -528,7 +528,7 @@
                 "Name" : "SphereCollider6"
               },
               {
-                "$$ClassName" : "TJointHinge",
+                "$$ClassName" : "THingeJoint",
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : false,
@@ -538,7 +538,7 @@
                 "MaxMotorTorque" : -1.0000000000000000E+005,
                 "MinAngleLimit" : -3.0000000000000000E+000,
                 "MotorSpeed" : 1.0000000000000000E+006,
-                "Name" : "JointHinge1",
+                "Name" : "HingeJoint1",
                 "RotationAxisPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -1.0000000000000000E+000
@@ -641,10 +641,10 @@
                 "Name" : "SphereCollider2"
               },
               {
-                "$$ClassName" : "TJointFixed",
+                "$$ClassName" : "TFixedJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxFixed",
-                "Name" : "JointFixed1"
+                "Name" : "FixedJoint1"
               }
             ]
           },
@@ -784,10 +784,10 @@
                 "Name" : "SphereCollider3"
               },
               {
-                "$$ClassName" : "TJointBall",
+                "$$ClassName" : "TBallJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxBall",
-                "Name" : "JointBall1"
+                "Name" : "BallJoint1"
               }
             ]
           },
@@ -836,12 +836,12 @@
                 "Name" : "SphereCollider4"
               },
               {
-                "$$ClassName" : "TJointDistance",
+                "$$ClassName" : "TDistanceJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxDistance",
                 "DampingRatio" : 6.9999998807907104E-001,
                 "FrequencyHz" : 5.0000000000000000E+000,
-                "Name" : "JointDistance1"
+                "Name" : "DistanceJoint1"
               }
             ]
           },
@@ -991,11 +991,11 @@
                 "Name" : "SphereCollider5"
               },
               {
-                "$$ClassName" : "TJointWorldPlaneDistance",
+                "$$ClassName" : "TWorldPlaneDistanceJoint",
                 "Breakable" : false,
                 "DampingRatio" : 6.9999998807907104E-001,
                 "FrequencyHz" : 5.0000000000000000E+000,
-                "Name" : "JointWorldPlaneDistance1"
+                "Name" : "WorldPlaneDistanceJoint1"
               }
             ]
           },
@@ -1095,7 +1095,7 @@
                 "Name" : "BoxCollider10"
               },
               {
-                "$$ClassName" : "TJointPulley",
+                "$$ClassName" : "TPulleyJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxPulley2",
                 "ConnectedWorldAnchorPersistent" : {
@@ -1108,7 +1108,7 @@
                   "X" : 1.3080999755859375E+003,
                   "Y" : 5.2327685546875000E+002
                 },
-                "Name" : "JointPulley1",
+                "Name" : "PulleyJoint1",
                 "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002,
@@ -1212,10 +1212,10 @@
                 "Name" : "SphereCollider8"
               },
               {
-                "$$ClassName" : "TJointGrab",
+                "$$ClassName" : "TGrabJoint",
                 "Breakable" : false,
                 "DampingRatio" : 1.0000000149011612E-001,
-                "Name" : "JointGrab1",
+                "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.7077658691406250E+003,

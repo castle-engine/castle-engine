@@ -79,7 +79,7 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "TJointRope",
+                "$$ClassName" : "TRopeJoint",
                 "Breakable" : false,
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -87,7 +87,7 @@
                 },
                 "ConnectedTransform" : "Box1",
                 "Distance" : 5.0000000000000000E+001,
-                "Name" : "JointRope1"
+                "Name" : "RopeJoint1"
               }
             ]
           },

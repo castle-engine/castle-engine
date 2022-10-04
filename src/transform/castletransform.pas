@@ -111,16 +111,16 @@ initialization
   R.Caption := 'Sphere Colllider (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
-  RegisterSerializableComponent(TJointRope, 'Joint Rope');
-  RegisterSerializableComponent(TJointHinge, 'Joint Hinge');
-  RegisterSerializableComponent(TJointBall, 'Joint Ball');
-  RegisterSerializableComponent(TJointDistance, 'Joint Distance');
-  RegisterSerializableComponent(TJointGrab, 'Joint Grab');
+  RegisterSerializableComponent(TRopeJoint, 'Rope Joint');
+  RegisterSerializableComponent(THingeJoint, 'Hinge Joint ');
+  RegisterSerializableComponent(TBallJoint, 'Ball Joint');
+  RegisterSerializableComponent(TDistanceJoint, 'Distance Joint');
+  RegisterSerializableComponent(TGrabJoint, 'Grab Joint');
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  RegisterSerializableComponent(TJointFixed, 'Joint Fixed');
-  RegisterSerializableComponent(TJointPulley, 'Joint Pulley');
-  RegisterSerializableComponent(TJointWorldPlaneDistance, 'Joint World Plane Distance');
-  RegisterSerializableComponent(TJointSlider, 'Joint Slider');
+  RegisterSerializableComponent(TFixedJoint, 'Fixed Joint');
+  RegisterSerializableComponent(TPulleyJoint, 'Pulley Joint');
+  RegisterSerializableComponent(TWorldPlaneDistanceJoint, 'World Plane Distance Joint');
+  RegisterSerializableComponent(TSliderJoint, 'Slider Joint');
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 end.

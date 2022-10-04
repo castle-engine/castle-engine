@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointDistance.GetAnchorForPersistent: TVector3;
+function THingeJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TJointDistance.SetAnchorForPersistent(const AValue: TVector3);
+procedure THingeJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FConnectedAnchorPersistent: TCastleVector3Persistent;
-  function GetConnectedAnchorForPersistent: TVector3;
-  procedure SetConnectedAnchorForPersistent(const AValue: TVector3);
+  FRotationAxisPersistent: TCastleVector3Persistent;
+  function GetRotationAxisForPersistent: TVector3;
+  procedure SetRotationAxisForPersistent(const AValue: TVector3);
 published
-  { @link(ConnectedAnchor) that can be visually edited in
+  { @link(RotationAxis) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(ConnectedAnchor) directly.
+    instead read or write @link(RotationAxis) directly.
 
-    @seealso ConnectedAnchor }
-  property ConnectedAnchorPersistent: TCastleVector3Persistent read FConnectedAnchorPersistent ;
+    @seealso RotationAxis }
+  property RotationAxisPersistent: TCastleVector3Persistent read FRotationAxisPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointDistance.GetConnectedAnchorForPersistent: TVector3;
+function THingeJoint.GetRotationAxisForPersistent: TVector3;
 begin
-  Result := ConnectedAnchor;
+  Result := RotationAxis;
 end;
 
-procedure TJointDistance.SetConnectedAnchorForPersistent(const AValue: TVector3);
+procedure THingeJoint.SetRotationAxisForPersistent(const AValue: TVector3);
 begin
-  ConnectedAnchor := AValue;
+  RotationAxis := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedAnchorPersistent := TCastleVector3Persistent.Create;
-  FConnectedAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedAnchorForPersistent;
-  FConnectedAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedAnchorForPersistent;
-  FConnectedAnchorPersistent.InternalDefaultValue := ConnectedAnchor; // current value is default
+  FRotationAxisPersistent := TCastleVector3Persistent.Create;
+  FRotationAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationAxisForPersistent;
+  FRotationAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationAxisForPersistent;
+  FRotationAxisPersistent.InternalDefaultValue := RotationAxis; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FConnectedAnchorPersistent);
+  FreeAndNil(FRotationAxisPersistent);
 {$endif read_implementation_destructor}
 

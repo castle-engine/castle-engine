@@ -99,7 +99,7 @@
                     "Scene" : "SceneRest"
                   },
                   {
-                    "$$ClassName" : "TJointHinge",
+                    "$$ClassName" : "THingeJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 2.7400000095367432E+000,
@@ -110,7 +110,7 @@
                     "ConnectedTransform" : "SceneDoor1",
                     "EnableLimits" : false,
                     "EnableMotor" : false,
-                    "Name" : "JointHinge",
+                    "Name" : "HingeJoint",
                     "RotationAxisPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 1.0000000000000000E+000,

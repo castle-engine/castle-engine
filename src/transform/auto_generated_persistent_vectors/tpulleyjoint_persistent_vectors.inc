@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetWorldAnchorForPersistent: TVector3;
+function TPulleyJoint.GetWorldAnchorForPersistent: TVector3;
 begin
   Result := WorldAnchor;
 end;
 
-procedure TJointPulley.SetWorldAnchorForPersistent(const AValue: TVector3);
+procedure TPulleyJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
 begin
   WorldAnchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetConnectedWorldAnchorForPersistent: TVector3;
+function TPulleyJoint.GetConnectedWorldAnchorForPersistent: TVector3;
 begin
   Result := ConnectedWorldAnchor;
 end;
 
-procedure TJointPulley.SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
+procedure TPulleyJoint.SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedWorldAnchor := AValue;
 end;
@@ -162,12 +162,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetWorldGroundAnchorForPersistent: TVector3;
+function TPulleyJoint.GetWorldGroundAnchorForPersistent: TVector3;
 begin
   Result := WorldGroundAnchor;
 end;
 
-procedure TJointPulley.SetWorldGroundAnchorForPersistent(const AValue: TVector3);
+procedure TPulleyJoint.SetWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
   WorldGroundAnchor := AValue;
 end;
@@ -224,12 +224,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetConnectedWorldGroundAnchorForPersistent: TVector3;
+function TPulleyJoint.GetConnectedWorldGroundAnchorForPersistent: TVector3;
 begin
   Result := ConnectedWorldGroundAnchor;
 end;
 
-procedure TJointPulley.SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
+procedure TPulleyJoint.SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedWorldGroundAnchor := AValue;
 end;
