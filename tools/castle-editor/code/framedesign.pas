@@ -240,8 +240,19 @@ type
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
 
-      { Needed to check what was deselected after InternalSelectionStart }
-      FSelectionStartBehaviorList: specialize TList<TCastleBehavior>;
+      { Needed to check what was deselected after InternalSelectionStart.
+        The only classes allowed here are TCastleBehavior.
+
+        Note: This is TComponentList and as such it will automatically
+        remove from itself the freed instances.
+        Testcase that this is needed, when this is just TList:
+
+        To any TCastleTransform, add 2 behaviors (like TCastleRigidBody
+        and TCastleXxxCollider), select both with Shift, Delete,
+        press "End" key (this sends an event that assumes that Behaviors
+        list doesn't contain any dangling pointers).
+      }
+      FSelectionStartBehaviorList: TComponentList;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -1382,7 +1393,7 @@ begin
   ControlProperties.ActivePage := TabBasic;
 
   TreeNodeMap := TTreeNodeMap.Create;
-  FSelectionStartBehaviorList := specialize TList<TCastleBehavior>.Create;
+  FSelectionStartBehaviorList := TComponentList.Create(false);
 
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
@@ -3864,9 +3875,9 @@ begin
 
   { If behavior is not on selected list call InternalSelectionEnd and
     remove it from FSelectionStartBehaviorList }
-  for I := BehaviorCount - 1 to 0 do
+  for I := BehaviorCount - 1 downto 0 do
   begin
-    B := FSelectionStartBehaviorList[I];
+    B := FSelectionStartBehaviorList[I] as TCastleBehavior;
     if SelectedComponents <> nil then
     begin
       Index := SelectedComponents.IndexOf(B);
@@ -3882,7 +3893,17 @@ procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior;
   const TransformsToSynchronize: TCastleTransformList);
 begin
   Behavior.InternalSelectionStart(TransformsToSynchronize);
-  FSelectionStartBehaviorList.Add(Behavior);
+
+  { Do not allow duplicates.
+
+    Reason: TODO: not understood to the end, but testcase:
+
+    To any TCastleTransform, add 2 behaviors (like TCastleRigidBody
+    and TCastleXxxCollider), select 2nd one and Delete, select the 1st
+    one, reopen design by double-clicking (do not save it), press "End" key. }
+
+  if FSelectionStartBehaviorList.IndexOf(Behavior) = -1 then
+    FSelectionStartBehaviorList.Add(Behavior);
 end;
 
 procedure TDesignFrame.DoInternalSelectionEnd(const Behavior: TCastleBehavior);
@@ -3896,7 +3917,7 @@ var
   I: Integer;
 begin
   for I := FSelectionStartBehaviorList.Count - 1 downto 0 do
-    DoInternalSelectionEnd(FSelectionStartBehaviorList[I]);
+    DoInternalSelectionEnd(FSelectionStartBehaviorList[I] as TCastleBehavior);
 end;
 
 procedure TDesignFrame.RemoveJointsAnchors;
