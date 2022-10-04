@@ -4588,7 +4588,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
+    TTemporaryJointAnchor(FAnchorTransform).Value := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4599,7 +4599,7 @@ begin
 
   FConnectedAnchor := AValue;
   if FConnectedAnchorTransform <> nil then
-    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := FAnchor;
+    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
   RecreateKraftJoint;
 end;
 
