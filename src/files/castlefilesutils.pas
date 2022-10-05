@@ -541,6 +541,9 @@ procedure StringToFile(const URL: String; const Contents: AnsiString);
   and on some platforms they may have special API for this stuff). }
 function SaveScreenPath: String;
 
+{ Calculate size of all files in this dir. }
+function DirectorySize(const Dir: String): QWord;
+
 implementation
 
 uses {$ifdef MSWINDOWS} ShlObj, {$endif}
@@ -1326,6 +1329,32 @@ begin
 
   CachedSaveScreenPath := Result;
   HasCachedSaveScreenPath := true;
+end;
+
+{ DirectorySize utility ------------------------------------------------------ }
+
+type
+  TDirectorySizeHelper = class
+  public
+    { Total size of all files in the directory. }
+    Size: QWord;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TDirectorySizeHelper.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+begin
+  Size := Size + FileInfo.Size;
+end;
+
+function DirectorySize(const Dir: String): QWord;
+var
+  Helper: TDirectorySizeHelper;
+begin
+  Helper := TDirectorySizeHelper.Create;
+  try
+    FindFiles(Dir, '*', false, {$ifdef FPC}@{$endif}Helper.FoundFile, [ffRecursive]);
+    Result := Helper.Size;
+  finally FreeAndNil(Helper) end;
 end;
 
 procedure InitializeExeName;

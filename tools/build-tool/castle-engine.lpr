@@ -178,6 +178,12 @@ begin
             '      version' + NL +
             '      version-code' + NL +
             NL+
+            'cache' +NL+
+            '    Create cache for given OS / CPU to speed up future compilations.' + NL +
+            NL+
+            'cache-remove' +NL+
+            '    Remove the cache.' + NL +
+            NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
             VersionOptionHelp +NL+
@@ -411,6 +417,14 @@ begin
       begin
         Parameters.CheckHigh(2);
         Project.DoOutput(Parameters[2]);
+      end else
+      if Command = 'cache' then
+      begin
+        Project.DoCache(OverrideCompiler, Target, OS, CPU);
+      end else
+      if Command = 'cache-remove' then
+      begin
+        Project.DoCacheRemove;
       end else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;

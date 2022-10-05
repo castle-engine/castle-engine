@@ -130,6 +130,9 @@ type
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
     procedure DoOutput(const OutputKey: String);
+    procedure DoCache(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    procedure DoCacheRemove;
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -253,6 +256,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleTimeUtils,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
@@ -1438,7 +1442,7 @@ begin
       will always fail. }
     CgePath := CastleEnginePath;
     if CgePath = '' then
-      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+      raise Exception.Create(SCannotFindCgePath);
 
     // create custom editor directory
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
@@ -2185,6 +2189,103 @@ begin
   Result :=
     (FLaunchImageStoryboardWidth <> 0) and
     (FLaunchImageStoryboardHeight <> 0);
+end;
+
+procedure TCastleProject.DoCache(const OverrideCompiler: TCompiler;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU);
+var
+  ProjectTemplateDir: String;
+
+  procedure CreateCache(const Mode: TCompilationMode);
+  const
+    Compiler = coFpc;
+  var
+    CacheProject: TCastleProject;
+    CacheProjectDir, CacheOutputPath, CachePathFull: String;
+  begin
+    CacheProjectDir := InclPathDelim(GetTempDir(false)) +
+      'castle-engine-cache-project-' + IntToStr(Random(1000000));
+
+    Writeln(Format('Creating compilation cache for mode "%s" using temporary dir "%s"', [
+      CompilationModeToStr[Mode],
+      CacheProjectDir
+    ]));
+
+    // copy project template to CacheProjectDir
+    if DirectoryExists(CacheProjectDir) then
+      RemoveNonEmptyDir(CacheProjectDir); // clean first
+    CopyDirectory(ProjectTemplateDir, CacheProjectDir);
+
+    // we do SetCurrentDir as this is the only way for now to set TCastleProject location
+    if not SetCurrentDir(CacheProjectDir) then
+      raise Exception.CreateFmt('Cannot enter project directory "%s"', [CacheProjectDir]);
+
+    CacheProject := TCastleProject.Create;
+    try
+      CacheProject.DoCompile(Compiler, Target, OS, CPU, Mode);
+      CacheOutputPath := CompilationOutputPath(Compiler, OS, CPU, CacheProjectDir);
+    finally FreeAndNil(CacheProject) end;
+
+    CachePathFull := CachePath + CompilationModeToStr[Mode] + PathDelim +
+      CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
+    if not ForceDirectories(CachePathFull) then
+      raise Exception.CreateFmt('Cannot create directory for config file: "%s"', [CachePathFull]);
+
+    Writeln(Format('Storing cache in "%s"', [
+      CachePathFull
+    ]));
+    CopyDirectory(CacheOutputPath, CachePathFull);
+
+    { change current directory to CacheProjectDir parent before trying to remove CacheProjectDir,
+      Windows prevents removal otherwise. }
+    {$warnings off} // using ParentPath, should be internal
+    if not SetCurrentDir(ParentPath(CacheProjectDir)) then
+      raise Exception.CreateFmt('Cannot enter project parent directory "%s"', [ParentPath(CacheProjectDir)]);
+    {$warnings on}
+    RemoveNonEmptyDir(CacheProjectDir, true);
+  end;
+
+var
+  Mode: TCompilationMode;
+  CgePath: String;
+  Seconds: TFloatTime;
+  TimeStart: TProcessTimerResult;
+  CacheSize: QWord;
+begin
+  TimeStart := ProcessTimer;
+
+  if Target <> targetCustom then
+    raise Exception.Create('Only caching for "custom" target (specific OS, CPU) is supported now');
+  if not (OverrideCompiler in [coAutodetect, coFpc]) then
+    raise Exception.Create('Only caching for FPC is supported now');
+
+  CgePath := CastleEnginePath;
+  if CgePath = '' then
+    raise Exception.Create(SCannotFindCgePath);
+  ProjectTemplateDir := CgePath + 'tools' + PathDelim + 'build-tool' + PathDelim +
+    'data' + PathDelim + 'castle_cache';
+
+  for Mode := Low(Mode) to High(Mode) do
+    CreateCache(Mode);
+
+  CacheSize := DirectorySize(CachePath);
+  Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
+  Writeln(Format('Cache created in %f seconds, size on disk: %s', [
+    Seconds,
+    SizeToStr(CacheSize)
+  ]));
+end;
+
+procedure TCastleProject.DoCacheRemove;
+var
+  S: String;
+begin
+  S := CachePath;
+  if DirectoryExists(S) then
+  begin
+    Writeln('Removing cache dir ', S);
+    RemoveNonEmptyDir(S);
+  end;
 end;
 
 { shortcut methods to acces Manifest.Xxx ------------------------------------- }

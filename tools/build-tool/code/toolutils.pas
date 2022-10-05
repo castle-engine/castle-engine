@@ -19,7 +19,7 @@ unit ToolUtils;
 interface
 
 uses DOM,
-  CastleImages, CastleStringUtils;
+  CastleImages, CastleStringUtils, CastleUtils;
 
 { Copy file, making sure the destination directory exists
   (eventually creating it), and checking result. }
@@ -52,8 +52,8 @@ const
 
     Index: packages/fcl-image/src/fpinterpolation.inc
     ===================================================================
-    --- packages/fcl-image/src/fpinterpolation.inc	(wersja 40746)
-    +++ packages/fcl-image/src/fpinterpolation.inc	(kopia robocza)
+    --- packages/fcl-image/src/fpinterpolation.inc      (wersja 40746)
+    +++ packages/fcl-image/src/fpinterpolation.inc      (kopia robocza)
     @@ -223,7 +223,8 @@
                NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
                NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
@@ -100,13 +100,21 @@ procedure DoMakeExecutable(const PathAndName: String);
   This is only used when --gui-errors was used. }
 procedure ErrorBox(const Message: String);
 
+const
+  SCannotFindCgePath = 'Cannot find Castle Game Engine path.' + NL +
+    'Solutions:' + NL +
+    '1. Run from CGE editor (where you can configure CGE path in "Preferences",' + NL +
+    '2. Or place the engine tools (exe) inside the bin/ subdirectory of the engine,' + NL +
+    '3. Or set the environment variable $CASTLE_ENGINE_PATH.';
+
+function CachePath: String;
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
   Classes, Process, SysUtils,
-  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
-  CastleFindFiles,
+  CastleFilesUtils, CastleURIUtils, CastleLog, CastleXMLUtils, CastleFindFiles,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -258,6 +266,11 @@ begin
   {$else}
   RunCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
   {$endif}
+end;
+
+function CachePath: String;
+begin
+  Result := InclPathDelim(GetAppConfigDir(false)) + 'cache' + PathDelim;
 end;
 
 end.

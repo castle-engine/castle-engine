@@ -177,6 +177,12 @@ const
     'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
   );
 
+  CompilationModeToStr: array [TCompilationMode] of string = (
+    'release',
+    'valgrind',
+    'debug'
+  );
+
 implementation
 
 uses SysUtils, Process,
