@@ -134,15 +134,22 @@ begin
 end;
 
 var
-  FOutputPath: string;
+  FOutputPath: String;
+  FOutputPathForWorkingDirectory: String;
 
-function TempOutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
+function TempOutputPath(const WorkingDirectory: String; const CreateIfNecessary: Boolean): String;
 const
   OutputNoteContents = {$I ../embedded_templates/template-castle-engine-output-warning.txt.inc};
 var
-  OutputNote: string;
+  OutputNote: String;
 begin
-  if FOutputPath = '' then
+  if (FOutputPath = '') or
+     { Do not reuse cached FOutputPath for different WorkingDirectory,
+       otherwise doing DoCompile for different projects in same run would accidentally
+       reuse output.
+       Testcase: "castle-engine cache", each mode (release valgrind debug)
+       must build new files. }
+     (FOutputPathForWorkingDirectory <> WorkingDirectory) then
   begin
     if OutputPathBase = '' then
       FOutputPath := InclPathDelim(WorkingDirectory)
@@ -158,6 +165,8 @@ begin
       if not RegularFileExists(OutputNote) then
         StringToFile(OutputNote, OutputNoteContents);
     end;
+
+    FOutputPathForWorkingDirectory := WorkingDirectory;
   end;
 
   Result := FOutputPath;
