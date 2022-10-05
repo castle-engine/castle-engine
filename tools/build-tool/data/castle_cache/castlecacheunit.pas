@@ -1,5 +1,13 @@
-{ List most non-internal, non-deprecated units to precompile them all for cache.
-  This is bit similar to fpmake.pp contents. }
+{ List (use) most non-internal, non-deprecated units to precompile them all for cache.
+  This is bit similar to fpmake.pp contents.
+
+  The compilation output of this project is used for "castle-engine cache",
+  starting point to compile other CGE projects fast. }
+
+unit CastleCacheUnit;
+
+interface
+
 uses
   // src/transform
   castlebehaviors,
@@ -74,7 +82,6 @@ uses
   castleandroidinternalconfiguration,
   castleandroidinternalinput,
   castleandroidinternalkeycodes,
-  castleandroidinternallog,
   castleandroidinternallog,
   castleandroidinternallooper,
   castleandroidinternalnativeactivity,
@@ -161,5 +168,5 @@ uses
   castlethirdpersonnavigation,
   castleviewport;
 
-begin
+implementation
 end.
