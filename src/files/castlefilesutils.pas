@@ -354,25 +354,40 @@ function HomePath: string;
   ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
 function ExpandHomePath(const FileName: string): string;
 
-{ Call SysUtils.DeleteFile and check result.
+{ Remove file.
+
+  Similar to standard DeleteFile, but this checks result and raises exception
+  or makes a warning (see Warn parameter) in case of trouble
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false);
 
-{ Call RemoveDir and check result.
+{ Remove empty directory.
+
+  Similar to standard RemoveDir, but this checks result and raises exception
+  or makes a warning (see Warn parameter) in case of trouble.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure CheckRemoveDir(const DirFileName: string; const Warn: Boolean = false);
 
-{ Make sure directory exists, eventually creating it, recursively, checking result. }
+{ Make sure directory exists, eventually creating it and all directories along the way.
+
+  Similar to standard ForceDirectories, but this checks result and raises exception
+  in case of trouble. }
 procedure CheckForceDirectories(const Dir: string);
 
+{ Copy file from Source to Dest.
+  The directory of Dest must already exist.
+  File is overwritten unconditionally. }
 procedure CheckCopyFile(const Source, Dest: string);
 
+{ Move file from Source to Dest.
+  The directory of Dest must already exist.
+  File is overwritten unconditionally. }
 procedure CheckRenameFile(const Source, Dest: string);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
