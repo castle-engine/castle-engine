@@ -29,7 +29,8 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait,
+  ToolCache;
 
 var
   Target: TTarget;
@@ -353,6 +354,16 @@ begin
       end;
     finally FreeAndNil(SimpleCompileOptions) end;
   end else
+  if Command = 'cache' then
+  begin
+    Parameters.CheckHigh(1);
+    CacheCreate(OverrideCompiler, Target, OS, CPU);
+  end else
+  if Command = 'cache-clean' then
+  begin
+    Parameters.CheckHigh(1);
+    CacheClean;
+  end else
   begin
     if (Command <> 'run') and (Command <> 'output') then
       Parameters.CheckHigh(1);
@@ -417,14 +428,6 @@ begin
       begin
         Parameters.CheckHigh(2);
         Project.DoOutput(Parameters[2]);
-      end else
-      if Command = 'cache' then
-      begin
-        Project.DoCache(OverrideCompiler, Target, OS, CPU);
-      end else
-      if Command = 'cache-clean' then
-      begin
-        Project.DoCacheClean;
       end else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
