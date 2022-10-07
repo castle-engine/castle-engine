@@ -294,6 +294,7 @@ type
     procedure ActionWarningsCopyAllExecute(Sender: TObject);
     procedure ActionWarningsCopySelectedExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
+    procedure ApplicationProperties1Deactivate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -530,6 +531,27 @@ begin
   if SaveDesignDialog.Execute then
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+  { On GTK, this happens when we open a dialog box, like open/save.
+    It's important to stop treating keys/mouse as pressed then.
+
+    Testcase:
+    - Make new design,
+    - add 3D viewport,
+    - press right mouse button and S (to move back),
+    - press Ctrl (invokes Save dialog),
+    - release all keys, press "Cancel",
+    -> without this line, TCastleControl would think "S" key is still down.
+
+    Note:
+    - TCastleControl.DoExit is not called in this case.
+    - Form OnDeactive is also not called (matches docs on
+      https://wiki.lazarus.freepascal.org/Event_order#Form.OnDeactivate ).
+    - ApplicationProperties1Deactivate is not effective workaround for this
+      (workarounds "open" but not "save" testcase for some reason,
+      maybe because of "S" and Ctrl+S interaction).
+  }
+  Design.ReleaseAllKeysAndMouse;
 end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
@@ -725,6 +747,29 @@ begin
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.ApplicationProperties1Deactivate(Sender: TObject);
+begin
+  { On GTK, this happens when we open a dialog box, like open/save.
+    It's important to stop treating keys/mouse as pressed then.
+
+    Testcase:
+    - Make new design,
+    - add 3D viewport,
+    - press right mouse button and W (to move forward),
+    - release mouse,
+    - press Ctrl+O (invokes Open dialog),
+    - release all keys, press "Cancel",
+    -> without this line, TCastleControl would think "W" key is still down.
+
+    Note: TCastleControl.DoExit is not called in this case.
+    Form OnDeactive is also not called (matches docs on
+    https://wiki.lazarus.freepascal.org/Event_order#Form.OnDeactivate ).
+  }
+
+  if Design <> nil then
+    Design.ReleaseAllKeysAndMouse;
 end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);

@@ -459,6 +459,8 @@ type
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
+
+    procedure ReleaseAllKeysAndMouse;
   end;
 
 implementation
@@ -4941,6 +4943,11 @@ begin
   OpenDesign(NewRoot, NewDesignOwner, '');
 
   RecordUndo('Start new design', High(TUndoCommentPriority)); // This Undo comment is never seen
+end;
+
+procedure TDesignFrame.ReleaseAllKeysAndMouse;
+begin
+  CastleControl.ReleaseAllKeysAndMouse;
 end;
 
 initialization
