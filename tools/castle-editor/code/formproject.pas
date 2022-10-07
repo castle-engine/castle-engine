@@ -462,7 +462,7 @@ type
     procedure RestartEditor(Sender: TObject);
     procedure CurrentViewportChanged(Sender: TObject);
     { Question about saving during physics simulation. }
-    function SaveDurringPhysicsSimulation: Boolean;
+    function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
@@ -534,7 +534,7 @@ end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
-  if not SaveDurringPhysicsSimulation then
+  if not SaveDuringPhysicsSimulation then
     Exit;
 
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -568,7 +568,7 @@ end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
-  if not SaveDurringPhysicsSimulation then
+  if not SaveDuringPhysicsSimulation then
     Exit;
 
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1969,7 +1969,7 @@ begin
     UnselectAll;
 end;
 
-function TProjectForm.SaveDurringPhysicsSimulation: Boolean;
+function TProjectForm.SaveDuringPhysicsSimulation: Boolean;
 begin
   Result := true;
   if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
