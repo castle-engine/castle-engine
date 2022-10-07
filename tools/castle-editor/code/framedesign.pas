@@ -3021,6 +3021,18 @@ begin
          (TComponent(Instance).Owner <> DesignOwner) then
         Exit;
 
+      { Hide editing transformation of TCastleAbstractRootTransform,
+        as it makes very unintuitive behavior because desing-time camera is also
+        a child of it, so e.g. moving Viewport.Items seems to do nothing
+        (TODO: but it breaks you mouse look works -- it should not). }
+      if (Instance is TCastleAbstractRootTransform) and
+         ( (PropertyName = 'CenterPersistent') or
+           (PropertyName = 'ScaleOrientationPersistent') or
+           (PropertyName = 'RotationPersistent') or
+           (PropertyName = 'ScalePersistent') or
+           (PropertyName = 'TranslationPersistent') ) then
+        Exit;
+
       if FilterBySection and (Instance is TCastleComponent) then
       begin
         AShow := Section in TCastleComponent(Instance).PropertySections(PropertyName);
@@ -4148,7 +4160,14 @@ begin
   else
     T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
-  VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
+
+  if T is TCastleAbstractRootTransform then
+    { Special case to disallow editing TCastleAbstractRootTransform transformation.
+      See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
+      transformation is very unintuitive. }
+    VisualizeTransformSelected.Parent := nil
+  else
+    VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
   if CameraPreview <> nil then
     CameraPreview.SelectedChanged(T, V);
