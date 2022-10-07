@@ -363,11 +363,13 @@ end;
 
 function TCastleRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'MainScene') or
-     (PropertyName = 'UseHeadlight') then
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
+  // These are deprecated now
+  // if (PropertyName = 'MainScene') or
+  //    (PropertyName = 'UseHeadlight') then
+  //     Result := [psBasic]
+  //   else
+
+  Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleRootTransform.IgnoreTransparentItem(
