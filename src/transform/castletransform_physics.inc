@@ -2098,11 +2098,32 @@ begin
 end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
+
+  function ColliderForcesStatic: Boolean;
+  var
+    C: TCastleCollider;
+  begin
+    { We use GetCastleColliderFromParent, not FCastleCollider,
+      because FCastleCollider is not assigned yet by caller(s). }
+    C := GetCastleColliderFromParent;
+    Result := (C <> nil) and (
+      (C is TCastleMeshCollider) or
+      (C is TCastlePlaneCollider)
+    );
+  end;
+
 begin
   if FState in [crbsNotInitialized] then
   begin
     if FKraftBody <> nil then
     begin
+      if ColliderForcesStatic then
+        { Some colliders only support static, in which case we use krbtStatic
+          regardless of Dynamic/Animated.
+          TODO: Are these colliders (mesh and plane) also disable Animated?
+          For now we assume yes, but maybe it is no, and we should still honor Animated? }
+        FKraftBody.SetRigidBodyType(krbtStatic)
+      else
       if FDynamic then
         FKraftBody.SetRigidBodyType(krbtDynamic)
       else
