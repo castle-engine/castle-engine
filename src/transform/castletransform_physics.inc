@@ -178,14 +178,23 @@
     destructor Destroy; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    { Recalculates current size using parent Bounding Box }
-    procedure DoAutoSize;
+
+    { Recalculate collider size using parent bounding box.
+      Ignored if not @link(AutoSize). }
+    procedure InternalAutoSize;
 
     property Translation: TVector3 read FTranslation write SetTranslation;
     property Rotation: TVector4 read FRotation write SetRotation;
     property Scale: TVector3 read FScale write SetScale;
   published
+    { Automatically calculate collider properties that determine collider size
+      based on the parent transformation bounding box.
+      When this is set, properties like
+      @link(TCastleSphereCollider.Radius) or @link(TCastleBoxCollider.Size)
+      are automatically updated to the best values to match collider size
+      with the parent @link(TCastleTransform.LocalBoundingBox). }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
+
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
       If you instead prefer to explicitly set mass, set @link(Mass)
@@ -1121,8 +1130,7 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    if AutoSize then
-      DoAutoSize;
+    InternalAutoSize;
   end;
 end;
 
@@ -1465,8 +1473,7 @@ begin
     Exit;
 
   FAutoSize := AValue;
-  if FAutoSize then
-    DoAutoSize;
+  InternalAutoSize;
 end;
 
 procedure TCastleCollider.ShapeChangedNotifyRigidBody;
@@ -1491,8 +1498,7 @@ begin
   if CastleRigidBody <> nil then
     CastleRigidBody.CheckInitialization(Self);
 
-  if AutoSize then
-    DoAutoSize;
+  InternalAutoSize;
 
   UpdateScale(false);
 
@@ -1618,8 +1624,10 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleCollider.DoAutoSize;
+procedure TCastleCollider.InternalAutoSize;
 begin
+  if not AutoSize then Exit;
+
   FAutoSizing := true;
   try
     CalculateAutoSize;
@@ -1781,8 +1789,7 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    if AutoSize then
-      DoAutoSize;
+    InternalAutoSize;
   end;
 end;
 
@@ -1972,8 +1979,7 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    if AutoSize then
-      DoAutoSize;
+    InternalAutoSize;
   end;
 end;
 
@@ -3012,8 +3018,7 @@ procedure TCastleRigidBody.UpdateColliderAutosize;
 begin
   if ExistsInRoot and (FCastleCollider <> nil) then
   begin
-    if FCastleCollider.AutoSize then
-      FCastleCollider.DoAutoSize;
+    FCastleCollider.InternalAutoSize;
   end;
 end;
 
