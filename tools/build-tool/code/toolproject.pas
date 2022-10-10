@@ -108,7 +108,8 @@ type
     procedure DoCreateManifest;
     procedure DoCompile(const OverrideCompiler: TCompiler;
       const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Mode: TCompilationMode; const CompilerExtraOptions: TStrings = nil);
+      const Mode: TCompilationMode; const CompilerExtraOptions: TStrings = nil;
+      const AllowCache: Boolean = true);
     procedure DoPackage(const Target: TTarget;
       const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
@@ -253,6 +254,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleTimeUtils,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
@@ -480,7 +482,8 @@ end;
 
 procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
-  const CompilerExtraOptions: TStrings);
+  const CompilerExtraOptions: TStrings;
+  const AllowCache: Boolean);
 
   { Copy external libraries to LibrariesOutputPath.
     LibrariesOutputPath must be empty (current dir) or ending with path delimiter. }
@@ -511,6 +514,7 @@ begin
 
   CompilerOptions := TCompilerOptions.Create;
   try
+    CompilerOptions.AllowCache := AllowCache;
     CompilerOptions.OS := OS;
     CompilerOptions.CPU := CPU;
     CompilerOptions.Mode := Mode;
@@ -1438,7 +1442,7 @@ begin
       will always fail. }
     CgePath := CastleEnginePath;
     if CgePath = '' then
-      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+      raise Exception.Create(SCannotFindCgePath);
 
     // create custom editor directory
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;

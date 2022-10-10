@@ -29,7 +29,8 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait,
+  ToolCache;
 
 var
   Target: TTarget;
@@ -177,6 +178,12 @@ begin
             '    Next parameter determines the information:' + NL +
             '      version' + NL +
             '      version-code' + NL +
+            NL+
+            'cache' +NL+
+            '    Create cache to speed up future compilations.' + NL +
+            NL+
+            'cache-clean' +NL+
+            '    Remove the cache directory.' + NL +
             NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
@@ -346,6 +353,16 @@ begin
         {$endif}
       end;
     finally FreeAndNil(SimpleCompileOptions) end;
+  end else
+  if Command = 'cache' then
+  begin
+    Parameters.CheckHigh(1);
+    CacheCreate(OverrideCompiler, Target, OS, CPU);
+  end else
+  if Command = 'cache-clean' then
+  begin
+    Parameters.CheckHigh(1);
+    CacheClean;
   end else
   begin
     if (Command <> 'run') and (Command <> 'output') then

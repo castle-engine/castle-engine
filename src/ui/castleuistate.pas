@@ -506,7 +506,8 @@ type
 
       @seealso DesignUrl }
     function DesignedComponent(const ComponentName: String): TComponent;
-      deprecated 'published state fields are automatically initialized now, no need to use this method';
+      //deprecated 'published state fields are automatically initialized now, no need to use this method';
+      // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",

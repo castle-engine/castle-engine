@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2019 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,8 +57,8 @@ type
   begin
     TimeStart := ProcessTimer;
     // ...  do something time-consuming ...
-    Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
-    // or: Seconds := TimeStart.ElapsedTime;
+    Seconds := TimeStart.ElapsedTime;
+    // or: Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
     WritelnLog('Seconds passed (in this process): %f', [Seconds]);
   end;
   #)
