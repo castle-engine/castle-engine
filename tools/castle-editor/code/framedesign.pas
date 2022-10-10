@@ -1479,11 +1479,12 @@ end;
 
 procedure TDesignFrame.ClearDesign;
 begin
-  RemoveJointsAnchors;
-  FSelectionStartBehaviorList.Clear;
 
   // ControlsTree.Items.Clear; // do not clear, we will always rebuild ControlsTree to just apply differences
   ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it in some cases
+
+  RemoveJointsAnchors;
+  FSelectionStartBehaviorList.Clear;
 
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
@@ -3959,12 +3960,17 @@ begin
       if Item.Key is TAbstractJoint then
       begin
         (Item.Key as TAbstractJoint).RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-
-        if TransformsToSynchronize.Count  > 0 then
-        SynchronizeListOfTransforms(TransformsToSynchronize);
-        TransformsToSynchronize.Clear;
+        { Old solution }
+        //if TransformsToSynchronize.Count  > 0 then
+        //  SynchronizeListOfTransforms(TransformsToSynchronize);
+        //TransformsToSynchronize.Clear;
       end;
     end;
+    { New solution:
+      That iteration works because RemoveAuxiliaryEditorUi removes only transforms
+      and not change TreeNodeMap. }
+    if TransformsToSynchronize.Count > 0 then
+      ValidateOrUpdateHierarchy(false);
   finally
     FreeAndNil(TransformsToSynchronize);
   end;
@@ -4182,8 +4188,8 @@ begin
     (without waiting for OnUpdate) -- maybe this will be relevant at some point }
   UpdateCurrentViewport;
 
-  { Call InternalSelectionStart when SelectedComponent is a behavior. I think
-    this should be done on end of this function }
+  { Call InternalSelectionStart when SelectedComponent is a behavior. Should be
+    done when selection update is done. }
   if SelectedComponent is TCastleBehavior then
   begin
     TransformList := TCastleTransformList.Create(false);
@@ -4193,11 +4199,12 @@ begin
 
       DoInternalSelectionStart(TCastleBehavior(SelectedComponent), TransformList);
 
-      for I := 0 to TransformList.Count - 1 do
+      (*for I := 0 to TransformList.Count - 1 do
       begin
         if TreeNodeMap.TryGetValue(TransformList[I], ParentNode) then
           SynchronizeTreeNodeChildTransforms(ParentNode);
-      end;
+      end;*)
+      ValidateOrUpdateHierarchy(false);
     finally FreeAndNil(TransformList) end;
   end;
 end;
