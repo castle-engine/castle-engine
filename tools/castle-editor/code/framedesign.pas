@@ -3964,13 +3964,13 @@ procedure TDesignFrame.RemoveJointsAnchors;
 var
   Item: {$ifdef FPC} TTreeNodeMap.TDictionaryPair {$else} TPair<TComponent, TTreeNode> {$endif};
   TransformsToSynchronize: TCastleTransformList;
-  JointList: specialize TList<TAbstractJoint>;
+  JointList: {$ifdef FPC}specialize{$endif} TList<TAbstractJoint>;
   Joint: TAbstractJoint;
 begin
   { We need to found all joint first because iterating
     TreeNodeMap after RemoveAuxiliaryEditorUi() is not safe, some
     pointers can be dangling }
-  JointList := specialize TList<TAbstractJoint>.Create;
+  JointList := {$ifdef FPC}specialize{$endif} TList<TAbstractJoint>.Create;
   try
     for Item in TreeNodeMap do
     begin
