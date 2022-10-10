@@ -322,12 +322,6 @@ type
 
     { When Joint is selected we need remove other joint gui. }
     procedure RemoveJointsAnchors;
-    { Removes/adds transforms in this parent node, currently synchronizes only
-      CastleTransforms }
-    procedure SynchronizeTreeNodeChildTransforms(ParentNode: TTreeNode);
-    { Synchronizes list of parent transforms. }
-    procedure SynchronizeListOfTransforms(const TranformsList: TCastleTransformList);
-
 
     { If the selected items all have the same TCastleViewport parent,
       return it. Otherwise return nil. }
@@ -3998,97 +3992,6 @@ begin
   end;
 end;
 
-procedure TDesignFrame.SynchronizeTreeNodeChildTransforms(ParentNode: TTreeNode);
-var
-  C, ChildComponent: TComponent;
-  ParentTransform, ChildTransform: TCastleTransform;
-  ChildNode: TTreeNode;
-  I, J: Integer;
-  Title: String;
-  Found: Boolean;
-begin
-  C := TComponent(ParentNode.Data);
-  if C = nil then
-    Exit;
-
-  if C is TCastleTransform then
-  begin
-    ParentTransform := TCastleTransform(C);
-
-    // remove elements
-    for I := ParentNode.Count - 1 downto 0 do
-    begin
-      ChildNode := ParentNode.Items[I];
-
-      if ChildNode.Data = nil then
-        continue;
-
-      ChildComponent := TComponent(ChildNode.Data);
-
-
-      { if ChildComponent is TCastleTransform then -  we can't do that because
-        some pointers can be dangling pointers - we know here that with
-        Data are only transforms }
-      Found := false;
-
-      for J := ParentTransform.Count - 1 downto 0 do
-      begin
-        if ParentTransform.Items[J] = ChildComponent then
-        begin
-          Found := true;
-          break;
-        end;
-      end;
-
-      if not Found then
-      begin
-        { remove tree node if not found }
-        TreeNodeMap.Remove(ChildComponent);
-
-        ChildNode.Data := nil; { Needed because selection is changed when we
-                                 remove ChildNode and removed component with
-                                 dangling pointer is here. So trying access it
-                                 ends with crash }
-        ChildNode.Delete;
-      end;
-    end;
-
-    { add elements }
-    for I := 0 to ParentTransform.Count -1 do
-    begin
-      ChildTransform := ParentTransform.Items[I];
-      if not Selectable(ChildTransform) then
-        continue;
-
-      if not TreeNodeMap.TryGetValue(ChildTransform, ChildNode) then
-      begin
-        // add TreeNode
-        Title := TreeNodeCaption(ChildTransform);
-        ChildNode := ControlsTree.Items.AddChildObject(ParentNode, Title, ChildTransform);
-        TreeNodeMap.AddOrSetValue(ChildTransform, ChildNode);
-
-        // add sub items
-        SynchronizeTreeNodeChildTransforms(ChildNode);
-      end;
-    end;
-  end;
-end;
-
-procedure TDesignFrame.SynchronizeListOfTransforms(
-  const TranformsList: TCastleTransformList);
-var
-  Transform: TCastleTransform;
-  ParentNode: TTreeNode;
-  I: Integer;
-begin
-  for I := 0 to TranformsList.Count - 1 do
-  begin
-    Transform := TranformsList[I];
-    if TreeNodeMap.TryGetValue(Transform, ParentNode) then
-      SynchronizeTreeNodeChildTransforms(ParentNode);
-  end;
-end;
-
 procedure TDesignFrame.UpdateSelectedControl;
 
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
@@ -4227,13 +4130,8 @@ begin
         RemoveJointsAnchors;
 
       DoInternalSelectionStart(TCastleBehavior(SelectedComponent), TransformList);
-
-      (*for I := 0 to TransformList.Count - 1 do
-      begin
-        if TreeNodeMap.TryGetValue(TransformList[I], ParentNode) then
-          SynchronizeTreeNodeChildTransforms(ParentNode);
-      end;*)
-      ValidateOrUpdateHierarchy(false);
+      if TransformList.Count > 0 then
+        ValidateOrUpdateHierarchy(false);
     finally FreeAndNil(TransformList) end;
   end;
 end;
