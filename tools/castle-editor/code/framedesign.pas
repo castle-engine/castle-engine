@@ -3638,6 +3638,10 @@ var
   ChildrenNodesCount: Integer;
   O: Pointer;
 begin
+  // fixes first design loading
+  if DesignRoot = nil then
+    Exit;
+
   if not Validate then
     NodesToExpand := TObjectList.Create(false)
   else
