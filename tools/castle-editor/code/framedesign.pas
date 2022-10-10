@@ -3976,13 +3976,19 @@ begin
         //if TransformsToSynchronize.Count  > 0 then
         //  SynchronizeListOfTransforms(TransformsToSynchronize);
         //TransformsToSynchronize.Clear;
+        { New solution:
+          Because after that some Item.Key can have dangling pointer
+          after RemoveAuxiliaryEditorUi we have to update hierarchy immediately.
+          Not after the loop ends.
+        }
+        if TransformsToSynchronize.Count > 0 then
+        begin
+          ValidateOrUpdateHierarchy(false);
+          TransformsToSynchronize.Clear;
+        end;
       end;
+
     end;
-    { New solution:
-      That iteration works because RemoveAuxiliaryEditorUi removes only transforms
-      and not change TreeNodeMap. }
-    if TransformsToSynchronize.Count > 0 then
-      ValidateOrUpdateHierarchy(false);
   finally
     FreeAndNil(TransformsToSynchronize);
   end;
