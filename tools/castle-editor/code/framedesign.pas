@@ -3964,33 +3964,37 @@ procedure TDesignFrame.RemoveJointsAnchors;
 var
   Item: {$ifdef FPC} TTreeNodeMap.TDictionaryPair {$else} TPair<TComponent, TTreeNode> {$endif};
   TransformsToSynchronize: TCastleTransformList;
+  JointList: specialize TList<TAbstractJoint>;
+  Joint: TAbstractJoint;
 begin
-  TransformsToSynchronize := TCastleTransformList.Create(false);
+  { We need to found all joint first because iterating
+    TreeNodeMap after RemoveAuxiliaryEditorUi() is not safe, some
+    pointers can be dangling }
+  JointList := specialize TList<TAbstractJoint>.Create;
   try
     for Item in TreeNodeMap do
     begin
       if Item.Key is TAbstractJoint then
-      begin
-        (Item.Key as TAbstractJoint).RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-        { Old solution }
-        //if TransformsToSynchronize.Count  > 0 then
-        //  SynchronizeListOfTransforms(TransformsToSynchronize);
-        //TransformsToSynchronize.Clear;
-        { New solution:
-          Because after that some Item.Key can have dangling pointer
-          after RemoveAuxiliaryEditorUi we have to update hierarchy immediately.
-          Not after the loop ends.
-        }
-        if TransformsToSynchronize.Count > 0 then
-        begin
-          ValidateOrUpdateHierarchy(false);
-          TransformsToSynchronize.Clear;
-        end;
-      end;
+        JointList.Add(TAbstractJoint(Item.Key))
+    end;
 
+    { After creating a list of joints we can run RemoveAuxiliaryEditorUi()
+      safetly }
+    TransformsToSynchronize := TCastleTransformList.Create(false);
+    try
+      for Joint in JointList do
+        Joint.RemoveAuxiliaryEditorUi(TransformsToSynchronize);
+
+      { If there are some transforms to synchronize call
+        ValidateOrUpdateHierarchy() }
+      if TransformsToSynchronize.Count > 0 then
+        ValidateOrUpdateHierarchy(false);
+
+    finally
+      FreeAndNil(TransformsToSynchronize);
     end;
   finally
-    FreeAndNil(TransformsToSynchronize);
+    FreeAndNil(JointList);
   end;
 end;
 
