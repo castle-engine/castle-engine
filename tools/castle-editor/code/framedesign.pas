@@ -127,10 +127,6 @@ type
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
-    { Procedure called before selecton change unfortunately it does not return
-      previously selected nodes. }
-    procedure ControlsTreeBeforeSelectionChange(Sender: TObject; Node: TTreeNode;
-      var AllowChange: Boolean);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
@@ -239,20 +235,8 @@ type
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
-
-      { Needed to check what was deselected after InternalSelectionStart.
-        The only classes allowed here are TCastleBehavior.
-
-        Note: This is TComponentList and as such it will automatically
-        remove from itself the freed instances.
-        Testcase that this is needed, when this is just TList:
-
-        To any TCastleTransform, add 2 behaviors (like TCastleRigidBody
-        and TCastleXxxCollider), select both with Shift, Delete,
-        press "End" key (this sends an event that assumes that Behaviors
-        list doesn't contain any dangling pointers).
-      }
-      FSelectionStartBehaviorList: TComponentList;
+      FTransformDesigning: TCastleTransform;
+      FTransformDesigningObserver: TFreeNotificationObserver;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -267,6 +251,13 @@ type
     function ShellListComponentClass(
       const SourceShellList: TCastleShellListView;
       const ParentComponent: TComponent): TComponentClass;
+
+    procedure SetTransformDesigning(const Value: TCastleTransform);
+    procedure TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
+    { For this transform we display design-time helpers (e.g. to edit joints' anchors),
+      using TCastleBehavior.DesigningBegin and TCastleBehavior.DesigningEnd. }
+    property TransformDesigning: TCastleTransform
+      read FTransformDesigning write SetTransformDesigning;
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
@@ -310,18 +301,6 @@ type
     { If there is exactly one item selected, return it. Otherwise return nil. }
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
-
-    { After calling InternalSelectionStart we need check current selection to
-      call InternalSelectionEnd }
-    procedure CheckBehaviorsStillSelected;
-
-    procedure DoInternalSelectionStart(const Behavior: TCastleBehavior;
-      const TransformsToSynchronize: TCastleTransformList);
-    procedure DoInternalSelectionEnd(const Behavior: TCastleBehavior);
-    procedure DoAllInternalSelectionEnd;
-
-    { When Joint is selected we need remove other joint gui. }
-    procedure RemoveJointsAnchors;
 
     { If the selected items all have the same TCastleViewport parent,
       return it. Otherwise return nil. }
@@ -1387,7 +1366,6 @@ begin
   ControlProperties.ActivePage := TabBasic;
 
   TreeNodeMap := TTreeNodeMap.Create;
-  FSelectionStartBehaviorList := TComponentList.Create(false);
 
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
@@ -1413,13 +1391,15 @@ begin
 
   // needed to set right action state maybe lazarus bug?
   ActionPhysicsPauseSimulation.Update;
+
+  FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
+  FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
 end;
 
 destructor TDesignFrame.Destroy;
 var
   F: TCollectionPropertyEditorForm;
 begin
-  FreeAndNil(FSelectionStartBehaviorList);
   FreeAndNil(TreeNodeMap);
   FreeAndNil(CameraPreview);
   FreeAndNil(FComponentEditorDesigner);
@@ -1476,9 +1456,6 @@ begin
 
   // ControlsTree.Items.Clear; // do not clear, we will always rebuild ControlsTree to just apply differences
   ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it in some cases
-
-  RemoveJointsAnchors;
-  FSelectionStartBehaviorList.Clear;
 
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
@@ -1977,10 +1954,6 @@ begin
         UndoSummary := Selected[0].Name
       else
         UndoSummary := SelectedCount.ToString + ' components';
-
-      { Run InternalSelectionEnd on all Behaviors before freeing it and
-        ControlsTree.Items.Clear }
-      DoAllInternalSelectionEnd;
 
       { We depend on the fact TComponentList observes freed items,
         and removes them automatically.
@@ -3699,7 +3672,6 @@ procedure TDesignFrame.UpdateDesign;
 begin
   // temporarily disable events, as some pointers in ControlsTree data are invalid now
   ControlsTree.OnSelectionChanged := nil;
-  ControlsTree.OnChanging := nil;
 
   ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it
 
@@ -3708,7 +3680,6 @@ begin
   ValidateOrUpdateHierarchy(false);
 
   // restore events
-  ControlsTree.OnChanging := @ControlsTreeBeforeSelectionChange;
   ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
   UpdateSelectedControl;
@@ -3883,113 +3854,21 @@ procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
+  { TODO: Explain better:
+    Without this, we have a crash when selecting joint anchor in 3D view.
+    It causes Press, which causes SetSelectedComponent,
+    which causes UpdateSelectedComponent and it seems that TTreeNode instance
+    becomes invalid in the middle of TCustomTreeView.Select.
+    Weird, as even UpdateDesign should not deallocate TTreeNode if nothing changed. }
+
+  if GetSelectedComponent = Value then
+    Exit;
+
   if Value = nil then
     ControlsTree.Select([])
   else
   if TreeNodeMap.TryGetValue(Value, Node) then
     ControlsTree.Select([Node]);
-end;
-
-procedure TDesignFrame.CheckBehaviorsStillSelected;
-var
-  SelectedComponents: TComponentList;
-  SelectedCount: Integer;
-  I: Integer;
-  B: TCastleBehavior;
-  Index: Integer;
-  BehaviorCount: Integer;
-begin
-  BehaviorCount := FSelectionStartBehaviorList.Count;
-  if BehaviorCount = 0 then
-    Exit;
-
-  GetSelected(SelectedComponents, SelectedCount);
-
-  { If behavior is not on selected list call InternalSelectionEnd and
-    remove it from FSelectionStartBehaviorList }
-  for I := BehaviorCount - 1 downto 0 do
-  begin
-    B := FSelectionStartBehaviorList[I] as TCastleBehavior;
-    if SelectedComponents <> nil then
-    begin
-      Index := SelectedComponents.IndexOf(B);
-      if Index < 0 then
-        DoInternalSelectionEnd(B);
-    end
-    else
-      DoInternalSelectionEnd(B);
-  end;
-end;
-
-procedure TDesignFrame.DoInternalSelectionStart(const Behavior: TCastleBehavior;
-  const TransformsToSynchronize: TCastleTransformList);
-begin
-  Behavior.InternalSelectionStart(TransformsToSynchronize);
-
-  { Do not allow duplicates. Because CheckBehaviorsStillSelected() and
-    other methods iterates list from end to start but list Remove() function
-    removes pointers from start to end. So when we remove one pointer
-    its removed from begining and we can come across a dangling pointer.
-
-    Testcase:
-    To any TCastleTransform, add 2 behaviors (like TCastleRigidBody
-    and TCastleXxxCollider), select 2nd one and Delete, select the 1st
-    one, reopen design by double-clicking (do not save it), press "End" key. }
-
-  if FSelectionStartBehaviorList.IndexOf(Behavior) = -1 then
-    FSelectionStartBehaviorList.Add(Behavior);
-end;
-
-procedure TDesignFrame.DoInternalSelectionEnd(const Behavior: TCastleBehavior);
-begin
-  Behavior.InternalSelectionEnd;
-  FSelectionStartBehaviorList.Remove(Behavior);
-end;
-
-procedure TDesignFrame.DoAllInternalSelectionEnd;
-var
-  I: Integer;
-begin
-  for I := FSelectionStartBehaviorList.Count - 1 downto 0 do
-    DoInternalSelectionEnd(FSelectionStartBehaviorList[I] as TCastleBehavior);
-end;
-
-procedure TDesignFrame.RemoveJointsAnchors;
-var
-  Item: {$ifdef FPC} TTreeNodeMap.TDictionaryPair {$else} TPair<TComponent, TTreeNode> {$endif};
-  TransformsToSynchronize: TCastleTransformList;
-  JointList: {$ifdef FPC}specialize{$endif} TList<TAbstractJoint>;
-  Joint: TAbstractJoint;
-begin
-  { We need to found all joint first because iterating
-    TreeNodeMap after RemoveAuxiliaryEditorUi() is not safe, some
-    pointers can be dangling }
-  JointList := {$ifdef FPC}specialize{$endif} TList<TAbstractJoint>.Create;
-  try
-    for Item in TreeNodeMap do
-    begin
-      if Item.Key is TAbstractJoint then
-        JointList.Add(TAbstractJoint(Item.Key))
-    end;
-
-    { After creating a list of joints we can run RemoveAuxiliaryEditorUi()
-      safetly }
-    TransformsToSynchronize := TCastleTransformList.Create(false);
-    try
-      for Joint in JointList do
-        Joint.RemoveAuxiliaryEditorUi(TransformsToSynchronize);
-
-      { If there are some transforms to synchronize call
-        ValidateOrUpdateHierarchy() }
-      if TransformsToSynchronize.Count > 0 then
-        ValidateOrUpdateHierarchy(false);
-
-    finally
-      FreeAndNil(TransformsToSynchronize);
-    end;
-  finally
-    FreeAndNil(JointList);
-  end;
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
@@ -4061,8 +3940,6 @@ var
   InspectorType: TInspectorType;
   V: TCastleViewport;
   T: TCastleTransform;
-  ParentNode: TTreeNode;
-  TransformList: TCastleTransformList;
 begin
   OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
@@ -4097,6 +3974,8 @@ begin
     UpdateAnchors(UI, true);
   end;
 
+  // TODO TTemporaryJointTransform -> TCastleTransformDesignHelper ??????
+
   V := SelectedViewport;
   if SelectedComponent is TCastleBehavior then
     { Highlight using VisualizeTransformSelected also transformation of selected behavior }
@@ -4104,6 +3983,13 @@ begin
   else
     T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
+
+  if SelectedComponent is TTemporaryJointTransform then
+    { Design parent of TTemporaryJointTransform,
+      otherwise TTemporaryJointTransform would disappear as soon as we select it. }
+    TransformDesigning := TTemporaryJointTransform(SelectedComponent).Parent
+  else
+    TransformDesigning := T;
 
   if T is TCastleAbstractRootTransform then
     { Special case to disallow editing TCastleAbstractRootTransform transformation.
@@ -4119,33 +4005,39 @@ begin
   { if selection determines CurrentViewport, update CurrentViewport immediately
     (without waiting for OnUpdate) -- maybe this will be relevant at some point }
   UpdateCurrentViewport;
+end;
 
-  { Call InternalSelectionStart when SelectedComponent is a behavior. Should be
-    done when selection update is done. }
-  if SelectedComponent is TCastleBehavior then
+procedure TDesignFrame.TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
+begin
+  TransformDesigning := nil;
+end;
+
+procedure TDesignFrame.SetTransformDesigning(const Value: TCastleTransform);
+var
+  B: TCastleBehavior;
+begin
+  if FTransformDesigning <> Value then
   begin
-    TransformList := TCastleTransformList.Create(false);
-    try
-      if TCastleBehavior(SelectedComponent) is TAbstractJoint then
-        RemoveJointsAnchors;
+    if FTransformDesigning <> nil then
+    begin
+      for B in FTransformDesigning.BehaviorsEnumerate do
+        B.DesigningEnd;
+    end;
 
-      DoInternalSelectionStart(TCastleBehavior(SelectedComponent), TransformList);
-      if TransformList.Count > 0 then
-        ValidateOrUpdateHierarchy(false);
-    finally FreeAndNil(TransformList) end;
+    FTransformDesigning := Value;
+    FTransformDesigningObserver.Observed := Value;
+
+    if FTransformDesigning <> nil then
+    begin
+      for B in FTransformDesigning.BehaviorsEnumerate do
+        B.DesigningBegin;
+    end;
   end;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
 begin
   UpdateSelectedControl;
-end;
-
-procedure TDesignFrame.ControlsTreeBeforeSelectionChange(Sender: TObject;
-  Node: TTreeNode; var AllowChange: Boolean);
-begin
-  CheckBehaviorsStillSelected;
-  AllowChange := true;
 end;
 
 procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,

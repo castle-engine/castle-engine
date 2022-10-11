@@ -3913,6 +3913,13 @@ end;
 
 function TCastleTransform.BehaviorsCount: Integer;
 begin
+  { This can be called when TCastleTransform is in the middle of being
+    destroyed, and TDesignFrame.SetTransformForGizmos tries to iterate
+    over behaviors. So prepare to handle FBehaviors = nil case,
+    which should not be possible during normal lifetime. }
+  if FBehaviors = nil then
+    Exit(0);
+
   Result := FBehaviors.Count;
 end;
 

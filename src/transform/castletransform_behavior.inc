@@ -88,12 +88,18 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
-    procedure BeforeDestruction;override;
+    procedure BeforeDestruction; override;
 
-    { Internal procedure called when behavior is selected in castle editor. }
-    procedure InternalSelectionStart(TransformsToSynchronize: TCastleTransformList); virtual;
-    { Internal procedure called when behavior is deselected in castle editor. }
-    procedure InternalSelectionEnd; virtual;
+    { Create design-time things, like gizmos to visualize physics joint 3D points.
+      If you want to visualize the behavior using a visible TCastleTransform,
+      then create and add to Parent a descendant of TTemporaryJointTransform,
+      and set InternalCastleDesignInvalidate to @true. }
+    procedure DesigningBegin; virtual;
+
+    { Destroy design-time stuff.
+      You can destroy any component, just be sure
+      to set InternalCastleDesignInvalidate to @true. }
+    procedure DesigningEnd; virtual;
 
     function World: TCastleAbstractRootTransform;
 
@@ -193,22 +199,23 @@ end;
 
 procedure TCastleBehavior.BeforeDestruction;
 begin
+  DesigningEnd;
+
+  // TODO: why BeforeBehaviorDestroy is in BeforeDestruction?
+  // (DesigningEnd is here because it looks like should be before BeforeDestruction.)
   if Parent <> nil then
     Parent.BeforeBehaviorDestroy(Self);
-
   inherited BeforeDestruction;
 end;
 
-procedure TCastleBehavior.InternalSelectionStart(TransformsToSynchronize: TCastleTransformList);
+procedure TCastleBehavior.DesigningBegin;
 begin
-  // nothing by default
-  WritelnLog('Behavior ' + Name +  ' selected in editor');
+  WritelnLog('Behavior ' + Name +  ': DesigningBegin');
 end;
 
-procedure TCastleBehavior.InternalSelectionEnd;
+procedure TCastleBehavior.DesigningEnd;
 begin
-  // nothing by default
-  WritelnLog('Behavior ' + Name +  ' deselected in editor');
+  WritelnLog('Behavior ' + Name +  ': DesigningEnd');
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;
