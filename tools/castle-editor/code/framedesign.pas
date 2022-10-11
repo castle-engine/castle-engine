@@ -3854,12 +3854,14 @@ procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
-  { TODO: Explain better:
-    Without this, we have a crash when selecting joint anchor in 3D view.
-    It causes Press, which causes SetSelectedComponent,
-    which causes UpdateSelectedComponent and it seems that TTreeNode instance
-    becomes invalid in the middle of TCustomTreeView.Select.
-    Weird, as even UpdateDesign should not deallocate TTreeNode if nothing changed. }
+  { Checking GetSelectedComponent = Value is needed because ControlsTree.Select()
+    firstly call ClearSelection what calls ControlsTreeSelectionChanged() to
+    UpdateSelectedControl so anchor is destroyed and then sets selection
+    to the previous one. That can make some hierarchy pointers dangling
+    when new selection is set after the previous one is cleared - no update() here
+    to fix pointers using InternalCastleDesignInvalidate.
+    See TCustomTreeView.Select() and TDesignFrame.ControlsTreeSelectionChanged()
+    implementation to understand the problem more easily. }
 
   if GetSelectedComponent = Value then
     Exit;
