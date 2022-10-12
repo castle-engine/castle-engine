@@ -595,7 +595,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcCfgLocation: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: string;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -814,12 +814,14 @@ begin
     FpcOptions.Add('-FU' + CompilationOutputPathFinal);
 
     Writeln('FPC executing...');
-    FpcExe := FindExeFpcCompiler(true, FpcCfgLocation);
+    FpcExe := FindExeFpcCompiler(true, FpcStandardUnitsPath);
 
-    if FpcCfgLocation <> '' then
+    if FpcStandardUnitsPath <> '' then
     begin
-      FpcOptions.Add('-n');
-      FpcOptions.Add('@' + FpcCfgLocation);
+      FpcOptions.Add('-Fu' + FpcStandardUnitsPath);
+      { As the bundled FPC has no config, by default it is rather silent.
+        Add options to display info (and Warnings and Notes) during compilation to see progress. }
+      FpcOptions.Add('-viwn');
     end;
 
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
