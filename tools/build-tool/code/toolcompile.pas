@@ -595,7 +595,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe, CompilationOutputPathFinal: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcCfgLocation: string;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -814,7 +814,13 @@ begin
     FpcOptions.Add('-FU' + CompilationOutputPathFinal);
 
     Writeln('FPC executing...');
-    FpcExe := FindExeFpcCompiler;
+    FpcExe := FindExeFpcCompiler(true, FpcCfgLocation);
+
+    if FpcCfgLocation <> '' then
+    begin
+      FpcOptions.Add('-n');
+      FpcOptions.Add('@' + FpcCfgLocation);
+    end;
 
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then
