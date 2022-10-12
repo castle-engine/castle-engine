@@ -109,9 +109,9 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
-  CastleStringUtils,
+  CastleStringUtils, CastleFilesUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
-  EditorUtils;
+  EditorUtils, ProjectUtils;
 
 {$R *.lfm}
 
@@ -288,6 +288,35 @@ end;
 
 procedure TPreferencesForm.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
+
+  { When CastleEngineOverridePath changed, we need to recalculate stuff based on it. }
+  procedure CastleEngineOverridePathChanged;
+  var
+    OldApplicationDataOverride: String;
+  begin
+    { Recalculate InternalCastleDesignData that depends on detected CGE path.
+      This way changes to CGE path in "Preferences" update also
+      InternalCastleDesignData used to read e.g. 3D models of gizmos.
+
+      Testcase when this is needed:
+      - test with castle-editor in bin/ subdirectory of CGE
+        (like in binary distribution; this means that ExeName will not be enough
+        to guess editor data location)
+      - set CastleEngineOverridePath to something invalid but non-empty (i.e. to non-existing dir)
+      - restart editor (TChooseProjectForm.FormCreate will set InternalCastleDesignData to '',
+        because CastleEnginePath is invalid and CastleEnginePath + tools/castle-editor/data doesn't exist)
+      - open some project, open some design with viewport.
+        It will fail, and it's kind of OK -- engine path was invalid.
+      - go to Preferences and change CastleEngineOverridePath to empty
+      - reopen the project (or reopen design within it)
+      - now it should open OK.
+    }
+    OldApplicationDataOverride := ApplicationDataOverride;
+    UseEditorApplicationData;
+    InternalCastleDesignData := ApplicationData('');
+    ApplicationDataOverride := OldApplicationDataOverride;
+  end;
+
 begin
   if ModalResult = mrOK then
   begin
@@ -341,6 +370,8 @@ begin
     LazarusCustomPath := OriginalLazarusCustomPath;
     CastleEngineOverridePath := OriginalCastleEngineOverridePath;
   end;
+
+  CastleEngineOverridePathChanged;
 
   { Set SoundEngine.Volume regardless if we accepted
     (so MuteOnRun, EditorVolume changed) or not (so they are unchanged)
