@@ -819,6 +819,11 @@ begin
     if FpcStandardUnitsPath <> '' then
     begin
       FpcOptions.Add('-Fu' + FpcStandardUnitsPath);
+
+      { Do not read system-wide FPC config, to allow this bundled FPC to coexist
+        with your system-wide FPC installation without any relation. }
+      FpcOptions.Add('-n');
+
       { As the bundled FPC has no config, by default it is rather silent.
         Add options to display info (and Warnings and Notes) during compilation to see progress. }
       FpcOptions.Add('-viwn');
