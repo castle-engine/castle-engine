@@ -54,7 +54,7 @@
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "Label1",
       "Text" : [
-        "The princess has been saved"
+        "You have saved the princess"
       ],
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle"
