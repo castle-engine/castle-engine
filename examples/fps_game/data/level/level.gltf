@@ -612,7 +612,7 @@
     "buffers" : [
         {
             "byteLength" : 104928,
-            "uri" : "example_level.bin"
+            "uri" : "level.bin"
         }
     ]
 }

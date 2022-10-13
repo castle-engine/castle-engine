@@ -28,7 +28,7 @@ uses SysUtils, Classes,
   CastleMaterialProperties
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMain
+  , GameStatePlay
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -47,10 +47,10 @@ begin
   { Create game states and set initial state }
   {$region 'Castle State Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateMain := TStateMain.Create(Application);
+  StatePlay := TStatePlay.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMain;
+  TUIState.Current := StatePlay;
 end;
 
 initialization

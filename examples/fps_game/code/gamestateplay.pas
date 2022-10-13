@@ -13,18 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main state handles playing the game. }
-unit GameStateMain;
+{ Playing the game. }
+unit GameStatePlay;
 
 interface
 
 uses Classes, CastleCameras,
   CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
-  CastleViewport, CastleSceneCore, X3DNodes, CastleScene,
+  CastleViewport, CastleSceneCore, X3DNodes, CastleScene, CastleSoundEngine,
+  CastleBehaviors,
   GameEnemy;
 
 type
-  TStateMain = class(TUIState)
+  TStatePlay = class(TUIState)
   private
     PersistentMouseLook: Boolean;
     Enemies: TEnemyList;
@@ -44,23 +45,25 @@ type
     LabelFps: TCastleLabel;
     MainViewport, MapViewport: TCastleViewport;
     SceneGun: TCastleScene;
+    SoundSourceFootsteps: TCastleSoundSource;
+    SoundShoot, MusicSound: TCastleSound;
   end;
 
 var
-  StateMain: TStateMain;
+  StatePlay: TStatePlay;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleComponentSerialize, CastleLog;
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TStatePlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
 end;
 
-procedure TStateMain.Start;
+procedure TStatePlay.Start;
 var
   SceneName: String;
   SceneEnemy: TCastleScene;
@@ -70,6 +73,8 @@ begin
   inherited;
 
   Enemies := TEnemyList.Create(true);
+
+  SoundEngine.LoopingChannel[0].Sound := MusicSound;
 
   for I := 1 to 7 do
   begin
@@ -87,13 +92,13 @@ begin
   MapViewport.Items := MainViewport.Items;
 end;
 
-procedure TStateMain.Stop;
+procedure TStatePlay.Stop;
 begin
   FreeAndNil(Enemies);
   inherited;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   DirectionHorizontal: TVector3;
 begin
@@ -110,20 +115,22 @@ begin
     Vector3(0, -1, 0),
     DirectionHorizontal
   );
+
+  SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround, 1, 0);
 end;
 
-procedure TStateMain.UpdateMouseLook;
+procedure TStatePlay.UpdateMouseLook;
 begin
   WalkNavigation.MouseLook := PersistentMouseLook or (buttonRight in Container.MousePressed);
 end;
 
-procedure TStateMain.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
+procedure TStatePlay.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
   const Animation: TTimeSensorNode);
 begin
   Scene.PlayAnimation('idle', true);
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
   HitEnemy: TEnemy;
   PlayAnimationParams: TPlayAnimationParameters;
@@ -150,6 +157,8 @@ begin
       PlayAnimationParams.Loop := false;
       SceneGun.PlayAnimation(PlayAnimationParams);
     finally FreeAndNil(PlayAnimationParams) end;
+
+    SoundEngine.Play(SoundShoot);
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
