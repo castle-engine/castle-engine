@@ -29,6 +29,10 @@ uses SysUtils, Classes,
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStatePlay
+  , GameStateMenu
+  , GameStateOptions
+  , GameStateDeath
+  , GameStateWin
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -48,9 +52,13 @@ begin
   {$region 'Castle State Creation'}
   // The content here may be automatically updated by CGE editor.
   StatePlay := TStatePlay.Create(Application);
+  StateMenu := TStateMenu.Create(Application);
+  StateOptions := TStateOptions.Create(Application);
+  StateDeath := TStateDeath.Create(Application);
+  StateWin := TStateWin.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StatePlay;
+  TUIState.Current := StateMenu;
 end;
 
 initialization

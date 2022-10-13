@@ -56,7 +56,8 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleComponentSerialize, CastleLog;
+  CastleComponentSerialize, CastleLog,
+  GameStateWin, GameStateDeath, GameStateOptions;
 
 constructor TStatePlay.Create(AOwner: TComponent);
 begin
@@ -118,11 +119,15 @@ begin
   );
 
   SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround, 1, 0);
+
+  MainViewport.Items.Paused := TUIState.CurrentTop <> Self;
 end;
 
 procedure TStatePlay.UpdateMouseLook;
 begin
-  WalkNavigation.MouseLook := PersistentMouseLook or (buttonRight in Container.MousePressed);
+  WalkNavigation.MouseLook := (TUIState.CurrentTop = Self) and
+    ( PersistentMouseLook or
+      (buttonRight in Container.MousePressed) );
 end;
 
 procedure TStatePlay.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
@@ -139,45 +144,67 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey(keyF4) then
+  if TUIState.CurrentTop = Self then
   begin
-    PersistentMouseLook := not PersistentMouseLook;
-    UpdateMouseLook;
-    Exit(true);
+    if Event.IsKey(keyF4) then
+    begin
+      PersistentMouseLook := not PersistentMouseLook;
+      UpdateMouseLook;
+      Exit(true);
+    end;
+
+    if Event.IsMouseButton(buttonLeft) then
+    begin
+      if MainViewport.TransformUnderMouse <> nil then
+        WritelnLog('Clicked on ' + MainViewport.TransformUnderMouse.Name);
+
+      PlayAnimationParams := TPlayAnimationParameters.Create;
+      try
+        PlayAnimationParams.Name := 'primary';
+        PlayAnimationParams.StopNotification := {$ifdef FPC}@{$endif} WeaponShootAnimationStop;
+        PlayAnimationParams.Loop := false;
+        SceneGun.PlayAnimation(PlayAnimationParams);
+      finally FreeAndNil(PlayAnimationParams) end;
+
+      SoundEngine.Play(SoundShoot);
+
+      { We clicked on enemy if
+        - TransformUnderMouse indicates we hit something
+        - It has a behavior of TEnemy. }
+      if (MainViewport.TransformUnderMouse <> nil) and
+         (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
+      begin
+        HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
+        HitEnemy.Hurt;
+        MainNotifications.Show('Killed ' + HitEnemy.Parent.Name);
+      end;
+
+      Exit(true);
+    end;
+
+    if Event.IsKey(keyEscape) then
+    begin
+      StateOptions.OverGame := true;
+      TUIState.Push(StateOptions);
+      Exit(true);
+    end;
+
+    if Event.IsKey(keyP) then
+    begin
+      TUIState.Push(StateWin);
+      Exit(true);
+    end;
+
+    if Event.IsKey(keyO) then
+    begin
+      TUIState.Push(StateDeath);
+      Exit(true);
+    end;
   end;
 
   if Event.IsKey(keyF5) then
   begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
-    Exit(true);
-  end;
-
-  if Event.IsMouseButton(buttonLeft) then
-  begin
-    if MainViewport.TransformUnderMouse <> nil then
-      WritelnLog('Clicked on ' + MainViewport.TransformUnderMouse.Name);
-
-    PlayAnimationParams := TPlayAnimationParameters.Create;
-    try
-      PlayAnimationParams.Name := 'primary';
-      PlayAnimationParams.StopNotification := {$ifdef FPC}@{$endif} WeaponShootAnimationStop;
-      PlayAnimationParams.Loop := false;
-      SceneGun.PlayAnimation(PlayAnimationParams);
-    finally FreeAndNil(PlayAnimationParams) end;
-
-    SoundEngine.Play(SoundShoot);
-
-    { We clicked on enemy if
-      - TransformUnderMouse indicates we hit something
-      - It has a behavior of TEnemy. }
-    if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
-    begin
-      HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
-      HitEnemy.Hurt;
-      MainNotifications.Show('Killed ' + HitEnemy.Parent.Name);
-    end;
-
     Exit(true);
   end;
 end;

@@ -45,6 +45,8 @@ TODO: Inventory:
 Misc:
 
 - screenshot: F5.
+- fake win: P,
+- fake death: O.
 
 A lot more keys and mouse shortcuts are instantly working
 (and they all are configurable, too).

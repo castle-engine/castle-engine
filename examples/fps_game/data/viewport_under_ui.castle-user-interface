@@ -1,0 +1,177 @@
+{
+  "$$ClassName" : "TCastleViewport",
+  "Camera" : "Camera1",
+  "FullSize" : true,
+  "Items" : {
+    "$$ClassName" : "TCastleRootTransform",
+    "PhysicsProperties" : {
+      "$$ClassName" : "TPhysicsProperties"
+    },
+    "$Children" : [
+      {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "Camera1",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 8.9154905080795288E-001,
+          "X" : -4.5163872838020325E-001,
+          "Y" : -8.7165564298629761E-001,
+          "Z" : -1.9036816060543060E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.4250272750854492E+001,
+          "Y" : 1.1434561729431152E+001,
+          "Z" : 8.2851734161376953E+000
+        }
+      },
+      {
+        "$$ClassName" : "TCastleScene",
+        "ExposeTransforms" : [
+        ],
+        "Name" : "Scene1",
+        "PreciseCollisions" : true,
+        "RenderOptions" : {
+          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 4.6364626884460449E+000
+        },
+        "URL" : "castle-data:/level/level.gltf"
+      },
+      {
+        "$$ClassName" : "TCastleSpotLight",
+        "ColorPersistent" : {
+          "$$ClassName" : "TCastleColorRGBPersistent",
+          "Blue" : 9.9607843160629272E-001,
+          "Green" : 1.8039216101169586E-001,
+          "Red" : 9.4901961088180542E-001
+        },
+        "CutOffAngle" : 6.9999998807907104E-001,
+        "Intensity" : 5.0000000000000000E+000,
+        "Name" : "SpotLight1",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 1.1226720809936523E+000,
+          "X" : -1.0000017881393433E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -7.1100716590881348E+000,
+          "Y" : 8.3753566741943359E+000,
+          "Z" : -4.5426797866821289E-001
+        }
+      },
+      {
+        "$$ClassName" : "TCastleSpotLight",
+        "ColorPersistent" : {
+          "$$ClassName" : "TCastleColorRGBPersistent",
+          "Blue" : 0.0000000000000000E+000,
+          "Green" : 0.0000000000000000E+000
+        },
+        "Name" : "SpotLight2",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 1.0061718225479126E+000,
+          "X" : -1.0000027418136597E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 1.7380359649658203E+001,
+          "Z" : 6.6070313453674316E+000
+        }
+      },
+      {
+        "$$ClassName" : "TCastleScene",
+        "AutoAnimation" : "Idle",
+        "ExposeTransforms" : [
+        ],
+        "Name" : "Scene2",
+        "ProcessEvents" : true,
+        "RenderOptions" : {
+          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 1.7712974548339844E+000,
+          "Y" : -9.9999964237213135E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -5.6887664794921875E+000,
+          "Y" : 4.6364626884460449E+000,
+          "Z" : -3.6920061111450195E+000
+        },
+        "URL" : "castle-data:/enemy/knight.gltf"
+      },
+      {
+        "$$ClassName" : "TCastleScene",
+        "AutoAnimation" : "Idle",
+        "ExposeTransforms" : [
+        ],
+        "Name" : "Scene3",
+        "ProcessEvents" : true,
+        "RenderOptions" : {
+          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 9.2083698511123657E-001,
+          "Y" : 9.9999815225601196E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -8.4147281646728516E+000,
+          "Y" : 4.6364626884460449E+000,
+          "Z" : -3.6920061111450195E+000
+        },
+        "URL" : "castle-data:/enemy/knight.gltf"
+      }
+    ]
+  },
+  "Name" : "Viewport1",
+  "InternalDesignCamera" : {
+    "$$ClassName" : "TCastleCamera",
+    "Name" : "",
+    "Orthographic" : {
+      "$$ClassName" : "TCastleOrthographic"
+    },
+    "Perspective" : {
+      "$$ClassName" : "TCastlePerspective"
+    },
+    "RotationPersistent" : {
+      "$$ClassName" : "TCastleVector4Persistent",
+      "W" : 8.9154875278472900E-001,
+      "X" : -4.5163860917091370E-001,
+      "Y" : -8.7165510654449463E-001,
+      "Z" : -1.9036774337291718E-001
+    },
+    "TranslationPersistent" : {
+      "$$ClassName" : "TCastleVector3Persistent",
+      "X" : -1.4250272750854492E+001,
+      "Y" : 1.1434561729431152E+001,
+      "Z" : 8.2851734161376953E+000
+    }
+  },
+  "InternalDesignNavigations[dnFly]" : {
+    "$$ClassName" : "TCastleWalkNavigationDesign",
+    "Name" : ""
+  },
+  "InternalDesignNavigations[dnExamine]" : {
+    "$$ClassName" : "TCastleExamineNavigationDesign",
+    "Exists" : false,
+    "Name" : ""
+  },
+  "InternalDesignNavigations[dn2D]" : {
+    "$$ClassName" : "TCastle2DNavigationDesign",
+    "Exists" : false,
+    "Name" : ""
+  }
+}

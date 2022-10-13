@@ -7,12 +7,13 @@ uses Classes,
 
 type
   ${STATE_CLASS_NAME} = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from the castle-user-interface file. }
-    // ButtonXxx: TCastleButton;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    // ButtonXxx: TCastleButton;
   end;
 
 var
@@ -29,8 +30,6 @@ end;
 procedure ${STATE_CLASS_NAME}.Start;
 begin
   inherited;
-  { Find components, by name, that we need to access from code }
-  // ButtonXxx := DesignedComponent('ButtonXxx') as TCastleButton;
 end;
 
 end.
