@@ -41,7 +41,6 @@ type
       These fields will be automatically initialized at Start. }
     ButtonBackMenu, ButtonBackGame: TCastleButton;
     ViewportUnderUi: TCastleViewport;
-    MusicSound: TCastleSound;
     Fade: TCastleRectangleControl;
   end;
 
@@ -81,10 +80,6 @@ begin
     ButtonBackMenu.Caption := 'Back to menu (abort the game)'
   else
     ButtonBackMenu.Caption := 'Back to menu';
-
-  { When "Options" are over game, then there's no need to set this, StatePlay already plays music. }
-  if not OverGame then
-    SoundEngine.LoopingChannel[0].Sound := MusicSound;
 end;
 
 procedure TStateOptions.ClickBackMenu(Sender: TObject);

@@ -25,7 +25,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleApplicationProperties, CastleUIState,
-  CastleMaterialProperties
+  CastleMaterialProperties, CastleComponentSerialize, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStatePlay
@@ -41,6 +41,18 @@ var
 { Initialize the game.
   This is assigned to Application.OnInitialize, and will be called only once. }
 procedure ApplicationInitialize;
+
+  procedure InitializeMusicSound;
+  var
+    Sounds: TComponent;
+    MusicSound: TCastleSound;
+  begin
+    Sounds := TComponent.Create(Application);
+    ComponentLoad('castle-data:/sounds.castle-component', Sounds);
+    MusicSound := Sounds.FindRequiredComponent('MusicSound') as TCastleSound;
+    SoundEngine.LoopingChannel[0].Sound := MusicSound;
+  end;
+
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
@@ -57,6 +69,8 @@ begin
   StateDeath := TStateDeath.Create(Application);
   StateWin := TStateWin.Create(Application);
   {$endregion 'Castle State Creation'}
+
+  InitializeMusicSound;
 
   TUIState.Current := StateMenu;
 end;

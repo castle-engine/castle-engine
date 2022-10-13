@@ -46,7 +46,7 @@ type
     MainViewport, MapViewport: TCastleViewport;
     SceneGun: TCastleScene;
     SoundSourceFootsteps: TCastleSoundSource;
-    SoundShoot, MusicSound: TCastleSound;
+    SoundShoot: TCastleSound;
     MainNotifications: TCastleNotifications;
   end;
 
@@ -75,8 +75,6 @@ begin
   inherited;
 
   Enemies := TEnemyList.Create(true);
-
-  SoundEngine.LoopingChannel[0].Sound := MusicSound;
 
   for I := 1 to 7 do
   begin

@@ -37,7 +37,6 @@ type
     ButtonPlay: TCastleButton;
     ButtonQuit: TCastleButton;
     ButtonOptions: TCastleButton;
-    MusicSound: TCastleSound;
   end;
 
 var
@@ -57,8 +56,6 @@ end;
 procedure TStateMenu.Start;
 begin
   inherited;
-
-  SoundEngine.LoopingChannel[0].Sound := MusicSound;
 
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
   ButtonOptions.OnClick := {$ifdef FPC}@{$endif} ClickOptions;
