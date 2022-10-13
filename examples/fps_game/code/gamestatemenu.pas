@@ -51,6 +51,7 @@ constructor TStateMenu.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+  DesignPreload := true; // make it fast to transition to this state
 end;
 
 procedure TStateMenu.Start;

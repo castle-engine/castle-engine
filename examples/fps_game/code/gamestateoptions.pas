@@ -50,12 +50,14 @@ var
 implementation
 
 uses SysUtils,
+  CastleLog,
   GameStateMenu;
 
 constructor TStateOptions.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gamestateoptions.castle-user-interface';
+  DesignPreload := true; // make it fast to transition to this state
 end;
 
 procedure TStateOptions.Start;
@@ -109,6 +111,7 @@ begin
       ClickBackGame(nil)
     else
       ClickBackMenu(nil);
+    Exit(true);
   end;
 end;
 
