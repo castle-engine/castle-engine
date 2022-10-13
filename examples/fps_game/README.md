@@ -1,6 +1,12 @@
 # First-Person Shooter example
 
-Example of a fully-working 3D FPS game using "Castle Game Engine". We have:
+**TODO: This example is in the middle of a rework. It not yet fully functional, there's no creature AI, no items pickup, weapon doesn't work. See `examples/deprecated_to_upgrade/fps_game_old_ai/` for a working version but using deprecated API.**
+
+Example of a fully-working 3D FPS game using _Castle Game Engine_.
+
+With level designed using _Castle Game Engine_.
+
+We have:
 
 - level,
 - creatures,
@@ -20,40 +26,33 @@ Example of a fully-working 3D FPS game using "Castle Game Engine". We have:
 - footsteps
 - and a *lot* of comments.
 
-## TODO
+## Inputs
 
-This example doesn't yet use _Castle Game Engine_ editor to setup level and creatures on it.
-See https://castle-engine.io/castle_game_engine_for_unity_developers#_why_does_editor_template_3d_fps_game_show_a_different_approach_than_examplesfps_game .
-Define `UPCOMING_FPS_GAME_REDESIGN` within `code/gameinitialize.pas` to see the (unfinished) fps_game version using properly CGE editor features.
-But note that it doesn't (yet) support creature AI or items pickup.
-
-## Keys
+Attack (with currently equipped weapon) by clicking with left mouse button.
 
 Move and rotate:
 
 - use AWSD or arrow keys,
-- you can activate "Mouse Look" by F4 (or click a suitable button on the screen).
+- you can activate "Mouse Look" by F4 or holding the right mouse button,
+- hold Shift to run.
 
-Inventory:
+TODO: Inventory:
 
 - use current item by Enter,
 - change current item by [ ] or mouse wheel,
-- drop item by R,
-- attack (with currently equipped weapon) by Ctrl key.
+- drop item by R.
+
+Misc:
+
+- screenshot: F5.
+- fake win: P,
+- fake death: O.
 
 A lot more keys and mouse shortcuts are instantly working
 (and they all are configurable, too).
 
-All input shortcuts are TInputShortcut instances.
-The CastleInputs unit has a list of all global shortcuts (useful to allow
-users to configure game keymap) in InputsAll variable.
-Of course you can use it to present to user some "Configure controls" menu,
-see castle-game for example.
-
-The ExtraViewport in right-bottom part of the screen uses Examine camera,
-so the view there is fully editable. Try dragging with mouse,
-"Home" key restores comfortable initial view,
-and see e.g. view3dscene docs for full key/mouse controls list.
+The `MapViewport` in right-bottom part of the screen shows a map view top.
+"Examine" view is available and you can zoom in/out using scroll.
 
 ## Building
 

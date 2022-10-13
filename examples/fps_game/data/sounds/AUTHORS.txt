@@ -18,3 +18,9 @@ player_swimming:
   (unfortunately do not remember exact URL, I used this sound in castle1 game)
   public domain
 
+beating_that_thing
+
+    from https://opengameart.org/content/business-goes-beyond-dark-soundtrack
+    by oldkyx https://opengameart.org/users/oldkyx
+    License(s): CC0
+
