@@ -2053,31 +2053,42 @@ type
       deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
     { Play an animation specified by name.
-      If the given animation name exists,
-      then we return @true and stop previously playing named animation (if any).
-      Otherwise we return @false and the current animation is unchanged.
+
+      You can specify the animation name, whether it should loop,
+      and whether to play it forward or backward using parameters to this method.
+
+      Or you can specify even more parameters using TPlayAnimationParameters instance.
+      TPlayAnimationParameters can additionally specify a stop notification,
+      initial time and more.
+      It is OK to create a short-lived TPlayAnimationParameters instance and destroy
+      it right after calling this method.
+      This method doesn't store the TPlayAnimationParameters instance reference.
 
       To get the list of available animations, see @link(AnimationsList).
+
+      This is one of the simplest way to play animations using Castle Game Engine.
+      Alternative (that calls PlayAnimation under the hood) is to set AutoAnimation
+      and AutoAnimationLoop.
+      See https://castle-engine.io/viewport_3d#_play_animation .
+
+      Playing an already-playing animation is guaranteed to restart it from
+      the beginning (more precisely: from TPlayAnimationParameters.InitialTime,
+      if you pass TPlayAnimationParameters).
+
+      If the given animation name exists,
+      then we stop previously playing animation (if any),
+      calling it's stop notification (see TPlayAnimationParameters.StopNotification),
+      start playing the new animation, and return @true.
+      If the animation name does not exist then we return @false,
+      make a warning and the current animation is unchanged.
+
+      The change from previous to new animation can be smooth (using animation
+      cross-fading) if you use TPlayAnimationParameters with @link(TPlayAnimationParameters.TransitionDuration)
+      or if you set DefaultAnimationTransition to something non-zero.
 
       This automatically turns on @link(ProcessEvents),
       if it wasn't turned on already.
       Processing events is necessary for playing animations.
-
-      This is the simplest way to play animations using Castle Game Engine.
-      For a nice overview about using PlayAnimation, see the manual
-      https://castle-engine.io/manual_scene.php , section "Play animation".
-
-      Playing an already-playing animation is guaranteed to restart it from
-      the beginning.
-
-      You can specify whether the animation should loop,
-      whether to play it forward or backward,
-      whether to do animation blending and some other options
-      using @link(TPlayAnimationParameters).
-      If you use an overloaded version with the TPlayAnimationParameters,
-      note that you can (and usually should) free the TPlayAnimationParameters
-      instance right after calling this method. We do not keep reference to
-      the TPlayAnimationParameters instance, and we do not free it ourselves.
 
       More details about how this works:
 
@@ -3477,12 +3488,7 @@ begin
       if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
         { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
           right after loading the UI design from file. }
-        ForceInitialAnimationPose
-      else
-        WritelnWarning('Animation "%s" not found on "%s"', [
-          AutoAnimation,
-          URIDisplay(URL)
-        ]);
+        ForceInitialAnimationPose;
     end else
     if StopIfPlaying then
     begin
@@ -8457,6 +8463,13 @@ begin
     NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
     NewPlayingAnimationInitialTime := Parameters.InitialTime;
     NewPlayingAnimationUse := true;
+  end else
+  begin
+    WritelnWarning('Animation "%s" not found on scene %s (loaded from %s)', [
+      Parameters.Name,
+      Name,
+      URIDisplay(URL)
+    ]);
   end;
 end;
 
