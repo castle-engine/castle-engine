@@ -21,7 +21,7 @@ interface
 uses Classes, CastleCameras,
   CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleViewport, CastleSceneCore, X3DNodes, CastleScene, CastleSoundEngine,
-  CastleBehaviors,
+  CastleBehaviors, CastleNotifications,
   GameEnemy;
 
 type
@@ -47,6 +47,7 @@ type
     SceneGun: TCastleScene;
     SoundSourceFootsteps: TCastleSoundSource;
     SoundShoot, MusicSound: TCastleSound;
+    MainNotifications: TCastleNotifications;
   end;
 
 var
@@ -145,6 +146,12 @@ begin
     Exit(true);
   end;
 
+  if Event.IsKey(keyF5) then
+  begin
+    MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
+    Exit(true);
+  end;
+
   if Event.IsMouseButton(buttonLeft) then
   begin
     if MainViewport.TransformUnderMouse <> nil then
@@ -168,6 +175,7 @@ begin
     begin
       HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
       HitEnemy.Hurt;
+      MainNotifications.Show('Killed ' + HitEnemy.Parent.Name);
     end;
 
     Exit(true);

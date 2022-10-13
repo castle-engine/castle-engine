@@ -684,6 +684,16 @@
         "Exists" : false,
         "Name" : ""
       }
+    },
+    {
+      "$$ClassName" : "TCastleNotifications",
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "MainNotifications",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : 1.0000000000000000E+001
+      }
     }
   ]
 }

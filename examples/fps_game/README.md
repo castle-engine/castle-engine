@@ -42,6 +42,10 @@ TODO: Inventory:
 - change current item by [ ] or mouse wheel,
 - drop item by R.
 
+Misc:
+
+- screenshot: F5.
+
 A lot more keys and mouse shortcuts are instantly working
 (and they all are configurable, too).
 
