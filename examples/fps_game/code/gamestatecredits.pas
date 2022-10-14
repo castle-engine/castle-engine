@@ -39,7 +39,7 @@ end;
 procedure TStateCredits.Start;
 begin
   inherited;
-  ButtonBack.OnClick  := @ClickBack;
+  ButtonBack.OnClick  := {$ifdef FPC}@{$endif} ClickBack;
 end;
 
 end.
