@@ -14,10 +14,8 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TState${MAIN_STATE} = class(TUIState)
-  published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    { Components designed using CGE editor, loaded from gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface. }
     Viewport: TCastleViewport;
     SceneMain: TCastleScene;
     ButtonLoadKnight: TCastleButton;
