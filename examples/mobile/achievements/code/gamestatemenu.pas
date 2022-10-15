@@ -24,6 +24,7 @@ uses Classes,
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TStateMenu = class(TUIState)
+  published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     ButtonPlay, ButtonQuit: TCastleButton;

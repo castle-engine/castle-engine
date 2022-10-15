@@ -14,6 +14,7 @@ uses Classes,
 type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
+  published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
