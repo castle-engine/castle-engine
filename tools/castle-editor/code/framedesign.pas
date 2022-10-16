@@ -402,6 +402,32 @@ type
     procedure FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
+
+    { Single selected item, e.g. for rename operation.
+
+      Use this instead of ControlsTree.Selected which is not reliable to use
+      on a TTreeView with multi-selection.
+
+      - it is not synchronized with ControlsTree.SelectionCount,
+        ControlsTree.Selections after doing "ControlsTree.Selected := nil".
+        The ControlsTree.SelectionCount may be left > 0.
+
+      - it is not synchronized with ControlsTree.SelectionCount,
+        ControlsTree.Selections after selecting multiple components with Shift and Ctrl.
+        E.g.
+        - select one tree node.
+          click on it again with Ctrl.
+          Effect: ControlsTree.Selected <> nil,
+          but ControlsTree.SelectionCount = 0.
+        - select one tree node.
+          select 3 more with Shift.
+          unselect 3 more with Ctrl.
+          Effect: ControlsTree.Selected = nil,
+          but ControlsTree.SelectionCount > 0.
+
+      - adding / removing nodes also don't seem to always synchronized them...
+    }
+    function ControlsTreeOneSelected: TTreeNode;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1453,9 +1479,9 @@ end;
 
 procedure TDesignFrame.ClearDesign;
 begin
-
   // ControlsTree.Items.Clear; // do not clear, we will always rebuild ControlsTree to just apply differences
-  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it in some cases
+
+  ControlsTree.ClearSelection; // TODO: for now we reset selection, though maybe we could preserve it in some cases
 
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
@@ -1840,8 +1866,8 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
 begin
   { Cancel editing the component name, when adding a component.
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
-  if ControlsTree.Selected <> nil then
-    ControlsTree.Selected.EndEdit(true);
+  if ControlsTreeOneSelected <> nil then
+    ControlsTreeOneSelected.EndEdit(true);
 
   if ParentComponent is TCastleUserInterface then
   begin
@@ -3673,7 +3699,7 @@ begin
   // temporarily disable events, as some pointers in ControlsTree data are invalid now
   ControlsTree.OnSelectionChanged := nil;
 
-  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it
+  ControlsTree.ClearSelection; // TODO: for now we reset selection, though maybe we could preserve it
 
   TreeNodeMap.Clear; // ValidateOrUpdateHierarchy(false) will fill TreeNodeMap
 
@@ -3850,16 +3876,25 @@ begin
   // Assert(Result = GetSelectedComponentNaive);
 end;
 
+function TDesignFrame.ControlsTreeOneSelected: TTreeNode;
+begin
+  if ControlsTree.SelectionCount = 1 then
+    Result := ControlsTree.Selections[0]
+  else
+    Result := nil;
+end;
+
 procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
   { Checking GetSelectedComponent = Value is needed because ControlsTree.Select()
-    firstly call ClearSelection what calls ControlsTreeSelectionChanged() to
+    first calls ClearSelection which, in turn, calls ControlsTreeSelectionChanged() to
     UpdateSelectedControl so anchor is destroyed and then sets selection
-    to the previous one. That can make some hierarchy pointers dangling
-    when new selection is set after the previous one is cleared - no update() here
-    to fix pointers using InternalCastleDesignInvalidate.
+    to the previous one. That can make some TTreeNode pointers invalid
+    (because tree changed, after anchor removal, so some TTreeNode instances have
+    been freed and some new ones have been allocated)
+    when new selection is set after the previous one is cleared.
     See TCustomTreeView.Select() and TDesignFrame.ControlsTreeSelectionChanged()
     implementation to understand the problem more easily. }
 
@@ -4066,7 +4101,7 @@ begin
   if Source = ControlsTree then
   begin
     // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
-    Src := ControlsTree.Selected;
+    Src := ControlsTreeOneSelected;
     Dst := ControlsTree.GetNodeAt(X, Y);
     ControlsTreeNodeUnderMouse := Dst;
 
@@ -4219,19 +4254,27 @@ end;
 
 function TDesignFrame.RenamePossible: Boolean;
 begin
-  { Note: do not check GetSelectedComponent <> nil,
-    as a component may also be selected indirectly by selecting
-    special tree items "Behaviors" or "Non-Visual Components" underneath.
-    For rename, it has to be selected directly. }
+  { Notes:
+
+    - We do not check "GetSelectedComponent <> nil",
+      as a component may also be selected indirectly by selecting
+      special tree items "Behaviors" or "Non-Visual Components" underneath.
+      For rename, it has to be selected directly.
+
+    - We do not check "ControlsTree.SelectionCount > 0" or "ControlsTree.Selected <> nil".
+
+    We rely on ControlsTreeOneSelected which is also used by rename operation.
+    Currently it underneath checks "ControlsTree.SelectionCount = 1".
+  }
   Result :=
-    (ControlsTree.SelectionCount = 1) and
-    (ControlsTree.Selections[0].Data <> nil);
+    (ControlsTreeOneSelected <> nil) and
+    (ControlsTreeOneSelected.Data <> nil);
 end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
   if RenamePossible then
-    ControlsTree.Selected.EditText;
+    ControlsTreeOneSelected.EditText;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
@@ -4433,7 +4476,7 @@ var
 begin
   if Source = ControlsTree then
   begin
-    Src := ControlsTree.Selected;
+    Src := ControlsTreeOneSelected;
     Dst := ControlsTreeNodeUnderMouse;
     { Paranoidally check ControlsTreeAllowDrag again.
       It happens that Src is nil, in my tests. }
@@ -4450,8 +4493,11 @@ begin
         { Fixes selection after drag'n'drop.
           I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
           is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect }
-        ControlsTree.Selected := Src;
+          selection but TTreeView.Selected state is incorect.
+
+          Later: we no longer use TTreeView.Selected, we update multi-selection.
+          TODO: Update above comment, understand if this operation is still necessary. }
+        ControlsTree.Select([Src]);
       end else
       if (SrcComponent is TCastleTransform) and
          (DstComponent is TCastleTransform) then
@@ -4462,8 +4508,11 @@ begin
         { Fixes selection after drag'n'drop.
           I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
           is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect }
-        ControlsTree.Selected := Src;
+          selection but TTreeView.Selected state is incorect.
+
+          Later: we no longer use TTreeView.Selected, we update multi-selection.
+          TODO: Update above comment, understand if this operation is still necessary. }
+        ControlsTree.Select([Src]);
       end else
       if (SrcComponent is TCastleBehavior) and
          (DstComponent is TCastleTransform) then
@@ -5081,7 +5130,7 @@ begin
   for InspectorType in TInspectorType do
     Inspector[InspectorType].RefreshPropertyValues;
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
-  if ControlsTree.Selected <> nil then
+  if ControlsTree.SelectionCount <> 0 then
     PropertyGridModified(nil);
 
   MarkModified;
