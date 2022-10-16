@@ -842,6 +842,13 @@ type
     property MouseRayHit: TRayCollision read FMouseRayHit;
 
     { Current object (TCastleTransform instance) under the mouse cursor.
+
+      This corresponds to the first @italic(not hidden) instance on the MouseRayHit list.
+      This makes the behavior most intuitive: it returns the TCastleTransform
+      instance you have explicitly created, like TCastleScene, TCastlePlane or TCastleImageTransform.
+      It will not return hidden (with csTransient flag) scenes that are internal
+      e.g. inside TCastlePlane or TCastleImageTransform.
+
       Updated in every mouse move. May be @nil. }
     function TransformUnderMouse: TCastleTransform;
 
@@ -1921,12 +1928,19 @@ begin
 end;
 
 function TCastleViewport.TransformUnderMouse: TCastleTransform;
+var
+  I: Integer;
 begin
-  if (MouseRayHit <> nil) and
-     (MouseRayHit.Count <> 0) then
-    Result := MouseRayHit.First.Item
-  else
-    Result := nil;
+  if MouseRayHit <> nil then
+    for I := 0 to MouseRayHit.Count - 1 do
+    begin
+      Result := MouseRayHit[I].Item;
+      if not (csTransient in Result.ComponentStyle) then
+        Exit;
+    end;
+
+  // Return nil if all items on MouseRayHit list are csTransient, or MouseRayHit = nil
+  Result := nil;
 end;
 
 procedure TCastleViewport.RecalculateCursor(Sender: TObject);
