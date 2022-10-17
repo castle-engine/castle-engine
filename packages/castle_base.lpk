@@ -4242,39 +4242,39 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalPhysicsVisualization"/>
       </Item1034>
       <Item1035>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tballjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1035>
       <Item1036>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tdistancejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1036>
       <Item1037>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tfixedjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1037>
       <Item1038>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tgrabjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1038>
       <Item1039>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/thingejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1039>
       <Item1040>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tpulleyjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1040>
       <Item1041>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tropejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1041>
       <Item1042>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tsliderjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1042>
       <Item1043>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tworldplanedistancejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1043>
     </Files>
