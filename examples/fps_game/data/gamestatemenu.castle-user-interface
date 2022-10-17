@@ -24,8 +24,7 @@
           "AutoSize" : false,
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
+            "Blue" : 1.0000000000000000E+000
           },
           "FontSize" : 4.0000000000000000E+001,
           "Height" : 5.0000000000000000E+001,
