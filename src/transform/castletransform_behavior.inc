@@ -241,6 +241,7 @@ end;
 
 function TCastleBehavior.InternalCreateGizmosCreated: Boolean;
 begin
+  raise Exception.Create('InternalCreateGizmosCreated not implemented.');
   Result := false;
 end;
 
