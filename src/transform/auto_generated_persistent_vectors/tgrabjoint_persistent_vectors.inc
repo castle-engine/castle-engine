@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TGrabJoint.GetWorldPointForPersistent: TVector3;
+function TCastleGrabJoint.GetWorldPointForPersistent: TVector3;
 begin
   Result := WorldPoint;
 end;
 
-procedure TGrabJoint.SetWorldPointForPersistent(const AValue: TVector3);
+procedure TCastleGrabJoint.SetWorldPointForPersistent(const AValue: TVector3);
 begin
   WorldPoint := AValue;
 end;

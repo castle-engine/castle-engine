@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function THingeJoint.GetAnchorForPersistent: TVector3;
+function TCastleHingeJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure THingeJoint.SetAnchorForPersistent(const AValue: TVector3);
+procedure TCastleHingeJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function THingeJoint.GetRotationAxisForPersistent: TVector3;
+function TCastleHingeJoint.GetRotationAxisForPersistent: TVector3;
 begin
   Result := RotationAxis;
 end;
 
-procedure THingeJoint.SetRotationAxisForPersistent(const AValue: TVector3);
+procedure TCastleHingeJoint.SetRotationAxisForPersistent(const AValue: TVector3);
 begin
   RotationAxis := AValue;
 end;

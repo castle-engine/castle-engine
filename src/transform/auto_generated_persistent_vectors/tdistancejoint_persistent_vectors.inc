@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TDistanceJoint.GetAnchorForPersistent: TVector3;
+function TCastleDistanceJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TDistanceJoint.SetAnchorForPersistent(const AValue: TVector3);
+procedure TCastleDistanceJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TDistanceJoint.GetConnectedAnchorForPersistent: TVector3;
+function TCastleDistanceJoint.GetConnectedAnchorForPersistent: TVector3;
 begin
   Result := ConnectedAnchor;
 end;
 
-procedure TDistanceJoint.SetConnectedAnchorForPersistent(const AValue: TVector3);
+procedure TCastleDistanceJoint.SetConnectedAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedAnchor := AValue;
 end;

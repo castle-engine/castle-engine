@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TSliderJoint.GetWorldAnchorForPersistent: TVector3;
+function TCastleSliderJoint.GetWorldAnchorForPersistent: TVector3;
 begin
   Result := WorldAnchor;
 end;
 
-procedure TSliderJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
+procedure TCastleSliderJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
 begin
   WorldAnchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TSliderJoint.GetWorldSliderAxisForPersistent: TVector3;
+function TCastleSliderJoint.GetWorldSliderAxisForPersistent: TVector3;
 begin
   Result := WorldSliderAxis;
 end;
 
-procedure TSliderJoint.SetWorldSliderAxisForPersistent(const AValue: TVector3);
+procedure TCastleSliderJoint.SetWorldSliderAxisForPersistent(const AValue: TVector3);
 begin
   WorldSliderAxis := AValue;
 end;

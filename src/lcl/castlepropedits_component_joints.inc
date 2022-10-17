@@ -31,12 +31,12 @@ var
 begin
   ShouldShow := not (Component as TCastleBehavior).InternalCreateGizmosCreated;
 
-  if (Component is THingeJoint)
+  if (Component is TCastleHingeJoint)
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-    or (Component is TFixedJoint)
-    or (Component is TWorldPlaneDistanceJoint)
+    or (Component is TCastleFixedJoint)
+    or (Component is TCastleWorldPlaneDistanceJoint)
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
-    or (Component is TBallJoint) then
+    or (Component is TCastleBallJoint) then
   begin
     if ShouldShow then
       Exit('Show Joint Anchor')
@@ -44,8 +44,8 @@ begin
       Exit('Hide Joint Anchor');
   end;
 
-  if (Component is TRopeJoint)
-     or (Component is TDistanceJoint) then
+  if (Component is TCastleRopeJoint)
+     or (Component is TCastleDistanceJoint) then
   begin
     if ShouldShow then
       Exit('Show Joint Anchors')
@@ -53,7 +53,7 @@ begin
       Exit('Hide Joint Anchors');
   end;
 
-  if (Component is TGrabJoint) then
+  if (Component is TCastleGrabJoint) then
   begin
     if ShouldShow then
       Exit('Show Joint World Point')
@@ -62,7 +62,7 @@ begin
   end;
 
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if (Component is TPulleyJoint) then
+  if (Component is TCastlePulleyJoint) then
   begin
     if ShouldShow then
       Exit('Show Joint World and World Ground Anchors')
@@ -70,7 +70,7 @@ begin
       Exit('Hide Joint World and World Ground Anchors');
   end;
 
-  if (Component is TSliderJoint) then
+  if (Component is TCastleSliderJoint) then
   begin
     if ShouldShow then
        Exit('Show Joint World Anchor')

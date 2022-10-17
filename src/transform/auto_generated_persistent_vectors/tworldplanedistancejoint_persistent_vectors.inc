@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TWorldPlaneDistanceJoint.GetAnchorForPersistent: TVector3;
+function TCastleWorldPlaneDistanceJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TWorldPlaneDistanceJoint.SetAnchorForPersistent(const AValue: TVector3);
+procedure TCastleWorldPlaneDistanceJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TWorldPlaneDistanceJoint.GetPlaneNormalForPersistent: TVector3;
+function TCastleWorldPlaneDistanceJoint.GetPlaneNormalForPersistent: TVector3;
 begin
   Result := PlaneNormal;
 end;
 
-procedure TWorldPlaneDistanceJoint.SetPlaneNormalForPersistent(const AValue: TVector3);
+procedure TCastleWorldPlaneDistanceJoint.SetPlaneNormalForPersistent(const AValue: TVector3);
 begin
   PlaneNormal := AValue;
 end;

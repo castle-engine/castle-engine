@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TRopeJoint.GetAnchorForPersistent: TVector3;
+function TCastleRopeJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TRopeJoint.SetAnchorForPersistent(const AValue: TVector3);
+procedure TCastleRopeJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TRopeJoint.GetConnectedAnchorForPersistent: TVector3;
+function TCastleRopeJoint.GetConnectedAnchorForPersistent: TVector3;
 begin
   Result := ConnectedAnchor;
 end;
 
-procedure TRopeJoint.SetConnectedAnchorForPersistent(const AValue: TVector3);
+procedure TCastleRopeJoint.SetConnectedAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedAnchor := AValue;
 end;

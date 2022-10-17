@@ -183,16 +183,16 @@ begin
   RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
   RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
   RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
-  RegisterComponentEditor(THingeJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TRopeJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TDistanceJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TBallJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TGrabJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleHingeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleRopeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleBallJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleGrabJoint, TCastleJointsComponentEditor);
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  RegisterComponentEditor(TFixedJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TWorldPlaneDistanceJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TPulleyJoint, TCastleJointsComponentEditor);
-  RegisterComponentEditor(TSliderJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleFixedJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleWorldPlaneDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastlePulleyJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleSliderJoint, TCastleJointsComponentEditor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 

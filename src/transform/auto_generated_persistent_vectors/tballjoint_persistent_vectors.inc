@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TBallJoint.GetAnchorForPersistent: TVector3;
+function TCastleBallJoint.GetAnchorForPersistent: TVector3;
 begin
   Result := Anchor;
 end;
 
-procedure TBallJoint.SetAnchorForPersistent(const AValue: TVector3);
+procedure TCastleBallJoint.SetAnchorForPersistent(const AValue: TVector3);
 begin
   Anchor := AValue;
 end;

@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TPulleyJoint.GetWorldAnchorForPersistent: TVector3;
+function TCastlePulleyJoint.GetWorldAnchorForPersistent: TVector3;
 begin
   Result := WorldAnchor;
 end;
 
-procedure TPulleyJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
+procedure TCastlePulleyJoint.SetWorldAnchorForPersistent(const AValue: TVector3);
 begin
   WorldAnchor := AValue;
 end;
@@ -100,12 +100,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TPulleyJoint.GetConnectedWorldAnchorForPersistent: TVector3;
+function TCastlePulleyJoint.GetConnectedWorldAnchorForPersistent: TVector3;
 begin
   Result := ConnectedWorldAnchor;
 end;
 
-procedure TPulleyJoint.SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
+procedure TCastlePulleyJoint.SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedWorldAnchor := AValue;
 end;
@@ -162,12 +162,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TPulleyJoint.GetWorldGroundAnchorForPersistent: TVector3;
+function TCastlePulleyJoint.GetWorldGroundAnchorForPersistent: TVector3;
 begin
   Result := WorldGroundAnchor;
 end;
 
-procedure TPulleyJoint.SetWorldGroundAnchorForPersistent(const AValue: TVector3);
+procedure TCastlePulleyJoint.SetWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
   WorldGroundAnchor := AValue;
 end;
@@ -224,12 +224,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TPulleyJoint.GetConnectedWorldGroundAnchorForPersistent: TVector3;
+function TCastlePulleyJoint.GetConnectedWorldGroundAnchorForPersistent: TVector3;
 begin
   Result := ConnectedWorldGroundAnchor;
 end;
 
-procedure TPulleyJoint.SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
+procedure TCastlePulleyJoint.SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
   ConnectedWorldGroundAnchor := AValue;
 end;
