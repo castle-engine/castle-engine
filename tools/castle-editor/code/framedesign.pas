@@ -237,6 +237,7 @@ type
       FComponentEditorDesigner: TComponentEditorDesigner;
       FTransformDesigning: TCastleTransform;
       FTransformDesigningObserver: TFreeNotificationObserver;
+      LastSelected: TComponentList;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -426,6 +427,9 @@ type
           but ControlsTree.SelectionCount > 0.
 
       - adding / removing nodes also don't seem to always synchronized them...
+
+      Note: Also never set ControlsTree.Selected.
+      Do ControlsTree.ClearSelection that makes multi-selection properly cleared.
     }
     function ControlsTreeOneSelected: TTreeNode;
   protected
@@ -1342,6 +1346,8 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
 begin
   inherited;
 
+  LastSelected := TComponentList.Create(false);
+
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
   FComponentEditorDesigner := TConcreteEditorDesigner.Create(Self, PropertyEditorHook);
@@ -1429,6 +1435,7 @@ begin
   FreeAndNil(TreeNodeMap);
   FreeAndNil(CameraPreview);
   FreeAndNil(FComponentEditorDesigner);
+  FreeAndNil(LastSelected);
 
   if CollectionPropertyEditorForm <> nil then
   begin
@@ -1799,6 +1806,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
           (Result as TCastleMeshCollider).Scene := ParentComponent;
+        { When creating new behavior under selected transform, call DesigningBegin.
+          This way temporary anchors appear immediately on newly added physics joint. }
+        if ParentComponent = TransformDesigning then
+          (Result as TCastleBehavior).DesigningBegin;
       finally
         FinishAddingComponent(Result);
       end;
@@ -2632,6 +2643,36 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
     Result := V.Name + ': ' + CameraDirectionStr + ProjectionStr + ' ' + NL +
       DesignNavigationStr;
   end;
+
+  (*
+  Unused debug routine to dump current selection of ControlsTree,
+  derived from various properties.
+
+  procedure DebugControlsTreeSelection;
+  var
+    S: String;
+    I: Integer;
+  begin
+    S := '';
+
+    if ControlsTree.Selected <> nil then
+      S := S + 'Selected non-nil: ' + ControlsTree.Selected.Text + LineEnding
+    else
+      S := S + 'Selected nil' + LineEnding;
+
+    if ControlsTreeOneSelected <> nil then
+      S := S + 'OneSelected non-nil: ' + ControlsTreeOneSelected.Text + LineEnding
+    else
+      S := S + 'OneSelected nil' + LineEnding;
+
+    S := S + 'SelectionCount: ' + IntToStr(ControlsTree.SelectionCount) + LineEnding;
+
+    for I := 0 to ControlsTree.SelectionCount - 1 do
+      S := S + IntToStr(I) + ': ' + ControlsTree.Selections[I].Text + LineEnding;
+
+    LabelTreeDEbug.Caption := S;
+  end;
+  *)
 
 var
   SavedErrorBox: String;
@@ -3695,22 +3736,62 @@ begin
 end;
 
 procedure TDesignFrame.UpdateDesign;
+
+  { Set ControlsTree selection to given components.
+    Selected may be @nil indicating "select nothing". }
+  procedure ControlsTreeSetSelection(const Selected: TComponentList);
+  var
+    SelectedNodes: TList; // TTreeNode list
+    SelectedNode: TTreeNode;
+    I: Integer;
+  begin
+    if (Selected <> nil) and
+       (Selected.Count <> 0) then
+    begin
+      SelectedNodes := TList.Create;
+      try
+        for I := 0 to Selected.Count - 1 do
+          if TreeNodeMap.TryGetValue(Selected[I], SelectedNode) then
+            SelectedNodes.Add(SelectedNode);
+        ControlsTree.Select(SelectedNodes);
+      finally FreeAndNil(SelectedNodes) end;
+    end else
+      ControlsTree.ClearSelection;
+  end;
+
 begin
+  { Note that we cannot do GetSelected now to save current selection state.
+    At this point, our tree may contain invalid pointers.
+    Imagine that we just deleted a (selected) hinge component,
+    that also freed related anchor (TCastleTransform).
+    Neither hinge component, nor anchor (TCastleTransform), exist anymore.
+    So we just use LastSelected to restore. }
+
   // temporarily disable events, as some pointers in ControlsTree data are invalid now
   ControlsTree.OnSelectionChanged := nil;
-
-  ControlsTree.ClearSelection; // TODO: for now we reset selection, though maybe we could preserve it
 
   TreeNodeMap.Clear; // ValidateOrUpdateHierarchy(false) will fill TreeNodeMap
 
   ValidateOrUpdateHierarchy(false);
 
+  { Restore selection.
+    Without this (if we would clear selection like ControlsTree.ClearSelection),
+    selecting physics joint would not work,
+    as selecting it would reset selection making it unselected again. }
+  ControlsTreeSetSelection(LastSelected);
+
   // restore events
   ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
-  UpdateSelectedControl;
-
   InternalCastleDesignInvalidate := false;
+
+  { Note that this sets (maybe changes to nil if unselected) TransformDesigning,
+    calling some DesigningBegin / DesigningEnd.
+    They in turn may create / destroy something, and set
+    InternalCastleDesignInvalidate :=  true and it shoud cause UpdateDesign again.
+    It actually should not happen anymore (because we save/restore selection,
+    so TransformDesigning should remain the same) but better be secure from it. }
+  UpdateSelectedControl;
 end;
 
 function TDesignFrame.ValidateHierarchy: Boolean;
@@ -3781,9 +3862,14 @@ begin
   end;
 
   if Selected <> nil then
-    SelectedCount := Selected.Count
-  else
+  begin
+    SelectedCount := Selected.Count;
+    LastSelected.Assign(Selected);
+  end else
+  begin
     SelectedCount := 0;
+    LastSelected.Clear;
+  end;
 end;
 
 function TDesignFrame.GetSelectedUserInterface: TCastleUserInterface;
@@ -3860,7 +3946,7 @@ begin
       begin
         if Result <> C then
         begin
-          { more than one component selected -> exit nil }
+          { more than one component selected -> exit nil, do not update LastSelected }
           // Assert(nil = GetSelectedComponentNaive);
           Exit(nil);
         end;
@@ -3872,6 +3958,11 @@ begin
         Result := C;
     end;
   end;
+
+  { Update LastSelected to 0 or 1 components }
+  LastSelected.Clear;
+  if Result <> nil then
+    LastSelected.Add(Result);
 
   // Assert(Result = GetSelectedComponentNaive);
 end;
@@ -3888,24 +3979,30 @@ procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
-  { Checking GetSelectedComponent = Value is needed because ControlsTree.Select()
-    first calls ClearSelection which, in turn, calls ControlsTreeSelectionChanged() to
-    UpdateSelectedControl so anchor is destroyed and then sets selection
-    to the previous one. That can make some TTreeNode pointers invalid
-    (because tree changed, after anchor removal, so some TTreeNode instances have
-    been freed and some new ones have been allocated)
-    when new selection is set after the previous one is cleared.
-    See TCustomTreeView.Select() and TDesignFrame.ControlsTreeSelectionChanged()
-    implementation to understand the problem more easily. }
+  { Disabling OnSelectionChanged is safest because ControlsTree.Select
+    first calls ClearSelection which, in turn, calls OnSelectionChanged.
 
-  if GetSelectedComponent = Value then
-    Exit;
+    If OnSelectionChanged would cause ControlsTreeSelectionChanged then
+    - UpdateSelectedControl gets called
+    - in turn TransformDesigning is set
+    - which may cause some DesigningEnd calls on hinges
+    - which may free some TTreeNode.Data pointers invalid
+
+    There's nothing inherently bad in above (it would be bad only if TTreeNode
+    instance would become invalid in the middle of ControlsTree.Select),
+    but still it seems safer to avoid such cascade in the middle of ControlsTree.Select.
+  }
+
+  ControlsTree.OnSelectionChanged := nil;
 
   if Value = nil then
     ControlsTree.Select([])
   else
   if TreeNodeMap.TryGetValue(Value, Node) then
     ControlsTree.Select([Node]);
+
+  ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
+  ControlsTreeSelectionChanged(nil);
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
@@ -4626,7 +4723,17 @@ begin
         if Node = ControlsTreeNodeUnderMouse then
           DrawTreeNodeUnderMouse;
 
-        if Node.Data <> nil then
+        { When InternalCastleDesignInvalidate, don't trust that pointers
+          on Node.Data are valid. This may happen if you freed joint,
+          which also freed associated anchor.
+
+          TODO: understand better why this is possible.
+          After FreeComponentRecursively, we immediately do UpdateDesign
+          and at that point the InternalCastleDesignInvalidate should be already
+          resolved? }
+
+        if (not InternalCastleDesignInvalidate) and
+           (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
   end;
