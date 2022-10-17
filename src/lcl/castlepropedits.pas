@@ -72,7 +72,7 @@ uses // FPC and LCL units
 {$I castlepropedits_component_imagecontrol.inc}
 {$I castlepropedits_component_transformdesign.inc}
 {$I castlepropedits_component_design.inc}
-{$I castlepropedits_component_hingejoint.inc}
+{$I castlepropedits_component_joints.inc}
 {$I castlepropedits_abstracttwobodiesjoint.inc}
 
 procedure Register;
@@ -183,7 +183,17 @@ begin
   RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
   RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
   RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
-  RegisterComponentEditor(THingeJoint, TCastleHingeJointComponentEditor);
+  RegisterComponentEditor(THingeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TRopeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TBallJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TGrabJoint, TCastleJointsComponentEditor);
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
+  RegisterComponentEditor(TFixedJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TWorldPlaneDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TPulleyJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TSliderJoint, TCastleJointsComponentEditor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 initialization
