@@ -90,16 +90,27 @@
   public
     procedure BeforeDestruction; override;
 
-    { Create design-time things, like gizmos to visualize physics joint 3D points.
-      If you want to visualize the behavior using a visible TCastleTransform,
-      then create and add to Parent a descendant of TTemporaryJointTransform,
-      and set InternalCastleDesignInvalidate to @true. }
+    { Create design-time things that are not displayed in the hierarchy
+      so can be created after behavior selection in editor hierarchy }
     procedure DesigningBegin; virtual;
+
+    { Destroy design-time stuff. }
+    procedure DesigningEnd; virtual;
+
+    {  Create design-time things that are displayed in hierarchy like gizmos
+       to visualize physics joint 3D points. They get context menu item to show/hide.
+       If you want to visualize the behavior using a visible TCastleTransform,
+       then create and add to Parent a descendant of TTemporaryJointTransform,
+       and set InternalCastleDesignInvalidate to @true. }
+    procedure InternalCreateGizmos; virtual;
 
     { Destroy design-time stuff.
       You can destroy any component, just be sure
       to set InternalCastleDesignInvalidate to @true. }
-    procedure DesigningEnd; virtual;
+    procedure InternalDestroyGizmos; virtual;
+
+    { Was InternalCreateGizmos called for this behavior }
+    function InternalCreateGizmosCreated: Boolean; virtual;
 
     function World: TCastleAbstractRootTransform;
 
@@ -216,6 +227,21 @@ end;
 procedure TCastleBehavior.DesigningEnd;
 begin
   WritelnLog('Behavior ' + Name +  ': DesigningEnd');
+end;
+
+procedure TCastleBehavior.InternalCreateGizmos;
+begin
+  WritelnLog('Behavior ' + Name +  ': InternalCreateGizmos');
+end;
+
+procedure TCastleBehavior.InternalDestroyGizmos;
+begin
+  WritelnLog('Behavior ' + Name +  ': InternalCreateGizmos');
+end;
+
+function TCastleBehavior.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := false;
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;

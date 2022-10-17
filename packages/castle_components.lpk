@@ -118,7 +118,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalLclDesign"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_hingejoint.inc"/>
         <Type Value="Include"/>
       </Item17>
       <Item18>

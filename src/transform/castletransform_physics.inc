@@ -1156,6 +1156,10 @@
 
     procedure DesigningBegin; override;
     procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
+
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -4158,22 +4162,36 @@ end;
 procedure THingeJoint.DesigningBegin;
 begin
   inherited;
+end;
+
+procedure THingeJoint.DesigningEnd;
+begin
+  inherited;
+end;
+
+procedure THingeJoint.InternalCreateGizmos;
+begin
+  inherited;
   if FAnchorTransform = nil then
   begin
-    // TODO: Assert(FAnchorTransform <> nil) ?
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'HingeJoint_Anchor';
+    FAnchorTransform.Name := Name+'_Anchor';
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
 
-procedure THingeJoint.DesigningEnd;
+procedure THingeJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function THingeJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FAnchorTransform <> nil;
 end;
 
 function THingeJoint.PropertySections(const PropertyName: String
