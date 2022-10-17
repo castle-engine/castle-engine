@@ -4281,13 +4281,14 @@ begin
   Result := (Src <> nil) and (Dst <> nil) and (Src <> Dst);
   if Result then
   begin
-    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
-      or root component. }
+    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea),
+      root component or temporary transforms. }
     SrcComponent := TObject(Src.Data) as TComponent;
     // SrcComponent is nil if you try to drag special tree items "Behaviors" or "Non-Visual Components"
     if (SrcComponent <> nil) and
        ( (SrcComponent = DesignRoot) or
-         (csSubComponent in SrcComponent.ComponentStyle) ) then
+         (csSubComponent in SrcComponent.ComponentStyle) or
+         (SrcComponent is TTemporaryJointTransform) ) then
       Result := false;
   end;
 end;
