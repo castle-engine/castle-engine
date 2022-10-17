@@ -1175,7 +1175,7 @@
       write SetMaxMotorTorque;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/thingejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1220,7 +1220,7 @@
     property Distance: Single read FDistance write SetDistance;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tropejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1254,7 +1254,7 @@
     property Anchor: TVector3 read FAnchor write SetAnchor;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tfixedjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1288,7 +1288,7 @@
     property Anchor: TVector3 read FAnchor write SetAnchor;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tballjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1336,7 +1336,7 @@
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tdistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1379,7 +1379,7 @@
     property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tgrabjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1432,7 +1432,7 @@
       property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
 
     {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tpulleyjoint_persistent_vectors.inc}
+    {$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
     {$undef read_interface_class}
   end;
 
@@ -1482,7 +1482,7 @@
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tworldplanedistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -1541,7 +1541,7 @@
     property MaxMotorForce: Single read FMaxMotorForce write SetMaxMotorForce;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tsliderjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 {$endif CASTLE_EXPERIMENTAL_JOINTS}
@@ -4145,14 +4145,14 @@ begin
   FAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/thingejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleHingeJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/thingejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4207,7 +4207,7 @@ end;
 
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/thingejoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastleRopeJoint --------------------------------------------------------------- }
@@ -4282,14 +4282,14 @@ begin
   FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tropejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleRopeJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tropejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4349,7 +4349,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tropejoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
@@ -4394,14 +4394,14 @@ begin
   NeedWorldChangeNotification := true;
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tfixedjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleFixedJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tfixedjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4448,7 +4448,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tfixedjoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$endif CASTLE_EXPERIMENTAL_JOINTS}
@@ -4493,14 +4493,14 @@ begin
   NeedWorldChangeNotification := true;
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tballjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleBallJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tballjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4546,7 +4546,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tballjoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastleDistanceJoint ------------------------------------------------------------- }
@@ -4623,14 +4623,14 @@ begin
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tdistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleDistanceJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tdistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4691,7 +4691,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tdistancejoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastleGrabJoint ----------------------------------------------------------------- }
@@ -4772,14 +4772,14 @@ begin
   FFrequencyHz := 5.0;
   FDampingRatio := 0.7;
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tgrabjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleGrabJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tgrabjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -4829,7 +4829,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tgrabjoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
@@ -4941,14 +4941,14 @@ begin
   FRatio := 1.0;
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tpulleyjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastlePulleyJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tpulleyjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -5035,7 +5035,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tpulleyjoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastleWorldPlaneDistanceJoint --------------------------------------------------- }
@@ -5140,14 +5140,14 @@ begin
   NeedWorldChangeNotification := true;
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tworldplanedistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleWorldPlaneDistanceJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tworldplanedistancejoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -5197,7 +5197,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tworldplanedistancejoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 
@@ -5320,14 +5320,14 @@ begin
   FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tsliderjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleSliderJoint.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tsliderjoint_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
   inherited Destroy;
@@ -5379,7 +5379,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tsliderjoint_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$endif CASTLE_EXPERIMENTAL_JOINTS}
