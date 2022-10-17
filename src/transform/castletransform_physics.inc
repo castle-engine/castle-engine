@@ -4170,7 +4170,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name+'_Anchor';
+    FAnchorTransform.Name := Name + '_Anchor';
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4419,7 +4419,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'FixedJoint_Anchor';
+    FAnchorTransform.Name := Name + '_Anchor';
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4649,7 +4649,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'DistanceJoint_Anchor';
+    FAnchorTransform.Name := Name + '_Anchor';
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4658,7 +4658,7 @@ begin
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
     FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
-    FConnectedAnchorTransform.Name := 'DistanceJoint_ConnectedAnchor';
+    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
     InternalCastleDesignInvalidate := true;
@@ -4969,7 +4969,7 @@ begin
   if FWorldAnchorTransform = nil then
   begin
     FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
-    FWorldAnchorTransform.Name := 'PulleyJoint_WorldAnchor';
+    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
     Parent.World.Add(FWorldAnchorTransform);
     FWorldAnchorTransform.Translation := WorldAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4978,7 +4978,7 @@ begin
   if FConnectedWorldAnchorTransform = nil then
   begin
     FConnectedWorldAnchorTransform := TTemporaryJointConnectedWorldAnchor.Create(nil, Self);
-    FConnectedWorldAnchorTransform.Name := 'PulleyJoint_ConnectedWorldAnchor';
+    FConnectedWorldAnchorTransform.Name := Name + '_ConnectedWorldAnchor';
     Parent.World.Add(FConnectedWorldAnchorTransform);
     FConnectedWorldAnchorTransform.Translation := ConnectedWorldAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4987,7 +4987,7 @@ begin
   if FWorldGroundAnchorTransform = nil then
   begin
     FWorldGroundAnchorTransform := TTemporaryJointWorldGroundAnchor.Create(nil, Self);
-    FWorldGroundAnchorTransform.Name := 'PulleyJoint_WorldGroundAnchor';
+    FWorldGroundAnchorTransform.Name := Name + '_WorldGroundAnchor';
     Parent.World.Add(FWorldGroundAnchorTransform);
     FWorldGroundAnchorTransform.Translation := WorldGroundAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4996,7 +4996,7 @@ begin
   if FConnectedWorldGroundAnchorTransform = nil then
   begin
     FConnectedWorldGroundAnchorTransform := TTemporaryJointConnectedWorldGroundAnchor.Create(nil, Self);
-    FConnectedWorldGroundAnchorTransform.Name := 'PulleyJoint_ConnectedWorldGroundAnchor';
+    FConnectedWorldGroundAnchorTransform.Name := Name + '_ConnectedWorldGroundAnchor';
     Parent.World.Add(FConnectedWorldGroundAnchorTransform);
     FConnectedWorldGroundAnchorTransform.Translation := ConnectedWorldGroundAnchor;
     InternalCastleDesignInvalidate := true;
@@ -5165,7 +5165,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'AnchorHandle';
+    FAnchorTransform.Name := Name + '_Anchor';
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
   end;
@@ -5345,7 +5345,7 @@ begin
   if FWorldAnchorTransform = nil then
   begin
     FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
-    FWorldAnchorTransform.Name := 'WorldAnchorHandle';
+    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
     Parent.World.Add(FWorldAnchorTransform);
     TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
   end;
