@@ -1154,12 +1154,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1208,8 +1205,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1246,8 +1244,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1279,8 +1278,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1319,8 +1319,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1364,8 +1365,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1413,8 +1415,9 @@
 
       procedure WorldBeforeDetach; override;
 
-      procedure DesigningBegin; override;
-      procedure DesigningEnd; override;
+      procedure InternalCreateGizmos; override;
+      procedure InternalDestroyGizmos; override;
+      function InternalCreateGizmosCreated: Boolean; override;
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1464,8 +1467,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1520,8 +1524,9 @@
 
     procedure WorldBeforeDetach; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function InternalCreateGizmosCreated: Boolean; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -4159,16 +4164,6 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure THingeJoint.DesigningBegin;
-begin
-  inherited;
-end;
-
-procedure THingeJoint.DesigningEnd;
-begin
-  inherited;
-end;
-
 procedure THingeJoint.InternalCreateGizmos;
 begin
   inherited;
@@ -4307,28 +4302,6 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TRopeJoint.DesigningBegin;
-begin
-  inherited;
-  if FAnchorTransform = nil then
-  begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'RopeJoint_Anchor';
-    Parent.Add(FAnchorTransform);
-    FAnchorTransform.Translation := Anchor;
-    InternalCastleDesignInvalidate := true;
-  end;
-
-  if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
-  begin
-    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
-    FConnectedAnchorTransform.Name := 'RopeJoint_ConnectedAnchor';
-    FConnectedAnchorTransform.Translation := ConnectedAnchor;
-    FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
-    InternalCastleDesignInvalidate := true;
-  end;
-end;
-
 function TRopeJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -4340,12 +4313,39 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TRopeJoint.DesigningEnd;
+procedure TRopeJoint.InternalCreateGizmos;
+begin
+  inherited;
+  if FAnchorTransform = nil then
+  begin
+    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform.Name := Name + '_Anchor';
+    Parent.Add(FAnchorTransform);
+    FAnchorTransform.Translation := Anchor;
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
+  begin
+    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
+    FConnectedAnchorTransform.Translation := ConnectedAnchor;
+    FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+procedure TRopeJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   FreeAndNil(FConnectedAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TRopeJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := (FConnectedAnchorTransform <> nil) or (FAnchorTransform <> nil);
 end;
 
 {$define read_implementation_methods}
@@ -4413,7 +4413,7 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TFixedJoint.DesigningBegin;
+procedure TFixedJoint.InternalCreateGizmos;
 begin
   inherited;
   if FAnchorTransform = nil then
@@ -4426,11 +4426,16 @@ begin
   end;
 end;
 
-procedure TFixedJoint.DesigningEnd;
+procedure TFixedJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TFixedJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FAnchorTransform <> nil;
 end;
 
 function TFixedJoint.PropertySections(const PropertyName: String
@@ -4507,24 +4512,29 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TBallJoint.DesigningBegin;
+procedure TBallJoint.InternalCreateGizmos;
 begin
   inherited;
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := 'BallJoint_Anchor';
+    FAnchorTransform.Name := Name + '_Anchor';
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
 
-procedure TBallJoint.DesigningEnd;
+procedure TBallJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TBallJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FAnchorTransform <> nil;
 end;
 
 function TBallJoint.PropertySections(const PropertyName: String): TPropertySections;
@@ -4633,7 +4643,7 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TDistanceJoint.DesigningBegin;
+procedure TDistanceJoint.InternalCreateGizmos;
 begin
   inherited;
   if FAnchorTransform = nil then
@@ -4655,12 +4665,17 @@ begin
   end;
 end;
 
-procedure TDistanceJoint.DesigningEnd;
+procedure TDistanceJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   FreeAndNil(FConnectedAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TDistanceJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := (FConnectedAnchorTransform <> nil) or (FAnchorTransform <> nil);
 end;
 
 function TDistanceJoint.PropertySections(const PropertyName: String
@@ -4776,24 +4791,29 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TGrabJoint.DesigningBegin;
+procedure TGrabJoint.InternalCreateGizmos;
 begin
   inherited;
   if FWorldPointTransform = nil then
   begin
     FWorldPointTransform := TTemporaryJointWorldPoint.Create(nil, Self);
-    FWorldPointTransform.Name := 'GrabJoint_WorldPoint';
+    FWorldPointTransform.Name := Name + '_WorldPoint';
     Parent.World.Add(FWorldPointTransform);
     FWorldPointTransform.Translation := WorldPoint;
     InternalCastleDesignInvalidate := true;
   end;
 end;
 
-procedure TGrabJoint.DesigningEnd;
+procedure TGrabJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FWorldPointTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TGrabJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FWorldPointTransform <> nil;
 end;
 
 function TGrabJoint.PropertySections(const PropertyName: String
@@ -4943,7 +4963,7 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TPulleyJoint.DesigningBegin;
+procedure TPulleyJoint.InternalCreateGizmos;
 begin
   inherited;
   if FWorldAnchorTransform = nil then
@@ -4983,7 +5003,7 @@ begin
   end;
 end;
 
-procedure TPulleyJoint.DesigningEnd;
+procedure TPulleyJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FWorldAnchorTransform);
   FreeAndNil(FConnectedWorldAnchorTransform);
@@ -4991,6 +5011,14 @@ begin
   FreeAndNil(FConnectedWorldGroundAnchorTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
+end;
+
+function TPulleyJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := (FWorldAnchorTransform <> nil) or
+    (FConnectedWorldAnchorTransform <> nil) or
+    (FWorldGroundAnchorTransform <> nil) or
+    (FConnectedWorldGroundAnchorTransform <> nil);
 end;
 
 function TPulleyJoint.PropertySections(const PropertyName: String
@@ -5131,7 +5159,7 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TWorldPlaneDistanceJoint.DesigningBegin;
+procedure TWorldPlaneDistanceJoint.InternalCreateGizmos;
 begin
   inherited;
   if FAnchorTransform = nil then
@@ -5143,10 +5171,15 @@ begin
   end;
 end;
 
-procedure TWorldPlaneDistanceJoint.DesigningEnd;
+procedure TWorldPlaneDistanceJoint.InternalDestroyGizmos;
 begin
   FreeAndNil(FAnchorTransform);
   inherited;
+end;
+
+function TWorldPlaneDistanceJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FAnchorTransform <> nil;
 end;
 
 function TWorldPlaneDistanceJoint.PropertySections(const PropertyName: String
@@ -5306,7 +5339,7 @@ begin
   inherited WorldBeforeDetach;
 end;
 
-procedure TSliderJoint.DesigningBegin;
+procedure TSliderJoint.InternalCreateGizmos;
 begin
   inherited;
   if FWorldAnchorTransform = nil then
@@ -5318,11 +5351,15 @@ begin
   end;
 end;
 
-procedure TSliderJoint.DesigningEnd;
+procedure TSliderJoint.InternalDestroyGizmos;
 begin
-  inherited;
-
   FreeAndNil(FWorldAnchorTransform);
+  inherited;
+end;
+
+function TSliderJoint.InternalCreateGizmosCreated: Boolean;
+begin
+  Result := FWorldAnchorTransform <> nil;
 end;
 
 function TSliderJoint.PropertySections(const PropertyName: String
