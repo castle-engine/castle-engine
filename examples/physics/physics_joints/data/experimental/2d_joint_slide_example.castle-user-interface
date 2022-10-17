@@ -87,7 +87,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TSliderJoint",
+                "$$ClassName" : "TCastleSliderJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box2",
                 "EnableLimits" : true,
@@ -197,7 +197,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TGrabJoint",
+                "$$ClassName" : "TCastleGrabJoint",
                 "Breakable" : false,
                 "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {

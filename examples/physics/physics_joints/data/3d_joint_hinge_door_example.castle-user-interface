@@ -99,7 +99,7 @@
                     "Scene" : "SceneRest"
                   },
                   {
-                    "$$ClassName" : "THingeJoint",
+                    "$$ClassName" : "TCastleHingeJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 2.7400000095367432E+000,

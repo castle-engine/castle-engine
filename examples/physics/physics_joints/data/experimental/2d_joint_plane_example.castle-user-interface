@@ -85,7 +85,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TWorldPlaneDistanceJoint",
+                "$$ClassName" : "TCastleWorldPlaneDistanceJoint",
                 "Breakable" : false,
                 "Name" : "WorldPlaneDistanceJoint1"
               }

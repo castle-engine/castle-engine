@@ -81,7 +81,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TPulleyJoint",
+                "$$ClassName" : "TCastlePulleyJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box2",
                 "ConnectedWorldAnchorPersistent" : {

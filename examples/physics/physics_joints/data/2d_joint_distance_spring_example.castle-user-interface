@@ -125,7 +125,7 @@
                 "Name" : "RigidBody1"
               },
               {
-                "$$ClassName" : "TDistanceJoint",
+                "$$ClassName" : "TCastleDistanceJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxTop",
                 "DampingRatio" : 5.0000000745058060E-002,
@@ -178,7 +178,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TGrabJoint",
+                "$$ClassName" : "TCastleGrabJoint",
                 "Breakable" : false,
                 "DampingRatio" : 1.0000000000000000E+000,
                 "Name" : "GrabJoint1",
@@ -264,13 +264,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 4.0656958007812500E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 4.0656957030296326E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"

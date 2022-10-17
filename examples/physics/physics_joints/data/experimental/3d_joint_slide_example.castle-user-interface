@@ -97,7 +97,7 @@
                 "Restitution" : 3.0000001192092896E-001
               },
               {
-                "$$ClassName" : "TSliderJoint",
+                "$$ClassName" : "TCastleSliderJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "BoxB",
                 "EnableLimits" : false,

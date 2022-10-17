@@ -83,7 +83,7 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "THingeJoint",
+                "$$ClassName" : "TCastleHingeJoint",
                 "BreakThresholdForce" : 1.0000000000000000E+003,
                 "BreakThresholdTorque" : 1.0000000000000000E+006,
                 "Breakable" : true,

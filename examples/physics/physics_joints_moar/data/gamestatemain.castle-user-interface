@@ -296,7 +296,7 @@
                     "Name" : "BoxCollider1"
                   },
                   {
-                    "$$ClassName" : "THingeJoint",
+                    "$$ClassName" : "TCastleHingeJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "X" : 5.5375045537948608E-001
@@ -655,7 +655,7 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TBallJoint",
+                    "$$ClassName" : "TCastleBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
@@ -714,7 +714,7 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TBallJoint",
+                    "$$ClassName" : "TCastleBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
@@ -773,7 +773,7 @@
                     "Restitution" : 1.0000000000000000E+000
                   },
                   {
-                    "$$ClassName" : "TBallJoint",
+                    "$$ClassName" : "TCastleBallJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -5.7016652822494507E-001
@@ -1367,7 +1367,7 @@
                     "Name" : "RigidBody17"
                   },
                   {
-                    "$$ClassName" : "TGrabJoint",
+                    "$$ClassName" : "TCastleGrabJoint",
                     "Breakable" : false,
                     "Name" : "GrabJoint1"
                   },
@@ -1593,7 +1593,7 @@
                     "Name" : "RigidBody29"
                   },
                   {
-                    "$$ClassName" : "TRopeJoint",
+                    "$$ClassName" : "TCastleRopeJoint",
                     "Breakable" : false,
                     "ConnectedTransform" : "RopeBottom",
                     "Distance" : 4.0000000000000000E+000,
@@ -1848,7 +1848,7 @@
                     "Name" : "RigidBody32"
                   },
                   {
-                    "$$ClassName" : "TDistanceJoint",
+                    "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
                     "ConnectedTransform" : "RopeBottom1",
                     "Name" : "DistanceJoint1"

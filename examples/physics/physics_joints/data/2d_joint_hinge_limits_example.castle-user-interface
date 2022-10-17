@@ -79,7 +79,7 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "THingeJoint",
+                "$$ClassName" : "TCastleHingeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box1",
                 "EnableLimits" : true,

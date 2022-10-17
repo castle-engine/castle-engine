@@ -79,7 +79,7 @@
                 "Name" : "SphereCollider1"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "Breakable" : false,
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",

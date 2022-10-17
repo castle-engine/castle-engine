@@ -117,7 +117,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Box3",
                 "Name" : "RopeJoint1"
@@ -162,7 +162,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TGrabJoint",
+                "$$ClassName" : "TCastleGrabJoint",
                 "Breakable" : false,
                 "DampingRatio" : 1.0000000000000000E+000,
                 "Name" : "Grab1Joint",

@@ -79,7 +79,7 @@
                     }
                   },
                   {
-                    "$$ClassName" : "TRopeJoint",
+                    "$$ClassName" : "TCastleRopeJoint",
                     "Breakable" : false,
                     "ConnectedAnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
@@ -87,7 +87,7 @@
                     },
                     "ConnectedTransform" : "TransformBallRoot",
                     "Distance" : 5.0000000000000000E+000,
-                    "Name" : "RopeJoint1"
+                    "Name" : "CastleRopeJoint1"
                   }
                 ]
               }
@@ -178,7 +178,7 @@
                 "Name" : "RigidBody2"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.0000000149011612E-001

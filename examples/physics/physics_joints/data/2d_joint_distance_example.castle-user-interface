@@ -120,7 +120,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TDistanceJoint",
+                "$$ClassName" : "TCastleDistanceJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "Sphere1",
                 "DampingRatio" : 6.9999998807907104E-001,
@@ -173,7 +173,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TGrabJoint",
+                "$$ClassName" : "TCastleGrabJoint",
                 "Breakable" : false,
                 "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {

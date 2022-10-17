@@ -121,7 +121,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TGrabJoint",
+                "$$ClassName" : "TCastleGrabJoint",
                 "Breakable" : false,
                 "Name" : "GrabJoint1",
                 "WorldPointPersistent" : {

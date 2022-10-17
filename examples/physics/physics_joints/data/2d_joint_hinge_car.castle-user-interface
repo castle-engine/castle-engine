@@ -246,7 +246,7 @@
                 "Name" : "RigidBody3"
               },
               {
-                "$$ClassName" : "THingeJoint",
+                "$$ClassName" : "TCastleHingeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -4.4599426269531250E+001,
@@ -259,7 +259,7 @@
                 "Name" : "HingeJointW1"
               },
               {
-                "$$ClassName" : "THingeJoint",
+                "$$ClassName" : "TCastleHingeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 4.0084320068359375E+001,

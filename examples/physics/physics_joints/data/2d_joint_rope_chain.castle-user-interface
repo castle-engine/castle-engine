@@ -125,7 +125,7 @@
                 "Name" : "RigidBody5"
               },
               {
-                "$$ClassName" : "THingeJoint",
+                "$$ClassName" : "TCastleHingeJoint",
                 "Breakable" : false,
                 "ConnectedTransform" : "ChainElement3",
                 "Name" : "HingeJoint1"
@@ -172,7 +172,7 @@
                 "Name" : "BoxCollider2"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -228,7 +228,7 @@
                 "Name" : "BoxCollider3"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -280,7 +280,7 @@
                 "Name" : "BoxCollider4"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
@@ -336,7 +336,7 @@
                 "Name" : "BoxCollider5"
               },
               {
-                "$$ClassName" : "TRopeJoint",
+                "$$ClassName" : "TCastleRopeJoint",
                 "AnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
