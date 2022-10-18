@@ -29,7 +29,9 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
   end;
 
-  TDesignJointTransform = class(TCastleTransform)
+  TDesignTransform = class(TCastleTransform);
+
+  TDesignJointTransform = class(TDesignTransform)
   strict private
     FColor: TCastleColor;
     FJoint: TAbstractJoint;

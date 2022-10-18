@@ -3413,14 +3413,14 @@ begin
     as it will not be saved.
     Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
-  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TTemporaryJointTransform);
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TDesignTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot) and (not (Child is TTemporaryJointTransform));
+    (Child <> DesignRoot) and (not (Child is TDesignTransform));
 end;
 
 type
@@ -4193,8 +4193,6 @@ begin
     UpdateAnchors(UI, true);
   end;
 
-  // TODO TTemporaryJointTransform -> TCastleTransformDesignHelper ??????
-
   V := SelectedViewport;
   if SelectedComponent is TCastleBehavior then
     { Highlight using VisualizeTransformSelected also transformation of selected behavior }
@@ -4203,10 +4201,10 @@ begin
     T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
-  if SelectedComponent is TTemporaryJointTransform then
-    { Design parent of TTemporaryJointTransform,
-      otherwise TTemporaryJointTransform would disappear as soon as we select it. }
-    TransformDesigning := TTemporaryJointTransform(SelectedComponent).Parent
+  if SelectedComponent is TDesignTransform then
+    { Design parent of TDesignTransform,
+      otherwise TDesignTransform would disappear as soon as we select it. }
+    TransformDesigning := TDesignTransform(SelectedComponent).Parent
   else
     TransformDesigning := T;
 
@@ -4373,7 +4371,7 @@ begin
     if (SrcComponent <> nil) and
        ( (SrcComponent = DesignRoot) or
          (csSubComponent in SrcComponent.ComponentStyle) or
-         (SrcComponent is TTemporaryJointTransform) ) then
+         (SrcComponent is TDesignTransform) ) then
       Result := false;
   end;
 end;
