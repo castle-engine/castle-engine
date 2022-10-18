@@ -42,6 +42,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionHideAllJointTools: TAction;
+    ActionShowAllJointTools: TAction;
     ActionWarningsCopyAll: TAction;
     ActionWarningsCopySelected: TAction;
     ActionWarningsClean: TAction;
@@ -83,9 +85,15 @@ type
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuShowJointTools28: TMenuItem;
+    Separator9: TMenuItem;
     Separator7: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
+    Separator8: TMenuItem;
     WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
     MenuItem23: TMenuItem;
@@ -254,6 +262,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionHideAllJointToolsExecute(Sender: TObject);
+    procedure ActionShowAllJointToolsExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -754,6 +764,16 @@ procedure TProjectForm.ActionViewportGridAxisExecute(Sender: TObject);
 begin
   if (Design <> nil) and (Design.CurrentViewport <> nil) then
     Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
+end;
+
+procedure TProjectForm.ActionShowAllJointToolsExecute(Sender: TObject);
+begin
+  Design.ActionPhysicsShowAllJointsTools.Execute;
+end;
+
+procedure TProjectForm.ActionHideAllJointToolsExecute(Sender: TObject);
+begin
+  Design.ActionPhysicsHideAllJointsTools.Execute;
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);

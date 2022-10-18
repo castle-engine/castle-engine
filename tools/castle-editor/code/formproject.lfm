@@ -228,6 +228,15 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
       end
+      object MenuShowJointTools28: TMenuItem
+        Action = ActionShowAllJointTools
+      end
+      object MenuItem28: TMenuItem
+        Action = ActionHideAllJointTools
+      end
+      object Separator9: TMenuItem
+        Caption = '-'
+      end
       object MenuItemRename: TMenuItem
         Caption = 'Rename'
         ShortCut = 113
@@ -970,15 +979,25 @@ object ProjectForm: TProjectForm
       GroupIndex = 410
       OnExecute = ActionViewportRenderWireframeOnlyExecute
     end
+    object ActionShowAllJointTools: TAction
+      Category = 'Edit'
+      Caption = 'Show All Joint Tools'
+      OnExecute = ActionShowAllJointToolsExecute
+    end
+    object ActionHideAllJointTools: TAction
+      Category = 'Edit'
+      Caption = 'Hide All Joint Tools'
+      OnExecute = ActionHideAllJointToolsExecute
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 272
-    Top = 121
+    Left = 284
+    Top = 126
   end
   object OutputPopup: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 279
-    Top = 279
+    Left = 291
+    Top = 291
     object MenuItemOutputClean: TMenuItem
       Action = ActionOutputClean
     end
