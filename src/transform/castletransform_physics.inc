@@ -1142,11 +1142,15 @@
     procedure SetMotorSpeed(const AValue: Single);
     function GetMotorSpeed: Single;
     procedure SetMaxMotorTorque(const AValue: Single);
+    procedure InternalUpdateGizmosName;
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -1192,6 +1196,8 @@
     procedure SetAnchor(const AValue: TVector3);
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
+    procedure InternalUpdateGizmosName;
+
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
@@ -1199,6 +1205,8 @@
 
     procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); override;
 
+  protected
+    procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1234,10 +1242,15 @@
     FAnchorTransform: TCastleTransform; //TTemporaryJointAnchor
 
     procedure SetAnchor(const AValue: TVector3);
+    procedure InternalUpdateGizmosName;
+
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1268,10 +1281,15 @@
     FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
 
     procedure SetAnchor(const AValue: TVector3);
+    procedure InternalUpdateGizmosName;
+
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1307,12 +1325,15 @@
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
+    procedure InternalUpdateGizmosName;
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
 
+  protected
+    procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1354,11 +1375,15 @@
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
     procedure SetMaximalForce(const AValue: Single);
+    procedure InternalUpdateGizmosName;
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1404,11 +1429,15 @@
       procedure SetWorldGroundAnchor(const AValue: TVector3);
       procedure SetConnectedWorldGroundAnchor(const AValue: TVector3);
       procedure SetRatio(const AValue: Single);
+      procedure InternalUpdateGizmosName;
+
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
       procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
 
+    protected
+      procedure SetName(const Value: TComponentName); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -1456,11 +1485,16 @@
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
     procedure DoubleSidedWorldPlane(const AValue: Boolean);
+    procedure InternalUpdateGizmosName;
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
+
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1512,11 +1546,15 @@
     procedure SetMotorSpeed(const AValue: Single);
     function GetMotorSpeed: Single;
     procedure SetMaxMotorForce(const AValue: Single);
+    procedure InternalUpdateGizmosName;
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
+
+  protected
+    procedure SetName(const Value: TComponentName); override;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -4109,6 +4147,15 @@ begin
     FKraftJointHinge.SetMaximalMotorTorque(FMaxMotorTorque);
 end;
 
+procedure TCastleHingeJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleHingeJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointHinge;
@@ -4135,6 +4182,12 @@ end;
 procedure TCastleHingeJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointHinge);
+end;
+
+procedure TCastleHingeJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleHingeJoint.Create(AOwner: TComponent);
@@ -4170,7 +4223,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4242,6 +4295,22 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastleRopeJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedAnchorTransform <> nil) and
+     (FConnectedAnchorTransform.Name <> Name + '_ConnectedAnchor') then
+  begin
+    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleRopeJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointRope;
@@ -4272,6 +4341,12 @@ begin
   FreeAndNil(FConnectedAnchorTransform);
 
   inherited OnConnectedTransformFree(Sender);
+end;
+
+procedure TCastleRopeJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleRopeJoint.Create(AOwner: TComponent);
@@ -4319,7 +4394,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4328,7 +4403,7 @@ begin
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
     FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
-    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
+    InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
     InternalCastleDesignInvalidate := true;
@@ -4367,6 +4442,15 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastleFixedJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleFixedJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointFixed;
@@ -4386,6 +4470,12 @@ end;
 procedure TCastleFixedJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointFixed);
+end;
+
+procedure TCastleFixedJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleFixedJoint.Create(AOwner: TComponent);
@@ -4419,7 +4509,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4466,6 +4556,15 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastleBallJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleBallJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointBall;
@@ -4485,6 +4584,12 @@ end;
 procedure TCastleBallJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointBall);
+end;
+
+procedure TCastleBallJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleBallJoint.Create(AOwner: TComponent);
@@ -4518,7 +4623,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4591,6 +4696,22 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastleDistanceJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedAnchorTransform <> nil) and
+     (FConnectedAnchorTransform.Name <> Name + '_ConnectedAnchor')  then
+  begin
+    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleDistanceJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointDistance;
@@ -4614,6 +4735,12 @@ end;
 procedure TCastleDistanceJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointDistance);
+end;
+
+procedure TCastleDistanceJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleDistanceJoint.Create(AOwner: TComponent);
@@ -4649,7 +4776,7 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
     InternalCastleDesignInvalidate := true;
@@ -4658,7 +4785,7 @@ begin
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
     FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
-    FConnectedAnchorTransform.Name := Name + '_ConnectedAnchor';
+    InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
     InternalCastleDesignInvalidate := true;
@@ -4740,6 +4867,16 @@ begin
     FKraftJointGrab.SetMaximalForce(AValue);
 end;
 
+procedure TCastleGrabJoint.InternalUpdateGizmosName;
+begin
+  if (FWorldPointTransform <> nil) and
+     (FWorldPointTransform.Name <> Name + '_WorldPoint') then
+  begin
+    FWorldPointTransform.Name := Name + '_WorldPoint';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleGrabJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointGrab;
@@ -4761,6 +4898,12 @@ end;
 procedure TCastleGrabJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointGrab);
+end;
+
+procedure TCastleGrabJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleGrabJoint.Create(AOwner: TComponent);
@@ -4797,7 +4940,7 @@ begin
   if FWorldPointTransform = nil then
   begin
     FWorldPointTransform := TTemporaryJointWorldPoint.Create(nil, Self);
-    FWorldPointTransform.Name := Name + '_WorldPoint';
+    InternalUpdateGizmosName;
     Parent.World.Add(FWorldPointTransform);
     FWorldPointTransform.Translation := WorldPoint;
     InternalCastleDesignInvalidate := true;
@@ -4897,6 +5040,37 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastlePulleyJoint.InternalUpdateGizmosName;
+begin
+  if (FWorldAnchorTransform <> nil) and
+     (FWorldAnchorTransform.Name <> Name + '_WorldAnchor') then
+  begin
+    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedWorldAnchorTransform <> nil) and
+     (FConnectedWorldAnchorTransform.Name <> Name + '_ConnectedWorldAnchor') then
+  begin
+    FConnectedWorldAnchorTransform.Name := Name + '_ConnectedWorldAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FWorldGroundAnchorTransform <> nil) and
+     (FWorldGroundAnchorTransform.Name <> Name + '_WorldGroundAnchor') then
+  begin
+    FWorldGroundAnchorTransform.Name := Name + '_WorldGroundAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedWorldGroundAnchorTransform <> nil) and
+     (FConnectedWorldGroundAnchorTransform.Name <> Name + '_ConnectedWorldGroundAnchor') then
+  begin
+    FConnectedWorldGroundAnchorTransform.Name := Name + '_ConnectedWorldGroundAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastlePulleyJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointPulley;
@@ -4921,6 +5095,12 @@ end;
 procedure TCastlePulleyJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointPulley);
+end;
+
+procedure TCastlePulleyJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastlePulleyJoint.Create(AOwner: TComponent);
@@ -4969,7 +5149,7 @@ begin
   if FWorldAnchorTransform = nil then
   begin
     FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
-    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
+    InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
     FWorldAnchorTransform.Translation := WorldAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4978,7 +5158,7 @@ begin
   if FConnectedWorldAnchorTransform = nil then
   begin
     FConnectedWorldAnchorTransform := TTemporaryJointConnectedWorldAnchor.Create(nil, Self);
-    FConnectedWorldAnchorTransform.Name := Name + '_ConnectedWorldAnchor';
+    InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldAnchorTransform);
     FConnectedWorldAnchorTransform.Translation := ConnectedWorldAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4987,7 +5167,7 @@ begin
   if FWorldGroundAnchorTransform = nil then
   begin
     FWorldGroundAnchorTransform := TTemporaryJointWorldGroundAnchor.Create(nil, Self);
-    FWorldGroundAnchorTransform.Name := Name + '_WorldGroundAnchor';
+    InternalUpdateGizmosName;
     Parent.World.Add(FWorldGroundAnchorTransform);
     FWorldGroundAnchorTransform.Translation := WorldGroundAnchor;
     InternalCastleDesignInvalidate := true;
@@ -4996,7 +5176,7 @@ begin
   if FConnectedWorldGroundAnchorTransform = nil then
   begin
     FConnectedWorldGroundAnchorTransform := TTemporaryJointConnectedWorldGroundAnchor.Create(nil, Self);
-    FConnectedWorldGroundAnchorTransform.Name := Name + '_ConnectedWorldGroundAnchor';
+    InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldGroundAnchorTransform);
     FConnectedWorldGroundAnchorTransform.Translation := ConnectedWorldGroundAnchor;
     InternalCastleDesignInvalidate := true;
@@ -5104,6 +5284,16 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TCastleWorldPlaneDistanceJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and
+     (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleWorldPlaneDistanceJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointWorldPlaneDistance;
@@ -5130,6 +5320,12 @@ end;
 procedure TCastleWorldPlaneDistanceJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointWorldPlaneDistance);
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleWorldPlaneDistanceJoint.Create(AOwner: TComponent);
@@ -5165,9 +5361,10 @@ begin
   if FAnchorTransform = nil then
   begin
     FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
-    FAnchorTransform.Name := Name + '_Anchor';
+    InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
+    InternalCastleDesignInvalidate := true;
   end;
 end;
 
@@ -5284,6 +5481,16 @@ begin
     FKraftJointSlider.SetMaximalMotorForce(FMaxMotorForce);
 end;
 
+procedure TCastleSliderJoint.InternalUpdateGizmosName;
+begin
+  if (FWorldAnchorTransform <> nil) and
+     (FWorldAnchorTransform.Name <> Name + '_WorldAnchor') then
+  begin
+    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
 function TCastleSliderJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointSlider;
@@ -5310,6 +5517,12 @@ end;
 procedure TCastleSliderJoint.DeinitializeKraftJoint;
 begin
   FreeAndNil(FKraftJointSlider);
+end;
+
+procedure TCastleSliderJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 constructor TCastleSliderJoint.Create(AOwner: TComponent);
@@ -5345,9 +5558,10 @@ begin
   if FWorldAnchorTransform = nil then
   begin
     FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
-    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
+    InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
     TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
+    InternalCastleDesignInvalidate := true;
   end;
 end;
 
