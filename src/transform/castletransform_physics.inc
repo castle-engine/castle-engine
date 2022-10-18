@@ -364,6 +364,7 @@
   strict private
     FRadius: Single;
     FMode2D: Boolean;
+    FVisualisation: TCastleTransform;
 
     procedure SetRadius(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
@@ -380,6 +381,10 @@
 
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure BeforeDestruction; override;
 
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
@@ -2506,6 +2511,8 @@ begin
   if not SameValue(FRadius, AValue) then
   begin
     FRadius := AValue;
+    if FVisualisation <> nil then
+      TCastleSphere(FVisualisation).Radius := AValue;
     UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
@@ -2573,6 +2580,36 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleSphereCollider.DesigningBegin;
+begin
+  inherited;
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastleSphere.Create(nil);
+    FVisualisation.SetTransient;
+    TCastleSphere(FVisualisation).UseInternalGlobalRenderOptions := false; // never change rendering to global
+    TCastleSphere(FVisualisation).Color := White;
+    TCastleSphere(FVisualisation).Material := pmUnlit;
+    TCastleSphere(FVisualisation).RenderOptions.WireframeColor := WhiteRGB;
+    TCastleSphere(FVisualisation).RenderOptions.WireframeEffect := weWireframeOnly;
+    TCastleSphere(FVisualisation).Radius := FRadius;
+
+    Parent.Add(FVisualisation);
+  end;
+end;
+
+procedure TCastleSphereCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
+procedure TCastleSphereCollider.BeforeDestruction;
+begin
+  FreeAndNil(FVisualisation);
+  inherited BeforeDestruction;
 end;
 
 procedure TCastleSphereCollider.SetMode2D(const AValue: Boolean);
