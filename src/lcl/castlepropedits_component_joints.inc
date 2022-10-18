@@ -17,21 +17,11 @@
 type
   { Editor for TCastleHingeJoint. }
   TCastleJointsComponentEditor = class(TComponentEditor)
-  private
-    function MenuCaption: String;
   public
     function GetVerbCount: Integer; override;
     function GetVerb(Index: Integer): string; override;
     procedure ExecuteVerb(Index: Integer); override;
   end;
-
-function TCastleJointsComponentEditor.MenuCaption: String;
-begin
-  if not (Component as TCastleBehavior).InternalCreateGizmosCreated then
-    Exit('Show Joint Tools')
-  else
-    Exit('Hide Joint Tools');
-end;
 
 function TCastleJointsComponentEditor.GetVerbCount: Integer;
 begin
