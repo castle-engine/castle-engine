@@ -26,58 +26,11 @@ type
   end;
 
 function TCastleJointsComponentEditor.MenuCaption: String;
-var
-  ShouldShow: Boolean;
 begin
-  ShouldShow := not (Component as TCastleBehavior).InternalCreateGizmosCreated;
-
-  if (Component is TCastleHingeJoint)
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-    or (Component is TCastleFixedJoint)
-    or (Component is TCastleWorldPlaneDistanceJoint)
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-    or (Component is TCastleBallJoint) then
-  begin
-    if ShouldShow then
-      Exit('Show Joint Anchor')
-    else
-      Exit('Hide Joint Anchor');
-  end;
-
-  if (Component is TCastleRopeJoint)
-     or (Component is TCastleDistanceJoint) then
-  begin
-    if ShouldShow then
-      Exit('Show Joint Anchors')
-    else
-      Exit('Hide Joint Anchors');
-  end;
-
-  if (Component is TCastleGrabJoint) then
-  begin
-    if ShouldShow then
-      Exit('Show Joint World Point')
-    else
-      Exit('Hide Joint World Point');
-  end;
-
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if (Component is TCastlePulleyJoint) then
-  begin
-    if ShouldShow then
-      Exit('Show Joint World and World Ground Anchors')
-    else
-      Exit('Hide Joint World and World Ground Anchors');
-  end;
-
-  if (Component is TCastleSliderJoint) then
-  begin
-    if ShouldShow then
-       Exit('Show Joint World Anchor')
-     else
-       Exit('Hide Joint World Anchor');
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
+  if not (Component as TCastleBehavior).InternalCreateGizmosCreated then
+    Exit('Show Joint Tools')
+  else
+    Exit('Hide Joint Tools');
 end;
 
 function TCastleJointsComponentEditor.GetVerbCount: Integer;
