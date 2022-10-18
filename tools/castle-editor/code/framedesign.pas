@@ -48,6 +48,8 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionPhysicsHideAllJointsTools: TAction;
+    ActionPhysicsShowAllJointsTools: TAction;
     ActionPhysicsPauseSimulation: TAction;
     ActionPhysicsPlayStopSimulation: TAction;
     ActionListDesign: TActionList;
@@ -109,9 +111,13 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+    procedure ActionPhysicsHideAllJointsToolsUpdate(Sender: TObject);
     procedure ActionPhysicsPauseSimulationExecute(Sender: TObject);
     procedure ActionPhysicsPauseSimulationUpdate(Sender: TObject);
     procedure ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
+    procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+    procedure ActionPhysicsShowAllJointsToolsUpdate(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
@@ -377,6 +383,10 @@ type
       can be nil. }
     procedure RunProcOnAllItems(const UserInterfaceProc: TUserInterfaceUpdateProc;
       const TransformProc: TTransformUpdateProc; const BehaviorProc: TBehaviorUpdateProc);
+
+    procedure ShowJointTools(const Behavior: TCastleBehavior);
+    procedure HideJointTools(const Behavior: TCastleBehavior);
+
     procedure UpdateSelectedControl;
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     { Update anchors shown, based on UI state.
@@ -1968,6 +1978,9 @@ begin
       end;
     end;
   end;
+  { Remove designing objects before delete behavior }
+//  if C is TCastleBehavior then
+//    TCastleBehavior(C).DesigningEnd;
   C.Free;
 
   UpdateDesign;
@@ -3867,6 +3880,19 @@ begin
     IterateTransform(DesignRoot as TCastleTransform, TransformProc,
     BehaviorProc);
 end;
+
+procedure TDesignFrame.ShowJointTools(const Behavior: TCastleBehavior);
+begin
+  if Behavior is TAbstractJoint then
+    Behavior.InternalCreateGizmos;
+end;
+
+procedure TDesignFrame.HideJointTools(const Behavior: TCastleBehavior);
+begin
+  if Behavior is TAbstractJoint then
+    Behavior.InternalDestroyGizmos;
+end;
+
 function TDesignFrame.SelectedFromNode(Node: TTreeNode): TComponent;
 begin
   // This should never be called with Node = nil
@@ -4865,6 +4891,19 @@ begin
     end;
 end;
 
+procedure TDesignFrame.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+begin
+  if DesignRoot = nil then
+    Exit;
+
+  RunProcOnAllItems(nil, nil, @ShowJointTools);
+end;
+
+procedure TDesignFrame.ActionPhysicsShowAllJointsToolsUpdate(Sender: TObject);
+begin
+  ActionPhysicsShowAllJointsTools.Enabled := DesignRoot <> nil;
+end;
+
 procedure TDesignFrame.ActionPhysicsPauseSimulationUpdate(Sender: TObject);
 begin
   ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
@@ -4879,6 +4918,19 @@ begin
     CastleDesignPhysicsMode := pmPaused;
 
   ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
+end;
+
+procedure TDesignFrame.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+begin
+  if DesignRoot = nil then
+    Exit;
+
+  RunProcOnAllItems(nil, nil, @HideJointTools);
+end;
+
+procedure TDesignFrame.ActionPhysicsHideAllJointsToolsUpdate(Sender: TObject);
+begin
+  ActionPhysicsHideAllJointsTools.Enabled := DesignRoot <> nil;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
