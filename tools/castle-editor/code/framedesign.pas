@@ -42,6 +42,10 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
+  TBehaviorUpdateProc = procedure (const Behavior: TCastleBehavior) of object;
+  TTransformUpdateProc = procedure (const Transform: TCastleTransform) of object;
+  TUserInterfaceUpdateProc = procedure (const Transform: TCastleUserInterface) of object;
+
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ActionPhysicsPauseSimulation: TAction;
@@ -369,6 +373,10 @@ type
       castle design hierarchy (DesignRoot). }
     function ValidateHierarchy: Boolean;
 
+    { A way to iterate and run procedure on all items, not needed methods
+      can be nil. }
+    procedure RunProcOnAllItems(const UserInterfaceProc: TUserInterfaceUpdateProc;
+      const TransformProc: TTransformUpdateProc; const BehaviorProc: TBehaviorUpdateProc);
     procedure UpdateSelectedControl;
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     { Update anchors shown, based on UI state.
@@ -3808,6 +3816,57 @@ begin
   end;
 end;
 
+procedure TDesignFrame.RunProcOnAllItems(const UserInterfaceProc: TUserInterfaceUpdateProc;
+    const TransformProc: TTransformUpdateProc; const BehaviorProc: TBehaviorUpdateProc);
+
+  procedure IterateTransform(const C: TCastleTransform;
+      const TransformProc: TTransformUpdateProc;
+      const BehaviorProc: TBehaviorUpdateProc);
+  var
+    I: Integer;
+    Behavior : TCastleBehavior;
+  begin
+    if Assigned(TransformProc) then
+      TransformProc(C);
+
+    { Behaviors }
+    if Assigned(BehaviorProc) then
+      for Behavior in C.BehaviorsEnumerate do
+        BehaviorProc(Behavior);
+
+    for I := 0 to C.Count -1 do
+      IterateTransform(C.Items[I], TransformProc, BehaviorProc);
+  end;
+
+  procedure IterateControl(const C: TCastleUserInterface;
+      const UserInterfaceProc: TUserInterfaceUpdateProc;
+      const TransformProc: TTransformUpdateProc;
+      const BehaviorProc: TBehaviorUpdateProc);
+  var
+    I: Integer;
+  begin
+    if Assigned(UserInterfaceProc) then
+      UserInterfaceProc(C);
+
+    for I := 0 to C.ControlsCount -1 do
+      IterateControl(C.Controls[I], UserInterfaceProc, TransformProc, BehaviorProc);
+
+    if C is TCastleViewport then
+      IterateTransform((C as TCastleViewport).Items, TransformProc, BehaviorProc);
+  end;
+
+begin
+  if DesignRoot = nil then
+    Exit;
+
+  if DesignRoot is TCastleUserInterface then
+    IterateControl(DesignRoot as TCastleUserInterface, UserInterfaceProc,
+      TransformProc, BehaviorProc);
+
+  if DesignRoot is TCastleTransform then
+    IterateTransform(DesignRoot as TCastleTransform, TransformProc,
+    BehaviorProc);
+end;
 function TDesignFrame.SelectedFromNode(Node: TTreeNode): TComponent;
 begin
   // This should never be called with Node = nil
