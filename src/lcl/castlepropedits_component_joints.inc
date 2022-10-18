@@ -35,7 +35,7 @@ end;
 
 function TCastleJointsComponentEditor.GetVerbCount: Integer;
 begin
-  Result := (inherited GetVerbCount) + 1;
+  Result := (inherited GetVerbCount) + 2;
 end;
 
 function TCastleJointsComponentEditor.GetVerb(Index: Integer): string;
@@ -43,12 +43,16 @@ var
   InheritedCount: Integer;
 begin
   InheritedCount := inherited GetVerbCount;
-  if Index < InheritedCount then
+  if Index < InheritedCount - 1 then
     Result := inherited GetVerb(Index)
   else
   if Index = InheritedCount then
   begin
-    Result := MenuCaption;
+    Result := 'Show Joint Tools';
+  end else
+  if Index = InheritedCount + 1 then
+  begin
+    Result := 'Hide Joint Tools';
   end else
     Result := '';
 end;
@@ -62,14 +66,18 @@ begin
   if Index < InheritedCount then
     inherited ExecuteVerb(Index)
   else
-  if Index = InheritedCount then
   begin
     Behavior := Component as TCastleBehavior;
-    if Behavior.InternalCreateGizmosCreated then
-      Behavior.InternalDestroyGizmos
-    else
+    if Index = InheritedCount then
+    begin
       Behavior.InternalCreateGizmos;
-    GetDesigner.Modified;
-  end else
-    WritelnWarning(Behavior.ClassName + '.ExecuteVerb invalid verb index: %d', [Index]);
+      GetDesigner.Modified; // maybe not needed
+    end else
+    if Index = InheritedCount + 1 then
+    begin
+      Behavior.InternalDestroyGizmos;
+      GetDesigner.Modified; // maybe not needed
+    end else
+      WritelnWarning(Behavior.ClassName + '.ExecuteVerb invalid verb index: %d', [Index]);
+  end;
 end;
