@@ -4147,7 +4147,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
+    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4295,10 +4295,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -4345,7 +4345,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
+    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4356,7 +4356,7 @@ begin
 
   FConnectedAnchor := AValue;
   if FConnectedAnchorTransform <> nil then
-    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := FConnectedAnchor;
+    TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := FConnectedAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4466,7 +4466,7 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -4475,7 +4475,7 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TDesignJointConnectedAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -4511,7 +4511,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
+    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4581,10 +4581,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -4625,7 +4625,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := FAnchor;
+    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
   RecreateKraftJoint;
 end;
 
@@ -4695,10 +4695,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -4736,7 +4736,7 @@ begin
 
   FAnchor := AValue;
   if FAnchorTransform <> nil then
-    TTemporaryJointAnchor(FAnchorTransform).Value := AValue;
+    TDesignJointAnchor(FAnchorTransform).Value := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4747,7 +4747,7 @@ begin
 
   FConnectedAnchor := AValue;
   if FConnectedAnchorTransform <> nil then
-    TTemporaryJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
+    TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4848,7 +4848,7 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -4857,7 +4857,7 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TTemporaryJointConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TDesignJointConnectedAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -4901,7 +4901,7 @@ begin
   FWorldPoint := AValue;
 
   if FWorldPointTransform <> nil then
-    TTemporaryJointWorldPoint(FWorldPointTransform).Value := FWorldPoint;
+    TDesignJointWorldPoint(FWorldPointTransform).Value := FWorldPoint;
 
   if FKraftJointGrab <> nil then
   begin
@@ -5012,7 +5012,7 @@ begin
   inherited;
   if FWorldPointTransform = nil then
   begin
-    FWorldPointTransform := TTemporaryJointWorldPoint.Create(nil, Self);
+    FWorldPointTransform := TDesignJointWorldPoint.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldPointTransform);
     FWorldPointTransform.Translation := WorldPoint;
@@ -5059,7 +5059,7 @@ begin
   FWorldAnchor := AValue;
 
   if FWorldAnchorTransform <> nil then
-    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := AValue;
+    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5072,7 +5072,7 @@ begin
   FConnectedWorldAnchor := AValue;
 
   if FConnectedWorldAnchorTransform <> nil then
-    TTemporaryJointConnectedWorldAnchor(FConnectedWorldAnchorTransform).Value := AValue;
+    TDesignJointConnectedWorldAnchor(FConnectedWorldAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5085,7 +5085,7 @@ begin
   FWorldGroundAnchor := AValue;
 
   if FWorldGroundAnchorTransform <> nil then
-    TTemporaryJointWorldGroundAnchor(FWorldGroundAnchorTransform).Value := AValue;
+    TDesignJointWorldGroundAnchor(FWorldGroundAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5099,7 +5099,7 @@ begin
   FConnectedWorldGroundAnchor := AValue;
 
   if FConnectedWorldGroundAnchorTransform <> nil then
-    TTemporaryJointConnectedWorldGroundAnchor(FConnectedWorldGroundAnchorTransform).Value := AValue;
+    TDesignJointConnectedWorldGroundAnchor(FConnectedWorldGroundAnchorTransform).Value := AValue;
 
   RecreateKraftJoint;
 end;
@@ -5221,7 +5221,7 @@ begin
   inherited;
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
     FWorldAnchorTransform.Translation := WorldAnchor;
@@ -5230,7 +5230,7 @@ begin
 
   if FConnectedWorldAnchorTransform = nil then
   begin
-    FConnectedWorldAnchorTransform := TTemporaryJointConnectedWorldAnchor.Create(nil, Self);
+    FConnectedWorldAnchorTransform := TDesignJointConnectedWorldAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldAnchorTransform);
     FConnectedWorldAnchorTransform.Translation := ConnectedWorldAnchor;
@@ -5239,7 +5239,7 @@ begin
 
   if FWorldGroundAnchorTransform = nil then
   begin
-    FWorldGroundAnchorTransform := TTemporaryJointWorldGroundAnchor.Create(nil, Self);
+    FWorldGroundAnchorTransform := TDesignJointWorldGroundAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldGroundAnchorTransform);
     FWorldGroundAnchorTransform.Translation := WorldGroundAnchor;
@@ -5248,7 +5248,7 @@ begin
 
   if FConnectedWorldGroundAnchorTransform = nil then
   begin
-    FConnectedWorldGroundAnchorTransform := TTemporaryJointConnectedWorldGroundAnchor.Create(nil, Self);
+    FConnectedWorldGroundAnchorTransform := TDesignJointConnectedWorldGroundAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldGroundAnchorTransform);
     FConnectedWorldGroundAnchorTransform.Translation := ConnectedWorldGroundAnchor;
@@ -5433,10 +5433,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TTemporaryJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TTemporaryJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -5480,7 +5480,7 @@ begin
 
   FWorldAnchor := AValue;
   if FWorldAnchorTransform <> nil then
-    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := FWorldAnchor;
+    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := FWorldAnchor;
   RecreateKraftJoint;
 end;
 
@@ -5630,10 +5630,10 @@ begin
   inherited;
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TTemporaryJointWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
-    TTemporaryJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
+    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
