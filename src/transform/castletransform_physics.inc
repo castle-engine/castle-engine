@@ -318,6 +318,7 @@
   strict private
     FMode2D: Boolean;
     FSize: TVector3; // calculated size without scale
+    FVisualisation: TCastleTransform;
 
     procedure SetSize(const AValue: TVector3);
     procedure SetMode2D(const AValue: Boolean);
@@ -333,6 +334,10 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure BeforeDestruction; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -2384,6 +2389,8 @@ begin
   if not TVector3.Equals(FSize, AValue) then
   begin
     FSize := AValue;
+    if FVisualisation <> nil then
+      TCastleBox(FVisualisation).Size := AValue;
     UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
@@ -2478,6 +2485,36 @@ begin
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_destructor}
+  inherited;
+end;
+
+procedure TCastleBoxCollider.DesigningBegin;
+begin
+  inherited;
+
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastleBox.Create(nil);
+    FVisualisation.SetTransient;
+    TCastleBox(FVisualisation).UseInternalGlobalRenderOptions := false; // never change rendering to global
+    TCastleBox(FVisualisation).Color := White;
+    TCastleBox(FVisualisation).Material := pmUnlit;
+    TCastleBox(FVisualisation).RenderOptions.WireframeColor := WhiteRGB;
+    TCastleBox(FVisualisation).RenderOptions.WireframeEffect := weWireframeOnly;
+    TCastleBox(FVisualisation).Size := FSize;
+    Parent.Add(FVisualisation);
+  end;
+end;
+
+procedure TCastleBoxCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
+procedure TCastleBoxCollider.BeforeDestruction;
+begin
+  FreeAndNil(FVisualisation);
   inherited;
 end;
 
@@ -2595,7 +2632,6 @@ begin
     TCastleSphere(FVisualisation).RenderOptions.WireframeColor := WhiteRGB;
     TCastleSphere(FVisualisation).RenderOptions.WireframeEffect := weWireframeOnly;
     TCastleSphere(FVisualisation).Radius := FRadius;
-
     Parent.Add(FVisualisation);
   end;
 end;
