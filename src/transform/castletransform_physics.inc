@@ -1597,7 +1597,7 @@ begin
   end;
 
   Distance := 0; // TODO: We could calculate it better looking at LocalBoundingBox
-  Normal := TVector3.One[MaxAbsVectorCoord(LocalBoundingBox.Size)];
+  Normal := TVector3.One[MinAbsVectorCoord(LocalBoundingBox.Size)];
   Translation := Parent.LocalBoundingBox.Center;
   Rotation := Vector4(0, 0, 0, 0);
 end;
