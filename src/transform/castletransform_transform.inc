@@ -220,10 +220,7 @@
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
 
-    { When someone calls Free Behavior it is fired but doesn't call
-      WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
-      add procedure that is called in behavior destructor to call all
-      needed events before destroy. }
+    { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 
     { When CastleTransform change scale colliders are not scaled we need do this
@@ -2805,14 +2802,17 @@ procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior
 begin
   if Behavior.Parent <> nil then
   begin
-    { Call WorldDetached directly }
     if Behavior.NeedWorldChangeNotification and (FWorld <> nil) then
       Behavior.WorldBeforeDetach;
 
     Behavior.ParentBeforeDetach;
 
     Behavior.FParent := nil;
-    // Behavior.ParentChanged; // should be called but a lot of exsiting code don't check Parent = nil
+
+    { Could be called but a lot of exsiting code doesn't check Parent = nil.
+      For backward compatibility of this deprecated method, don't call it. }
+    // Behavior.ParentChanged;
+
     RemoveWorldChangeNotification(Behavior);
   end;
 end;
