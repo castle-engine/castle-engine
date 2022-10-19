@@ -129,7 +129,8 @@
     procedure SetRotation(const AValue: TVector4);
     procedure SetScale(const AValue: TVector3);
     procedure SetAutoSize(const AValue: Boolean);
-  strict protected
+    function StoredWithAutoSize: Boolean;
+  protected
     FLastUsedWorldScale: TVector3; // Last world scale used to change collider size
     FScale: TVector3; // Collider scale
 
@@ -139,9 +140,8 @@
     { Notify CastleRigidBody that kraft shape need be recreated }
     procedure ShapeChangedNotifyRigidBody;
     procedure CalculateAutoSize; virtual;
+    function ForceStaticBody: Boolean; virtual;
 
-    function StoredWithAutoSize: Boolean;
-  protected
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
 
@@ -181,7 +181,6 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Recalculate collider size using parent bounding box.
@@ -235,10 +234,11 @@
     FDistance: Single;
     procedure SetNormal(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
-  strict protected
+  protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateAutoSize; override;
+    function ForceStaticBody: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -269,7 +269,7 @@
     procedure SetMode2D(const AValue: Boolean);
   private
     class procedure CreateComponent2D(Sender: TObject);
-  strict protected
+  protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateAutoSize; override;
@@ -300,7 +300,7 @@
     procedure SetMode2D(const AValue: Boolean);
   private
     class procedure CreateComponent2D(Sender: TObject);
-  strict protected
+  protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   protected
@@ -327,7 +327,7 @@
     procedure SetMode2D(const AValue: Boolean);
   private
     class procedure CreateComponent2D(Sender: TObject);
-  strict protected
+  protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   protected
@@ -359,12 +359,13 @@
       const Position: TTriangle3;
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
-  strict protected
+  protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure SetMesh(const AValue: TCastleTransform);
     { In case of mesh collider only remove Translation, Rotation and Scale }
     procedure CalculateAutoSize; override;
+    function ForceStaticBody: Boolean; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
@@ -944,14 +945,6 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
-{ TCapsuleCollider ----------------------------------------------------------- }
-
-function TCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
-end;
-
 { TCastleCapsuleCollider ----------------------------------------------------- }
 
 procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);
@@ -1036,10 +1029,9 @@ end;
 function TCastleCapsuleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AutoSize') or
-     (PropertyName = 'Mode2D') or
-     (PropertyName = 'Height') or
-     (PropertyName = 'Radius') then
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mode2D', 'Height', 'Radius'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1138,11 +1130,17 @@ end;
 function TCastleMeshCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AutoSize') or
-     (PropertyName = 'Mesh') then
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mesh'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleMeshCollider.ForceStaticBody: Boolean;
+begin
+  Result := true;
 end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
@@ -1228,6 +1226,11 @@ begin
 end;
 
 { TCastleCollider ------------------------------------------------------------ }
+
+function TCastleCollider.ForceStaticBody: Boolean;
+begin
+  Result := false;
+end;
 
 procedure TCastleCollider.UpdateLocalTransform;
 var
@@ -1504,10 +1507,9 @@ end;
 function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Density') or
-     (PropertyName = 'Friction') or
-     (PropertyName = 'Mass') or
-     (PropertyName = 'Restitution') then
+  if ArrayContainsString(PropertyName, [
+     'Density', 'Friction', 'Mass', 'Restitution'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1620,12 +1622,17 @@ end;
 function TCastlePlaneCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AutoSize') or
-     (PropertyName = 'NormalPersistent') or
-     (PropertyName = 'Distance') then
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'NormalPersistent', 'Distance'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastlePlaneCollider.ForceStaticBody: Boolean;
+begin
+  Result := true;
 end;
 
 {$define read_implementation_methods}
@@ -1735,12 +1742,11 @@ begin
   inherited;
 end;
 
-function TCastleBoxCollider.PropertySections(const PropertyName: String
-  ): TPropertySections;
+function TCastleBoxCollider.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AutoSize') or
-     (PropertyName = 'Mode2D') or
-     (PropertyName = 'SizePersistent') then
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mode2D', 'SizePersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1815,12 +1821,11 @@ begin
   Rotation := Vector4(0, 0, 0, 0);
 end;
 
-function TCastleSphereCollider.PropertySections(const PropertyName: String
-  ): TPropertySections;
+function TCastleSphereCollider.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AutoSize') or
-     (PropertyName = 'Mode2D') or
-     (PropertyName = 'Radius') then
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mode2D', 'Radius'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1957,17 +1962,14 @@ end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
 
-  function ColliderForcesStatic: Boolean;
+  function ColliderForceStaticBody: Boolean;
   var
     C: TCastleCollider;
   begin
     { We use GetCastleColliderFromParent, not FCastleCollider,
       because FCastleCollider is not assigned yet by caller(s). }
     C := GetCastleColliderFromParent;
-    Result := (C <> nil) and (
-      (C is TCastleMeshCollider) or
-      (C is TCastlePlaneCollider)
-    );
+    Result := (C <> nil) and C.ForceStaticBody;
   end;
 
 begin
@@ -1975,7 +1977,7 @@ begin
   begin
     if FKraftBody <> nil then
     begin
-      if ColliderForcesStatic then
+      if ColliderForceStaticBody then
         { Some colliders only support static, in which case we use krbtStatic
           regardless of Dynamic/Animated.
           TODO: Are these colliders (mesh and plane) also disable Animated?
@@ -2784,20 +2786,12 @@ end;
 function TCastleRigidBody.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Dynamic') or
-     (PropertyName = 'Animated') or
-     (PropertyName = 'Trigger') or
-     (PropertyName = 'Gravity') or
-     (PropertyName = 'LockTranslation') or
-     (PropertyName = 'Exists') or
-     (PropertyName = 'AngularVelocityPersistent') or
-     (PropertyName = 'AngularVelocityDamp') or
-     (PropertyName = 'MaximalAngularVelocity') or
-     (PropertyName = 'LinearVelocityPersistent') or
-     (PropertyName = 'LinearVelocityDamp') or
-     (PropertyName = 'MaximalLinearVelocity') or
-     (PropertyName = 'CollisionDetection') or
-     (PropertyName = 'LockRotation') then
+  if ArrayContainsString(PropertyName, [
+     'Dynamic', 'Animated', 'Trigger', 'Gravity', 'LockTranslation', 'Exists',
+     'AngularVelocityPersistent', 'AngularVelocityDamp', 'MaximalAngularVelocity',
+     'LinearVelocityPersistent', 'LinearVelocityDamp', 'MaximalLinearVelocity',
+     'CollisionDetection', 'LockRotation'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
