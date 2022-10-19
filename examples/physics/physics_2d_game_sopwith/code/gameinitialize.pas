@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -82,7 +82,7 @@ procedure ApplicationInitialize;
     Level.AddBehavior(RigidBody);
 
     Collider := TCastleMeshCollider.Create(Level);
-    Collider.Scene := Level;
+    Collider.Mesh := Level;
     Level.AddBehavior(Collider);
 
     Viewport.Items.Add(Level);
