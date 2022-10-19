@@ -194,9 +194,8 @@ begin
   RBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
-  RBody.CollisionDetectionType := cdtContinuous;
+  RBody.CollisionDetection := cdContinuous;
   RBody.MaximalLinearVelocity := 0;
-
 
   Collider := TCastleSphereCollider.Create(Self);
   { We don't set the Radius becouse we simply use Autosize }

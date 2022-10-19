@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Physics integration code between CastleTransform and Kraft physics engine. }
+{ Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
 
@@ -35,19 +35,16 @@
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FUpdateCollidersScaleAtRuntime: Boolean;
-    FContinuousCD: Boolean;
-
+    FContinuousCollisionDetection: Boolean;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
     procedure SetUpdateCollidersScaleAtRuntime(const AValue: Boolean);
-    procedure SetContinuousCD(const AValue: Boolean);
-
+    procedure SetContinuousCollisionDetection(const AValue: Boolean);
   private
     { Buffer to not count physics step time per frame }
     FPhysicsTimeStep: TFloatTime;
     RootTransform: TCastleAbstractRootTransform;
-
   public
     const
       DefaultAngularVelocityRK4Integration = false;
@@ -56,19 +53,21 @@
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
       DefaultUpdateCollidersScaleAtRuntime = true;
-      DefaultContinuousCD = true;
+      DefaultContinuousCollisionDetection = true;
     constructor Create(AOwner: TComponent); override;
-
   published
     { Use a more precise (but also more expensive) method for simulating angular velocity.
       The "RK4" refers to Runge–Kutta method. }
     property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+
     { Use a more precise (but also more expensive) method for simulating linear velocity.
       The "RK4" refers to Runge–Kutta method. }
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+
     { How often should the physics simulation run in a second.
       Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
     property Frequency: Single read FFrequency write SetFrequency {$ifdef FPC}default DefaultFrequency{$endif};
+
     { Physics gravity is set using the -GravityUp vector (from main camera)
       multiplied with GravityStrength. }
     property GravityStrength: Single read FGravityStrength write FGravityStrength {$ifdef FPC}default DefaultGravityStrength{$endif};
@@ -87,13 +86,19 @@
       it changes colliders size, otherwise scale is updated only after attaching
       collider to world. }
     property UpdateCollidersScaleAtRuntime: Boolean read FUpdateCollidersScaleAtRuntime write SetUpdateCollidersScaleAtRuntime default DefaultUpdateCollidersScaleAtRuntime;
+
     { Should engine use continous collision detection (CCD). }
-    property ContinuousCD: Boolean read FContinuousCD write SetContinuousCD default DefaultContinuousCD;
+    property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
   end;
 
-  { Don't have any Kraft objects only describe shape }
+  { Abstract collider class, ancestor of @link(TCastleSphereCollider), @link(TCastleBoxCollider)
+    and others. }
   TCastleCollider = class(TCastleBehavior)
   strict private
+    { Implementation note:
+      This doesn't store any references to Kraft objects.
+      This only describes shape.
+      TCastleRigidBody takes care of initializing Kraft. }
     FDensity, FMass, FRestitution, FFriction: Single;
     { When @false, behave as if Translation/Rotation/Scale/FLocalTransform/FLocalInverseTransform
       were all "identity", i.e. "no transformation".
@@ -217,93 +222,35 @@
   {$undef read_interface_class}
   end;
 
-  { Shape used for collision detection of a rigid body @link(TRigidBody). }
-  TCollider = class
-  private
-    FKraftShape: TKraftShape;
-    FParent: TRigidBody;
-    FDensity, FMass, FRestitution, FFriction: Single;
-    procedure InitializeKraft(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody);
-  strict protected
-    function CreateKraftShape(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
-  public
-    const
-      { Default for @link(Density). }
-      DefaultDensity = 1.0;
-      { Default for @link(Mass), zero means "use @link(Density) instead". }
-      DefaultMass = 0.0;
-      { Default for @link(Restitution). }
-      DefaultRestitution = 0.0;
-      { Default for @link(Friction). }
-      DefaultFriction = 0.5;
-
-    { Create a collider, and set the parent rigid body.
-      The collider instance is @bold(owned) by the @link(TRigidBody) instance,
-      so will be freed when the @link(TRigidBody) is freed.
-      This automatically sets the
-      @link(TRigidBody.Collider) property and
-      @link(TCollider.Parent) property. }
-    constructor Create(const AParent: TRigidBody);
-    destructor Destroy; override;
-
-    { Parent rigid body, which in turn refers to this collider
-      by @link(TRigidBody.Collider). }
-    property Parent: TRigidBody read FParent;
-
-    { Density (per volume) in kg, this implicitly determines mass
-      (volume is automatically calculated by the physics engine).
-      If you instead prefer to explicitly set mass, set @link(Mass)
-      property to something non-zero. }
-    property Density: Single read FDensity write FDensity
-      {$ifdef FPC}default DefaultDensity{$endif};
-
-    { Mass in kg. When non-zero, this overrides the automatically calculated
-      mass from the volume and @link(Density). }
-    property Mass: Single read FMass write FMass
-      {$ifdef FPC}default DefaultMass{$endif};
-
-    property Restitution: Single read FRestitution write FRestitution
-      {$ifdef FPC}default DefaultRestitution{$endif};
-    property Friction: Single read FFriction write FFriction
-      {$ifdef FPC}default DefaultFriction{$endif};
-  end deprecated 'use TCastleCollider';
-
-
   { Collide as an infinite plane.
-    Place this inside @link(TRigidBody.Collider) property. }
-  TPlaneCollider = class(TCollider)
-  strict protected
-    function CreateKraftShape(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  public
-    Normal: TVector3;
-    Distance: Single;
-  end deprecated 'use TCastlePlaneCollider';
+    Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
+    to make the given TCastleTransform be affected by physics and collide with other physics bodies.
 
-  { Collide as an infinite plane.
-    Add this to transform behavior list. }
+    In the current implementation, this collider supports only static rigid bodies.
+    The associated TCastleRigidBody instance (with the same TCastleTransform parent)
+    will behave as if @link(TCastleRigidBody.Dynamic) and @link(TCastleRigidBody.Animated) are @false. }
   TCastlePlaneCollider = class(TCastleCollider)
   strict private
     FNormal: TVector3;
     FDistance: Single;
-
     procedure SetNormal(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-
     procedure CalculateAutoSize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Normal vector of the plane.
+      By default (set by CalculateAutoSize) +Y.
+      This makes the default plane by constant in Y axis, and span to infinity in X and Z axis.
+      This makes it nice as a ground/floor in 3D. }
     property Normal: TVector3 read FNormal write SetNormal stored StoredWithAutoSize;
   published
+    { Distance from (0,0,0) to the point. }
     property Distance: Single read FDistance write SetDistance stored StoredWithAutoSize;
 
   {$define read_interface_class}
@@ -312,43 +259,29 @@
   end;
 
   { Collide as a box.
-    Place this inside @link(TRigidBody.Collider) property. }
-  TBoxCollider = class(TCollider)
-  strict protected
-    function CreateKraftShape(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  public
-    Size: TVector3;
-  end deprecated 'use TCastleBoxCollider';
-
-  { Collide as a box.
-    Add this to transform behavior list. }
+    Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
+    to make the given TCastleTransform be affected by physics and collide with other physics bodies. }
   TCastleBoxCollider = class(TCastleCollider)
   strict private
     FMode2D: Boolean;
     FSize: TVector3; // calculated size without scale
-
     procedure SetSize(const AValue: TVector3);
     procedure SetMode2D(const AValue: Boolean);
-
   private
     class procedure CreateComponent2D(Sender: TObject);
-
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateAutoSize; override;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Box size. }
     property Size: TVector3 read FSize write SetSize;
   published
-    { Determines how to treat collider, currently change the way auto size
-      and scale is calculated. }
+    { If @true, we calculate automatic size looking only at sizes in XY. }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
 
   {$define read_interface_class}
@@ -356,74 +289,44 @@
   {$undef read_interface_class}
   end;
 
-
   { Collide as a sphere.
-    Place this inside @link(TRigidBody.Collider) property. }
-  TSphereCollider = class(TCollider)
-  strict protected
-    function CreateKraftShape(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  public
-    Radius: Single;
-  end deprecated 'use TCastleSphereCollider';
-
-  { Collide as a sphere.
-    Add this to transform behavior list.}
+    Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
+    to make the given TCastleTransform be affected by physics and collide with other physics bodies. }
   TCastleSphereCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
     FMode2D: Boolean;
-
     procedure SetRadius(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
-
   private
     class procedure CreateComponent2D(Sender: TObject);
-
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-
   protected
     procedure CalculateAutoSize; override;
-
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
 
-    { Determines how to treat collider, currently change the way auto size
-      and scale is calculated. }
+    { If @true, we calculate automatic size looking only at sizes in XY. }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
   { Collide as a capsule.
-    Place this inside @link(TRigidBody.Collider) property. }
-  TCapsuleCollider = class(TCollider)
-  strict protected
-    function CreateKraftShape(const APhysics: TKraft;
-      const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  public
-    Radius: Single;
-    Height: Single;
-  end deprecated 'use TCastleCapsuleCollider';
-
-  { Collide as a capsule.
-    Add this to transform behavior list.}
+    Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
+    to make the given TCastleTransform be affected by physics and collide with other physics bodies. }
   TCastleCapsuleCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
     FHeight: Single;
     FMode2D: Boolean;
-
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
-
   private
     class procedure CreateComponent2D(Sender: TObject);
-
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -431,22 +334,27 @@
     procedure CalculateAutoSize; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
     property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
 
-    { Determines how to treat collider, currently change the way auto size
-      and scale is calculated. }
+    { If @true, we calculate automatic size looking only at sizes in XY. }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
-  { Collide as a mesh, constructed from the given scene shapes.
-    Add this behavior to your Scene }
+  { Collide as a set of triangles determined by @link(Mesh).
+    Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
+    to make the given TCastleTransform be affected by physics and collide with other physics bodies.
+
+    Make sure to set the @link(Mesh) property.
+
+    In the current implementation, this collider supports only static rigid bodies.
+    The associated TCastleRigidBody instance (with the same TCastleTransform parent)
+    will behave as if @link(TCastleRigidBody.Dynamic) and @link(TCastleRigidBody.Animated) are @false. }
   TCastleMeshCollider = class(TCastleCollider)
   strict private
-    Mesh: TKraftMesh;
-    FScene: TCastleTransform;
+    FKraftMesh: TKraftMesh;
+    FMesh: TCastleTransform;
     procedure AddTriangle(Shape: TObject;
       const Position: TTriangle3;
       const Normal: TTriangle3; const TexCoord: TTriangle4;
@@ -454,48 +362,57 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    procedure SetScene(const AValue: TCastleTransform);
+    procedure SetMesh(const AValue: TCastleTransform);
     { In case of mesh collider only remove Translation, Rotation and Scale }
     procedure CalculateAutoSize; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Mesh which is used to collide.
+      It can be a TCastleScene, TCastleBox or other instance of TCastleTransform
+      with @link(TCastleTransform.HasColliderMesh) = @true.
+
       It does not have to be convex.
 
-      The @link(TCastleTransform.Collides Scene.Collides) and
-      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
-      Using the TCollisionNode inside Scene matters (so the scene may collide
+      Note: The values of @link(TCastleTransform.Collides Mesh.Collides) and
+      @link(TCastleTransform.GetCollides Mesh.GetCollides) of the assigned instance
+      do not matter.
+
+      Note: Using the TCollisionNode X3D nodes inside the assigned instance
+      is still useful. This way the scene may collide
       as something different than it's visible, see
-      https://castle-engine.io/x3d_implementation_navigation.php ). }
-    property Scene: TCastleTransform read FScene write SetScene;
+      https://castle-engine.io/x3d_implementation_navigation.php . }
+    property Mesh: TCastleTransform read FMesh write SetMesh;
   end;
 
-
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
-  TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
   TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
   TCastleRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TCastleRigidBody>;
 
-  TCollisionDetectionType = (
-    cdtDiscrete,
-    cdtContinuous
+  TCollisionDetection = (
+    cdDiscrete,
+    cdContinuous
   );
 
-  { Rigid body behavior for the physics engine }
+  TCollider = class;
+
+  { Use this behavior to be affected by physics collisions and forces.
+    Add a TCastleRigidBody and some collider (TCastleCollider descendant)
+    as behaviors of TCastleTransform to make the given TCastleTransform
+    be affected by physics and collide with other physics bodies. }
   TCastleRigidBody = class(TCastleBehavior)
   strict private
     type
-      TCastleRigidBodyState = (
-        crbsNotInitialized, // nothing is done
-        crbsNoCollider, // need initialize collider
-        crbsNoFinalization, // need FinishInitialization
-        crbsInitialized // ready to work
-        );
+      TState = (
+        stateNone, //< nothing is done
+        stateMissingCollider, //< needs initialize collider
+        stateMissingFinalization, //< needs FinishInitialization
+        stateReady //< ready to work
+      );
     var
       { Current rigid body state. }
-      FState: TCastleRigidBodyState;
+      FState: TState;
       { Castle collider behavior that was used to initialize rigid body or nil
         if physics engine collider was not initialized }
       FCastleCollider: TCastleCollider;
@@ -543,7 +460,7 @@
     FDynamic: Boolean;
     FAnimated: Boolean;
     FTrigger: Boolean;
-    FCollisionDetectionType: TCollisionDetectionType;
+    FCollisionDetection: TCollisionDetection;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -563,7 +480,7 @@
     { Updates existence state of physics engine body. }
     procedure UpdateExistBody;
     { Updates colision detection type (discrete, continous) of physics engine body. }
-    procedure UpdateCollisionDetectionType;
+    procedure UpdateCollisionDetection;
     { Updates axes that have translation lock and call Finish if needed }
     procedure UpdateLockTranslation;
     { Updates axes that have rotation lock and call Finish if needed }
@@ -589,7 +506,7 @@
     procedure SetOnCollisionStay(const AValue: TCollisionEvent);
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
-    procedure SetCollisionDetectionType(const AValue: TCollisionDetectionType);
+    procedure SetCollisionDetection(const AValue: TCollisionDetection);
 
     procedure SetDynamic(const AValue: Boolean);
     procedure SetAnimated(const AValue: Boolean);
@@ -599,7 +516,7 @@
     procedure SetTrigger(const Value: Boolean);
 
     { Creates physics engine object and connects the rigid body with
-      Transform and Transform.World.
+      @link(TCastleTransform Parent) and @link(TCastleTransform Parent).World.
 
       Initialization is done in three steps:
       1. Creation of Kraft rigid body in InitializeEngineRigidBody
@@ -630,8 +547,8 @@
 
     class procedure CreateComponent2D(Sender: TObject);
 
-    property DuringSettingTransformationFromPhysicsEngine: Boolean read
-      FDuringSettingTransformationFromPhysicsEngine;
+    property DuringSettingTransformationFromPhysicsEngine: Boolean
+      read FDuringSettingTransformationFromPhysicsEngine;
   protected
     { Initializes physics engine objects when TCastleRigidBody is attached
       to world. }
@@ -798,9 +715,15 @@
       determined with autosize. Which can cause e.g. the torque to be incorrect. }
     procedure UpdateColliderAutosize;
 
+    { For performance, physics engine sometimes puts some body to "sleep",
+      which means it will not move anymore,
+      because it didn't move (much) in the recent frames.
+      In general, the body should be "woken up" automatically when something collides
+      with it, so the mechanism should be invisible to you... but sometimes it is necessary
+      to wake up a body explicitly. }
     procedure WakeUp;
 
-    procedure Sleep;
+    //procedure Sleep;
 
     { Current rotating velocity of this body.
       You can query it (as it changes, affected by forces) and set it at any point.
@@ -944,8 +867,8 @@
     property Collider: TCollider read FCollider;
 
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }
-    property CollisionDetectionType: TCollisionDetectionType read FCollisionDetectionType
-      write SetCollisionDetectionType default cdtDiscrete;
+    property CollisionDetection: TCollisionDetection read FCollisionDetection
+      write SetCollisionDetection default cdDiscrete;
 
     { Is this object affected by gravity. }
     property Gravity: Boolean read FGravity write SetGravity default true;
@@ -980,9 +903,6 @@
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
   {$undef read_interface_class}
-  end;
-
-  TRigidBody = class(TCastleRigidBody)
   end;
 
 {$endif read_interface}
@@ -1144,31 +1064,31 @@ begin
   { TODO: it's probably not optimal to call AddTriangle
     for each triangle, we should instead call Load with a list. }
 
-  Mesh.AddTriangle(
-    Mesh.AddVertex(VectorToKraft(Position.Data[0])),
-    Mesh.AddVertex(VectorToKraft(Position.Data[1])),
-    Mesh.AddVertex(VectorToKraft(Position.Data[2])),
-    Mesh.AddNormal(VectorToKraft(Normal.Data[0])),
-    Mesh.AddNormal(VectorToKraft(Normal.Data[1])),
-    Mesh.AddNormal(VectorToKraft(Normal.Data[2]))
+  FKraftMesh.AddTriangle(
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
-
-  { Kraft RayCast does not check inverted triangles. }
-  Mesh.AddTriangle(
-      Mesh.AddVertex(VectorToKraft(Position.Data[2])),
-      Mesh.AddVertex(VectorToKraft(Position.Data[1])),
-      Mesh.AddVertex(VectorToKraft(Position.Data[0])),
-      Mesh.AddNormal(VectorToKraft(-Normal.Data[2])),
-      Mesh.AddNormal(VectorToKraft(-Normal.Data[1])),
-      Mesh.AddNormal(VectorToKraft(-Normal.Data[0]))
+  { We also add triangles for the other side.
+    Kraft RayCast does not check inverted triangles. }
+  FKraftMesh.AddTriangle(
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
-  if FScene = nil then
+  if FMesh = nil then
   begin
     Result := nil;
     Exit;
@@ -1181,22 +1101,28 @@ begin
     Exit;
   end;
 
-  Mesh := TKraftMesh.Create(APhysics);
+  FKraftMesh := TKraftMesh.Create(APhysics);
 
-  FScene.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
+  if not FMesh.HasColliderMesh then
+  begin
+    WritelnWarning('The TCastleMeshCollider.Mesh does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.');
+  end else
+  begin
+    FMesh.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
+    if FKraftMesh.CountVertices = 0 then
+      WritelnWarning('The scene assigned to TCastleMeshCollider.Mesh is empty (no collidable triangles)');
+  end;
 
-  if Mesh.CountVertices = 0 then
-    WritelnWarning('The scene assigned to TCastleMeshCollider.Scene is empty (no collidable triangles)');
-  Mesh.Finish;
+  FKraftMesh.Finish;
 
-  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
+  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
 end;
 
-procedure TCastleMeshCollider.SetScene(const AValue: TCastleTransform);
+procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
 begin
-  if FScene <> AValue then
+  if FMesh <> AValue then
   begin
-    FScene := AValue;
+    FMesh := AValue;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1213,12 +1139,11 @@ function TCastleMeshCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'AutoSize') or
-     (PropertyName = 'Scene') then
+     (PropertyName = 'Mesh') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
-
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
@@ -1253,13 +1178,13 @@ begin
   end;
 end;
 
-procedure TPhysicsProperties.SetContinuousCD(
+procedure TPhysicsProperties.SetContinuousCollisionDetection(
   const AValue: Boolean);
 begin
-  if FContinuousCD = AValue then
+  if FContinuousCollisionDetection = AValue then
     Exit;
 
-  FContinuousCD := AValue;
+  FContinuousCollisionDetection := AValue;
   if Assigned(RootTransform.FKraftEngine) then
     if AValue then
       RootTransform.FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
@@ -1299,43 +1224,7 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
-  FContinuousCD := DefaultContinuousCD;
-end;
-
-{ TCollider ------------------------------------------------------------------ }
-
-constructor TCollider.Create(const AParent: TRigidBody);
-begin
-  inherited Create;
-
-  // properties defaults
-  FDensity := DefaultDensity;
-  FMass := DefaultMass;
-  FRestitution := DefaultRestitution;
-  FFriction := DefaultFriction;
-
-  FParent := AParent;
-  FreeAndNil(FParent.FCollider);
-  FParent.FCollider := Self;
-end;
-
-procedure TCollider.InitializeKraft(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody);
-begin
-  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
-  FKraftShape := CreateKraftShape(APhysics, ARigidBody);
-  // assign common TCollider properties to Kraft shape
-  FKraftShape.Density := Density;
-  FKraftShape.Restitution := Restitution;
-  FKraftShape.Friction := Friction;
-  if not FParent.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
-end;
-
-destructor TCollider.Destroy;
-begin
-  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
-  inherited;
+  FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
 end;
 
 { TCastleCollider ------------------------------------------------------------ }
@@ -1374,7 +1263,7 @@ begin
     raise Exception.Create('Trying to use old TCollider and TCastleCollider');
 
   Assert(ACastleRigidBody.FKraftBody <> nil,
-  'Trying initialize kraft shape when rigid body not initialized!');
+    'Trying initialize kraft shape when rigid body not initialized!');
 
   ACastleRigidBody.DeinitializeColliders;
   { If shape count is > 0 we need delete previous shape. }
@@ -1640,15 +1529,6 @@ end;
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TPlaneCollider ------------------------------------------------------------- }
-
-function TPlaneCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  Result := TKraftShapePlane.Create(APhysics, ARigidBody,
-    Plane(Vector3Norm(VectorToKraft(Normal)), Distance));
-end;
-
 { TCastlePlaneCollider ------------------------------------------------------- }
 
 procedure TCastlePlaneCollider.SetNormal(const AValue: TVector3);
@@ -1687,36 +1567,35 @@ begin
 end;
 
 procedure TCastlePlaneCollider.CalculateAutoSize;
-var
-  WorldBoundingBox: TBox3D;
-begin
-  inherited;
 
-  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  procedure DefaultSize;
   begin
     Normal := CastleVectors.Vector3(0, 1, 0);
     Translation := CastleVectors.Vector3(0, 0, 0);
     Rotation := Vector4(0, 0, 0, 0);
+  end;
+
+var
+  LocalBoundingBox: TBox3D;
+begin
+  inherited;
+
+  if Parent = nil then
+  begin
+    DefaultSize;
     Exit;
   end;
 
-  Distance := 0;
-  WorldBoundingBox := Parent.WorldBoundingBox;
-  if WorldBoundingBox.SizeX > WorldBoundingBox.SizeY then
-  begin
-    if WorldBoundingBox.SizeY > WorldBoundingBox.SizeZ then
-      Normal := CastleVectors.Vector3(0, 0, 1)
-    else
-      Normal := CastleVectors.Vector3(0, 1, 0);
-  end
-  else
-    begin
-      if WorldBoundingBox.SizeX > WorldBoundingBox.SizeZ then
-        Normal := CastleVectors.Vector3(0, 0, 1)
-      else
-        Normal := CastleVectors.Vector3(1, 0, 0);
-    end;
+  LocalBoundingBox := Parent.LocalBoundingBox;
 
+  if LocalBoundingBox.IsEmptyOrZero then
+  begin
+    DefaultSize;
+    Exit;
+  end;
+
+  Distance := 0; // TODO: We could calculate it better looking at LocalBoundingBox
+  Normal := TVector3.One[MaxAbsVectorCoord(LocalBoundingBox.Size)];
   Translation := Parent.LocalBoundingBox.Center;
   Rotation := Vector4(0, 0, 0, 0);
 end;
@@ -1752,25 +1631,6 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
-
-{ TBoxCollider --------------------------------------------------------------- }
-
-function TBoxCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
-    First Kraft raises nice
-      EKraftDegeneratedConvexHull.Create('Degenerated convex hull');
-    but then makes SIGSEGV at
-      fPhysics.fStaticAABBTree.DestroyProxy(fStaticAABBTreeProxy)
-    in TKraftShape.Destroy. }
-
-  if (Size.X <= 0) or
-     (Size.Y <= 0) or
-     (Size.Z <= 0) then
-    raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
-  Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
-end;
 
 { TCastleBoxCollider --------------------------------------------------------- }
 
@@ -1890,14 +1750,6 @@ end;
 {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TSphereCollider ------------------------------------------------------------ }
-
-function TSphereCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, Radius);
-end;
-
 { TCastleSphereCollider ------------------------------------------------------ }
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
@@ -2009,7 +1861,7 @@ begin
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
   FTransform := nil;
-  FState := crbsNotInitialized;
+  FState := stateNone;
   FLockRotation := [];
   FLockTranslation := [];
 
@@ -2092,7 +1944,7 @@ begin
   FreeAndNil(FKraftBody);
 
   FTransform := nil;
-  FState := crbsNotInitialized;
+  FState := stateNone;
 end;
 
 function TCastleRigidBody.GetCastleColliderFromParent: TCastleCollider;
@@ -2119,7 +1971,7 @@ procedure TCastleRigidBody.UpdateKraftRigidBodyType;
   end;
 
 begin
-  if FState in [crbsNotInitialized] then
+  if FState in [stateNone] then
   begin
     if FKraftBody <> nil then
     begin
@@ -2167,32 +2019,32 @@ begin
   UpdateLockTranslation;
 
   UpdateExistBody;
-  UpdateCollisionDetectionType;
+  UpdateCollisionDetection;
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
 
-  FState := crbsNoCollider;
+  FState := stateMissingCollider;
 end;
 
 function TCastleRigidBody.TryInitializeColliders: Boolean;
 var
   CastleColliderFromTransform: TCastleCollider;
 begin
-  if FState = crbsNotInitialized then
+  if FState = stateNone then
     raise Exception.Create(
       'TryInitializeColliders: Trying to add collider but rigid body not initialized.');
 
   CastleColliderFromTransform := GetCastleColliderFromParent;
   if (Collider <> nil) and (CastleColliderFromTransform <> nil) then
     raise Exception.Create(
-      'You can''t use TCollider and TCastleCollider in the same rigid body. ' +
-      NL + 'Remove deprecated RigidBody.Collider.');
+      'You can''t use TCollider and TCastleCollider in the same rigid body. ' + NL +
+      'Remove deprecated RigidBody.Collider.');
 
   if Collider <> nil then
   begin
     Collider.InitializeKraft(Parent.World.FKraftEngine, FKraftBody);
-    FState := crbsNoFinalization;
+    FState := stateMissingFinalization;
     Exit(true);
   end;
 
@@ -2205,18 +2057,18 @@ begin
 
   if CastleColliderFromTransform = nil then
   begin
-    FState := crbsNoCollider;
+    FState := stateMissingCollider;
     Exit(false);
   end;
 
   if not CastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine, Self) then
   begin
-    FState := crbsNoCollider;
+    FState := stateMissingCollider;
     Exit(false);
   end;
 
   FCastleCollider := CastleColliderFromTransform;
-  FState := crbsNoFinalization;
+  FState := stateMissingFinalization;
   Result := true;
 end;
 
@@ -2224,7 +2076,7 @@ procedure TCastleRigidBody.FinishInitialization;
 var
   V: TVector3;
 begin
-  if FState <> crbsNoFinalization then
+  if FState <> stateMissingFinalization then
     raise Exception.Create('Trying finalize rigid body initialization');
 
   if Collider <> nil then
@@ -2262,22 +2114,22 @@ begin
   SetWorldTransformation(FTransform.WorldTransform);
 
   CheckPhysicsPostStepNeeded;
-  FState := crbsInitialized;
+  FState := stateReady;
 end;
 
 procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
 begin
   if Collider <> nil then
     raise Exception.Create(
-      'You can''t use TCollider and TCastleCollider in the same rigid body. ' +
-      NL + 'Remove deprecated RigidBody.Collider.');
+      'You can''t use TCollider and TCastleCollider in the same rigid body. ' + NL +
+      'Remove deprecated RigidBody.Collider.');
 
   { FCastleCollider has pointer to castle collider behavior that was used to
     initialize rigid body so we didn't need do anything. }
   if FCastleCollider = ACastleCollider then
     Exit;
 
-  if (FState = crbsNoCollider) then
+  if (FState = stateMissingCollider) then
   begin
     if FCastleCollider = nil then
     begin
@@ -2351,7 +2203,7 @@ begin
   begin
 
     Collider.FKraftShape := nil;
-    FState := crbsNoCollider;
+    FState := stateMissingCollider;
   end else
   if FCastleCollider <> nil then
   begin
@@ -2363,14 +2215,14 @@ begin
     end;
     Assert(FCastleCollider.FKraftShape = nil, 'Mixed kraft shapes');
     FCastleCollider := nil;
-    FState := crbsNoCollider;
+    FState := stateMissingCollider;
   end;
 end;
 
 procedure TCastleRigidBody.ReinitializeCastleCollider;
 begin
-  { Don't try reinitialization when TCastleRigidBody is crbsNotInitialized }
-  if FState = crbsNotInitialized then
+  { Don't try reinitialization when TCastleRigidBody is stateNone }
+  if FState = stateNone then
     Exit;
 
   if TryInitializeColliders then
@@ -2522,7 +2374,7 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.UpdateCollisionDetectionType;
+procedure TCastleRigidBody.UpdateCollisionDetection;
 begin
   if Assigned(FKraftBody) then
   begin
@@ -2531,10 +2383,10 @@ begin
       - one of bodies has krbfContinuous and they are dynamic bodies
       - ContinuousAgainstDynamics is set to true in FKraftEngine
         and one of bodies has krbfContinuousAgainstDynamics flag }
-    case FCollisionDetectionType of
-      cdtDiscrete:
+    case FCollisionDetection of
+      cdDiscrete:
         FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous, krbfContinuousAgainstDynamics];
-      cdtContinuous:
+      cdContinuous:
         FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous, krbfContinuousAgainstDynamics];
     end;
   end;
@@ -2559,7 +2411,7 @@ begin
 
     { Changing translation lock needs to call Finish again we do it again
       only when rigid body is ready now. }
-    if FState = crbsInitialized then
+    if FState = stateReady then
       FKraftBody.Finish;
   end;
 end;
@@ -2583,7 +2435,7 @@ begin
 
     { Changing rotation lock needs to call Finish again we do it again only when
       rigid body is ready now }
-    if FState = crbsInitialized then
+    if FState = stateReady then
       FKraftBody.Finish;
   end;
 end;
@@ -2622,13 +2474,13 @@ begin
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TCastleRigidBody.SetCollisionDetectionType(const AValue: TCollisionDetectionType);
+procedure TCastleRigidBody.SetCollisionDetection(const AValue: TCollisionDetection);
 begin
-  if FCollisionDetectionType = AValue then
+  if FCollisionDetection = AValue then
     Exit;
 
-  FCollisionDetectionType := AValue;
-  UpdateCollisionDetectionType;
+  FCollisionDetection := AValue;
+  UpdateCollisionDetection;
 end;
 
 procedure TCastleRigidBody.SetDynamic(const AValue: Boolean);
@@ -2693,7 +2545,7 @@ begin
   if FDuringSettingTransformationFromPhysicsEngine then
     Exit;
 
-  if not (FState in [crbsNoFinalization, crbsInitialized]) then
+  if not (FState in [stateMissingFinalization, stateReady]) then
     Exit;
 
   { Remove scale from world transfrom because using scale in kraft
@@ -2837,7 +2689,7 @@ end;
 
 procedure TCastleRigidBody.WorldBeforeDetach;
 begin
-  if FState <> crbsNotInitialized then
+  if FState <> stateNone then
   begin
     Assert(Parent = FTransform, 'Parent and FTransform should be the same.');
     DeinitializePhysicsEngineObjects;
@@ -2944,7 +2796,7 @@ begin
      (PropertyName = 'LinearVelocityPersistent') or
      (PropertyName = 'LinearVelocityDamp') or
      (PropertyName = 'MaximalLinearVelocity') or
-     (PropertyName = 'CollisionDetectionType') or
+     (PropertyName = 'CollisionDetection') or
      (PropertyName = 'LockRotation') then
     Result := [psBasic]
   else
@@ -3027,10 +2879,13 @@ begin
   FKraftBody.SetToAwake;
 end;
 
+{ // commented out as should never be needed by actual user code
+
 procedure TCastleRigidBody.Sleep;
 begin
   FKraftBody.SetToSleep;
 end;
+}
 
 procedure TCastleRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
@@ -3125,9 +2980,9 @@ begin
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
-    if PhysicsProperties.ContinuousCD then
+    if PhysicsProperties.ContinuousCollisionDetection then
     begin
-      { I tested all options:
+      { Andrzej says: I tested all options:
          - kcmSpeculativeContacts - its fake so sometime we have fake collisons
          - kcmTimeOfImpactSubSteps - bullets in platformer sometimes pass
                                      through the walls, all TimeOfImpactAlgorithm

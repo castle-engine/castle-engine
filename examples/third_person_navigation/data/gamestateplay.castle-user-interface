@@ -74,7 +74,7 @@
                 "Friction" : 2.0000000298023224E-001,
                 "Name" : "MeshColliderLevel",
                 "Restitution" : 7.9999998211860657E-002,
-                "Scene" : "SceneLevel"
+                "Mesh" : "SceneLevel"
               }
             ]
           },

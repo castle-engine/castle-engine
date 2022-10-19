@@ -1761,7 +1761,7 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
       try
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
-          (Result as TCastleMeshCollider).Scene := ParentComponent;
+          (Result as TCastleMeshCollider).Mesh := ParentComponent;
       finally
         FinishAddingComponent(Result);
       end;

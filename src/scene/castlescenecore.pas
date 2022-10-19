@@ -2595,7 +2595,7 @@ type
   end;
 
   {$define read_interface}
-  {$I castlescenecore_physics.inc}
+  {$I castlescenecore_physics_deprecated.inc}
   {$undef read_interface}
 
 var
@@ -2641,7 +2641,7 @@ uses Math, DateUtils,
 {$warnings on}
 
 {$define read_implementation}
-{$I castlescenecore_physics.inc}
+{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
