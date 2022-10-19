@@ -21,7 +21,7 @@ interface
 uses Classes, CastleCameras,
   CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleViewport, CastleSceneCore, X3DNodes, CastleScene, CastleSoundEngine,
-  CastleBehaviors, CastleNotifications,
+  CastleBehaviors, CastleNotifications, CastleTransform,
   GameEnemy;
 
 type
@@ -48,6 +48,7 @@ type
     SoundSourceFootsteps: TCastleSoundSource;
     SoundShoot: TCastleSound;
     MainNotifications: TCastleNotifications;
+    BoxDieDetect, BoxWinDetect: TCastleTransform;
   end;
 
 var
@@ -101,24 +102,17 @@ end;
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   DirectionHorizontal: TVector3;
+  GameActive: Boolean;
 begin
   inherited;
   LabelFps.Caption := Container.Fps.ToString;
   UpdateMouseLook;
 
-  DirectionHorizontal := MainViewport.Camera.Direction;
-  if not VectorsParallel(DirectionHorizontal, MainViewport.Camera.GravityUp) then
-    MakeVectorsOrthoOnTheirPlane(DirectionHorizontal, MainViewport.Camera.GravityUp);
+  GameActive := TUIState.CurrentTop = Self;
 
-  MapViewport.Camera.SetView(
-    MainViewport.Camera.Translation + Vector3(0, 30, 0),
-    Vector3(0, -1, 0),
-    DirectionHorizontal
-  );
+  SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround and GameActive, 1, 0);
 
-  SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround, 1, 0);
-
-  MainViewport.Items.Paused := TUIState.CurrentTop <> Self;
+  MainViewport.Items.Paused := not GameActive;
 
   { Never "capture" the motion of the mouse.
     Without this, dragging with right mouse button held,
@@ -129,6 +123,31 @@ begin
     (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
     TODO: Reconsider, maybe we should have some way to say "not capture" at press? }
   Container.ReleaseCapture(Self);
+
+  if GameActive then
+  begin
+    DirectionHorizontal := MainViewport.Camera.Direction;
+    if not VectorsParallel(DirectionHorizontal, MainViewport.Camera.GravityUp) then
+      MakeVectorsOrthoOnTheirPlane(DirectionHorizontal, MainViewport.Camera.GravityUp);
+
+    MapViewport.Camera.SetView(
+      MainViewport.Camera.Translation + Vector3(0, 30, 0),
+      Vector3(0, -1, 0),
+      DirectionHorizontal
+    );
+
+    if BoxWinDetect.WorldBoundingBox.Contains(MainViewport.Camera.Translation) then
+    begin
+      TUIState.Push(StateWin);
+      Exit;
+    end;
+
+    if BoxDieDetect.WorldBoundingBox.Contains(MainViewport.Camera.Translation) then
+    begin
+      TUIState.Push(StateDeath);
+      Exit;
+    end;
+  end;
 end;
 
 procedure TStatePlay.UpdateMouseLook;

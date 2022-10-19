@@ -33,6 +33,7 @@ uses SysUtils, Classes,
   , GameStateOptions
   , GameStateDeath
   , GameStateWin
+  , GameStateCredits
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -68,6 +69,7 @@ begin
   StateOptions := TStateOptions.Create(Application);
   StateDeath := TStateDeath.Create(Application);
   StateWin := TStateWin.Create(Application);
+  StateCredits := TStateCredits.Create(Application);
   {$endregion 'Castle State Creation'}
 
   InitializeMusicSound;

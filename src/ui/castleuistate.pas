@@ -153,6 +153,16 @@ type
       ancestor, see TCastleUserInterface.Container) is equal to this. }
     function StateContainer: TCastleContainer; virtual;
 
+    { The container in which the state works.
+
+      This method @italic(deliberately hides the ancestor @link(TCastleUserInterface.Container)
+      method). It just returns @link(StateContainer).
+      This way it will work always, in particular also during @link(Start) method.
+      This allows you to do code like this in overridden @link(Start) method:
+
+      @longCode(# Container.OverrideCursor := mcNone; #) }
+    function Container: TCastleContainer;
+
     { Position on @code(StateContainer.Controls) where we insert this state.
       By default, state is inserted as the front-most control, so position is equal
       to @code(StateContainer.Controls.Count). }
@@ -782,6 +792,11 @@ begin
 
   { Through InternalStop, above always sets FStartContainer to nil }
   Assert(FStartContainer = nil);
+end;
+
+function TUIState.Container: TCastleContainer;
+begin
+  Result := StateContainer;
 end;
 
 function TUIState.StateContainer: TCastleContainer;

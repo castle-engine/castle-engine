@@ -17,7 +17,6 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    { Components designed using CGE editor, loaded from gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface. }
     Viewport: TCastleViewport;
     SceneMain: TCastleScene;
     ButtonLoadKnight: TCastleButton;
@@ -123,6 +122,7 @@ procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInpu
 begin
   inherited;
   { This virtual method is executed every frame.}
+  Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 

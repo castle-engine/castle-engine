@@ -25,6 +25,7 @@ uses Classes,
 type
   TStateMenu = class(TUIState)
   private
+    procedure ClickCredits(Sender: TObject);
     procedure ClickPlay(Sender: TObject);
     procedure ClickOptions(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
@@ -37,6 +38,7 @@ type
     ButtonPlay: TCastleButton;
     ButtonQuit: TCastleButton;
     ButtonOptions: TCastleButton;
+    ButtonCredits: TCastleButton;
   end;
 
 var
@@ -45,7 +47,7 @@ var
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameStateOptions, GameStatePlay;
+  GameStateOptions, GameStatePlay, GameStateCredits;
 
 constructor TStateMenu.Create(AOwner: TComponent);
 begin
@@ -61,9 +63,15 @@ begin
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
   ButtonOptions.OnClick := {$ifdef FPC}@{$endif} ClickOptions;
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
+  ButtonCredits.OnClick  := {$ifdef FPC}@{$endif} ClickCredits;
 
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
+end;
+
+procedure TStateMenu.ClickCredits(Sender: TObject);
+begin
+  TUIState.Current := StateCredits;
 end;
 
 procedure TStateMenu.ClickPlay(Sender: TObject);

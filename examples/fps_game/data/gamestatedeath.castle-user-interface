@@ -21,7 +21,7 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label1",
           "Text" : [
-            "We were eaten by a grue"
+            "You were eaten by a grue"
           ],
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle"
