@@ -769,6 +769,7 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+  if not Valid then Exit;
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
@@ -934,6 +935,8 @@ var
   Torque: Single;
 begin
   inherited;
+
+  if not Valid then Exit;
 
   A := RealAvatarHierarchy;
   if (A = nil) or (InternalViewport = nil) then
@@ -1351,7 +1354,6 @@ begin
     Init
   else
     UpdateCamera;
-
 end;
 
 { Since String values cannot have default properties,
@@ -1431,30 +1433,14 @@ end;
 
 function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'CameraFollows') or
-     (PropertyName = 'AvatarTarget') or
-     (PropertyName = 'Avatar') or
-     (PropertyName = 'AvatarHierarchy') or
-     (PropertyName = 'Radius') or
-     (PropertyName = 'AimAvatar') or
-     (PropertyName = 'MoveSpeed') or
-     (PropertyName = 'CrouchSpeed') or
-     (PropertyName = 'RunSpeed') or
-     (PropertyName = 'JumpSpeed') or
-     (PropertyName = 'RotationSpeed') or
-     (PropertyName = 'AirMovementControl') or
-     (PropertyName = 'AirRotationControl') or
-     (PropertyName = 'AnimationIdle') or
-     (PropertyName = 'AnimationWalk') or
-     (PropertyName = 'AnimationRun') or
-     (PropertyName = 'AnimationJump') or
-     (PropertyName = 'AnimationRotate') or
-     (PropertyName = 'AnimationCrouch') or
-     (PropertyName = 'AnimationCrouchIdle') or
-     (PropertyName = 'AnimationCrouchRotate') or
-     (PropertyName = 'AnimationFall') or
-     (PropertyName = 'InitialHeightAboveTarget') or
-     (PropertyName = 'DistanceToAvatarTarget') then
+  if ArrayContainsString(PropertyName, [
+     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius',
+     'AimAvatar', 'MoveSpeed', 'CrouchSpeed', 'RunSpeed', 'JumpSpeed', 'RotationSpeed',
+     'AirMovementControl', 'AirRotationControl',
+     'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
+     'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
+     'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
