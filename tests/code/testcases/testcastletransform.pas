@@ -67,14 +67,15 @@ type
     procedure TestPhysicsBoxAutoSize;
     procedure TestPhysicsSphereAutoSize;
     procedure TestPhysicsPlaneAutoSize;
+    procedure TestPhysicsMeshResolving;
   end;
 
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleTransform, CastleViewport, CastleClassUtils,
+  CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection, CastleStringUtils;
+  CastleProjection, CastleStringUtils, CastleApplicationProperties;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -2152,6 +2153,21 @@ begin
     AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsMeshResolving;
+var
+  UiOwner: TComponent;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    UiOwner := TComponent.Create(nil);
+    try
+      UserInterfaceLoad('castle-data:/designs/test_mesh_collider_ref.castle-user-interface', UiOwner);
+    finally FreeAndNil(UiOwner) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
 end;
 
 initialization
