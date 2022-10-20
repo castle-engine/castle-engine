@@ -1287,7 +1287,7 @@ begin
   if FCalculatingSize then
     Exit;
 
-  if csLoading in ComponentState then
+  if IsLoading then
     Exit;
 
   AutoSize := false;
@@ -1452,7 +1452,10 @@ end;
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
   FNormal := TVector3.One[1];
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1571,7 +1574,10 @@ end;
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
   FSize := CastleVectors.Vector3(2, 2, 2);
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1604,7 +1610,9 @@ end;
 constructor TCastleSphereCollider.Create(AOwner: TComponent);
 begin
   inherited;
-  Radius := 1;
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
+  FRadius := 1;
 end;
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
@@ -1690,8 +1698,10 @@ end;
 constructor TCastleCapsuleCollider.Create(AOwner: TComponent);
 begin
   inherited;
-  Radius := 1;
-  Height := 2;
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
+  FRadius := 1;
+  FHeight := 2;
 end;
 
 procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);

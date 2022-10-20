@@ -68,6 +68,7 @@ type
     procedure TestPhysicsSphereAutoSize;
     procedure TestPhysicsPlaneAutoSize;
     procedure TestPhysicsMeshResolving;
+    procedure TestPhysicsDefaultAutoSize;
   end;
 
 implementation
@@ -2168,6 +2169,72 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsDefaultAutoSize;
+var
+  Own: TComponent;
+  ColP: TCastlePlaneCollider;
+  ColS: TCastleSphereCollider;
+  ColC: TCastleCapsuleCollider;
+  ColM: TCastleMeshCollider;
+  ColB: TCastleBoxCollider;
+  B: TCastleBox;
+begin
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColP := TCastlePlaneCollider.Create(Own);
+    AssertTrue(ColP.AutoSize);
+
+    B.AddBehavior(ColP);
+    AssertTrue(ColP.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColS := TCastleSphereCollider.Create(Own);
+    AssertTrue(ColS.AutoSize);
+
+    B.AddBehavior(ColS);
+    AssertTrue(ColS.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColC := TCastleCapsuleCollider.Create(Own);
+    AssertTrue(ColC.AutoSize);
+
+    B.AddBehavior(ColC);
+    AssertTrue(ColC.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColM := TCastleMeshCollider.Create(Own);
+    AssertTrue(ColM.AutoSize);
+
+    B.AddBehavior(ColM);
+    AssertTrue(ColM.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColB := TCastleBoxCollider.Create(Own);
+    AssertTrue(ColB.AutoSize);
+
+    B.AddBehavior(ColB);
+    AssertTrue(ColB.AutoSize);
+  finally FreeAndNil(Own) end;
 end;
 
 initialization
