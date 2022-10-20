@@ -64,6 +64,9 @@ type
     procedure TestExcludeBoundingVolume;
     procedure TestProjectionEmptyBox;
     procedure TestRecursiveTransformDesign;
+    procedure TestPhysicsBoxAutoSize;
+    procedure TestPhysicsSphereAutoSize;
+    procedure TestPhysicsPlaneAutoSize;
   end;
 
 implementation
@@ -1948,6 +1951,207 @@ begin
           raise;
     end;
   finally FreeAndNil(Owner) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsBoxAutoSize;
+var
+  Own: TComponent;
+  Col: TCastleBoxCollider;
+  B: TCastleBox;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastleBoxCollider.Create(Own);
+    Col.AutoSize := false;
+
+    B := TCastleBox.Create(Own);
+    B.Size := Vector3(100, 200, 300);
+    B.AddBehavior(Col);
+
+    AssertVectorEquals(Vector3(2, 2, 2), Col.Size);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.Scale := Vector3(8, 9, 10);
+    Col.Size := Vector3(11, 12, 13);
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertVectorEquals(Vector3(11, 12, 13), Col.Size);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    B.Size := Vector3(400, 500, 600);
+    // this didn't change collider size, since AutoSize = false
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertVectorEquals(Vector3(400, 500, 600), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+
+    B.Size := Vector3(700, 800, 900);
+    AssertVectorEquals(Vector3(700, 800, 900), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsSphereAutoSize;
+var
+  Own: TComponent;
+  Col: TCastleSphereCollider;
+  S: TCastleSphere;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastleSphereCollider.Create(Own);
+    Col.AutoSize := false;
+
+    S := TCastleSphere.Create(Own);
+    S.Radius := 100;
+    S.AddBehavior(Col);
+
+    AssertSameValue(1, Col.Radius);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.Scale := Vector3(8, 9, 10);
+    Col.Radius := 11;
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertSameValue(11, Col.Radius);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    S.Radius := 400;
+    // this didn't change collider size, since AutoSize = false
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertSameValue(400, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+
+    S.Radius := 700;
+    AssertSameValue(700, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsPlaneAutoSize;
+var
+  Own: TComponent;
+  Col: TCastlePlaneCollider;
+  P: TCastlePlane;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastlePlaneCollider.Create(Own);
+    Col.AutoSize := false;
+
+    P := TCastlePlane.Create(Own);
+    P.Axis := 0;
+    P.AddBehavior(Col);
+
+    AssertVectorEquals(TVector3.One[1], Col.Normal);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.Scale := Vector3(8, 9, 10);
+    Col.Normal := Vector3(11, 12, 13);
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertVectorEquals(Vector3(11, 12, 13), Col.Normal);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    P.Axis := 2;
+    // this didn't change collider size, since AutoSize = false
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertVectorEquals(TVector3.One[2], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+
+    P.Axis := 1;
+    AssertVectorEquals(TVector3.One[1], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
 end;
 
 initialization

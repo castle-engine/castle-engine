@@ -106,7 +106,7 @@
     FTranslation: TVector3;
     FRotation: TVector4;
     FAutoSize: Boolean;
-    FAutoSizing: Boolean; // are we calculating auto size?
+    FCalculatingSize: Boolean; //< are we inside CalculateSize or InternalAutoSize
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
     FUseLocalTransform: Boolean;
@@ -139,7 +139,6 @@
 
     { Notify CastleRigidBody that kraft shape need be recreated }
     procedure ShapeChangedNotifyRigidBody;
-    procedure CalculateAutoSize; virtual;
     function ForceStaticBody: Boolean; virtual;
 
     procedure WorldAfterAttach; override;
@@ -156,8 +155,16 @@
       your descendant CreateKraftShape(). }
     procedure UpdateScale(ForceUpdate: Boolean); overload;
 
-    { Removes AutoSize = true when someone changes any collider size }
-    procedure UpdateAutoSizeProperty;
+    { Sets AutoSize = @false, unless this is called
+      inside InternalAutoSize or at loading.
+      Call this when something changes collider size explicitly,
+      e.g. TCastleSphereCollider.Radius changes. }
+    procedure DisableAutoSize;
+
+    { Recalculate collider size.
+      Do not be concerned about AutoSize here, just update collider properties.
+      The default implementation resets Translation, Rotation, Scale. }
+    procedure CalculateSizeCore; virtual;
   public
     const
       { Default for @link(Density). }
@@ -183,9 +190,25 @@
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Recalculate collider size using parent bounding box.
+    { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
     procedure InternalAutoSize;
+
+    { Calculate collider size to reflect parent bounding box now.
+      This works regardless of @link(AutoSize) value,
+      and doesn't change @link(AutoSize) value.
+      The idea is that you can call it when
+
+      @orderedList(
+        @item(You have @link(AutoSize) = @false and want to adjust size to bounding box
+          at specific moment.)
+        @item(You have @link(AutoSize) = @true but still want to force recalculation right now,
+          because @link(AutoSize) doesn't do it too eagerly (see AutoSize description).
+        )
+      )
+
+      @seealso AutoSize }
+    procedure CalculateSize;
 
     property Translation: TVector3 read FTranslation write SetTranslation;
     property Rotation: TVector4 read FRotation write SetRotation;
@@ -193,10 +216,28 @@
   published
     { Automatically calculate collider properties that determine collider size
       based on the parent transformation bounding box.
+
       When this is set, properties like
       @link(TCastleSphereCollider.Radius) or @link(TCastleBoxCollider.Size)
       are automatically updated to the best values to match collider size
-      with the parent @link(TCastleTransform.LocalBoundingBox). }
+      with the parent @link(TCastleTransform.LocalBoundingBox).
+
+      Note that even when this is @true, the collider size recalculation is not done
+      too "eagerly", i.e. the collider size is not recalculated on every possible change.
+      For example, if you animate a TCastleScene, then bounding box may change every frame
+      (note: it depends on the technique; e.g. glTF models with skinned animation
+      have a complete bounding box of the animation precalculated and constant;
+      but X3D models morphed using CoordinateInterpolator have bounding box
+      changing every frame).
+
+      But it would be bad to change the collider size (even at design-time) every frame.
+      That's because changing the collider size may imply (for the underlying physics engine)
+      recreation of internal srtuctures and reinitialization of the collision state.
+      So in the ideal case, the collider size should just stay constant once the object
+      has been added to some TCastleViewport and it may interact with other physics bodies.
+
+      You can always manually force recalculation of the collider size using the
+      @link(CalculateSize) method. }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
 
     { Density (per volume) in kg, this implicitly determines mass
@@ -237,20 +278,21 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    procedure CalculateAutoSize; override;
     function ForceStaticBody: Boolean; override;
+    procedure CalculateSizeCore; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Normal vector of the plane.
-      By default (set by CalculateAutoSize) +Y.
+      By default this is +Y (if not AutoSize).
       This makes the default plane by constant in Y axis, and span to infinity in X and Z axis.
       This makes it nice as a ground/floor in 3D. }
     property Normal: TVector3 read FNormal write SetNormal stored StoredWithAutoSize;
   published
-    { Distance from (0,0,0) to the point. }
+    { Distance from (0,0,0) to the point.
+      Default 0 (if not AutoSize). }
     property Distance: Single read FDistance write SetDistance stored StoredWithAutoSize;
 
   {$define read_interface_class}
@@ -272,13 +314,14 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    procedure CalculateAutoSize; override;
+    procedure CalculateSizeCore; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Box size. }
+    { Box size.
+      Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
     property Size: TVector3 read FSize write SetSize;
   published
     { If @true, we calculate automatic size looking only at sizes in XY. }
@@ -303,11 +346,13 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  protected
-    procedure CalculateAutoSize; override;
+    procedure CalculateSizeCore; override;
   public
+    constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    { Sphere radius.
+      Default is 1 (if not AutoSize), consistent with TCastleSphere. }
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
 
     { If @true, we calculate automatic size looking only at sizes in XY. }
@@ -330,12 +375,17 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  protected
-    procedure CalculateAutoSize; override;
+    procedure CalculateSizeCore; override;
   public
+    constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    { Sphere (at both top and bottom of capsule) radius.
+      Default is 1 (if not AutoSize), consistent with TCastleSphere. }
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
+
+    { Sphere (at both top and bottom of capsule) radius.
+      Default is 2 (if not AutoSize), consistent with TCastleCylinder. }
     property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
 
     { If @true, we calculate automatic size looking only at sizes in XY. }
@@ -364,7 +414,6 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure SetMesh(const AValue: TCastleTransform);
     { In case of mesh collider only remove Translation, Rotation and Scale }
-    procedure CalculateAutoSize; override;
     function ForceStaticBody: Boolean; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -947,12 +996,19 @@ end;
 
 { TCastleCapsuleCollider ----------------------------------------------------- }
 
+constructor TCastleCapsuleCollider.Create(AOwner: TComponent);
+begin
+  inherited;
+  Radius := 1;
+  Height := 2;
+end;
+
 procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);
 begin
   if not SameValue(FRadius, AValue) then
   begin
     FRadius := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -962,7 +1018,7 @@ begin
   if not SameValue(FHeight, AValue) then
   begin
     FHeight := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -986,12 +1042,12 @@ begin
       FHeight * FLastUsedWorldScale.Y * FScale.Y);
 end;
 
-procedure TCastleCapsuleCollider.CalculateAutoSize;
+procedure TCastleCapsuleCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   MinimalThickness: Single;
 begin
-  inherited;
+  inherited; // resets Translation, Rotation, Scale
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -1002,8 +1058,6 @@ begin
   begin
     Radius := MinimalThickness;
     Height := MinimalThickness;
-    Translation := CastleVectors.Vector3(0, 0, 0);
-    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -1023,7 +1077,6 @@ begin
   Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
 
   Translation := LocalBoundingBox.Center;
-  Rotation := Vector4(0, 1, 0, 0);
 end;
 
 function TCastleCapsuleCollider.PropertySections(
@@ -1117,14 +1170,6 @@ begin
     FMesh := AValue;
     ShapeChangedNotifyRigidBody;
   end;
-end;
-
-procedure TCastleMeshCollider.CalculateAutoSize;
-begin
-  inherited;
-  Rotation := Vector4(0, 0, 0, 0);
-  Scale := CastleVectors.Vector3(1, 1, 1);
-  Translation := CastleVectors.Vector3(0, 0, 0);
 end;
 
 function TCastleMeshCollider.PropertySections(
@@ -1335,7 +1380,7 @@ begin
     Exit;
 
   FTranslation := AValue;
-  UpdateAutoSizeProperty;
+  DisableAutoSize;
   UpdateLocalTransform;
 end;
 
@@ -1345,7 +1390,7 @@ begin
     Exit;
 
   FRotation := AValue;
-  UpdateAutoSizeProperty;
+  DisableAutoSize;
   UpdateLocalTransform;
 end;
 
@@ -1424,12 +1469,9 @@ begin
   end;
 end;
 
-procedure TCastleCollider.UpdateAutoSizeProperty;
+procedure TCastleCollider.DisableAutoSize;
 begin
-  if AutoSize = false then
-    Exit;
-
-  if FAutoSizing then
+  if FCalculatingSize then
     Exit;
 
   if csLoading in ComponentState then
@@ -1438,9 +1480,19 @@ begin
   AutoSize := false;
 end;
 
-procedure TCastleCollider.CalculateAutoSize;
+procedure TCastleCollider.CalculateSizeCore;
 begin
+  Translation := TVector3.Zero;
+  Rotation := TVector4.Zero;
+  Scale := NoScale;
+end;
 
+procedure TCastleCollider.CalculateSize;
+begin
+  FCalculatingSize := true;
+  try
+    CalculateSizeCore;
+  finally FCalculatingSize := false end;
 end;
 
 procedure TCastleCollider.UpdateScale(ForceUpdate: Boolean);
@@ -1473,10 +1525,6 @@ end;
 constructor TCastleCollider.Create(AOwner: TComponent);
 begin
   inherited;
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-
   // properties defaults
   FDensity := DefaultDensity;
   FMass := DefaultMass;
@@ -1484,8 +1532,8 @@ begin
   FFriction := DefaultFriction;
   FScale := NoScale;
   FLastUsedWorldScale := NoScale;
-  FTranslation := CastleVectors.Vector3(0, 0, 0);
-  FRotation := Vector4(0, 1, 0, 0);
+  FTranslation := TVector3.Zero;
+  FRotation := TVector4.Zero;
 
   { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
   FUseLocalTransform := false;
@@ -1494,6 +1542,10 @@ begin
   FAutoSize := true;
 
   NeedWorldChangeNotification := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleCollider.Destroy;
@@ -1517,14 +1569,8 @@ end;
 
 procedure TCastleCollider.InternalAutoSize;
 begin
-  if not AutoSize then Exit;
-
-  FAutoSizing := true;
-  try
-    CalculateAutoSize;
-  finally
-    FAutoSizing := false;
-  end;
+  if AutoSize then
+    CalculateSize;
 end;
 
 {$define read_implementation_methods}
@@ -1538,7 +1584,7 @@ begin
   if not FNormal.Equals(FNormal, AValue) then
   begin
     FNormal := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1548,7 +1594,7 @@ begin
   if not SameValue(FDistance, AValue) then
   begin
     FDistance := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1568,44 +1614,32 @@ begin
     Distance * FLastUsedWorldScale.Max * FScale.Max));
 end;
 
-procedure TCastlePlaneCollider.CalculateAutoSize;
-
-  procedure DefaultSize;
-  begin
-    Normal := CastleVectors.Vector3(0, 1, 0);
-    Translation := CastleVectors.Vector3(0, 0, 0);
-    Rotation := Vector4(0, 0, 0, 0);
-  end;
-
+procedure TCastlePlaneCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
 begin
-  inherited;
+  inherited; // resets Translation, Rotation, Scale
+
+  { TODO: We could calculate Distance better looking at LocalBoundingBox,
+    for now we just always set it to 0. }
+  Distance := 0;
+
+  { Default, in case we don't have any better value }
+  Normal := TVector3.One[1];
 
   if Parent = nil then
-  begin
-    DefaultSize;
     Exit;
-  end;
-
   LocalBoundingBox := Parent.LocalBoundingBox;
-
   if LocalBoundingBox.IsEmptyOrZero then
-  begin
-    DefaultSize;
     Exit;
-  end;
 
-  Distance := 0; // TODO: We could calculate it better looking at LocalBoundingBox
   Normal := TVector3.One[MinAbsVectorCoord(LocalBoundingBox.Size)];
-  Translation := Parent.LocalBoundingBox.Center;
-  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FNormal := CastleVectors.Vector3(0, 1, 0);
+  FNormal := TVector3.One[1];
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1646,7 +1680,7 @@ begin
   if not TVector3.Equals(FSize, AValue) then
   begin
     FSize := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1686,13 +1720,13 @@ begin
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(ScaledSize / 2));
 end;
 
-procedure TCastleBoxCollider.CalculateAutoSize;
+procedure TCastleBoxCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   TempSize: TVector3;
   MinimalThickness: Single;
 begin
-  inherited;
+  inherited; // resets Translation, Rotation, Scale
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -1702,8 +1736,6 @@ begin
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
     Size := CastleVectors.Vector3(MinimalThickness, MinimalThickness, MinimalThickness);
-    Translation :=  CastleVectors.Vector3(0, 0, 0);
-    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -1720,15 +1752,13 @@ begin
     TempSize.Z := MinimalThickness;
 
   Size := TempSize;
-
   Translation := LocalBoundingBox.Center;
-  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSize := CastleVectors.Vector3(1.0, 1.0, 1.0);
+  FSize := CastleVectors.Vector3(2, 2, 2);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1758,12 +1788,18 @@ end;
 
 { TCastleSphereCollider ------------------------------------------------------ }
 
+constructor TCastleSphereCollider.Create(AOwner: TComponent);
+begin
+  inherited;
+  Radius := 1;
+end;
+
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
 begin
   if not SameValue(FRadius, AValue) then
   begin
     FRadius := AValue;
-    UpdateAutoSizeProperty;
+    DisableAutoSize;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1788,12 +1824,12 @@ begin
   (Sender as TCastleSphereCollider).Mode2D := true;
 end;
 
-procedure TCastleSphereCollider.CalculateAutoSize;
+procedure TCastleSphereCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   MinimalThickness: Single;
 begin
-  inherited;
+  inherited; // resets Translation, Rotation, Scale
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -1803,8 +1839,6 @@ begin
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
     Radius := MinimalThickness;
-    Translation := CastleVectors.Vector3(0, 0, 0);
-    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -1816,9 +1850,7 @@ begin
 
   { Check minimal size }
   Radius := Max(Radius, MinimalThickness);
-
   Translation := LocalBoundingBox.Center;
-  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 function TCastleSphereCollider.PropertySections(const PropertyName: String): TPropertySections;
