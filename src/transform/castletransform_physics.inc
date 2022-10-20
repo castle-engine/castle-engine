@@ -405,10 +405,12 @@
   strict private
     FKraftMesh: TKraftMesh;
     FMesh: TCastleTransform;
+    FDoubleSided: Boolean;
     procedure AddTriangle(Shape: TObject;
       const Position: TTriangle3;
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
+    procedure SetDoubleSided(const Value: Boolean);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -433,6 +435,12 @@
       as something different than it's visible, see
       https://castle-engine.io/x3d_implementation_navigation.php . }
     property Mesh: TCastleTransform read FMesh write SetMesh;
+
+    { Treat both faces sides as collidable.
+      When this is @false: Depending on physics engine and situation,
+      the back faces (where the normal doesn't point) may be ignored e.g.
+      by @link(TCastleRigidBody.PhysicsRayCast). }
+    property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
   end;
 
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
@@ -1802,9 +1810,11 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
-  { We also add triangles for the other side.
-    Kraft RayCast does not check inverted triangles. }
-  FKraftMesh.AddTriangle(
+  if DoubleSided then
+  begin
+    { We also add triangles for the other side.
+      Kraft RayCast does not check inverted triangles. }
+    FKraftMesh.AddTriangle(
       FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
       FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
       FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
@@ -1812,6 +1822,7 @@ begin
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
+  end;
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -1856,11 +1867,20 @@ begin
   end;
 end;
 
+procedure TCastleMeshCollider.SetDoubleSided(const Value: Boolean);
+begin
+  if FDoubleSided <> Value then
+  begin
+    FDoubleSided := Value;
+    ShapeChangedNotifyRigidBody;
+  end;
+end;
+
 function TCastleMeshCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'AutoSize', 'Mesh'
+     'AutoSize', 'Mesh', 'DoubleSided'
      ]) then
     Result := [psBasic]
   else
@@ -2787,7 +2807,6 @@ begin
   RayOriginWorld := FTransform.Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := FTransform.Parent.LocalToWorldDirection(RayDirection);
   RayMaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
-
 
   { We use ksfRayCastable flag to not hit to caster shape. }
   if Shape <> nil then
