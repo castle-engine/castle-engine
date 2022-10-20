@@ -710,6 +710,7 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+  if not Valid then Exit;
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
@@ -849,6 +850,7 @@ var
   T: TVector3;
 begin
   inherited;
+  if not Valid then Exit;
 
   // TODO jumping with space, similar to TCastleWalkNavigation mechanics
 
@@ -1022,14 +1024,14 @@ end;
 
 function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'CameraFollows') or
-     (PropertyName = 'AvatarTarget') or
-     (PropertyName = 'Avatar') or
-     (PropertyName = 'AvatarHierarchy') or
-     (PropertyName = 'Radius') or
-     (PropertyName = 'AimAvatar') or
-     (PropertyName = 'InitialHeightAboveTarget') or
-     (PropertyName = 'DistanceToAvatarTarget') then
+  if ArrayContainsString(PropertyName, [
+     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius',
+     'AimAvatar', 'MoveSpeed', 'CrouchSpeed', 'RunSpeed', 'JumpSpeed', 'RotationSpeed',
+     'AirMovementControl', 'AirRotationControl',
+     'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
+     'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
+     'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
