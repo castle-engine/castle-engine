@@ -1835,7 +1835,9 @@ begin
 
   if ARigidBody.RigidBodyType <> krbtStatic then
   begin
-    WritelnWarning('TCastleMeshCollider is available only for static rigid bodies.');
+    WritelnWarning('TCastleMeshCollider "%s" is available only for static rigid bodies.', [
+      Name
+    ]);
     Result := nil;
     Exit;
   end;
@@ -1844,12 +1846,20 @@ begin
 
   if not FMesh.HasColliderMesh then
   begin
-    WritelnWarning('The TCastleMeshCollider.Mesh does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.');
+    WritelnWarning('TCastleMeshCollider "%s": Mesh "%s:%s" does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.', [
+      Name,
+      FMesh.Name,
+      FMesh.ClassName
+    ]);
   end else
   begin
     FMesh.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
     if FKraftMesh.CountVertices = 0 then
-      WritelnWarning('The scene assigned to TCastleMeshCollider.Mesh is empty (no collidable triangles)');
+      WritelnWarning('TCastleMeshCollider "%s": Mesh "%s:%s" is empty (has no collidable triangles)', [
+        Name,
+        FMesh.Name,
+        FMesh.ClassName
+      ]);
   end;
 
   FKraftMesh.Finish;
@@ -1861,6 +1871,16 @@ procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
 begin
   if FMesh <> AValue then
   begin
+    { During loading, because of how references are resolved, we may have SetMesh
+      temporarily called with a dummy empty TCastleTransform instance.
+      Ignore it (do not make warning from TCastleMeshCollider.CreateKraftShape,
+      actually don't even set FMesh to don't treat shape as ready to be initialized),
+      as this is normal. }
+    if IsLoading and
+       (AValue.ClassType = TCastleTransform) and
+       (AValue.Name = '') then
+      Exit;
+
     FMesh := AValue;
     ShapeChangedNotifyRigidBody;
   end;
