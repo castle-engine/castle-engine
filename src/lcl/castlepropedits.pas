@@ -164,8 +164,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Scene',
-    TMeshColliderScenePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
+    TMeshColliderMeshPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
     T3DCoordsRangeSetPropertyEditor);
