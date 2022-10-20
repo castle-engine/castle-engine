@@ -445,7 +445,6 @@
 
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
 
-  TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
   TCastleRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TCastleRigidBody>;
 
   TCollisionDetection = (
