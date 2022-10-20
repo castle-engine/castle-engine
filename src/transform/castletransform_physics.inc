@@ -994,200 +994,6 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
-{ TCastleCapsuleCollider ----------------------------------------------------- }
-
-constructor TCastleCapsuleCollider.Create(AOwner: TComponent);
-begin
-  inherited;
-  Radius := 1;
-  Height := 2;
-end;
-
-procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);
-begin
-  if not SameValue(FRadius, AValue) then
-  begin
-    FRadius := AValue;
-    DisableAutoSize;
-    ShapeChangedNotifyRigidBody;
-  end;
-end;
-
-procedure TCastleCapsuleCollider.SetHeight(const AValue: Single);
-begin
-  if not SameValue(FHeight, AValue) then
-  begin
-    FHeight := AValue;
-    DisableAutoSize;
-    ShapeChangedNotifyRigidBody;
-  end;
-end;
-
-class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleCapsuleCollider).Mode2D := true;
-end;
-
-function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  if FMode2D then
-    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-      FRadius * FLastUsedWorldScale.X * FScale.X,
-      FHeight * FLastUsedWorldScale.Y * FScale.Y)
-  else
-    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Z) *
-      Max(FScale.X, FScale.Y),
-      FHeight * FLastUsedWorldScale.Y * FScale.Y);
-end;
-
-procedure TCastleCapsuleCollider.CalculateSizeCore;
-var
-  LocalBoundingBox: TBox3D;
-  MinimalThickness: Single;
-begin
-  inherited; // resets Translation, Rotation, Scale
-
-  if FMode2D then
-    MinimalThickness := AutoSizeMinimalThickness2D
-  else
-    MinimalThickness := AutoSizeMinimalThickness;
-
-  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
-  begin
-    Radius := MinimalThickness;
-    Height := MinimalThickness;
-    Exit;
-  end;
-
-  LocalBoundingBox := Parent.LocalBoundingBox;
-
-  if FMode2D then
-    Radius := LocalBoundingBox.SizeX * 0.50
-  else
-    Radius := ((LocalBoundingBox.SizeX * 0.50) + (LocalBoundingBox.SizeZ * 0.50)) / 2;
-
-  { If radius * 2 is bigger than height make it smaller. }
-  if Radius * 2 > LocalBoundingBox.SizeY then
-    Radius := LocalBoundingBox.SizeY / 2 - 0.001;
-  { Radius must be at least MinimalThickness }
-  Radius := Max(Radius, MinimalThickness);
-
-  Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
-
-  Translation := LocalBoundingBox.Center;
-end;
-
-function TCastleCapsuleCollider.PropertySections(
-  const PropertyName: String): TPropertySections;
-begin
-  if ArrayContainsString(PropertyName, [
-     'AutoSize', 'Mode2D', 'Height', 'Radius'
-     ]) then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
-end;
-
-procedure TCastleCapsuleCollider.SetMode2D(const AValue: Boolean);
-begin
-  if FMode2D <> AValue then
-  begin
-    FMode2D := AValue;
-    InternalAutoSize;
-  end;
-end;
-
-{ TCastleMeshCollider -------------------------------------------------------- }
-
-procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
-  const Position: TTriangle3;
-  const Normal: TTriangle3; const TexCoord: TTriangle4;
-  const Face: TFaceIndex);
-begin
-  { TODO: it's probably not optimal to call AddTriangle
-    for each triangle, we should instead call Load with a list. }
-
-  FKraftMesh.AddTriangle(
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
-    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
-    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
-    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
-  );
-
-  { We also add triangles for the other side.
-    Kraft RayCast does not check inverted triangles. }
-  FKraftMesh.AddTriangle(
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
-    );
-end;
-
-function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
-  const ARigidBody: TKraftRigidBody): TKraftShape;
-begin
-  if FMesh = nil then
-  begin
-    Result := nil;
-    Exit;
-  end;
-
-  if ARigidBody.RigidBodyType <> krbtStatic then
-  begin
-    WritelnWarning('TCastleMeshCollider is available only for static rigid bodies.');
-    Result := nil;
-    Exit;
-  end;
-
-  FKraftMesh := TKraftMesh.Create(APhysics);
-
-  if not FMesh.HasColliderMesh then
-  begin
-    WritelnWarning('The TCastleMeshCollider.Mesh does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.');
-  end else
-  begin
-    FMesh.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
-    if FKraftMesh.CountVertices = 0 then
-      WritelnWarning('The scene assigned to TCastleMeshCollider.Mesh is empty (no collidable triangles)');
-  end;
-
-  FKraftMesh.Finish;
-
-  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
-end;
-
-procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
-begin
-  if FMesh <> AValue then
-  begin
-    FMesh := AValue;
-    ShapeChangedNotifyRigidBody;
-  end;
-end;
-
-function TCastleMeshCollider.PropertySections(
-  const PropertyName: String): TPropertySections;
-begin
-  if ArrayContainsString(PropertyName, [
-     'AutoSize', 'Mesh'
-     ]) then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
-end;
-
-function TCastleMeshCollider.ForceStaticBody: Boolean;
-begin
-  Result := true;
-end;
-
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
@@ -1870,6 +1676,200 @@ begin
     FMode2D := AValue;
     InternalAutoSize;
   end;
+end;
+
+{ TCastleCapsuleCollider ----------------------------------------------------- }
+
+constructor TCastleCapsuleCollider.Create(AOwner: TComponent);
+begin
+  inherited;
+  Radius := 1;
+  Height := 2;
+end;
+
+procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);
+begin
+  if not SameValue(FRadius, AValue) then
+  begin
+    FRadius := AValue;
+    DisableAutoSize;
+    ShapeChangedNotifyRigidBody;
+  end;
+end;
+
+procedure TCastleCapsuleCollider.SetHeight(const AValue: Single);
+begin
+  if not SameValue(FHeight, AValue) then
+  begin
+    FHeight := AValue;
+    DisableAutoSize;
+    ShapeChangedNotifyRigidBody;
+  end;
+end;
+
+class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleCapsuleCollider).Mode2D := true;
+end;
+
+function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  if FMode2D then
+    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
+      FRadius * FLastUsedWorldScale.X * FScale.X,
+      FHeight * FLastUsedWorldScale.Y * FScale.Y)
+  else
+    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
+      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Z) *
+      Max(FScale.X, FScale.Y),
+      FHeight * FLastUsedWorldScale.Y * FScale.Y);
+end;
+
+procedure TCastleCapsuleCollider.CalculateSizeCore;
+var
+  LocalBoundingBox: TBox3D;
+  MinimalThickness: Single;
+begin
+  inherited; // resets Translation, Rotation, Scale
+
+  if FMode2D then
+    MinimalThickness := AutoSizeMinimalThickness2D
+  else
+    MinimalThickness := AutoSizeMinimalThickness;
+
+  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  begin
+    Radius := MinimalThickness;
+    Height := MinimalThickness;
+    Exit;
+  end;
+
+  LocalBoundingBox := Parent.LocalBoundingBox;
+
+  if FMode2D then
+    Radius := LocalBoundingBox.SizeX * 0.50
+  else
+    Radius := ((LocalBoundingBox.SizeX * 0.50) + (LocalBoundingBox.SizeZ * 0.50)) / 2;
+
+  { If radius * 2 is bigger than height make it smaller. }
+  if Radius * 2 > LocalBoundingBox.SizeY then
+    Radius := LocalBoundingBox.SizeY / 2 - 0.001;
+  { Radius must be at least MinimalThickness }
+  Radius := Max(Radius, MinimalThickness);
+
+  Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
+
+  Translation := LocalBoundingBox.Center;
+end;
+
+function TCastleCapsuleCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mode2D', 'Height', 'Radius'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleCapsuleCollider.SetMode2D(const AValue: Boolean);
+begin
+  if FMode2D <> AValue then
+  begin
+    FMode2D := AValue;
+    InternalAutoSize;
+  end;
+end;
+
+{ TCastleMeshCollider -------------------------------------------------------- }
+
+procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
+  const Face: TFaceIndex);
+begin
+  { TODO: it's probably not optimal to call AddTriangle
+    for each triangle, we should instead call Load with a list. }
+
+  FKraftMesh.AddTriangle(
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
+    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
+    FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
+  );
+
+  { We also add triangles for the other side.
+    Kraft RayCast does not check inverted triangles. }
+  FKraftMesh.AddTriangle(
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
+      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
+    );
+end;
+
+function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  if FMesh = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+  if ARigidBody.RigidBodyType <> krbtStatic then
+  begin
+    WritelnWarning('TCastleMeshCollider is available only for static rigid bodies.');
+    Result := nil;
+    Exit;
+  end;
+
+  FKraftMesh := TKraftMesh.Create(APhysics);
+
+  if not FMesh.HasColliderMesh then
+  begin
+    WritelnWarning('The TCastleMeshCollider.Mesh does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.');
+  end else
+  begin
+    FMesh.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
+    if FKraftMesh.CountVertices = 0 then
+      WritelnWarning('The scene assigned to TCastleMeshCollider.Mesh is empty (no collidable triangles)');
+  end;
+
+  FKraftMesh.Finish;
+
+  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
+end;
+
+procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
+begin
+  if FMesh <> AValue then
+  begin
+    FMesh := AValue;
+    ShapeChangedNotifyRigidBody;
+  end;
+end;
+
+function TCastleMeshCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'AutoSize', 'Mesh'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleMeshCollider.ForceStaticBody: Boolean;
+begin
+  Result := true;
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }
