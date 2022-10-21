@@ -211,8 +211,16 @@
       @seealso AutoSize }
     procedure CalculateSize;
 
+    { Local collider translation, relative to parent TCastleTransform.
+      Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Translation: TVector3 read FTranslation write SetTranslation;
+
+    { Local collider rotation, relative to parent TCastleTransform.
+      Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Rotation: TVector4 read FRotation write SetRotation;
+
+    { Local collider scale, relative to parent TCastleTransform.
+      Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Scale: TVector3 read FScale write SetScale;
   published
     { Automatically calculate collider properties that determine collider size
@@ -253,8 +261,13 @@
     property Mass: Single read FMass write SetMass
       {$ifdef FPC}default DefaultMass{$endif};
 
+    { Larger restitution means that on collision, this object behaves more elastic.
+      Reasonable values are between 0 (inelastic) and 1 (elastic).
+      See https://en.wikipedia.org/wiki/Coefficient_of_restitution . }
     property Restitution: Single read FRestitution write SetRestitution
       {$ifdef FPC}default DefaultRestitution{$endif};
+
+    { Larger friction means that it is harder for body to slide alongside another object. }
     property Friction: Single read FFriction write SetFriction
       {$ifdef FPC}default DefaultFriction{$endif};
 
