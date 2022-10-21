@@ -130,6 +130,7 @@
     procedure SetScale(const AValue: TVector3);
     procedure SetAutoSize(const AValue: Boolean);
     function StoredWithAutoSize: Boolean;
+    function GetRigidBody: TCastleRigidBody;
   protected
     FLastUsedWorldScale: TVector3; // Last world scale used to change collider size
     FScale: TVector3; // Collider scale
@@ -1151,24 +1152,63 @@ begin
   Result := true;
 end;
 
-procedure TCastleCollider.SetDensity(const AValue: Single);
+function TCastleCollider.GetRigidBody: TCastleRigidBody;
 begin
-  FDensity := AValue;
-  if FKraftShape <> nil then
-    FKraftShape.Density := FDensity;
+  if Parent <> nil then
+    Result := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody
+  else
+    Result := nil;
+end;
+
+procedure TCastleCollider.SetDensity(const AValue: Single);
+var
+  RigidBody: TCastleRigidBody;
+begin
+  if FDensity <> AValue then
+  begin
+    FDensity := AValue;
+
+    if FKraftShape <> nil then
+    begin
+      FKraftShape.Density := FDensity;
+
+      // Similar as in SetMass, we need to call FKraftBody.Finish
+      RigidBody := GetRigidBody;
+      if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
+        RigidBody.FKraftBody.Finish;
+    end;
+  end;
 end;
 
 procedure TCastleCollider.SetMass(const AValue: Single);
 var
   RigidBody: TCastleRigidBody;
 begin
-  FMass := AValue;
-  if Parent <> nil then
+  if FMass <> AValue then
   begin
-    RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    FMass := AValue;
+
+    RigidBody := GetRigidBody;
     if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
     begin
       RigidBody.FKraftBody.ForcedMass := FMass;
+
+      { Without FKraftBody.Finish,
+        merely updating FKraftBody.ForcedMass doesn't have an effect,
+        Kraft still uses old mass.
+
+        Testcase:
+        - in editor, set Mass of some bullet to 10.
+        - Play physics.
+        - change Mass to 10000.
+        - Play physics -- without FKraftBody.Finish,
+          it will behave as if Mass was still 10.
+        - Stopping and playing physics again will update it OK (because at this point,
+          stopping physics reloads the design, initializing everything).
+        So the buggy effect is that you need to "play physics twice"
+        to actually see the new Mass.
+      }
+      RigidBody.FKraftBody.Finish;
     end;
   end;
 end;
@@ -1297,7 +1337,7 @@ procedure TCastleCollider.CalculateSizeCore;
 begin
   Translation := TVector3.Zero;
   Rotation := TVector4.Zero;
-  Scale := NoScale;
+  //Scale := NoScale;
 end;
 
 procedure TCastleCollider.CalculateSize;
