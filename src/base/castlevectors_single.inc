@@ -110,13 +110,17 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
-function MaxVectorCoord(const V: TVector2): integer; overload;
+function MaxVectorCoord(const V: TVector2): Integer; overload;
 function MaxVectorCoord(const V: TVector3): T3DAxis; overload;
-function MaxVectorCoord(const V: TVector4): integer; overload;
-function MaxAbsVectorCoord(const V: TVector2): integer; overload;
+function MaxVectorCoord(const V: TVector4): Integer; overload;
+function MaxAbsVectorCoord(const V: TVector2): Integer; overload;
 function MaxAbsVectorCoord(const V: TVector3): T3DAxis; overload;
-function MaxAbsVectorCoord(const V: TVector4): integer; overload;
+function MaxAbsVectorCoord(const V: TVector4): Integer; overload;
 { @groupEnd }
+
+function MinAbsVectorCoord(const V: TVector2): Integer; overload;
+function MinAbsVectorCoord(const V: TVector3): T3DAxis; overload;
+function MinAbsVectorCoord(const V: TVector4): Integer; overload;
 
 function MinVectorCoord(const V: TVector3): T3DAxis; overload;
 
@@ -1126,7 +1130,7 @@ begin
   Result := RotatePointAroundAxisRad(AxisAngle.W, Point, Axis);
 end;
 
-function MaxVectorCoord(const V: TVector2): integer;
+function MaxVectorCoord(const V: TVector2): Integer;
 begin
   Result := 0;
   if V.Y > V[Result] then Result := 1;
@@ -1149,7 +1153,7 @@ begin
   if V.Z < V[Result] then Result := 2;
 end;
 
-function MaxVectorCoord(const V: TVector4): integer;
+function MaxVectorCoord(const V: TVector4): Integer;
 begin
   Result := 0;
   if V.Y > V[Result] then Result := 1;
@@ -1157,7 +1161,7 @@ begin
   if V.W > V[Result] then Result := 3;
 end;
 
-function MaxAbsVectorCoord(const V: TVector2): integer;
+function MaxAbsVectorCoord(const V: TVector2): Integer;
 begin
   Result := 0;
   if Abs(V.Y) > Abs(V[Result]) then Result := 1;
@@ -1173,7 +1177,7 @@ begin
   New := Abs(V.Z); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
 end;
 
-function MaxAbsVectorCoord(const V: TVector4): integer;
+function MaxAbsVectorCoord(const V: TVector4): Integer;
 var
   Max, New: Single;
 begin
@@ -1182,6 +1186,33 @@ begin
   New := Abs(V.Y); if New > Max then begin Result := 1; Max := New; end;
   New := Abs(V.Z); if New > Max then begin Result := 2; Max := New; end;
   New := Abs(V.W); if New > Max then begin Result := 3; { Max := New; not needed anymore } end;
+end;
+
+function MinAbsVectorCoord(const V: TVector2): Integer;
+begin
+  Result := 0;
+  if Abs(V.Y) < Abs(V[Result]) then Result := 1;
+end;
+
+function MinAbsVectorCoord(const V: TVector3): T3DAxis;
+var
+  Min, New: Single;
+begin
+  Result := 0;
+  Min := Abs(V.X);
+  New := Abs(V.Y); if New < Min then begin Result := 1; Min := New; end;
+  New := Abs(V.Z); if New < Min then begin Result := 2; { Min := New; not needed anymore } end;
+end;
+
+function MinAbsVectorCoord(const V: TVector4): Integer;
+var
+  Min, New: Single;
+begin
+  Result := 0;
+  Min := Abs(V.X);
+  New := Abs(V.Y); if New < Min then begin Result := 1; Min := New; end;
+  New := Abs(V.Z); if New < Min then begin Result := 2; Min := New; end;
+  New := Abs(V.W); if New < Min then begin Result := 3; { Min := New; not needed anymore } end;
 end;
 
 procedure SortAbsVectorCoord(const V: TVector3;

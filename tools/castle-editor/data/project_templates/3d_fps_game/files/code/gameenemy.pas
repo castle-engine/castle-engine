@@ -43,7 +43,7 @@ type
     Dead: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Hurt;
   end;
@@ -60,7 +60,7 @@ begin
   MoveDirection := -1;
 end;
 
-procedure TEnemy.ParentChanged;
+procedure TEnemy.ParentAfterAttach;
 begin
   inherited;
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene

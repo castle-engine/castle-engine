@@ -134,8 +134,17 @@ pipeline {
 
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
-                sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+                /* remove previous artifacts */
+                sh 'rm -f castle-engine*.zip'
+
+                /* build for all targets supported in Docker (Linux and Windows) */
                 sh './tools/internal/pack_release/pack_release.sh'
+
+                /* build a "bundle" version (with FPC) */
+                copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh win64 x86_64'
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh linux x86_64'
+
                 archiveArtifacts artifacts: 'castle-engine*.zip'
               }
             }

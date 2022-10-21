@@ -595,7 +595,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe, CompilationOutputPathFinal: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: string;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -814,7 +814,20 @@ begin
     FpcOptions.Add('-FU' + CompilationOutputPathFinal);
 
     Writeln('FPC executing...');
-    FpcExe := FindExeFpcCompiler;
+    FpcExe := FindExeFpcCompiler(true, FpcStandardUnitsPath);
+
+    if FpcStandardUnitsPath <> '' then
+    begin
+      FpcOptions.Add('-Fu' + FpcStandardUnitsPath);
+
+      { Do not read system-wide FPC config, to allow this bundled FPC to coexist
+        with your system-wide FPC installation without any relation. }
+      FpcOptions.Add('-n');
+
+      { As the bundled FPC has no config, by default it is rather silent.
+        Add options to display info (and Warnings and Notes) during compilation to see progress. }
+      FpcOptions.Add('-viwn');
+    end;
 
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then

@@ -33,8 +33,8 @@ type
     CheckboxMoveByTranslate: TCastleCheckbox;
     CheckboxMoveByVelocity: TCastleCheckbox;
     CheckboxMoveByAnimateTranslation: TCastleCheckbox;
-    CheckboxContinuousCD: TCastleCheckbox;
-    CheckboxContinuousCDSphereDynamic: TCastleCheckbox;
+    CheckboxContinuousCollisionDetection: TCastleCheckbox;
+    CheckboxContinuousCollisionDetectionSphereDynamic: TCastleCheckbox;
     ButtonChangeToAnimated: TCastleButton;
     ButtonChangeToDynamic: TCastleButton;
 
@@ -42,8 +42,8 @@ type
     procedure CheckboxMoveByVelocityChange(Sender: TObject);
     procedure CheckboxMoveByAnimateTranslationChange(Sender: TObject);
 
-    procedure CheckboxContinuousCDChange(Sender: TObject);
-    procedure CheckboxContinuousCDSphereDynamicChange(Sender: TObject);
+    procedure CheckboxContinuousCollisionDetectionChange(Sender: TObject);
+    procedure CheckboxContinuousCollisionDetectionSphereDynamicChange(Sender: TObject);
 
     procedure MakeDynamic(Sender: TObject);
     procedure MakeAnimated(Sender: TObject);
@@ -87,20 +87,20 @@ begin
   CheckboxMoveByVelocity.Checked := false;
 end;
 
-procedure TStateMain.CheckboxContinuousCDChange(Sender: TObject);
+procedure TStateMain.CheckboxContinuousCollisionDetectionChange(Sender: TObject);
 begin
-  if CheckboxContinuousCD.Checked then
-    SpherePlayer.RigidBody.CollisionDetectionType := cdtContinuous
+  if CheckboxContinuousCollisionDetection.Checked then
+    SpherePlayer.RigidBody.CollisionDetection := cdContinuous
   else
-    SpherePlayer.RigidBody.CollisionDetectionType := cdtDiscrete;
+    SpherePlayer.RigidBody.CollisionDetection := cdDiscrete;
 end;
 
-procedure TStateMain.CheckboxContinuousCDSphereDynamicChange(Sender: TObject);
+procedure TStateMain.CheckboxContinuousCollisionDetectionSphereDynamicChange(Sender: TObject);
 begin
-  if CheckboxContinuousCDSphereDynamic.Checked then
-    SphereDynamic.RigidBody.CollisionDetectionType := cdtContinuous
+  if CheckboxContinuousCollisionDetectionSphereDynamic.Checked then
+    SphereDynamic.RigidBody.CollisionDetection := cdContinuous
   else
-    SphereDynamic.RigidBody.CollisionDetectionType := cdtDiscrete;
+    SphereDynamic.RigidBody.CollisionDetection := cdDiscrete;
 end;
 
 procedure TStateMain.MakeDynamic(Sender: TObject);
@@ -154,11 +154,11 @@ begin
   CheckboxMoveByAnimateTranslation := DesignedComponent('CheckboxMoveByAnimateTranslation') as TCastleCheckbox;
   CheckboxMoveByAnimateTranslation.OnChange := {$ifdef FPC}@{$endif}CheckboxMoveByAnimateTranslationChange;
 
-  CheckboxContinuousCD := DesignedComponent('CheckboxContinuousCD') as TCastleCheckbox;
-  CheckboxContinuousCD.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCDChange;
+  CheckboxContinuousCollisionDetection := DesignedComponent('CheckboxContinuousCollisionDetection') as TCastleCheckbox;
+  CheckboxContinuousCollisionDetection.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCollisionDetectionChange;
 
-  CheckboxContinuousCDSphereDynamic := DesignedComponent('CheckboxContinuousCDSphereDynamic') as TCastleCheckbox;
-  CheckboxContinuousCDSphereDynamic.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCDSphereDynamicChange;
+  CheckboxContinuousCollisionDetectionSphereDynamic := DesignedComponent('CheckboxContinuousCollisionDetectionSphereDynamic') as TCastleCheckbox;
+  CheckboxContinuousCollisionDetectionSphereDynamic.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCollisionDetectionSphereDynamicChange;
 
   ButtonChangeToDynamic := DesignedComponent('ButtonChangeToDynamic') as TCastleButton;
   ButtonChangeToDynamic.OnClick := {$ifdef FPC}@{$endif}MakeDynamic;

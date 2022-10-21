@@ -223,6 +223,8 @@
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
 
+    // TODO: Do we need so much new API?
+
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
@@ -259,11 +261,7 @@
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
 
-
-    { When someone calls Free Behavior it is fired but doesn't call
-      WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
-      add procedure that is called in behavior destructor to call all
-      needed events before destroy. }
+    { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 
     { When CastleTransform change scale colliders are not scaled we need do this
@@ -595,10 +593,12 @@
     property GetExists: Boolean read FExists; deprecated 'use Exists';
     {$endif}
 
-    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
-    function HasColliderMesh: Boolean; virtual; // default implementation returns false
+    { Does this transform have a collision mesh that TCastleMeshCollider can use.
+      Default implementaion returns @false. }
+    function HasColliderMesh: Boolean; virtual;
+
     { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
-    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual; // default implementation does nothing
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual;
 
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
     function CheckCollides: Boolean;
@@ -2933,7 +2933,11 @@ begin
     Behavior.ParentBeforeDetach;
 
     Behavior.FParent := nil;
-    // Behavior.ParentChanged; // should be called but a lot of exsiting code don't check Parent = nil
+
+    { Could be called but a lot of exsiting code doesn't check Parent = nil.
+      For backward compatibility of this deprecated method, don't call it. }
+    // Behavior.ParentChanged;
+
     RemoveWorldChangeNotification(Behavior);
   end;
 end;
@@ -3648,6 +3652,8 @@ begin
   { We don't want to update physics object when someone change -1 to 1 scale.
     Often used to change animation side from left to right. }
   FShouldUpdatePhysicsObjects := not (TVector3.Equals(FScale.Abs, Value.Abs));
+  { TODO: above is broken, e.g. I can still udpate to scale -2,1,1 from 1,1,1.
+    Also later update will include negative scale anyway. }
 
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
@@ -3869,7 +3875,7 @@ end;
 
 procedure TCastleTransform.ColliderMesh(const TriangleEvent: TTriangleEvent);
 begin
-
+  // No triangles returned by this
 end;
 
 function TCastleTransform.BehaviorsEnumerate: TCastleBehaviorEnumerator;
@@ -4076,9 +4082,10 @@ begin
     if RigidBody <> nil then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
-        WritelnWarning('Repeatedly changing the existence of CastleTransform with' + NL +
-        ' rigid body can cause performance degradation and physics simulation errors.' + NL +
-        ' Especially with autosize enabled in collider and animation changing local boundingbox.');
+        WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). This is not good for performance and right now can even cause physics simulation crashes, esp. when TCastleCollider.AutoSize=true and animation may change LocalBoundingBox. Avoid changing the Exists of physical objects multiple times in a single Update.', [
+          Name,
+          ClassName
+        ]);
       FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
     end;
 

@@ -65,6 +65,12 @@ uses SysUtils, Math, StrUtils,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils, CastleUtils,
   GameStateMenu;
 
+const
+  { When this is @false, we use full-featured physics engine (Kraft).
+    When this is @true, we use "old simple physics" (built-in CGE, see
+    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ). }
+  UseOldSimplePhysics = false;
+
 { TStatePlay ----------------------------------------------------------------- }
 
 constructor TStatePlay.Create(AOwner: TComponent);
@@ -109,11 +115,15 @@ begin
   CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
-
-  { When avatar don't have Rigid body use old physics. Rigid body and collider is
-    configured in design in editor check castle-data:/gamestateplay.castle-user-interface }
-  if SceneAvatar.RigidBody = nil then
+  if UseOldSimplePhysics then
   begin
+    { Right now rigid body and collider are configured in the design,
+      in castle-data:/gamestateplay.castle-user-interface .
+      To revert to old simple physics, just free rigid body component.
+      TCastleThirdPersonNavigation implementation will then automatically
+      fallback to older behavior. }
+    SceneAvatar.RigidBody.Free;
+
     { Make SceneAvatar collide using a sphere.
       Sphere is more useful than default bounding box for avatars and creatures
       that move in the world, look ahead, can climb stairs etc. }
@@ -180,10 +190,21 @@ function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
   begin
-    { SceneAvatar.RayCast tests a ray collision,
-      ignoring the collisions with SceneAvatar itself (so we don't detect our own
-      geometry as colliding). }
-    Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
+    if UseOldSimplePhysics then
+    begin
+      { SceneAvatar.RayCast tests a ray collision,
+        ignoring the collisions with SceneAvatar itself (so we don't detect our own
+        geometry as colliding). }
+      Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
+    end else
+    begin
+      { In case of full-featured physics engine, we should not toggle Exists multiple
+        times in a single frame, which makes the curent TCastleTransform.RayCast not good.
+        So use Items.WorldRayCast, and secure from "hitting yourself" by just moving
+        the initial ray point by 0.5 units. }
+      Result := MainViewport.Items.WorldRayCast(
+        SceneAvatar.Middle + SceneAvatar.Direction * 0.5, SceneAvatar.Direction);
+    end;
   end;
 
 var

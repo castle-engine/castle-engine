@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,7 @@ procedure LoadLevel(const URL: string; const MeshCollider: boolean);
   function CreateMeshCollider: TCastleMeshCollider;
   begin
     Result := TCastleMeshCollider.Create(Level);
-    Result.Scene := Level;
+    Result.Mesh := Level;
     Result.Restitution := 0.3;
     Level.AddBehavior(Result);
   end;

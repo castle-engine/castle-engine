@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,7 +57,7 @@ type
     Dead: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Hurt;
   end;
@@ -74,12 +74,9 @@ begin
   MoveDirection := -1;
 end;
 
-procedure TEnemy.ParentChanged;
+procedure TEnemy.ParentAfterAttach;
 begin
   inherited;
-  if Parent = nil then
-    Exit;
-
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
 end;

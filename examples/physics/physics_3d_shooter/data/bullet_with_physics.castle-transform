@@ -25,7 +25,7 @@
         },
         {
           "$$ClassName" : "TCastleRigidBody",
-          "CollisionDetectionType" : "cdtContinuous",
+          "CollisionDetection" : "cdContinuous",
           "LockRotation" : [
           ],
           "LockTranslation" : [

@@ -16,6 +16,8 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
+{$modeswitch advancedrecords}
+
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
@@ -238,6 +240,20 @@ procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog;
 
 { Should we use colors and icons for dark theme. Based on luminance. }
 function UseIconsAndColorsForDarkTheme: Boolean;
+
+type
+  { Saved selection state,
+    that can be restored even after loading a new version of design from file.
+    We save component by a Name (String) to avoid worrying about references
+    to freed component, and to be able to restore it even on new design file. }
+  TSavedSelection = record
+    SelectedComponent: String;
+    { Index of the value selected/edited in the Object Inspector. }
+    ItemIndex: Integer;
+    { Index of the tab of Object Inspector. }
+    TabIndex: Integer;
+    class function Equals(const A, B: TSavedSelection): Boolean; static;
+  end;
 
 implementation
 
@@ -1087,6 +1103,14 @@ begin
   Luminance :=  0.2126 * R + 0.7152 * G + 0.0722 * B;
 
   Result := Luminance < 180;
+end;
+
+class function TSavedSelection.Equals(const A, B: TSavedSelection): Boolean; static;
+begin
+  Result :=
+    (A.SelectedComponent = B.SelectedComponent) and
+    (A.ItemIndex = B.ItemIndex) and
+    (A.TabIndex = B.TabIndex);
 end;
 
 end.

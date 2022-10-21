@@ -55,14 +55,20 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
-      deprecated 'Use ParentAfterAttach/Detach or WorldAfterAttach/Detach';
+      deprecated 'Use ParentAfterAttach / ParentBeforeDetach or WorldAfterAttach / WorldBeforeDetach';
 
+    { Called after @link(Parent) changed, e.g. at the end of @link(TCastleTransform.AddBehavior). }
     procedure ParentAfterAttach; virtual;
 
+    { Called before @link(Parent) changed, e.g. at the beginning of @link(TCastleTransform.RemoveBehavior).
+      This is also called from destructor of behavior. }
     procedure ParentBeforeDetach; virtual;
 
+    { Called after @link(Parent) became part of @link(World). }
     procedure WorldAfterAttach; virtual;
 
+    { Called before @link(Parent) stops being part of @link(World).
+      This is also called from destructor of behavior. }
     procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
