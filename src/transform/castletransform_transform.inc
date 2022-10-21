@@ -3525,6 +3525,8 @@ begin
   { We don't want to update physics object when someone change -1 to 1 scale.
     Often used to change animation side from left to right. }
   FShouldUpdatePhysicsObjects := not (TVector3.Equals(FScale.Abs, Value.Abs));
+  { TODO: above is broken, e.g. I can still udpate to scale -2,1,1 from 1,1,1.
+    Also later update will include negative scale anyway. }
 
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
