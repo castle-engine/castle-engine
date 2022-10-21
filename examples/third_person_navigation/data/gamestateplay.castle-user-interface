@@ -88,7 +88,6 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
-                "AutoSize" : false,
                 "Friction" : 1.0000000149011612E-001,
                 "Height" : 2.0000000000000000E+000,
                 "Name" : "CapsuleCollider",
