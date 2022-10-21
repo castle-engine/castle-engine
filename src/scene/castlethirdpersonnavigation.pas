@@ -962,7 +962,8 @@ begin
 
   if AvatarRigidBody = nil then
   begin
-    { Old movement algorithm }
+    { Movement using old simple physics engine
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ) }
     IsOnGround := true;
     T := TVector3.Zero;
     if Input_Forward.IsPressed(Container) then
@@ -1281,7 +1282,6 @@ begin
             Rotating := false;
           end;
 
-
           if Moving then
           begin
             AvatarRigidBody.AddForce(MoveDirection * DeltaForce, A.Translation);
@@ -1306,15 +1306,18 @@ begin
   begin
     case FMovementType of
       mtVelocity:
+        // TODO: 0.1 should not be hardcoded
         if AvatarRigidBody.LinearVelocity.Y > 0.1 then
           SetAnimation([AnimationJump, AnimationIdle])
         else
-          { When avatar fall we change animation to fall only when distance
-            to ground is smaller than 1/4 of avatar height. That fix changing
+          { When avatar falls we change animation to fall only when the distance
+            to ground is smaller than 1/4 of avatar height. This fixes changing
             animation from walk to fall on small steps like in stairs.
 
             DistanceToGround < 0 means that we are in air and ground
-            was not found. }
+            was not found.
+
+            TODO: 0.25 should not be hardcoded. }
           if (DistanceToGround < 0) or (DistanceToGround > A.LocalBoundingBox.SizeY * 0.25) then
             SetAnimation([AnimationFall, AnimationIdle]);
       mtForce:

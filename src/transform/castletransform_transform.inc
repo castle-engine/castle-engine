@@ -3945,9 +3945,10 @@ begin
     if RigidBody <> nil then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
-        WritelnWarning('Repeatedly changing the existence of CastleTransform with' + NL +
-        ' rigid body can cause performance degradation and physics simulation errors.' + NL +
-        ' Especially with autosize enabled in collider and animation changing local boundingbox.');
+        WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). This is not good for performance and right now can even cause physics simulation crashes, esp. when TCastleCollider.AutoSize=true and animation may change LocalBoundingBox. Avoid changing the Exists of physical objects multiple times in a single Update.', [
+          Name,
+          ClassName
+        ]);
       FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
     end;
 
