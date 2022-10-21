@@ -3214,9 +3214,10 @@ begin
           OldTimeAccumulator := TimeAccumulator;
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
-          WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
-            + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
-            + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
+          // This log is valid, but too spammy now.
+          // WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
+          //   + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
+          //   + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
 
           break;
         end;
