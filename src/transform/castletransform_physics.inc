@@ -1350,7 +1350,7 @@ procedure TCastleCollider.CalculateSizeCore;
 begin
   Translation := TVector3.Zero;
   Rotation := TVector4.Zero;
-  //Scale := NoScale;
+  Scale := NoScale;
 end;
 
 procedure TCastleCollider.CalculateSize;
