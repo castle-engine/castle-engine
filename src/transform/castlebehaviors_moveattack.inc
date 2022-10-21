@@ -111,7 +111,7 @@ type
     function AnimationDuration(const Animation: String): TFloatTime;
   protected
     procedure SetState(const Value: TState); virtual;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; override;
 
@@ -272,7 +272,7 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttack.ParentChanged;
+procedure TCastleMoveAttack.ParentAfterAttach;
 var
   Alive: TCastleAliveBehavior;
 begin
