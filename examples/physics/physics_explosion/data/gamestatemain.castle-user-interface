@@ -16,7 +16,7 @@
         "$Children" : [
           {
             "$$ClassName" : "TCastleTerrain",
-            "Data" : "TerrainNoise1",
+            "Data" : "TerrainCombine1",
             "Layer1" : {
               "$$ClassName" : "TCastleTerrainLayer"
             },
@@ -37,6 +37,20 @@
               {
                 "$$ClassName" : "TCastleTerrainNoise",
                 "Name" : "TerrainNoise1"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainImage",
+                "MaxLevel" : 0.0000000000000000E+000,
+                "MinLevel" : -1.0000000000000000E+001,
+                "Name" : "TerrainImage1",
+                "Url" : "castle-data:/terrain_hole.png"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainCombine",
+                "Data1" : "TerrainNoise1",
+                "Data2" : "TerrainImage1",
+                "Name" : "TerrainCombine1",
+                "Operation" : "opAdd"
               }
             ],
             "$Behaviors" : [
@@ -69,29 +83,6 @@
               "Z" : -1.6890476226806641E+001
             },
             "$Children" : [
-              {
-                "$$ClassName" : "TCastleCamera",
-                "Name" : "Camera1",
-                "Orthographic" : {
-                  "$$ClassName" : "TCastleOrthographic"
-                },
-                "Perspective" : {
-                  "$$ClassName" : "TCastlePerspective"
-                },
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 3.1458809375762939E+000,
-                  "X" : -2.3641663137823343E-003,
-                  "Y" : 9.9015957117080688E-001,
-                  "Z" : 1.3993126153945923E-001
-                },
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -8.8509388267993927E-002,
-                  "Y" : 1.2307399749755859E+001,
-                  "Z" : -1.8738200664520264E+000
-                }
-              },
               {
                 "$$ClassName" : "TCastleScene",
                 "ExposeTransforms" : [
@@ -362,6 +353,222 @@
               },
               {
                 "$$ClassName" : "TCastleBox",
+                "Name" : "Box10",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.4269027709960937E-001,
+                  "Y" : -2.7053561210632324E+000,
+                  "Z" : -6.8805856704711914E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider10"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody11"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box11",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -6.5805907249450684E+000,
+                  "Y" : -2.7053561210632324E+000,
+                  "Z" : -6.8805856704711914E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider11"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody12"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box12",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -6.5805907249450684E+000,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : -6.8805856704711914E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider12"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody13"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box13",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0892625808715820E+001,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : -6.8805856704711914E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider13"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody14"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box14",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0892625808715820E+001,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : -3.8354101181030273E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider14"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody15"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box15",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -8.0265808105468750E+000,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : -3.8354101181030273E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider15"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody16"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box16",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -8.0265808105468750E+000,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : 2.6344037055969238E-001
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider16"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody17"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box17",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -4.3333511352539062E+000,
+                  "Y" : 1.8738025426864624E+000,
+                  "Z" : 2.6344037055969238E-001
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider17"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LockRotation" : [
+                    ],
+                    "LockTranslation" : [
+                    ],
+                    "Name" : "RigidBody18"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
                 "Name" : "Box4",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -404,8 +611,35 @@
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : -7.6411857604980469E+000,
-              "Y" : 2.7304100990295410E+000,
-              "Z" : 1.8028249740600586E+001
+              "Y" : -5.0267505645751953E+000,
+              "Z" : 1.9401996612548828E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 3.1458814144134521E+000,
+              "X" : -2.3626070469617844E-003,
+              "Y" : 9.9015855789184570E-001,
+              "Z" : 1.3993105292320251E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.0000002384185791E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.8509388267993927E-002,
+              "Y" : 1.9244104385375977E+001,
+              "Z" : -1.8764295578002930E+001
             }
           }
         ]
@@ -437,25 +671,26 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 2.7782850265502930E+000,
-          "X" : -8.9626505970954895E-002,
-          "Y" : 8.9938586950302124E-001,
-          "Z" : 4.2786937952041626E-001
+          "W" : 3.0946249961853027E+000,
+          "X" : -1.1585427448153496E-002,
+          "Y" : 9.5636051893234253E-001,
+          "Z" : 2.9195964336395264E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 9.9999988079071045E-001
+          "X" : 9.9999994039535522E-001,
+          "Y" : 1.0000002384185791E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -4.5500149726867676E+000,
-          "Y" : 1.9898643493652344E+001,
-          "Z" : 9.2723588943481445E+000
+          "X" : -1.3453459739685059E+000,
+          "Y" : 1.9986984252929688E+001,
+          "Z" : -1.8069433212280273E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 1.7113283157348633E+001,
+        "MoveSpeed" : 3.6869453430175781E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {

@@ -48,7 +48,7 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, Math;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -74,6 +74,7 @@ end;
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 const
   ExplosionStrength = 10;
+  UpwardExplosion = 2; // makes sure we have some force upward, this just looks more impressive
 var
   Box: TCastleTransform;
   RBody: TCastleRigidBody;
@@ -95,7 +96,7 @@ begin
         if RBody <> nil then
         begin
           ForceDir := Box.WorldTranslation - ExplosionCenter;
-          ForceDir.Y := 2; // make sure to have some force upward, just looks more impressive
+          ForceDir.Y := Max(ForceDir.Y, UpwardExplosion);
           RBody.ApplyImpulse(
             ForceDir.AdjustToLength(ExplosionStrength),
             ExplosionCenter);
