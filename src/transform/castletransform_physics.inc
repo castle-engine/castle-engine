@@ -1024,6 +1024,19 @@ end;
 
 { TPhysicsProperties --------------------------------------------------------- }
 
+constructor TPhysicsProperties.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
+  FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
+  FFrequency := DefaultFrequency;
+  FGravityStrength := DefaultGravityStrength;
+  FPhysicsTimeStep := 1.0 / FFrequency;
+  FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
+  FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
+  FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
+end;
+
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
 begin
   if FFrequency = AValue then
@@ -1084,20 +1097,41 @@ begin
     RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
 end;
 
-constructor TPhysicsProperties.Create(AOwner: TComponent);
+{ TCastleCollider ------------------------------------------------------------ }
+
+constructor TCastleCollider.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
-  FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
-  FFrequency := DefaultFrequency;
-  FGravityStrength := DefaultGravityStrength;
-  FPhysicsTimeStep := 1.0 / FFrequency;
-  FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
-  FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
-  FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
+  inherited;
+  // properties defaults
+  FDensity := DefaultDensity;
+  FMass := DefaultMass;
+  FRestitution := DefaultRestitution;
+  FFriction := DefaultFriction;
+  FScale := NoScale;
+  FLastUsedWorldScale := NoScale;
+  FTranslation := TVector3.Zero;
+  FRotation := TVector4.Zero;
+
+  { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
+  FUseLocalTransform := false;
+  FLocalTransform := TMatrix4.Identity;
+  FLocalInverseTransform := TMatrix4.Identity;
+  FAutoSize := true;
+
+  NeedWorldChangeNotification := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
-{ TCastleCollider ------------------------------------------------------------ }
+destructor TCastleCollider.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
 
 function TCastleCollider.ForceStaticBody: Boolean;
 begin
@@ -1388,40 +1422,6 @@ begin
   Result := not AutoSize;
 end;
 
-constructor TCastleCollider.Create(AOwner: TComponent);
-begin
-  inherited;
-  // properties defaults
-  FDensity := DefaultDensity;
-  FMass := DefaultMass;
-  FRestitution := DefaultRestitution;
-  FFriction := DefaultFriction;
-  FScale := NoScale;
-  FLastUsedWorldScale := NoScale;
-  FTranslation := TVector3.Zero;
-  FRotation := TVector4.Zero;
-
-  { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
-  FUseLocalTransform := false;
-  FLocalTransform := TMatrix4.Identity;
-  FLocalInverseTransform := TMatrix4.Identity;
-  FAutoSize := true;
-
-  NeedWorldChangeNotification := true;
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
-destructor TCastleCollider.Destroy;
-begin
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
-  inherited;
-end;
-
 function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -1444,6 +1444,26 @@ end;
 {$undef read_implementation_methods}
 
 { TCastlePlaneCollider ------------------------------------------------------- }
+
+constructor TCastlePlaneCollider.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
+  FNormal := TVector3.One[1];
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastlePlaneCollider.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
 
 procedure TCastlePlaneCollider.SetNormal(const AValue: TVector3);
 begin
@@ -1502,26 +1522,6 @@ begin
   Normal := TVector3.One[MinAbsVectorCoord(LocalBoundingBox.Size)];
 end;
 
-constructor TCastlePlaneCollider.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
-  FNormal := TVector3.One[1];
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
-destructor TCastlePlaneCollider.Destroy;
-begin
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
-  inherited;
-end;
-
 function TCastlePlaneCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -1543,6 +1543,26 @@ end;
 {$undef read_implementation_methods}
 
 { TCastleBoxCollider --------------------------------------------------------- }
+
+constructor TCastleBoxCollider.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
+  FSize := CastleVectors.Vector3(2, 2, 2);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleBoxCollider.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
 
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
 begin
@@ -1622,26 +1642,6 @@ begin
 
   Size := TempSize;
   Translation := LocalBoundingBox.Center;
-end;
-
-constructor TCastleBoxCollider.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
-  FSize := CastleVectors.Vector3(2, 2, 2);
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
-destructor TCastleBoxCollider.Destroy;
-begin
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
-  inherited;
 end;
 
 function TCastleBoxCollider.PropertySections(const PropertyName: String): TPropertySections;
