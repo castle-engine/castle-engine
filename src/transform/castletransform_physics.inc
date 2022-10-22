@@ -561,6 +561,10 @@
       linear velocity. }
     procedure SynchronizeFromKraft;
 
+    { Calls FKraftBody.Finish, if the body is already initialized (in stateReady).
+      This is required after changing various properties in Kraft body/collider. }
+    procedure KraftForceUpdatingReadyBody;
+
     procedure SetWorldTransformation(const WorldTransform: TMatrix4);
     procedure SetLockTranslation(const AValue: T3DCoords);
     procedure SetLockRotation(const AValue: T3DCoords);
@@ -1219,10 +1223,10 @@ begin
     begin
       FKraftShape.Density := FDensity;
 
-      // Similar as in SetMass, we need to call FKraftBody.Finish
+      // Similar as in SetMass, we need to call KraftForceUpdatingReadyBody
       RigidBody := GetRigidBody;
-      if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
-        RigidBody.FKraftBody.Finish;
+      if RigidBody <> nil then
+       RigidBody.KraftForceUpdatingReadyBody;
     end;
   end;
 end;
@@ -1240,7 +1244,7 @@ begin
     begin
       RigidBody.FKraftBody.ForcedMass := FMass;
 
-      { Without FKraftBody.Finish,
+      { Without KraftForceUpdatingReadyBody (FKraftBody.Finish),
         merely updating FKraftBody.ForcedMass doesn't have an effect,
         Kraft still uses old mass.
 
@@ -1255,7 +1259,7 @@ begin
         So the buggy effect is that you need to "play physics twice"
         to actually see the new Mass.
       }
-      RigidBody.FKraftBody.Finish;
+      RigidBody.KraftForceUpdatingReadyBody;
     end;
   end;
 end;
@@ -2528,51 +2532,54 @@ begin
   end;
 end;
 
+procedure TCastleRigidBody.KraftForceUpdatingReadyBody;
+begin
+  if FState = stateReady then
+  begin
+    Assert(FKraftBody <> nil); // FState = stateReady already implies this
+    FKraftBody.Finish;
+  end;
+end;
+
 procedure TCastleRigidBody.UpdateLockTranslation;
+const
+  LockTranslationFlag: array [T3DCoord] of TKraftRigidBodyFlag = (
+    krbfLockTranslationAxisX,
+    krbfLockTranslationAxisY,
+    krbfLockTranslationAxisZ
+  );
+var
+  I: T3DCoord;
 begin
   if Assigned(FKraftBody) then
   begin
-    if 0 in FLockTranslation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisX];
-    if 1 in FLockTranslation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisY];
-    if 2 in FLockTranslation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockTranslationAxisZ];
-
-    { Changing translation lock needs to call Finish again we do it again
-      only when rigid body is ready now. }
-    if FState = stateReady then
-      FKraftBody.Finish;
+    for I := Low(I) to High(I) do
+      if I in FLockTranslation then
+        FKraftBody.Flags := FKraftBody.Flags + [LockTranslationFlag[I]]
+      else
+        FKraftBody.Flags := FKraftBody.Flags - [LockTranslationFlag[I]];
+    KraftForceUpdatingReadyBody;
   end;
 end;
 
 procedure TCastleRigidBody.UpdateLockRotation;
+const
+  LockRotationFlag: array [T3DCoord] of TKraftRigidBodyFlag = (
+    krbfLockRotationAxisX,
+    krbfLockRotationAxisY,
+    krbfLockRotationAxisZ
+  );
+var
+  I: T3DCoord;
 begin
   if Assigned(FKraftBody) then
   begin
-    if 0 in FLockRotation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisX];
-    if 1 in FLockRotation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisY];
-    if 2 in FLockRotation then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfLockRotationAxisZ];
-
-    { Changing rotation lock needs to call Finish again we do it again only when
-      rigid body is ready now }
-    if FState = stateReady then
-      FKraftBody.Finish;
+    for I := Low(I) to High(I) do
+      if I in FLockRotation then
+        FKraftBody.Flags := FKraftBody.Flags + [LockRotationFlag[I]]
+      else
+        FKraftBody.Flags := FKraftBody.Flags - [LockRotationFlag[I]];
+    KraftForceUpdatingReadyBody;
   end;
 end;
 
