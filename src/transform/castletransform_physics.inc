@@ -3163,7 +3163,9 @@ procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var R
 var
   KraftGravity: TVector3;
   PhysicsTicksCount:Integer;
+  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
   OldTimeAccumulator: TFloatTime;
+  {$endif}
 begin
   if not Exists then Exit;
 
@@ -3211,13 +3213,18 @@ begin
         if (TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate <> 0) and
            (PhysicsTicksCount >= PhysicsProperties.MaxPhysicsTicksPerUpdate) then
         begin
+          {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
           OldTimeAccumulator := TimeAccumulator;
+          {$endif}
+
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
           // This log is valid, but too spammy now.
-          // WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
-          //   + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
-          //   + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
+          {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
+          WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
+            + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
+            + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
+          {$endif}
 
           break;
         end;
