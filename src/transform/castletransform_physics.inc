@@ -3010,7 +3010,7 @@ procedure TCastleRigidBody.DeinitializeColliders;
   end;
 
 begin
-  if FState = crbsInitialized then
+  if FState = stateReady then
     NotifyBeforeDeinitialized;
 
   { Deinitialize rigid body when it's in collision with other rigid body make
@@ -3111,7 +3111,7 @@ end;
 
 function TCastleRigidBody.IsInitialized: Boolean;
 begin
-  Result := (FState = crbsInitialized);
+  Result := (FState = stateReady);
 end;
 
 procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
