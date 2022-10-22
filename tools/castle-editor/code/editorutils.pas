@@ -248,6 +248,7 @@ type
     to freed component, and to be able to restore it even on new design file. }
   TSavedSelection = record
     SelectedComponent: String;
+    CurrentViewport: String;
     { Index of the value selected/edited in the Object Inspector. }
     ItemIndex: Integer;
     { Index of the tab of Object Inspector. }
@@ -1109,6 +1110,7 @@ class function TSavedSelection.Equals(const A, B: TSavedSelection): Boolean; sta
 begin
   Result :=
     (A.SelectedComponent = B.SelectedComponent) and
+    (A.CurrentViewport = B.CurrentViewport) and
     (A.ItemIndex = B.ItemIndex) and
     (A.TabIndex = B.TabIndex);
 end;

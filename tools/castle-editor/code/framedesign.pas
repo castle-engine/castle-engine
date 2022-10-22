@@ -300,6 +300,7 @@ type
     { Look at current selection and hover and possibly change CurrentViewport,
       calling also OnCurrentViewportChanged. }
     procedure UpdateCurrentViewport;
+    procedure SetCurrentViewport(const Value: TCastleViewport);
 
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
@@ -1500,6 +1501,12 @@ begin
   else
     Result.SelectedComponent := '';
 
+  if (CurrentViewport <> nil) and
+     (CurrentViewport.Owner = DesignOwner) then
+    Result.CurrentViewport := CurrentViewport.Name
+  else
+    Result.CurrentViewport := '';
+
   Result.TabIndex := ControlProperties.TabIndex;
 
   ActiveInspector := GetInspectorForActiveTab;
@@ -1512,6 +1519,7 @@ end;
 procedure TDesignFrame.RestoreSavedSelection(const S: TSavedSelection);
 var
   C: TComponent;
+  V: TCastleViewport;
   ActiveInspector: TOIPropertyGrid;
 begin
   if S.SelectedComponent <> '' then
@@ -1538,6 +1546,24 @@ begin
         else
           WritelnWarning('Cannot restore selection inspector ItemIndex, because inspector not found');
       end;
+    end;
+  end;
+
+  if S.CurrentViewport <> '' then
+  begin
+    { We restore CurrentViewport, otherwise stopping physics would set CurrentViewport
+      to nil if it was previously made non-nil because of hovering over a viewport
+      (and not selecting viewport or something inside viewport). }
+    C := DesignOwner.FindComponent(S.CurrentViewport);
+    if (C = nil) or not (C is TCastleViewport) then
+    begin
+      WritelnLog('Cannot restore CurrentViewport, as viewport "%s" no longer exists or is no longer a TCastleViewport.', [
+        S.CurrentViewport
+      ]);
+    end else
+    begin
+      V := C as TCastleViewport;
+      SetCurrentViewport(V);
     end;
   end;
 end;
@@ -2345,15 +2371,20 @@ begin
       NewCurrentViewport := TCastleViewport(HoverUi.Parent);
   end;
 
-  if (NewCurrentViewport <> nil) and
-     (FCurrentViewport <> NewCurrentViewport) then
+  if NewCurrentViewport <> nil then
+    SetCurrentViewport(NewCurrentViewport);
+  { otherwise keep using FCurrentViewport we had so far }
+end;
+
+procedure TDesignFrame.SetCurrentViewport(const Value: TCastleViewport);
+begin
+  if FCurrentViewport <> Value then
   begin
-    FCurrentViewport := NewCurrentViewport;
-    FCurrentViewportObserver.Observed := NewCurrentViewport;
+    FCurrentViewport := Value;
+    FCurrentViewportObserver.Observed := Value;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
-  { otherwise keep using FCurrentViewport we had so far }
 end;
 
 procedure TDesignFrame.CurrentViewportFreeNotification(
