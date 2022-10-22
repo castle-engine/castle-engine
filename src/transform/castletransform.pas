@@ -39,6 +39,8 @@ type
 
 {$I castletransform_physics.inc}
 {$I castletransform_physics_deprecated.inc}
+{$I castletransform_joints.inc}
+{$I castletransform_joints_experimental.inc}
 {$I castletransform_serialize.inc}
 {$I castletransform_miscellaneous_globals.inc}
 {$I castletransform_camera_utils.inc}
@@ -55,6 +57,8 @@ uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
 {$I castletransform_renderparams.inc}
 {$I castletransform_physics.inc}
 {$I castletransform_physics_deprecated.inc}
+{$I castletransform_joints.inc}
+{$I castletransform_joints_experimental.inc}
 {$I castletransform_collisions.inc}
 {$I castletransform_behavior.inc}
 {$I castletransform_serialize.inc}
