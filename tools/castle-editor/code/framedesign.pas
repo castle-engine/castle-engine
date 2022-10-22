@@ -1519,7 +1519,7 @@ begin
     C := DesignOwner.FindComponent(S.SelectedComponent);
     if C = nil then
     begin
-      WritelnWarning('Cannot restore selection, as component "%s" no longer exists', [
+      WritelnLog('Cannot restore selection, as component "%s" no longer exists. This is normal if e.g. stopping physics removes an object added during physics simulation.', [
         S.SelectedComponent
       ]);
     end else
