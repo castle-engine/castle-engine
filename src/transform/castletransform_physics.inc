@@ -1665,18 +1665,6 @@ begin
   Translation := LocalBoundingBox.Center;
 end;
 
-constructor TCastleBoxCollider.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
-  FSize := CastleVectors.Vector3(2, 2, 2);
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
 destructor TCastleBoxCollider.Destroy;
 begin
   {$define read_implementation_destructor}
