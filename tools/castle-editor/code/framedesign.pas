@@ -4264,7 +4264,14 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
+    SrcHasWorld: Boolean;
+    WorldPos, WorldDir, WorldUp: TVector3;
   begin
+    // TODO: Available only with Ctrl, to test this feature
+    SrcHasWorld := (ssCtrl in GetKeyShiftState) and Src.HasWorldTransform;
+    if SrcHasWorld then
+      Src.GetWorldView(WorldPos, WorldDir, WorldUp);
+
     case ControlsTreeNodeUnderMouseSide of
       tnsRight:
         begin
@@ -4273,6 +4280,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4288,6 +4297,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
