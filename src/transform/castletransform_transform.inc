@@ -191,7 +191,7 @@
     { Some behaviors need know when castle transform is in world or not or
       when it changes. They can register to those notifications. When list
       is not created that means no behaviors need those notifications. }
-    FBehaviorsWorldChangeNotificationList: {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>;
+    FBehaviorsWorldChangeNotificationList: TCastleBehaviorList;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -225,7 +225,7 @@
 
     { When CastleTransform change scale colliders are not scaled we need do this
       manually. }
-    procedure RecursivelyUpdateCollidersScale(CastleTransform: TCastleTransform);
+    procedure RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -1801,6 +1801,12 @@
     { Find the first behavior of the given class, @nil if none. }
     function FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
 
+    { Find all behaviors of given class, in this transform and children (up to any depth).
+      The behaviors are added to the list, disregaring the Exists or ExistsInRoot property of parents.
+      Returned class @italic(does not) own children.
+      The caller is responsible for freeing the returned list. }
+    function FindAllBehaviors(const BehaviorClass: TCastleBehaviorClass): TCastleBehaviorList;
+
     { Find the first behavior of the given class, or create and add a new one if necessary.
       Never returns @nil. }
     function FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
@@ -2817,18 +2823,17 @@ begin
   end;
 end;
 
-procedure TCastleTransform.RecursivelyUpdateCollidersScale(
-  CastleTransform: TCastleTransform);
+procedure TCastleTransform.RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
 var
   CastleCollider: TCastleCollider;
   I: Integer;
 begin
-  CastleCollider := CastleTransform.FindBehavior(TCastleCollider) as TCastleCollider;
+  CastleCollider := Transform.FindBehavior(TCastleCollider) as TCastleCollider;
   if CastleCollider <> nil then
     CastleCollider.UpdateScale(false);
 
-  for I := 0 to CastleTransform.Count -1 do
-    RecursivelyUpdateCollidersScale(CastleTransform.Items[I]);
+  for I := 0 to Transform.Count -1 do
+    RecursivelyUpdateCollidersScale(Transform.Items[I]);
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3760,7 +3765,7 @@ procedure TCastleTransform.AddWorldChangeNotification(
   const Behavior: TCastleBehavior);
 begin
   if FBehaviorsWorldChangeNotificationList = nil then
-    FBehaviorsWorldChangeNotificationList := {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>.Create;
+    FBehaviorsWorldChangeNotificationList := TCastleBehaviorList.Create(false);
 
   if FBehaviorsWorldChangeNotificationList.IndexOf(Behavior) = -1 then
     FBehaviorsWorldChangeNotificationList.Add(Behavior);
@@ -3882,6 +3887,25 @@ begin
     if FBehaviors[I] is BehaviorClass then
       Exit(TCastleBehavior(FBehaviors[I])); // since it's BehaviorClass, casting to TCastleBehavior must be safe
   Result := nil;
+end;
+
+function TCastleTransform.FindAllBehaviors(const BehaviorClass: TCastleBehaviorClass): TCastleBehaviorList;
+
+  procedure AddTransform(const T: TCastleTransform);
+  var
+    I: Integer;
+    TChild: TCastleTransform;
+  begin
+    for I := 0 to T.FBehaviors.Count - 1 do
+      if T.FBehaviors[I] is BehaviorClass then
+        Result.Add(TCastleBehavior(T.FBehaviors[I]));
+    for TChild in T do
+      AddTransform(TChild);
+  end;
+
+begin
+  Result := TCastleBehaviorList.Create(false);
+  AddTransform(Self);
 end;
 
 function TCastleTransform.FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;

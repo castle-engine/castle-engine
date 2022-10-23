@@ -77,6 +77,11 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.7866899967193604E-001,
+              "Y" : -1.0000017881393433E+000
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : 6.9367041587829590E+000,
@@ -92,10 +97,15 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.9726107716560364E-001,
+                  "Y" : 1.0000032186508179E+000
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.9635486602783203E-001,
-                  "Y" : 1.0052729606628418E+001,
+                  "X" : 2.0042462348937988E+000,
+                  "Y" : 9.9878787994384766E+000,
                   "Z" : 1.8834781646728516E+000
                 },
                 "URL" : "castle-data:/detonator/detonator.gltf",
@@ -104,6 +114,35 @@
                     "$$ClassName" : "TCastleSound",
                     "Name" : "SoundDetonate",
                     "URL" : "castle-data:/sounds/kaboom.wav"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneDropMore",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 2.4737911224365234E+000,
+                  "Y" : 1.0000010728836060E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.7717992067337036E+000,
+                  "Y" : 9.9813261032104492E+000,
+                  "Z" : 1.9159599542617798E+000
+                },
+                "URL" : "castle-data:/drop_more/drop_more.gltf",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "SoundClick",
+                    "URL" : "castle-data:/sounds/menu_click.wav"
                   }
                 ]
               },
@@ -626,10 +665,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 3.1458814144134521E+000,
-              "X" : -2.3626070469617844E-003,
-              "Y" : 9.9015855789184570E-001,
-              "Z" : 1.3993105292320251E-001
+              "W" : 2.7995538711547852E+000,
+              "X" : -1.2866868637502193E-002,
+              "Y" : 9.9541693925857544E-001,
+              "Z" : 9.4773747026920319E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -637,9 +676,9 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -8.8509388267993927E-002,
-              "Y" : 1.9244104385375977E+001,
-              "Z" : -1.8764295578002930E+001
+              "X" : 8.6004626750946045E-001,
+              "Y" : 1.8895835876464844E+001,
+              "Z" : -1.8530939102172852E+001
             }
           }
         ]
@@ -658,6 +697,10 @@
           "MouseDragMode" : "mdNone",
           "MoveSpeed" : 5.0000000000000000E+000,
           "Name" : "WalkNavigation1"
+        },
+        {
+          "$$ClassName" : "TCastleCrosshair",
+          "Name" : "Crosshair1"
         }
       ],
       "InternalDesignCamera" : {
@@ -671,26 +714,26 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 3.0946249961853027E+000,
-          "X" : -1.1585427448153496E-002,
-          "Y" : 9.5636051893234253E-001,
-          "Z" : 2.9195964336395264E-001
+          "W" : 1.8987157344818115E+000,
+          "X" : -2.7348175644874573E-001,
+          "Y" : 9.0103781223297119E-001,
+          "Z" : 3.3665779232978821E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 1.0000002384185791E+000
+          "X" : 1.0000001192092896E+000,
+          "Y" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.3453459739685059E+000,
-          "Y" : 1.9986984252929688E+001,
-          "Z" : -1.8069433212280273E+001
+          "X" : 4.1392431259155273E+000,
+          "Y" : 2.1117624282836914E+001,
+          "Z" : -1.9239204406738281E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 3.6869453430175781E+001,
+        "MoveSpeed" : 3.6869451999664307E+000,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {

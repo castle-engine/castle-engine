@@ -32,8 +32,8 @@ type
     LabelFps: TCastleLabel;
     WalkNavigation1: TCastleWalkNavigation;
     Viewport1: TCastleViewport;
-    SceneDetonate: TCastleScene;
-    SoundDetonate: TCastleSound;
+    SceneDetonate, SceneDropMore: TCastleScene;
+    SoundDetonate, SoundClick: TCastleSound;
     Boxes: TCastleTransform;
     SceneExplosionCenter: TCastleTransform;
   public
@@ -76,9 +76,11 @@ const
   ExplosionStrength = 10;
   UpwardExplosion = 2; // makes sure we have some force upward, this just looks more impressive
 var
-  Box: TCastleTransform;
+  NewBoxes: TCastleTransform;
   RBody: TCastleRigidBody;
   ExplosionCenter, ForceDir: TVector3;
+  AllRigidBodies: TCastleBehaviorList;
+  RBodyBehavior: TCastleBehavior;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -89,19 +91,33 @@ begin
     begin
       SceneDetonate.PlayAnimation('detonate', false);
       SoundEngine.Play(SoundDetonate);
+
+      { for all rigid bodies in Boxes, apply impulse }
       ExplosionCenter := SceneExplosionCenter.WorldTranslation;
-      for Box in Boxes do
-      begin
-        RBody := Box.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-        if RBody <> nil then
+      AllRigidBodies := Boxes.FindAllBehaviors(TCastleRigidBody);
+      try
+        for RBodyBehavior in AllRigidBodies do
         begin
-          ForceDir := Box.WorldTranslation - ExplosionCenter;
+          RBody := RBodyBehavior as TCastleRigidBody;
+          ForceDir := RBody.Parent.WorldTranslation - ExplosionCenter;
           ForceDir.Y := Max(ForceDir.Y, UpwardExplosion);
           RBody.ApplyImpulse(
             ForceDir.AdjustToLength(ExplosionStrength),
             ExplosionCenter);
         end;
-      end;
+      finally FreeAndNil(AllRigidBodies) end;
+
+      Exit(true);
+    end;
+
+    if Viewport1.TransformUnderMouse = SceneDropMore then
+    begin
+      SceneDropMore.PlayAnimation('click', false);
+      SoundEngine.Play(SoundClick);
+
+      { instantiate boxes.castle-transform }
+      NewBoxes := TransformLoad('castle-data:/boxes.castle-transform', FreeAtStop);
+      Boxes.Add(NewBoxes);
 
       Exit(true);
     end;
