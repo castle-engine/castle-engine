@@ -767,6 +767,9 @@ function SmoothTowards(const Source, Target: TVector2;
 function SmoothTowards(const Source, Target: TVector3;
   const SecondsPassed, Speed: Single): TVector3; overload;
 
+const
+  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
