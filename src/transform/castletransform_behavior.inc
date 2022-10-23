@@ -130,6 +130,8 @@
       read FNeedWorldChangeNotification write SetNeedWorldChangeNotification;
   end;
 
+  TCastleBehaviorList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleBehavior>;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

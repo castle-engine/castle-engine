@@ -74,11 +74,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
-    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
     function HasColliderMesh: Boolean; override;
-
-    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
     procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { Color of the text. Opaque white by default.
