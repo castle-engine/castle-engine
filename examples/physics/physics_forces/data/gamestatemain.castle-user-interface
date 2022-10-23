@@ -39,11 +39,23 @@
           },
           {
             "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 1.0000000000000000E+001,
+            "Intensity" : 5.0000000000000000E+000,
             "Name" : "PointLight1",
+            "Shadows" : true,
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 4.0000000000000000E+000,
+              "Y" : 5.8156375885009766E+000,
+              "Z" : 1.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "PointLight2",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -7.9774084091186523E+000,
               "Y" : 5.8156375885009766E+000,
               "Z" : 1.0000000000000000E+000
             }
@@ -67,13 +79,10 @@
             "ExposeTransforms" : [
             ],
             "Name" : "SceneLevel",
+            "PreciseCollisions" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
             "URL" : "castle-data:/level.gltf",
             "$Behaviors" : [
               {
@@ -87,14 +96,8 @@
               },
               {
                 "$$ClassName" : "TCastleMeshCollider",
-                "Name" : "MeshCollider1",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                },
-                "Mesh" : "SceneLevel"
+                "Mesh" : "SceneLevel",
+                "Name" : "MeshCollider1"
               }
             ]
           },
@@ -127,13 +130,7 @@
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
-                "Name" : "BoxCollider7",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider7"
               }
             ]
           },
@@ -172,12 +169,6 @@
                 "NormalPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.0000000000000000E+000
-                },
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
                 }
               }
             ]
@@ -215,13 +206,7 @@
                   },
                   {
                     "$$ClassName" : "TCastleSphereCollider",
-                    "Name" : "SphereCollider1",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "SphereCollider1"
                   }
                 ]
               },
@@ -250,13 +235,7 @@
                   },
                   {
                     "$$ClassName" : "TCastleSphereCollider",
-                    "Name" : "SphereCollider2",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "SphereCollider2"
                   }
                 ]
               },
@@ -275,13 +254,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider1",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider1"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -309,13 +282,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider2",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider2"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -343,13 +310,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider3",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider3"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -377,13 +338,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider4",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider4"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -411,13 +366,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider5",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider5"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -445,13 +394,7 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider6",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "BoxCollider6"
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -487,13 +430,7 @@
                   },
                   {
                     "$$ClassName" : "TCastleSphereCollider",
-                    "Name" : "SphereCollider3",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "SphereCollider3"
                   }
                 ]
               },
@@ -522,13 +459,7 @@
                   },
                   {
                     "$$ClassName" : "TCastleSphereCollider",
-                    "Name" : "SphereCollider4",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "SphereCollider4"
                   }
                 ]
               },
@@ -556,13 +487,7 @@
                   },
                   {
                     "$$ClassName" : "TCastleSphereCollider",
-                    "Name" : "SphereCollider5",
-                    "ScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 1.0000000000000000E+000,
-                      "Y" : 1.0000000000000000E+000,
-                      "Z" : 1.0000000000000000E+000
-                    }
+                    "Name" : "SphereCollider5"
                   }
                 ]
               }
@@ -594,22 +519,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 7.4068218469619751E-001,
-          "X" : -5.4465639591217041E-001,
-          "Y" : -8.1999415159225464E-001,
-          "Z" : -1.7595253884792328E-001
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 9.9999994039535522E-001,
-          "Z" : 9.9999994039535522E-001
+          "W" : 5.0521147251129150E-001,
+          "X" : -9.9501115083694458E-001,
+          "Y" : -9.5616519451141357E-002,
+          "Z" : -2.8470518067479134E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.9604486465454102E+001,
+          "X" : -2.9088921546936035E+000,
           "Y" : 1.1927908897399902E+001,
-          "Z" : 1.9158323287963867E+001
+          "Z" : 1.7396169662475586E+001
         }
       },
       "InternalGridAxis" : true,
@@ -637,14 +556,17 @@
         "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     }
