@@ -131,18 +131,18 @@ begin
       MakeVectorsOrthoOnTheirPlane(DirectionHorizontal, MainViewport.Camera.GravityUp);
 
     MapViewport.Camera.SetView(
-      MainViewport.Camera.Translation + Vector3(0, 30, 0),
+      MainViewport.Camera.WorldTranslation + Vector3(0, 30, 0),
       Vector3(0, -1, 0),
       DirectionHorizontal
     );
 
-    if BoxWinDetect.WorldBoundingBox.Contains(MainViewport.Camera.Translation) then
+    if BoxWinDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
       TUIState.Push(StateWin);
       Exit;
     end;
 
-    if BoxDieDetect.WorldBoundingBox.Contains(MainViewport.Camera.Translation) then
+    if BoxDieDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
       TUIState.Push(StateDeath);
       Exit;
