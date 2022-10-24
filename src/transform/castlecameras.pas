@@ -3103,15 +3103,18 @@ begin
     HeadBobbingAlreadyDone := true;
   end;
 
-  MoveHorizontalDone := true;
-
   if PreferGravityUpForMoving then
   begin
     Grav := GravityUpLocal;
     if not VectorsParallel(Dir, Grav) then
-      MakeVectorsOrthoOnTheirPlane(Dir, Grav);
+      MakeVectorsOrthoOnTheirPlane(Dir, Grav)
+    else
+      { Do not move at all, if Dir and Grav parallel.
+        This avoids moving vertically in such case. }
+      EXit;
   end;
 
+  MoveHorizontalDone := true;
   Move(Dir * Multiplier, false, true);
 end;
 
