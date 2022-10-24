@@ -137,14 +137,14 @@ type
     { Can we use mouse dragging. Checks @link(UsingInput) and so @link(Valid) already. }
     function ReallyEnableMouseDragging: boolean; virtual;
 
-    { Check collisions to determine how high above ground is given point.
+    { Check collisions to determine how high above ground is given point (in world coordinates).
       Checks collisions through parent TCastleViewport, if CheckCollisions. }
     procedure Height(const APosition: TVector3;
       out AIsAbove: Boolean;
       out AnAboveHeight: Single; out AnAboveGround: PTriangle);
 
     { Check collisions to determine can the object move.
-      Object wants to move from OldPos to ProposedNewPos.
+      Object wants to move from OldPos to ProposedNewPos (in world coordinates).
 
       Returns @false if no move is allowed.
       Otherwise returns @true and sets NewPos to the position
@@ -742,12 +742,21 @@ type
     procedure RotateHorizontal(const Angle: Single);
     procedure RotateVertical(AngleRad: Single);
 
-    { Like Move, but you pass here final ProposedNewPos. }
-    function MoveTo(const ProposedNewPos: TVector3;
+    { Like Move, but you pass here final ProposedNewPos.
+
+      LocalProposedNewPos is given in TCastleCamera parent coordinates,
+      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
+      You can think "I want to move to Translation + MoveVector". }
+    function MoveTo(const LocalProposedNewPos: TVector3;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-    { Try to move from current Position to Position + MoveVector.
+
+    { Try to move from current Translation to Translation + MoveVector.
       Checks MoveAllowed, also (if CheckClimbHeight is @true)
       checks the ClimbHeight limit.
+
+      MoveVector is given in TCastleCamera parent coordinates,
+      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
+      You can think "I want to move TCastleCamera to Translation + MoveVector".
 
       Returns @false if move was not possible and Position didn't change.
       Returns @true is some move occured (but don't assume too much:
@@ -755,17 +764,15 @@ type
       because of wall sliding). }
     function Move(const MoveVector: TVector3;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-    { Forward or backward move. Multiply must be +1 or -1. }
-    procedure MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
+
+    { Move horizontally.
+      Dir is in camera parent coordinates, like Camera.Direction.
+      It will be automatically adjusted to be parallel to gravity plane,
+      if PreferGravityUpForMoving. }
+    procedure MoveHorizontal(Dir: TVector3; const SecondsPassed: Single);
+
     { Up or down move, only when flying (ignored when @link(Gravity) is @true). }
     procedure MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
-    { Like RotateHorizontal, but it uses
-      PreferGravityUpForMoving to decide which rotation to use.
-      This way when PreferGravityUpForMoving, then we rotate versus GravityUp,
-      move in GravityUp plane, and then rotate back versus GravityUp.
-      If not PreferGravityUpForMoving, then we do all this versus Up.
-      And so everything works. }
-    procedure RotateHorizontalForStrafeMove(const Angle: Single);
 
     { Call always after horizontal rotation change.
       This will return new Position, applying effect of RotationHorizontalPivot.
@@ -781,6 +788,19 @@ type
       jump when there's no gravity, or you're already in the middle
       of the jump. Can be useful to determine if key was handled and such. }
     function Jump: boolean;
+
+    { Camera.GravityUp expressed in camera parent coordinate system. }
+    function GravityUpLocal: TVector3;
+
+    { Direction to strafe left.
+      In camera parent coordinate space, just like Camera.Direction.
+      This is not adjusted using PreferGravityUpForMoving/Rotations. }
+    function DirectionLeft: TVector3;
+
+    { Direction to strafe right.
+      In camera parent coordinate space, just like Camera.Direction.
+      This is not adjusted using PreferGravityUpForMoving/Rotations. }
+    function DirectionRight: TVector3;
   private
     { Private things related to gravity ---------------------------- }
 
@@ -932,11 +952,15 @@ type
       @link(TCastleTransform.Direction Camera.Direction) projected
       on the gravity horizontal plane, which neutralizes such things
       like raising / bowing your head.
+
       Result is always normalized (length 1).
 
       Note that when @link(TCastleTransform.Direction Camera.Direction) and GravityUp are parallel,
       this just returns current @link(TCastleTransform.Direction Camera.Direction) --- because in such case
-      we can't project @link(TCastleTransform.Direction Camera.Direction) on the horizontal plane. }
+      we can't project @link(TCastleTransform.Direction Camera.Direction) on the horizontal plane.
+
+      Note that the result is in TCastleCamera parent coordinate space, just like Direction.
+      We automatically account for the fact that GravityUp is specified in world coordinate space. }
     function DirectionInGravityPlane: TVector3;
 
     { Set the most important properties of this navigation, in one call.
@@ -1134,6 +1158,8 @@ type
       pointer for anything. But if you use this pointer,
       then you may want to take care to eventually set it to @nil when
       your octree or such is released.
+
+      AboveHeight is in world coordinates (not camera coordinates).
 
       @groupBegin }
     property IsAbove: boolean read FIsAbove;
@@ -1481,13 +1507,14 @@ begin
 
   if Result and Valid and CheckCollisions then
   begin
-    Result := (InternalViewport as TCastleViewport).InternalNavigationMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    Result := (InternalViewport as TCastleViewport).InternalNavigationMoveAllowed(
+      Self, OldPos, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
     // update ProposedNewPos for OnMoveAllowed call
     if Result then
       ProposedNewPos := NewPos;
   end;
   if Result and Assigned(OnMoveAllowed) then
-    Result := OnMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    Result := OnMoveAllowed(Self, OldPos, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
 end;
 
 procedure TCastleNavigation.Height(const APosition: TVector3;
@@ -3009,15 +3036,28 @@ begin
   Camera.SetWorldView(OldPosition, NewDirection, NewUp);
 end;
 
-function TCastleWalkNavigation.MoveTo(const ProposedNewPos: TVector3;
+function TCastleWalkNavigation.MoveTo(const LocalProposedNewPos: TVector3;
   const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 var
-  NewPos: TVector3;
+  OldPos, NewPos: TVector3;
+  WorldProposedNewPos: TVector3;
   NewIsAbove: boolean;
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
   NewAboveGround: PTriangle;
 begin
-  Result := MoveAllowed(Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+  // most of calculations inside are in world coordinates
+  if (Camera.Parent <> nil) and
+     (Camera.World <> nil) then
+  begin
+    OldPos := Camera.Parent.LocalToWorld(Camera.Translation);
+    WorldProposedNewPos := Camera.Parent.LocalToWorld(LocalProposedNewPos);
+  end else
+  begin
+    OldPos := Camera.Translation;
+    WorldProposedNewPos := LocalProposedNewPos;
+  end;
+
+  Result := MoveAllowed(OldPos, WorldProposedNewPos, NewPos, Radius, BecauseOfGravity);
 
   if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
     { if we're already below ClimbHeight then do not check if new position
@@ -3030,7 +3070,7 @@ begin
     Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
     if NewIsAbove then
     begin
-      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, Camera.Translation);
+      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, OldPos);
       NewAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, NewPos);
       Result := not (
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
@@ -3042,7 +3082,16 @@ begin
   end;
 
   if Result then
+  begin
+    // convert back from world to local coordinates
+    if (Camera.Parent <> nil) and
+       (Camera.World <> nil) then
+    begin
+      NewPos := Camera.Parent.WorldToLocal(NewPos);
+    end;
+
     Camera.Translation := NewPos;
+  end;
 end;
 
 function TCastleWalkNavigation.Move(const MoveVector: TVector3;
@@ -3051,12 +3100,13 @@ begin
   Result := MoveTo(Camera.Translation + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
 
-procedure TCastleWalkNavigation.MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
+procedure TCastleWalkNavigation.MoveHorizontal(Dir: TVector3;
+  const SecondsPassed: Single);
 var
-  Dir: TVector3;
   Multiplier: Single;
+  Grav: TVector3;
 begin
-  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * Multiply;
+  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed;
   if IsJumping then
     Multiplier := Multiplier * JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
@@ -3072,8 +3122,11 @@ begin
   MoveHorizontalDone := true;
 
   if PreferGravityUpForMoving then
-    Dir := DirectionInGravityPlane else
-    Dir := Camera.Direction;
+  begin
+    Grav := GravityUpLocal;
+    if not VectorsParallel(Dir, Grav) then
+      MakeVectorsOrthoOnTheirPlane(Dir, Grav);
+  end;
 
   Move(Dir * Multiplier, false, true);
 end;
@@ -3095,18 +3148,10 @@ begin
   if not Gravity then
   begin
     if PreferGravityUpForMoving then
-      MoveVerticalCore(Camera.GravityUp)
+      MoveVerticalCore(GravityUpLocal)
     else
       MoveVerticalCore(Camera.Up);
   end;
-end;
-
-procedure TCastleWalkNavigation.RotateHorizontalForStrafeMove(const Angle: Single);
-begin
-  if PreferGravityUpForMoving then
-    RotateAroundGravityUp(Angle)
-  else
-    RotateAroundUp(Angle);
 end;
 
 function TCastleWalkNavigation.ReallyEnableMouseDragging: boolean;
@@ -3153,7 +3198,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         if FJumpHeight > MaxJumpDistance then
           FIsJumping := false else
           { do jumping }
-          Move(Camera.GravityUp * ThisJumpHeight, false, false);
+          Move(GravityUpLocal * ThisJumpHeight, false, false);
       end;
     end;
 
@@ -3179,7 +3224,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
           MoveSpeed * MoveVerticalSpeed * GrowSpeed * SecondsPassed,
           RealPreferredHeight - AboveHeight);
 
-        Move(Camera.GravityUp * GrowingVectorLength, true, false);
+        Move(GravityUpLocal * GrowingVectorLength, true, false);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -3272,7 +3317,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
       MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
-      if Move(Camera.GravityUp * (- FallingVectorLength), true, false) and
+      if Move(GravityUpLocal * (- FallingVectorLength), true, false) and
         (not TVector3.PerfectlyEquals(Camera.Translation, PositionBefore)) then
       begin
         if not Falling then
@@ -3443,7 +3488,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       if not Result then
         Exit;
 
-      Angle := AngleRadBetweenVectors(Camera.Up, Camera.GravityUp);
+      Angle := AngleRadBetweenVectors(Camera.Up, GravityUpLocal);
 
       if SameValue(Angle, HalfPi, 0.01) then
       begin
@@ -3468,14 +3513,14 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       begin
         { Project Position and FFallingStartPosition
           onto GravityUp vector to calculate fall height. }
-        BeginPos := PointOnLineClosestToPoint(TVector3.Zero, Camera.GravityUp, FFallingStartPosition);
-        EndPos   := PointOnLineClosestToPoint(TVector3.Zero, Camera.GravityUp, Camera.Translation);
+        BeginPos := PointOnLineClosestToPoint(TVector3.Zero, GravityUpLocal, FFallingStartPosition);
+        EndPos   := PointOnLineClosestToPoint(TVector3.Zero, GravityUpLocal, Camera.Translation);
         FallVector := BeginPos - EndPos;
 
         { Because of various growing and jumping effects (imagine you jump up
           onto a taller pillar) it may turn out that we're higher at the end
           at the end of fall. Do not report it to OnFall event in this case. }
-        if TVector3.DotProduct(Camera.GravityUp, FallVector.Normalize) <= 0 then
+        if TVector3.DotProduct(GravityUpLocal, FallVector.Normalize) <= 0 then
           Exit;
 
         OnFall(Self, FallVector.Length);
@@ -3539,7 +3584,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     if Gravity then
     begin
       { update IsAbove, AboveHeight }
-      Height(Camera.Translation, FIsAbove, FAboveHeight, FAboveGround);
+      Height(Camera.WorldTranslation, FIsAbove, FAboveHeight, FAboveGround);
 
       FIsOnTheGround := GetIsOnTheGround;
       FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
@@ -3674,9 +3719,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     if buttonLeft in Container.MousePressed then
     begin
       if Delta.Y < -Tolerance then
-        MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
+        MoveHorizontal( Camera.Direction, -MoveSizeY * SecondsPassed); // forward
       if Delta.Y > Tolerance then
-        MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
+        MoveHorizontal(-Camera.Direction, -MoveSizeY * SecondsPassed); // backward
 
       if Abs(Delta.X) > Tolerance then
         RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
@@ -3684,17 +3729,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     else if buttonRight in Container.MousePressed then
     begin
       if Delta.X < -Tolerance then
-      begin
-        RotateHorizontalForStrafeMove(HalfPi);
-        MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
-        RotateHorizontalForStrafeMove(-HalfPi);
-      end;
+        MoveHorizontal(DirectionLeft, MoveSizeX * SecondsPassed);
       if Delta.X > Tolerance then
-      begin
-        RotateHorizontalForStrafeMove(-HalfPi);
-        MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
-        RotateHorizontalForStrafeMove(HalfPi);
-      end;
+        MoveHorizontal(DirectionRight, MoveSizeX * SecondsPassed);
 
       if Delta.Y < -5 then
         MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
@@ -3735,23 +3772,13 @@ begin
         CheckRotates(1.0);
 
         if Input_Forward.IsPressed(Container) or MoveForward then
-          MoveHorizontal(SecondsPassed, 1);
+          MoveHorizontal( Camera.Direction, SecondsPassed);
         if Input_Backward.IsPressed(Container) or MoveBackward then
-          MoveHorizontal(SecondsPassed, -1);
-
+          MoveHorizontal(-Camera.Direction, SecondsPassed);
         if Input_RightStrafe.IsPressed(Container) then
-        begin
-          RotateHorizontalForStrafeMove(-HalfPi);
-          MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(HalfPi);
-        end;
-
+          MoveHorizontal(DirectionRight, SecondsPassed);
         if Input_LeftStrafe.IsPressed(Container) then
-        begin
-          RotateHorizontalForStrafeMove(HalfPi);
-          MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(-HalfPi);
-        end;
+          MoveHorizontal(DirectionLeft , SecondsPassed);
 
         { A simple implementation of Input_Jump was
             RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
@@ -3825,7 +3852,7 @@ begin
     to be able to jump. }
 
   { update IsAbove, AboveHeight }
-  Height(Camera.Translation, FIsAbove, FAboveHeight, FAboveGround);
+  Height(Camera.WorldTranslation, FIsAbove, FAboveHeight, FAboveGround);
 
   if AboveHeight > RealPreferredHeight + RealPreferredHeightMargin then
     Exit;
@@ -3963,22 +3990,14 @@ begin
   MoveSize := Length * SecondsPassed / 5000;
 
   if Z > 5 then
-    MoveHorizontal(Z * MoveSize, -1); { backward }
+    MoveHorizontal(-Camera.Direction, Z * MoveSize); { backward }
   if Z < -5 then
-    MoveHorizontal(-Z * MoveSize, 1); { forward }
+    MoveHorizontal( Camera.Direction, -Z * MoveSize); { forward }
 
   if X > 5 then
-  begin
-    RotateHorizontalForStrafeMove(-HalfPi);
-    MoveHorizontal(X * MoveSize, 1);  { right }
-    RotateHorizontalForStrafeMove(HalfPi);
-  end;
+    MoveHorizontal(DirectionRight, X * MoveSize);  { right }
   if X < -5 then
-  begin
-    RotateHorizontalForStrafeMove(HalfPi);
-    MoveHorizontal(-X * MoveSize, 1); { left }
-    RotateHorizontalForStrafeMove(-HalfPi);
-  end;
+    MoveHorizontal(DirectionLeft, -X * MoveSize); { left }
 
   if Y > 5 then
     MoveVertical(Y * MoveSize, 1);    { up }
@@ -4064,12 +4083,34 @@ begin
   Result := JumpMaxHeight * PreferredHeight;
 end;
 
+function TCastleWalkNavigation.GravityUpLocal: TVector3;
+begin
+  if (Camera.Parent <> nil) and
+     (Camera.World <> nil) then
+    Result := Camera.Parent.WorldToLocalDirection(Camera.GravityUp)
+  else
+    Result := Camera.GravityUp;
+end;
+
 function TCastleWalkNavigation.DirectionInGravityPlane: TVector3;
+var
+  Grav: TVector3;
 begin
   Result := Camera.Direction;
 
-  if not VectorsParallel(Result, Camera.GravityUp) then
-    MakeVectorsOrthoOnTheirPlane(Result, Camera.GravityUp);
+  Grav := GravityUpLocal;
+  if not VectorsParallel(Result, Grav) then
+    MakeVectorsOrthoOnTheirPlane(Result, Grav);
+end;
+
+function TCastleWalkNavigation.DirectionLeft: TVector3;
+begin
+  Result := TVector3.CrossProduct(Camera.Up, Camera.Direction);
+end;
+
+function TCastleWalkNavigation.DirectionRight: TVector3;
+begin
+  Result := TVector3.CrossProduct(Camera.Direction, Camera.Up);
 end;
 
 procedure TCastleWalkNavigation.FallOnTheGround;
