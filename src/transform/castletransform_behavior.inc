@@ -220,10 +220,51 @@ procedure TCastleBehavior.BeforeDestruction;
 begin
   DesigningEnd;
 
-  // TODO: why BeforeBehaviorDestroy is in BeforeDestruction?
-  // (DesigningEnd is here because it looks like should be before BeforeDestruction.)
+  { Imagine this:
+
+      TMyBehavior = class(TCastleBehavior)
+        MyStuff: TObject;
+        constructor Create;
+        destructor Destroy; override;
+        procedure BeforeParentDetach; override;
+      end;
+
+      constructor TMyBehavior.Create;
+      begin
+        inherited;
+        MyStuff := TObject.Create;
+      end;
+
+      destructor TMyBehavior.Destroy;
+      begin
+        FreeAndNil(MyStuff);
+        inherited;
+      end;
+
+      procedure TMyBehavior.BeforeParentDetach;
+      begin
+        MyStuff.Xxx := ...; // <- this is safe, because BeforeParentDetach is done from BeforeBehaviorDestroy
+        inherited;
+      end;
+
+      var
+        B: TMyBehavior;
+      begin
+        ..
+        FreeAndNil(B);
+      end;
+
+    Thanks to calling Parent.BeforeBehaviorDestroy in TCastleBehavior.BeforeDestruction
+    (and not TCastleBehavior.Destroy) accessing MyStuff in TMyBehavior.BeforeParentDetach
+    is safe.
+  }
+
   if Parent <> nil then
+  begin
     Parent.BeforeBehaviorDestroy(Self);
+    Assert(Parent = nil);
+  end;
+
   inherited BeforeDestruction;
 end;
 
