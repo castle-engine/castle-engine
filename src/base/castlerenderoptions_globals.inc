@@ -398,6 +398,9 @@ type
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
+  { Render layer for @link(TCastleTransform.RenderLayer). }
+  TRenderLayer = (rlParent, rlBack, rlFront);
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );

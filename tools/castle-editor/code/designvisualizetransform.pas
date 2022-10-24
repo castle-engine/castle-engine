@@ -121,7 +121,7 @@ uses Math,
   ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection,
   CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
-  CastleControl, CastleKeysMouse;
+  CastleControl, CastleKeysMouse, CastleRenderOptions;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
@@ -264,6 +264,7 @@ var
 begin
   inherited Create(AOwner);
   InternalExistsOnlyInMeaningfulParents := true;
+  RenderLayer := rlFront;
 
   {$ifdef DEBUG_GIZMO_PICK}
   VisualizePick := TCastleScene.Create(Self);
@@ -602,8 +603,6 @@ begin
 end;
 
 procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
-const
-  RenderOnTop = true;
 var
   DistanceToCameraSqr: Single;
   GizmoShouldExist: Boolean;
@@ -618,19 +617,7 @@ begin
   if not GizmoShouldExist then
     Exit; // do not show gizmo
 
-  { We show gizmo on top, to be easily always visible.
-    This makes sense because it is also interactable even when obscured.
-
-    This simple approach to "render on top" has same drawbacks
-    as TPlayer.LocalRender. }
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drNear;
-
   inherited;
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drFar;
 end;
 
 function TVisualizeTransform.TGizmoScene.LocalRayCollision(

@@ -47,6 +47,7 @@ type
 implementation
 
 uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
+  CastleRenderContext,
   // TODO: this breaks unit dependencies, transform->scene
   X3DNodes, CastleScene;
 
