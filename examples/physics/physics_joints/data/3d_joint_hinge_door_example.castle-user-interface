@@ -95,8 +95,8 @@
                   },
                   {
                     "$$ClassName" : "TCastleMeshCollider",
-                    "Name" : "MeshCollider2",
-                    "Scene" : "SceneRest"
+                    "Mesh" : "SceneRest",
+                    "Name" : "MeshCollider2"
                   },
                   {
                     "$$ClassName" : "TCastleHingeJoint",
