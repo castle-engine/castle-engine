@@ -947,22 +947,6 @@ type
       read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
-    { Return @link(TCastleTransform.Direction Camera.Direction) vector rotated such that it is
-      orthogonal to GravityUp. This way it returns
-      @link(TCastleTransform.Direction Camera.Direction) projected
-      on the gravity horizontal plane, which neutralizes such things
-      like raising / bowing your head.
-
-      Result is always normalized (length 1).
-
-      Note that when @link(TCastleTransform.Direction Camera.Direction) and GravityUp are parallel,
-      this just returns current @link(TCastleTransform.Direction Camera.Direction) --- because in such case
-      we can't project @link(TCastleTransform.Direction Camera.Direction) on the horizontal plane.
-
-      Note that the result is in TCastleCamera parent coordinate space, just like Direction.
-      We automatically account for the fact that GravityUp is specified in world coordinate space. }
-    function DirectionInGravityPlane: TVector3;
-
     { Set the most important properties of this navigation, in one call.
       Sets camera properties (Translation, Direction, Up).
 
@@ -3482,20 +3466,48 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
     function TryFallingOnTheGround: boolean;
     var
+      Grav: TVector3;
+
+      { Return @link(TCastleTransform.Direction Camera.Direction) vector rotated such that it is
+        orthogonal to GravityUp. This way it returns
+        @link(TCastleTransform.Direction Camera.Direction) projected
+        on the gravity horizontal plane, which neutralizes such things
+        like raising / bowing your head.
+
+        Result is always normalized (length 1).
+
+        Note that when @link(TCastleTransform.Direction Camera.Direction) and GravityUp are parallel,
+        this just returns current @link(TCastleTransform.Direction Camera.Direction) --- because in such case
+        we can't project @link(TCastleTransform.Direction Camera.Direction) on the horizontal plane.
+
+        Note that the result is in TCastleCamera parent coordinate space, just like Direction.
+        We automatically account for the fact that GravityUp is specified in world coordinate space. }
+      function DirectionInGravityPlane: TVector3;
+      begin
+        Result := Camera.Direction;
+        MakeVectorsOrthoOnTheirPlane(Result, Grav);
+      end;
+
+    var
       Angle, AngleRotate: Single;
     begin
+      Grav := GravityUpLocal;
+
       Result := FFallingOnTheGround;
       if not Result then
         Exit;
 
-      Angle := AngleRadBetweenVectors(Camera.Up, GravityUpLocal);
-
+      Angle := AngleRadBetweenVectors(Camera.Up, Grav);
       if SameValue(Angle, HalfPi, 0.01) then
       begin
         { FallingOnTheGround effect stops here. }
         FFallingOnTheGround := false;
         Exit;
       end;
+
+      { Our DirectionInGravityPlane doesn't work when Camera.Direction and Grav are parallel }
+      if VectorsParallel(Camera.Direction, Grav) then
+        Exit;
 
       AngleRotate := SecondsPassed * 5;
       MinVar(AngleRotate, Abs(Angle - HalfPi));
@@ -4087,20 +4099,9 @@ function TCastleWalkNavigation.GravityUpLocal: TVector3;
 begin
   if (Camera.Parent <> nil) and
      (Camera.World <> nil) then
-    Result := Camera.Parent.WorldToLocalDirection(Camera.GravityUp)
+    Result := Camera.Parent.WorldToLocalDirection(Camera.GravityUp).Normalize
   else
     Result := Camera.GravityUp;
-end;
-
-function TCastleWalkNavigation.DirectionInGravityPlane: TVector3;
-var
-  Grav: TVector3;
-begin
-  Result := Camera.Direction;
-
-  Grav := GravityUpLocal;
-  if not VectorsParallel(Result, Grav) then
-    MakeVectorsOrthoOnTheirPlane(Result, Grav);
 end;
 
 function TCastleWalkNavigation.DirectionLeft: TVector3;
