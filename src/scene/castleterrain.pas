@@ -83,7 +83,7 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors;
+  CastleColors, CastleTriangles;
 
 type
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -628,6 +628,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function HasColliderMesh: Boolean; override;
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { How dense is the mesh.
       By default this is (DefaultSubdivisions,DefaultSubdivisions).
@@ -1994,6 +1996,16 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleTerrain.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
+begin
+  Scene.ColliderMesh(TriangleEvent);
 end;
 
 {$define read_implementation_methods}

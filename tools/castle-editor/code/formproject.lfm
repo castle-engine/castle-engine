@@ -680,6 +680,7 @@ object ProjectForm: TProjectForm
   end
   object ApplicationProperties1: TApplicationProperties
     OnActivate = ApplicationProperties1Activate
+    OnDeactivate = ApplicationProperties1Deactivate
     OnException = ApplicationProperties1Exception
     Left = 264
     Top = 17

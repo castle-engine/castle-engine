@@ -26,16 +26,17 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
-    WalkNavigation: TCastleWalkNavigation;
-    Viewport: TCastleViewport;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    WalkNavigation: TCastleWalkNavigation;
+    Viewport: TCastleViewport;
   end;
 
 var
@@ -57,11 +58,6 @@ end;
 procedure TStateMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -70,6 +66,16 @@ begin
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
   WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
+
+  { Never "capture" the motion of the mouse.
+    Without this, dragging with right mouse button held,
+    and then pressing left mouse button to shoot,
+    makes the subsequent dragging (assuming you still hold the right mouse button) not work
+    -- it is blocked for a short time before releasing left mouse button
+    and then it is blocked until you release right mouse button too
+    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
+    TODO: Reconsider, maybe we should have some way to say "not capture" at press? }
+  Container.ReleaseCapture(Self);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;

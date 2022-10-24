@@ -121,7 +121,7 @@
               {
                 "$$ClassName" : "TCastleRigidBody",
                 "Animated" : true,
-                "CollisionDetectionType" : "cdtContinuous",
+                "CollisionDetection" : "cdContinuous",
                 "Dynamic" : false,
                 "LockRotation" : [
                   0,
@@ -169,7 +169,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "CollisionDetectionType" : "cdtContinuous",
+                "CollisionDetection" : "cdContinuous",
                 "LockRotation" : [
                   0,
                   1
@@ -374,7 +374,7 @@
         },
         {
           "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "ContinuousCD",
+          "Caption" : "ContinuousCollisionDetection",
           "CheckboxColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -382,7 +382,7 @@
             "Red" : 1.0000000000000000E+000
           },
           "Checked" : true,
-          "Name" : "CheckboxContinuousCD",
+          "Name" : "CheckboxContinuousCollisionDetection",
           "TextColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -542,7 +542,7 @@
         },
         {
           "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "ContinuousCD",
+          "Caption" : "ContinuousCollisionDetection",
           "CheckboxColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -550,7 +550,7 @@
             "Red" : 1.0000000000000000E+000
           },
           "Checked" : true,
-          "Name" : "CheckboxContinuousCDSphereDynamic",
+          "Name" : "CheckboxContinuousCollisionDetectionSphereDynamic",
           "TextColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,

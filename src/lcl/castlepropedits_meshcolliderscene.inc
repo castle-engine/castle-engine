@@ -16,11 +16,10 @@
 
 { TCastle property editor. }
 
-{ TMeshColliderScenePropertyEditor ------------------------------------------ }
+{ TMeshColliderMeshPropertyEditor ------------------------------------------ }
 
 type
-  TMeshColliderScenePropertyEditor = class(TPersistentPropertyEditor)
-
+  TMeshColliderMeshPropertyEditor = class(TPersistentPropertyEditor)
   strict private
     FProc: TGetStrProc;
     procedure FilterValues(const S: String);
@@ -28,26 +27,24 @@ type
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
-procedure TMeshColliderScenePropertyEditor.FilterValues(const S: String);
+procedure TMeshColliderMeshPropertyEditor.FilterValues(const S: String);
 var
   Persistent: TPersistent;
-  CastleTransform: TCastleTransform;
+  Transform: TCastleTransform;
 begin
   if Assigned(PropertyHook) and Assigned(FProc) then
   begin
     Persistent := PropertyHook.GetComponent(S);
-    CastleTransform := Persistent as TCastleTransform;
-
-    if Assigned(CastleTransform) and CastleTransform.HasColliderMesh then
+    Transform := Persistent as TCastleTransform;
+    if Assigned(Transform) and Transform.HasColliderMesh then
       FProc(S);
   end;
 end;
 
-procedure TMeshColliderScenePropertyEditor.GetValues(Proc: TGetStrProc);
+procedure TMeshColliderMeshPropertyEditor.GetValues(Proc: TGetStrProc);
 begin
   FProc := Proc; // used by FilterValues
   Proc(oisNone); // add none value
   if Assigned(PropertyHook) then
     PropertyHook.GetComponentNames(GetTypeData(GetPropType), @FilterValues);
 end;
-

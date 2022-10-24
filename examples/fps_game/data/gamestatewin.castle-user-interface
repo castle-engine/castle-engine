@@ -1,0 +1,63 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.0000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 9.4901961088180542E-001
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Back to main menu",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonBack",
+          "PaddingHorizontal" : 3.0000000000000000E+001,
+          "PaddingVertical" : 3.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -1.0000000000000000E+001,
+            "Y" : -2.2000000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Label1",
+      "Text" : [
+        "You have saved the princess"
+      ],
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle"
+    }
+  ]
+}

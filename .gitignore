@@ -95,6 +95,7 @@ castle-game-engine-*.fpm
 /examples/fonts/text_tests/text_tests
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
+/examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/images_videos/background_tiling/background_tiling
 /examples/images_videos/dds_decompose/dds_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test

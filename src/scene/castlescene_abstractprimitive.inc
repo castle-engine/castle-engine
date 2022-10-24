@@ -65,16 +65,17 @@ type
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
+
+    { Update collider size, if TCastleCollider is attached and has TCastleCollider.AutoSize.
+      TODO: It is ugly that we need to call this manually, and we surely don't cover
+      all options, e.g. TCastleScene changes also do not affect a related collider. }
+    procedure UpdateColliderSize;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
-    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
     function HasColliderMesh: Boolean; override;
-    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
     procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
-
 
     { Color of the text. Opaque white by default.
 
@@ -369,6 +370,15 @@ end;
 function TCastleAbstractPrimitive.GetUseInternalGlobalRenderOptions: Boolean;
 begin
   Result := FScene.UseInternalGlobalRenderOptions;
+end;
+
+procedure TCastleAbstractPrimitive.UpdateColliderSize;
+var
+  C: TCastleCollider;
+begin
+  C := FindBehavior(TCastleCollider) as TCastleCollider;
+  if C <> nil then
+    C.InternalAutoSize;
 end;
 
 {$define read_implementation_methods}

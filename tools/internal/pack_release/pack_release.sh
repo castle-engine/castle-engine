@@ -19,6 +19,10 @@ set -euo pipefail
 #   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
 #   -- right now this means Linux and Windows.
 #
+# Define CGE_PACK_BUNDLE=yes for a special behavior:
+# - The generated archive will be named -bundle
+# - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
 #
@@ -29,6 +33,10 @@ set -euo pipefail
 # Works on
 # - Linux,
 # - Windows (with Cygwin),
+#   Note: It assumes that Cygwin tools, like cp, are first on $PATH, before equivalent from MinGW in FPC.
+#   A simple solution to make sure it's true is to execute
+#     export PATH="/bin:$PATH"
+#   in Cygwin shell right before this script.
 # - FreeBSD (install GNU make and sed),
 # - macOS (install GNU sed from Homebrew).
 # ----------------------------------------------------------------------------
@@ -299,7 +307,15 @@ do_pack_platform ()
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
-  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
+  # Add bundled tools (FPC)
+  local ARCHIVE_NAME_BUNDLE=''
+  if [ "${CGE_PACK_BUNDLE:-}" == 'yes' ]; then
+    cd "${TEMP_PATH_CGE}"tools/contrib/
+    unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
+    ARCHIVE_NAME_BUNDLE='-bundle'
+  fi
+
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
   cd "${TEMP_PATH}"
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/

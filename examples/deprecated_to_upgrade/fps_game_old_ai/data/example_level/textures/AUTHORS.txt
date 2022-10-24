@@ -1,0 +1,20 @@
+tilable-img_0044.png:
+  from http://opengameart.org/node/9703
+  by http://opengameart.org/users/p0ss
+  license: GPL 2.0 or above
+
+brushwalker437.png:
+  from http://opengameart.org/node/10593
+  by http://opengameart.org/users/qubodup
+  license: public domain
+
+large-stone-wall.png and stone_wall_4.png:
+  from http://opengameart.org/content/wall-grass-rock-stone-wood-and-dirt-480
+  by West
+    submitted by http://opengameart.org/users/qubodup
+  license: public domain
+
+concrete:
+  from http://opengameart.org/content/p0sss-texture-pack-1
+  by http://opengameart.org/users/p0ss
+  license: CC-BY 3.0, GPL 3.0 or above

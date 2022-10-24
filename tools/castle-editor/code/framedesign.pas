@@ -36,7 +36,7 @@ uses
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
   CastleColors, CastleScene,
   // editor units
-  FrameAnchors, CastleShellCtrls,
+  FrameAnchors, CastleShellCtrls, EditorUtils,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
 
 type
@@ -320,6 +320,7 @@ type
     { Look at current selection and hover and possibly change CurrentViewport,
       calling also OnCurrentViewportChanged. }
     procedure UpdateCurrentViewport;
+    procedure SetCurrentViewport(const Value: TCastleViewport);
 
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
@@ -450,6 +451,9 @@ type
       Do ControlsTree.ClearSelection that makes multi-selection properly cleared.
     }
     function ControlsTreeOneSelected: TTreeNode;
+    function GetInspectorForActiveTab: TOIPropertyGrid;
+    function GetSavedSelection: TSavedSelection;
+    procedure RestoreSavedSelection(const S: TSavedSelection);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -502,7 +506,7 @@ type
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
     procedure RecordUndo(const UndoComment: String;
-      const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+      const UndoCommentPriority: TUndoCommentPriority);
 
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
@@ -530,6 +534,8 @@ type
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
+
+    procedure ReleaseAllKeysAndMouse;
   end;
 
 implementation
@@ -548,7 +554,7 @@ uses
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
-  EditorUtils, FormProject, CastleComponentEditorDesigner;
+  FormProject, CastleComponentEditorDesigner;
 
 {$R *.lfm}
 
@@ -1518,19 +1524,6 @@ begin
 end;
 
 procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
-
-  function GetInspectorForActiveTab: TOIPropertyGrid;
-  var
-    InspectorType: TInspectorType;
-  begin
-    for InspectorType in TInspectorType do
-    begin
-      if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
-        Exit(Inspector[InspectorType]);
-    end;
-    Result := nil;
-  end;
-
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   InspectorType: TInspectorType;
@@ -1542,12 +1535,100 @@ begin
   NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, DesignOwner);
   OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
 
-  if UHE.Selected <> '' then
-    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
-  if UHE.ItemIndex >= 0 then
+  RestoreSavedSelection(UHE.Selection);
+end;
+
+function TDesignFrame.GetInspectorForActiveTab: TOIPropertyGrid;
+var
+  InspectorType: TInspectorType;
+begin
+  for InspectorType in TInspectorType do
   begin
-    ControlProperties.TabIndex := UHE.TabIndex;
-    GetInspectorForActiveTab.SetItemIndexAndFocus(UHE.ItemIndex);
+    if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
+      Exit(Inspector[InspectorType]);
+  end;
+  Result := nil;
+end;
+
+function TDesignFrame.GetSavedSelection: TSavedSelection;
+var
+  SelectedC: TComponent;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  SelectedC := GetSelectedComponent;
+  { In case of modifying subcomponent, like TCastleViewport.Items,
+    the currently selected component is not owned by whole design owner,
+    so it will not be later found by name in RestoreSavedSelection. }
+  if (SelectedC <> nil) and
+     (SelectedC.Owner = DesignOwner) then
+    Result.SelectedComponent := SelectedC.Name
+  else
+    Result.SelectedComponent := '';
+
+  if (CurrentViewport <> nil) and
+     (CurrentViewport.Owner = DesignOwner) then
+    Result.CurrentViewport := CurrentViewport.Name
+  else
+    Result.CurrentViewport := '';
+
+  Result.TabIndex := ControlProperties.TabIndex;
+
+  ActiveInspector := GetInspectorForActiveTab;
+  if ActiveInspector <> nil then
+    Result.ItemIndex := ActiveInspector.ItemIndex
+  else
+    Result.ItemIndex := -1;
+end;
+
+procedure TDesignFrame.RestoreSavedSelection(const S: TSavedSelection);
+var
+  C: TComponent;
+  V: TCastleViewport;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  if S.SelectedComponent <> '' then
+  begin
+    C := DesignOwner.FindComponent(S.SelectedComponent);
+    if C = nil then
+    begin
+      WritelnLog('Cannot restore selection, as component "%s" no longer exists. This is normal if e.g. stopping physics removes an object added during physics simulation.', [
+        S.SelectedComponent
+      ]);
+    end else
+    begin
+      SetSelectedComponent(C);
+
+      { Restore object inspector state only if we could restore SelectedComponent,
+        as object inspector should show the selected component. }
+      if S.ItemIndex >= 0 then
+      begin
+        ControlProperties.TabIndex := S.TabIndex;
+
+        ActiveInspector := GetInspectorForActiveTab;
+        if ActiveInspector <> nil then
+          ActiveInspector.SetItemIndexAndFocus(S.ItemIndex)
+        else
+          WritelnWarning('Cannot restore selection inspector ItemIndex, because inspector not found');
+      end;
+    end;
+  end;
+
+  if S.CurrentViewport <> '' then
+  begin
+    { We restore CurrentViewport, otherwise stopping physics would set CurrentViewport
+      to nil if it was previously made non-nil because of hovering over a viewport
+      (and not selecting viewport or something inside viewport). }
+    C := DesignOwner.FindComponent(S.CurrentViewport);
+    if (C = nil) or not (C is TCastleViewport) then
+    begin
+      WritelnLog('Cannot restore CurrentViewport, as viewport "%s" no longer exists or is no longer a TCastleViewport.', [
+        S.CurrentViewport
+      ]);
+    end else
+    begin
+      V := C as TCastleViewport;
+      SetCurrentViewport(V);
+    end;
   end;
 end;
 
@@ -1823,7 +1904,7 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
       try
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
-          (Result as TCastleMeshCollider).Scene := ParentComponent;
+          (Result as TCastleMeshCollider).Mesh := ParentComponent;
         { When creating new behavior under selected transform, call DesigningBegin.
           This way temporary anchors appear immediately on newly added physics joint. }
         if ParentComponent = TransformDesigning then
@@ -2361,15 +2442,20 @@ begin
       NewCurrentViewport := TCastleViewport(HoverUi.Parent);
   end;
 
-  if (NewCurrentViewport <> nil) and
-     (FCurrentViewport <> NewCurrentViewport) then
+  if NewCurrentViewport <> nil then
+    SetCurrentViewport(NewCurrentViewport);
+  { otherwise keep using FCurrentViewport we had so far }
+end;
+
+procedure TDesignFrame.SetCurrentViewport(const Value: TCastleViewport);
+begin
+  if FCurrentViewport <> Value then
   begin
-    FCurrentViewport := NewCurrentViewport;
-    FCurrentViewportObserver.Observed := NewCurrentViewport;
+    FCurrentViewport := Value;
+    FCurrentViewportObserver.Observed := Value;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
-  { otherwise keep using FCurrentViewport we had so far }
 end;
 
 procedure TDesignFrame.CurrentViewportFreeNotification(
@@ -3233,7 +3319,7 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
           RecordUndo(
             UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
             TOICustomPropertyGrid(Sender).CurrentEditValue, SelectedCount),
-            ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+            ucHigh);
         end else
         { Sender is nil when PropertyGridModified is called
           by ModifiedOutsideObjectInspector. }
@@ -3354,25 +3440,13 @@ begin
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
-  const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+  const UndoCommentPriority: TUndoCommentPriority);
 var
   StartTimer: TTimerResult;
-  SelectedName: String;
-  SelectedC: TComponent;
 begin
   StartTimer := Timer;
-
-  SelectedC := GetSelectedComponent;
-  { In case of modifying subcomponent, like TCastleViewport.Items,
-    the currently selected component is not owned by whole design owner,
-    so it could not be later found by name in PerformUndoRedo. }
-  if (SelectedC <> nil) and (SelectedC.Owner = DesignOwner) then
-    SelectedName := SelectedC.Name
-  else
-    SelectedName := '';
-
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
-  UndoSystem.DoLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), GetSavedSelection, UndoComment, UndoCommentPriority);
+  UndoSystem.DoLog('Undo "%s" recorded in %fs.', [UndoComment, StartTimer.ElapsedTime]);
 end;
 
 procedure TDesignFrame.SaveSelected;
@@ -4534,7 +4608,14 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
+    SrcHasWorld: Boolean;
+    WorldPos, WorldDir, WorldUp: TVector3;
   begin
+    // TODO: Available only with Ctrl, to test this feature
+    SrcHasWorld := (ssCtrl in GetKeyShiftState) and Src.HasWorldTransform;
+    if SrcHasWorld then
+      Src.GetWorldView(WorldPos, WorldDir, WorldUp);
+
     case ControlsTreeNodeUnderMouseSide of
       tnsRight:
         begin
@@ -4543,6 +4624,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4558,6 +4641,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4862,7 +4947,8 @@ end;
 
 procedure TDesignFrame.ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
 var
-  NewDesignOwner: TComponent;
+  NewDesignOwner, NewDesignRoot: TComponent;
+  SavedSelection: TSavedSelection;
 begin
   if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
     CastleDesignPhysicsMode := pmStopped
@@ -4875,18 +4961,22 @@ begin
     ActionPhysicsPauseSimulation.Visible := true;
     DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
     DesignModifiedBeforePhysicsRun := FDesignModified;
-  end
-  else
-    begin
-      ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsPlay);
-      ActionPhysicsPauseSimulation.Visible := false;
-      ActionPhysicsPauseSimulation.Checked := false;
-      NewDesignOwner := TComponent.Create(Self);
-      OpenDesign(InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, DesignOwner),
-        NewDesignOwner, FDesignUrl);
-      FDesignModified := DesignModifiedBeforePhysicsRun;
-      OnUpdateFormCaption(Self);
-    end;
+  end else
+  begin
+    ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsPlay);
+    ActionPhysicsPauseSimulation.Visible := false;
+    ActionPhysicsPauseSimulation.Checked := false;
+
+    SavedSelection := GetSavedSelection;
+
+    NewDesignOwner := TComponent.Create(Self);
+    NewDesignRoot := InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, DesignOwner);
+    OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    FDesignModified := DesignModifiedBeforePhysicsRun;
+    OnUpdateFormCaption(Self);
+
+    RestoreSavedSelection(SavedSelection);
+  end;
 end;
 
 procedure TDesignFrame.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
@@ -5383,6 +5473,11 @@ begin
   OpenDesign(NewRoot, NewDesignOwner, '');
 
   RecordUndo('Start new design', High(TUndoCommentPriority)); // This Undo comment is never seen
+end;
+
+procedure TDesignFrame.ReleaseAllKeysAndMouse;
+begin
+  CastleControl.ReleaseAllKeysAndMouse;
 end;
 
 initialization

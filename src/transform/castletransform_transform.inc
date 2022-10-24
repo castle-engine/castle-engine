@@ -103,6 +103,7 @@
       FPendingToRemoveAndFree: TComponentList;
       { Safeguard to negative scale values. }
       FShouldUpdatePhysicsObjects: Boolean;
+      FRenderLayer: TRenderLayer;
 
       // transformation
       FCenter: TVector3;
@@ -194,7 +195,7 @@
     { Some behaviors need know when castle transform is in world or not or
       when it changes. They can register to those notifications. When list
       is not created that means no behaviors need those notifications. }
-    FBehaviorsWorldChangeNotificationList: {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>;
+    FBehaviorsWorldChangeNotificationList: TCastleBehaviorList;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -222,6 +223,8 @@
 
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
+
+    // TODO: Do we need so much new API?
 
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform }
@@ -259,16 +262,12 @@
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
 
-
-    { When someone calls Free Behavior it is fired but doesn't call
-      WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
-      add procedure that is called in behavior destructor to call all
-      needed events before destroy. }
+    { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 
     { When CastleTransform change scale colliders are not scaled we need do this
       manually. }
-    procedure RecursivelyUpdateCollidersScale(CastleTransform: TCastleTransform);
+    procedure RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -595,10 +594,12 @@
     property GetExists: Boolean read FExists; deprecated 'use Exists';
     {$endif}
 
-    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
-    function HasColliderMesh: Boolean; virtual; // default implementation returns false
+    { Does this transform have a collision mesh that TCastleMeshCollider can use.
+      Default implementaion returns @false. }
+    function HasColliderMesh: Boolean; virtual;
+
     { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
-    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual; // default implementation does nothing
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual;
 
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
     function CheckCollides: Boolean;
@@ -1842,6 +1843,12 @@
     { Find the first behavior of the given class, @nil if none. }
     function FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
 
+    { Find all behaviors of given class, in this transform and children (up to any depth).
+      The behaviors are added to the list, disregaring the Exists or ExistsInRoot property of parents.
+      Returned class @italic(does not) own children.
+      The caller is responsible for freeing the returned list. }
+    function FindAllBehaviors(const BehaviorClass: TCastleBehaviorClass): TCastleBehaviorList;
+
     { Find the first behavior of the given class, or create and add a new one if necessary.
       Never returns @nil. }
     function FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
@@ -1951,6 +1958,14 @@
       It will be extended to account for shadow maps. }
     property CastShadows: boolean
       read FCastShadows write FCastShadows default true;
+
+    { Objects on front render layer are rendered in front of objects on back render layer,
+      regardless of their actual position (depth) relative to camera.
+
+      rlParent means that object follows the parent layer, which is by default back.
+
+      The typical use-case is to force some object to be in front, by setting rlFront. }
+    property RenderLayer: TRenderLayer read FRenderLayer write FRenderLayer default rlParent;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
@@ -2933,23 +2948,26 @@ begin
     Behavior.ParentBeforeDetach;
 
     Behavior.FParent := nil;
-    // Behavior.ParentChanged; // should be called but a lot of exsiting code don't check Parent = nil
+
+    { Could be called but a lot of exsiting code doesn't check Parent = nil.
+      For backward compatibility of this deprecated method, don't call it. }
+    // Behavior.ParentChanged;
+
     RemoveWorldChangeNotification(Behavior);
   end;
 end;
 
-procedure TCastleTransform.RecursivelyUpdateCollidersScale(
-  CastleTransform: TCastleTransform);
+procedure TCastleTransform.RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
 var
   CastleCollider: TCastleCollider;
   I: Integer;
 begin
-  CastleCollider := CastleTransform.FindBehavior(TCastleCollider) as TCastleCollider;
+  CastleCollider := Transform.FindBehavior(TCastleCollider) as TCastleCollider;
   if CastleCollider <> nil then
     CastleCollider.UpdateScale(false);
 
-  for I := 0 to CastleTransform.Count -1 do
-    RecursivelyUpdateCollidersScale(CastleTransform.Items[I]);
+  for I := 0 to Transform.Count -1 do
+    RecursivelyUpdateCollidersScale(Transform.Items[I]);
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3173,6 +3191,8 @@ var
   OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
+  HasSavedDepthRange: Boolean;
+  SavedDepthRange: TDepthRange;
 begin
   OldInMeaningfulParent := Params.InMeaningfulParent;
   Params.InMeaningfulParent := Params.InMeaningfulParent and
@@ -3181,6 +3201,27 @@ begin
       should still be rendered. }
     //((Parent = nil) or Parent.MeaningfulParent);
     MeaningfulParent;
+
+  HasSavedDepthRange := (RenderLayer <> rlParent) and
+    { Shadow maps require normal DepthRange,
+      don't mess with RenderContext.DepthRange in case when we render shadow maps. }
+    (not (Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap]));
+  if HasSavedDepthRange then
+  begin
+    { The idea of using DepthRange for render layers is nice:
+      - you don't have to split rendering layers in passes,
+        you can render all objects in one pass,
+        just switching DepthRange as necessary.
+      - you can set DepthRange for 3D objects inside TCastleTransform,
+        like here TCastleTransform will just affect every child underneath.
+    }
+    SavedDepthRange := RenderContext.DepthRange;
+    case RenderLayer of
+      rlFront: RenderContext.DepthRange := drNear;
+      rlBack : RenderContext.DepthRange := drFar;
+      else ;
+    end;
+  end;
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
@@ -3238,6 +3279,9 @@ begin
   end;
 
   Params.InMeaningfulParent := OldInMeaningfulParent;
+
+  if HasSavedDepthRange then
+    RenderContext.DepthRange := SavedDepthRange;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
@@ -3601,7 +3645,7 @@ end;
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Exists', 'CastShadows'
+       'Exists', 'CastShadows', 'RenderLayer'
      ]) then
       Result := [psBasic]
   else
@@ -3648,6 +3692,8 @@ begin
   { We don't want to update physics object when someone change -1 to 1 scale.
     Often used to change animation side from left to right. }
   FShouldUpdatePhysicsObjects := not (TVector3.Equals(FScale.Abs, Value.Abs));
+  { TODO: above is broken, e.g. I can still udpate to scale -2,1,1 from 1,1,1.
+    Also later update will include negative scale anyway. }
 
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
@@ -3869,7 +3915,7 @@ end;
 
 procedure TCastleTransform.ColliderMesh(const TriangleEvent: TTriangleEvent);
 begin
-
+  // No triangles returned by this
 end;
 
 function TCastleTransform.BehaviorsEnumerate: TCastleBehaviorEnumerator;
@@ -3881,7 +3927,7 @@ procedure TCastleTransform.AddWorldChangeNotification(
   const Behavior: TCastleBehavior);
 begin
   if FBehaviorsWorldChangeNotificationList = nil then
-    FBehaviorsWorldChangeNotificationList := {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>.Create;
+    FBehaviorsWorldChangeNotificationList := TCastleBehaviorList.Create(false);
 
   if FBehaviorsWorldChangeNotificationList.IndexOf(Behavior) = -1 then
     FBehaviorsWorldChangeNotificationList.Add(Behavior);
@@ -4015,6 +4061,25 @@ begin
   Result := nil;
 end;
 
+function TCastleTransform.FindAllBehaviors(const BehaviorClass: TCastleBehaviorClass): TCastleBehaviorList;
+
+  procedure AddTransform(const T: TCastleTransform);
+  var
+    I: Integer;
+    TChild: TCastleTransform;
+  begin
+    for I := 0 to T.FBehaviors.Count - 1 do
+      if T.FBehaviors[I] is BehaviorClass then
+        Result.Add(TCastleBehavior(T.FBehaviors[I]));
+    for TChild in T do
+      AddTransform(TChild);
+  end;
+
+begin
+  Result := TCastleBehaviorList.Create(false);
+  AddTransform(Self);
+end;
+
 function TCastleTransform.FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
 begin
   Result := FindBehavior(BehaviorClass);
@@ -4076,9 +4141,10 @@ begin
     if RigidBody <> nil then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
-        WritelnWarning('Repeatedly changing the existence of CastleTransform with' + NL +
-        ' rigid body can cause performance degradation and physics simulation errors.' + NL +
-        ' Especially with autosize enabled in collider and animation changing local boundingbox.');
+        WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). This is not good for performance and right now can even cause physics simulation crashes, esp. when TCastleCollider.AutoSize=true and animation may change LocalBoundingBox. Avoid changing the Exists of physical objects multiple times in a single Update.', [
+          Name,
+          ClassName
+        ]);
       FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
     end;
 

@@ -166,8 +166,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Scene',
-    TMeshColliderScenePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
+    TMeshColliderMeshPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TAbstractTwoBodiesJoint, 'ConnectedTransform',
     TConnectedTransformPropertyEditor);

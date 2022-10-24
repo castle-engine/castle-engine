@@ -402,7 +402,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : 2.0000000000000000E+000
                 },
-                "ContinuousCD" : true,
+                "ContinuousCollisionDetection" : true,
                 "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LinearVelocityPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
