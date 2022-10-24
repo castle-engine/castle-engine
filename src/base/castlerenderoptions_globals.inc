@@ -395,6 +395,9 @@ type
     bs3D
   );
 
+  { Render layer for @link(TCastleTransform.RenderLayer). }
+  TRenderLayer = (rlParent, rlBack, rlFront);
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
