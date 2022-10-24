@@ -768,8 +768,11 @@ type
     procedure RotateHorizontalForStrafeMove(const Angle: Single);
 
     { Call always after horizontal rotation change.
-      This will return new Position, applying effect of RotationHorizontalPivot. }
+      This will return new Position, applying effect of RotationHorizontalPivot.
+      The OldPosition, OldDirection, NewDirection must be in world coordinates,
+      so is the result. }
     function AdjustPositionForRotationHorizontalPivot(
+      const OldPosition: TVector3;
       const OldDirection, NewDirection: TVector3): TVector3;
 
     { Jump.
@@ -2878,17 +2881,18 @@ begin
 end;
 
 function TCastleWalkNavigation.AdjustPositionForRotationHorizontalPivot(
+  const OldPosition: TVector3;
   const OldDirection, NewDirection: TVector3): TVector3;
 var
   Pivot, OldDirectionInGravityPlane, NewDirectionInGravityPlane: TVector3;
 begin
-  Result := Camera.Translation;
+  Result := OldPosition;
   {$warnings off} // using deprecated RotationHorizontalPivot to keep it working
   if RotationHorizontalPivot <> 0 then
   begin
     if PreferGravityUpForRotations then
     begin
-      Pivot := Camera.Translation + OldDirection * RotationHorizontalPivot;
+      Pivot := OldPosition + OldDirection * RotationHorizontalPivot;
       Result := Pivot - NewDirection * RotationHorizontalPivot;
     end else
     begin
@@ -2898,7 +2902,7 @@ begin
       NewDirectionInGravityPlane := NewDirection;
       if not VectorsParallel(NewDirectionInGravityPlane, Camera.GravityUp) then
         MakeVectorsOrthoOnTheirPlane(NewDirectionInGravityPlane, Camera.GravityUp);
-      Pivot := Camera.Translation + OldDirectionInGravityPlane * RotationHorizontalPivot;
+      Pivot := OldPosition + OldDirectionInGravityPlane * RotationHorizontalPivot;
       Result := Pivot - NewDirectionInGravityPlane * RotationHorizontalPivot;
     end;
   end;
@@ -2924,7 +2928,7 @@ begin
   NewUp        := RotatePointAroundAxisRad(Angle,        OldUp, GravityAxis);
   NewDirection := RotatePointAroundAxisRad(Angle, OldDirection, GravityAxis);
 
-  NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
+  NewPosition := AdjustPositionForRotationHorizontalPivot(OldPosition, OldDirection, NewDirection);
 
   Camera.SetWorldView(NewPosition, NewDirection, NewUp);
 end;
@@ -2940,7 +2944,7 @@ begin
     and it will keep NewDirection and OldUp vectors orthogonal. }
   NewDirection := RotatePointAroundAxisRad(Angle, OldDirection, OldUp);
 
-  NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
+  NewPosition := AdjustPositionForRotationHorizontalPivot(OldPosition, OldDirection, NewDirection);
 
   Camera.SetWorldView(NewPosition, NewDirection, OldUp);
 end;
