@@ -2634,6 +2634,14 @@ begin
   {$warnings on}
     FRenderParams.GlobalFog := nil;
 
+  if RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
+    { When rendering shadows maps, we don't modify RenderContext.DepthRange
+      during rendering, it stays drFull. }
+    RenderContext.DepthRange := drFull
+  else
+    { In normal rendering, start with drBack, as this is the meaning of rlParent on Viewport.Items. }
+    RenderContext.DepthRange := drFar;
+
   RenderFromView3D(FRenderParams);
 end;
 

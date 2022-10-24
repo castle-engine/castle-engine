@@ -24,11 +24,6 @@ uses
   CastleVectors, CastleScene;
 
 type
-  TSphereVisualization = class(TCastleSphere)
-  public
-    procedure LocalRender(const Params: TRenderParams); override;
-  end;
-
   TDesignTransform = class(TCastleTransform);
 
   TDesignJointTransform = class(TDesignTransform)
@@ -38,7 +33,7 @@ type
 
     procedure SetColor(const Value: TCastleColor);
   protected
-    FSphere: TSphereVisualization;
+    FSphere: TCastleSphere;
 
     // For now it's actually more natural to just *not* adjust sphere size
     //function EstimateSphereRadius: Single;
@@ -119,19 +114,6 @@ implementation
 
 uses CastleRenderContext;
 
-{ TSphereVisualization ------------------------------------------------------- }
-
-procedure TSphereVisualization.LocalRender(const Params: TRenderParams);
-const
-  RenderOnTop = true;
-begin
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drNear;
-  inherited;
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drFar;
-end;
-
 { TDesignJointTransform --------------------------------------------------- }
 
 procedure TDesignJointTransform.SetColor(const Value: TCastleColor);
@@ -199,7 +181,8 @@ begin
   FJoint := AJoint;
   SetTransient;
 
-  FSphere := TSphereVisualization.Create(nil);
+  FSphere := TCastleSphere.Create(nil);
+  FSphere.RenderLayer := rlFront;
   FSphere.SetTransient;
   FSphere.UseInternalGlobalRenderOptions := false; // never change rendering to global
   FSphere.Color := FColor;
