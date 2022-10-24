@@ -992,6 +992,8 @@ type
       read FMinAngleFromGravityUp write FMinAngleFromGravityUp
       {$ifdef FPC}default DefaultMinAngleFromGravityUp{$endif};
 
+    function DirectionInGravityPlane: TVector3; deprecated 'avoid using it, as it inherently has difficult cases: it is in TCastleCamera local coordinate space, it cannot be correct when Direction is parallel to gravity';
+
     function Motion(const Event: TInputMotion): boolean; override;
 
     { Initial speed of falling down.
@@ -3485,7 +3487,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
         Note that the result is in TCastleCamera parent coordinate space, just like Direction.
         We automatically account for the fact that GravityUp is specified in world coordinate space. }
-      function DirectionInGravityPlane: TVector3;
+      function DirInGravityPlane: TVector3;
       begin
         Result := Camera.Direction;
         MakeVectorsOrthoOnTheirPlane(Result, Grav);
@@ -3508,7 +3510,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         Exit;
       end;
 
-      { Our DirectionInGravityPlane doesn't work when Camera.Direction and Grav are parallel }
+      { Our DirInGravityPlane doesn't work when Camera.Direction and Grav are parallel }
       if VectorsParallel(Camera.Direction, Grav) then
         Exit;
 
@@ -3517,7 +3519,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
 
-      Camera.Up := RotatePointAroundAxisRad(AngleRotate, Camera.Up, DirectionInGravityPlane);
+      Camera.Up := RotatePointAroundAxisRad(AngleRotate, Camera.Up, DirInGravityPlane);
     end;
 
     procedure DoFall;
@@ -4204,6 +4206,17 @@ end;
 class procedure TCastleWalkNavigation.CreateComponentFly(Sender: TObject);
 begin
   (Sender as TCastleWalkNavigation).Gravity := false;
+end;
+
+function TCastleWalkNavigation.DirectionInGravityPlane: TVector3;
+var
+  Grav: TVector3;
+begin
+  Result := Camera.Direction;
+
+  Grav := GravityUpLocal;
+  if not VectorsParallel(Result, Grav) then
+    MakeVectorsOrthoOnTheirPlane(Result, Grav);
 end;
 
 { global ------------------------------------------------------------ }
