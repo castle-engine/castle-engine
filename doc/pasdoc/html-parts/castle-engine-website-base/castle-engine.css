@@ -320,11 +320,14 @@ article.post .entry-content ul.list-no-margin {
 /* Make long words, like MultiGeneratedTextureCoordinate or MovieTexture.flipVertically,
    broken -- good for mobile usability.
    See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Text/Wrapping_Text */
-h2, code {
+h1, h2, code {
   /* word-break makes the "TVector3.PerfectlyEquals(FFoo" in
      http://localhost:8777/coding_conventions
      broken into 2 lines, to not cause horizontal scroll on mobile */
   word-break: break-word;
+
+  /* breaking h1 useful for "Chapter 1. Overview of VRML" in
+     vrml_engine_internals/output/xsl/html-nochunks/vrml_engine.html */
   overflow-wrap: break-word;
 }
 
