@@ -1575,7 +1575,7 @@ begin
 
     TCastlePlane(FVisualisation).Size := Vector2(100,100);
 
-    FVisualisation.Translation := Vector3(0, FDistance, 0);
+    FVisualisation.Translation := CastleVectors.Vector3(0, FDistance, 0);
 
     FVisualisation.Rotation := Vector4(CastleVectors.Vector3(0, 0, -1), // todo check why -1
     AngleRadBetweenVectors(CastleVectors.Vector3(0, 1, 0), FNormal.Normalize));
