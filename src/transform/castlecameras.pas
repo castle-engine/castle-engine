@@ -121,6 +121,8 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
+    function GoodModelBox: TBox3D;
+
     { Viewport we should manipulate.
       This is @nil, or TCastleViewport instance, but it cannot be declared as
       TCastleViewport due to unit dependencies. }
@@ -171,7 +173,34 @@ type
       checks collisions through parent TCastleViewport, if CheckCollisions. }
     function MoveAllowed(
       const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
-      const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
+      const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean; virtual;
+
+    { Like Move, but you pass here final ProposedNewPos.
+
+      LocalProposedNewPos is given in TCastleCamera parent coordinates,
+      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
+      You can think "I want to move to Translation + MoveVector". }
+    function MoveTo(const LocalProposedNewPos: TVector3;
+      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+
+    { Try to move from current Translation to Translation + MoveVector.
+      Checks MoveAllowed, also (if CheckClimbHeight is @true)
+      checks the ClimbHeight limit.
+
+      MoveVector is given in TCastleCamera parent coordinates,
+      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
+      You can think "I want to move TCastleCamera to Translation + MoveVector".
+
+      Returns @false if move was not possible and Position didn't change.
+      Returns @true is some move occured (but don't assume too much:
+      possibly we didn't move to exactly Position + MoveVector
+      because of wall sliding). }
+    function Move(const MoveVector: TVector3;
+      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+
+    { Zoom in / out.
+      Negative Factor makes "zoom out", positive makes "zoom in" (zero makes nothing). }
+    function Zoom(const Factor: Single): Boolean;
   public
     const
       { Default value for TCastleNavigation.Radius.
@@ -296,10 +325,10 @@ type
     procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); overload; deprecated 'use Viewport.Camera.AnimateTo';
     function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
 
-    { Approximate size of 3D world that is viewed,
-      used by @link(TCastleExamineNavigation) descendant.
-      Determines speed of movement and zooming.
-      Initially this is TBox3D.Empty. }
+    { Approximate size of the world that is viewed.
+      Determines the speed of zooming and (in case of TCastleExamineNavigation) of many other operations too.
+      Initially this is an empty box.
+      Internally we will use the Viewport.Items.BoundingBox if this is empty. }
     property ModelBox: TBox3D read FModelBox write FModelBox;
 
     { Input methods available to user. See documentation of TNavigationInput
@@ -314,9 +343,11 @@ type
 
     { Check collisions when moving with the environment.
 
-      Note: some descendants, like TCastleExamineNavigation, ignore it and never check collisions
-      right now. But it may change in future engine versions, so be sure to set CheckCollisions
-      appropriately. }
+      Note: some descendants may ignore it for some operations.
+      Right now, TCastleWalkNavigation checks is always,
+      but TCastleExamineNavigation checks it only at zooming.
+      But future engine versions may harden the collision checks (to make them always),
+      so be sure to set CheckCollisions appropriately. }
     property CheckCollisions: Boolean read FCheckCollisions write FCheckCollisions default true;
   end;
 
@@ -367,15 +398,11 @@ type
       FInput_Rotate: TInputShortcut;
       FInput_Zoom: TInputShortcut;
 
-    function GoodModelBox: TBox3D;
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
     procedure SetRotations(const Value: TQuaternion);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    { Negative Factor makes "zoom out", positive makes "zoom on",
-      zero makes nothing. }
-    function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
     procedure OnGestureRecognized(Sender: TObject);
 
@@ -493,8 +520,6 @@ type
 
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
     function StopRotating: boolean;
-
-    procedure Move(coord: integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
 
     { User inputs ------------------------------------------------------------ }
 
@@ -742,29 +767,6 @@ type
     procedure RotateHorizontal(const Angle: Single);
     procedure RotateVertical(AngleRad: Single);
 
-    { Like Move, but you pass here final ProposedNewPos.
-
-      LocalProposedNewPos is given in TCastleCamera parent coordinates,
-      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
-      You can think "I want to move to Translation + MoveVector". }
-    function MoveTo(const LocalProposedNewPos: TVector3;
-      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-
-    { Try to move from current Translation to Translation + MoveVector.
-      Checks MoveAllowed, also (if CheckClimbHeight is @true)
-      checks the ClimbHeight limit.
-
-      MoveVector is given in TCastleCamera parent coordinates,
-      so it works naturally in the same space as TCastleCamera.Translation, Direction, Up.
-      You can think "I want to move TCastleCamera to Translation + MoveVector".
-
-      Returns @false if move was not possible and Position didn't change.
-      Returns @true is some move occured (but don't assume too much:
-      possibly we didn't move to exactly Position + MoveVector
-      because of wall sliding). }
-    function Move(const MoveVector: TVector3;
-      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-
     { Move horizontally.
       Dir is in camera parent coordinates, like Camera.Direction.
       It will be automatically adjusted to be parallel to gravity plane,
@@ -845,6 +847,9 @@ type
   protected
     function ReallyEnableMouseDragging: boolean; override;
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
+    function MoveAllowed(
+      const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
+      const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean; override;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -1486,7 +1491,7 @@ end;
 
 function TCastleNavigation.MoveAllowed(
   const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
-  const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
+  const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
 begin
   Result := true;
   NewPos := ProposedNewPos;
@@ -1727,6 +1732,149 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleNavigation.MoveTo(const LocalProposedNewPos: TVector3;
+  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+var
+  OldPos, NewPos: TVector3;
+  WorldProposedNewPos: TVector3;
+begin
+  // most of calculations inside are in world coordinates
+  if (Camera.Parent <> nil) and
+     (Camera.World <> nil) then
+  begin
+    OldPos := Camera.Parent.LocalToWorld(Camera.Translation);
+    WorldProposedNewPos := Camera.Parent.LocalToWorld(LocalProposedNewPos);
+  end else
+  begin
+    OldPos := Camera.Translation;
+    WorldProposedNewPos := LocalProposedNewPos;
+  end;
+
+  Result := MoveAllowed(OldPos, WorldProposedNewPos, NewPos, BecauseOfGravity, CheckClimbHeight);
+
+  if Result then
+  begin
+    // convert back from world to local coordinates
+    if (Camera.Parent <> nil) and
+       (Camera.World <> nil) then
+    begin
+      NewPos := Camera.Parent.WorldToLocal(NewPos);
+    end;
+
+    Camera.Translation := NewPos;
+  end;
+end;
+
+function TCastleNavigation.Move(const MoveVector: TVector3;
+  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+begin
+  Result := MoveTo(Camera.Translation + MoveVector, BecauseOfGravity, CheckClimbHeight);
+end;
+
+function TCastleNavigation.GoodModelBox: TBox3D;
+begin
+  { Try hard to return non-empty bounding box, otherwise examine navigation
+    doesn't work sensibly, as movement and zooming speed must depend on box
+    sizes.
+    This is important in case you use TCastleExamineNavigation without
+    setting it's ModelBox explicitly, which happens e.g. when CGE editor
+    adds TCastleExamineNavigation. }
+  if ModelBox.IsEmpty and
+     (InternalViewport <> nil) then
+    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
+  else
+    Result := ModelBox;
+end;
+
+function TCastleNavigation.Zoom(const Factor: Single): Boolean;
+
+  function OrthographicProjection: Boolean;
+  begin
+    { See how perspective (and more flexible frustum) projection matrices
+      look like in CastleProjection, they have always -1 in this field. }
+    Result := Camera.ProjectionMatrix.Data[2, 3] = 0;
+  end;
+
+var
+  Size: Single;
+  MoveWorldDir, ToCenter, MoveDir, CamWorldPos, CamWorldDir, CamWorldUp: TVector3;
+  B: TBox3D;
+  SavedCheckCollisions: Boolean;
+begin
+  Result := false;
+
+  if Valid then
+  begin
+    if OrthographicProjection then
+    begin
+      { In case of OrthographicProjection, changing Translation
+        would have no effect. So instead scale the projection size. }
+      if (Camera.Orthographic.Width = 0) and
+         (Camera.Orthographic.Height = 0) then
+      begin
+        { Note: We had approach in CGE to make Orthographic.Scale,
+          to enable scaling orthographic view always.
+          But it was unnatural to not change Orthographic.Width/Height
+          in the most common case, which is that Orthographic.Width/Height
+          is non-zero. }
+        WritelnWarning('Scaling orthographic view is not possible without setting Camera.Orthographic.Width / Camera.Orthographic.Height to non-zero')
+      end else
+      begin
+        Camera.Orthographic.Width  := Camera.Orthographic.Width  * Exp(-Factor);
+        Camera.Orthographic.Height := Camera.Orthographic.Height * Exp(-Factor);
+        Result := true;
+      end;
+    end else
+    begin
+      { In perspective projection, zoom by changing Translation }
+      B := GoodModelBox;
+      if B.IsEmptyOrZero then
+        Exit;
+
+      Size := B.AverageSize;
+
+      Camera.GetWorldView(CamWorldPos, CamWorldDir, CamWorldUp);
+
+      ToCenter := B.Center - CamWorldPos;
+      if ToCenter.IsZero then
+        ToCenter := CamWorldDir
+      else
+        ToCenter := ToCenter.Normalize;
+
+      if Factor > 0 then // zoom in, move along ToCenter
+      begin
+        { Don't allow moving with "zoom in" if we're looking at the other side. }
+        if TVector3.DotProduct(ToCenter, CamWorldDir) < 0 then
+          Exit;
+      end else
+      begin
+        { Always allow "zoom out", camera direction determines in which direction we move.
+          This allows to et out from the "maximum zoom in" view always,
+          even if camera effectively "crossed over" the box middle. }
+        if TVector3.DotProduct(ToCenter, CamWorldDir) < 0 then
+          ToCenter := -ToCenter;
+      end;
+
+      MoveWorldDir := Factor * Size * ToCenter;
+
+      if (Camera.Parent <> nil) and
+         (Camera.World <> nil) then
+        MoveDir := Camera.Parent.WorldToLocalDirection(MoveWorldDir)
+      else
+        Exit;
+
+      SavedCheckCollisions := CheckCollisions;
+      if Factor < 0 then
+        CheckCollisions := false; // never check collisions when zooming out
+      try
+        Result := Move(MoveDir, false, false);
+      finally
+        CheckCollisions := SavedCheckCollisions;
+      end;
+    end;
+  end;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -1926,21 +2074,6 @@ begin
   );
 end;
 
-function TCastleExamineNavigation.GoodModelBox: TBox3D;
-begin
-  { Try hard to return non-empty bounding box, otherwise examine navigation
-    doesn't work sensibly, as movement and zooming speed must depend on box
-    sizes.
-    This is important in case you use TCastleExamineNavigation without
-    setting it's ModelBox explicitly, which happens e.g. when CGE editor
-    adds TCastleExamineNavigation. }
-  if ModelBox.IsEmpty and
-     (InternalViewport <> nil) then
-    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
-  else
-    Result := ModelBox;
-end;
-
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
@@ -2089,15 +2222,6 @@ begin
   Result := not FRotationsAnim.IsPerfectlyZero;
   if Result then
     FRotationsAnim := TVector3.Zero;
-end;
-
-procedure TCastleExamineNavigation.Move(coord: integer; const MoveDistance: Single);
-var
-  V: TVector3;
-begin
-  V := TVector3.Zero;
-  V.InternalData[Coord] := MoveDistance;
-  Translation := Translation + V;
 end;
 
 function TCastleExamineNavigation.SensorTranslation(const X, Y, Z, Length: Double;
@@ -2294,67 +2418,6 @@ begin
 
   if (niGesture in UsingInput) and FPinchGestureRecognizer.Release(Event) then
     Exit(ExclusiveEvents);
-end;
-
-function TCastleExamineNavigation.Zoom(const Factor: Single): boolean;
-
-  function OrthographicProjection: Boolean;
-  begin
-    { See how perspective (and more flexible frustum) projection matrices
-      look like in CastleProjection, they have always -1 in this field. }
-    Result := Camera.ProjectionMatrix.Data[2, 3] = 0;
-  end;
-
-var
-  Size: Single;
-  OldTranslation, OldCameraTranslation: TVector3;
-  B: TBox3D;
-begin
-  B := GoodModelBox;
-  Result := not B.IsEmptyOrZero;
-  if Result then
-  begin
-    if OrthographicProjection then
-    begin
-      { In case of OrthographicProjection, changing Translation
-        would have no effect. So instead scale the projection size. }
-      if (Camera.Orthographic.Width = 0) and
-         (Camera.Orthographic.Height = 0) then
-      begin
-        { Note: We had approach in CGE to make Orthographic.Scale,
-          to enable scaling orthographic view always.
-          But it was unnatural to not change Orthographic.Width/Height
-          in the most common case, which is that Orthographic.Width/Height
-          is non-zero. }
-        WritelnWarning('Scaling orthographic view is not possible without setting Camera.Orthographic.Width / Camera.Orthographic.Height to non-zero')
-      end else
-      begin
-        Camera.Orthographic.Width  := Camera.Orthographic.Width  * Exp(-Factor);
-        Camera.Orthographic.Height := Camera.Orthographic.Height * Exp(-Factor);
-      end;
-    end else
-    begin
-      { zoom by changing Translation }
-      Size := B.AverageSize;
-
-      OldTranslation := Translation;
-      OldCameraTranslation := Camera.Translation;
-
-      Translation := Translation + Vector3(0, 0, Size * Factor);
-
-      { Cancel zoom in, don't allow to go to the other side of the model too far.
-        Note that TBox3D.PointDistance = 0 when you're inside the box,
-        so zoomin in/out inside the box is still always allowed.
-        See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
-      if (Factor > 0) and
-         (B.PointDistance(Camera.Translation) >
-          B.PointDistance(OldCameraTranslation)) then
-      begin
-        Translation := OldTranslation;
-        Exit(false);
-      end;
-    end;
-  end;
 end;
 
 function TCastleExamineNavigation.Motion(const Event: TInputMotion): boolean;
@@ -2827,6 +2890,39 @@ begin
   inherited;
 end;
 
+function TCastleWalkNavigation.MoveAllowed(
+  const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
+  const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
+var
+  NewIsAbove: boolean;
+  NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
+  NewAboveGround: PTriangle;
+begin
+  Result := inherited;
+
+  if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
+    { if we're already below ClimbHeight then do not check if new position
+      satisfies ClimbHeight requirement. This may prevent camera blocking
+      in weird situations, e.g. if were forcefully pushed into some position
+      (e.g. because player is hit by a missile with a knockback, or teleported
+      or such). }
+    (AboveHeight > ClimbHeight) then
+  begin
+    Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
+    if NewIsAbove then
+    begin
+      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, OldPos);
+      NewAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, NewPos);
+      Result := not (
+        AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
+        ClimbHeight );
+      // useful log to test ClimbHeight, but too spammy to be enabled by default
+      // if Log and not Result then
+      //   WritelnLog('Camera', 'Blocked move because of ClimbHeight (%f).', [ClimbHeight]);
+    end;
+  end;
+end;
+
 procedure TCastleWalkNavigation.CorrectPreferredHeight;
 begin
   CastleCameras.CorrectPreferredHeight(
@@ -3020,70 +3116,6 @@ begin
   NewDirection := RotatePointAroundAxisRad(AngleRad, OldDirection, Side);
 
   Camera.SetWorldView(OldPosition, NewDirection, NewUp);
-end;
-
-function TCastleWalkNavigation.MoveTo(const LocalProposedNewPos: TVector3;
-  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-var
-  OldPos, NewPos: TVector3;
-  WorldProposedNewPos: TVector3;
-  NewIsAbove: boolean;
-  NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
-  NewAboveGround: PTriangle;
-begin
-  // most of calculations inside are in world coordinates
-  if (Camera.Parent <> nil) and
-     (Camera.World <> nil) then
-  begin
-    OldPos := Camera.Parent.LocalToWorld(Camera.Translation);
-    WorldProposedNewPos := Camera.Parent.LocalToWorld(LocalProposedNewPos);
-  end else
-  begin
-    OldPos := Camera.Translation;
-    WorldProposedNewPos := LocalProposedNewPos;
-  end;
-
-  Result := MoveAllowed(OldPos, WorldProposedNewPos, NewPos, Radius, BecauseOfGravity);
-
-  if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
-    { if we're already below ClimbHeight then do not check if new position
-      satisfies ClimbHeight requirement. This may prevent camera blocking
-      in weird situations, e.g. if were forcefully pushed into some position
-      (e.g. because player is hit by a missile with a knockback, or teleported
-      or such). }
-    (AboveHeight > ClimbHeight) then
-  begin
-    Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
-    if NewIsAbove then
-    begin
-      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, OldPos);
-      NewAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, NewPos);
-      Result := not (
-        AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
-        ClimbHeight );
-      // useful log to test ClimbHeight, but too spammy to be enabled by default
-      // if Log and not Result then
-      //   WritelnLog('Camera', 'Blocked move because of ClimbHeight (%f).', [ClimbHeight]);
-    end;
-  end;
-
-  if Result then
-  begin
-    // convert back from world to local coordinates
-    if (Camera.Parent <> nil) and
-       (Camera.World <> nil) then
-    begin
-      NewPos := Camera.Parent.WorldToLocal(NewPos);
-    end;
-
-    Camera.Translation := NewPos;
-  end;
-end;
-
-function TCastleWalkNavigation.Move(const MoveVector: TVector3;
-  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
-begin
-  Result := MoveTo(Camera.Translation + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
 
 procedure TCastleWalkNavigation.MoveHorizontal(Dir: TVector3;
