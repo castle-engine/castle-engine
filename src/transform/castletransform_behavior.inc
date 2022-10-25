@@ -115,9 +115,6 @@
       to set InternalCastleDesignInvalidate to @true. }
     procedure InternalDestroyGizmos; virtual;
 
-    { Was InternalCreateGizmos called for this behavior }
-    function InternalCreateGizmosCreated: Boolean; virtual;
-
     function World: TCastleAbstractRootTransform;
 
     { Parent TCastleTransform of this behavior.
@@ -286,12 +283,6 @@ end;
 procedure TCastleBehavior.InternalDestroyGizmos;
 begin
   WritelnLog('Behavior ' + Name +  ': InternalCreateGizmos');
-end;
-
-function TCastleBehavior.InternalCreateGizmosCreated: Boolean;
-begin
-  raise Exception.Create('InternalCreateGizmosCreated not implemented.');
-  Result := false;
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;

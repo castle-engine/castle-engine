@@ -19,13 +19,12 @@
 {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
 
 {$ifdef read_interface}
-
+  { Fixed joint creates a constant connection between two bodies. }
   TCastleFixedJoint = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
-    FAnchorTransform: TCastleTransform; //TTemporaryJointAnchor
-
+    FAnchorTransform: TCastleTransform; //TDesignJointAnchor
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
   protected
@@ -40,7 +39,6 @@
     procedure WorldBeforeDetach; override;
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
-    function InternalCreateGizmosCreated: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
@@ -51,6 +49,8 @@
   {$undef read_interface_class}
   end;
 
+  { Pulley joint connects two bodies in such a way that the elevation of first
+    rigid body lowers the second (connected) rigid body }
   TCastlePulleyJoint = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointPulley: TKraftConstraintJointPulley;
@@ -63,7 +63,6 @@
       FConnectedWorldAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldAnchor;
       FWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointWorldGroundAnchor;
       FConnectedWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldGroundAnchor;
-
       procedure SetWorldAnchor(const AValue: TVector3);
       procedure SetConnectedWorldAnchor(const AValue: TVector3);
       procedure SetWorldGroundAnchor(const AValue: TVector3);
@@ -82,17 +81,25 @@
       procedure WorldBeforeDetach; override;
       procedure InternalCreateGizmos; override;
       procedure InternalDestroyGizmos; override;
-      function InternalCreateGizmosCreated: Boolean; override;
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
+      { The point for parent transform in world coordinates. }
       property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
+
+      { The point for connected transform in world coordinates. }
       property ConnectedWorldAnchor: TVector3 read FConnectedWorldAnchor
         write SetConnectedWorldAnchor;
+
+      { Top point for parent transform. }
       property WorldGroundAnchor: TVector3 read FWorldGroundAnchor
         write SetWorldGroundAnchor;
+
+      { Top point for connected transform. }
       property ConnectedWorldGroundAnchor: TVector3
         read FConnectedWorldGroundAnchor write SetConnectedWorldGroundAnchor;
     published
+      { Determines how elevating one body will lower the second, default 1
+        means the same distance. }
       property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
 
     {$define read_interface_class}
@@ -100,6 +107,7 @@
     {$undef read_interface_class}
   end;
 
+  { World Plane Distance Joint keeps rigid body at a certain distance from the plane. }
   TCastleWorldPlaneDistanceJoint = class (TAbstractOneBodyJoint)
   private
     FKraftJointWorldPlaneDistance: TKraftConstraintJointWorldPlaneDistance;
@@ -110,8 +118,7 @@
     FDoubleSidedWorldPlane: Boolean;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor;
-
+    FAnchorTransform: TCastleTransform; // TDesignJointAnchor;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetPlaneNormal(const AValue: TVector3);
     procedure SetPlaneDistance(const AValue: Single);
@@ -124,10 +131,8 @@
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
   protected
     procedure SetName(const Value: TComponentName); override;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -135,7 +140,6 @@
     procedure WorldBeforeDetach; override;
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
-    function InternalCreateGizmosCreated: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Anchor: TVector3 read FAnchor write SetAnchor;
@@ -151,6 +155,7 @@
   {$undef read_interface_class}
   end;
 
+  { Slider Joint allows to move bodies along a specific axis }
   TCastleSliderJoint = class (TAbstractTwoBodiesJoint)
   private
     FKraftJointSlider: TKraftConstraintJointSlider;
@@ -185,7 +190,6 @@
     procedure WorldBeforeDetach; override;
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
-    function InternalCreateGizmosCreated: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
@@ -208,53 +212,6 @@
 {$ifdef read_implementation}
 
 { TCastleFixedJoint --------------------------------------------------------------- }
-
-procedure TCastleFixedJoint.SetAnchor(const AValue: TVector3);
-begin
-  if TVector3.Equals(FAnchor, AValue) then
-    Exit;
-
-  FAnchor := AValue;
-  if FAnchorTransform <> nil then
-    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleFixedJoint.InternalUpdateGizmosName;
-begin
-  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
-  begin
-    FAnchorTransform.Name := Name + '_Anchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-end;
-
-function TCastleFixedJoint.GetKraftJoint: TKraftConstraintJoint;
-begin
-  Result := FKraftJointFixed;
-end;
-
-procedure TCastleFixedJoint.CreateKraftJoint;
-begin
-  FKraftJointFixed := TKraftConstraintJointFixed.Create(
-    World.FKraftEngine,
-    FParentRigidBody.FKraftBody,
-    FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchor)),
-    ConnectedCollide
-  );
-end;
-
-procedure TCastleFixedJoint.DeinitializeKraftJoint;
-begin
-  FreeAndNil(FKraftJointFixed);
-end;
-
-procedure TCastleFixedJoint.SetName(const Value: TComponentName);
-begin
-  inherited SetName(Value);
-  InternalUpdateGizmosName;
-end;
 
 constructor TCastleFixedJoint.Create(AOwner: TComponent);
 begin
@@ -301,11 +258,6 @@ begin
   inherited;
 end;
 
-function TCastleFixedJoint.InternalCreateGizmosCreated: Boolean;
-begin
-  Result := FAnchorTransform <> nil;
-end;
-
 function TCastleFixedJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
@@ -315,136 +267,58 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+procedure TCastleFixedJoint.SetAnchor(const AValue: TVector3);
+begin
+  if not TVector3.Equals(FAnchor, AValue) then
+  begin
+    FAnchor := AValue;
+    if FAnchorTransform <> nil then
+      TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleFixedJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+function TCastleFixedJoint.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointFixed;
+end;
+
+procedure TCastleFixedJoint.CreateKraftJoint;
+begin
+  FKraftJointFixed := TKraftConstraintJointFixed.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
+    VectorToKraft(Parent.LocalToWorld(FAnchor)),
+    ConnectedCollide
+  );
+end;
+
+procedure TCastleFixedJoint.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointFixed);
+end;
+
+procedure TCastleFixedJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastlePulleyJoint ---------------------------------------------------------------- }
-
-procedure TCastlePulleyJoint.SetWorldAnchor(const AValue: TVector3);
-begin
-  if TVector3.PerfectlyEquals(FWorldAnchor, AValue) then
-    Exit;
-
-  FWorldAnchor := AValue;
-
-  if FWorldAnchorTransform <> nil then
-    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := AValue;
-
-  RecreateKraftJoint;
-end;
-
-procedure TCastlePulleyJoint.SetConnectedWorldAnchor(const AValue: TVector3);
-begin
-  if TVector3.PerfectlyEquals(FConnectedWorldAnchor, AValue) then
-    Exit;
-
-  FConnectedWorldAnchor := AValue;
-
-  if FConnectedWorldAnchorTransform <> nil then
-    TDesignJointConnectedWorldAnchor(FConnectedWorldAnchorTransform).Value := AValue;
-
-  RecreateKraftJoint;
-end;
-
-procedure TCastlePulleyJoint.SetWorldGroundAnchor(const AValue: TVector3);
-begin
-  if TVector3.PerfectlyEquals(FWorldGroundAnchor, AValue) then
-    Exit;
-
-  FWorldGroundAnchor := AValue;
-
-  if FWorldGroundAnchorTransform <> nil then
-    TDesignJointWorldGroundAnchor(FWorldGroundAnchorTransform).Value := AValue;
-
-  RecreateKraftJoint;
-end;
-
-procedure TCastlePulleyJoint.SetConnectedWorldGroundAnchor(const AValue: TVector3
-  );
-begin
-  if TVector3.PerfectlyEquals(FConnectedWorldGroundAnchor, AValue) then
-    Exit;
-
-  FConnectedWorldGroundAnchor := AValue;
-
-  if FConnectedWorldGroundAnchorTransform <> nil then
-    TDesignJointConnectedWorldGroundAnchor(FConnectedWorldGroundAnchorTransform).Value := AValue;
-
-  RecreateKraftJoint;
-end;
-
-procedure TCastlePulleyJoint.SetRatio(const AValue: Single);
-begin
-  if SameValue(FRatio, AValue) then
-    Exit;
-
-  FRatio := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastlePulleyJoint.InternalUpdateGizmosName;
-begin
-  if (FWorldAnchorTransform <> nil) and
-     (FWorldAnchorTransform.Name <> Name + '_WorldAnchor') then
-  begin
-    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-
-  if (FConnectedWorldAnchorTransform <> nil) and
-     (FConnectedWorldAnchorTransform.Name <> Name + '_ConnectedWorldAnchor') then
-  begin
-    FConnectedWorldAnchorTransform.Name := Name + '_ConnectedWorldAnchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-
-  if (FWorldGroundAnchorTransform <> nil) and
-     (FWorldGroundAnchorTransform.Name <> Name + '_WorldGroundAnchor') then
-  begin
-    FWorldGroundAnchorTransform.Name := Name + '_WorldGroundAnchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-
-  if (FConnectedWorldGroundAnchorTransform <> nil) and
-     (FConnectedWorldGroundAnchorTransform.Name <> Name + '_ConnectedWorldGroundAnchor') then
-  begin
-    FConnectedWorldGroundAnchorTransform.Name := Name + '_ConnectedWorldGroundAnchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-end;
-
-function TCastlePulleyJoint.GetKraftJoint: TKraftConstraintJoint;
-begin
-  Result := FKraftJointPulley;
-end;
-
-procedure TCastlePulleyJoint.CreateKraftJoint;
-begin
-  Assert(FKraftJointPulley = nil, 'Second joint initialization');
-  FKraftJointPulley := TKraftConstraintJointPulley.Create(
-    World.FKraftEngine,
-    FParentRigidBody.FKraftBody,
-    FConnectedRigidBody.FKraftBody,
-    VectorToKraft(FWorldGroundAnchor),
-    VectorToKraft(FConnectedWorldGroundAnchor),
-    VectorToKraft(FWorldAnchor),
-    VectorToKraft(FConnectedWorldAnchor),
-    FRatio,
-    ConnectedCollide
-  );
-end;
-
-procedure TCastlePulleyJoint.DeinitializeKraftJoint;
-begin
-  FreeAndNil(FKraftJointPulley);
-end;
-
-procedure TCastlePulleyJoint.SetName(const Value: TComponentName);
-begin
-  inherited SetName(Value);
-  InternalUpdateGizmosName;
-end;
 
 constructor TCastlePulleyJoint.Create(AOwner: TComponent);
 begin
@@ -536,25 +410,134 @@ begin
   inherited;
 end;
 
-function TCastlePulleyJoint.InternalCreateGizmosCreated: Boolean;
-begin
-  Result := (FWorldAnchorTransform <> nil) or
-    (FConnectedWorldAnchorTransform <> nil) or
-    (FWorldGroundAnchorTransform <> nil) or
-    (FConnectedWorldGroundAnchorTransform <> nil);
-end;
-
 function TCastlePulleyJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'WorldAnchorPersistent') or
-     (PropertyName = 'ConnectedWorldAnchorPersistent') or
-     (PropertyName = 'WorldGroundAnchorPersistent') or
-     (PropertyName = 'ConnectedWorldGroundAnchorPersistent') or
-     (PropertyName = 'Ratio') then
+  if ArrayContainsString(PropertyName, [
+      'WorldAnchorPersistent', 'ConnectedWorldAnchorPersistent',
+      'WorldGroundAnchorPersistent', 'ConnectedWorldGroundAnchorPersistent',
+      'Ratio'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastlePulleyJoint.SetWorldAnchor(const AValue: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FWorldAnchor, AValue) then
+  begin
+    FWorldAnchor := AValue;
+    if FWorldAnchorTransform <> nil then
+      TDesignJointWorldAnchor(FWorldAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastlePulleyJoint.SetConnectedWorldAnchor(const AValue: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FConnectedWorldAnchor, AValue) then
+  begin
+    FConnectedWorldAnchor := AValue;
+    if FConnectedWorldAnchorTransform <> nil then
+      TDesignJointConnectedWorldAnchor(FConnectedWorldAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastlePulleyJoint.SetWorldGroundAnchor(const AValue: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FWorldGroundAnchor, AValue) then
+  begin
+    FWorldGroundAnchor := AValue;
+    if FWorldGroundAnchorTransform <> nil then
+      TDesignJointWorldGroundAnchor(FWorldGroundAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastlePulleyJoint.SetConnectedWorldGroundAnchor(const AValue: TVector3
+  );
+begin
+  if not TVector3.PerfectlyEquals(FConnectedWorldGroundAnchor, AValue) then
+  begin
+    FConnectedWorldGroundAnchor := AValue;
+    if FConnectedWorldGroundAnchorTransform <> nil then
+      TDesignJointConnectedWorldGroundAnchor(FConnectedWorldGroundAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastlePulleyJoint.SetRatio(const AValue: Single);
+begin
+  if not SameValue(FRatio, AValue) then
+  begin
+    FRatio := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastlePulleyJoint.InternalUpdateGizmosName;
+begin
+  if (FWorldAnchorTransform <> nil) and
+     (FWorldAnchorTransform.Name <> Name + '_WorldAnchor') then
+  begin
+    FWorldAnchorTransform.Name := Name + '_WorldAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedWorldAnchorTransform <> nil) and
+     (FConnectedWorldAnchorTransform.Name <> Name + '_ConnectedWorldAnchor') then
+  begin
+    FConnectedWorldAnchorTransform.Name := Name + '_ConnectedWorldAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FWorldGroundAnchorTransform <> nil) and
+     (FWorldGroundAnchorTransform.Name <> Name + '_WorldGroundAnchor') then
+  begin
+    FWorldGroundAnchorTransform.Name := Name + '_WorldGroundAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FConnectedWorldGroundAnchorTransform <> nil) and
+     (FConnectedWorldGroundAnchorTransform.Name <> Name + '_ConnectedWorldGroundAnchor') then
+  begin
+    FConnectedWorldGroundAnchorTransform.Name := Name + '_ConnectedWorldGroundAnchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+function TCastlePulleyJoint.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointPulley;
+end;
+
+procedure TCastlePulleyJoint.CreateKraftJoint;
+begin
+  Assert(FKraftJointPulley = nil, 'Second joint initialization');
+  FKraftJointPulley := TKraftConstraintJointPulley.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
+    VectorToKraft(FWorldGroundAnchor),
+    VectorToKraft(FConnectedWorldGroundAnchor),
+    VectorToKraft(FWorldAnchor),
+    VectorToKraft(FConnectedWorldAnchor),
+    FRatio,
+    ConnectedCollide
+  );
+end;
+
+procedure TCastlePulleyJoint.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointPulley);
+end;
+
+procedure TCastlePulleyJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 {$define read_implementation_methods}
@@ -562,114 +545,6 @@ end;
 {$undef read_implementation_methods}
 
 { TCastleWorldPlaneDistanceJoint --------------------------------------------------- }
-
-procedure TCastleWorldPlaneDistanceJoint.SetAnchor(const AValue: TVector3);
-begin
-  if TVector3.Equals(FAnchor, AValue) then
-    Exit;
-
-  FAnchor := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetPlaneNormal(const AValue: TVector3);
-begin
-  if TVector3.Equals(FPlaneNormal, AValue) then
-    Exit;
-
-  FPlaneNormal := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetPlaneDistance(const AValue: Single);
-begin
-  if SameValue(FPlaneDistance, AValue) then
-    Exit;
-
-  FPlaneDistance := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetWorldDistance(const AValue: Single);
-begin
-  if SameValue(FWorldDistance, AValue) then
-    Exit;
-
-  FWorldDistance := AValue;
-  if FKraftJointWorldPlaneDistance <> nil then
-    FKraftJointWorldPlaneDistance.SetWorldDistance(FWorldDistance);
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetFrequencyHz(const AValue: Single);
-begin
-  if SameValue(FFrequencyHz, AValue) then
-    Exit;
-
-  FFrequencyHz := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetDampingRatio(const AValue: Single);
-begin
-  if SameValue(FDampingRatio, AValue) then
-    Exit;
-
-  FDampingRatio := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.DoubleSidedWorldPlane(const AValue: Boolean);
-begin
-  if FDoubleSidedWorldPlane = AValue then
-    Exit;
-
-  FDoubleSidedWorldPlane := AValue;
-  RecreateKraftJoint;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.InternalUpdateGizmosName;
-begin
-  if (FAnchorTransform <> nil) and
-     (FAnchorTransform.Name <> Name + '_Anchor') then
-  begin
-    FAnchorTransform.Name := Name + '_Anchor';
-    InternalCastleDesignInvalidate := true;
-  end;
-end;
-
-function TCastleWorldPlaneDistanceJoint.GetKraftJoint: TKraftConstraintJoint;
-begin
-  Result := FKraftJointWorldPlaneDistance;
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.CreateKraftJoint;
-begin
-  Assert(FKraftJointWorldPlaneDistance = nil, 'Second joint initialization');
-  FKraftJointWorldPlaneDistance := TKraftConstraintJointWorldPlaneDistance.Create(
-    World.FKraftEngine,
-    FParentRigidBody.FKraftBody,
-    VectorToKraft(FAnchor),
-    Plane(Vector3Norm(VectorToKraft(FPlaneNormal)), FPlaneDistance),
-    FDoubleSidedWorldPlane,
-    FWorldDistance,
-    kclbLimitDistance,
-    //kclbLimitMinimumDistance,
-    //kclbLimitMaximumDistance,
-    FFrequencyHz,
-    FDampingRatio
-  );
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.DeinitializeKraftJoint;
-begin
-  FreeAndNil(FKraftJointWorldPlaneDistance);
-end;
-
-procedure TCastleWorldPlaneDistanceJoint.SetName(const Value: TComponentName);
-begin
-  inherited SetName(Value);
-  InternalUpdateGizmosName;
-end;
 
 constructor TCastleWorldPlaneDistanceJoint.Create(AOwner: TComponent);
 begin
@@ -717,23 +592,124 @@ begin
   inherited;
 end;
 
-function TCastleWorldPlaneDistanceJoint.InternalCreateGizmosCreated: Boolean;
+function TCastleWorldPlaneDistanceJoint.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
-  Result := FAnchorTransform <> nil;
-end;
-
-function TCastleWorldPlaneDistanceJoint.PropertySections(const PropertyName: String
-  ): TPropertySections;
-begin
-  if (PropertyName = 'AnchorPersistent') or
-     (PropertyName = 'PlaneNormalPersistent') or
-     (PropertyName = 'PlaneDistance') or
-     (PropertyName = 'WorldDistance') or
-     (PropertyName = 'FrequencyHz') or
-     (PropertyName = 'DampingRatio') then
+  if ArrayContainsString(PropertyName, [
+      'AnchorPersistent', 'PlaneNormalPersistent', 'PlaneDistance',
+      'WorldDistance', 'FrequencyHz', 'DampingRatio'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetAnchor(const AValue: TVector3);
+begin
+  if not TVector3.Equals(FAnchor, AValue) then
+  begin
+    FAnchor := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetPlaneNormal(const AValue: TVector3);
+begin
+  if not TVector3.Equals(FPlaneNormal, AValue) then
+  begin
+    FPlaneNormal := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetPlaneDistance(const AValue: Single);
+begin
+  if not SameValue(FPlaneDistance, AValue) then
+  begin
+    FPlaneDistance := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetWorldDistance(const AValue: Single);
+begin
+  if not SameValue(FWorldDistance, AValue) then
+  begin
+    FWorldDistance := AValue;
+    if FKraftJointWorldPlaneDistance <> nil then
+      FKraftJointWorldPlaneDistance.SetWorldDistance(FWorldDistance);
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetFrequencyHz(const AValue: Single);
+begin
+  if not SameValue(FFrequencyHz, AValue) then
+  begin
+    FFrequencyHz := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetDampingRatio(const AValue: Single);
+begin
+  if not SameValue(FDampingRatio, AValue) then
+  begin
+    FDampingRatio := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.DoubleSidedWorldPlane(const AValue: Boolean);
+begin
+  if FDoubleSidedWorldPlane <> AValue then
+  begin
+    FDoubleSidedWorldPlane := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.InternalUpdateGizmosName;
+begin
+  if (FAnchorTransform <> nil) and
+     (FAnchorTransform.Name <> Name + '_Anchor') then
+  begin
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+function TCastleWorldPlaneDistanceJoint.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointWorldPlaneDistance;
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.CreateKraftJoint;
+begin
+  Assert(FKraftJointWorldPlaneDistance = nil, 'Second joint initialization');
+  FKraftJointWorldPlaneDistance := TKraftConstraintJointWorldPlaneDistance.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    VectorToKraft(FAnchor),
+    Plane(Vector3Norm(VectorToKraft(FPlaneNormal)), FPlaneDistance),
+    FDoubleSidedWorldPlane,
+    FWorldDistance,
+    kclbLimitDistance,
+    //kclbLimitMinimumDistance,
+    //kclbLimitMaximumDistance,
+    FFrequencyHz,
+    FDampingRatio
+  );
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointWorldPlaneDistance);
+end;
+
+procedure TCastleWorldPlaneDistanceJoint.SetName(const Value: TComponentName);
+begin
+  inherited SetName(Value);
+  InternalUpdateGizmosName;
 end;
 
 {$define read_implementation_methods}
@@ -741,6 +717,65 @@ end;
 {$undef read_implementation_methods}
 
 { TCastleSliderJoint --------------------------------------------------------- }
+
+constructor TCastleSliderJoint.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FWorldSliderAxis := CastleVectors.Vector3(0, 1, 0);
+  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleSliderJoint.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
+end;
+
+procedure TCastleSliderJoint.WorldBeforeDetach;
+begin
+  FreeAndNil(FWorldAnchorTransform);
+  inherited WorldBeforeDetach;
+end;
+
+procedure TCastleSliderJoint.InternalCreateGizmos;
+begin
+  inherited;
+  if FWorldAnchorTransform = nil then
+  begin
+    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
+    InternalUpdateGizmosName;
+    Parent.World.Add(FWorldAnchorTransform);
+    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
+    InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+procedure TCastleSliderJoint.InternalDestroyGizmos;
+begin
+  FreeAndNil(FWorldAnchorTransform);
+  inherited;
+end;
+
+function TCastleSliderJoint.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+      'WorldAnchorPersistent', 'EnableLimits', 'MinTranslationLimit',
+      'MaxTranslationLimit', 'EnableMotor', 'MotorSpeed', 'MaxMotorForce',
+      'WorldSliderAxisPersistent'
+    ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
 
 procedure TCastleSliderJoint.SetWorldAnchor(const AValue: TVector3);
 begin
@@ -865,73 +900,6 @@ procedure TCastleSliderJoint.SetName(const Value: TComponentName);
 begin
   inherited SetName(Value);
   InternalUpdateGizmosName;
-end;
-
-constructor TCastleSliderJoint.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
-  FWorldSliderAxis := CastleVectors.Vector3(0, 1, 0);
-  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
-destructor TCastleSliderJoint.Destroy;
-begin
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
-
-  inherited Destroy;
-end;
-
-procedure TCastleSliderJoint.WorldBeforeDetach;
-begin
-  FreeAndNil(FWorldAnchorTransform);
-  inherited WorldBeforeDetach;
-end;
-
-procedure TCastleSliderJoint.InternalCreateGizmos;
-begin
-  inherited;
-  if FWorldAnchorTransform = nil then
-  begin
-    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
-    InternalUpdateGizmosName;
-    Parent.World.Add(FWorldAnchorTransform);
-    TDesignJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;
-    InternalCastleDesignInvalidate := true;
-  end;
-end;
-
-procedure TCastleSliderJoint.InternalDestroyGizmos;
-begin
-  FreeAndNil(FWorldAnchorTransform);
-  inherited;
-end;
-
-function TCastleSliderJoint.InternalCreateGizmosCreated: Boolean;
-begin
-  Result := FWorldAnchorTransform <> nil;
-end;
-
-function TCastleSliderJoint.PropertySections(const PropertyName: String
-  ): TPropertySections;
-begin
-  if (PropertyName = 'WorldAnchorPersistent') or
-     (PropertyName = 'EnableLimits') or
-     (PropertyName = 'MinTranslationLimit') or
-     (PropertyName = 'MaxTranslationLimit') or
-     (PropertyName = 'EnableMotor') or
-     (PropertyName = 'MotorSpeed') or
-     (PropertyName = 'MaxMotorForce') or
-     (PropertyName = 'WorldSliderAxisPersistent') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

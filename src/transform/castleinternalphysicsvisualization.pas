@@ -24,13 +24,14 @@ uses
   CastleVectors, CastleScene;
 
 type
+  { Transform that can be used to create tools for behaviors. }
   TDesignTransform = class(TCastleTransform);
 
+  { Base class for tools transforms for behaviors. }
   TDesignJointTransform = class(TDesignTransform)
   strict private
     FColor: TCastleColor;
     FJoint: TAbstractJoint;
-
     procedure SetColor(const Value: TCastleColor);
   protected
     FSphere: TCastleSphere;
@@ -41,7 +42,6 @@ type
     procedure SetValue(const AValue: TVector3);
     procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
     function GetObservedValue: TVector3; virtual; abstract;
-
     procedure CheckTransformInsideParent;
     procedure ChangedTransform; override;
   public
@@ -116,6 +116,52 @@ uses CastleRenderContext;
 
 { TDesignJointTransform --------------------------------------------------- }
 
+constructor TDesignJointTransform.Create(AOwner: TComponent;
+  const AJoint: TAbstractJoint);
+begin
+  inherited Create(AOwner);
+
+  FColor := Red;
+  FJoint := AJoint;
+  SetTransient;
+
+  FSphere := TCastleSphere.Create(nil);
+  FSphere.RenderLayer := rlFront;
+  FSphere.SetTransient;
+  FSphere.UseInternalGlobalRenderOptions := false; // never change rendering to global
+  FSphere.Color := FColor;
+  FSphere.Material := pmUnlit;
+  FSphere.Radius := 0.1;
+  Add(FSphere);
+end;
+
+destructor TDesignJointTransform.Destroy;
+begin
+  FreeAndNil(FSphere);
+  inherited Destroy;
+end;
+
+procedure TDesignJointTransform.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+// var
+//   NewRadius: Single;
+begin
+  inherited Update(SecondsPassed, RemoveMe);
+
+  (*
+  if FSphere <> nil then
+  begin
+    NewRadius := EstimateSphereRadius;
+    if not SameValue(NewRadius, FSphere.Radius) then
+    begin
+      FSphere.Radius := NewRadius;
+    end;
+  end;
+  *)
+
+  CheckTransformInsideParent;
+end;
+
 procedure TDesignJointTransform.SetColor(const Value: TCastleColor);
 begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
@@ -170,52 +216,6 @@ begin
   inherited ChangedTransform;
   if not TVector3.PerfectlyEquals(Translation, Value) then
     Value := Translation;
-end;
-
-constructor TDesignJointTransform.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner);
-
-  FColor := Red;
-  FJoint := AJoint;
-  SetTransient;
-
-  FSphere := TCastleSphere.Create(nil);
-  FSphere.RenderLayer := rlFront;
-  FSphere.SetTransient;
-  FSphere.UseInternalGlobalRenderOptions := false; // never change rendering to global
-  FSphere.Color := FColor;
-  FSphere.Material := pmUnlit;
-  FSphere.Radius := 0.1;
-  Add(FSphere);
-end;
-
-destructor TDesignJointTransform.Destroy;
-begin
-  FreeAndNil(FSphere);
-  inherited Destroy;
-end;
-
-procedure TDesignJointTransform.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
-// var
-//   NewRadius: Single;
-begin
-  inherited Update(SecondsPassed, RemoveMe);
-
-  (*
-  if FSphere <> nil then
-  begin
-    NewRadius := EstimateSphereRadius;
-    if not SameValue(NewRadius, FSphere.Radius) then
-    begin
-      FSphere.Radius := NewRadius;
-    end;
-  end;
-  *)
-
-  CheckTransformInsideParent;
 end;
 
 { TDesignJointAnchor ----------------------------------------------------------- }
@@ -294,6 +294,13 @@ end;
 
 { TDesignJointConnectedAnchor --------------------------------------------- }
 
+constructor TDesignJointConnectedAnchor.Create(AOwner: TComponent;
+  const AJoint: TAbstractJoint);
+begin
+  inherited Create(AOwner, AJoint);
+  Color := Green;
+end;
+
 procedure TDesignJointConnectedAnchor.SetObservedValue(const AValue: TVector3);
 begin
   if Joint is TCastleRopeJoint then
@@ -315,14 +322,14 @@ begin
     Exit(TCastleRopeJoint(Joint).ConnectedAnchor);
 end;
 
-constructor TDesignJointConnectedAnchor.Create(AOwner: TComponent;
+{ TDesignJointWorldPoint -------------------------------------------------- }
+
+constructor TDesignJointWorldPoint.Create(AOwner: TComponent;
   const AJoint: TAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
-  Color := Green;
+  Color := Blue;
 end;
-
-{ TDesignJointWorldPoint -------------------------------------------------- }
 
 procedure TDesignJointWorldPoint.SetObservedValue(const AValue: TVector3);
 begin
@@ -339,15 +346,14 @@ begin
     Exit(TCastleGrabJoint(Joint).WorldPoint);
 end;
 
-constructor TDesignJointWorldPoint.Create(AOwner: TComponent;
+{ TDesignJointWorldAnchor ------------------------------------------------- }
+
+constructor TDesignJointWorldAnchor.Create(AOwner: TComponent;
   const AJoint: TAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
-  Color := Blue;
+  Color := Red;
 end;
-
-
-{ TDesignJointWorldAnchor ------------------------------------------------- }
 
 procedure TDesignJointWorldAnchor.SetObservedValue(const AValue: TVector3);
 begin
@@ -379,14 +385,14 @@ begin
   Result := TVector3.Zero;
 end;
 
-constructor TDesignJointWorldAnchor.Create(AOwner: TComponent;
+{ TDesignJointConnectedWorldAnchor ---------------------------------------- }
+
+constructor TDesignJointConnectedWorldAnchor.Create(AOwner: TComponent;
   const AJoint: TAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
-  Color := Red;
+  Color := Green;
 end;
-
-{ TDesignJointConnectedWorldAnchor ---------------------------------------- }
 
 procedure TDesignJointConnectedWorldAnchor.SetObservedValue(const AValue: TVector3
   );
@@ -410,15 +416,14 @@ begin
   Result := TVector3.Zero;
 end;
 
-constructor TDesignJointConnectedWorldAnchor.Create(AOwner: TComponent;
+{ TDesignJointWorldGroundAnchor ------------------------------------------- }
+
+constructor TDesignJointWorldGroundAnchor.Create(AOwner: TComponent;
   const AJoint: TAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
-  Color := Green;
+  Color := Orange;
 end;
-
-
-{ TDesignJointWorldGroundAnchor ------------------------------------------- }
 
 procedure TDesignJointWorldGroundAnchor.SetObservedValue(const AValue: TVector3);
 begin
@@ -441,14 +446,14 @@ begin
   Result := TVector3.Zero;
 end;
 
-constructor TDesignJointWorldGroundAnchor.Create(AOwner: TComponent;
+{ TDesignJointConnectedWorldGroundAnchor ---------------------------------- }
+
+constructor TDesignJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;
   const AJoint: TAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
-  Color := Orange;
+  Color := Teal;
 end;
-
-{ TDesignJointConnectedWorldGroundAnchor ---------------------------------- }
 
 procedure TDesignJointConnectedWorldGroundAnchor.SetObservedValue(
   const AValue: TVector3);
@@ -470,13 +475,6 @@ begin
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
   Result := TVector3.Zero;
-end;
-
-constructor TDesignJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Teal;
 end;
 
 end.
