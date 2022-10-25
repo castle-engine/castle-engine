@@ -24,29 +24,23 @@
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
-
     FAnchorTransform: TCastleTransform; //TTemporaryJointAnchor
 
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure WorldBeforeDetach; override;
-
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
@@ -65,7 +59,6 @@
       FConnectedWorldAnchor: TVector3;
       FConnectedWorldGroundAnchor: TVector3;
       FRatio: Single;
-
       FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
       FConnectedWorldAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldAnchor;
       FWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointWorldGroundAnchor;
@@ -77,24 +70,19 @@
       procedure SetConnectedWorldGroundAnchor(const AValue: TVector3);
       procedure SetRatio(const AValue: Single);
       procedure InternalUpdateGizmosName;
-
-    strict protected
+    protected
       function GetKraftJoint: TKraftConstraintJoint; override;
       procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
-
-    protected
       procedure SetName(const Value: TComponentName); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
       procedure WorldBeforeDetach; override;
-
       procedure InternalCreateGizmos; override;
       procedure InternalDestroyGizmos; override;
       function InternalCreateGizmosCreated: Boolean; override;
-
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
       property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
@@ -122,7 +110,6 @@
     FDoubleSidedWorldPlane: Boolean;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-
     FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor;
 
     procedure SetAnchor(const AValue: TVector3);
@@ -133,8 +120,7 @@
     procedure SetDampingRatio(const AValue: Single);
     procedure DoubleSidedWorldPlane(const AValue: Boolean);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
@@ -147,11 +133,9 @@
     destructor Destroy; override;
 
     procedure WorldBeforeDetach; override;
-
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Anchor: TVector3 read FAnchor write SetAnchor;
@@ -170,20 +154,15 @@
   TCastleSliderJoint = class (TAbstractTwoBodiesJoint)
   private
     FKraftJointSlider: TKraftConstraintJointSlider;
-
     FWorldSliderAxis: TVector3;
-
     FWorldAnchor: TVector3;
     FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
-
     FEnableLimits: Boolean;
     FMinTranslationLimit: Single;
     FMaxTranslationLimit: Single;
-
     FEnableMotor: Boolean;
     FMaxMotorForce: Single;
     FMotorSpeed: Single;
-
     procedure SetWorldAnchor(const AValue: TVector3);
     procedure SetWorldSliderAxis(const AValue: TVector3);
     procedure SetEnableLimits(const AValue: Boolean);
@@ -194,25 +173,19 @@
     function GetMotorSpeed: Single;
     procedure SetMaxMotorForce(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure WorldBeforeDetach; override;
-
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;

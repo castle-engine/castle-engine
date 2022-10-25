@@ -17,9 +17,11 @@
 { Physics joints. }
 
 {$ifdef read_interface}
-
+  { The most abstract joint class that observes the existence of rigid body
+    and its state, handles proper attachment and detachment from the parent,
+    and includes the properties available in all joints. }
   TAbstractJoint = class(TCastleBehavior)
-  strict protected
+  protected
     { When joint is added to world we need found parent rigid body and set
       callbacks for its initialize/deinitialize events. If this pointer is not nil
       that means that we done that }
@@ -30,26 +32,33 @@
 
     { Create kraft joint and set it specialized properties }
     procedure CreateKraftJoint; virtual; abstract;
+
     { Function to get kraft joint }
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
+
     { Tries to deinitialize and initialize kraft object }
     procedure RecreateKraftJoint;
     procedure InitializeKraftJoint; virtual;
     procedure DeinitializeKraftJoint; virtual; abstract;
+
     { Means that we can create joint object }
     function AllNeededKraftObjectsInitialized: Boolean; virtual;
 
     { Event callback when TCastleRigidBody is added to parent transform }
     procedure OnParentTransformAddBehavior(const Component: TComponent); virtual;
+
     { Event callback when TCastleRigidBody is removed from parent transform }
     procedure OnBeforeParentTransfromRemoveBehavior(const Component: TComponent); virtual;
+
     { Event callback when TCastleRigidBody behavior is initialized }
     procedure OnParentRigidBodyInitialized(const Component: TComponent); virtual;
+
     { Event callback when TCastleRigidBody behavior is deinitialized }
     procedure OnBeforeParentRigidBodyDeinitialized(const Component: TComponent); virtual;
 
     { Sets TCastleRigidBody behavior initialize/deinitialize callbacks }
     procedure SetParentRigidBodyEvents;
+
     { Removes TCastleRigidBody behavior initialize/deinitialize callbacks }
     procedure RemoveParentRigidBodyEvents;
 
@@ -64,7 +73,6 @@
     destructor Destroy; override;
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Breakable: Boolean read FBreakable write SetBreakable;
@@ -72,11 +80,11 @@
     property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
   end;
 
+  { Abstract class for joints that uses only one TCastleTransform. }
   TAbstractOneBodyJoint = class(TAbstractJoint)
-
   end;
 
-  { Abstract class for joint that connects two TCastleTransforms }
+  { Abstract class for joints that connects two TCastleTransforms. }
   TAbstractTwoBodiesJoint = class (TAbstractJoint)
   private
     { TAbstractTwoBodiesJoint means that joint connects two transforms so this is
@@ -92,7 +100,7 @@
       FConnectedTransform when second transform is freed }
     FConnectedTransfromFreeObserver: TFreeNotificationObserver;
 
-  strict protected
+  protected
     procedure InitializeKraftJoint; override;
 
     procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
@@ -122,19 +130,20 @@
     { Removes connected TCastleRigidBody behavior initialize/deinitialize
       callbacks }
     procedure RemoveConnectedRigidBodyEvents;
-
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { We need to check if sometimes the connected castle transform is not
       the parent node and we need change the connected node to nil then }
     procedure ParentAfterAttach; override;
+
     { We don't need check WorldAfterAttach and WorldBeforeDetach because all
       things are done in TAbstractJoint }
   published
-    { Second transform of physics joint - can't be the Parent of joint }
+    { Second transform of physics joint - can't be the Parent of joint. }
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
+
     { Should connected transforms (ConnectedTransform and Parent)
       collide - default no }
     property ConnectedCollide: Boolean read FConnectedCollide
@@ -149,7 +158,7 @@
     FMotorSpeed: Single;
     FRotationAxis: TVector3;
     FAnchor: TVector3;
-    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
+    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FMinAngleLimit: Single;
     FMaxAngleLimit: Single;
     FEnableLimits: Boolean;
@@ -166,15 +175,11 @@
     function GetMotorSpeed: Single;
     procedure SetMaxMotorTorque(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -212,22 +217,18 @@
     FAnchor: TVector3;
     FConnectedAnchor: TVector3;
     FDistance: Single;
-
-    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
-    FConnectedAnchorTransform: TCastleTransform; // TTemporaryConnectedAnchor;
-
+    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
 
     procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); override;
-
   protected
     procedure SetName(const Value: TComponentName); override;
   public
@@ -235,18 +236,15 @@
     destructor Destroy; override;
 
     procedure WorldBeforeDetach; override;
-
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
     property Anchor: TVector3 read FAnchor write SetAnchor;
     property ConnectedAnchor: TVector3 read FConnectedAnchor
       write SetConnectedAnchor;
-
   published
     property Distance: Single read FDistance write SetDistance;
 
@@ -259,18 +257,13 @@
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
-
     FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
-
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -281,7 +274,6 @@
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
@@ -299,7 +291,6 @@
     FConnectedAnchor: TVector3;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-
     FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
     FConnectedAnchorTransform: TCastleTransform; // TTemporaryJointConnectedAnchor
 
@@ -308,24 +299,19 @@
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure WorldBeforeDetach; override;
-
     procedure InternalCreateGizmos; override;
     procedure InternalDestroyGizmos; override;
     function InternalCreateGizmosCreated: Boolean; override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
@@ -350,7 +336,6 @@
     FKraftJointGrab: TKraftConstraintJointGrab;
     FMaximalForce: Single;
     FWorldPoint: TVector3;
-
     FWorldPointTransform: TCastleTransform; // TTemporaryJointWorldPoint;
 
     procedure SetWorldPoint(const AValue: TVector3);
@@ -358,13 +343,10 @@
     procedure SetDampingRatio(const AValue: Single);
     procedure SetMaximalForce(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
-  strict protected
+  protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
-
-  protected
     procedure SetName(const Value: TComponentName); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -662,20 +644,29 @@ end;
 
 procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
 begin
-  FBreakThresholdForce := AValue;
-  UpdateBreakThresholdForceInKraft;
+  if not SameValue(FBreakThresholdForce, AValue) then
+  begin
+    FBreakThresholdForce := AValue;
+    UpdateBreakThresholdForceInKraft;
+  end;
 end;
 
 procedure TAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
 begin
-  FBreakThresholdTorque := AValue;
-  UpdateBreakThresholdTorqueInKraft;
+  if not SameValue(FBreakThresholdTorque, AValue) then
+  begin
+    FBreakThresholdTorque := AValue;
+    UpdateBreakThresholdTorqueInKraft;
+  end;
 end;
 
 procedure TAbstractJoint.SetBreakable(const AValue: Boolean);
 begin
-  FBreakable := AValue;
-  UpdateBreakableInKraft;
+  if FBreakable <> AValue then
+  begin
+    FBreakable := AValue;
+    UpdateBreakableInKraft;
+  end;
 end;
 
 destructor TAbstractJoint.Destroy;
@@ -735,61 +726,70 @@ end;
 
 procedure TCastleHingeJoint.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchor, AValue) then
-    Exit;
-
-  FAnchor := AValue;
-  if FAnchorTransform <> nil then
-    TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
-  RecreateKraftJoint;
+  if not TVector3.Equals(FAnchor, AValue) then
+  begin
+    FAnchor := AValue;
+    if FAnchorTransform <> nil then
+      TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
+    RecreateKraftJoint;
+  end;
 end;
 
 procedure TCastleHingeJoint.SetRotationAxis(const AValue: TVector3);
 begin
-  FRotationAxis := AValue;
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetWorldRotationAxis(
-      VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)));
+  if not TVector3.PerfectlyEquals(FRotationAxis, AValue) then
+  begin
+    FRotationAxis := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.SetWorldRotationAxis(
+        VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)));
+  end;
 end;
 
 procedure TCastleHingeJoint.SetEnableLimits(const AValue: Boolean);
 begin
-  if FEnableLimits = AValue then
-    Exit;
-
-  FEnableLimits := AValue;
-
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.EnableLimit(AValue);
+  if FEnableLimits <> AValue then
+  begin
+    FEnableLimits := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.EnableLimit(AValue);
+  end;
 end;
 
 procedure TCastleHingeJoint.SetMinAngleLimit(const AValue: Single);
 begin
-  FMinAngleLimit := AValue;
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMinimumAngleLimit(FMinAngleLimit);
+  if not SameValue(FMinAngleLimit, AValue) then
+  begin
+    FMinAngleLimit := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.SetMinimumAngleLimit(FMinAngleLimit);
+  end;
 end;
 
 procedure TCastleHingeJoint.SetMaxAngleLimit(const AValue: Single);
 begin
-  FMaxAngleLimit := AValue;
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMaximumAngleLimit(FMaxAngleLimit);
+  if not SameValue(FMaxAngleLimit, AValue) then
+  begin
+    FMaxAngleLimit := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.SetMaximumAngleLimit(FMaxAngleLimit);
+  end;
 end;
 
 procedure TCastleHingeJoint.SetEnableMotor(const AValue: Boolean);
 begin
-  if FEnableMotor = AValue then
-    Exit;
-
-  FEnableMotor := AValue;
-
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.EnableMotor(AValue);
+  if FEnableMotor <> AValue then
+  begin
+    FEnableMotor := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.EnableMotor(AValue);
+  end;
 end;
 
 procedure TCastleHingeJoint.SetMotorSpeed(const AValue: Single);
 begin
+  { Do not check FMotorSpeed <> AValue here it can be changed by craft }
+  // TODO: Maybe should be updated in Update? See GetMotorSpeed()?
   FMotorSpeed := AValue;
   if FKraftJointHinge <> nil then
     FKraftJointHinge.SetMotorSpeed(AValue);
@@ -805,12 +805,12 @@ end;
 
 procedure TCastleHingeJoint.SetMaxMotorTorque(const AValue: Single);
 begin
-  if SameValue(FMaxMotorTorque, AValue) then
-    Exit;
-
-  FMaxMotorTorque := AValue;
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMaximalMotorTorque(FMaxMotorTorque);
+  if not SameValue(FMaxMotorTorque, AValue) then
+  begin
+    FMaxMotorTorque := AValue;
+    if FKraftJointHinge <> nil then
+      FKraftJointHinge.SetMaximalMotorTorque(FMaxMotorTorque);
+  end;
 end;
 
 procedure TCastleHingeJoint.InternalUpdateGizmosName;
