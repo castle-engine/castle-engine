@@ -109,6 +109,7 @@ type
     FOnFall: TFallNotifyFunc;
     FWarningInvalidParentDone: Boolean;
     FCheckCollisions: Boolean;
+    FZoomEnabled: Boolean;
 
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
@@ -341,6 +342,14 @@ type
     // By default this captures events from whole parent, which should be whole Viewport.
     property FullSize default true;
 
+    { Enable zooming in / out.
+      Depending on the projection, zooming either moves camera or scales
+      the projection size.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
+      If @true, at least mouse wheel makes a zoom (som,e navigation methods
+      may have additional ways to make zoom, they will all honor this property.) }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+
     { Check collisions when moving with the environment.
 
       Note: some descendants may ignore it for some operations.
@@ -366,7 +375,6 @@ type
     var
       FMoveEnabled: Boolean;
       FRotationEnabled: Boolean;
-      FZoomEnabled: Boolean;
       FDragMoveSpeed, FKeysMoveSpeed: Single;
       FExactMovement: Boolean;
       { Speed of rotations. Always zero when RotationAccelerate = false.
@@ -597,11 +605,7 @@ type
       @link(Translation) property or calling @link(TCastleTransform.SetWorldView Camera.SetWorldView). }
     property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
 
-    { Enable zooming the camera on the model by user input.
-      Depending on the projection, zooming either moves camera or scales
-      the projection size.
-      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom. }
-    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+    property ZoomEnabled default true;
 
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
@@ -1619,6 +1623,8 @@ begin
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
+const
+  MouseWheelSpeed = 1 / 30;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1635,6 +1641,13 @@ begin
       to receive mouse dragging.
       Testcase: demo-models, touch_sensor_tests.x3dv }
     // Exit(ExclusiveEvents);
+  end;
+
+  if (Event.EventType = itMouseWheel) and
+     ZoomEnabled then
+  begin
+    if Zoom(MouseWheelSpeed * Event.MouseWheelScroll) then
+      Exit(ExclusiveEvents);
   end;
 end;
 
@@ -1726,7 +1739,8 @@ end;
 function TCastleNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'CheckCollisions') then
+  if (PropertyName = 'CheckCollisions') or
+     (PropertyName = 'ZoomEnabled') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1776,9 +1790,17 @@ begin
   { Try hard to return non-empty bounding box, otherwise examine navigation
     doesn't work sensibly, as movement and zooming speed must depend on box
     sizes.
+
     This is important in case you use TCastleExamineNavigation without
     setting it's ModelBox explicitly, which happens e.g. when CGE editor
-    adds TCastleExamineNavigation. }
+    adds TCastleExamineNavigation.
+
+    Note: We use Items.BoundingBox, not (private) ItemsBoundingBox
+    that avoids adding gizmos to bbox.
+    Right now it doesn't matter (as we don't need this box to be precise,
+    we dont' zoom to box center) so it's better to use Items.BoundingBox
+    and keep ItemsBoundingBox private.
+  }
   if ModelBox.IsEmpty and
      (InternalViewport <> nil) then
     Result := (InternalViewport as TCastleViewport).Items.BoundingBox
@@ -1797,7 +1819,7 @@ function TCastleNavigation.Zoom(const Factor: Single): Boolean;
 
 var
   Size: Single;
-  MoveWorldDir, ToCenter, MoveDir, CamWorldPos, CamWorldDir, CamWorldUp: TVector3;
+  //MoveWorldDir, ToCenter, MoveDir, CamWorldPos, CamWorldDir, CamWorldUp: TVector3;
   B: TBox3D;
   SavedCheckCollisions: Boolean;
 begin
@@ -1833,6 +1855,11 @@ begin
 
       Size := B.AverageSize;
 
+      (*
+      // We used to have here a complicated logic that zooms into bbox center.
+      // In the end, this is not necessary and not intuitive.
+      // Let zoom now just move forward/backward.
+
       Camera.GetWorldView(CamWorldPos, CamWorldDir, CamWorldUp);
 
       ToCenter := B.Center - CamWorldPos;
@@ -1862,12 +1889,13 @@ begin
         MoveDir := Camera.Parent.WorldToLocalDirection(MoveWorldDir)
       else
         Exit;
+      *)
 
       SavedCheckCollisions := CheckCollisions;
       if Factor < 0 then
         CheckCollisions := false; // never check collisions when zooming out
       try
-        Result := Move(MoveDir, false, false);
+        Result := Move(Camera.Direction * Size * Factor, false, false);
       finally
         CheckCollisions := SavedCheckCollisions;
       end;
@@ -1895,7 +1923,7 @@ begin
 
   FRotationEnabled := true;
   FMoveEnabled := true;
-  FZoomEnabled := true;
+  ZoomEnabled := true;
   FRotationsAnim := TVector3.Zero;
   FDragMoveSpeed := 1;
   FKeysMoveSpeed := 1;
@@ -2363,8 +2391,6 @@ function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolea
     Camera.GravityUp := AGravityUp;
   end;
 
-var
-  ZoomScale: Single;
 begin
   Result := inherited;
   if Result or
@@ -2377,38 +2403,25 @@ begin
 
   if not (niNormal in UsingInput) then Exit;
 
-  if Event.EventType <> itMouseWheel then
+  if Input_StopRotating.IsEvent(Event) then
   begin
-    if Input_StopRotating.IsEvent(Event) then
-    begin
-      { If StopRotating was useless, do not mark the event as "handled".
-        This is necessary to avoid having mouse clicks "stolen" by the TCastleExamineNavigation
-        when an empty TCastleViewport is being used
-        (and thus, mouse clicks could instead be used by other control).
-        It was necessary with deprecated TCastleControl/TCastleWindow:
-        on empty window, mouse clicks would be "mysteriously" intercepted,
-        since the default scene manager creates
-        examine camera, and it captures left mouse click as Input_StopRotating. }
-      if StopRotating then
-        Result := ExclusiveEvents;
-    end else
-    if Input_Home.IsEvent(Event) then
-    begin
-      CameraInitial;
+    { If StopRotating was useless, do not mark the event as "handled".
+      This is necessary to avoid having mouse clicks "stolen" by the TCastleExamineNavigation
+      when an empty TCastleViewport is being used
+      (and thus, mouse clicks could instead be used by other control).
+      It was necessary with deprecated TCastleControl/TCastleWindow:
+      on empty window, mouse clicks would be "mysteriously" intercepted,
+      since the default scene manager creates
+      examine camera, and it captures left mouse click as Input_StopRotating. }
+    if StopRotating then
       Result := ExclusiveEvents;
-    end else
-      Result := false;
   end else
-  if ZoomEnabled then
+  if Input_Home.IsEvent(Event) then
   begin
-    { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
-
-    if Turntable then
-      ZoomScale := 30 else
-      ZoomScale := 10;
-    if Zoom(Event.MouseWheelScroll / ZoomScale) then
-       Result := ExclusiveEvents;
-  end;
+    CameraInitial;
+    Result := ExclusiveEvents;
+  end else
+    Result := false;
 end;
 
 function TCastleExamineNavigation.Release(const Event: TInputPressRelease): boolean;
@@ -2668,7 +2681,6 @@ function TCastleExamineNavigation.PropertySections(
 begin
   if (PropertyName = 'MoveEnabled') or
      (PropertyName = 'RotationEnabled') or
-     (PropertyName = 'ZoomEnabled') or
      (PropertyName = 'RotationAccelerate') or
      (PropertyName = 'ExactMovement') then
     Result := [psBasic]
@@ -3963,16 +3975,6 @@ begin
   begin
     MouseDraggingStarted := -1;
     Result := false;
-    Exit;
-  end;
-
-  if (Event.EventType = itMouseWheel) and
-     ReallyEnableMouseDragging and
-     (MouseDragMode <> mdRotate) and
-     Event.MouseWheelVertical then
-  begin
-    RotateVertical(-Event.MouseWheelScroll * MouseWheelScrollSpeed);
-    Result := true;
     Exit;
   end;
 
