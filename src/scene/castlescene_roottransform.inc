@@ -417,7 +417,9 @@ begin
       (Rotation.W = 0) and
       TVector3.Equals(Scale, NoScale)
     ) then
-    WritelnWarning('Viewport.Items (TCastleRootTransform) has some transformation (non-zero translation, rotation or non-identity scale). While allowed, this is known to cause a bit weird behavior at design-time (as the root transformation affects all, even internal, cameras). We advise to leave the TCastleRootTransform untransformed in most cases.');
+    WritelnWarning('Viewport.Items (TCastleRootTransform) has some transformation (non-zero translation, rotation or non-identity scale). ' +
+      'While allowed, this is known to cause a bit weird behavior at design-time (as the root transformation affects all, even internal, cameras). ' +
+      'We advise to leave the TCastleRootTransform untransformed in most cases.');
 end;
 
 {$endif read_implementation}
