@@ -2032,7 +2032,6 @@ begin
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
-  PendingRemovals;
   FreeAndNil(FPendingToRemove);
   FreeAndNil(FPendingToRemoveAndFree);
 
@@ -2046,8 +2045,6 @@ begin
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
-  { set to nil, to detach free notification }
-  ChangeWorld(nil);
   inherited;
 end;
 
@@ -2055,6 +2052,11 @@ procedure TCastleTransform.BeforeDestruction;
 var
   I: Integer;
 begin
+  { set to nil, to detach free notification }
+  ChangeWorld(nil);
+
+  PendingRemovals;
+
   { Before we start destroying the transform we need remove all behaviors from
     it, because destroying behavior calls it events like BeforeParentDetach,
     ParentChanged. In this case FBehaviors and other TCastleTransform data is
