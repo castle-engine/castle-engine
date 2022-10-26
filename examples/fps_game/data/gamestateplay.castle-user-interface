@@ -175,100 +175,235 @@
             "Name" : "Lights",
             "$Children" : [
               {
-                "$$ClassName" : "TCastleSpotLight",
-                "BeamWidth" : 5.0000000000000000E-001,
-                "Intensity" : 3.0000000000000000E+000,
-                "Name" : "SpotLight1",
-                "Radius" : 9.0000000000000000E+001,
+                "$$ClassName" : "TCastleDirectionalLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 6.1960786581039429E-001,
+                  "Green" : 9.2941176891326904E-001,
+                  "Red" : 9.7254902124404907E-001
+                },
+                "Intensity" : 2.0000000000000000E+000,
+                "Name" : "DirectionalLight1",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4Persistent",
-                  "W" : 1.1607506275177002E+000,
-                  "X" : -9.9999856948852539E-001
+                  "W" : 2.4898138046264648E+000,
+                  "X" : 9.9611073732376099E-002,
+                  "Y" : -5.3104609251022339E-001,
+                  "Z" : -8.4146749973297119E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 2.1659599304199219E+001,
-                  "Z" : -2.1520202636718750E+001
+                  "X" : -1.1288213729858398E+001,
+                  "Y" : 2.2207180023193359E+001,
+                  "Z" : -3.4920013427734375E+001
                 }
               },
               {
                 "$$ClassName" : "TCastlePointLight",
-                "Intensity" : 3.0000000000000000E+000,
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.5490197539329529E-001,
+                  "Green" : 8.3529412746429443E-001,
+                  "Red" : 9.8039215803146362E-001
+                },
                 "Name" : "PointLight1",
-                "Radius" : 2.0000000000000000E+002,
+                "Radius" : 3.0000000000000000E+000,
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 2.9463338851928711E+000,
-                  "Z" : -9.3662445068359375E+001
+                  "X" : -7.2123870849609375E+000,
+                  "Y" : 2.5260794162750244E-001,
+                  "Z" : -7.2292579650878906E+001
                 }
               },
               {
                 "$$ClassName" : "TCastlePointLight",
-                "Intensity" : 3.0000000000000000E+000,
-                "Name" : "PointLight5",
-                "Radius" : 2.0000000000000000E+002,
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 3.0870471954345703E+001,
-                  "Y" : 9.5741767883300781E+000,
-                  "Z" : -1.2072149658203125E+002
-                }
-              },
-              {
-                "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.5490197539329529E-001,
+                  "Green" : 8.3529412746429443E-001,
+                  "Red" : 9.8039215803146362E-001
+                },
                 "Intensity" : 2.0000000000000000E+000,
-                "Name" : "PointLight6",
-                "Radius" : 2.0000000000000000E+002,
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 4.4924472808837891E+001,
-                  "Y" : 9.5741767883300781E+000,
-                  "Z" : -1.0455558776855469E+002
-                }
-              },
-              {
-                "$$ClassName" : "TCastlePointLight",
-                "Name" : "PointLight7",
-                "Radius" : 2.0000000000000000E+002,
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 2.8535360336303711E+001,
-                  "Y" : 2.7318210601806641E+001,
-                  "Z" : -1.0455558776855469E+002
-                }
-              },
-              {
-                "$$ClassName" : "TCastlePointLight",
                 "Name" : "PointLight3",
-                "Radius" : 2.0000000000000000E+002,
+                "Radius" : 3.0000000000000000E+000,
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -2.1686944961547852E+001,
-                  "Y" : 1.3726649284362793E+001,
-                  "Z" : -9.3662445068359375E+001
+                  "X" : -7.2123870849609375E+000,
+                  "Y" : 1.5359545946121216E+000,
+                  "Z" : -6.5063316345214844E+001
                 }
               },
               {
                 "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.5490197539329529E-001,
+                  "Green" : 8.3529412746429443E-001,
+                  "Red" : 9.8039215803146362E-001
+                },
                 "Intensity" : 2.0000000000000000E+000,
                 "Name" : "PointLight4",
-                "Radius" : 2.0000000000000000E+002,
+                "Radius" : 3.0000000000000000E+000,
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.4901613235473633E+001,
-                  "Y" : 1.3726649284362793E+001,
-                  "Z" : -9.3662445068359375E+001
+                  "X" : -7.2123870849609375E+000,
+                  "Y" : 2.3774838447570801E-001,
+                  "Z" : -8.0273307800292969E+001
                 }
               },
               {
                 "$$ClassName" : "TCastlePointLight",
-                "Intensity" : 4.0000000000000000E+000,
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.7058824896812439E-001,
+                  "Green" : 9.1372549533843994E-001,
+                  "Red" : 9.6078431606292725E-001
+                },
                 "Name" : "PointLight2",
-                "Radius" : 2.0000000000000000E+002,
+                "Radius" : 3.0000000000000000E+000,
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 2.9463338851928711E+000,
-                  "Z" : -2.9400100708007812E+000
+                  "X" : 9.1785879135131836E+000,
+                  "Y" : 9.0352183580398560E-001,
+                  "Z" : -6.8503295898437500E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.7058824896812439E-001,
+                  "Green" : 9.1372549533843994E-001,
+                  "Red" : 9.6078431606292725E-001
+                },
+                "Name" : "PointLight5",
+                "Radius" : 3.0000000000000000E+000,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.1785879135131836E+000,
+                  "Y" : 6.8088513612747192E-001,
+                  "Z" : -7.4448669433593750E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.7058824896812439E-001,
+                  "Green" : 9.1372549533843994E-001,
+                  "Red" : 9.6078431606292725E-001
+                },
+                "Name" : "PointLight6",
+                "Radius" : 3.0000000000000000E+000,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.1785879135131836E+000,
+                  "Y" : 9.5486497879028320E-001,
+                  "Z" : -8.0015998840332031E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 9.1764706373214722E-001,
+                  "Green" : 6.4705884456634521E-001,
+                  "Red" : 3.1764706969261169E-001
+                },
+                "Name" : "PointLight7",
+                "Radius" : 1.0000000000000000E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.0502696037292480E+000,
+                  "Y" : 5.8807864189147949E+000,
+                  "Z" : -8.0015998840332031E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 2.9411765933036804E-001,
+                  "Green" : 7.2941178083419800E-001,
+                  "Red" : 9.3725490570068359E-001
+                },
+                "Name" : "PointLight8",
+                "Radius" : 1.0000000000000000E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -8.6253803968429565E-001,
+                  "Y" : 5.8807864189147949E+000,
+                  "Z" : -7.2669914245605469E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 9.4509804248809814E-001,
+                  "Green" : 6.3529413938522339E-001,
+                  "Red" : 2.5490197539329529E-001
+                },
+                "Name" : "SpotLight1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent",
+                  "W" : 1.5840727090835571E+000,
+                  "X" : -9.5173501968383789E-001,
+                  "Y" : 2.2091452777385712E-001,
+                  "Z" : 2.1306219696998596E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0602340698242188E+000,
+                  "Y" : 6.8898434638977051E+000,
+                  "Z" : -6.9014289855957031E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 9.4509804248809814E-001,
+                  "Green" : 6.3529413938522339E-001,
+                  "Red" : 2.5490197539329529E-001
+                },
+                "Name" : "SpotLight3",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent",
+                  "W" : 3.0849163532257080E+000,
+                  "X" : -8.8972449302673340E-001,
+                  "Y" : -4.3080487847328186E-001,
+                  "Z" : 1.5099278092384338E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.7821338176727295E+000,
+                  "Y" : 7.0360336303710938E+000,
+                  "Z" : -7.2667350769042969E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent",
+                  "Blue" : 9.4117647409439087E-001,
+                  "Green" : 7.8823530673980713E-001,
+                  "Red" : 2.5882354378700256E-001
+                },
+                "Intensity" : 2.0000000000000000E+000,
+                "Name" : "SpotLight2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent",
+                  "W" : 3.0375669002532959E+000,
+                  "X" : -5.7049863040447235E-002,
+                  "Y" : 6.7296707630157471E-001,
+                  "Z" : 7.3746788501739502E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.1794567108154297E+000,
+                  "Y" : 8.1929769515991211E+000,
+                  "Z" : -7.8399620056152344E+001
                 }
               }
             ]
@@ -536,6 +671,11 @@
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ImageControl5",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.1000000000000000E+002,
+            "Y" : 1.0000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle"
         }
@@ -551,21 +691,21 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 7.7022927999496460E-001,
-          "X" : -6.1264789104461670E-001,
-          "Y" : 7.6637375354766846E-001,
-          "Z" : 1.9322040677070618E-001
+          "W" : 4.1173338890075684E+000,
+          "X" : 1.3307523727416992E-001,
+          "Y" : 9.6179634332656860E-001,
+          "Z" : 2.3924659192562103E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.6560657501220703E+001,
-          "Y" : 3.2919055938720703E+001,
-          "Z" : -2.5070142745971680E+001
+          "X" : 4.4436926841735840E+000,
+          "Y" : 3.5803918838500977E+000,
+          "Z" : -7.2223159790039062E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 7.9432830810546875E+000,
+        "MoveSpeed" : 1.2589252471923828E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {
@@ -600,6 +740,11 @@
       "$$ClassName" : "TCastleVerticalGroup",
       "Height" : 2.4000000000000000E+002,
       "Name" : "VerticalGroup1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 6.3000000000000000E+002,
