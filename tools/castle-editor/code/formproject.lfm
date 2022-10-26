@@ -982,31 +982,31 @@ object ProjectForm: TProjectForm
       Category = 'Edit'
       Caption = 'Interact '
       OnExecute = ActionModeInteractExecute
-      ShortCut = 32849
+      ShortCut = 32817
     end
     object ActionModeSelect: TAction
       Category = 'Edit'
       Caption = 'Select'
       OnExecute = ActionModeSelectExecute
-      ShortCut = 32855
+      ShortCut = 32818
     end
     object ActionModeTranslate: TAction
       Category = 'Edit'
       Caption = 'Translate'
       OnExecute = ActionModeTranslateExecute
-      ShortCut = 32837
+      ShortCut = 32819
     end
     object ActionModeRotate: TAction
       Category = 'Edit'
       Caption = 'Rotate'
       OnExecute = ActionModeRotateExecute
-      ShortCut = 32850
+      ShortCut = 32820
     end
     object ActionModeScale: TAction
       Category = 'Edit'
       Caption = 'Scale'
       OnExecute = ActionModeScaleExecute
-      ShortCut = 32852
+      ShortCut = 32821
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
