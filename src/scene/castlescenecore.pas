@@ -1763,7 +1763,7 @@ type
       in your world, and it's not transformed) it may be equal to just
       @link(BoundingBox) of this scene. }
     procedure InternalUpdateNavigation(
-      const Navigation: TCastleNavigation; const WorldBox: TBox3D);
+      const Navigation: TCastleNavigation);
 
     { Update TCastleCamera properties based on the current X3D nodes
       (currently bound X3D Viewpoint NavigationInfo nodes).
@@ -7557,7 +7557,7 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalUpdateNavigation(
-  const Navigation: TCastleNavigation; const WorldBox: TBox3D);
+  const Navigation: TCastleNavigation);
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
@@ -7612,8 +7612,6 @@ begin
 
   if Navigation is TCastleWalkNavigation then
     UpdateWalkNavigation(TCastleWalkNavigation(Navigation));
-
-  Navigation.ModelBox := WorldBox;
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;

@@ -367,8 +367,7 @@ function FloatModulo(const A, B: Double): Double;
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
-{ Our version of CoTan, to workaround
-  http://www.freepascal.org/mantis/view.php?id=9944. }
+{ Our version of CoTan, to workaround @url(http://www.freepascal.org/mantis/view.php?id=9944 old FPC bug). }
 function CastleCoTan(const Value: Float): Float;
 
 { Floor from Sqrt(Value). }

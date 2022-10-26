@@ -42,6 +42,14 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
+  TMode = (
+    moInteract,
+    moSelect,
+    moTranslate,
+    moRotate,
+    moScale
+  );
+
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ActionPhysicsPauseSimulation: TAction;
@@ -190,14 +198,6 @@ type
 
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
-
-      TMode = (
-        moInteract,
-        moSelect,
-        moTranslate,
-        moRotate,
-        moScale
-      );
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
@@ -368,7 +368,6 @@ type
       "parent and self equal" and may hide the parent anchor frame if yes. }
     procedure UpdateAnchors(const UI: TCastleUserInterface;
       const AllowToHideParentAnchorsFrame: Boolean);
-    procedure ChangeMode(const NewMode: TMode);
     { Filter property in object inspector.
       When FilterBySection = true, then Section matters and only properties in this section
       are displayed. }
@@ -479,6 +478,9 @@ type
     procedure ViewportAlignCameraToView;
 
     procedure ReleaseAllKeysAndMouse;
+
+    procedure FocusDesign;
+    procedure ChangeMode(const NewMode: TMode);
   end;
 
 implementation
@@ -5123,6 +5125,11 @@ end;
 procedure TDesignFrame.ReleaseAllKeysAndMouse;
 begin
   CastleControl.ReleaseAllKeysAndMouse;
+end;
+
+procedure TDesignFrame.FocusDesign;
+begin
+  CastleControl.SetFocus;
 end;
 
 initialization
