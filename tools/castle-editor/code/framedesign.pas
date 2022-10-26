@@ -3803,10 +3803,6 @@ var
   ChildrenNodesCount: Integer;
   O: Pointer;
 begin
-  // fixes first design loading
-  if DesignRoot = nil then
-    Exit;
-
   if not Validate then
     NodesToExpand := TObjectList.Create(false)
   else
@@ -3819,6 +3815,7 @@ begin
     if DesignRoot is TCastleTransform then
       AddTransform(nil, ChildrenNodesCount, DesignRoot as TCastleTransform)
     else
+    if DesignRoot <> nil then
       AddNonVisualComponent(nil, ChildrenNodesCount, DesignRoot);
     EnsureChildrenNodesCount(nil, ChildrenNodesCount);
 
