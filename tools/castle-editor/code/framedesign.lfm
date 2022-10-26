@@ -429,7 +429,7 @@ object DesignFrame: TDesignFrame
       object ButtonInteractMode: TSpeedButton
         Left = 0
         Height = 38
-        Hint = 'Use components as a normal user.'#10#10'Allows to test pressing UI buttons, using the scrollbar etc.'
+        Hint = 'Interact with components like a normal user (click buttons, drag scrollbars etc.).'#10#10'(Alt+1)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -574,7 +574,7 @@ object DesignFrame: TDesignFrame
       object ButtonSelectMode: TSpeedButton
         Left = 40
         Height = 38
-        Hint = 'Select components'
+        Hint = 'Select components.'#10#10'(Alt+2)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -719,7 +719,7 @@ object DesignFrame: TDesignFrame
       object ButtonTranslateMode: TSpeedButton
         Left = 80
         Height = 38
-        Hint = 'Select and Move components.'#10#10'Hold "Shift" to Move without changing the selection.'
+        Hint = 'Move (and Select) components.'#10'Hold "Shift" to Move without changing the selection.'#10#10'(Alt+3)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -864,7 +864,7 @@ object DesignFrame: TDesignFrame
       object ButtonRotateMode: TSpeedButton
         Left = 120
         Height = 38
-        Hint = 'Select and Rotate components.'#10#10'Hold "Shift" to Rotate without changing the selection.'
+        Hint = 'Rotate (and Select) components.'#10'Hold "Shift" to Rotate without changing the selection.'#10#10'(Alt+4)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1009,7 +1009,7 @@ object DesignFrame: TDesignFrame
       object ButtonScaleMode: TSpeedButton
         Left = 160
         Height = 38
-        Hint = 'Select and Scale components.'#10#10'Hold "Shift" to Scale without changing the selection.'
+        Hint = 'Scale (and Select) components.'#10'Hold "Shift" to Scale without changing the selection.'#10#10'(Alt+5)'
         Top = 0
         Width = 36
         AllowAllUp = True

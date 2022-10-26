@@ -34,11 +34,6 @@
 }
 
 /* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> */
-.pasdoc-container code {
-  background: transparent;
-  color: inherit;
-}
-
 .pasdoc-container td,
 .pasdoc-container th {
   border: 1px solid white;

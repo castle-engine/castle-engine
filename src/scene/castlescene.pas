@@ -1791,6 +1791,14 @@ begin
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
       for Shape in ShapeList do
       begin
+        { Do not render shadows for objects eliminated by DistanceCulling.
+          Otherwise: Not only shadows for invisible objects would look weird,
+          but they would actually show errors.
+          Shadow volumes *assume* that shadow caster is also rendered (shadow quads
+          are closed). }
+        if (DistanceCulling > 0) and not DistanceCullingCheck(Shape) then
+          Continue;
+
         ShapeBox := Shape.BoundingBox;
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);

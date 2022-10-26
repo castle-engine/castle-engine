@@ -369,9 +369,8 @@ function URICurrentPath: string;
 { If this is castle-data:... URL, resolve it using ApplicationData. }
 function ResolveCastleDataURL(const URL: String): String;
 
-{ If this URL indicates something inside the CGE data directory
-  ( https://castle-engine.io/manual_data_directory.php ),
-  then return URL relative to this data directory.
+{ If this URL indicates something inside the @url(https://castle-engine.io/manual_data_directory.php
+  CGE data directory) then return URL relative to this data directory.
   E.g. for "castle-data:/foo/bar.txt" it returns "foo/bar.txt".
 
   It accepts any URL, relative (to the current working directory)
