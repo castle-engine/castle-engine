@@ -42,10 +42,6 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
-  TBehaviorUpdateProc = procedure (const Behavior: TCastleBehavior) of object;
-  TTransformUpdateProc = procedure (const Transform: TCastleTransform) of object;
-  TUserInterfaceUpdateProc = procedure (const Transform: TCastleUserInterface) of object;
-
   TMode = (
     moInteract,
     moSelect,
@@ -379,14 +375,6 @@ type
     { Returns a warning and false value when hierarchy tree (ControlsTree) differs from
       castle design hierarchy (DesignRoot). }
     function ValidateHierarchy: Boolean;
-
-    { A way to iterate and run procedure on all items, not needed methods
-      can be nil. }
-    procedure RunProcOnAllItems(const UserInterfaceProc: TUserInterfaceUpdateProc;
-      const TransformProc: TTransformUpdateProc; const BehaviorProc: TBehaviorUpdateProc);
-
-    procedure ShowJointTools(const Behavior: TCastleBehavior);
-    procedure HideJointTools(const Behavior: TCastleBehavior);
 
     procedure UpdateSelectedControl;
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
@@ -3902,70 +3890,6 @@ begin
   end;
 end;
 
-procedure TDesignFrame.RunProcOnAllItems(const UserInterfaceProc: TUserInterfaceUpdateProc;
-    const TransformProc: TTransformUpdateProc; const BehaviorProc: TBehaviorUpdateProc);
-
-  procedure IterateTransform(const C: TCastleTransform;
-      const TransformProc: TTransformUpdateProc;
-      const BehaviorProc: TBehaviorUpdateProc);
-  var
-    I: Integer;
-    Behavior : TCastleBehavior;
-  begin
-    if Assigned(TransformProc) then
-      TransformProc(C);
-
-    { Behaviors }
-    if Assigned(BehaviorProc) then
-      for Behavior in C.BehaviorsEnumerate do
-        BehaviorProc(Behavior);
-
-    for I := 0 to C.Count -1 do
-      IterateTransform(C.Items[I], TransformProc, BehaviorProc);
-  end;
-
-  procedure IterateControl(const C: TCastleUserInterface;
-      const UserInterfaceProc: TUserInterfaceUpdateProc;
-      const TransformProc: TTransformUpdateProc;
-      const BehaviorProc: TBehaviorUpdateProc);
-  var
-    I: Integer;
-  begin
-    if Assigned(UserInterfaceProc) then
-      UserInterfaceProc(C);
-
-    for I := 0 to C.ControlsCount -1 do
-      IterateControl(C.Controls[I], UserInterfaceProc, TransformProc, BehaviorProc);
-
-    if C is TCastleViewport then
-      IterateTransform((C as TCastleViewport).Items, TransformProc, BehaviorProc);
-  end;
-
-begin
-  if DesignRoot = nil then
-    Exit;
-
-  if DesignRoot is TCastleUserInterface then
-    IterateControl(DesignRoot as TCastleUserInterface, UserInterfaceProc,
-      TransformProc, BehaviorProc);
-
-  if DesignRoot is TCastleTransform then
-    IterateTransform(DesignRoot as TCastleTransform, TransformProc,
-    BehaviorProc);
-end;
-
-procedure TDesignFrame.ShowJointTools(const Behavior: TCastleBehavior);
-begin
-  if Behavior is TAbstractJoint then
-    Behavior.InternalCreateGizmos;
-end;
-
-procedure TDesignFrame.HideJointTools(const Behavior: TCastleBehavior);
-begin
-  if Behavior is TAbstractJoint then
-    Behavior.InternalDestroyGizmos;
-end;
-
 function TDesignFrame.SelectedFromNode(Node: TTreeNode): TComponent;
 begin
   // This should never be called with Node = nil
@@ -4979,11 +4903,19 @@ begin
 end;
 
 procedure TDesignFrame.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+var
+  V: TCastleViewport;
+  BehList: TCastleBehaviorList;
+  B: TCastleBehavior;
 begin
-  if DesignRoot = nil then
-    Exit;
+  V := CurrentViewport;
+  if V = nil then Exit;
 
-  RunProcOnAllItems(nil, nil, @ShowJointTools);
+  BehList := V.Items.FindAllBehaviors(TAbstractJoint);
+  try
+    for B in BehList do
+      TAbstractJoint(B).InternalCreateGizmos;
+  finally FreeAndNil(BehList) end;
 end;
 
 procedure TDesignFrame.ActionPhysicsShowAllJointsToolsUpdate(Sender: TObject);
@@ -5001,18 +4933,27 @@ procedure TDesignFrame.ActionPhysicsPauseSimulationExecute(Sender: TObject);
 begin
   if CastleDesignPhysicsMode = pmPaused then
     CastleDesignPhysicsMode := pmPlaying
-  else if CastleDesignPhysicsMode = pmPlaying then
+  else
+  if CastleDesignPhysicsMode = pmPlaying then
     CastleDesignPhysicsMode := pmPaused;
 
   ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
 end;
 
 procedure TDesignFrame.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+var
+  V: TCastleViewport;
+  BehList: TCastleBehaviorList;
+  B: TCastleBehavior;
 begin
-  if DesignRoot = nil then
-    Exit;
+  V := CurrentViewport;
+  if V = nil then Exit;
 
-  RunProcOnAllItems(nil, nil, @HideJointTools);
+  BehList := V.Items.FindAllBehaviors(TAbstractJoint);
+  try
+    for B in BehList do
+      TAbstractJoint(B).InternalDestroyGizmos;
+  finally FreeAndNil(BehList) end;
 end;
 
 procedure TDesignFrame.ActionPhysicsHideAllJointsToolsUpdate(Sender: TObject);
