@@ -42,6 +42,12 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionModeSelect: TAction;
+    ActionModeTranslate: TAction;
+    ActionModeRotate: TAction;
+    ActionModeScale: TAction;
+    ActionModeInteract: TAction;
+    ActionFocusDesign: TAction;
     ActionWarningsCopyAll: TAction;
     ActionWarningsCopySelected: TAction;
     ActionWarningsClean: TAction;
@@ -81,6 +87,14 @@ type
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
+    MenuItem32: TMenuItem;
+    Separator8: TMenuItem;
     Separator7: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
@@ -252,6 +266,12 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionFocusDesignExecute(Sender: TObject);
+    procedure ActionModeInteractExecute(Sender: TObject);
+    procedure ActionModeRotateExecute(Sender: TObject);
+    procedure ActionModeScaleExecute(Sender: TObject);
+    procedure ActionModeSelectExecute(Sender: TObject);
+    procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -734,6 +754,42 @@ procedure TProjectForm.ActionViewportGridAxisExecute(Sender: TObject);
 begin
   if (Design <> nil) and (Design.CurrentViewport <> nil) then
     Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
+end;
+
+procedure TProjectForm.ActionFocusDesignExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FocusDesign;
+end;
+
+procedure TProjectForm.ActionModeInteractExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moInteract);
+end;
+
+procedure TProjectForm.ActionModeRotateExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moRotate);
+end;
+
+procedure TProjectForm.ActionModeScaleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moScale);
+end;
+
+procedure TProjectForm.ActionModeSelectExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moSelect);
+end;
+
+procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moTranslate);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -1851,6 +1907,12 @@ begin
   ActionComponentDuplicate.Enabled := Design <> nil;
   ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
+  ActionFocusDesign.Enabled := Design <> nil;
+  ActionModeInteract.Enabled := Design <> nil;
+  ActionModeSelect.Enabled := Design <> nil;
+  ActionModeTranslate.Enabled := Design <> nil;
+  ActionModeRotate.Enabled := Design <> nil;
+  ActionModeScale.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);

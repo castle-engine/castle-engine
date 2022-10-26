@@ -267,6 +267,30 @@ object ProjectForm: TProjectForm
       object MenuItemDesignDeleteComponent: TMenuItem
         Action = ActionComponentDelete
       end
+      object Separator8: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem24: TMenuItem
+        Action = ActionFocusDesign
+      end
+      object MenuItem27: TMenuItem
+        Caption = 'Change Mode'
+        object MenuItem28: TMenuItem
+          Action = ActionModeInteract
+        end
+        object MenuItem29: TMenuItem
+          Action = ActionModeSelect
+        end
+        object MenuItem30: TMenuItem
+          Action = ActionModeTranslate
+        end
+        object MenuItem31: TMenuItem
+          Action = ActionModeRotate
+        end
+        object MenuItem32: TMenuItem
+          Action = ActionModeScale
+        end
+      end
     end
     object MenuItemViewport: TMenuItem
       Caption = 'Viewport'
@@ -947,6 +971,42 @@ object ProjectForm: TProjectForm
       Category = 'PopupWarnings'
       Caption = 'Copy All'
       OnExecute = ActionWarningsCopyAllExecute
+    end
+    object ActionFocusDesign: TAction
+      Category = 'Edit'
+      Caption = 'Focus Design'
+      OnExecute = ActionFocusDesignExecute
+      ShortCut = 27
+    end
+    object ActionModeInteract: TAction
+      Category = 'Edit'
+      Caption = 'Interact '
+      OnExecute = ActionModeInteractExecute
+      ShortCut = 32849
+    end
+    object ActionModeSelect: TAction
+      Category = 'Edit'
+      Caption = 'Select'
+      OnExecute = ActionModeSelectExecute
+      ShortCut = 32855
+    end
+    object ActionModeTranslate: TAction
+      Category = 'Edit'
+      Caption = 'Translate'
+      OnExecute = ActionModeTranslateExecute
+      ShortCut = 32837
+    end
+    object ActionModeRotate: TAction
+      Category = 'Edit'
+      Caption = 'Rotate'
+      OnExecute = ActionModeRotateExecute
+      ShortCut = 32850
+    end
+    object ActionModeScale: TAction
+      Category = 'Edit'
+      Caption = 'Scale'
+      OnExecute = ActionModeScaleExecute
+      ShortCut = 32852
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
