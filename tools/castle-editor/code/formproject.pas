@@ -781,8 +781,7 @@ begin
   ActionViewportRenderNormal.Checked := true;
 end;
 
-procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject
-  );
+procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
 begin
   if InternalGlobalRenderOptions = nil then
     InternalGlobalRenderOptions := TCastleRenderOptions.Create(Self);
@@ -1986,8 +1985,10 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
-  ActionPhysicsShowAllJointsTools.Enabled := Design <> nil;
-  ActionPhysicsHideAllJointsTools.Enabled := Design <> nil;
+  { These 2 could actually work with Design=nil, with current implementation.
+    But their effect would be invisible, so better disable. }
+  ActionViewportRenderNormal.Enabled := Design <> nil;
+  ActionViewportRenderWireframeOnly.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);

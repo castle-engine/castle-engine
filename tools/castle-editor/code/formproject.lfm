@@ -228,15 +228,6 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
       end
-      object MenuShowJointTools28: TMenuItem
-        Action = ActionPhysicsShowAllJointsTools
-      end
-      object MenuItem2888888: TMenuItem
-        Action = ActionPhysicsHideAllJointsTools
-      end
-      object Separator9: TMenuItem
-        Caption = '-'
-      end
       object MenuItemRename: TMenuItem
         Caption = 'Rename'
         ShortCut = 113
@@ -391,6 +382,15 @@ object ProjectForm: TProjectForm
       object MenuItem2744444444: TMenuItem
         Action = ActionViewportRenderWireframeOnly
         RadioItem = True
+      end
+      object Separator9: TMenuItem
+        Caption = '-'
+      end
+      object MenuShowJointTools28: TMenuItem
+        Action = ActionPhysicsShowAllJointsTools
+      end
+      object MenuItem2888888: TMenuItem
+        Action = ActionPhysicsHideAllJointsTools
       end
     end
     object MenuItemCode: TMenuItem
@@ -1041,14 +1041,16 @@ object ProjectForm: TProjectForm
       ShortCut = 32821
     end
     object ActionPhysicsShowAllJointsTools: TAction
-      Category = 'Edit'
+      Category = 'Viewport'
       Caption = 'Show All Joint Tools'
       OnExecute = ActionPhysicsShowAllJointsToolsExecute
+      OnUpdate = ActionViewportUpdate
     end
     object ActionPhysicsHideAllJointsTools: TAction
-      Category = 'Edit'
+      Category = 'Viewport'
       Caption = 'Hide All Joint Tools'
       OnExecute = ActionPhysicsHideAllJointsToolsExecute
+      OnUpdate = ActionViewportUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
