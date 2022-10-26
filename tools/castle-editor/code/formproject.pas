@@ -42,8 +42,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    ActionHideAllJointTools: TAction;
-    ActionShowAllJointTools: TAction;
+    ActionPhysicsHideAllJointsTools: TAction;
+    ActionPhysicsShowAllJointsTools: TAction;
     ActionModeSelect: TAction;
     ActionModeTranslate: TAction;
     ActionModeRotate: TAction;
@@ -276,8 +276,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
-    procedure ActionHideAllJointToolsExecute(Sender: TObject);
-    procedure ActionShowAllJointToolsExecute(Sender: TObject);
+    procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+    procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
     procedure ActionModeInteractExecute(Sender: TObject);
     procedure ActionModeRotateExecute(Sender: TObject);
@@ -808,16 +808,16 @@ begin
     Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
 end;
 
-procedure TProjectForm.ActionShowAllJointToolsExecute(Sender: TObject);
+procedure TProjectForm.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-  Design.ActionPhysicsShowAllJointsTools.Execute;
+  Design.ShowAllJointsTools;
 end;
 
-procedure TProjectForm.ActionHideAllJointToolsExecute(Sender: TObject);
+procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-  Design.ActionPhysicsHideAllJointsTools.Execute;
+  Design.HideAllJointsTools;
 end;
 
 procedure TProjectForm.ActionFocusDesignExecute(Sender: TObject);
@@ -1986,6 +1986,8 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
+  ActionPhysicsShowAllJointsTools.Enabled := Design <> nil;
+  ActionPhysicsHideAllJointsTools.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);

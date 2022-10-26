@@ -52,8 +52,6 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
-    ActionPhysicsHideAllJointsTools: TAction;
-    ActionPhysicsShowAllJointsTools: TAction;
     ActionPhysicsPauseSimulation: TAction;
     ActionPhysicsPlayStopSimulation: TAction;
     ActionListDesign: TActionList;
@@ -115,13 +113,9 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
-    procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
-    procedure ActionPhysicsHideAllJointsToolsUpdate(Sender: TObject);
     procedure ActionPhysicsPauseSimulationExecute(Sender: TObject);
     procedure ActionPhysicsPauseSimulationUpdate(Sender: TObject);
     procedure ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
-    procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
-    procedure ActionPhysicsShowAllJointsToolsUpdate(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
@@ -526,6 +520,8 @@ type
 
     procedure FocusDesign;
     procedure ChangeMode(const NewMode: TMode);
+    procedure ShowAllJointsTools;
+    procedure HideAllJointsTools;
   end;
 
 implementation
@@ -4902,7 +4898,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+procedure TDesignFrame.ShowAllJointsTools;
 var
   V: TCastleViewport;
   BehList: TCastleBehaviorList;
@@ -4916,11 +4912,6 @@ begin
     for B in BehList do
       TAbstractJoint(B).InternalCreateGizmos;
   finally FreeAndNil(BehList) end;
-end;
-
-procedure TDesignFrame.ActionPhysicsShowAllJointsToolsUpdate(Sender: TObject);
-begin
-  ActionPhysicsShowAllJointsTools.Enabled := DesignRoot <> nil;
 end;
 
 procedure TDesignFrame.ActionPhysicsPauseSimulationUpdate(Sender: TObject);
@@ -4940,7 +4931,7 @@ begin
   ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
 end;
 
-procedure TDesignFrame.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+procedure TDesignFrame.HideAllJointsTools;
 var
   V: TCastleViewport;
   BehList: TCastleBehaviorList;
@@ -4954,11 +4945,6 @@ begin
     for B in BehList do
       TAbstractJoint(B).InternalDestroyGizmos;
   finally FreeAndNil(BehList) end;
-end;
-
-procedure TDesignFrame.ActionPhysicsHideAllJointsToolsUpdate(Sender: TObject);
-begin
-  ActionPhysicsHideAllJointsTools.Enabled := DesignRoot <> nil;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);

@@ -229,10 +229,10 @@ object ProjectForm: TProjectForm
         Caption = '-'
       end
       object MenuShowJointTools28: TMenuItem
-        Action = ActionShowAllJointTools
+        Action = ActionPhysicsShowAllJointsTools
       end
       object MenuItem2888888: TMenuItem
-        Action = ActionHideAllJointTools
+        Action = ActionPhysicsHideAllJointsTools
       end
       object Separator9: TMenuItem
         Caption = '-'
@@ -1004,16 +1004,6 @@ object ProjectForm: TProjectForm
       GroupIndex = 410
       OnExecute = ActionViewportRenderWireframeOnlyExecute
     end
-    object ActionShowAllJointTools: TAction
-      Category = 'Edit'
-      Caption = 'Show All Joint Tools'
-      OnExecute = ActionShowAllJointToolsExecute
-    end
-    object ActionHideAllJointTools: TAction
-      Category = 'Edit'
-      Caption = 'Hide All Joint Tools'
-      OnExecute = ActionHideAllJointToolsExecute
-    end
     object ActionFocusDesign: TAction
       Category = 'Edit'
       Caption = 'Focus Design'
@@ -1049,6 +1039,16 @@ object ProjectForm: TProjectForm
       Caption = 'Scale'
       OnExecute = ActionModeScaleExecute
       ShortCut = 32821
+    end
+    object ActionPhysicsShowAllJointsTools: TAction
+      Category = 'Edit'
+      Caption = 'Show All Joint Tools'
+      OnExecute = ActionPhysicsShowAllJointsToolsExecute
+    end
+    object ActionPhysicsHideAllJointsTools: TAction
+      Category = 'Edit'
+      Caption = 'Hide All Joint Tools'
+      OnExecute = ActionPhysicsHideAllJointsToolsExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

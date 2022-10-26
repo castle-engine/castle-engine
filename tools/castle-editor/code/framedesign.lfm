@@ -1336,17 +1336,5 @@ object DesignFrame: TDesignFrame
       OnExecute = ActionPhysicsPauseSimulationExecute
       OnUpdate = ActionPhysicsPauseSimulationUpdate
     end
-    object ActionPhysicsShowAllJointsTools: TAction
-      Category = 'Physics'
-      Caption = 'Show All Joint Tools'
-      OnExecute = ActionPhysicsShowAllJointsToolsExecute
-      OnUpdate = ActionPhysicsShowAllJointsToolsUpdate
-    end
-    object ActionPhysicsHideAllJointsTools: TAction
-      Category = 'Physics'
-      Caption = 'Hide All Joint Tools'
-      OnExecute = ActionPhysicsHideAllJointsToolsExecute
-      OnUpdate = ActionPhysicsHideAllJointsToolsUpdate
-    end
   end
 end
