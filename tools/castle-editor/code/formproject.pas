@@ -93,6 +93,9 @@ type
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
+    MenuItem2444444444: TMenuItem;
+    MenuItem2744444444: TMenuItem;
+    MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
     MenuShowJointTools28: TMenuItem;
     Separator9: TMenuItem;
@@ -104,7 +107,7 @@ type
     Separator7: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
-    Separator8: TMenuItem;
+    Separator888888: TMenuItem;
     WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
     MenuItem23: TMenuItem;

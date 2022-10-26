@@ -231,7 +231,7 @@ object ProjectForm: TProjectForm
       object MenuShowJointTools28: TMenuItem
         Action = ActionShowAllJointTools
       end
-      object MenuItem28: TMenuItem
+      object MenuItem2888888: TMenuItem
         Action = ActionHideAllJointTools
       end
       object Separator9: TMenuItem
@@ -381,14 +381,14 @@ object ProjectForm: TProjectForm
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
       end
-      object Separator8: TMenuItem
+      object Separator888888: TMenuItem
         Caption = '-'
       end
-      object MenuItem24: TMenuItem
+      object MenuItem2444444444: TMenuItem
         Action = ActionViewportRenderNormal
         RadioItem = True
       end
-      object MenuItem27: TMenuItem
+      object MenuItem2744444444: TMenuItem
         Action = ActionViewportRenderWireframeOnly
         RadioItem = True
       end
