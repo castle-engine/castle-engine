@@ -56,12 +56,6 @@ type
     procedure UpdateMaterialNode;
     procedure SetPreciseCollisions(const Value: Boolean);
     function GetRenderOptions: TCastleRenderOptions;
-
-    procedure SetInternalRenderOptions(const AValue: TCastleRenderOptions);
-    function GetInternalRenderOptions: TCastleRenderOptions;
-
-    procedure SetUseInternalGlobalRenderOptions(const AValue: Boolean);
-    function GetUseInternalGlobalRenderOptions: Boolean;
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
@@ -87,14 +81,6 @@ type
       )
     }
     property Color: TCastleColor read FColor write SetColor;
-
-    { Should we use InternalGlobalRenderOptions when it is available. }
-    property UseInternalGlobalRenderOptions: Boolean
-      read GetUseInternalGlobalRenderOptions write SetUseInternalGlobalRenderOptions;
-
-    { Internal Render Options the scene should use (used by editor). }
-    property InternalRenderOptions: TCastleRenderOptions
-      read GetInternalRenderOptions write SetInternalRenderOptions;
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -348,28 +334,6 @@ end;
 function TCastleAbstractPrimitive.GetRenderOptions: TCastleRenderOptions;
 begin
   Result := FScene.RenderOptions;
-end;
-
-procedure TCastleAbstractPrimitive.SetInternalRenderOptions(
-  const AValue: TCastleRenderOptions);
-begin
-  FScene.InternalRenderOptions := AValue;
-end;
-
-function TCastleAbstractPrimitive.GetInternalRenderOptions: TCastleRenderOptions;
-begin
-  Result := FScene.InternalRenderOptions;
-end;
-
-procedure TCastleAbstractPrimitive.SetUseInternalGlobalRenderOptions(
-  const AValue: Boolean);
-begin
-  FScene.UseInternalGlobalRenderOptions := AValue;
-end;
-
-function TCastleAbstractPrimitive.GetUseInternalGlobalRenderOptions: Boolean;
-begin
-  Result := FScene.UseInternalGlobalRenderOptions;
 end;
 
 procedure TCastleAbstractPrimitive.UpdateColliderSize;

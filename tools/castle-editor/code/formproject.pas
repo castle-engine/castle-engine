@@ -42,6 +42,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportRenderNext: TAction;
+    ActionViewportRenderSolidWireframe: TAction;
     ActionPhysicsHideAllJointsTools: TAction;
     ActionPhysicsShowAllJointsTools: TAction;
     ActionModeSelect: TAction;
@@ -93,12 +95,15 @@ type
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
-    MenuItem2444444444: TMenuItem;
-    MenuItem2744444444: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemWireframe: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    MenuItem36: TMenuItem;
+    MenuItem37: TMenuItem;
+    Separator10: TMenuItem;
     MenuShowJointTools28: TMenuItem;
-    Separator9: TMenuItem;
     MenuItem29: TMenuItem;
     MenuItem30: TMenuItem;
     MenuItem31: TMenuItem;
@@ -290,7 +295,9 @@ type
     procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
     procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
     procedure ActionViewportGridAxisUpdate(Sender: TObject);
+    procedure ActionViewportRenderNextExecute(Sender: TObject);
     procedure ActionViewportRenderNormalExecute(Sender: TObject);
+    procedure ActionViewportRenderSolidWireframeExecute(Sender: TObject);
     procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
@@ -774,18 +781,35 @@ begin
   ActionViewportUpdate(Sender);
 end;
 
+procedure TProjectForm.ActionViewportRenderNextExecute(Sender: TObject);
+begin
+  case InternalForceWireframe of
+    weNormal        : ActionViewportRenderWireframeOnlyExecute(nil);
+    weWireframeOnly : ActionViewportRenderSolidWireframeExecute(nil);
+    weSolidWireframe: ActionViewportRenderNormalExecute(nil);
+    else
+      begin
+        WritelnWarning('Unexpected InternalForceWireframe value');
+        ActionViewportRenderWireframeOnlyExecute(nil);
+      end;
+  end;
+end;
+
 procedure TProjectForm.ActionViewportRenderNormalExecute(Sender: TObject);
 begin
-  if InternalGlobalRenderOptions <> nil then
-    FreeAndNil(InternalGlobalRenderOptions);
+  InternalForceWireframe := weNormal;
   ActionViewportRenderNormal.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportRenderSolidWireframeExecute(Sender: TObject);
+begin
+  InternalForceWireframe := weSolidWireframe;
+  ActionViewportRenderSolidWireframe.Checked := true;
 end;
 
 procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
 begin
-  if InternalGlobalRenderOptions = nil then
-    InternalGlobalRenderOptions := TCastleRenderOptions.Create(Self);
-  InternalGlobalRenderOptions.WireframeEffect := weWireframeOnly;
+  InternalForceWireframe := weWireframeOnly;
   ActionViewportRenderWireframeOnly.Checked := true;
 end;
 
@@ -1985,10 +2009,15 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
-  { These 2 could actually work with Design=nil, with current implementation.
+
+  { Options that toggle InternalForceWireframe could actually work with Design=nil,
+    with current implementation.
     But their effect would be invisible, so better disable. }
   ActionViewportRenderNormal.Enabled := Design <> nil;
   ActionViewportRenderWireframeOnly.Enabled := Design <> nil;
+  ActionViewportRenderSolidWireframe.Enabled := Design <> nil;
+  ActionViewportRenderNext.Enabled := Design <> nil;
+  MenuItemWireframe.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);

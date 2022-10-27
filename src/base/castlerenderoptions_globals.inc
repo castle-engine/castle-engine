@@ -196,12 +196,10 @@ type
     TCastleRenderOptions.LineWidth, quite self-explanatory. }
   TWireframeEffect = (
 
-    { Default setting, model polygons are simply passed to OpenGL.
-      Whether this results in filled or wireframe look, depends on OpenGL
-      glPolygonMode setting, filled by default. }
+    { Default setting, polygons are rendered as filled polygons. }
     weNormal,
 
-    { The model is rendered in wireframe mode.
+    { Polygons are rendered as wireframe.
 
       LineWidth is used as wireframe line width (regardless of
       TCastleRenderOptions.Mode).
@@ -209,7 +207,7 @@ type
       Depending on TCastleRenderOptions.Mode value:
 
       @unorderedList(
-        @item(If <> rmFull then WireframeColor is used as wireframe
+        @item(If TCastleRenderOptions.Mode <> rmFull then WireframeColor is used as wireframe
           line color.)
 
         @item(If rmFull, then lines are colored
@@ -522,6 +520,9 @@ var
       )
     ) }
   ToneMapping: TToneMapping = tmNone;
+
+  { Force given rendering for all scenes, if not weNormal. }
+  InternalForceWireframe: TWireframeEffect;
 
 {$ifdef FPC}
 function GetGammaCorrection: TGammaCorrection;

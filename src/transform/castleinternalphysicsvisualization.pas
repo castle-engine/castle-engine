@@ -128,7 +128,6 @@ begin
   FSphere := TCastleSphere.Create(nil);
   FSphere.RenderLayer := rlFront;
   FSphere.SetTransient;
-  FSphere.UseInternalGlobalRenderOptions := false; // never change rendering to global
   FSphere.Color := FColor;
   FSphere.Material := pmUnlit;
   FSphere.Radius := 0.1;

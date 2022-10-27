@@ -1636,7 +1636,6 @@ begin
   begin
     FVisualisation := TCastlePlane.Create(nil);
     FVisualisation.SetTransient;
-    TCastlePlane(FVisualisation).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastlePlane(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastlePlane(FVisualisation).Material := pmUnlit;
     TCastlePlane(FVisualisation).DoubleSided := true;
@@ -1821,7 +1820,6 @@ begin
   begin
     FVisualisation := TCastleBox.Create(nil);
     FVisualisation.SetTransient;
-    TCastleBox(FVisualisation).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastleBox(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastleBox(FVisualisation).Material := pmUnlit;
     TCastleBox(FVisualisation).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
@@ -1967,7 +1965,6 @@ begin
   begin
     FVisualisation := TCastleSphere.Create(nil);
     FVisualisation.SetTransient;
-    TCastleSphere(FVisualisation).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastleSphere(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastleSphere(FVisualisation).Material := pmUnlit;
     TCastleSphere(FVisualisation).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
@@ -2099,7 +2096,6 @@ begin
 
     FVisualisationCylinder := TCastleCylinder.Create(FVisualisation);
     FVisualisationCylinder.SetTransient;
-    TCastleCylinder(FVisualisationCylinder).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastleCylinder(FVisualisationCylinder).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastleCylinder(FVisualisationCylinder).Material := pmUnlit;
     TCastleCylinder(FVisualisationCylinder).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
@@ -2109,7 +2105,6 @@ begin
 
     FVisualisationTop := TCastleSphere.Create(FVisualisation);
     FVisualisationTop.SetTransient;
-    TCastleSphere(FVisualisationTop).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastleSphere(FVisualisationTop).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastleSphere(FVisualisationTop).Material := pmUnlit;
     TCastleSphere(FVisualisationTop).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
@@ -2118,7 +2113,6 @@ begin
 
     FVisualisationBottom := TCastleSphere.Create(FVisualisation);
     FVisualisationBottom.SetTransient;
-    TCastleSphere(FVisualisationBottom).UseInternalGlobalRenderOptions := false; // never change rendering to global
     TCastleSphere(FVisualisationBottom).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
     TCastleSphere(FVisualisationBottom).Material := pmUnlit;
     TCastleSphere(FVisualisationBottom).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');

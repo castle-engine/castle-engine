@@ -363,6 +363,33 @@ object ProjectForm: TProjectForm
       object MenuItem23: TMenuItem
         Action = ActionViewportGridAxis
       end
+      object MenuItemWireframe: TMenuItem
+        Caption = 'Wireframe Mode'
+        object MenuItem34: TMenuItem
+          Action = ActionViewportRenderNormal
+        end
+        object MenuItem35: TMenuItem
+          Action = ActionViewportRenderWireframeOnly
+        end
+        object MenuItem36: TMenuItem
+          Action = ActionViewportRenderSolidWireframe
+        end
+        object Separator10: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem37: TMenuItem
+          Action = ActionViewportRenderNext
+        end
+      end
+      object Separator888888: TMenuItem
+        Caption = '-'
+      end
+      object MenuShowJointTools28: TMenuItem
+        Action = ActionPhysicsShowAllJointsTools
+      end
+      object MenuItem2888888: TMenuItem
+        Action = ActionPhysicsHideAllJointsTools
+      end
       object Separator6: TMenuItem
         Caption = '-'
       end
@@ -371,26 +398,6 @@ object ProjectForm: TProjectForm
       end
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
-      end
-      object Separator888888: TMenuItem
-        Caption = '-'
-      end
-      object MenuItem2444444444: TMenuItem
-        Action = ActionViewportRenderNormal
-        RadioItem = True
-      end
-      object MenuItem2744444444: TMenuItem
-        Action = ActionViewportRenderWireframeOnly
-        RadioItem = True
-      end
-      object Separator9: TMenuItem
-        Caption = '-'
-      end
-      object MenuShowJointTools28: TMenuItem
-        Action = ActionPhysicsShowAllJointsTools
-      end
-      object MenuItem2888888: TMenuItem
-        Action = ActionPhysicsHideAllJointsTools
       end
     end
     object MenuItemCode: TMenuItem
@@ -457,6 +464,7 @@ object ProjectForm: TProjectForm
         Caption = 'Release Mode'
         GroupIndex = 1
         RadioItem = True
+        ShowAlwaysCheckable = True
         OnClick = MenuItemModeReleaseClick
       end
       object MenuItemSeparator12312131: TMenuItem
@@ -994,13 +1002,13 @@ object ProjectForm: TProjectForm
     end
     object ActionViewportRenderNormal: TAction
       Category = 'Viewport'
-      Caption = 'Render Normal'
+      Caption = 'Polygons (Default)'
       GroupIndex = 410
       OnExecute = ActionViewportRenderNormalExecute
     end
     object ActionViewportRenderWireframeOnly: TAction
       Category = 'Viewport'
-      Caption = 'Render Wireframe Only'
+      Caption = 'Wireframe'
       GroupIndex = 410
       OnExecute = ActionViewportRenderWireframeOnlyExecute
     end
@@ -1040,6 +1048,12 @@ object ProjectForm: TProjectForm
       OnExecute = ActionModeScaleExecute
       ShortCut = 32821
     end
+    object ActionViewportRenderSolidWireframe: TAction
+      Category = 'Viewport'
+      Caption = 'Polygons + Wireframe'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderSolidWireframeExecute
+    end
     object ActionPhysicsShowAllJointsTools: TAction
       Category = 'Viewport'
       Caption = 'Show All Joint Tools'
@@ -1051,6 +1065,12 @@ object ProjectForm: TProjectForm
       Caption = 'Hide All Joint Tools'
       OnExecute = ActionPhysicsHideAllJointsToolsExecute
       OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportRenderNext: TAction
+      Category = 'Viewport'
+      Caption = 'Next Mode'
+      OnExecute = ActionViewportRenderNextExecute
+      ShortCut = 32858
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

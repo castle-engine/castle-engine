@@ -30,11 +30,6 @@ uses Classes, CastleColors;
 {$I castlerenderoptions_renderoptions.inc}
 {$undef read_interface}
 
-var
-  { Render options used by editor in various situations, e.g.
-    change rendering to wireframe }
-  InternalGlobalRenderOptions: TCastleRenderOptions;
-
 implementation
 
 uses SysUtils;
@@ -42,11 +37,5 @@ uses SysUtils;
 {$define read_implementation}
 {$I castlerenderoptions_globals.inc}
 {$I castlerenderoptions_renderoptions.inc}
-
-initialization
-  InternalGlobalRenderOptions := nil;
-
-finalization
-  FreeAndNil(InternalGlobalRenderOptions);
 
 end.
