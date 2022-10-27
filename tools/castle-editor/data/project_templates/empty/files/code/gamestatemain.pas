@@ -49,6 +49,7 @@ procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInpu
 begin
   inherited;
   { This virtual method is executed every frame.}
+  Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 

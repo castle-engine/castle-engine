@@ -133,7 +133,6 @@ type
       FInventoryVisible: boolean;
       FSickProjectionSpeed: Single;
       FBlocked: boolean;
-      FRenderOnTop: boolean;
 
       FFlying: boolean;
       FFlyingTimeOut: TFloatTime;
@@ -183,6 +182,8 @@ type
     procedure SynchronizeToCamera;
     procedure SynchronizeFromCamera;
     procedure SetUseThirdPerson(const AValue: Boolean);
+    function GetRenderOnTop: Boolean;
+    procedure SetRenderOnTop(const Value: Boolean);
   protected
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -192,7 +193,6 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: Boolean): Boolean; override;
-    procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -205,7 +205,6 @@ type
     const
       DefaultLife = 100;
       DefaultSickProjectionSpeed = 2.0;
-      DefaultRenderOnTop = true;
       DefaultPlayerKnockBackSpeed = 20.0;
       DefaultSwimBreath = 30.0;
       DefaultDrownPause = 5.0;
@@ -369,8 +368,7 @@ type
     property Blocked: boolean read FBlocked write FBlocked;
 
     { Render 3D children (like EquippedWeapon) on top of everything else. }
-    property RenderOnTop: boolean read FRenderOnTop write FRenderOnTop
-      default DefaultRenderOnTop;
+    property RenderOnTop: boolean read GetRenderOnTop write SetRenderOnTop;
 
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound
@@ -532,7 +530,7 @@ uses Math, SysUtils,
   CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
   CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleRenderContext;
+  CastleGLImages, CastleConfig, CastleRenderContext, CastleRenderOptions;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -598,7 +596,7 @@ begin
   DefaultMoveHorizontalSpeed := 1.0;
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;
-  RenderOnTop := DefaultRenderOnTop;
+  RenderLayer := rlFront; // to make RenderOnTop = true
   FFallMinHeightToSound := DefaultFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
@@ -1482,38 +1480,6 @@ begin
   inherited;
 end;
 
-procedure TPlayer.LocalRender(const Params: TRenderParams);
-begin
-  { TODO: This implementation is a quick hack, that depends on the fact
-    that TPlayer.Render is the *only* thing in the whole engine currently
-    changing DepthRange (except shadow maps that require normal DepthRange,
-    and manually push/pop the DepthRange state).
-
-    - The first frame with TPlayer could be incorrect, as 3D objects drawn before
-      will have 0..1 DepthRange that may overlap with our weapon.
-      It works now only because default player positions are when
-      the weapon doesn't overlap with level in 3D.
-    - We never fix the DepthRange back to 0..1.
-
-    The idea of using DepthRange for layers seems quite good, it's
-    quite a nice solution,
-    - you don't have to split rendering layers in passes, you can render
-      all objects in one pass, just switching DepthRange as necessary.
-    - you can set DepthRange for 3D objects inside TCastleTransform,
-      like here TPlayer will just affect every child underneath.
-
-    But it has to be implemented in more extensible manner in the future.
-    It should also enable X3D layers. }
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drNear;
-
-  inherited;
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drFar;
-end;
-
 function TPlayer.Middle: TVector3;
 begin
   if UseThirdPerson then
@@ -1547,6 +1513,19 @@ begin
     raise Exception.Create('TODO: For now you cannot change TPlayer.UseThirdPerson once the TLevel (that refers to this TPlayer) has been Loaded');
   FUseThirdPerson := AValue;
   FBox.Exists := not UseThirdPerson;
+end;
+
+function TPlayer.GetRenderOnTop: Boolean;
+begin
+  Result := RenderLayer = rlFront;
+end;
+
+procedure TPlayer.SetRenderOnTop(const Value: Boolean);
+begin
+  if Value then
+    RenderLayer := rlFront
+  else
+    RenderLayer := rlParent;
 end;
 
 initialization

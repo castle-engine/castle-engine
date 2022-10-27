@@ -45,6 +45,7 @@ type
     property CheckCollisions default false;
 
     property MouseLook stored false;
+    property ZoomEnabled stored false;
     { Also adjusted by MouseLook, and we also don't want to persist this. }
     property Cursor stored false;
   end;
@@ -57,10 +58,8 @@ begin
   MoveSpeed := 10; // faster default
   MinAngleFromGravityUp := 0; // allow to rotate smoothly from Top (7) view
   CheckCollisions := false;
+  ZoomEnabled := true;
 
-  // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
-  Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);
-  Input_MoveSpeedDec.Assign(keyNumpadMinus, keyNone, '-', false, buttonLeft, mwDown);
   Input_Jump.Assign(keyE);
   Input_Crouch.Assign(keyQ);
 end;
@@ -73,6 +72,10 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     MouseLook := true;
+    ZoomEnabled := false;
+    // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
+    Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);
+    Input_MoveSpeedDec.Assign(keyNumpadMinus, keyNone, '-', false, buttonLeft, mwDown);
     InternalDesignMouseLook := true;
     Exit(true);
   end;
@@ -101,6 +104,9 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     MouseLook := false;
+    ZoomEnabled := true;
+    Input_MoveSpeedInc.MakeClear;
+    Input_MoveSpeedDec.MakeClear;
     InternalDesignMouseLook := false;
     Exit(true);
   end;
@@ -120,6 +126,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property RotationAccelerate default false;
+    property CheckCollisions default false;
     property Cursor stored false;
   end;
 
@@ -127,6 +134,8 @@ constructor TCastleExamineNavigationDesign.Create(AOwner: TComponent);
 begin
   inherited;
   RotationAccelerate := false;
+  CheckCollisions := false;
+
   { rotate with right mouse button, no modifiers }
   Input_Rotate.MouseButton := buttonRight;
   Input_Rotate.MouseButtonCheckModifiers := [mkShift, mkCtrl];

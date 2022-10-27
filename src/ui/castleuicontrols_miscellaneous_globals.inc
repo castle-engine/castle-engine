@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,11 @@
 
 {$ifdef read_interface}
 
+{ Called when first OpenGL context opens. }
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
+{ Called when last OpenGL context closes. }
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
+{ Is any OpenGL context open. }
 function IsGLContextOpen: boolean; deprecated 'use ApplicationProperties.IsGLContextOpen';
 
 const

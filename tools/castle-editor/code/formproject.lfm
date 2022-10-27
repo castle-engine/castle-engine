@@ -267,6 +267,30 @@ object ProjectForm: TProjectForm
       object MenuItemDesignDeleteComponent: TMenuItem
         Action = ActionComponentDelete
       end
+      object Separator8: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem24: TMenuItem
+        Action = ActionFocusDesign
+      end
+      object MenuItem27: TMenuItem
+        Caption = 'Change Mode'
+        object MenuItem28: TMenuItem
+          Action = ActionModeInteract
+        end
+        object MenuItem29: TMenuItem
+          Action = ActionModeSelect
+        end
+        object MenuItem30: TMenuItem
+          Action = ActionModeTranslate
+        end
+        object MenuItem31: TMenuItem
+          Action = ActionModeRotate
+        end
+        object MenuItem32: TMenuItem
+          Action = ActionModeScale
+        end
+      end
     end
     object MenuItemViewport: TMenuItem
       Caption = 'Viewport'
@@ -338,6 +362,27 @@ object ProjectForm: TProjectForm
       end
       object MenuItem23: TMenuItem
         Action = ActionViewportGridAxis
+      end
+      object MenuItemWireframe: TMenuItem
+        Caption = 'Wireframe Mode'
+        object MenuItem34: TMenuItem
+          Action = ActionViewportRenderNormal
+          RadioItem = True
+        end
+        object MenuItem35: TMenuItem
+          Action = ActionViewportRenderWireframeOnly
+          RadioItem = True
+        end
+        object MenuItem36: TMenuItem
+          Action = ActionViewportRenderSolidWireframe
+          RadioItem = True
+        end
+        object Separator10: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem37: TMenuItem
+          Action = ActionViewportRenderNext
+        end
       end
       object Separator6: TMenuItem
         Caption = '-'
@@ -947,6 +992,66 @@ object ProjectForm: TProjectForm
       Category = 'PopupWarnings'
       Caption = 'Copy All'
       OnExecute = ActionWarningsCopyAllExecute
+    end
+    object ActionFocusDesign: TAction
+      Category = 'Edit'
+      Caption = 'Focus Design'
+      OnExecute = ActionFocusDesignExecute
+      ShortCut = 27
+    end
+    object ActionModeInteract: TAction
+      Category = 'Edit'
+      Caption = 'Interact '
+      OnExecute = ActionModeInteractExecute
+      ShortCut = 32817
+    end
+    object ActionModeSelect: TAction
+      Category = 'Edit'
+      Caption = 'Select'
+      OnExecute = ActionModeSelectExecute
+      ShortCut = 32818
+    end
+    object ActionModeTranslate: TAction
+      Category = 'Edit'
+      Caption = 'Translate'
+      OnExecute = ActionModeTranslateExecute
+      ShortCut = 32819
+    end
+    object ActionModeRotate: TAction
+      Category = 'Edit'
+      Caption = 'Rotate'
+      OnExecute = ActionModeRotateExecute
+      ShortCut = 32820
+    end
+    object ActionModeScale: TAction
+      Category = 'Edit'
+      Caption = 'Scale'
+      OnExecute = ActionModeScaleExecute
+      ShortCut = 32821
+    end
+    object ActionViewportRenderNormal: TAction
+      Category = 'Viewport'
+      Caption = 'Polygons (Default)'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderNormalExecute
+    end
+    object ActionViewportRenderWireframeOnly: TAction
+      Category = 'Viewport'
+      Caption = 'Wireframe'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderWireframeOnlyExecute
+    end
+    object ActionViewportRenderSolidWireframe: TAction
+      Category = 'Viewport'
+      Caption = 'Polygons + Wireframe'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderSolidWireframeExecute
+    end
+    object ActionViewportRenderNext: TAction
+      Category = 'Viewport'
+      Caption = 'Next Mode'
+      OnExecute = ActionViewportRenderNextExecute
+      ShortCut = 32858
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

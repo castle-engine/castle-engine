@@ -525,13 +525,11 @@ end;
 
 procedure TCastleAutoNavigationViewport.AssignDefaultNavigation;
 var
-  Box: TBox3D;
   Scene: TCastleScene;
   C: TCastleExamineNavigation;
   NewNavigationType: TNavigationType;
 begin
   {$warnings off} // using deprecated in deprecated
-  Box := ItemsBoundingBox;
   Scene := Items.MainScene;
   if Scene <> nil then
   begin
@@ -548,12 +546,11 @@ begin
     { Call InternalUpdateNavigation on both internal navigation instances,
       not only on current Navigation, to keep all properties, even the ones specific
       to a class (like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
-    Scene.InternalUpdateNavigation(InternalExamineNavigation, Box);
-    Scene.InternalUpdateNavigation(InternalWalkNavigation, Box);
+    Scene.InternalUpdateNavigation(InternalExamineNavigation);
+    Scene.InternalUpdateNavigation(InternalWalkNavigation);
   end else
   begin
     C := InternalExamineNavigation;
-    C.ModelBox := Box;
     C.Radius := DefaultCameraRadius;
     Navigation := C;
   end;
@@ -588,8 +585,6 @@ begin
 end;
 
 procedure TCastleAutoNavigationViewport.BoundNavigationInfoChanged;
-var
-  Box: TBox3D;
 begin
   { Use InsideBoundNavigationInfoChanged to prevent infinite loop
     of BoundNavigationInfoChanged calls, as "NavigationType := " causes
@@ -601,15 +596,14 @@ begin
     if AutoNavigation and (Navigation <> nil) and (Items.MainScene <> nil) then
     begin
       NavigationType := NavigationTypeFromNavigationInfo(Items.MainScene);
-      Box := Items.BoundingBox;
-      Items.MainScene.InternalUpdateNavigation(Navigation, Box);
+      Items.MainScene.InternalUpdateNavigation(Navigation);
       { Call InternalUpdateNavigation also on both internal navigation instances,
         to keep all properties, even the ones not copied by Assign (because specific
         to a class, like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
       if Navigation <> InternalWalkNavigation then
-        Items.MainScene.InternalUpdateNavigation(InternalWalkNavigation, Box);
+        Items.MainScene.InternalUpdateNavigation(InternalWalkNavigation);
       if Navigation <> InternalExamineNavigation then
-        Items.MainScene.InternalUpdateNavigation(InternalExamineNavigation, Box);
+        Items.MainScene.InternalUpdateNavigation(InternalExamineNavigation);
     end;
     {$warnings on}
     InsideBoundNavigationInfoChanged := false;
