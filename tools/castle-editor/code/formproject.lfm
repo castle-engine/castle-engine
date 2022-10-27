@@ -367,12 +367,15 @@ object ProjectForm: TProjectForm
         Caption = 'Wireframe Mode'
         object MenuItem34: TMenuItem
           Action = ActionViewportRenderNormal
+          RadioItem = True
         end
         object MenuItem35: TMenuItem
           Action = ActionViewportRenderWireframeOnly
+          RadioItem = True
         end
         object MenuItem36: TMenuItem
           Action = ActionViewportRenderSolidWireframe
+          RadioItem = True
         end
         object Separator10: TMenuItem
           Caption = '-'
@@ -1000,18 +1003,6 @@ object ProjectForm: TProjectForm
       Caption = 'Copy All'
       OnExecute = ActionWarningsCopyAllExecute
     end
-    object ActionViewportRenderNormal: TAction
-      Category = 'Viewport'
-      Caption = 'Polygons (Default)'
-      GroupIndex = 410
-      OnExecute = ActionViewportRenderNormalExecute
-    end
-    object ActionViewportRenderWireframeOnly: TAction
-      Category = 'Viewport'
-      Caption = 'Wireframe'
-      GroupIndex = 410
-      OnExecute = ActionViewportRenderWireframeOnlyExecute
-    end
     object ActionFocusDesign: TAction
       Category = 'Edit'
       Caption = 'Focus Design'
@@ -1048,11 +1039,29 @@ object ProjectForm: TProjectForm
       OnExecute = ActionModeScaleExecute
       ShortCut = 32821
     end
+    object ActionViewportRenderNormal: TAction
+      Category = 'Viewport'
+      Caption = 'Polygons (Default)'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderNormalExecute
+    end
+    object ActionViewportRenderWireframeOnly: TAction
+      Category = 'Viewport'
+      Caption = 'Wireframe'
+      GroupIndex = 410
+      OnExecute = ActionViewportRenderWireframeOnlyExecute
+    end
     object ActionViewportRenderSolidWireframe: TAction
       Category = 'Viewport'
       Caption = 'Polygons + Wireframe'
       GroupIndex = 410
       OnExecute = ActionViewportRenderSolidWireframeExecute
+    end
+    object ActionViewportRenderNext: TAction
+      Category = 'Viewport'
+      Caption = 'Next Mode'
+      OnExecute = ActionViewportRenderNextExecute
+      ShortCut = 32858
     end
     object ActionPhysicsShowAllJointsTools: TAction
       Category = 'Viewport'
@@ -1065,12 +1074,6 @@ object ProjectForm: TProjectForm
       Caption = 'Hide All Joint Tools'
       OnExecute = ActionPhysicsHideAllJointsToolsExecute
       OnUpdate = ActionViewportUpdate
-    end
-    object ActionViewportRenderNext: TAction
-      Category = 'Viewport'
-      Caption = 'Next Mode'
-      OnExecute = ActionViewportRenderNextExecute
-      ShortCut = 32858
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
