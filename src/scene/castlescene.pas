@@ -1510,8 +1510,20 @@ procedure TCastleScene.LocalRenderOutside(
   {$ifndef OpenGLES}
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
+  var
+    WireframeEffect: TWireframeEffect;
   begin
-    case RenderOptions.WireframeEffect of
+    WireframeEffect := RenderOptions.WireframeEffect;
+    if InternalForceWireframe <> weNormal then
+    begin
+      { Do not allow InternalForceWireframe to fill (make non-wireframe) polygons
+        that were supposed to be wireframe. This would look weird, e.g. some wireframe
+        gizmos would become filled. }
+      if not ( (WireframeEffect = weWireframeOnly) and
+               (InternalForceWireframe = weSolidWireframe) ) then
+        WireframeEffect := InternalForceWireframe;
+    end;
+    case WireframeEffect of
       weNormal:
         begin
           InternalScenePass := 0;
