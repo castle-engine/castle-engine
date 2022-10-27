@@ -100,6 +100,7 @@
       RegisteredGLContextCloseListener: Boolean;
       FPendingToRemove: TComponentList;
       FPendingToRemoveAndFree: TComponentList;
+      FRenderLayer: TRenderLayer;
 
       // transformation
       FCenter: TVector3;
@@ -1881,6 +1882,14 @@
     property CastShadows: boolean
       read FCastShadows write FCastShadows default true;
 
+    { Objects on front render layer are rendered in front of objects on back render layer,
+      regardless of their actual position (depth) relative to camera.
+
+      rlParent means that object follows the parent layer, which is by default back.
+
+      The typical use-case is to force some object to be in front, by setting rlFront. }
+    property RenderLayer: TRenderLayer read FRenderLayer write FRenderLayer default rlParent;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -2942,6 +2951,8 @@ var
   OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
+  HasSavedDepthRange: Boolean;
+  SavedDepthRange: TDepthRange;
 begin
   OldInMeaningfulParent := Params.InMeaningfulParent;
   Params.InMeaningfulParent := Params.InMeaningfulParent and
@@ -2950,6 +2961,27 @@ begin
       should still be rendered. }
     //((Parent = nil) or Parent.MeaningfulParent);
     MeaningfulParent;
+
+  HasSavedDepthRange := (RenderLayer <> rlParent) and
+    { Shadow maps require normal DepthRange,
+      don't mess with RenderContext.DepthRange in case when we render shadow maps. }
+    (not (Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap]));
+  if HasSavedDepthRange then
+  begin
+    { The idea of using DepthRange for render layers is nice:
+      - you don't have to split rendering layers in passes,
+        you can render all objects in one pass,
+        just switching DepthRange as necessary.
+      - you can set DepthRange for 3D objects inside TCastleTransform,
+        like here TCastleTransform will just affect every child underneath.
+    }
+    SavedDepthRange := RenderContext.DepthRange;
+    case RenderLayer of
+      rlFront: RenderContext.DepthRange := drNear;
+      rlBack : RenderContext.DepthRange := drFar;
+      else ;
+    end;
+  end;
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
@@ -3007,6 +3039,9 @@ begin
   end;
 
   Params.InMeaningfulParent := OldInMeaningfulParent;
+
+  if HasSavedDepthRange then
+    RenderContext.DepthRange := SavedDepthRange;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
@@ -3360,7 +3395,7 @@ end;
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Exists', 'CastShadows'
+       'Exists', 'CastShadows', 'RenderLayer'
      ]) then
       Result := [psBasic]
   else

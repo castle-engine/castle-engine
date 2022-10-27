@@ -224,8 +224,7 @@ procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4); overload; deprecated 'use DrawRectangle';
 
-{ Call OpenGL glBlendFunc,
-  https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml .
+{ Call OpenGL @url(https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml glBlendFunc).
   Accepts parameters as enumerated types TBlendingSourceFactor, TBlendingDestinationFactor.
   Secures from using source or destination factor unsupported on current OpenGL version:
   makes a warnings and falls back on a sensible default (so it will always call

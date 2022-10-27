@@ -1015,6 +1015,11 @@ type
       when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
     procedure InternalMoveShapeAssociations(
       const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
+
+    { Local (not affected by our @link(Translation), @link(Rotation), @link(Scale)) bounding box.
+      Takes into account loaded scene (in @link(URL))
+      but not children TCastleTransform bounding volumes. }
+    function LocalBoundingBoxNoChildren: TBox3D;
   public
     var
       { Nonzero value prevents rendering of this scene,
@@ -1757,7 +1762,7 @@ type
       in your world, and it's not transformed) it may be equal to just
       @link(BoundingBox) of this scene. }
     procedure InternalUpdateNavigation(
-      const Navigation: TCastleNavigation; const WorldBox: TBox3D);
+      const Navigation: TCastleNavigation);
 
     { Update TCastleCamera properties based on the current X3D nodes
       (currently bound X3D Viewpoint NavigationInfo nodes).
@@ -2318,7 +2323,9 @@ type
             @item(@link(Collides) = @false: the scene does not collide.)
 
             @item(@link(Collides) = @true and Spatial is empty:
-              the scene collides as it's bounding box.
+              the scene collides as it's bounding box (LocalBoundingBoxNoChildren to be precise,
+              so the box of @link(URL) model is taken into account,
+              but not children).
               This is the default situation after constructing TCastleScene.)
 
             @item(@link(Collides) = @true and
@@ -2397,7 +2404,10 @@ type
       {$ifdef FPC}deprecated 'use PreciseCollisions';{$endif}
 
     { Resolve collisions precisely with the scene triangles.
-      When this is @false we will only consider the bounding box of scene for collisions.
+
+      When this is @false we will only consider the bounding box of this scene
+      for collisions. We look at bounding box of model loaded in @link(URL),
+      not at children (TCastleTransform) bounding boxes.
 
       Internal notes:
       When @true, this sets @link(TCastleSceneCore.Spatial) to [ssRendering, ssDynamicCollisions].
@@ -3625,7 +3635,7 @@ begin
     Result := Result + Shape.TrianglesCount;
 end;
 
-function TCastleSceneCore.LocalBoundingBox: TBox3D;
+function TCastleSceneCore.LocalBoundingBoxNoChildren: TBox3D;
 begin
   if Exists then
   begin
@@ -3637,7 +3647,11 @@ begin
     Result := FLocalBoundingBox;
   end else
     Result := TBox3D.Empty;
+end;
 
+function TCastleSceneCore.LocalBoundingBox: TBox3D;
+begin
+  Result := LocalBoundingBoxNoChildren;
   Result.Include(inherited LocalBoundingBox);
 end;
 
@@ -5967,7 +5981,7 @@ begin
   Inc(InternalDirty);
   try
 
-  Result := TTriangleOctree.Create(Limits, LocalBoundingBox);
+  Result := TTriangleOctree.Create(Limits, LocalBoundingBoxNoChildren);
   try
     Result.Triangles.Capacity := TrianglesCount;
     if (ProgressTitle <> '') and
@@ -6010,7 +6024,7 @@ begin
     { Add only active and visible shapes }
     ShapesList := Shapes.TraverseList(true, true, false);
 
-  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, false);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList, false);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
@@ -7536,7 +7550,7 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalUpdateNavigation(
-  const Navigation: TCastleNavigation; const WorldBox: TBox3D);
+  const Navigation: TCastleNavigation);
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
@@ -7591,8 +7605,6 @@ begin
 
   if Navigation is TCastleWalkNavigation then
     UpdateWalkNavigation(TCastleWalkNavigation(Navigation));
-
-  Navigation.ModelBox := WorldBox;
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;

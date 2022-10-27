@@ -94,30 +94,34 @@ function MouseButtonLCLToCastle(
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
-  ( crDefault, // mcDefault
-    crNone,    // mcNone
-    crNone,    // mcForceNone
+  ( crDefault, //< mcDefault
+    crNone,    //< mcNone
+    crNone,    //< mcForceNone
 
-    crArrow,       // mcStandard
-    crHourGlass,   // mcWait
-    crIBeam,       // mcText
-    crHandPoint,   // mcHand
-    crSizeNS,      // mcResizeVertical
-    crSizeWE,      // mcResizeHorizontal
-    crSizeNW,      // mcResizeTopLeft
-    crSizeN,       // mcResizeTop
-    crSizeNE,      // mcResizeTopRight
-    crSizeW,       // mcResizeLeft
-    crSizeE,       // mcResizeRight
-    crSizeSW,      // mcResizeBottomLeft
-    crSizeS,       // mcResizeBottom
-    crSizeSE       // mcResizeBottomRight
+    crArrow,       //< mcStandard
+    crHourGlass,   //< mcWait
+    crIBeam,       //< mcText
+    crHandPoint,   //< mcHand
+    crSizeNS,      //< mcResizeVertical
+    crSizeWE,      //< mcResizeHorizontal
+    crSizeNW,      //< mcResizeTopLeft
+    crSizeN,       //< mcResizeTop
+    crSizeNE,      //< mcResizeTopRight
+    crSizeW,       //< mcResizeLeft
+    crSizeE,       //< mcResizeRight
+    crSizeSW,      //< mcResizeBottomLeft
+    crSizeS,       //< mcResizeBottom
+    crSizeSE       //< mcResizeBottomRight
   );
 
+{ Not necessary.
+  Converts between Lazarus String encoding for filenames (which is UTF-8)
+  and CGE encoding for filenames (which is also UTF-8).
+  So this in practice does nothing. }
 function FilenameToURISafeUTF8(const FileName: string): string;
 function URIToFilenameSafeUTF8(const URL: string): string;
 
-{ Convert LCL color values to our colors (vectors). }
+{ Convert LCL color values to CGE colors (vectors). }
 function ColorToVector3(const Color: TColor): TVector3;
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 

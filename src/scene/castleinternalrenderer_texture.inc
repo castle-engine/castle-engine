@@ -2199,7 +2199,6 @@ procedure TGLGeneratedShadowMap.Update(
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedViewport: TRectangle;
-  SavedDepthRange: TDepthRange;
   Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
@@ -2228,10 +2227,6 @@ begin
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-        { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
-        SavedDepthRange := RenderContext.DepthRange;
-        RenderContext.DepthRange := drFull;
-
         { Enable polygon offset for everything (whole scene).
 
           VarianceShadowMaps notes: can offset be avoided in this case?
@@ -2252,8 +2247,6 @@ begin
         glDisable(GL_POLYGON_OFFSET_LINE);
         glDisable(GL_POLYGON_OFFSET_POINT);
         {$endif}
-
-        RenderContext.DepthRange := SavedDepthRange;
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
       RenderContext.Viewport := SavedViewport;

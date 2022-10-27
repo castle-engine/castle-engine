@@ -24,7 +24,7 @@ interface
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleApplicationProperties, CastleUIState,
+  CastleWindow, CastleApplicationProperties, CastleUIState, CastleConfig,
   CastleMaterialProperties, CastleComponentSerialize, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
@@ -71,6 +71,9 @@ begin
   StateWin := TStateWin.Create(Application);
   StateCredits := TStateCredits.Create(Application);
   {$endregion 'Castle State Creation'}
+
+  UserConfig.Load;
+  SoundEngine.Volume := UserConfig.GetFloat('sound_volume', 1);
 
   InitializeMusicSound;
 
