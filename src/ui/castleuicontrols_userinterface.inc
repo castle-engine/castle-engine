@@ -1506,7 +1506,7 @@ begin
     OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
   if Parent <> nil then
     Parent.VisibleChange(Changes, true);
-  if [chRectangle, chChildren] * Changes <> [] then
+  if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
     FSizeFromChildrenValid := false;
 end;
 

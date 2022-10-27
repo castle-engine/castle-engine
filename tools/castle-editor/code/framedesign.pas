@@ -176,6 +176,9 @@ type
           out Vertical: TVerticalPosition): Boolean;
       public
         Frame: TDesignFrame;
+        LayerPhysicsSimulation: TCastleUserInterface;
+        LabelPhysicsSimulationRunning: TCastleLabel;
+        LabelPhysicsSimulationPaused: TCastleLabel;
         constructor Create(AOwner: TComponent); override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Release(const Event: TInputPressRelease): Boolean; override;
@@ -570,6 +573,12 @@ constructor TDesignFrame.TDesignerLayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FullSize := true;
+
+  LayerPhysicsSimulation := UserInterfaceLoad(InternalCastleDesignData + 'layer_physics_simulation.castle-user-interface', Self);
+  LayerPhysicsSimulation.Exists := false;
+  LabelPhysicsSimulationRunning := FindRequiredComponent('LabelRunning') as TCastleLabel;
+  LabelPhysicsSimulationPaused := FindRequiredComponent('LabelPaused') as TCastleLabel;
+  InsertFront(LayerPhysicsSimulation);
 
   RectHover := TCastleRectangleControl.Create(Self);
   RectHover.Color := Vector4(0, 0, 0, 0.25);
@@ -2807,6 +2816,10 @@ begin
   LabelViewport.Visible := FCurrentViewport <> nil;
   if FCurrentViewport <> nil then
     LabelViewport.Caption := ViewportDebugInfo(FCurrentViewport);
+
+  FDesignerLayer.LayerPhysicsSimulation.Exists := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+  FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleDesignPhysicsMode = pmPlaying;
+  FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleDesignPhysicsMode = pmPaused;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
