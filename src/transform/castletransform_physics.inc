@@ -1570,10 +1570,7 @@ begin
   inherited;
   if FVisualisation <> nil then
   begin
-    ParentMaxSize := Parent.LocalBoundingBox.MaxSize * 1.2;
-    //TCastlePlane(FVisualisation).Size := Vector2(ParentMaxSize, ParentMaxSize);
-
-    TCastlePlane(FVisualisation).Size := Vector2(100,100);
+    TCastlePlane(FVisualisation).Size := Vector2(2, 2);
 
     FVisualisation.Translation := CastleVectors.Vector3(0, FDistance, 0);
 
