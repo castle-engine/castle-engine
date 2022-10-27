@@ -50,7 +50,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog,
+  CastleLog, CastleConfig,
   GameStateMenu;
 
 constructor TStateOptions.Create(AOwner: TComponent);
@@ -97,6 +97,10 @@ end;
 procedure TStateOptions.ClickVolume(Sender: TObject);
 begin
   SoundEngine.Volume := (Sender as TCastleButton).Tag / High(ButtonsVolume);
+
+  { save volume to UserConfig, to make it saved for next game run }
+  UserConfig.SetDeleteFloat('sound_volume', SoundEngine.Volume, 1);
+  UserConfig.Save;
 end;
 
 function TStateOptions.Press(const Event: TInputPressRelease): Boolean;
