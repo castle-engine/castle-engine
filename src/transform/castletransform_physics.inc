@@ -1516,6 +1516,23 @@ end;
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+procedure ColliderVisualizationConfig(const Primitive: TCastleAbstractPrimitive);
+begin
+  Primitive.SetTransient;
+
+  Primitive.Collides := false;
+  Primitive.Pickable := false;
+  Primitive.CastShadows := false;
+  Primitive.ExcludeFromStatistics := true;
+  Primitive.InternalExcludeFromParentBoundingVolume := true;;
+
+  Primitive.Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
+  Primitive.Material := pmUnlit;
+  Primitive.RenderOptions.LineWidth := 3;
+  Primitive.RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
+  Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
+end;
+
 { TCastlePlaneCollider ------------------------------------------------------- }
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
@@ -1562,7 +1579,6 @@ end;
 
 procedure TCastlePlaneCollider.UpdateVisualisation;
 var
-  ParentMaxSize: Single;
   VTranslation: TVector3;
   VRotation: TVector4;
   VScale: TVector3;
@@ -1632,10 +1648,7 @@ begin
   if FVisualisation = nil then
   begin
     FVisualisation := TCastlePlane.Create(nil);
-    FVisualisation.SetTransient;
-    TCastlePlane(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastlePlane(FVisualisation).Material := pmUnlit;
-    TCastlePlane(FVisualisation).DoubleSided := true;
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
     UpdateVisualisation;
     Parent.Add(FVisualisation);
   end;
@@ -1816,11 +1829,7 @@ begin
   if FVisualisation = nil then
   begin
     FVisualisation := TCastleBox.Create(nil);
-    FVisualisation.SetTransient;
-    TCastleBox(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastleBox(FVisualisation).Material := pmUnlit;
-    TCastleBox(FVisualisation).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-    TCastleBox(FVisualisation).RenderOptions.WireframeEffect := weWireframeOnly;
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
     UpdateVisualisation;
     TCastleBox(FVisualisation).Size := FSize;
     Parent.Add(FVisualisation);
@@ -1961,11 +1970,7 @@ begin
   if FVisualisation = nil then
   begin
     FVisualisation := TCastleSphere.Create(nil);
-    FVisualisation.SetTransient;
-    TCastleSphere(FVisualisation).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastleSphere(FVisualisation).Material := pmUnlit;
-    TCastleSphere(FVisualisation).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-    TCastleSphere(FVisualisation).RenderOptions.WireframeEffect := weWireframeOnly;
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
     UpdateVisualisation;
 
     Parent.Add(FVisualisation);
@@ -2092,28 +2097,15 @@ begin
     FVisualisation.SetTransient;
 
     FVisualisationCylinder := TCastleCylinder.Create(FVisualisation);
-    FVisualisationCylinder.SetTransient;
-    TCastleCylinder(FVisualisationCylinder).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastleCylinder(FVisualisationCylinder).Material := pmUnlit;
-    TCastleCylinder(FVisualisationCylinder).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-    TCastleCylinder(FVisualisationCylinder).RenderOptions.WireframeEffect := weWireframeOnly;
-
+    ColliderVisualizationConfig(FVisualisationCylinder as TCastleAbstractPrimitive);
     FVisualisation.Add(FVisualisationCylinder);
 
     FVisualisationTop := TCastleSphere.Create(FVisualisation);
-    FVisualisationTop.SetTransient;
-    TCastleSphere(FVisualisationTop).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastleSphere(FVisualisationTop).Material := pmUnlit;
-    TCastleSphere(FVisualisationTop).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-    TCastleSphere(FVisualisationTop).RenderOptions.WireframeEffect := weWireframeOnly;
+    ColliderVisualizationConfig(FVisualisationTop as TCastleAbstractPrimitive);
     FVisualisation.Add(FVisualisationTop);
 
     FVisualisationBottom := TCastleSphere.Create(FVisualisation);
-    FVisualisationBottom.SetTransient;
-    TCastleSphere(FVisualisationBottom).Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-    TCastleSphere(FVisualisationBottom).Material := pmUnlit;
-    TCastleSphere(FVisualisationBottom).RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-    TCastleSphere(FVisualisationBottom).RenderOptions.WireframeEffect := weWireframeOnly;
+    ColliderVisualizationConfig(FVisualisationBottom as TCastleAbstractPrimitive);
     FVisualisation.Add(FVisualisationBottom);
 
     UpdateVisualisation;
