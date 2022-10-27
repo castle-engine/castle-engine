@@ -91,6 +91,8 @@ begin
   end;
 
   MapViewport.Items := MainViewport.Items;
+
+  PersistentMouseLook := true;
 end;
 
 procedure TStatePlay.Stop;
