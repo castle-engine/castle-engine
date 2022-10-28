@@ -1204,7 +1204,7 @@
                 ],
                 "LockTranslation" : [
                 ],
-                "MaximalLinearVelocity" : 1.0000000000000000E+002,
+                "MaxLinearVelocity" : 1.0000000000000000E+002,
                 "Name" : "RigidBody21"
               },
               {

@@ -111,8 +111,8 @@
                 "LockTranslation" : [
                   2
                 ],
-                "MaximalAngularVelocity" : 1.0000000000000000E+001,
-                "MaximalLinearVelocity" : 1.0000000000000000E+002,
+                "MaxAngularVelocity" : 1.0000000000000000E+001,
+                "MaxLinearVelocity" : 1.0000000000000000E+002,
                 "Name" : "RigidBody4"
               },
               {

@@ -210,10 +210,10 @@
     { Turns on minimum and maximum rotation angle limit }
     property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
 
-    { Minimal angle limit should be from minus 2pi + epsilon to 0 }
+    { Minimal angle, limit should be from minus 2pi + epsilon to 0. }
     property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit;
 
-    { Maximal angle limit should be from 0 to 2pi - epsilon }
+    { Maximum angle, limit should be from 0 to 2pi - epsilon. }
     property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
 
     { Turns on motor that is usefull to simulate mechanical engines. }
@@ -358,14 +358,14 @@
     FDampingRatio: Single;
     FFrequencyHz: Single;
     FKraftJointGrab: TKraftConstraintJointGrab;
-    FMaximalForce: Single;
+    FMaxForce: Single;
     FWorldPoint: TVector3;
     FWorldPointTransform: TCastleTransform; // TDesignJointWorldPoint;
 
     procedure SetWorldPoint(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
-    procedure SetMaximalForce(const AValue: Single);
+    procedure SetMaxForce(const AValue: Single);
     procedure InternalUpdateGizmosName;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
@@ -386,7 +386,7 @@
   published
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 5{$endif};
     property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
-    property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
+    property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default MaxSingle{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
@@ -1377,7 +1377,7 @@ begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FWorldPoint := CastleVectors.Vector3(0, 0, 0);
-  FMaximalForce := MaxSingle;
+  FMaxForce := MaxSingle;
   FFrequencyHz := 5.0;
   FDampingRatio := 0.7;
   {$define read_implementation_constructor}
@@ -1424,7 +1424,7 @@ function TCastleGrabJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'WorldPointPersistent', 'DampingRatio', 'FrequencyHz', 'MaximalForce'
+      'WorldPointPersistent', 'DampingRatio', 'FrequencyHz', 'MaxForce'
     ]) then
     Result := [psBasic]
   else
@@ -1468,11 +1468,11 @@ begin
   end;
 end;
 
-procedure TCastleGrabJoint.SetMaximalForce(const AValue: Single);
+procedure TCastleGrabJoint.SetMaxForce(const AValue: Single);
 begin
-  if not SameValue(FMaximalForce, AValue) then
+  if not SameValue(FMaxForce, AValue) then
   begin
-    FMaximalForce := AValue;
+    FMaxForce := AValue;
     if FKraftJointGrab <> nil then
       FKraftJointGrab.SetMaximalForce(AValue);
   end;
@@ -1502,7 +1502,7 @@ begin
     VectorToKraft(FWorldPoint),
     FFrequencyHz,
     FDampingRatio,
-    FMaximalForce
+    FMaxForce
   );
 end;
 
