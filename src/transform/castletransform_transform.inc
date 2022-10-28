@@ -101,8 +101,6 @@
       RegisteredGLContextCloseListener: Boolean;
       FPendingToRemove: TComponentList;
       FPendingToRemoveAndFree: TComponentList;
-      { Safeguard to negative scale values. }
-      FShouldUpdatePhysicsObjects: Boolean;
       FRenderLayer: TRenderLayer;
 
       // transformation
@@ -265,9 +263,8 @@
     { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 
-    { When CastleTransform change scale colliders are not scaled we need do this
-      manually. }
-    procedure RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
+    { Call UpdateWorldScale on all colliders here and in children. }
+    procedure UpdateCollidersWorldScale;
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -2959,17 +2956,17 @@ begin
   end;
 end;
 
-procedure TCastleTransform.RecursivelyUpdateCollidersScale(const Transform: TCastleTransform);
+procedure TCastleTransform.UpdateCollidersWorldScale;
 var
-  CastleCollider: TCastleCollider;
-  I: Integer;
+  Collider: TCastleCollider;
+  T: TCastleTransform;
 begin
-  CastleCollider := Transform.FindBehavior(TCastleCollider) as TCastleCollider;
-  if CastleCollider <> nil then
-    CastleCollider.UpdateScale(false);
+  Collider := FindBehavior(TCastleCollider) as TCastleCollider;
+  if Collider <> nil then
+    Collider.UpdateWorldScale;
 
-  for I := 0 to Transform.Count -1 do
-    RecursivelyUpdateCollidersScale(Transform.Items[I]);
+  for T in Self do
+    T.UpdateCollidersWorldScale;
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3579,7 +3576,7 @@ begin
   if (FWorld <> nil) and (FWorld.EnablePhysics) then
   begin
     RBody := RigidBody; // RigidBody iterates behaviors
-    if (RBody <> nil) and (FShouldUpdatePhysicsObjects) and
+    if (RBody <> nil) and
        (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(WorldTransform);
   end;
@@ -3677,7 +3674,6 @@ procedure TCastleTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-  FShouldUpdatePhysicsObjects := true;
   ChangedTransform;
 end;
 
@@ -3685,31 +3681,19 @@ procedure TCastleTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  FShouldUpdatePhysicsObjects := true;
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
 begin
-  { We don't want to update physics object when someone change -1 to 1 scale.
-    Often used to change animation side from left to right. }
-  FShouldUpdatePhysicsObjects := not (TVector3.Equals(FScale.Abs, Value.Abs));
-  { TODO: above is broken, e.g. I can still udpate to scale -2,1,1 from 1,1,1.
-    Also later update will include negative scale anyway. }
-
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
   ChangedTransform;
+
   if (FWorld <> nil) and
-    (
-      (FWorld.PhysicsProperties.UpdateCollidersScaleAtRuntime) or
-      (CastleDesignMode)
-    ) and
-    (FWorld.EnablePhysics) and (FShouldUpdatePhysicsObjects) then
-  begin
-    RecursivelyUpdateCollidersScale(Self);
-  end;
+     FWorld.EnablePhysics then
+    UpdateCollidersWorldScale;
 end;
 
 procedure TCastleTransform.SetScaleOrientation(const Value: TVector4);
@@ -3727,7 +3711,6 @@ end;
 procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
-  FShouldUpdatePhysicsObjects :=true;
   ChangedTransform;
 end;
 

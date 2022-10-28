@@ -148,39 +148,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FScalePersistent: TCastleVector3Persistent;
-  function GetScaleForPersistent: TVector3;
-  procedure SetScaleForPersistent(const AValue: TVector3);
+  FSizeScalePersistent: TCastleVector3Persistent;
+  function GetSizeScaleForPersistent: TVector3;
+  procedure SetSizeScaleForPersistent(const AValue: TVector3);
 published
-  { @link(Scale) that can be visually edited in
+  { @link(SizeScale) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(Scale) directly.
+    instead read or write @link(SizeScale) directly.
 
-    @seealso Scale }
-  property ScalePersistent: TCastleVector3Persistent read FScalePersistent ;
+    @seealso SizeScale }
+  property SizeScalePersistent: TCastleVector3Persistent read FSizeScalePersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleCollider.GetScaleForPersistent: TVector3;
+function TCastleCollider.GetSizeScaleForPersistent: TVector3;
 begin
-  Result := Scale;
+  Result := SizeScale;
 end;
 
-procedure TCastleCollider.SetScaleForPersistent(const AValue: TVector3);
+procedure TCastleCollider.SetSizeScaleForPersistent(const AValue: TVector3);
 begin
-  Scale := AValue;
+  SizeScale := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FScalePersistent := TCastleVector3Persistent.Create;
-  FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleForPersistent;
-  FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleForPersistent;
-  FScalePersistent.InternalDefaultValue := Scale; // current value is default
+  FSizeScalePersistent := TCastleVector3Persistent.Create;
+  FSizeScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeScaleForPersistent;
+  FSizeScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeScaleForPersistent;
+  FSizeScalePersistent.InternalDefaultValue := SizeScale; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FScalePersistent);
+  FreeAndNil(FSizeScalePersistent);
 {$endif read_implementation_destructor}
 

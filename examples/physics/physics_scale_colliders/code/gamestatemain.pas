@@ -35,14 +35,12 @@ type
     RedBox: TCastleTransform;
     GreenSphere: TCastleTransform;
     TransformAll: TCastleTransform;
-    UpdateCollidersAtRuntime: TCastleCheckbox;
     Viewport: TCastleViewport;
 
     procedure ClickScaleAll(Sender: TObject);
     procedure ClickScaleGreenSphere(Sender: TObject);
     procedure ClickScaleRedBox(Sender: TObject);
     procedure ClickLocalScaleRedBoxCollider(Sender: TObject);
-    procedure ChangeUpdateCollidersAtRuntime(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -85,12 +83,7 @@ var
 begin
   Collider := RedBox.FindBehavior(TCastleCollider) as TCastleCollider;
   if Collider <> nil then
-    Collider.Scale := Vector3(0.5, 0.5, 0.5);
-end;
-
-procedure TStateMain.ChangeUpdateCollidersAtRuntime(Sender: TObject);
-begin
-  Viewport.Items.PhysicsProperties.UpdateCollidersScaleAtRuntime := UpdateCollidersAtRuntime.Checked;
+    Collider.SizeScale := Vector3(0.5, 0.5, 0.5);
 end;
 
 constructor TStateMain.Create(AOwner: TComponent);
@@ -122,8 +115,6 @@ begin
   GreenSphere := DesignedComponent('GreenSphere') as TCastleTransform;
   TransformAll := DesignedComponent('TransformAll') as TCastleTransform;
   Viewport := DesignedComponent('Viewport') as TCastleViewport;
-  UpdateCollidersAtRuntime := DesignedComponent('UpdateCollidersAtRuntime') as TCastleCheckbox;
-  UpdateCollidersAtRuntime.OnChange := {$ifdef FPC}@{$endif}ChangeUpdateCollidersAtRuntime;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
