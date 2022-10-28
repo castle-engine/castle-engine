@@ -43,7 +43,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
     function GetObservedValue: TVector3; virtual; abstract;
     procedure CheckTransformInsideParent;
-    procedure ChangedTransform; override;
+    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
   public
     constructor Create(AOwner: TComponent;
       const AJoint: TAbstractJoint); reintroduce; virtual;
@@ -210,9 +210,9 @@ begin
     Exit;
 end;
 
-procedure TDesignJointTransform.ChangedTransform;
+procedure TDesignJointTransform.ChangedTransform(const UpdatePhysicsTransform: Boolean);
 begin
-  inherited ChangedTransform;
+  inherited;
   if not TVector3.PerfectlyEquals(Translation, Value) then
     Value := Translation;
 end;
