@@ -586,10 +586,10 @@
     FLockRotation: T3DCoords;
     FAngularVelocity: TVector3;
     FAngularVelocityDamp: Single;
-    FMaximalAngularVelocity: Single;
+    FMaxAngularVelocity: Single;
     FLinearVelocity: TVector3;
     FLinearVelocityDamp: Single;
-    FMaximalLinearVelocity: Single;
+    FMaxLinearVelocity: Single;
 
     FCollisionList: TCastleTransformList;
 
@@ -620,11 +620,11 @@
 
     procedure SetAngularVelocity(const AVelocity: TVector3);
     procedure SetAngularVelocityDamp(const AValue: Single);
-    procedure SetMaximalAngularVelocity(const AValue: Single);
+    procedure SetMaxAngularVelocity(const AValue: Single);
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
     procedure SetLinearVelocityDamp(const AValue: Single);
-    procedure SetMaximalLinearVelocity(const AValue: Single);
+    procedure SetMaxLinearVelocity(const AValue: Single);
 
     procedure SetOnCollisionEnter(const AValue: TCollisionEvent);
     procedure SetOnCollisionStay(const AValue: TCollisionEvent);
@@ -1019,10 +1019,10 @@
     property Exists: Boolean read FExists write SetExists default true;
 
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp {$ifdef FPC}default 0.1{$endif};
-    property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
+    property MaxAngularVelocity: Single read FMaxAngularVelocity write SetMaxAngularVelocity;
 
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp {$ifdef FPC}default 0.1{$endif};
-    property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
+    property MaxLinearVelocity: Single read FMaxLinearVelocity write SetMaxLinearVelocity;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
@@ -2312,10 +2312,10 @@ begin
   end;
 
   FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
-  FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaxLinearVelocity := FMaxLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
-  FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaxAngularVelocity := FMaxAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   { Set initial transformation }
   SetWorldTransformation(FTransform.WorldTransform);
@@ -2650,17 +2650,17 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.SetMaximalAngularVelocity(const AValue: Single);
+procedure TCastleRigidBody.SetMaxAngularVelocity(const AValue: Single);
 begin
-  FMaximalAngularVelocity := AValue;
+  FMaxAngularVelocity := AValue;
   { Kraft uses max velocity for delta time which is physics update frequency. }
   if FKraftBody <> nil then
     FKraftBody.MaximalAngularVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
-procedure TCastleRigidBody.SetMaximalLinearVelocity(const AValue: Single);
+procedure TCastleRigidBody.SetMaxLinearVelocity(const AValue: Single);
 begin
-  FMaximalLinearVelocity := AValue;
+  FMaxLinearVelocity := AValue;
   { Kraft uses max velocity for delta time which is physics update frequency. }
   if FKraftBody <> nil then
     FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
@@ -2995,8 +2995,8 @@ function TCastleRigidBody.PropertySections(
 begin
   if ArrayContainsString(PropertyName, [
      'Dynamic', 'Animated', 'Trigger', 'Gravity', 'LockTranslation', 'Exists',
-     'AngularVelocityPersistent', 'AngularVelocityDamp', 'MaximalAngularVelocity',
-     'LinearVelocityPersistent', 'LinearVelocityDamp', 'MaximalLinearVelocity',
+     'AngularVelocityPersistent', 'AngularVelocityDamp', 'MaxAngularVelocity',
+     'LinearVelocityPersistent', 'LinearVelocityDamp', 'MaxLinearVelocity',
      'CollisionDetection', 'LockRotation'
      ]) then
     Result := [psBasic]
