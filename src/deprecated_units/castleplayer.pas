@@ -194,7 +194,7 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: Boolean): Boolean; override;
     procedure Fall(const FallHeight: Single); override;
-    procedure ChangedTransform; override;
+    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
   public
     var
       { Various navigation properties that may depend on loaded level. }
@@ -871,7 +871,7 @@ begin
   end;
 end;
 
-procedure TPlayer.ChangedTransform;
+procedure TPlayer.ChangedTransform(const UpdatePhysicsTransform: Boolean = true);
 begin
   inherited;
   { If something called Player.Translation := xxx, update Navigation }

@@ -461,7 +461,6 @@
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
-
     function CalculateScaledHeight: Single;
     function CalculateScaledRadius: Single;
   private
@@ -1964,12 +1963,11 @@ begin
     FVisualisation.Translation := VTranslation;
     FVisualisation.Rotation := VRotation;
     { Scale is never used directly in colliders, it's added on shape creation. }
-  end
-  else
-    begin
-      FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
-      FVisualisation.Rotation := Vector4(0, 0, 0, 0);
-    end;
+  end else
+  begin
+    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
+    FVisualisation.Rotation := Vector4(0, 0, 0, 0);
+  end;
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
@@ -2182,9 +2180,13 @@ end;
 function TCastleCapsuleCollider.CalculateScaledRadius: Single;
 begin
   if FMode2D then
-    Result := FRadius * Approximate2DScale(TotalScale.XY)
+    { Let TotalScale.X control radius, and TotalScale.Y only height,
+      and ignore TotalScale.Z which should be ignored in 2D. }
+    Result := FRadius * TotalScale.X
   else
-    Result := FRadius * Approximate3DScale(TotalScale);
+    { Again leave TotalScale.Y to control only height.
+      TODO: test in 3D - what is comfortable }
+    Result := FRadius * {Approximate2DScale(TotalScale.XZ)}Approximate3DScale(TotalScale);
 end;
 
 class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
@@ -3129,8 +3131,7 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
-procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4
-  );
+procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4);
 var
   Translation, Scale: TVector3;
   Rotation: TVector4;

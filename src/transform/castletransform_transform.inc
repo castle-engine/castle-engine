@@ -519,7 +519,7 @@
 
     { Override to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
-    procedure ChangedTransform; virtual;
+    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); virtual;
 
     { Override to be notified after ExistsInRoot value changed. }
     procedure ExistsInRootChanged; virtual;
@@ -3565,7 +3565,7 @@ begin
     Translate(NewMiddle - OldMiddle);
 end;
 
-procedure TCastleTransform.ChangedTransform;
+procedure TCastleTransform.ChangedTransform(const UpdatePhysicsTransform: Boolean);
 var
   RBody: TCastleRigidBody;
 begin
@@ -3577,7 +3577,8 @@ begin
   begin
     RBody := RigidBody; // RigidBody iterates behaviors
     if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) and
+       UpdatePhysicsTransform then
       RBody.SetWorldTransformation(WorldTransform);
   end;
 end;
@@ -3685,11 +3686,19 @@ begin
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
+var
+  UpdatePhysicsTransform: Boolean;
 begin
+  { No point in doing RBody.SetWorldTransformation when scale only changed
+    e.g. from (-1,1,1) to (1,1,1).
+    This avoids causing noticeable delays when moving in platformer,
+    that updates scale often. }
+  UpdatePhysicsTransform := not TVector3.Equals(FScale.Abs, Value.Abs);
+
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
-  ChangedTransform;
+  ChangedTransform(UpdatePhysicsTransform);
 
   if (FWorld <> nil) and
      FWorld.EnablePhysics then

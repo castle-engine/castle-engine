@@ -38,7 +38,7 @@ type
   private
     FNavigation: TCastleWalkNavigation;
   protected
-    procedure ChangedTransform; override;
+    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
   public
     { Camera that is automatically synchronized with this 3D object. }
     property Camera: TCastleWalkNavigation read FNavigation; deprecated 'instead of using this, better define your own TCastleWalkNavigation instance synchronized with this TCastleTransform';
@@ -136,7 +136,7 @@ begin
   SetView(P, D, U);
 end;
 
-procedure T3DOrient.ChangedTransform;
+procedure T3DOrient.ChangedTransform(const UpdatePhysicsTransform: Boolean);
 var
   P, D, U: TVector3;
 begin
