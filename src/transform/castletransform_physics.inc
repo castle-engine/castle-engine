@@ -34,12 +34,10 @@
     FFrequency: Single;
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
-    FUpdateCollidersScaleAtRuntime: Boolean;
     FContinuousCollisionDetection: Boolean;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
-    procedure SetUpdateCollidersScaleAtRuntime(const AValue: Boolean);
     procedure SetContinuousCollisionDetection(const AValue: Boolean);
   private
     { Buffer to not count physics step time per frame }
@@ -52,7 +50,6 @@
       DefaultFrequency = 60.0;
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
-      DefaultUpdateCollidersScaleAtRuntime = true;
       DefaultContinuousCollisionDetection = true;
     constructor Create(AOwner: TComponent); override;
   published
@@ -82,11 +79,6 @@
       thus we have a "spiral of death" that leads to lower and lower FPS. }
     property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
 
-    { When set to true it works like in editor - when you change scale,
-      it changes colliders size, otherwise scale is updated only after attaching
-      collider to world. }
-    property UpdateCollidersScaleAtRuntime: Boolean read FUpdateCollidersScaleAtRuntime write SetUpdateCollidersScaleAtRuntime default DefaultUpdateCollidersScaleAtRuntime;
-
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
   end;
@@ -100,15 +92,15 @@
       This only describes shape.
       TCastleRigidBody takes care of initializing Kraft. }
     FDensity, FMass, FRestitution, FFriction: Single;
-    { When @false, behave as if Translation/Rotation/Scale/FLocalTransform/FLocalInverseTransform
-      were all "identity", i.e. "no transformation".
-      This is an often case, so we want to optimize it. }
     FTranslation: TVector3;
     FRotation: TVector4;
     FAutoSize: Boolean;
     FCalculatingSize: Boolean; //< are we inside CalculateSize or InternalAutoSize
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
+    { When @false, behave as if Translation/Rotation/FLocalTransform/FLocalInverseTransform
+      were all "identity", i.e. "no transformation".
+      This is an often case, so we want to optimize it. }
     FUseLocalTransform: Boolean;
     FLocalTransform: TMatrix4;
     FLocalInverseTransform: TMatrix4;
@@ -1037,7 +1029,6 @@ begin
   FGravityStrength := DefaultGravityStrength;
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
-  FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
 end;
 
@@ -1051,18 +1042,6 @@ begin
 
   if Assigned(RootTransform.FKraftEngine) then
     RootTransform.FKraftEngine.SetFrequency(AValue);
-end;
-
-procedure TPhysicsProperties.SetUpdateCollidersScaleAtRuntime(
-  const AValue: Boolean);
-begin
-  if FUpdateCollidersScaleAtRuntime <> AValue then
-  begin
-    FUpdateCollidersScaleAtRuntime := AValue;
-
-    if FUpdateCollidersScaleAtRuntime and RootTransform.EnablePhysics then
-      RootTransform.RecursivelyUpdateCollidersScale(RootTransform);
-  end;
 end;
 
 procedure TPhysicsProperties.SetContinuousCollisionDetection(

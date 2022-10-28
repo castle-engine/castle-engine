@@ -101,8 +101,6 @@
       RegisteredGLContextCloseListener: Boolean;
       FPendingToRemove: TComponentList;
       FPendingToRemoveAndFree: TComponentList;
-      { Safeguard to negative scale values. }
-      FShouldUpdatePhysicsObjects: Boolean;
       FRenderLayer: TRenderLayer;
 
       // transformation
@@ -3450,7 +3448,7 @@ begin
   if (FWorld <> nil) and (FWorld.EnablePhysics) then
   begin
     RBody := RigidBody; // RigidBody iterates behaviors
-    if (RBody <> nil) and (FShouldUpdatePhysicsObjects) and
+    if (RBody <> nil) and
        (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(WorldTransform);
   end;
@@ -3548,7 +3546,6 @@ procedure TCastleTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-  FShouldUpdatePhysicsObjects := true;
   ChangedTransform;
 end;
 
@@ -3556,28 +3553,17 @@ procedure TCastleTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  FShouldUpdatePhysicsObjects := true;
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
 begin
-  { We don't want to update physics object when someone change -1 to 1 scale.
-    Often used to change animation side from left to right. }
-  FShouldUpdatePhysicsObjects := not (TVector3.Equals(FScale.Abs, Value.Abs));
-  { TODO: above is broken, e.g. I can still udpate to scale -2,1,1 from 1,1,1.
-    Also later update will include negative scale anyway. }
-
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
   ChangedTransform;
   if (FWorld <> nil) and
-    (
-      (FWorld.PhysicsProperties.UpdateCollidersScaleAtRuntime) or
-      (CastleDesignMode)
-    ) and
-    (FWorld.EnablePhysics) and (FShouldUpdatePhysicsObjects) then
+     FWorld.EnablePhysics then
   begin
     RecursivelyUpdateCollidersScale(Self);
   end;
@@ -3598,7 +3584,6 @@ end;
 procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
-  FShouldUpdatePhysicsObjects :=true;
   ChangedTransform;
 end;
 
