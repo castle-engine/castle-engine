@@ -2637,10 +2637,10 @@ begin
   end;
 
   FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
-  FKraftBody.MaxLinearVelocity := FMaxLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaximalLinearVelocity := FMaxLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
-  FKraftBody.MaxAngularVelocity := FMaxAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaximalAngularVelocity := FMaxAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   { Set initial transformation }
   SetWorldTransformation(FTransform.WorldTransform);
