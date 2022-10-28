@@ -1978,23 +1978,23 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.Scale := Vector3(8, 9, 10);
+    Col.SizeScale := Vector3(8, 9, 10);
     Col.Size := Vector3(11, 12, 13);
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertVectorEquals(Vector3(11, 12, 13), Col.Size);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     B.Size := Vector3(400, 500, 600);
@@ -2002,7 +2002,7 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2010,14 +2010,14 @@ begin
     AssertVectorEquals(Vector3(400, 500, 600), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     B.Size := Vector3(700, 800, 900);
     AssertVectorEquals(Vector3(700, 800, 900), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
@@ -2045,23 +2045,23 @@ begin
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.Scale := Vector3(8, 9, 10);
+    Col.SizeScale := Vector3(8, 9, 10);
     Col.Radius := 11;
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertSameValue(11, Col.Radius);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     S.Radius := 400;
@@ -2069,7 +2069,7 @@ begin
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2077,14 +2077,14 @@ begin
     AssertSameValue(400, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     S.Radius := 700;
     AssertSameValue(700, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
@@ -2112,23 +2112,23 @@ begin
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.Scale := Vector3(8, 9, 10);
+    Col.SizeScale := Vector3(8, 9, 10);
     Col.Normal := Vector3(11, 12, 13);
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertVectorEquals(Vector3(11, 12, 13), Col.Normal);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     P.Axis := 2;
@@ -2136,7 +2136,7 @@ begin
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2144,14 +2144,14 @@ begin
     AssertVectorEquals(TVector3.One[2], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     P.Axis := 1;
     AssertVectorEquals(TVector3.One[1], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.Scale);
+    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
