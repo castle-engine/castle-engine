@@ -180,14 +180,13 @@
       DefaultFriction = 0.5;
 
     class var
-      { Minimal collider thickness used by autosize in default 3d mode.
+      { Minimum collider thickness used by @link(AutoSize) in 3D mode (when @link(Mode2D) = @false).
+        Changing this only affects new size calculations.}
+      AutoSizeMinThickness: Single;
 
-        AutoSizeMinimalThickness change only affects new size recalculations.}
-      AutoSizeMinimalThickness: Single;
-      { Minimal collider thickness used by autosize in 2d mode.
-
-        AutoSizeMinimalThickness change only affects new size recalculations.}
-      AutoSizeMinimalThickness2D: Single;
+      { Minimum collider thickness used by @link(AutoSize) in 2D mode (when @link(Mode2D) = @true).
+        Changing this only affects new size calculations.}
+      AutoSizeMinThickness2D: Single;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -354,7 +353,26 @@
       Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
     property Size: TVector3 read FSize write SetSize;
   published
-    { If @true, we calculate automatic size looking only at sizes in XY. }
+    { If @true, automatic size calculation caused by @link(AutoSize) is better
+      adjusted to 2D models.
+
+      @orderedList(
+        @item(It estimates collider sizes (because Kraft colliders are always in 3D)
+          based on geometry sizes only in XY dimensions.
+          So it ignores how thin or thick is you geometry along the Z axis.)
+
+        @item(It assumes a bit larger "minimum thickness" for 2D,
+          because typical 2D worlds use larger units.
+          See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
+
+        @item(Moreover (and this matters regardless of @link(AutoSize) value!)
+          the way scale affects the models is different.
+          This determines how TCastleTransform.Scale (or all parents)
+          and SizeScale (of this collider) affects the final collider scale.
+          In Kraft, the scale is internally causing just collider size change,
+          so it must work a bit differently in 2D -- because in 2D only XY dimensions
+          should matter.)
+      ) }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
 
   {$define read_interface_class}
@@ -1641,32 +1659,32 @@ procedure TCastleBoxCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   TempSize: TVector3;
-  MinimalThickness: Single;
+  MinThickness: Single;
 begin
   inherited; // resets Translation, Rotation
 
   if FMode2D then
-    MinimalThickness := AutoSizeMinimalThickness2D
+    MinThickness := AutoSizeMinThickness2D
   else
-    MinimalThickness := AutoSizeMinimalThickness;
+    MinThickness := AutoSizeMinThickness;
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Size := CastleVectors.Vector3(MinimalThickness, MinimalThickness, MinimalThickness);
+    Size := CastleVectors.Vector3(MinThickness, MinThickness, MinThickness);
     Exit;
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
   TempSize := LocalBoundingBox.Size;
 
-  if TempSize.X < MinimalThickness then
-    TempSize.X := MinimalThickness;
+  if TempSize.X < MinThickness then
+    TempSize.X := MinThickness;
 
-  if TempSize.Y < MinimalThickness then
-    TempSize.Y := MinimalThickness;
+  if TempSize.Y < MinThickness then
+    TempSize.Y := MinThickness;
 
-  if TempSize.Z < MinimalThickness then
-    TempSize.Z := MinimalThickness;
+  if TempSize.Z < MinThickness then
+    TempSize.Z := MinThickness;
 
   Size := TempSize;
   Translation := LocalBoundingBox.Center;
@@ -1726,18 +1744,18 @@ end;
 procedure TCastleSphereCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
-  MinimalThickness: Single;
+  MinThickness: Single;
 begin
   inherited; // resets Translation, Rotation
 
   if FMode2D then
-    MinimalThickness := AutoSizeMinimalThickness2D
+    MinThickness := AutoSizeMinThickness2D
   else
-    MinimalThickness := AutoSizeMinimalThickness;
+    MinThickness := AutoSizeMinThickness;
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Radius := MinimalThickness;
+    Radius := MinThickness;
     Exit;
   end;
 
@@ -1748,7 +1766,7 @@ begin
     Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
 
   { Check minimal size }
-  Radius := Max(Radius, MinimalThickness);
+  Radius := Max(Radius, MinThickness);
   Translation := LocalBoundingBox.Center;
 end;
 
@@ -1824,19 +1842,19 @@ end;
 procedure TCastleCapsuleCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
-  MinimalThickness: Single;
+  MinThickness: Single;
 begin
   inherited; // resets Translation, Rotation
 
   if FMode2D then
-    MinimalThickness := AutoSizeMinimalThickness2D
+    MinThickness := AutoSizeMinThickness2D
   else
-    MinimalThickness := AutoSizeMinimalThickness;
+    MinThickness := AutoSizeMinThickness;
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Radius := MinimalThickness;
-    Height := MinimalThickness;
+    Radius := MinThickness;
+    Height := MinThickness;
     Exit;
   end;
 
@@ -1850,8 +1868,8 @@ begin
   { If radius * 2 is bigger than height make it smaller. }
   if Radius * 2 > LocalBoundingBox.SizeY then
     Radius := LocalBoundingBox.SizeY / 2 - 0.001;
-  { Radius must be at least MinimalThickness }
-  Radius := Max(Radius, MinimalThickness);
+  { Radius must be at least MinThickness }
+  Radius := Max(Radius, MinThickness);
 
   Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
 

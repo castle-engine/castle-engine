@@ -73,8 +73,8 @@ var
   R: TRegisteredComponent;
 initialization
   TCastleTransform.DefaultOrientation := otUpYDirectionZ;
-  TCastleCollider.AutoSizeMinimalThickness := 0.01;
-  TCastleCollider.AutoSizeMinimalThickness2D := 1;
+  TCastleCollider.AutoSizeMinThickness := 0.01;
+  TCastleCollider.AutoSizeMinThickness2D := 1;
   GlobalIdentityMatrix := TMatrix4.Identity;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
