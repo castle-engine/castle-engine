@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2019-2021 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2019-2022 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -130,7 +130,7 @@ begin
   RBody.Setup2D;
   RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   RBody.LinearVelocityDamp := 0;
-  RBody.MaximalLinearVelocity := 200;
+  RBody.MaxLinearVelocity := 200;
   RBody.AngularVelocityDamp := 0;
 
   Collider := TCastleBoxCollider.Create(Self);
