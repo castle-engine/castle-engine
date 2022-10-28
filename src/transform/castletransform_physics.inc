@@ -150,6 +150,8 @@
     procedure ShapeChangedNotifyRigidBody;
     function ForceStaticBody: Boolean; virtual;
 
+    { Called when the collider size has changed and needs to be updated. }
+    procedure UpdateVisualisation; virtual;
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
 
@@ -172,13 +174,15 @@
     const
       { Default for @link(Density). }
       DefaultDensity = 1.0;
+
       { Default for @link(Mass), zero means "use @link(Density) instead". }
       DefaultMass = 0.0;
+
       { Default for @link(Restitution). }
       DefaultRestitution = 0.0;
+
       { Default for @link(Friction). }
       DefaultFriction = 0.5;
-
     class var
       { Minimum collider thickness used by @link(AutoSize) in 3D mode (when @link(Mode2D) = @false).
         Changing this only affects new size calculations.}
@@ -192,6 +196,13 @@
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { TODO: In the long run, these methods should not be virtual on TCastleCollider,
+      they should be on TCastleBehavior. This is done in physics_j branch. }
+    { Create collider visualization. }
+    procedure DesigningBegin; virtual;
+    { Destroy collider visualization. }
+    procedure DesigningEnd; virtual;
 
     { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
@@ -302,6 +313,7 @@
   strict private
     FNormal: TVector3;
     FDistance: Single;
+    FVisualisation: TCastleTransform;
     procedure SetNormal(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
   protected
@@ -309,9 +321,15 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     function ForceStaticBody: Boolean; override;
     procedure CalculateSizeCore; override;
+    procedure UpdateVisualisation; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure ParentBeforeDetach; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Normal vector of the plane.
@@ -335,19 +353,26 @@
   TCastleBoxCollider = class(TCastleCollider)
   strict private
     FMode2D: Boolean;
+    FVisualisation: TCastleTransform;
     FSize: TVector3; //< this size doesn't include FSizeScale or FWorldScale
     procedure SetSize(const AValue: TVector3);
     procedure SetMode2D(const AValue: Boolean);
+    { Returns scaled size, because scale is added to size directly. }
+    function CalculateScaledSize: CastleVectors.TVector3;
   private
     class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
+    procedure UpdateVisualisation; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure ParentBeforeDetach; override;
 
     { Box size.
       Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
@@ -399,6 +424,7 @@
   strict private
     FRadius: Single;
     FMode2D: Boolean;
+    FVisualisation: TCastleTransform;
     procedure SetRadius(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
     { Returns scaled Radius, because scale is added to size directly. }
@@ -409,9 +435,13 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
+    procedure UpdateVisualisation; override;
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure ParentBeforeDetach; override;
   published
     { Sphere radius.
       Default is 1 (if not AutoSize), consistent with TCastleSphere. }
@@ -429,6 +459,12 @@
     FRadius: Single;
     FHeight: Single;
     FMode2D: Boolean;
+
+    FVisualisation: TCastleTransform;
+    FVisualisationTop: TCastleTransform;
+    FVisualisationBottom: TCastleTransform;
+    FVisualisationCylinder: TCastleTransform;
+
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
@@ -440,9 +476,14 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
+    procedure UpdateVisualisation; override;
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    procedure DesigningBegin; override;
+    procedure DesigningEnd; override;
+    procedure ParentBeforeDetach; override;
   published
     { Sphere (at both top and bottom of capsule) radius.
       Default is 1 (if not AutoSize), consistent with TCastleSphere. }
@@ -647,6 +688,7 @@
       2. Creation of Kraft shape based on TCollder or TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
     procedure InitializePhysicsEngineObjects;
+
     { Frees physics objects in three steps:
       1. Deinitialize colliders
       2. Removes self from other rigid bodies collision lists
@@ -681,7 +723,6 @@
     { Deinitializes physics engine objects when TCastleRigidBody is attached
       to world. }
     procedure WorldBeforeDetach; override;
-
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Only one TCastleRigidBody behavior can be added to a given
@@ -901,7 +942,6 @@
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
-
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -1089,52 +1129,50 @@ begin
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
 end;
 
+procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FAngularVelocityRK4Integration <> AValue then
+  begin
+    FAngularVelocityRK4Integration := AValue;
+    if Assigned(RootTransform.FKraftEngine) then
+      RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
+  end;
+end;
+
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
 begin
-  if FFrequency = AValue then
-    Exit;
+  if FFrequency <> AValue then
+  begin
+    FFrequency := AValue;
+    FPhysicsTimeStep := 1.0 / FFrequency;
 
-  FFrequency := AValue;
-  FPhysicsTimeStep := 1.0 / FFrequency;
-
-  if Assigned(RootTransform.FKraftEngine) then
-    RootTransform.FKraftEngine.SetFrequency(AValue);
+    if Assigned(RootTransform.FKraftEngine) then
+      RootTransform.FKraftEngine.SetFrequency(AValue);
+  end;
 end;
 
 procedure TPhysicsProperties.SetContinuousCollisionDetection(
   const AValue: Boolean);
 begin
-  if FContinuousCollisionDetection = AValue then
-    Exit;
-
-  FContinuousCollisionDetection := AValue;
-  if Assigned(RootTransform.FKraftEngine) then
-    if AValue then
-      RootTransform.FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
-    else
-      RootTransform.FKraftEngine.ContinuousMode := kcmNone;
+  if FContinuousCollisionDetection <> AValue then
+  begin
+    FContinuousCollisionDetection := AValue;
+    if Assigned(RootTransform.FKraftEngine) then
+      if AValue then
+        RootTransform.FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
+      else
+        RootTransform.FKraftEngine.ContinuousMode := kcmNone;
+  end;
 end;
 
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
 begin
-  if FLinearVelocityRK4Integration = AValue then
-    Exit;
-
-  FLinearVelocityRK4Integration := AValue;
-
-  if Assigned(RootTransform.FKraftEngine) then
-    RootTransform.FKraftEngine.LinearVelocityRK4Integration := AValue;
-end;
-
-procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
-begin
-  if FAngularVelocityRK4Integration = AValue then
-    Exit;
-
-  FAngularVelocityRK4Integration := AValue;
-
-  if Assigned(RootTransform.FKraftEngine) then
-    RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
+  if FLinearVelocityRK4Integration <> AValue then
+  begin
+    FLinearVelocityRK4Integration := AValue;
+    if Assigned(RootTransform.FKraftEngine) then
+      RootTransform.FKraftEngine.LinearVelocityRK4Integration := AValue;
+  end;
 end;
 
 { TCastleCollider ------------------------------------------------------------ }
@@ -1178,6 +1216,21 @@ begin
   Result := false;
 end;
 
+procedure TCastleCollider.DesigningBegin;
+begin
+  // nothing to do in this class
+end;
+
+procedure TCastleCollider.DesigningEnd;
+begin
+  // nothing to do in this class
+end;
+
+procedure TCastleCollider.UpdateVisualisation;
+begin
+  // nothing by default
+end;
+
 procedure TCastleCollider.UpdateLocalTransform;
 var
   T: TTransformation;
@@ -1202,6 +1255,7 @@ begin
     FTranslation.IsPerfectlyZero and
     (FRotation.W = 0)
   );
+  UpdateVisualisation;
 end;
 
 function TCastleCollider.InitializeKraft(const APhysics: TKraft;
@@ -1302,55 +1356,63 @@ end;
 
 procedure TCastleCollider.SetRestitution(const AValue: Single);
 begin
-  FRestitution := AValue;
-  if FKraftShape <> nil then
-    FKraftShape.Restitution := FRestitution;
+  if not SameValue(FFriction, AValue) then
+  begin
+    FRestitution := AValue;
+    if FKraftShape <> nil then
+      FKraftShape.Restitution := FRestitution;
+  end;
 end;
 
 procedure TCastleCollider.SetFriction(const AValue: Single);
 begin
-  FFriction := AValue;
-  if FKraftShape <> nil then
-    FKraftShape.Friction := FFriction;
+  if not SameValue(FFriction, AValue) then
+  begin
+    FFriction := AValue;
+    if FKraftShape <> nil then
+      FKraftShape.Friction := FFriction;
+  end;
 end;
 
 procedure TCastleCollider.SetTranslation(const AValue: TVector3);
 begin
-  if AValue.PerfectlyEquals(AValue, FTranslation) then
-    Exit;
-
-  FTranslation := AValue;
-  DisableAutoSize;
-  UpdateLocalTransform;
+  if not AValue.PerfectlyEquals(AValue, FTranslation) then
+  begin
+    FTranslation := AValue;
+    DisableAutoSize;
+    UpdateLocalTransform;
+  end;
 end;
 
 procedure TCastleCollider.SetRotation(const AValue: TVector4);
 begin
-  if AValue.PerfectlyEquals(AValue, FRotation) then
-    Exit;
-
-  FRotation := AValue;
-  DisableAutoSize;
-  UpdateLocalTransform;
+  if not AValue.PerfectlyEquals(AValue, FRotation) then
+  begin
+    FRotation := AValue;
+    DisableAutoSize;
+    UpdateLocalTransform;
+    UpdateVisualisation;
+  end;
 end;
 
 procedure TCastleCollider.SetSizeScale(const AValue: TVector3);
 begin
-  if AValue.PerfectlyEquals(AValue, FSizeScale) then
-    Exit;
-
-  FSizeScale := AValue;
-  // FSizeScale is used by collider at the shape creation
-  ShapeChangedNotifyRigidBody;
+  if not AValue.PerfectlyEquals(AValue, FSizeScale) then
+  begin
+    FSizeScale := AValue;
+    // FSizeScale is used by collider at the shape creation
+    ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
+  end;
 end;
 
 procedure TCastleCollider.SetAutoSize(const AValue: Boolean);
 begin
-  if FAutoSize = AValue then
-    Exit;
-
-  FAutoSize := AValue;
-  InternalAutoSize;
+  if FAutoSize <> AValue then
+  begin
+    FAutoSize := AValue;
+    InternalAutoSize;
+  end;
 end;
 
 procedure TCastleCollider.ShapeChangedNotifyRigidBody;
@@ -1501,6 +1563,23 @@ end;
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+procedure ColliderVisualizationConfig(const Primitive: TCastleAbstractPrimitive);
+begin
+  Primitive.SetTransient;
+
+  Primitive.Collides := false;
+  Primitive.Pickable := false;
+  Primitive.CastShadows := false;
+  Primitive.ExcludeFromStatistics := true;
+  Primitive.InternalExcludeFromParentBoundingVolume := true;;
+
+  Primitive.Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
+  Primitive.Material := pmUnlit;
+  Primitive.RenderOptions.LineWidth := 3;
+  Primitive.RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
+  Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
+end;
+
 { TCastlePlaneCollider ------------------------------------------------------- }
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
@@ -1530,6 +1609,7 @@ begin
     FNormal := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
   end;
 end;
 
@@ -1540,6 +1620,35 @@ begin
     FDistance := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
+  end;
+end;
+
+procedure TCastlePlaneCollider.UpdateVisualisation;
+var
+  VTranslation: TVector3;
+  VRotation: TVector4;
+  VScale: TVector3;
+begin
+  inherited;
+  if FVisualisation <> nil then
+  begin
+    TCastlePlane(FVisualisation).Size := Vector2(2, 2);
+
+    FVisualisation.Translation := CastleVectors.Vector3(0, FDistance, 0);
+
+    FVisualisation.Rotation := Vector4(CastleVectors.Vector3(0, 0, -1), // todo check why -1
+    AngleRadBetweenVectors(CastleVectors.Vector3(0, 1, 0), FNormal.Normalize));
+
+    if FUseLocalTransform then
+    begin
+      MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
+        VRotation, VScale);
+      FVisualisation.Translation := VTranslation; // todo: maybe should not be aplied in plane
+      FVisualisation.Rotation := VRotation;
+
+      { Scale is never used directly in colliders, it's added on shape creation. }
+    end;
   end;
 end;
 
@@ -1582,6 +1691,30 @@ begin
     Exit;
 
   Normal := TVector3.One[MinAbsVectorCoord(LocalBoundingBox.Size)];
+end;
+
+procedure TCastlePlaneCollider.DesigningBegin;
+begin
+  inherited;
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastlePlane.Create(nil);
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
+    UpdateVisualisation;
+    Parent.Add(FVisualisation);
+  end;
+end;
+
+procedure TCastlePlaneCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
+procedure TCastlePlaneCollider.ParentBeforeDetach;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
 end;
 
 function TCastlePlaneCollider.PropertySections(
@@ -1633,6 +1766,7 @@ begin
     FSize := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
   end;
 end;
 
@@ -1645,6 +1779,11 @@ begin
   end;
 end;
 
+function TCastleBoxCollider.CalculateScaledSize: TVector3;
+begin
+  Result := FSize * TotalScale;
+end;
+
 class procedure TCastleBoxCollider.CreateComponent2D(Sender: TObject);
 begin
   (Sender as TCastleBoxCollider).Mode2D := true;
@@ -1655,7 +1794,7 @@ function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
 var
   ScaledSize: TVector3;
 begin
-  ScaledSize := FSize * TotalScale;
+  ScaledSize := CalculateScaledSize;
 
   { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
     First Kraft raises nice
@@ -1706,6 +1845,60 @@ begin
   Translation := LocalBoundingBox.Center;
 end;
 
+procedure TCastleBoxCollider.UpdateVisualisation;
+var
+  VTranslation: TVector3;
+  VRotation: TVector4;
+  VScale: TVector3;
+begin
+  inherited;
+
+  if FVisualisation = nil then
+    Exit;
+
+  TCastleBox(FVisualisation).Size := CalculateScaledSize;
+
+  if FUseLocalTransform then
+  begin
+    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
+      VRotation, VScale);
+    FVisualisation.Translation := VTranslation;
+    FVisualisation.Rotation := VRotation;
+    { Scale is never used directly in colliders, it's added on shape creation. }
+  end else
+  begin
+    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
+    FVisualisation.Rotation := CastleVectors.Vector4(0, 0, 0, 0);
+  end;
+
+end;
+
+procedure TCastleBoxCollider.DesigningBegin;
+begin
+  inherited;
+
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastleBox.Create(nil);
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
+    UpdateVisualisation;
+    TCastleBox(FVisualisation).Size := FSize;
+    Parent.Add(FVisualisation);
+  end;
+end;
+
+procedure TCastleBoxCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
+procedure TCastleBoxCollider.ParentBeforeDetach;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
 function TCastleBoxCollider.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -1737,6 +1930,7 @@ begin
     FRadius := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
   end;
 end;
 
@@ -1744,6 +1938,33 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, CalculateScaledRadius);
+end;
+
+procedure TCastleSphereCollider.UpdateVisualisation;
+var
+  VTranslation: TVector3;
+  VRotation: TVector4;
+  VScale: TVector3;
+begin
+  inherited;
+
+  if FVisualisation = nil then
+    Exit;
+
+  TCastleSphere(FVisualisation).Radius := CalculateScaledRadius;
+
+  if FUseLocalTransform then
+  begin
+    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
+      VRotation, VScale);
+    FVisualisation.Translation := VTranslation;
+    FVisualisation.Rotation := VRotation;
+    { Scale is never used directly in colliders, it's added on shape creation. }
+  end else
+  begin
+    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
+    FVisualisation.Rotation := Vector4(0, 0, 0, 0);
+  end;
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
@@ -1790,6 +2011,31 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+procedure TCastleSphereCollider.DesigningBegin;
+begin
+  inherited;
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastleSphere.Create(nil);
+    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
+    UpdateVisualisation;
+
+    Parent.Add(FVisualisation);
+  end;
+end;
+
+procedure TCastleSphereCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
+procedure TCastleSphereCollider.ParentBeforeDetach;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
+end;
+
 procedure TCastleSphereCollider.SetMode2D(const AValue: Boolean);
 begin
   if FMode2D <> AValue then
@@ -1825,6 +2071,7 @@ begin
     FRadius := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
   end;
 end;
 
@@ -1835,12 +2082,8 @@ begin
     FHeight := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
+    UpdateVisualisation;
   end;
-end;
-
-class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleCapsuleCollider).Mode2D := true;
 end;
 
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
@@ -1848,6 +2091,82 @@ function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, CalculateScaledRadius,
     CalculateScaledHeight);
+end;
+
+procedure TCastleCapsuleCollider.UpdateVisualisation;
+var
+  VTranslation: TVector3;
+  VRotation: TVector4;
+  VScale: TVector3;
+  VRadius: Single;
+  VHeight: Single;
+begin
+  inherited;
+
+  if FVisualisation = nil then
+    Exit;
+
+  VRadius := CalculateScaledRadius;
+  VHeight := CalculateScaledHeight;
+
+  TCastleSphere(FVisualisationTop).Radius := VRadius;
+  TCastleSphere(FVisualisationTop).Translation := CastleVectors.Vector3(0, VHeight / 2, 0);
+  TCastleSphere(FVisualisationBottom).Radius := VRadius;
+  TCastleSphere(FVisualisationBottom).Translation := CastleVectors.Vector3(0, - VHeight / 2, 0);
+  TCastleCylinder(FVisualisationCylinder).Height := VHeight;
+  TCastleCylinder(FVisualisationCylinder).Radius := VRadius;
+
+  if FUseLocalTransform then
+  begin
+    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
+      VRotation, VScale);
+    FVisualisation.Translation := VTranslation;
+    FVisualisation.Rotation := VRotation;
+    { Scale is never used directly in colliders, it's added on shape creation. }
+  end else
+  begin
+    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
+    FVisualisation.Rotation := Vector4(0, 0, 0, 0);
+  end;
+end;
+
+procedure TCastleCapsuleCollider.DesigningBegin;
+begin
+  inherited DesigningBegin;
+
+  if FVisualisation = nil then
+  begin
+    FVisualisation := TCastleTransform.Create(nil);
+    FVisualisation.SetTransient;
+
+    FVisualisationCylinder := TCastleCylinder.Create(FVisualisation);
+    ColliderVisualizationConfig(FVisualisationCylinder as TCastleAbstractPrimitive);
+    FVisualisation.Add(FVisualisationCylinder);
+
+    FVisualisationTop := TCastleSphere.Create(FVisualisation);
+    ColliderVisualizationConfig(FVisualisationTop as TCastleAbstractPrimitive);
+    FVisualisation.Add(FVisualisationTop);
+
+    FVisualisationBottom := TCastleSphere.Create(FVisualisation);
+    ColliderVisualizationConfig(FVisualisationBottom as TCastleAbstractPrimitive);
+    FVisualisation.Add(FVisualisationBottom);
+
+    UpdateVisualisation;
+    Parent.Add(FVisualisation);
+  end;
+
+end;
+
+procedure TCastleCapsuleCollider.DesigningEnd;
+begin
+  FreeAndNil(FVisualisation);
+  inherited DesigningEnd;
+end;
+
+procedure TCastleCapsuleCollider.ParentBeforeDetach;
+begin
+  FreeAndNil(FVisualisation);
+  inherited;
 end;
 
 function TCastleCapsuleCollider.CalculateScaledHeight: Single;
@@ -1865,6 +2184,11 @@ begin
     { Again leave TotalScale.Y to control only height.
       TODO: test in 3D - what is comfortable }
     Result := FRadius * {Approximate2DScale(TotalScale.XZ)}Approximate3DScale(TotalScale);
+end;
+
+class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleCapsuleCollider).Mode2D := true;
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
