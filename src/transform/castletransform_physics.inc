@@ -96,6 +96,24 @@
     FRotation: TVector4;
     FAutoSize: Boolean;
     FCalculatingSize: Boolean; //< are we inside CalculateSize or InternalAutoSize
+    { Accumulated scale of all parent TCastleTransform.
+      Does not include @link(SizeScale). }
+    FWorldScale: TVector3;
+    FSizeScale: TVector3;
+
+    { Updates FLocalTransformation and FUseLocalTransformation after changing
+      Translation, FSizeScale, FWorldScale, Rotation and in InitializeKraft. }
+    procedure UpdateLocalTransform;
+
+    procedure SetDensity(const AValue: Single);
+    procedure SetMass(const AValue: Single);
+    procedure SetRestitution(const AValue: Single);
+    procedure SetFriction(const AValue: Single);
+    procedure SetTranslation(const AValue: TVector3);
+    procedure SetRotation(const AValue: TVector4);
+    procedure SetSizeScale(const AValue: TVector3);
+    procedure SetAutoSize(const AValue: Boolean);
+    function GetRigidBody: TCastleRigidBody;
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
     { When @false, behave as if Translation/Rotation/FLocalTransform/FLocalInverseTransform
@@ -105,32 +123,30 @@
     FLocalTransform: TMatrix4;
     FLocalInverseTransform: TMatrix4;
 
-    { Updates FLocalTransformation and FUseLocalTransformation after changing
-      Translation, Scale, Rotation and in InitializeKraft. }
-    procedure UpdateLocalTransform;
-
     { Initializes Kraft shape returns false if initialization fails }
     function InitializeKraft(const APhysics: TKraft;
       const ACastleRigidBody: TCastleRigidBody): Boolean;
 
-    procedure SetDensity(const AValue: Single);
-    procedure SetMass(const AValue: Single);
-    procedure SetRestitution(const AValue: Single);
-    procedure SetFriction(const AValue: Single);
-    procedure SetTranslation(const AValue: TVector3);
-    procedure SetRotation(const AValue: TVector4);
-    procedure SetScale(const AValue: TVector3);
-    procedure SetAutoSize(const AValue: Boolean);
+    { Updates FWorldScale, needed e.g. after adding collider to world.
+      Calls ShapeChangedNotifyRigidBody if it changed.
+
+      Descendants implementors:
+      You should multiply your descendant sizes with TotalScale in CreateKraftShape.
+      TotalScale includes FWorldScale (updated by this method) and
+      FSizeScale (set explicitly by user to tweak size). }
+    procedure UpdateWorldScale;
+
     function StoredWithAutoSize: Boolean;
-    function GetRigidBody: TCastleRigidBody;
   protected
-    FLastUsedWorldScale: TVector3; // Last world scale used to change collider size
-    FScale: TVector3; // Collider scale
+    { Total scale, accumulated from all parents TCastleTransform.Scale and collider SizeScale. }
+    function TotalScale: TVector3;
 
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
 
-    { Notify CastleRigidBody that kraft shape need be recreated }
+    { Notify associated TCastleRigidBody that Kraft shape needs to be recreated.
+      This may in turn call TCastleCollider.InitializeKraft
+      and TCastleCollider.CreateKraftShape. }
     procedure ShapeChangedNotifyRigidBody;
     function ForceStaticBody: Boolean; virtual;
 
@@ -142,12 +158,6 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; override;
 
-    { Updates scale after for example adding collider to world
-      This procedure only updates FLastUsedWorldScale and calls
-      ShapeChangedNotifyRigidBody. You should multiply collider size in
-      your descendant CreateKraftShape(). }
-    procedure UpdateScale(ForceUpdate: Boolean); overload;
-
     { Sets AutoSize = @false, unless this is called
       inside InternalAutoSize or at loading.
       Call this when something changes collider size explicitly,
@@ -156,7 +166,7 @@
 
     { Recalculate collider size.
       Do not be concerned about AutoSize here, just update collider properties.
-      The default implementation resets Translation, Rotation, Scale. }
+      The default implementation resets Translation and Rotation. }
     procedure CalculateSizeCore; virtual;
   public
     const
@@ -182,6 +192,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
@@ -211,9 +222,22 @@
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Rotation: TVector4 read FRotation write SetRotation;
 
-    { Local collider scale, relative to parent TCastleTransform.
-      Note that CalculateSize and AutoSize mechanisms set it automatically. }
-    property Scale: TVector3 read FScale write SetScale;
+    { Local collider size scale.
+
+      This is particularly useful if @link(AutoSize) mechanism calculated too large box.
+      For collision purposes, you sometimes want a collider that is a bit smaller
+      than the bounding box/sphere around the object.
+      Maybe it should even be too small at certain places, but then it will make
+      a better fit overall.
+
+      You can achieve this (and still keep using @link(AutoSize)) by adjusting
+      this property. E.g. set it to (0.9,0.9,0.9) to have collider be 90% of what
+      @link(AutoSize) calculated.
+
+      This is @bold(not) reset by CalculateSize and AutoSize mechanisms
+      (in contrast to Translation, Rotation) because the idea is that user adjusts
+      the auto-calculated size this way. }
+    property SizeScale: TVector3 read FSizeScale write SetSizeScale;
   published
     { Automatically calculate collider properties that determine collider size
       based on the parent transformation bounding box.
@@ -312,7 +336,7 @@
   TCastleBoxCollider = class(TCastleCollider)
   strict private
     FMode2D: Boolean;
-    FSize: TVector3; // calculated size without scale
+    FSize: TVector3; //< this size doesn't include FSizeScale or FWorldScale
     procedure SetSize(const AValue: TVector3);
     procedure SetMode2D(const AValue: Boolean);
   private
@@ -421,7 +445,6 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure SetMesh(const AValue: TCastleTransform);
-    { In case of mesh collider only remove Translation, Rotation and Scale }
     function ForceStaticBody: Boolean; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -1090,8 +1113,8 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
-  FScale := NoScale;
-  FLastUsedWorldScale := NoScale;
+  FSizeScale := NoScale;
+  FWorldScale := NoScale;
   FTranslation := TVector3.Zero;
   FRotation := TVector4.Zero;
 
@@ -1127,7 +1150,7 @@ var
 begin
   { Initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
   T.Init;
-  T.Multiply(Rotation, NoScale, Translation * FLastUsedWorldScale * FScale);
+  T.Multiply(Rotation, NoScale, Translation * TotalScale);
   FLocalTransform := T.Transform;
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
@@ -1138,9 +1161,9 @@ begin
   end;
 
   { After setting the appropriate transformation, we can optimize the matrix
-    multiplication when rotation = 0, translation = 0,0,0 scale is not
-    checked here because it must to be 1,1,1 in kraft and it's added in
-    collider shape creation }
+    multiplication when rotation = 0, translation = 0,0,0 .
+    TotalScale (FWorldScale, FSizeScale) is not checked here because it must be
+    1,1,1 in Kraft and it's added later at the creation of collider shape. }
   FUseLocalTransform := not (
     FTranslation.IsPerfectlyZero and
     (FRotation.W = 0)
@@ -1277,13 +1300,13 @@ begin
   UpdateLocalTransform;
 end;
 
-procedure TCastleCollider.SetScale(const AValue: TVector3);
+procedure TCastleCollider.SetSizeScale(const AValue: TVector3);
 begin
-  if AValue.PerfectlyEquals(AValue, FScale) then
+  if AValue.PerfectlyEquals(AValue, FSizeScale) then
     Exit;
 
-  FScale := AValue;
-  // Scale is added to collider on shape creation not by transform
+  FSizeScale := AValue;
+  // FSizeScale is used by collider at the shape creation
   ShapeChangedNotifyRigidBody;
 end;
 
@@ -1320,7 +1343,7 @@ begin
 
   InternalAutoSize;
 
-  UpdateScale(false);
+  UpdateWorldScale;
 
   inherited WorldAfterAttach;
 end;
@@ -1367,7 +1390,6 @@ procedure TCastleCollider.CalculateSizeCore;
 begin
   Translation := TVector3.Zero;
   Rotation := TVector4.Zero;
-  Scale := NoScale;
 end;
 
 procedure TCastleCollider.CalculateSize;
@@ -1378,24 +1400,29 @@ begin
   finally FCalculatingSize := false end;
 end;
 
-procedure TCastleCollider.UpdateScale(ForceUpdate: Boolean);
+function TCastleCollider.TotalScale: TVector3;
+begin
+  Result := FWorldScale * FSizeScale;
+end;
+
+procedure TCastleCollider.UpdateWorldScale;
 var
   NewScale: TVector3;
 begin
-  if World <> nil then
+  if Parent.HasWorldTransform then
   begin
     ScaleFromMatrix(Parent.WorldTransform, NewScale);
   end else
-    NewScale := NoScale * Parent.Scale;
+    NewScale := Parent.Scale;
 
   { Never use a negative scale for colliders }
   NewScale := NewScale.Abs;
 
-  if ForceUpdate or not FLastUsedWorldScale.PerfectlyEquals(FLastUsedWorldScale, NewScale) then
+  if not FWorldScale.PerfectlyEquals(FWorldScale, NewScale) then
   begin
-    FLastUsedWorldScale := NewScale;
-    { Scale is added in CreateCraftShape so we only need notify
-      RigidBody to recreate it }
+    FWorldScale := NewScale;
+    { FWorldScale is used in CreateCraftShape so we need to notify
+      RigidBody to recreate it. }
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1409,7 +1436,7 @@ function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'Density', 'Friction', 'Mass', 'Restitution'
+     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScalePersistent'
      ]) then
     Result := [psBasic]
   else
@@ -1420,6 +1447,20 @@ procedure TCastleCollider.InternalAutoSize;
 begin
   if AutoSize then
     CalculateSize;
+end;
+
+procedure TCastleCollider.CustomSerialization(const SerializationProcess: TSerializationProcess);
+var
+  OldScale: TVector3;
+begin
+  inherited;
+  OldScale := NoScale;
+  SerializationProcess.ReadWriteVector('Scale', OldScale, NoScale, false);
+  if not TVector3.PerfectlyEquals(OldScale, NoScale) then
+  begin
+    WritelnWarning('Design refers to TCastleCollider.Scale which is renamed now to SizeScale. Save the design to upgrade it.');
+    SizeScale := OldScale;
+  end;
 end;
 
 {$define read_implementation_methods}
@@ -1470,6 +1511,8 @@ end;
 
 function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
+var
+  ScaleScalar: Single;
 begin
   if ARigidBody.RigidBodyType <> krbtStatic then
   begin
@@ -1478,16 +1521,18 @@ begin
     Exit;
   end;
 
+  ScaleScalar := Approximate3DScale(TotalScale);
+
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)),
-    Distance * FLastUsedWorldScale.Max * FScale.Max));
+    Distance * ScaleScalar));
 end;
 
 procedure TCastlePlaneCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
 begin
-  inherited; // resets Translation, Rotation, Scale
+  inherited; // resets Translation, Rotation
 
   { TODO: We could calculate Distance better looking at LocalBoundingBox,
     for now we just always set it to 0. }
@@ -1576,7 +1621,7 @@ function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
 var
   ScaledSize: TVector3;
 begin
-  ScaledSize := FSize * FLastUsedWorldScale * FScale;
+  ScaledSize := FSize * TotalScale;
 
   { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
     First Kraft raises nice
@@ -1598,7 +1643,7 @@ var
   TempSize: TVector3;
   MinimalThickness: Single;
 begin
-  inherited; // resets Translation, Rotation, Scale
+  inherited; // resets Translation, Rotation
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -1663,17 +1708,14 @@ end;
 
 function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
+var
+  ScaleScalar: Single;
 begin
-  { Scale support: There is no good way to do it, so I took the Unity solution,
-    we take the largest value. }
-
   if FMode2D then
-    Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
-      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Y) *
-      Max(FScale.X, FScale.Y))
+    ScaleScalar := Approximate2DScale(TotalScale.XY)
   else
-    Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
-      FRadius * FLastUsedWorldScale.Max * FScale.Max);
+    ScaleScalar := Approximate3DScale(TotalScale);
+  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * ScaleScalar);
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
@@ -1686,7 +1728,7 @@ var
   LocalBoundingBox: TBox3D;
   MinimalThickness: Single;
 begin
-  inherited; // resets Translation, Rotation, Scale
+  inherited; // resets Translation, Rotation
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -1767,16 +1809,16 @@ end;
 
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
+var
+  ScaleScalar: Single;
 begin
   if FMode2D then
-    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-      FRadius * FLastUsedWorldScale.X * FScale.X,
-      FHeight * FLastUsedWorldScale.Y * FScale.Y)
+    ScaleScalar := Approximate2DScale(TotalScale.XY)
   else
-    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Z) *
-      Max(FScale.X, FScale.Y),
-      FHeight * FLastUsedWorldScale.Y * FScale.Y);
+    ScaleScalar := Approximate3DScale(TotalScale);
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
+    FRadius * ScaleScalar,
+    FHeight * ScaleScalar);
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
@@ -1784,7 +1826,7 @@ var
   LocalBoundingBox: TBox3D;
   MinimalThickness: Single;
 begin
-  inherited; // resets Translation, Rotation, Scale
+  inherited; // resets Translation, Rotation
 
   if FMode2D then
     MinimalThickness := AutoSizeMinimalThickness2D
@@ -2744,7 +2786,8 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
          (FCastleCollider.FUseLocalTransform) then
         LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
 
-      { Don't use Scale form kraft it's always 1.
+      { Don't use Scale form Kraft.
+        It should be always 1. We set CGE scale by changing Kraft collider sizes.
         See SetWorldTransformation() for more information. }
       MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
       Parent.Rotation := Rotation;
