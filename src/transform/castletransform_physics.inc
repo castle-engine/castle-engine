@@ -1376,7 +1376,7 @@ end;
 
 procedure TCastleCollider.SetTranslation(const AValue: TVector3);
 begin
-  if not AValue.PerfectlyEquals(AValue, FTranslation) then
+  if not TVector3.PerfectlyEquals(AValue, FTranslation) then
   begin
     FTranslation := AValue;
     DisableAutoSize;
@@ -1386,7 +1386,7 @@ end;
 
 procedure TCastleCollider.SetRotation(const AValue: TVector4);
 begin
-  if not AValue.PerfectlyEquals(AValue, FRotation) then
+  if not TVector4.PerfectlyEquals(AValue, FRotation) then
   begin
     FRotation := AValue;
     DisableAutoSize;
@@ -1397,7 +1397,7 @@ end;
 
 procedure TCastleCollider.SetSizeScale(const AValue: TVector3);
 begin
-  if not AValue.PerfectlyEquals(AValue, FSizeScale) then
+  if not TVector3.PerfectlyEquals(AValue, FSizeScale) then
   begin
     FSizeScale := AValue;
     // FSizeScale is used by collider at the shape creation
@@ -1514,7 +1514,7 @@ begin
   { Never use a negative scale for colliders }
   NewScale := NewScale.Abs;
 
-  if not FWorldScale.PerfectlyEquals(FWorldScale, NewScale) then
+  if not TVector3.PerfectlyEquals(FWorldScale, NewScale) then
   begin
     FWorldScale := NewScale;
     { FWorldScale is used in CreateCraftShape so we need to notify
@@ -1867,10 +1867,9 @@ begin
     { Scale is never used directly in colliders, it's added on shape creation. }
   end else
   begin
-    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
-    FVisualisation.Rotation := CastleVectors.Vector4(0, 0, 0, 0);
+    FVisualisation.Translation := TVector3.Zero;
+    FVisualisation.Rotation := TVector4.Zero;
   end;
-
 end;
 
 procedure TCastleBoxCollider.DesigningBegin;
@@ -1968,8 +1967,8 @@ begin
     { Scale is never used directly in colliders, it's added on shape creation. }
   end else
   begin
-    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
-    FVisualisation.Rotation := Vector4(0, 0, 0, 0);
+    FVisualisation.Translation := TVector3.Zero;
+    FVisualisation.Rotation := TVector4.Zero;
   end;
 end;
 
@@ -2142,8 +2141,8 @@ begin
     { Scale is never used directly in colliders, it's added on shape creation. }
   end else
   begin
-    FVisualisation.Translation := CastleVectors.Vector3(0, 0, 0);
-    FVisualisation.Rotation := Vector4(0, 0, 0, 0);
+    FVisualisation.Translation := TVector3.Zero;
+    FVisualisation.Rotation := TVector4.Zero;
   end;
 end;
 
