@@ -28,6 +28,8 @@ uses SysUtils, Classes,
 var
   WavefrontPhongMaterials: Boolean = true;
 
+  WavefrontScale: Single = 1; //0.001;
+
 function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
@@ -101,7 +103,7 @@ var
       NewSeekPos := SeekPos;
       Token := NextToken(S, NewSeekPos);
       try
-        Value.Data[I] := StrToFloatDefDot(Token, Value.Data[I]);
+        Value.InternalData[I] := StrToFloatDefDot(Token, Value.InternalData[I]);
         // update SeekPos if this is a successfull float, as Y and Z vector values are optional in MTL
         SeekPos := NewSeekPos;
       except
@@ -254,7 +256,7 @@ type
 { Read string to TVector3, ignoring invalid ending,
   so it handles even incorrect things like '0 0 0c',
   see https://github.com/castle-engine/castle-engine/pull/76/ }
-function Vector3FromStrPermissive(const S: string): TVector3;
+function Vector3FromStrPermissive(const S: String): TVector3;
 const
   OnlyNums = AllChars - ['0'..'9', '.', '-','+','e','E'];
 var
@@ -266,14 +268,31 @@ begin
     on E: EConvertError do
     begin
       SPosition := 1;
-      Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[2] := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
+      Result.X := StrToFloatDot(NextToken(S, SPosition));
+      Result.Y := StrToFloatDot(NextToken(S, SPosition));
+      Result.Z := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
       if NextToken(S, SPosition) <> '' then
         raise EConvertError.Create('Expected end of data when reading vector from string');
       WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
     end;
   end;
+end;
+
+{ Like Vector3FromStr, but scales the result.
+  The scaling is done at good precision (at StrToFloatDot, which returns Extended).
+  The idea is that you can use WavefrontScale to scale down huge coordinates
+  from files like
+  https://data.stadt-zuerich.ch/dataset/geo_3d_stadtmodell_stadt_zuerich_jahresendstand_3000_v_chr }
+function Vector3FromStrScale(const S: String; const Scale: Extended): TVector3;
+var
+  SPosition: Integer;
+begin
+  SPosition := 1;
+  Result.X := Scale * StrToFloatDot(NextToken(S, SPosition));
+  Result.Y := Scale * StrToFloatDot(NextToken(S, SPosition));
+  Result.Z := Scale * StrToFloatDot(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
 { TWavefrontMaterial --------------------------------------------------------- }
@@ -623,7 +642,7 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.Add(Vector3FromStr(lineAfterMarker));
+        0: Verts.Add(Vector3FromStrScale(lineAfterMarker, WavefrontScale));
         1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
         3: Normals.Add(Vector3FromStr(lineAfterMarker));
