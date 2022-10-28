@@ -1356,7 +1356,7 @@ end;
 
 procedure TCastleCollider.SetRestitution(const AValue: Single);
 begin
-  if not SameValue(FFriction, AValue) then
+  if FRestitution <> AValue then
   begin
     FRestitution := AValue;
     if FKraftShape <> nil then
@@ -1366,7 +1366,7 @@ end;
 
 procedure TCastleCollider.SetFriction(const AValue: Single);
 begin
-  if not SameValue(FFriction, AValue) then
+  if FFriction <> AValue then
   begin
     FFriction := AValue;
     if FKraftShape <> nil then
@@ -1615,7 +1615,7 @@ end;
 
 procedure TCastlePlaneCollider.SetDistance(const AValue: Single);
 begin
-  if not SameValue(FDistance, AValue) then
+  if FDistance <> AValue then
   begin
     FDistance := AValue;
     DisableAutoSize;
@@ -1924,13 +1924,19 @@ begin
 end;
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
+var
+  BigChange: Boolean;
 begin
-  if not SameValue(FRadius, AValue) then
+  if FRadius <> AValue then
   begin
+    BigChange := not SameValue(FRadius, AValue);
     FRadius := AValue;
     DisableAutoSize;
-    ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    if BigChange then // do not rebuild collider without real need, as it is costly
+    begin
+      ShapeChangedNotifyRigidBody;
+      UpdateVisualisation;
+    end;
   end;
 end;
 
@@ -2065,24 +2071,35 @@ begin
 end;
 
 procedure TCastleCapsuleCollider.SetRadius(const AValue: Single);
+var
+  BigChange: Boolean;
 begin
-  if not SameValue(FRadius, AValue) then
+  if FRadius <> AValue then
   begin
+    BigChange := not SameValue(FRadius, AValue);
     FRadius := AValue;
     DisableAutoSize;
-    ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    if BigChange then // do not rebuild collider without real need, as it is costly
+    begin
+      ShapeChangedNotifyRigidBody;
+      UpdateVisualisation;
+    end;
   end;
 end;
 
 procedure TCastleCapsuleCollider.SetHeight(const AValue: Single);
+var
+  BigChange: Boolean;
 begin
-  if not SameValue(FHeight, AValue) then
+  if FHeight <> AValue then
   begin
     FHeight := AValue;
     DisableAutoSize;
-    ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    if BigChange then // do not rebuild collider without real need, as it is costly
+    begin
+      ShapeChangedNotifyRigidBody;
+      UpdateVisualisation;
+    end;
   end;
 end;
 
