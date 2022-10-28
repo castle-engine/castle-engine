@@ -367,14 +367,17 @@ object ProjectForm: TProjectForm
         Caption = 'Wireframe Mode'
         object MenuItem34: TMenuItem
           Action = ActionViewportRenderNormal
+          GroupIndex = 154
           RadioItem = True
         end
         object MenuItem35: TMenuItem
           Action = ActionViewportRenderWireframeOnly
+          GroupIndex = 154
           RadioItem = True
         end
         object MenuItem36: TMenuItem
           Action = ActionViewportRenderSolidWireframe
+          GroupIndex = 154
           RadioItem = True
         end
         object Separator10: TMenuItem
@@ -392,6 +395,15 @@ object ProjectForm: TProjectForm
       end
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
+      end
+    end
+    object MenuItemPhysics: TMenuItem
+      Caption = 'Physics'
+      object MenuItemShowColliders: TMenuItem
+        Action = ActionShowColliders
+      end
+      object MenuItemHideColliders: TMenuItem
+        Action = ActionHideColiders
       end
     end
     object MenuItemCode: TMenuItem
@@ -1052,6 +1064,18 @@ object ProjectForm: TProjectForm
       Caption = 'Next Mode'
       OnExecute = ActionViewportRenderNextExecute
       ShortCut = 32858
+    end
+    object ActionShowColliders: TAction
+      Category = 'Physics'
+      Caption = 'Show Colliders'
+      OnExecute = ActionShowCollidersExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionHideColiders: TAction
+      Category = 'Physics'
+      Caption = 'Hide Coliders'
+      OnExecute = ActionHideColidersExecute
+      OnUpdate = ActionViewportUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

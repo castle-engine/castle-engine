@@ -42,6 +42,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionHideColiders: TAction;
+    ActionShowColliders: TAction;
     ActionViewportRenderNext: TAction;
     ActionViewportRenderSolidWireframe: TAction;
     ActionModeSelect: TAction;
@@ -94,6 +96,9 @@ type
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemShowColliders: TMenuItem;
+    MenuItemHideColliders: TMenuItem;
+    MenuItemPhysics: TMenuItem;
     MenuItemWireframe: TMenuItem;
     MenuItem34: TMenuItem;
     MenuItem35: TMenuItem;
@@ -277,11 +282,13 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ActionFocusDesignExecute(Sender: TObject);
+    procedure ActionHideColidersExecute(Sender: TObject);
     procedure ActionModeInteractExecute(Sender: TObject);
     procedure ActionModeRotateExecute(Sender: TObject);
     procedure ActionModeScaleExecute(Sender: TObject);
     procedure ActionModeSelectExecute(Sender: TObject);
     procedure ActionModeTranslateExecute(Sender: TObject);
+    procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -830,6 +837,12 @@ begin
   Design.FocusDesign;
 end;
 
+procedure TProjectForm.ActionHideColidersExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.HideColliders;
+end;
+
 procedure TProjectForm.ActionModeInteractExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -858,6 +871,12 @@ procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ChangeMode(moTranslate);
+end;
+
+procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ShowColliders;
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
