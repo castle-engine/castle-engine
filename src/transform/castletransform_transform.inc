@@ -1530,8 +1530,6 @@
       Useful for 2D games. }
     property TranslationXY: TVector2 read GetTranslationXY write SetTranslationXY;
 
-    function GetTranslation: TVector3; deprecated 'use Translation';
-
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
     property Center: TVector3 read FCenter write SetCenter;
 
@@ -3673,54 +3671,64 @@ end;
 
 procedure TCastleTransform.SetCenter(const Value: TVector3);
 begin
-  FCenter := Value;
-  FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-  ChangedTransform;
+  if not TVector3.PerfectlyEquals(FCenter, Value) then
+  begin
+    FCenter := Value;
+    FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
+    ChangedTransform;
+  end;
 end;
 
 procedure TCastleTransform.SetRotation(const Value: TVector4);
 begin
-  FRotation := Value;
-  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  ChangedTransform;
+  if not TVector4.PerfectlyEquals(FRotation, Value) then
+  begin
+    FRotation := Value;
+    FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+    ChangedTransform;
+  end;
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
 var
   UpdatePhysicsTransform: Boolean;
 begin
-  { No point in doing RBody.SetWorldTransformation when scale only changed
-    e.g. from (-1,1,1) to (1,1,1).
-    This avoids causing noticeable delays when moving in platformer,
-    that updates scale often. }
-  UpdatePhysicsTransform := not TVector3.Equals(FScale.Abs, Value.Abs);
+  if not TVector3.PerfectlyEquals(FScale, Value) then
+  begin
+    { No point in doing RBody.SetWorldTransformation when scale only changed
+      e.g. from (-1,1,1) to (1,1,1).
+      This avoids causing noticeable delays when moving in platformer,
+      that updates scale often. }
+    UpdatePhysicsTransform := not TVector3.Equals(FScale.Abs, Value.Abs);
 
-  FScale := Value;
-  FOnlyTranslation := FOnlyTranslation and
-    (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
-  ChangedTransform(UpdatePhysicsTransform);
+    FScale := Value;
+    FOnlyTranslation := FOnlyTranslation and
+      (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
+    ChangedTransform(UpdatePhysicsTransform);
 
-  if (FWorld <> nil) and
-     FWorld.EnablePhysics then
-    UpdateCollidersWorldScale;
+    if (FWorld <> nil) and
+       FWorld.EnablePhysics then
+      UpdateCollidersWorldScale;
+  end;
 end;
 
 procedure TCastleTransform.SetScaleOrientation(const Value: TVector4);
 begin
-  FScaleOrientation := Value;
-  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  ChangedTransform;
-end;
-
-function TCastleTransform.GetTranslation: TVector3;
-begin
-  Result := FTranslation;
+  if not TVector4.PerfectlyEquals(FScaleOrientation, Value) then
+  begin
+    FScaleOrientation := Value;
+    FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+    ChangedTransform;
+  end;
 end;
 
 procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
-  FTranslation := Value;
-  ChangedTransform;
+  if not TVector3.PerfectlyEquals(FTranslation, Value) then
+  begin
+    FTranslation := Value;
+    ChangedTransform;
+  end;
 end;
 
 function TCastleTransform.GetTranslationXY: TVector2;
