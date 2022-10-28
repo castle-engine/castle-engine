@@ -83,7 +83,7 @@ begin
   RBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
-  RBody.MaximalLinearVelocity := 0;
+  RBody.MaxLinearVelocity := 0;
   RBody.Gravity := false;
   AddBehavior(RBody);
 
