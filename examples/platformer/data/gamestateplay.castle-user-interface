@@ -11681,8 +11681,6 @@
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
             },
-            "ProjectionFar" : 1.0000000000000000E+003,
-            "ProjectionNear" : -1.0000000000000000E+003,
             "ProjectionType" : "ptOrthographic",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -11707,7 +11705,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 8.0000000000000000E+002,
+          "Height" : 2.6560937500000000E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -11724,9 +11722,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.3110505371093750E+003,
-          "Y" : 1.8178934326171875E+003,
-          "Z" : 1.6000000000000000E+003
+          "X" : 3.4806652832031250E+002,
+          "Y" : 9.7107910156250000E+001,
+          "Z" : 5.0000000000000000E+002
         }
       },
       "InternalDesignNavigationType" : 2,
