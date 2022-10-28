@@ -353,8 +353,8 @@
       Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
     property Size: TVector3 read FSize write SetSize;
   published
-    { If @true, automatic size calculation caused by @link(AutoSize) is better
-      adjusted to 2D models.
+    { If @true, automatic size calculation caused by @link(AutoSize)
+      (and some other collider features) are better adjusted to 2D models.
 
       @orderedList(
         @item(It estimates collider sizes (because Kraft colliders are always in 3D)
@@ -372,7 +372,19 @@
           In Kraft, the scale is internally causing just collider size change,
           so it must work a bit differently in 2D -- because in 2D only XY dimensions
           should matter.)
-      ) }
+
+        @item(In the future, esp. if we integrate with other physics engines like Box2D,
+          it is possible that some colliders in 2D mode will have a shape more suitable
+          in 2D. "Suitable in 2D" means "Z coordinate is ignored".
+          This means that a 2D collider should (ideally) behave as if it is infinite in Z.
+
+          For example a 2D sphere collider may effectively be an infinite cylinder.
+          That is: it should be a circle in XY, but extruded into infinity in -Z and +Z.
+          This is not @italic(right now) how the TCastleSphereCollider behaves with Mode2D=@true,
+          but it may be in the future.
+        )
+      )
+    }
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
 
   {$define read_interface_class}
