@@ -1455,7 +1455,7 @@ var
 begin
   inherited;
   OldScale := NoScale;
-  SerializationProcess.ReadWriteVector('Scale', OldScale, NoScale, false);
+  SerializationProcess.ReadWriteVector('ScalePersistent', OldScale, NoScale, false);
   if not TVector3.PerfectlyEquals(OldScale, NoScale) then
   begin
     WritelnWarning('Design refers to TCastleCollider.Scale which is renamed now to SizeScale. Save the design to upgrade it.');
