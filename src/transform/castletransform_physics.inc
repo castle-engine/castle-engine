@@ -401,6 +401,8 @@
     FMode2D: Boolean;
     procedure SetRadius(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
+    { Returns scaled Radius, because scale is added to size directly. }
+    function CalculateScaledRadius: Single;
   private
     class procedure CreateComponent2D(Sender: TObject);
   protected
@@ -430,6 +432,8 @@
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
+    function CalculateScaledHeight: Single;
+    function CalculateScaledRadius: Single;
   private
     class procedure CreateComponent2D(Sender: TObject);
   protected
@@ -1738,14 +1742,8 @@ end;
 
 function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
-var
-  ScaleScalar: Single;
 begin
-  if FMode2D then
-    ScaleScalar := Approximate2DScale(TotalScale.XY)
-  else
-    ScaleScalar := Approximate3DScale(TotalScale);
-  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * ScaleScalar);
+  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, CalculateScaledRadius);
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
@@ -1801,6 +1799,14 @@ begin
   end;
 end;
 
+function TCastleSphereCollider.CalculateScaledRadius: Single;
+begin
+  if FMode2D then
+    Result := FRadius * Approximate2DScale(TotalScale.XY)
+  else
+    Result := FRadius * Approximate3DScale(TotalScale)
+end;
+
 { TCastleCapsuleCollider ----------------------------------------------------- }
 
 constructor TCastleCapsuleCollider.Create(AOwner: TComponent);
@@ -1839,16 +1845,26 @@ end;
 
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
-var
-  RadiusScale: Single;
+begin
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, CalculateScaledRadius,
+    CalculateScaledHeight);
+end;
+
+function TCastleCapsuleCollider.CalculateScaledHeight: Single;
+begin
+  Result := FHeight * TotalScale.Y;
+end;
+
+function TCastleCapsuleCollider.CalculateScaledRadius: Single;
 begin
   if FMode2D then
-    RadiusScale := Approximate2DScale(TotalScale.XY)
+    { Let TotalScale.X control radius, and TotalScale.Y only height,
+      and ignore TotalScale.Z which should be ignored in 2D. }
+    Result := FRadius * TotalScale.X
   else
-    RadiusScale := Approximate3DScale(TotalScale);
-  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-    FRadius * RadiusScale,
-    FHeight * TotalScale.Y);
+    { Again leave TotalScale.Y to control only height.
+      TODO: test in 3D - what is comfortable }
+    Result := FRadius * {Approximate2DScale(TotalScale.XZ)}Approximate3DScale(TotalScale);
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
@@ -2727,8 +2743,7 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
-procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4
-  );
+procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4);
 var
   Translation, Scale: TVector3;
   Rotation: TVector4;
