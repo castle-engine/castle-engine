@@ -1810,15 +1810,15 @@ end;
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 var
-  ScaleScalar: Single;
+  RadiusScale: Single;
 begin
   if FMode2D then
-    ScaleScalar := Approximate2DScale(TotalScale.XY)
+    RadiusScale := Approximate2DScale(TotalScale.XY)
   else
-    ScaleScalar := Approximate3DScale(TotalScale);
+    RadiusScale := Approximate3DScale(TotalScale);
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-    FRadius * ScaleScalar,
-    FHeight * ScaleScalar);
+    FRadius * RadiusScale,
+    FHeight * TotalScale.Y);
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
