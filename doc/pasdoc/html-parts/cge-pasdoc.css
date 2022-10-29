@@ -33,7 +33,12 @@
   font-weight: normal;
 }
 
-/* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> */
+/* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> in .itemcode */
+.pasdoc-container .itemcode code {
+  background: transparent;
+  color: inherit;
+}
+
 .pasdoc-container td,
 .pasdoc-container th {
   border: 1px solid white;
