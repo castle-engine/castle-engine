@@ -279,6 +279,10 @@ var
   Translation, ScaleVec: TVector3;
   Rotation: TVector4;
 begin
+  // early exit if we don't need to do anything
+  if UniformScale and SameValue(Scale, 1) then
+    Exit;
+
   MatrixDecompose(Transform, Translation, Rotation, ScaleVec);
   Init;
   Multiply(Rotation, NoScale, Translation);
