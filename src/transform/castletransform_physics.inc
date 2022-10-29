@@ -2092,12 +2092,13 @@ var
 begin
   if FHeight <> AValue then
   begin
+    BigChange := not SameValue(FHeight, AValue);
     FHeight := AValue;
     DisableAutoSize;
     if BigChange then // do not rebuild collider without real need, as it is costly
     begin
       ShapeChangedNotifyRigidBody;
-      UpdateVisualisation;
+      UpdateVisualization;
     end;
   end;
 end;
