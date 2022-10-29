@@ -108,6 +108,10 @@ type
 
     { Modify transformation by an additional translation. }
     procedure Translate(const Translation: TVector3);
+
+    { Set Scale expressed by this transformation to identify,
+      preserving the translation and rotation. }
+    procedure ScaleToIdentity;
   end;
 
   PTransformation = ^TTransformation;
@@ -268,6 +272,16 @@ begin
 
    // we have to assume non-uniform matrix, see comments in the interface
   UniformScale := false;
+end;
+
+procedure TTransformation.ScaleToIdentity;
+var
+  Translation, ScaleVec: TVector3;
+  Rotation: TVector4;
+begin
+  MatrixDecompose(Transform, Translation, Rotation, ScaleVec);
+  Init;
+  Multiply(Rotation, NoScale, Translation);
 end;
 
 {$endif read_implementation}

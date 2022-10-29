@@ -1257,6 +1257,7 @@ begin
   if FVisualizationParent = nil then
   begin
     FVisualizationParent := TCastleTransform.Create(nil);
+    FVisualizationParent.InternalIgnoreParentScale := true;
     ColliderVisualizationConfigBase(FVisualizationParent);
     Parent.Add(FVisualizationParent);
     // descendants will call UpdateVisualization

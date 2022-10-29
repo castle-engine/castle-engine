@@ -523,6 +523,7 @@
       InternalMiddleForceBox: boolean;
       { @exclude }
       InternalMiddleForceBoxValue: TBox3D;
+
       { Make the transform rendered and (TODO) processed only within parents
         that are MeaningfulParent, which means: do not enter TCastleTransformReference.Reference.
         This is useful for debug transforms to visualize selection/gizmos to transform
@@ -536,6 +537,14 @@
         It may (and probably will) disappear at some point.
         @exclude }
       InternalExistsOnlyInMeaningfulParents: Boolean;
+
+      { Scale of Parent and other higher TCastleTransform does not affect this.
+        Useful for various debug visualizations.
+        This is internal, and implementation is a bit hacky -- we avoid parent scale
+        where needed, not in all relevant places.
+        Also resulting rendering frustum is not correct.
+        @exclude }
+      InternalIgnoreParentScale: Boolean;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -3094,7 +3103,7 @@ begin
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
     T := Translation;
-    if FOnlyTranslation and T.IsZero then
+    if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       LocalRender(Params);
     end else
@@ -3115,6 +3124,9 @@ begin
       Params.Transform        := @NewParamsTransformation.Transform;
       Params.InverseTransform := @NewParamsTransformation.InverseTransform;
       Params.Frustum          := @NewFrustumValue;
+
+      if InternalIgnoreParentScale then
+        NewParamsTransformation.ScaleToIdentity;
 
       { Update NewXxx to apply the transformation defined by this TCastleTransform.
         LocalRender expects Frustum in local coordinates (without transformation),

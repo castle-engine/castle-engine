@@ -3819,7 +3819,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleNURBS"/>
       </Item929>
       <Item930>
-        <Filename Value="../src/transform/castlequaternions.pas"/>
+        <Filename Value="../src/base/castlequaternions.pas"/>
         <UnitName Value="CastleQuaternions"/>
       </Item930>
       <Item931>
