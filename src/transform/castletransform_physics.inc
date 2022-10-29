@@ -123,6 +123,9 @@
     FLocalTransform: TMatrix4;
     FLocalInverseTransform: TMatrix4;
 
+    { Visualizes Translation, Rotation }
+    FVisualizationParent: TCastleTransform;
+
     { Initializes Kraft shape returns false if initialization fails }
     function InitializeKraft(const APhysics: TKraft;
       const ACastleRigidBody: TCastleRigidBody): Boolean;
@@ -151,7 +154,7 @@
     function ForceStaticBody: Boolean; virtual;
 
     { Called when the collider size has changed and needs to be updated. }
-    procedure UpdateVisualisation; virtual;
+    procedure UpdateVisualization; virtual;
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
 
@@ -203,6 +206,8 @@
     procedure DesigningBegin; virtual;
     { Destroy collider visualization. }
     procedure DesigningEnd; virtual;
+
+    procedure ParentBeforeDetach; override;
 
     { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
@@ -313,7 +318,7 @@
   strict private
     FNormal: TVector3;
     FDistance: Single;
-    FVisualisation: TCastleTransform;
+    FVisualization: TCastleTransform;
     procedure SetNormal(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
   protected
@@ -321,7 +326,7 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     function ForceStaticBody: Boolean; override;
     procedure CalculateSizeCore; override;
-    procedure UpdateVisualisation; override;
+    procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -353,7 +358,7 @@
   TCastleBoxCollider = class(TCastleCollider)
   strict private
     FMode2D: Boolean;
-    FVisualisation: TCastleTransform;
+    FVisualization: TCastleTransform;
     FSize: TVector3; //< this size doesn't include FSizeScale or FWorldScale
     procedure SetSize(const AValue: TVector3);
     procedure SetMode2D(const AValue: Boolean);
@@ -365,7 +370,7 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
-    procedure UpdateVisualisation; override;
+    procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -424,7 +429,7 @@
   strict private
     FRadius: Single;
     FMode2D: Boolean;
-    FVisualisation: TCastleTransform;
+    FVisualization: TCastleTransform;
     procedure SetRadius(const AValue: Single);
     procedure SetMode2D(const AValue: Boolean);
     { Returns scaled Radius, because scale is added to size directly. }
@@ -435,7 +440,7 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
-    procedure UpdateVisualisation; override;
+    procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -460,10 +465,10 @@
     FHeight: Single;
     FMode2D: Boolean;
 
-    FVisualisation: TCastleTransform;
-    FVisualisationTop: TCastleTransform;
-    FVisualisationBottom: TCastleTransform;
-    FVisualisationCylinder: TCastleTransform;
+    FVisualization: TCastleTransform;
+    FVisualizationTop: TCastleTransform;
+    FVisualizationBottom: TCastleTransform;
+    FVisualizationCylinder: TCastleTransform;
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
@@ -476,7 +481,7 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure CalculateSizeCore; override;
-    procedure UpdateVisualisation; override;
+    procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -1108,6 +1113,27 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
+procedure ColliderVisualizationConfigBase(const Transform: TCastleTransform);
+begin
+  Transform.SetTransient;
+
+  Transform.Collides := false;
+  Transform.Pickable := false;
+  Transform.CastShadows := false;
+  Transform.ExcludeFromStatistics := true;
+  Transform.InternalExcludeFromParentBoundingVolume := true;;
+end;
+
+procedure ColliderVisualizationConfig(const Primitive: TCastleAbstractPrimitive);
+begin
+  ColliderVisualizationConfigBase(Primitive);
+  Primitive.Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
+  Primitive.Material := pmUnlit;
+  Primitive.RenderOptions.LineWidth := 3;
+  Primitive.RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
+  Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
+end;
+
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
@@ -1216,19 +1242,37 @@ begin
   Result := false;
 end;
 
+procedure TCastleCollider.UpdateVisualization;
+begin
+  if FVisualizationParent <> nil then
+  begin
+    FVisualizationParent.Translation := Translation;
+    FVisualizationParent.Rotation := Rotation;
+  end;
+end;
+
 procedure TCastleCollider.DesigningBegin;
 begin
-  // nothing to do in this class
+  inherited;
+  if FVisualizationParent = nil then
+  begin
+    FVisualizationParent := TCastleTransform.Create(nil);
+    ColliderVisualizationConfigBase(FVisualizationParent);
+    Parent.Add(FVisualizationParent);
+    // descendants will call UpdateVisualization
+  end;
 end;
 
 procedure TCastleCollider.DesigningEnd;
 begin
-  // nothing to do in this class
+  FreeAndNil(FVisualizationParent);
+  inherited;
 end;
 
-procedure TCastleCollider.UpdateVisualisation;
+procedure TCastleCollider.ParentBeforeDetach;
 begin
-  // nothing by default
+  FreeAndNil(FVisualizationParent);
+  inherited;
 end;
 
 procedure TCastleCollider.UpdateLocalTransform;
@@ -1255,7 +1299,7 @@ begin
     FTranslation.IsPerfectlyZero and
     (FRotation.W = 0)
   );
-  UpdateVisualisation;
+  UpdateVisualization;
 end;
 
 function TCastleCollider.InitializeKraft(const APhysics: TKraft;
@@ -1391,7 +1435,7 @@ begin
     FRotation := AValue;
     DisableAutoSize;
     UpdateLocalTransform;
-    UpdateVisualisation;
+    UpdateVisualization;
   end;
 end;
 
@@ -1402,7 +1446,7 @@ begin
     FSizeScale := AValue;
     // FSizeScale is used by collider at the shape creation
     ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    UpdateVisualization;
   end;
 end;
 
@@ -1563,23 +1607,6 @@ end;
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-procedure ColliderVisualizationConfig(const Primitive: TCastleAbstractPrimitive);
-begin
-  Primitive.SetTransient;
-
-  Primitive.Collides := false;
-  Primitive.Pickable := false;
-  Primitive.CastShadows := false;
-  Primitive.ExcludeFromStatistics := true;
-  Primitive.InternalExcludeFromParentBoundingVolume := true;;
-
-  Primitive.Color := Vector4(HexToColorRGB('FC9C2D'), 0.8);
-  Primitive.Material := pmUnlit;
-  Primitive.RenderOptions.LineWidth := 3;
-  Primitive.RenderOptions.WireframeColor := HexToColorRGB('FC9C2D');
-  Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
-end;
-
 { TCastlePlaneCollider ------------------------------------------------------- }
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
@@ -1609,7 +1636,7 @@ begin
     FNormal := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    UpdateVisualization;
   end;
 end;
 
@@ -1620,35 +1647,19 @@ begin
     FDistance := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    UpdateVisualization;
   end;
 end;
 
-procedure TCastlePlaneCollider.UpdateVisualisation;
-var
-  VTranslation: TVector3;
-  VRotation: TVector4;
-  VScale: TVector3;
+procedure TCastlePlaneCollider.UpdateVisualization;
 begin
   inherited;
-  if FVisualisation <> nil then
+  if FVisualization <> nil then
   begin
-    TCastlePlane(FVisualisation).Size := Vector2(2, 2);
-
-    FVisualisation.Translation := CastleVectors.Vector3(0, FDistance, 0);
-
-    FVisualisation.Rotation := Vector4(CastleVectors.Vector3(0, 0, -1), // todo check why -1
-    AngleRadBetweenVectors(CastleVectors.Vector3(0, 1, 0), FNormal.Normalize));
-
-    if FUseLocalTransform then
-    begin
-      MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
-        VRotation, VScale);
-      FVisualisation.Translation := VTranslation; // todo: maybe should not be aplied in plane
-      FVisualisation.Rotation := VRotation;
-
-      { Scale is never used directly in colliders, it's added on shape creation. }
-    end;
+    TCastlePlane(FVisualization).Size := Vector2(2, 2);
+    FVisualization.Translation := CastleVectors.Vector3(0, FDistance, 0);
+    FVisualization.Rotation := Vector4(CastleVectors.Vector3(0, 0, -1), // todo check why -1
+      AngleRadBetweenVectors(CastleVectors.Vector3(0, 1, 0), FNormal.Normalize));
   end;
 end;
 
@@ -1696,24 +1707,24 @@ end;
 procedure TCastlePlaneCollider.DesigningBegin;
 begin
   inherited;
-  if FVisualisation = nil then
+  if FVisualization = nil then
   begin
-    FVisualisation := TCastlePlane.Create(nil);
-    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
-    UpdateVisualisation;
-    Parent.Add(FVisualisation);
+    FVisualization := TCastlePlane.Create(nil);
+    ColliderVisualizationConfig(FVisualization as TCastleAbstractPrimitive);
+    UpdateVisualization;
+    FVisualizationParent.Add(FVisualization);
   end;
 end;
 
 procedure TCastlePlaneCollider.DesigningEnd;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
 procedure TCastlePlaneCollider.ParentBeforeDetach;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
@@ -1766,7 +1777,7 @@ begin
     FSize := AValue;
     DisableAutoSize;
     ShapeChangedNotifyRigidBody;
-    UpdateVisualisation;
+    UpdateVisualization;
   end;
 end;
 
@@ -1845,56 +1856,36 @@ begin
   Translation := LocalBoundingBox.Center;
 end;
 
-procedure TCastleBoxCollider.UpdateVisualisation;
-var
-  VTranslation: TVector3;
-  VRotation: TVector4;
-  VScale: TVector3;
+procedure TCastleBoxCollider.UpdateVisualization;
 begin
   inherited;
-
-  if FVisualisation = nil then
-    Exit;
-
-  TCastleBox(FVisualisation).Size := CalculateScaledSize;
-
-  if FUseLocalTransform then
+  if FVisualization <> nil then
   begin
-    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
-      VRotation, VScale);
-    FVisualisation.Translation := VTranslation;
-    FVisualisation.Rotation := VRotation;
-    { Scale is never used directly in colliders, it's added on shape creation. }
-  end else
-  begin
-    FVisualisation.Translation := TVector3.Zero;
-    FVisualisation.Rotation := TVector4.Zero;
+    TCastleBox(FVisualization).Size := CalculateScaledSize;
   end;
 end;
 
 procedure TCastleBoxCollider.DesigningBegin;
 begin
   inherited;
-
-  if FVisualisation = nil then
+  if FVisualization = nil then
   begin
-    FVisualisation := TCastleBox.Create(nil);
-    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
-    UpdateVisualisation;
-    TCastleBox(FVisualisation).Size := FSize;
-    Parent.Add(FVisualisation);
+    FVisualization := TCastleBox.Create(nil);
+    ColliderVisualizationConfig(FVisualization as TCastleAbstractPrimitive);
+    UpdateVisualization;
+    FVisualizationParent.Add(FVisualization);
   end;
 end;
 
 procedure TCastleBoxCollider.DesigningEnd;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
 procedure TCastleBoxCollider.ParentBeforeDetach;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
@@ -1934,7 +1925,7 @@ begin
     if BigChange then // do not rebuild collider without real need, as it is costly
     begin
       ShapeChangedNotifyRigidBody;
-      UpdateVisualisation;
+      UpdateVisualization;
     end;
   end;
 end;
@@ -1945,30 +1936,12 @@ begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, CalculateScaledRadius);
 end;
 
-procedure TCastleSphereCollider.UpdateVisualisation;
-var
-  VTranslation: TVector3;
-  VRotation: TVector4;
-  VScale: TVector3;
+procedure TCastleSphereCollider.UpdateVisualization;
 begin
   inherited;
-
-  if FVisualisation = nil then
-    Exit;
-
-  TCastleSphere(FVisualisation).Radius := CalculateScaledRadius;
-
-  if FUseLocalTransform then
+  if FVisualization <> nil then
   begin
-    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
-      VRotation, VScale);
-    FVisualisation.Translation := VTranslation;
-    FVisualisation.Rotation := VRotation;
-    { Scale is never used directly in colliders, it's added on shape creation. }
-  end else
-  begin
-    FVisualisation.Translation := TVector3.Zero;
-    FVisualisation.Rotation := TVector4.Zero;
+    TCastleSphere(FVisualization).Radius := CalculateScaledRadius;
   end;
 end;
 
@@ -2019,25 +1992,24 @@ end;
 procedure TCastleSphereCollider.DesigningBegin;
 begin
   inherited;
-  if FVisualisation = nil then
+  if FVisualization = nil then
   begin
-    FVisualisation := TCastleSphere.Create(nil);
-    ColliderVisualizationConfig(FVisualisation as TCastleAbstractPrimitive);
-    UpdateVisualisation;
-
-    Parent.Add(FVisualisation);
+    FVisualization := TCastleSphere.Create(nil);
+    ColliderVisualizationConfig(FVisualization as TCastleAbstractPrimitive);
+    UpdateVisualization;
+    FVisualizationParent.Add(FVisualization);
   end;
 end;
 
 procedure TCastleSphereCollider.DesigningEnd;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
 procedure TCastleSphereCollider.ParentBeforeDetach;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
@@ -2081,7 +2053,7 @@ begin
     if BigChange then // do not rebuild collider without real need, as it is costly
     begin
       ShapeChangedNotifyRigidBody;
-      UpdateVisualisation;
+      UpdateVisualization;
     end;
   end;
 end;
@@ -2110,40 +2082,22 @@ begin
     CalculateScaledHeight);
 end;
 
-procedure TCastleCapsuleCollider.UpdateVisualisation;
+procedure TCastleCapsuleCollider.UpdateVisualization;
 var
-  VTranslation: TVector3;
-  VRotation: TVector4;
-  VScale: TVector3;
   VRadius: Single;
   VHeight: Single;
 begin
   inherited;
-
-  if FVisualisation = nil then
-    Exit;
-
-  VRadius := CalculateScaledRadius;
-  VHeight := CalculateScaledHeight;
-
-  TCastleSphere(FVisualisationTop).Radius := VRadius;
-  TCastleSphere(FVisualisationTop).Translation := CastleVectors.Vector3(0, VHeight / 2, 0);
-  TCastleSphere(FVisualisationBottom).Radius := VRadius;
-  TCastleSphere(FVisualisationBottom).Translation := CastleVectors.Vector3(0, - VHeight / 2, 0);
-  TCastleCylinder(FVisualisationCylinder).Height := VHeight;
-  TCastleCylinder(FVisualisationCylinder).Radius := VRadius;
-
-  if FUseLocalTransform then
+  if FVisualization <> nil then
   begin
-    MatrixDecompose(FVisualisation.Transform * FLocalTransform, VTranslation,
-      VRotation, VScale);
-    FVisualisation.Translation := VTranslation;
-    FVisualisation.Rotation := VRotation;
-    { Scale is never used directly in colliders, it's added on shape creation. }
-  end else
-  begin
-    FVisualisation.Translation := TVector3.Zero;
-    FVisualisation.Rotation := TVector4.Zero;
+    VRadius := CalculateScaledRadius;
+    VHeight := CalculateScaledHeight;
+    TCastleSphere(FVisualizationTop).Radius := VRadius;
+    TCastleSphere(FVisualizationTop).Translation := CastleVectors.Vector3(0, VHeight / 2, 0);
+    TCastleSphere(FVisualizationBottom).Radius := VRadius;
+    TCastleSphere(FVisualizationBottom).Translation := CastleVectors.Vector3(0, - VHeight / 2, 0);
+    TCastleCylinder(FVisualizationCylinder).Height := VHeight;
+    TCastleCylinder(FVisualizationCylinder).Radius := VRadius;
   end;
 end;
 
@@ -2151,38 +2105,37 @@ procedure TCastleCapsuleCollider.DesigningBegin;
 begin
   inherited DesigningBegin;
 
-  if FVisualisation = nil then
+  if FVisualization = nil then
   begin
-    FVisualisation := TCastleTransform.Create(nil);
-    FVisualisation.SetTransient;
+    FVisualization := TCastleTransform.Create(nil);
+    FVisualization.SetTransient;
 
-    FVisualisationCylinder := TCastleCylinder.Create(FVisualisation);
-    ColliderVisualizationConfig(FVisualisationCylinder as TCastleAbstractPrimitive);
-    FVisualisation.Add(FVisualisationCylinder);
+    FVisualizationCylinder := TCastleCylinder.Create(FVisualization);
+    ColliderVisualizationConfig(FVisualizationCylinder as TCastleAbstractPrimitive);
+    FVisualization.Add(FVisualizationCylinder);
 
-    FVisualisationTop := TCastleSphere.Create(FVisualisation);
-    ColliderVisualizationConfig(FVisualisationTop as TCastleAbstractPrimitive);
-    FVisualisation.Add(FVisualisationTop);
+    FVisualizationTop := TCastleSphere.Create(FVisualization);
+    ColliderVisualizationConfig(FVisualizationTop as TCastleAbstractPrimitive);
+    FVisualization.Add(FVisualizationTop);
 
-    FVisualisationBottom := TCastleSphere.Create(FVisualisation);
-    ColliderVisualizationConfig(FVisualisationBottom as TCastleAbstractPrimitive);
-    FVisualisation.Add(FVisualisationBottom);
+    FVisualizationBottom := TCastleSphere.Create(FVisualization);
+    ColliderVisualizationConfig(FVisualizationBottom as TCastleAbstractPrimitive);
+    FVisualization.Add(FVisualizationBottom);
 
-    UpdateVisualisation;
-    Parent.Add(FVisualisation);
+    UpdateVisualization;
+    FVisualizationParent.Add(FVisualization);
   end;
-
 end;
 
 procedure TCastleCapsuleCollider.DesigningEnd;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited DesigningEnd;
 end;
 
 procedure TCastleCapsuleCollider.ParentBeforeDetach;
 begin
-  FreeAndNil(FVisualisation);
+  FreeAndNil(FVisualization);
   inherited;
 end;
 
