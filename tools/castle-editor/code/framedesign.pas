@@ -518,6 +518,8 @@ type
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
+    procedure ShowColliders;
+    procedure HideColliders;
 
     procedure ReleaseAllKeysAndMouse;
 
@@ -5257,6 +5259,38 @@ begin
   C := CameraToSynchronize(V);
   if C <> nil then
     CameraSynchronize(V.InternalCamera, C, true);
+end;
+
+procedure TDesignFrame.ShowColliders;
+var
+  BehList: TCastleBehaviorList;
+  V: TCastleViewport;
+  B: TCastleBehavior;
+begin
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  BehList := V.Items.FindAllBehaviors(TCastleCollider);
+  try
+    for B in BehList do
+      TCastleCollider(B).DesigningBegin;
+  finally FreeAndNil(BehList) end;
+end;
+
+procedure TDesignFrame.HideColliders;
+var
+  BehList: TCastleBehaviorList;
+  V: TCastleViewport;
+  B: TCastleBehavior;
+begin
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  BehList := V.Items.FindAllBehaviors(TCastleCollider);
+  try
+    for B in BehList do
+      TCastleCollider(B).DesigningEnd;
+  finally FreeAndNil(BehList) end;
 end;
 
 {
