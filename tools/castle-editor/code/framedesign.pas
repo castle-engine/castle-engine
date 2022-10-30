@@ -1684,18 +1684,21 @@ end;
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent);
 var
-  Selected: TComponentList;
-  SelectedCount: Integer;
-  ParentComponent:TComponent;
+  ParentComponent: TComponent;
 begin
   // calculate ParentComponent
-  GetSelected(Selected, SelectedCount);
-  try
-    if SelectedCount = 1 then
-      ParentComponent := Selected.First
-    else
-      ParentComponent := DesignRoot;
-  finally FreeAndNil(Selected) end;
+  ParentComponent := GetSelectedComponent;
+  { User can use "Add Behavior" when another TCastleBehavior is selected,
+    it means to insert into the parent TCastleTransform.
+    E.g. usecase: add collider when rigid body is selected. }
+  if ComponentClass.InheritsFrom(TCastleBehavior) and
+     (ParentComponent is TCastleBehavior) then
+  begin
+    ParentComponent := TCastleBehavior(ParentComponent).Parent;
+  end;
+  { If nothing was selected, add to DesignRoot }
+  if ParentComponent = nil then
+    ParentComponent := DesignRoot;
 
   AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
 end;
@@ -4638,6 +4641,7 @@ procedure TDesignFrame.MenuTreeViewPopup(Sender: TObject);
 
 var
   Sel: TComponent;
+  CanAddUserInterface, CanAddTransform, CanAddBehavior: Boolean;
 begin
   Sel := SelectedComponent;
 
@@ -4651,24 +4655,30 @@ begin
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
   MenuTreeViewItemSaveSelected.Enabled := Sel <> nil;
   MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // delete can handle multiple objects
+
+  CanAddUserInterface := false;
+  CanAddTransform := false;
+  CanAddBehavior := false;
+
   if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
   begin
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    CanAddUserInterface := true;
   end else
   if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
   begin
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(true);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(true);
+    CanAddTransform := true;
+    CanAddBehavior := true;
   end else
+  if Sel is TCastleBehavior then
   begin
-    // on other components, you can add NonVisualComponent
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    CanAddBehavior := true;
   end;
+  // on other components, you can add only NonVisualComponent
+
+  MenuTreeViewItemAddUserInterface.SetEnabledVisible(CanAddUserInterface);
+  MenuTreeViewItemAddTransform.SetEnabledVisible(CanAddTransform);
+  MenuTreeViewItemAddBehavior.SetEnabledVisible(CanAddBehavior);
+
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;
 
