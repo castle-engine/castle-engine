@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     <Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>
-    <Units Count="24">
+    <Units Count="27">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -191,6 +191,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleComponentEditorDesigner"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designcamerapreview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignCameraPreview"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designobjectinspector.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignObjectInspector"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designundosystem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignUndoSystem"/>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

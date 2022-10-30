@@ -42,6 +42,7 @@ type
 implementation
 
 uses CastleVectors, CastleUtils, CastleBoxes, CastleStringUtils, CastleTimeUtils,
+  CastleLog,
   TestCastleVectors, CastleTriangles;
 
 procedure TTestCastleBoxes.TestIsCenteredBox3DPlaneCollision;
@@ -693,14 +694,40 @@ begin
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+    try
+      AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+    except
+      on E: Exception do
+      begin
+        WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
+          'Box: %s' + NL +
+          'Matrix: %s', [
+          Box.ToString,
+          Matrix.ToString
+        ]);
+        raise;
+      end;
+    end;
   end;
 
   for I := 0 to 1000 do
   begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+    try
+      AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+    except
+      on E: Exception do
+      begin
+        WritelnWarning('TestBox3DTransform failed at test with RandomNonProjectionMatrix:' + NL +
+          'Box: %s' + NL +
+          'Matrix: %s', [
+          Box.ToString,
+          Matrix.ToString
+        ]);
+        raise;
+      end;
+    end;
   end;
 
   { $define BOX3D_TRANSFORM_SPEED_TEST}
