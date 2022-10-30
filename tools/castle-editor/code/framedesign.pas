@@ -35,7 +35,8 @@ uses
   CastleColors, CastleScene,
   // editor units
   FrameAnchors, CastleShellCtrls,
-  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
+  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
+  DesignObjectInspector;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
@@ -192,7 +193,7 @@ type
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
     var
-      Inspector: array [TInspectorType] of TOIPropertyGrid;
+      Inspector: array [TInspectorType] of TCastleObjectInspector;
       FUndoSystem: TUndoSystem;
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
@@ -1273,9 +1274,9 @@ end;
 
 constructor TDesignFrame.Create(TheOwner: TComponent);
 
-  function CommonInspectorCreate: TOIPropertyGrid;
+  function CommonInspectorCreate: TCastleObjectInspector;
   begin
-    Result := TOIPropertyGrid.Create(Self);
+    Result := TCastleObjectInspector.Create(Self);
     Result.PropertyEditorHook := PropertyEditorHook;
     Result.Align := alClient;
     Result.OnModified := @PropertyGridModified;
@@ -1434,7 +1435,7 @@ end;
 
 procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
 
-  function GetInspectorForActiveTab: TOIPropertyGrid;
+  function GetInspectorForActiveTab: TCastleObjectInspector;
   var
     InspectorType: TInspectorType;
   begin
