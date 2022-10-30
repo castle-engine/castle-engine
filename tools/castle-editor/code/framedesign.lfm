@@ -1257,6 +1257,21 @@ object DesignFrame: TDesignFrame
       Caption = 'Delete'
       OnClick = MenuTreeViewItemDeleteClick
     end
+    object SeparatorBeforeChangeClass: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemChangeClassUserInterface: TMenuItem
+      Caption = 'Change Class...'
+    end
+    object MenuItemChangeClassTransform: TMenuItem
+      Caption = 'Change Class...'
+    end
+    object MenuItemChangeClassBehavior: TMenuItem
+      Caption = 'Change Class...'
+    end
+    object MenuItemChangeClassNonVisual: TMenuItem
+      Caption = 'Change Class...'
+    end
   end
   object UpdateObjectInspector: TTimer
     Interval = 500

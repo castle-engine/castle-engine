@@ -49,11 +49,24 @@ function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 function ComponentToString(const C: TComponent): String;
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 
-{ @exclude
-  Like StringToComponent but takes additional PreserveDataAcrossUndo
-  that allows viewports to preserve design-time camera/navigation across CGE editor undo. }
+type
+  { Additional loading configuration for InternalStringToComponent.
+    @exclude }
+  TInternalComponentLoadInfo = class
+    { Allows viewports to preserve design-time camera/navigation across CGE editor undo. }
+    PreserveDataAcrossUndo: TComponent;
+    { If ChangeClassName is non-empty, at loading we change class of given component to this. }
+    ChangeClassName: String;
+    ChangeClassClass: TComponentClass;
+  end;
+
+{ Like StringToComponent but takes additional TInternalComponentLoadInfo
+  that adds some possibilities. LoadInfo may be @nil (making this equivalent
+  to just StringToComponent).
+  @exclude }
 function InternalStringToComponent(const Contents: String;
-  const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 
 type
   { Describes a component registered using @link(RegisterSerializableComponent),
@@ -104,7 +117,8 @@ type
     FUrl, FTranslationGroupName: String;
     JsonObject: TJsonObject;
   private
-    function InternalComponentLoad(const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
+    function InternalComponentLoad(const Owner: TComponent;
+      const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     constructor Create(const AUrl: String);
     constructor CreateFromString(const Contents: String);
@@ -262,7 +276,7 @@ type
     procedure AfterReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
   private
-    PreserveDataAcrossUndo: TComponent;
+    LoadInfo: TInternalComponentLoadInfo;
     FOwner: TComponent;
     (*Resolve hanging references, when JSON referred to some component name
       before this component was actually defined.
@@ -295,7 +309,8 @@ type
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJsonObject;
-  const Owner: TComponent): TComponent;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   ResultClassName: String;
   ResultClass: TComponentClass;
@@ -303,21 +318,30 @@ begin
   if Owner = nil then
     raise Exception.Create('You must provide non-nil Owner when deserializing a component. Without an Owner, it is not possible to free the component hierarchy easily, and you will most likely have memory leaks.');
 
-  if JsonObject.Find('$$ClassName') <> nil then
-    ResultClassName := JsonObject.Strings['$$ClassName']
-  else
-  if JsonObject.Find('$ClassName') <> nil then
-    ResultClassName := JsonObject.Strings['$ClassName'] // handle older format
-  else
-    ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
+  if (LoadInfo <> nil) and
+     (LoadInfo.ChangeClassName <> '') and // early exit in the usual case
+     (LoadInfo.ChangeClassName = JsonObject.Strings['Name']) then
+  begin
+    ResultClass := LoadInfo.ChangeClassClass;
+  end else
+  begin
+    if JsonObject.Find('$$ClassName') <> nil then
+      ResultClassName := JsonObject.Strings['$$ClassName']
+    else
+    if JsonObject.Find('$ClassName') <> nil then
+      ResultClassName := JsonObject.Strings['$ClassName'] // handle older format
+    else
+      ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
 
-  { Initially we did here
-      JsonObject.Delete('_ClassName');
-    to not confuse TJsonDeStreamer with extra _ClassName property.
-    But later: it is better to leave JSON structure unmodified
-    (allows to read it multiple times, if needed). }
+    { Initially we did here
+        JsonObject.Delete('_ClassName');
+      to not confuse TJsonDeStreamer with extra _ClassName property.
+      But later: it is better to leave JSON structure unmodified
+      (allows to read it multiple times, if needed). }
 
-  ResultClass := FindComponentClass(ResultClassName);
+    ResultClass := FindComponentClass(ResultClassName);
+  end;
+
   if ResultClass = nil then
     raise EInvalidComponentFile.CreateFmt('Component JSON file references an unrecognized class "%s".' + NL + NL +
       Iff(CastleDesignMode,
@@ -401,7 +425,7 @@ begin
       JsonChild := JsonChildren.Objects[I];
       if JsonChild = nil then
         raise EInvalidComponentFile.Create('$' + Key + ' must be an array of JSON objects');
-      Child := CreateComponentFromJson(JsonChild, Reader.Owner);
+      Child := CreateComponentFromJson(JsonChild, Reader.Owner, Reader.LoadInfo);
       Reader.DeStreamer.JsonToObject(JsonChild, Child);
       ListAdd(Child);
     end;
@@ -439,7 +463,10 @@ procedure TCastleJsonReader.AfterReadObject(
   begin
     SerializationProcess.CurrentlyReading := Json;
     SerializationProcess.Reader := Self;
-    SerializationProcess.InternalPreserveDataAcrossUndo := PreserveDataAcrossUndo;
+    if LoadInfo <> nil then
+      SerializationProcess.InternalPreserveDataAcrossUndo := LoadInfo.PreserveDataAcrossUndo
+    else
+      SerializationProcess.InternalPreserveDataAcrossUndo := nil;
     C.CustomSerialization(SerializationProcess);
   end;
 
@@ -752,17 +779,18 @@ begin
   Result := InternalComponentLoad(Owner, nil);
 end;
 
-function TSerializedComponent.InternalComponentLoad(const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
+function TSerializedComponent.InternalComponentLoad(const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   Reader: TCastleJsonReader;
 begin
   Reader := TCastleJsonReader.Create;
   try
     Reader.FOwner := Owner;
-    Reader.PreserveDataAcrossUndo := PreserveDataAcrossUndo;
+    Reader.LoadInfo := LoadInfo;
 
     { create Result with appropriate class }
-    Result := CreateComponentFromJson(JsonObject, Owner);
+    Result := CreateComponentFromJson(JsonObject, Owner, LoadInfo);
 
     { read Result contents from JSON }
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
@@ -782,13 +810,14 @@ begin
 end;
 
 function InternalStringToComponent(const Contents: String;
-  const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   SerializedComponent: TSerializedComponent;
 begin
   SerializedComponent := TSerializedComponent.CreateFromString(Contents);
   try
-    Result := SerializedComponent.InternalComponentLoad(Owner, PreserveDataAcrossUndo);
+    Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
   finally FreeAndNil(SerializedComponent) end;
 end;
 
