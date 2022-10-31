@@ -42,7 +42,6 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    ActionHideColiders: TAction;
     ActionShowColliders: TAction;
     ActionViewportRenderNext: TAction;
     ActionViewportRenderSolidWireframe: TAction;
@@ -97,7 +96,6 @@ type
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItemShowColliders: TMenuItem;
-    MenuItemHideColliders: TMenuItem;
     MenuItemPhysics: TMenuItem;
     MenuItemWireframe: TMenuItem;
     MenuItem34: TMenuItem;
@@ -282,7 +280,6 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ActionFocusDesignExecute(Sender: TObject);
-    procedure ActionHideColidersExecute(Sender: TObject);
     procedure ActionModeInteractExecute(Sender: TObject);
     procedure ActionModeRotateExecute(Sender: TObject);
     procedure ActionModeScaleExecute(Sender: TObject);
@@ -837,12 +834,6 @@ begin
   Design.FocusDesign;
 end;
 
-procedure TProjectForm.ActionHideColidersExecute(Sender: TObject);
-begin
-  Assert(Design <> nil); // menu item is disabled otherwise
-  Design.HideColliders;
-end;
-
 procedure TProjectForm.ActionModeInteractExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -876,7 +867,8 @@ end;
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-  Design.ShowColliders;
+  Design.ShowColliders := not Design.ShowColliders;
+  ActionShowColliders.Checked := Design.ShowColliders;
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);

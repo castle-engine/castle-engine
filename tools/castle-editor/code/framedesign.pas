@@ -244,6 +244,7 @@ type
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
+      FShowColliders: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -406,6 +407,11 @@ type
     function GetSavedSelection: TSavedSelection;
     procedure RestoreSavedSelection(const S: TSavedSelection);
     procedure MenuItemChangeClassClick(Sender: TObject);
+    procedure SetShowColliders(const AValue: Boolean);
+    { Show / hide colliders following FShowColliders setting.
+      If T = nil, updates everywhere (TODO: for now,
+      only in CurrentViewport). Otherwise updates only in T. }
+    procedure UpdateColliders(T: TCastleTransform = nil);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -486,8 +492,8 @@ type
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
-    procedure ShowColliders;
-    procedure HideColliders;
+
+    property ShowColliders: Boolean read FShowColliders write SetShowColliders;
 
     procedure ReleaseAllKeysAndMouse;
 
@@ -1596,6 +1602,8 @@ begin
     begin
       V := C as TCastleViewport;
       SetCurrentViewport(V);
+      { Note: This will also update FShowColliders on viewport,
+        so e.g. Stop of physics will keep showing colliders. }
     end;
   end;
 end;
@@ -1873,6 +1881,9 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
       Result := CreateComponent;
       ParentComponent.AddBehavior(Result as TCastleBehavior);
       try
+        { Show colliders on newly added component }
+        if (Result is TCastleCollider) and FShowColliders then
+          UpdateColliders(ParentComponent);
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
           (Result as TCastleMeshCollider).Mesh := ParentComponent;
@@ -2417,6 +2428,11 @@ begin
   begin
     FCurrentViewport := Value;
     FCurrentViewportObserver.Observed := Value;
+    { After changing CurrentViewport, show colliders on new viewport.
+      TODO: It would be better if toggling this checkbox
+      set them already properly on all viewports. }
+    if Value <> nil then
+      UpdateColliders;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
@@ -3066,6 +3082,15 @@ begin
     else
     if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
       Result := AddTransformDesign(SelectedUrl);
+  end;
+end;
+
+procedure TDesignFrame.SetShowColliders(const AValue: Boolean);
+begin
+  if FShowColliders <> AValue then
+  begin
+    FShowColliders := AValue;
+    UpdateColliders;
   end;
 end;
 
@@ -5085,35 +5110,26 @@ begin
     CameraSynchronize(V.InternalCamera, C, true);
 end;
 
-procedure TDesignFrame.ShowColliders;
+procedure TDesignFrame.UpdateColliders(T: TCastleTransform);
 var
   BehList: TCastleBehaviorList;
   V: TCastleViewport;
   B: TCastleBehavior;
 begin
-  V := CurrentViewport;
-  if V = nil then Exit;
+  if T = nil then
+  begin
+    V := CurrentViewport;
+    if V = nil then Exit;
+    T := V.Items;
+  end;
 
-  BehList := V.Items.FindAllBehaviors(TCastleCollider);
+  BehList := T.FindAllBehaviors(TCastleCollider);
   try
     for B in BehList do
-      TCastleCollider(B).DesigningBegin;
-  finally FreeAndNil(BehList) end;
-end;
-
-procedure TDesignFrame.HideColliders;
-var
-  BehList: TCastleBehaviorList;
-  V: TCastleViewport;
-  B: TCastleBehavior;
-begin
-  V := CurrentViewport;
-  if V = nil then Exit;
-
-  BehList := V.Items.FindAllBehaviors(TCastleCollider);
-  try
-    for B in BehList do
-      TCastleCollider(B).DesigningEnd;
+      if FShowColliders then
+        TCastleCollider(B).DesigningBegin
+      else
+        TCastleCollider(B).DesigningEnd;
   finally FreeAndNil(BehList) end;
 end;
 

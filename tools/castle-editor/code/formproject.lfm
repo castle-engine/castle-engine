@@ -401,9 +401,7 @@ object ProjectForm: TProjectForm
       Caption = 'Physics'
       object MenuItemShowColliders: TMenuItem
         Action = ActionShowColliders
-      end
-      object MenuItemHideColliders: TMenuItem
-        Action = ActionHideColiders
+        ShowAlwaysCheckable = True
       end
     end
     object MenuItemCode: TMenuItem
@@ -1069,12 +1067,6 @@ object ProjectForm: TProjectForm
       Category = 'Physics'
       Caption = 'Show Colliders'
       OnExecute = ActionShowCollidersExecute
-      OnUpdate = ActionViewportUpdate
-    end
-    object ActionHideColiders: TAction
-      Category = 'Physics'
-      Caption = 'Hide Coliders'
-      OnExecute = ActionHideColidersExecute
       OnUpdate = ActionViewportUpdate
     end
   end
