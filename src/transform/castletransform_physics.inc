@@ -1688,15 +1688,13 @@ end;
 procedure TCastlePlaneCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
+  NormalCoord: T3DCoord;
 begin
   inherited; // resets Translation, Rotation
 
-  { TODO: We could calculate Distance better looking at LocalBoundingBox,
-    for now we just always set it to 0. }
-  Distance := 0;
-
-  { Default, in case we don't have any better value }
+  { Defaults, in case we don't have any better value }
   Normal := TVector3.One[1];
+  Distance := 0;
 
   if Parent = nil then
     Exit;
@@ -1704,7 +1702,11 @@ begin
   if LocalBoundingBox.IsEmptyOrZero then
     Exit;
 
-  Normal := TVector3.One[MinAbsVectorCoord(LocalBoundingBox.Size)];
+  NormalCoord := MinAbsVectorCoord(LocalBoundingBox.Size);
+  Normal := TVector3.One[NormalCoord];
+  Distance :=
+    LocalBoundingBox.Max.AsArray[NormalCoord] -
+    LocalBoundingBox.Min.AsArray[NormalCoord];
 end;
 
 procedure TCastlePlaneCollider.DesigningBegin;
