@@ -4696,6 +4696,7 @@ procedure TDesignFrame.ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   SavedSelection: TSavedSelection;
+  LoadInfo: TInternalComponentLoadInfo;
 begin
   if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
     CastleDesignPhysicsMode := pmStopped
@@ -4716,9 +4717,15 @@ begin
 
     SavedSelection := GetSavedSelection;
 
-    NewDesignOwner := TComponent.Create(Self);
-    NewDesignRoot := InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, DesignOwner);
-    OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    LoadInfo := TInternalComponentLoadInfo.Create;
+    try
+      LoadInfo.PreserveDataAcrossUndo := DesignOwner;
+
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
     FDesignModified := DesignModifiedBeforePhysicsRun;
     OnUpdateFormCaption(Self);
 
