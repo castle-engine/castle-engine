@@ -53,8 +53,8 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
-    ActionPhysicsPauseSimulation: TAction;
-    ActionPhysicsPlayStopSimulation: TAction;
+    ActionSimulationPause: TAction;
+    ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
@@ -62,7 +62,7 @@ type
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
-    LabelPhysicsSimulation: TLabel;
+    LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -103,8 +103,8 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ButtonInteractMode: TSpeedButton;
-    ButtonPhysicsPlayStop: TSpeedButton;
-    ButtonPhysicsPause: TSpeedButton;
+    ButtonSimulationPlayStop: TSpeedButton;
+    ButtonSimulationPause: TSpeedButton;
     ButtonSelectMode: TSpeedButton;
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
@@ -119,9 +119,9 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
-    procedure ActionPhysicsPauseSimulationExecute(Sender: TObject);
-    procedure ActionPhysicsPauseSimulationUpdate(Sender: TObject);
-    procedure ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
+    procedure ActionSimulationPauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
@@ -1413,7 +1413,7 @@ begin
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
 
   // needed to set right action state maybe lazarus bug?
-  ActionPhysicsPauseSimulation.Update;
+  ActionSimulationPause.Update;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -4704,7 +4704,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
+procedure TDesignFrame.ActionSimulationPlayStopExecute(Sender: TObject);
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   SavedSelection: TSavedSelection;
@@ -4717,15 +4717,15 @@ begin
 
   if CastleDesignPhysicsMode = pmPlaying then
   begin
-    ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsStop);
-    ActionPhysicsPauseSimulation.Visible := true;
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsStop);
+    ActionSimulationPause.Visible := true;
     DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
     DesignModifiedBeforePhysicsRun := FDesignModified;
   end else
   begin
-    ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsPlay);
-    ActionPhysicsPauseSimulation.Visible := false;
-    ActionPhysicsPauseSimulation.Checked := false;
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsPlay);
+    ActionSimulationPause.Visible := false;
+    ActionSimulationPause.Checked := false;
 
     SavedSelection := GetSavedSelection;
 
@@ -4745,20 +4745,21 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ActionPhysicsPauseSimulationUpdate(Sender: TObject);
+procedure TDesignFrame.ActionSimulationPauseUpdate(Sender: TObject);
 begin
-  ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
-  ActionPhysicsPauseSimulation.Visible := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+  ActionSimulationPause.Checked := CastleDesignPhysicsMode = pmPaused;
+  ActionSimulationPause.Visible := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
 end;
 
-procedure TDesignFrame.ActionPhysicsPauseSimulationExecute(Sender: TObject);
+procedure TDesignFrame.ActionSimulationPauseExecute(Sender: TObject);
 begin
   if CastleDesignPhysicsMode = pmPaused then
     CastleDesignPhysicsMode := pmPlaying
-  else if CastleDesignPhysicsMode = pmPlaying then
+  else
+  if CastleDesignPhysicsMode = pmPlaying then
     CastleDesignPhysicsMode := pmPaused;
 
-  ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
+  ActionSimulationPause.Checked := CastleDesignPhysicsMode = pmPaused;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
