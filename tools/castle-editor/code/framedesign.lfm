@@ -1191,8 +1191,53 @@ object DesignFrame: TDesignFrame
         ParentShowHint = False
         ShowHint = True
       end
+      object LabelSimulation: TLabel
+        AnchorSideTop.Side = asrCenter
+        Left = 368
+        Height = 38
+        Top = 0
+        Width = 62
+        BorderSpacing.Left = 30
+        BorderSpacing.Right = 10
+        Caption = 'Physics:'
+        Layout = tlCenter
+        ParentColor = False
+        ParentFont = False
+      end
+      object ButtonSimulationPlayStop: TSpeedButton
+        Left = 440
+        Height = 38
+        Top = 0
+        Width = 36
+        Action = ActionSimulationPlayStop
+        AllowAllUp = True
+        AutoSize = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 10
+        Images = Icons.ToolbarStroke1_5
+        ImageIndex = 5
+        ImageWidth = 32
+        ShowCaption = False
+      end
+      object ButtonSimulationPause: TSpeedButton
+        Left = 480
+        Height = 38
+        Top = 0
+        Width = 36
+        Action = ActionSimulationPauseUnpause
+        AllowAllUp = True
+        AutoSize = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 9
+        Images = Icons.ToolbarStroke1_5
+        ImageIndex = 7
+        ImageWidth = 32
+        ShowCaption = False
+      end
       object LabelViewport: TLabel
-        Left = 374
+        Left = 552
         Height = 38
         Top = 0
         Width = 218
@@ -1204,50 +1249,6 @@ object DesignFrame: TDesignFrame
         ParentColor = False
         ParentFont = False
         Visible = False
-      end
-      object LabelPhysicsSimulation: TLabel
-        AnchorSideTop.Side = asrCenter
-        Left = 736
-        Height = 36
-        Top = 0
-        Width = 57
-        BorderSpacing.Left = 30
-        BorderSpacing.Right = 10
-        Caption = 'Physics:'
-        Layout = tlCenter
-        ParentFont = False
-      end
-      object ButtonPhysicsPlayStop: TSpeedButton
-        Left = 803
-        Height = 36
-        Top = 0
-        Width = 36
-        Action = ActionPhysicsPlayStopSimulation
-        AllowAllUp = True
-        AutoSize = True
-        Constraints.MinHeight = 34
-        Constraints.MinWidth = 34
-        GroupIndex = 10
-        Images = Icons.ToolbarStroke1_5
-        ImageIndex = 5
-        ImageWidth = 32
-        ShowCaption = False
-      end
-      object ButtonPhysicsPause: TSpeedButton
-        Left = 843
-        Height = 36
-        Top = 0
-        Width = 36
-        Action = ActionPhysicsPauseSimulation
-        AllowAllUp = True
-        AutoSize = True
-        Constraints.MinHeight = 34
-        Constraints.MinWidth = 34
-        GroupIndex = 9
-        Images = Icons.ToolbarStroke1_5
-        ImageIndex = 7
-        ImageWidth = 32
-        ShowCaption = False
       end
     end
   end
@@ -1335,21 +1336,22 @@ object DesignFrame: TDesignFrame
     Images = Icons.ToolbarStroke1_5
     Left = 790
     Top = 201
-    object ActionPhysicsPlayStopSimulation: TAction
+    object ActionSimulationPlayStop: TAction
       Category = 'Physics'
-      Caption = 'Play/Stop Physics Simulation'
+      Caption = 'Play/Stop Simulation'
       GroupIndex = 10
-      Hint = 'Play/Stop Physics Simulation '
+      Hint = 'Play/Stop Simulation'
       ImageIndex = 5
-      OnExecute = ActionPhysicsPlayStopSimulationExecute
+      OnExecute = ActionSimulationPlayStopExecute
+      OnUpdate = ActionSimulationPlayStopUpdate
     end
-    object ActionPhysicsPauseSimulation: TAction
+    object ActionSimulationPauseUnpause: TAction
       Category = 'Physics'
-      Caption = 'Pause Physics Simulation'
+      Caption = 'Pause Simulation'
       GroupIndex = 9
       ImageIndex = 7
-      OnExecute = ActionPhysicsPauseSimulationExecute
-      OnUpdate = ActionPhysicsPauseSimulationUpdate
+      OnExecute = ActionSimulationPauseUnpauseExecute
+      OnUpdate = ActionSimulationPauseUnpauseUpdate
     end
   end
 end

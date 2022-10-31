@@ -53,8 +53,8 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
-    ActionPhysicsPauseSimulation: TAction;
-    ActionPhysicsPlayStopSimulation: TAction;
+    ActionSimulationPauseUnpause: TAction;
+    ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
@@ -62,7 +62,7 @@ type
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
-    LabelPhysicsSimulation: TLabel;
+    LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -103,8 +103,8 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ButtonInteractMode: TSpeedButton;
-    ButtonPhysicsPlayStop: TSpeedButton;
-    ButtonPhysicsPause: TSpeedButton;
+    ButtonSimulationPlayStop: TSpeedButton;
+    ButtonSimulationPause: TSpeedButton;
     ButtonSelectMode: TSpeedButton;
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
@@ -119,9 +119,10 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
-    procedure ActionPhysicsPauseSimulationExecute(Sender: TObject);
-    procedure ActionPhysicsPauseSimulationUpdate(Sender: TObject);
-    procedure ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
@@ -247,6 +248,7 @@ type
       FTransformDesigning: TCastleTransform;
       FTransformDesigningObserver: TFreeNotificationObserver;
       LastSelected: TComponentList;
+      FShowColliders: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -445,6 +447,11 @@ type
     function GetSavedSelection: TSavedSelection;
     procedure RestoreSavedSelection(const S: TSavedSelection);
     procedure MenuItemChangeClassClick(Sender: TObject);
+    procedure SetShowColliders(const AValue: Boolean);
+    { Show / hide colliders following FShowColliders setting.
+      If T = nil, updates everywhere (TODO: for now,
+      only in CurrentViewport). Otherwise updates only in T. }
+    procedure UpdateColliders(T: TCastleTransform = nil);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -525,8 +532,11 @@ type
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
-    procedure ShowColliders;
-    procedure HideColliders;
+
+    { Physics stuff. } { }
+    procedure SimulationPlayStop;
+    procedure SimulationPauseUnpause;
+    property ShowColliders: Boolean read FShowColliders write SetShowColliders;
 
     procedure ReleaseAllKeysAndMouse;
 
@@ -1456,7 +1466,7 @@ begin
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
 
   // needed to set right action state maybe lazarus bug?
-  ActionPhysicsPauseSimulation.Update;
+  ActionSimulationPauseUnpause.Update;
 
   FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
@@ -1644,6 +1654,8 @@ begin
     begin
       V := C as TCastleViewport;
       SetCurrentViewport(V);
+      { Note: This will also update FShowColliders on viewport,
+        so e.g. Stop of physics will keep showing colliders. }
     end;
   end;
 end;
@@ -1921,6 +1933,9 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
       Result := CreateComponent;
       ParentComponent.AddBehavior(Result as TCastleBehavior);
       try
+        { Show colliders on newly added component }
+        if (Result is TCastleCollider) and FShowColliders then
+          UpdateColliders(ParentComponent);
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
           (Result as TCastleMeshCollider).Mesh := ParentComponent;
@@ -2472,6 +2487,11 @@ begin
   begin
     FCurrentViewport := Value;
     FCurrentViewportObserver.Observed := Value;
+    { After changing CurrentViewport, show colliders on new viewport.
+      TODO: It would be better if toggling this checkbox
+      set them already properly on all viewports. }
+    if Value <> nil then
+      UpdateColliders;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
@@ -3151,6 +3171,15 @@ begin
     else
     if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
       Result := AddTransformDesign(SelectedUrl);
+  end;
+end;
+
+procedure TDesignFrame.SetShowColliders(const AValue: Boolean);
+begin
+  if FShowColliders <> AValue then
+  begin
+    FShowColliders := AValue;
+    UpdateColliders;
   end;
 end;
 
@@ -4950,7 +4979,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ActionPhysicsPlayStopSimulationExecute(Sender: TObject);
+procedure TDesignFrame.SimulationPlayStop;
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   SavedSelection: TSavedSelection;
@@ -4963,16 +4992,10 @@ begin
 
   if CastleDesignPhysicsMode = pmPlaying then
   begin
-    ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsStop);
-    ActionPhysicsPauseSimulation.Visible := true;
     DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
     DesignModifiedBeforePhysicsRun := FDesignModified;
   end else
   begin
-    ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsPlay);
-    ActionPhysicsPauseSimulation.Visible := false;
-    ActionPhysicsPauseSimulation.Checked := false;
-
     SavedSelection := GetSavedSelection;
 
     LoadInfo := TInternalComponentLoadInfo.Create;
@@ -4989,6 +5012,10 @@ begin
 
     RestoreSavedSelection(SavedSelection);
   end;
+
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
 end;
 
 procedure TDesignFrame.ShowAllJointsTools;
@@ -5007,13 +5034,7 @@ begin
   finally FreeAndNil(BehList) end;
 end;
 
-procedure TDesignFrame.ActionPhysicsPauseSimulationUpdate(Sender: TObject);
-begin
-  ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
-  ActionPhysicsPauseSimulation.Visible := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
-end;
-
-procedure TDesignFrame.ActionPhysicsPauseSimulationExecute(Sender: TObject);
+procedure TDesignFrame.SimulationPauseUnpause;
 begin
   if CastleDesignPhysicsMode = pmPaused then
     CastleDesignPhysicsMode := pmPlaying
@@ -5021,7 +5042,34 @@ begin
   if CastleDesignPhysicsMode = pmPlaying then
     CastleDesignPhysicsMode := pmPaused;
 
-  ActionPhysicsPauseSimulation.Checked := CastleDesignPhysicsMode = pmPaused;
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  SimulationPlayStop;
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  if CastleDesignPhysicsMode = pmStopped then
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsPlay)
+  else
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsStop);
+  ActionSimulationPlayStop.Checked := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+  ActionSimulationPauseUnpause.Checked := CastleDesignPhysicsMode = pmPaused;
+  ActionSimulationPauseUnpause.Visible := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  SimulationPauseUnpause;
 end;
 
 procedure TDesignFrame.HideAllJointsTools;
@@ -5363,35 +5411,26 @@ begin
     CameraSynchronize(V.InternalCamera, C, true);
 end;
 
-procedure TDesignFrame.ShowColliders;
+procedure TDesignFrame.UpdateColliders(T: TCastleTransform);
 var
   BehList: TCastleBehaviorList;
   V: TCastleViewport;
   B: TCastleBehavior;
 begin
-  V := CurrentViewport;
-  if V = nil then Exit;
+  if T = nil then
+  begin
+    V := CurrentViewport;
+    if V = nil then Exit;
+    T := V.Items;
+  end;
 
-  BehList := V.Items.FindAllBehaviors(TCastleCollider);
+  BehList := T.FindAllBehaviors(TCastleCollider);
   try
     for B in BehList do
-      TCastleCollider(B).DesigningBegin;
-  finally FreeAndNil(BehList) end;
-end;
-
-procedure TDesignFrame.HideColliders;
-var
-  BehList: TCastleBehaviorList;
-  V: TCastleViewport;
-  B: TCastleBehavior;
-begin
-  V := CurrentViewport;
-  if V = nil then Exit;
-
-  BehList := V.Items.FindAllBehaviors(TCastleCollider);
-  try
-    for B in BehList do
-      TCastleCollider(B).DesigningEnd;
+      if FShowColliders then
+        TCastleCollider(B).DesigningBegin
+      else
+        TCastleCollider(B).DesigningEnd;
   finally FreeAndNil(BehList) end;
 end;
 

@@ -42,8 +42,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    ActionHideColiders: TAction;
     ActionShowColliders: TAction;
+    ActionSimulationPlayStop: TAction;
+    ActionSimulationPauseUnpause: TAction;
     ActionViewportRenderNext: TAction;
     ActionViewportRenderSolidWireframe: TAction;
     ActionPhysicsHideAllJointsTools: TAction;
@@ -99,8 +100,10 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemSimulationPauseUnpause: TMenuItem;
+    MenuItemSimulationPlayStop: TMenuItem;
+    SeparatorBeforeShowColliders: TMenuItem;
     MenuItemShowColliders: TMenuItem;
-    MenuItemHideColliders: TMenuItem;
     MenuItemPhysics: TMenuItem;
     MenuItemWireframe: TMenuItem;
     MenuItem34: TMenuItem;
@@ -289,13 +292,16 @@ type
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
-    procedure ActionHideColidersExecute(Sender: TObject);
     procedure ActionModeInteractExecute(Sender: TObject);
     procedure ActionModeRotateExecute(Sender: TObject);
     procedure ActionModeScaleExecute(Sender: TObject);
     procedure ActionModeSelectExecute(Sender: TObject);
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -856,12 +862,6 @@ begin
   Design.FocusDesign;
 end;
 
-procedure TProjectForm.ActionHideColidersExecute(Sender: TObject);
-begin
-  Assert(Design <> nil); // menu item is disabled otherwise
-  Design.HideColliders;
-end;
-
 procedure TProjectForm.ActionModeInteractExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -895,7 +895,36 @@ end;
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-  Design.ShowColliders;
+  Design.ShowColliders := not Design.ShowColliders;
+  ActionShowColliders.Checked := Design.ShowColliders;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPauseUnpause;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+
+  ActionSimulationPauseUnpause.Enabled := (Design <> nil) and
+    (CastleDesignPhysicsMode in [pmPlaying, pmPaused]);
+  ActionSimulationPauseUnpause.Checked := (Design <> nil) and
+    (CastleDesignPhysicsMode = pmPaused);
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPlayStop;
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  ActionSimulationPlayStop.Enabled := Design <> nil;
+  ActionSimulationPlayStop.Checked := (Design <> nil) and
+    (CastleDesignPhysicsMode in [pmPlaying, pmPaused]);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);

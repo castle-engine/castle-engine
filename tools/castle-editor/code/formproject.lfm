@@ -408,11 +408,20 @@ object ProjectForm: TProjectForm
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
+      object MenuItemSimulationPlayStop: TMenuItem
+        Action = ActionSimulationPlayStop
+        ShowAlwaysCheckable = True
+      end
+      object MenuItemSimulationPauseUnpause: TMenuItem
+        Action = ActionSimulationPauseUnpause
+        ShowAlwaysCheckable = True
+      end
+      object SeparatorBeforeShowColliders: TMenuItem
+        Caption = '-'
+      end
       object MenuItemShowColliders: TMenuItem
         Action = ActionShowColliders
-      end
-      object MenuItemHideColliders: TMenuItem
-        Action = ActionHideColiders
+        ShowAlwaysCheckable = True
       end
     end
     object MenuItemCode: TMenuItem
@@ -1093,11 +1102,20 @@ object ProjectForm: TProjectForm
       OnExecute = ActionShowCollidersExecute
       OnUpdate = ActionViewportUpdate
     end
-    object ActionHideColiders: TAction
+    object ActionSimulationPlayStop: TAction
       Category = 'Physics'
-      Caption = 'Hide Coliders'
-      OnExecute = ActionHideColidersExecute
-      OnUpdate = ActionViewportUpdate
+      Caption = 'Play Simulation'
+      ImageIndex = 5
+      OnExecute = ActionSimulationPlayStopExecute
+      OnUpdate = ActionSimulationPlayStopUpdate
+      ShortCut = 16464
+    end
+    object ActionSimulationPauseUnpause: TAction
+      Category = 'Physics'
+      Caption = 'Pause Simulation'
+      ImageIndex = 7
+      OnExecute = ActionSimulationPauseUnpauseExecute
+      OnUpdate = ActionSimulationPauseUnpauseUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
