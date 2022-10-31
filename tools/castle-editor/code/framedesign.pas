@@ -3074,11 +3074,21 @@ var
   NewDesignOwner, NewDesignRoot, Sel: TComponent;
   LoadInfo: TInternalComponentLoadInfo;
   R: TRegisteredComponent;
+  SavedSelection: TSavedSelection;
 begin
   Sel := SelectedComponent;
   Assert(Sel <> nil); // menu item should be disabled otherwise
 
   R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
+  if Sel.ClassType = R.ComponentClass then
+  begin
+    ErrorBox(Format('Component "%s" already has class "%s", no change is necessary.', [
+        Sel.Name,
+        Sel.ClassName
+      ]));
+    Exit;
+  end;
 
   if YesNoBox('Change Component Class',
        Format('Changing component class is a potentially dangerous operation. All the properties you set in the current class that don''t exist in new class will be simply discarded.' + NL +
@@ -3089,20 +3099,22 @@ begin
          R.ComponentClass.ClassName
        ])) then
   begin
-    // TODO preserve state
+    SavedSelection := GetSavedSelection;
 
     LoadInfo := TInternalComponentLoadInfo.Create;
     try
-     LoadInfo.ChangeClassName := Sel.Name;
-     LoadInfo.ChangeClassClass := R.ComponentClass;
+      LoadInfo.ChangeClassName := Sel.Name;
+      LoadInfo.ChangeClassClass := R.ComponentClass;
 
-     { To change class, we reload whole design, this way
-       all references to Sel.Name will remain correct. }
+      { To change class, we reload whole design, this way
+        all references to Sel.Name will remain correct. }
 
-     NewDesignOwner := TComponent.Create(Self);
-     NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
-     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
-   finally FreeAndNil(LoadInfo) end;
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
+    RestoreSavedSelection(SavedSelection);
   end;
 end;
 
