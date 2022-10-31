@@ -1316,22 +1316,14 @@
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
-      (it's linked to TCastleWalkNavigation.OnFall in this case).
-
-      TODO: This will be deprecated at some point, and you will be adviced
-      to always use physics, through @link(TCastleTransform.RigidBody),
-      to have realistic gravity. }
+      (it's linked to TCastleWalkNavigation.OnFall in this case). }
     property Gravity: boolean read FGravity write FGravity default false;
       {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { Falling speed, in units per second, for @link(Gravity).
 
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
-      0 means no falling.
-
-      TODO: In CGE 7.x this will be deprecated, and you will be adviced
-      to always use physics, through @link(TCastleTransform.RigidBody),
-      to have realistic gravity. }
+      0 means no falling. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
