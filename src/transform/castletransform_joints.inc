@@ -74,6 +74,18 @@
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    {  Create design-time things that are displayed in hierarchy like gizmos
+       to visualize physics joint 3D points. They get context menu item to show/hide.
+       If you want to visualize the behavior using a visible TCastleTransform,
+       then create and add to Parent a descendant of TTemporaryJointTransform,
+       and set InternalCastleDesignInvalidate to @true. }
+    procedure InternalCreateGizmos; virtual;
+
+    { Destroy design-time stuff.
+      You can destroy any component, just be sure
+      to set InternalCastleDesignInvalidate to @true. }
+    procedure InternalDestroyGizmos; virtual;
   published
     { Makes the joint breakable when force is greater than BreakThresholdForce
       or torque than BreakThresholdTorque. }
@@ -742,6 +754,16 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TAbstractJoint.InternalCreateGizmos;
+begin
+  // nothing in this class
+end;
+
+procedure TAbstractJoint.InternalDestroyGizmos;
+begin
+  // nothing in this class
 end;
 
 { TCastleHingeJoint ---------------------------------------------------------------- }

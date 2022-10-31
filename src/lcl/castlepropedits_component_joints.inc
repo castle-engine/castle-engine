@@ -50,24 +50,24 @@ end;
 procedure TCastleJointsComponentEditor.ExecuteVerb(Index: Integer);
 var
   InheritedCount: Integer;
-  Behavior: TCastleBehavior;
+  Joint: TAbstractJoint;
 begin
   InheritedCount := inherited GetVerbCount;
   if Index < InheritedCount then
     inherited ExecuteVerb(Index)
   else
   begin
-    Behavior := Component as TCastleBehavior;
+    Joint := Component as TAbstractJoint;
     if Index = InheritedCount then
     begin
-      Behavior.InternalCreateGizmos;
+      Joint.InternalCreateGizmos;
       GetDesigner.Modified; // maybe not needed
     end else
     if Index = InheritedCount + 1 then
     begin
-      Behavior.InternalDestroyGizmos;
+      Joint.InternalDestroyGizmos;
       GetDesigner.Modified; // maybe not needed
     end else
-      WritelnWarning(Behavior.ClassName + '.ExecuteVerb invalid verb index: %d', [Index]);
+      WritelnWarning(Joint.ClassName + '.ExecuteVerb invalid verb index: %d', [Index]);
   end;
 end;

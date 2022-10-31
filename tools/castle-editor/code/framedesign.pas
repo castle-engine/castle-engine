@@ -245,8 +245,11 @@ type
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
+      (*
+      // The TransformDesigning mechanism works, but it unused for now.
       FTransformDesigning: TCastleTransform;
       FTransformDesigningObserver: TFreeNotificationObserver;
+      *)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
 
@@ -264,12 +267,16 @@ type
       const SourceShellList: TCastleShellListView;
       const ParentComponent: TComponent): TComponentClass;
 
+    (*
+    // The TransformDesigning mechanism works, but it unused for now.
+
     procedure SetTransformDesigning(const Value: TCastleTransform);
     procedure TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
     { For this transform we display design-time helpers (e.g. to edit joints' anchors),
       using TCastleBehavior.DesigningBegin and TCastleBehavior.DesigningEnd. }
     property TransformDesigning: TCastleTransform
       read FTransformDesigning write SetTransformDesigning;
+    *)
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
@@ -1468,8 +1475,11 @@ begin
   // needed to set right action state maybe lazarus bug?
   ActionSimulationPauseUnpause.Update;
 
+  (*
+  // The TransformDesigning mechanism works, but it unused for now.
   FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
+  *)
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1939,10 +1949,13 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
         { If component is TCastleMeshCollider try to set Scene property to parent }
         if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
           (Result as TCastleMeshCollider).Mesh := ParentComponent;
+        (*
+        // The TransformDesigning mechanism works, but it unused for now.
         { When creating new behavior under selected transform, call DesigningBegin.
           This way temporary anchors appear immediately on newly added physics joint. }
         if ParentComponent = TransformDesigning then
           (Result as TCastleBehavior).DesigningBegin;
+        *)
       finally
         FinishAddingComponent(Result);
       end;
@@ -4309,12 +4322,15 @@ begin
     T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
+  (*
+  // The TransformDesigning mechanism works, but it unused for now.
   if SelectedComponent is TDesignTransform then
     { Design parent of TDesignTransform,
       otherwise TDesignTransform would disappear as soon as we select it. }
     TransformDesigning := TDesignTransform(SelectedComponent).Parent
   else
     TransformDesigning := T;
+  *)
 
   if T is TCastleAbstractRootTransform then
     { Special case to disallow editing TCastleAbstractRootTransform transformation.
@@ -4332,6 +4348,8 @@ begin
   UpdateCurrentViewport;
 end;
 
+(*
+// The TransformDesigning mechanism works, but it unused for now.
 procedure TDesignFrame.TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
 begin
   TransformDesigning := nil;
@@ -4359,6 +4377,7 @@ begin
     end;
   end;
 end;
+*)
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
 begin
