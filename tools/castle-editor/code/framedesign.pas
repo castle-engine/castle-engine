@@ -5428,9 +5428,9 @@ begin
   try
     for B in BehList do
       if FShowColliders then
-        TCastleCollider(B).DesigningBegin
+        TCastleCollider(B).InternalDesigningBegin
       else
-        TCastleCollider(B).DesigningEnd;
+        TCastleCollider(B).InternalDesigningEnd;
   finally FreeAndNil(BehList) end;
 end;
 
