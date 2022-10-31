@@ -50,14 +50,14 @@ end;
 procedure TCastleJointsComponentEditor.ExecuteVerb(Index: Integer);
 var
   InheritedCount: Integer;
-  Joint: TAbstractJoint;
+  Joint: TCastleAbstractJoint;
 begin
   InheritedCount := inherited GetVerbCount;
   if Index < InheritedCount then
     inherited ExecuteVerb(Index)
   else
   begin
-    Joint := Component as TAbstractJoint;
+    Joint := Component as TCastleAbstractJoint;
     if Index = InheritedCount then
     begin
       Joint.InternalCreateGizmos;
