@@ -5046,10 +5046,10 @@ begin
   V := CurrentViewport;
   if V = nil then Exit;
 
-  BehList := V.Items.FindAllBehaviors(TAbstractJoint);
+  BehList := V.Items.FindAllBehaviors(TCastleAbstractJoint);
   try
     for B in BehList do
-      TAbstractJoint(B).InternalCreateGizmos;
+      TCastleAbstractJoint(B).InternalCreateGizmos;
   finally FreeAndNil(BehList) end;
 end;
 
@@ -5100,10 +5100,10 @@ begin
   V := CurrentViewport;
   if V = nil then Exit;
 
-  BehList := V.Items.FindAllBehaviors(TAbstractJoint);
+  BehList := V.Items.FindAllBehaviors(TCastleAbstractJoint);
   try
     for B in BehList do
-      TAbstractJoint(B).InternalDestroyGizmos;
+      TCastleAbstractJoint(B).InternalDestroyGizmos;
   finally FreeAndNil(BehList) end;
 end;
 

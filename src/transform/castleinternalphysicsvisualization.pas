@@ -31,7 +31,7 @@ type
   TDesignJointTransform = class(TDesignTransform)
   strict private
     FColor: TCastleColor;
-    FJoint: TAbstractJoint;
+    FJoint: TCastleAbstractJoint;
     procedure SetColor(const Value: TCastleColor);
   protected
     FSphere: TCastleSphere;
@@ -46,13 +46,13 @@ type
     procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
   public
     constructor Create(AOwner: TComponent;
-      const AJoint: TAbstractJoint); reintroduce; virtual;
+      const AJoint: TCastleAbstractJoint); reintroduce; virtual;
     destructor Destroy; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     property Value: TVector3 read GetObservedValue write SetValue;
-    property Joint: TAbstractJoint read FJoint;
+    property Joint: TCastleAbstractJoint read FJoint;
     property Color: TCastleColor read FColor write SetColor;
   end;
 
@@ -67,7 +67,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
   TDesignJointWorldPoint = class(TDesignJointTransform)
@@ -75,7 +75,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
   TDesignJointWorldAnchor = class(TDesignJointTransform)
@@ -83,7 +83,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
   TDesignJointConnectedWorldAnchor = class(TDesignJointTransform)
@@ -91,7 +91,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
   TDesignJointWorldGroundAnchor = class(TDesignJointTransform)
@@ -99,7 +99,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
   TDesignJointConnectedWorldGroundAnchor = class(TDesignJointTransform)
@@ -107,7 +107,7 @@ type
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
   public
-    constructor Create(AOwner: TComponent; const AJoint: TAbstractJoint); override;
+    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
 implementation
@@ -117,7 +117,7 @@ uses CastleRenderContext;
 { TDesignJointTransform --------------------------------------------------- }
 
 constructor TDesignJointTransform.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner);
 
@@ -294,7 +294,7 @@ end;
 { TDesignJointConnectedAnchor --------------------------------------------- }
 
 constructor TDesignJointConnectedAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Green;
@@ -324,7 +324,7 @@ end;
 { TDesignJointWorldPoint -------------------------------------------------- }
 
 constructor TDesignJointWorldPoint.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Blue;
@@ -348,7 +348,7 @@ end;
 { TDesignJointWorldAnchor ------------------------------------------------- }
 
 constructor TDesignJointWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Red;
@@ -387,7 +387,7 @@ end;
 { TDesignJointConnectedWorldAnchor ---------------------------------------- }
 
 constructor TDesignJointConnectedWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Green;
@@ -418,7 +418,7 @@ end;
 { TDesignJointWorldGroundAnchor ------------------------------------------- }
 
 constructor TDesignJointWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Orange;
@@ -448,7 +448,7 @@ end;
 { TDesignJointConnectedWorldGroundAnchor ---------------------------------- }
 
 constructor TDesignJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TAbstractJoint);
+  const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Teal;

@@ -20,7 +20,7 @@
   { The most abstract joint class that observes the existence of rigid body
     and its state, handles proper attachment and detachment from the parent,
     and includes the properties available in all joints. }
-  TAbstractJoint = class(TCastleBehavior)
+  TCastleAbstractJoint = class(TCastleBehavior)
   protected
     { When joint is added to world we need found parent rigid body and set
       callbacks for its initialize/deinitialize events. If this pointer is not nil
@@ -99,11 +99,11 @@
   end;
 
   { Abstract class for joints that uses only one TCastleTransform. }
-  TAbstractOneBodyJoint = class(TAbstractJoint)
+  TAbstractOneBodyJoint = class(TCastleAbstractJoint)
   end;
 
   { Abstract class for joints that connects two TCastleTransforms. }
-  TAbstractTwoBodiesJoint = class (TAbstractJoint)
+  TAbstractTwoBodiesJoint = class (TCastleAbstractJoint)
   private
     { TAbstractTwoBodiesJoint means that joint connects two transforms so this is
       the second one transform pointer }
@@ -161,7 +161,7 @@
     procedure ParentAfterAttach; override;
 
     { We don't need check WorldAfterAttach and WorldBeforeDetach because all
-      things are done in TAbstractJoint }
+      things are done in TCastleAbstractJoint }
   published
     { Second transform of physics joint - can't be the Parent of joint. }
     property ConnectedTransform: TCastleTransform read FConnectedTransform
@@ -584,22 +584,22 @@ begin
   end;
 end;
 
-{ TAbstractJoint ------------------------------------------------------------- }
+{ TCastleAbstractJoint ------------------------------------------------------------- }
 
-destructor TAbstractJoint.Destroy;
+destructor TCastleAbstractJoint.Destroy;
 begin
   DeinitializeKraftJoint;
   inherited Destroy;
 end;
 
-procedure TAbstractJoint.RecreateKraftJoint;
+procedure TCastleAbstractJoint.RecreateKraftJoint;
 begin
   DeinitializeKraftJoint;
   if AllNeededKraftObjectsInitialized then
     InitializeKraftJoint;
 end;
 
-procedure TAbstractJoint.InitializeKraftJoint;
+procedure TCastleAbstractJoint.InitializeKraftJoint;
 begin
   CreateKraftJoint;
   // make sure rigid body is active after joint creation
@@ -609,19 +609,19 @@ begin
   UpdateBreakThresholdTorqueInKraft;
 end;
 
-function TAbstractJoint.AllNeededKraftObjectsInitialized: Boolean;
+function TCastleAbstractJoint.AllNeededKraftObjectsInitialized: Boolean;
 begin
   Result := (FParentRigidBody <> nil) and FParentRigidBody.IsInitialized;
 end;
 
-procedure TAbstractJoint.OnParentTransformAddBehavior(
+procedure TCastleAbstractJoint.OnParentTransformAddBehavior(
   const Component: TComponent);
 begin
   FParentRigidBody := Component as TCastleRigidBody;
   SetParentRigidBodyEvents;
 end;
 
-procedure TAbstractJoint.OnBeforeParentTransfromRemoveBehavior(
+procedure TCastleAbstractJoint.OnBeforeParentTransfromRemoveBehavior(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
@@ -629,19 +629,19 @@ begin
   FParentRigidBody := nil;
 end;
 
-procedure TAbstractJoint.OnParentRigidBodyInitialized(
+procedure TCastleAbstractJoint.OnParentRigidBodyInitialized(
   const Component: TComponent);
 begin
   RecreateKraftJoint;
 end;
 
-procedure TAbstractJoint.OnBeforeParentRigidBodyDeinitialized(
+procedure TCastleAbstractJoint.OnBeforeParentRigidBodyDeinitialized(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
 end;
 
-procedure TAbstractJoint.SetParentRigidBodyEvents;
+procedure TCastleAbstractJoint.SetParentRigidBodyEvents;
 begin
   if FParentRigidBody <> nil then
   begin
@@ -650,7 +650,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.RemoveParentRigidBodyEvents;
+procedure TCastleAbstractJoint.RemoveParentRigidBodyEvents;
 begin
   if FParentRigidBody <> nil then
   begin
@@ -659,19 +659,19 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.UpdateBreakThresholdForceInKraft;
+procedure TCastleAbstractJoint.UpdateBreakThresholdForceInKraft;
 begin
   if GetKraftJoint <> nil then
     GetKraftJoint.BreakThresholdForce := FBreakThresholdForce;
 end;
 
-procedure TAbstractJoint.UpdateBreakThresholdTorqueInKraft;
+procedure TCastleAbstractJoint.UpdateBreakThresholdTorqueInKraft;
 begin
   if GetKraftJoint <> nil then
     GetKraftJoint.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
-procedure TAbstractJoint.UpdateBreakableInKraft;
+procedure TCastleAbstractJoint.UpdateBreakableInKraft;
 begin
   if GetKraftJoint <> nil then
   begin
@@ -682,7 +682,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
+procedure TCastleAbstractJoint.SetBreakThresholdForce(const AValue: Single);
 begin
   if not SameValue(FBreakThresholdForce, AValue) then
   begin
@@ -691,7 +691,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
+procedure TCastleAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
 begin
   if not SameValue(FBreakThresholdTorque, AValue) then
   begin
@@ -700,7 +700,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.SetBreakable(const AValue: Boolean);
+procedure TCastleAbstractJoint.SetBreakable(const AValue: Boolean);
 begin
   if FBreakable <> AValue then
   begin
@@ -709,7 +709,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.WorldAfterAttach;
+procedure TCastleAbstractJoint.WorldAfterAttach;
 begin
   inherited WorldAfterAttach;
 
@@ -730,7 +730,7 @@ begin
   end;
 end;
 
-procedure TAbstractJoint.WorldBeforeDetach;
+procedure TCastleAbstractJoint.WorldBeforeDetach;
 begin
   { This means we are before detach from world so we need to get parent
   remove all callbacks also rigid body callbacks }
@@ -745,7 +745,7 @@ begin
   inherited ParentBeforeDetach;
 end;
 
-function TAbstractJoint.PropertySections(const PropertyName: String
+function TCastleAbstractJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -756,12 +756,12 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TAbstractJoint.InternalCreateGizmos;
+procedure TCastleAbstractJoint.InternalCreateGizmos;
 begin
   // nothing in this class
 end;
 
-procedure TAbstractJoint.InternalDestroyGizmos;
+procedure TCastleAbstractJoint.InternalDestroyGizmos;
 begin
   // nothing in this class
 end;
