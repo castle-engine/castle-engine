@@ -200,12 +200,10 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
-    { TODO: In the long run, these methods should not be virtual on TCastleCollider,
-      they should be on TCastleBehavior. This is done in physics_j branch. }
     { Create collider visualization. }
-    procedure DesigningBegin; virtual;
+    procedure InternalDesigningBegin; virtual;
     { Destroy collider visualization. }
-    procedure DesigningEnd; virtual;
+    procedure InternalDesigningEnd; virtual;
 
     procedure ParentBeforeDetach; override;
 
@@ -332,9 +330,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
-    procedure ParentBeforeDetach; override;
+    procedure InternalDesigningBegin; override;
+    procedure InternalDesigningEnd; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -376,9 +373,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
-    procedure ParentBeforeDetach; override;
+    procedure InternalDesigningBegin; override;
+    procedure InternalDesigningEnd; override;
 
     { Box size.
       Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
@@ -445,9 +441,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
-    procedure ParentBeforeDetach; override;
+    procedure InternalDesigningBegin; override;
+    procedure InternalDesigningEnd; override;
   published
     { Sphere radius.
       Default is 1 (if not AutoSize), consistent with TCastleSphere. }
@@ -487,9 +482,8 @@
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    procedure DesigningBegin; override;
-    procedure DesigningEnd; override;
-    procedure ParentBeforeDetach; override;
+    procedure InternalDesigningBegin; override;
+    procedure InternalDesigningEnd; override;
   published
     { Sphere (at both top and bottom of capsule) radius.
       Default is 1 (if not AutoSize), consistent with TCastleSphere. }
@@ -1252,7 +1246,7 @@ begin
   end;
 end;
 
-procedure TCastleCollider.DesigningBegin;
+procedure TCastleCollider.InternalDesigningBegin;
 begin
   inherited;
   if FVisualizationParent = nil then
@@ -1265,7 +1259,7 @@ begin
   end;
 end;
 
-procedure TCastleCollider.DesigningEnd;
+procedure TCastleCollider.InternalDesigningEnd;
 begin
   FreeAndNil(FVisualizationParent);
   inherited;
@@ -1273,7 +1267,7 @@ end;
 
 procedure TCastleCollider.ParentBeforeDetach;
 begin
-  FreeAndNil(FVisualizationParent);
+  InternalDesigningEnd;
   inherited;
 end;
 
@@ -1709,7 +1703,7 @@ begin
     LocalBoundingBox.Min.AsArray[NormalCoord];
 end;
 
-procedure TCastlePlaneCollider.DesigningBegin;
+procedure TCastlePlaneCollider.InternalDesigningBegin;
 begin
   inherited;
   if FVisualization = nil then
@@ -1721,13 +1715,7 @@ begin
   end;
 end;
 
-procedure TCastlePlaneCollider.DesigningEnd;
-begin
-  FreeAndNil(FVisualization);
-  inherited;
-end;
-
-procedure TCastlePlaneCollider.ParentBeforeDetach;
+procedure TCastlePlaneCollider.InternalDesigningEnd;
 begin
   FreeAndNil(FVisualization);
   inherited;
@@ -1870,7 +1858,7 @@ begin
   end;
 end;
 
-procedure TCastleBoxCollider.DesigningBegin;
+procedure TCastleBoxCollider.InternalDesigningBegin;
 begin
   inherited;
   if FVisualization = nil then
@@ -1882,13 +1870,7 @@ begin
   end;
 end;
 
-procedure TCastleBoxCollider.DesigningEnd;
-begin
-  FreeAndNil(FVisualization);
-  inherited;
-end;
-
-procedure TCastleBoxCollider.ParentBeforeDetach;
+procedure TCastleBoxCollider.InternalDesigningEnd;
 begin
   FreeAndNil(FVisualization);
   inherited;
@@ -1994,7 +1976,7 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleSphereCollider.DesigningBegin;
+procedure TCastleSphereCollider.InternalDesigningBegin;
 begin
   inherited;
   if FVisualization = nil then
@@ -2006,13 +1988,7 @@ begin
   end;
 end;
 
-procedure TCastleSphereCollider.DesigningEnd;
-begin
-  FreeAndNil(FVisualization);
-  inherited;
-end;
-
-procedure TCastleSphereCollider.ParentBeforeDetach;
+procedure TCastleSphereCollider.InternalDesigningEnd;
 begin
   FreeAndNil(FVisualization);
   inherited;
@@ -2106,9 +2082,9 @@ begin
   end;
 end;
 
-procedure TCastleCapsuleCollider.DesigningBegin;
+procedure TCastleCapsuleCollider.InternalDesigningBegin;
 begin
-  inherited DesigningBegin;
+  inherited;
 
   if FVisualization = nil then
   begin
@@ -2132,13 +2108,7 @@ begin
   end;
 end;
 
-procedure TCastleCapsuleCollider.DesigningEnd;
-begin
-  FreeAndNil(FVisualization);
-  inherited DesigningEnd;
-end;
-
-procedure TCastleCapsuleCollider.ParentBeforeDetach;
+procedure TCastleCapsuleCollider.InternalDesigningEnd;
 begin
   FreeAndNil(FVisualization);
   inherited;
