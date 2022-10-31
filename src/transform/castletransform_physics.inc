@@ -321,6 +321,7 @@
     FVisualization: TCastleTransform;
     procedure SetNormal(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
+    function CalculateScaledDistance: Single;
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -1652,13 +1653,18 @@ begin
   end;
 end;
 
+function TCastlePlaneCollider.CalculateScaledDistance: Single;
+begin
+  Result := Distance * Approximate3DScale(TotalScale);
+end;
+
 procedure TCastlePlaneCollider.UpdateVisualization;
 begin
   inherited;
   if FVisualization <> nil then
   begin
     TCastlePlane(FVisualization).Size := Vector2(2, 2);
-    FVisualization.Translation := CastleVectors.Vector3(0, FDistance, 0);
+    FVisualization.Translation := CastleVectors.Vector3(0, CalculateScaledDistance, 0);
     FVisualization.Rotation := Vector4(CastleVectors.Vector3(0, 0, -1), // todo check why -1
       AngleRadBetweenVectors(CastleVectors.Vector3(0, 1, 0), FNormal.Normalize));
   end;
@@ -1666,8 +1672,6 @@ end;
 
 function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
-var
-  ScaleScalar: Single;
 begin
   if ARigidBody.RigidBodyType <> krbtStatic then
   begin
@@ -1676,11 +1680,9 @@ begin
     Exit;
   end;
 
-  ScaleScalar := Approximate3DScale(TotalScale);
-
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)),
-    Distance * ScaleScalar));
+    CalculateScaledDistance));
 end;
 
 procedure TCastlePlaneCollider.CalculateSizeCore;
