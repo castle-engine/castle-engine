@@ -20,13 +20,31 @@ interface
 
 uses Classes, SysUtils,
   CastleColors, CastleVectors, CastleVectorsInternalSingle, CastleTransform,
-  CastleDebugTransform, CastleScene, CastleCameras, CastleTriangles, CastleUtils;
+  CastleDebugTransform, CastleScene, CastleCameras, CastleTriangles, CastleUtils,
+  CastleClassUtils;
 
 type
+  { Visualize TCastleTransform hover.
+    This is really just a thin wrapper around TDebugTransformBox in this case. }
+  TVisualizeTransformHover = class(TComponent)
+  strict private
+    FParent: TCastleTransform;
+    FParentObserver: TFreeNotificationObserver;
+    Box: TDebugTransformBox;
+    procedure ParentFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetParent(const AValue: TCastleTransform);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    { Currently visualized TCastleTransform instance as "we are hovering over it,
+      and clicking will select it". }
+    property Parent: TCastleTransform read FParent write SetParent;
+  end;
+
   TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
 
   { Visualize TCastleTransform selection and dragging to transform. }
-  TVisualizeTransform = class(TComponent)
+  TVisualizeTransformSelected = class(TComponent)
   strict private
     type
       TGizmoScene = class(TCastleScene)
@@ -86,9 +104,9 @@ type
       end;
 
     var
-      FHover: Boolean;
       FOperation: TVisualizeOperation;
       FParent: TCastleTransform;
+      FParentObserver: TFreeNotificationObserver;
       FPickable: Boolean;
       Box: TDebugTransformBox;
       Gizmo: array [TVisualizeOperation] of TGizmoScene;
@@ -97,16 +115,18 @@ type
     procedure SetPickable(const Value: Boolean);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure ParentFreeNotification(const Sender: TFreeNotificationObserver);
   public
     OnParentModified: TNotifyEvent;
     OnGizmoStopDrag: TNotifyEvent;
-    constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { Currently visualized TCastleTransform instance.
+
+    { Currently visualized TCastleTransform instance for potential move/rotate/scale
+      (depending on Operation).
       @nil to not visualize anything. }
     property Parent: TCastleTransform read FParent write SetParent;
+
     property Pickable: Boolean read FPickable write SetPickable;
     property Operation: TVisualizeOperation read FOperation write SetOperation
       default voSelect;
@@ -123,9 +143,42 @@ uses Math,
   CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
   CastleControl, CastleKeysMouse, CastleRenderOptions;
 
-{ TVisualizeTransform.TGizmoScene -------------------------------------------- }
+{ TVisualizeTransformHover ------------------------------------------------------ }
 
-function TVisualizeTransform.TGizmoScene.PointOnAxis(
+constructor TVisualizeTransformHover.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FParentObserver := TFreeNotificationObserver.Create(Self);
+  FParentObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ParentFreeNotification;
+
+  Box := TDebugTransformBox.Create(Self);
+  Box.BoxColor := ColorOpacity(ColorHover, 0.25);
+  Box.Exists := true;
+end;
+
+destructor TVisualizeTransformHover.Destroy;
+begin
+  inherited;
+end;
+
+procedure TVisualizeTransformHover.SetParent(const AValue: TCastleTransform);
+begin
+  if FParent = AValue then Exit;
+
+  FParent := AValue;
+  FParentObserver.Observed := AValue;
+  Box.Parent := FParent;
+end;
+
+procedure TVisualizeTransformHover.ParentFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Parent := nil;
+end;
+
+{ TVisualizeTransformSelected.TGizmoScene -------------------------------------------- }
+
+function TVisualizeTransformSelected.TGizmoScene.PointOnAxis(
   out Intersection: TVector3; const Pick: TRayCollisionNode;
   const Axis: Integer): Boolean;
 
@@ -210,7 +263,7 @@ begin
   end;
 end;
 
-function TVisualizeTransform.TGizmoScene.AngleOnPlane(out Angle: Single;
+function TVisualizeTransformSelected.TGizmoScene.AngleOnPlane(out Angle: Single;
   const Pick: TRayCollisionNode; const Coord: T3DAxis): Boolean;
 var
   C1, C2: T3DAxis;
@@ -221,7 +274,7 @@ begin
     Exit(false);
   { Use RestOf3DCoordsCycle, in the lopping order X-Y-Z.
     This results in consistent ArcTan2 results, that makes rotating around
-    any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
+    any coord in TVisualizeTransformSelected.TGizmoScene.PointingDeviceMove
     have the same behavior (no need to invert angle sign for Y coord,
     as with RestOf3DCoords). }
   RestOf3DCoordsCycle(Coord, C1, C2);
@@ -231,19 +284,19 @@ begin
   Result := true;
 end;
 
-procedure TVisualizeTransform.TGizmoScene.DoParentModified;
+procedure TVisualizeTransformSelected.TGizmoScene.DoParentModified;
 begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
 end;
 
-procedure TVisualizeTransform.TGizmoScene.DoGizmoStopDrag;
+procedure TVisualizeTransformSelected.TGizmoScene.DoGizmoStopDrag;
 begin
   if Assigned(OnGizmoStopDrag) then
     OnGizmoStopDrag(Self);
 end;
 
-procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
+procedure TVisualizeTransformSelected.TGizmoScene.ChangeWorld(
   const Value: TCastleAbstractRootTransform);
 begin
   if Value <> World then
@@ -253,7 +306,7 @@ begin
   end;
 end;
 
-constructor TVisualizeTransform.TGizmoScene.Create(AOwner: TComponent);
+constructor TVisualizeTransformSelected.TGizmoScene.Create(AOwner: TComponent);
 {$ifdef DEBUG_GIZMO_PICK}
 var
   SphereGeometry: TSphereNode;
@@ -285,7 +338,7 @@ begin
   {$endif DEBUG_GIZMO_PICK}
 end;
 
-procedure TVisualizeTransform.TGizmoScene.InternalCameraChanged;
+procedure TVisualizeTransformSelected.TGizmoScene.InternalCameraChanged;
 begin
   inherited;
   { UpdateSize changes our transformation, and ChangedTransform in turn
@@ -297,7 +350,7 @@ begin
   InsideInternalCameraChanged := false;
 end;
 
-procedure TVisualizeTransform.TGizmoScene.UpdateSize;
+procedure TVisualizeTransformSelected.TGizmoScene.UpdateSize;
 
   function Projected(const V, X, Y: TVector3): TVector2;
   begin
@@ -430,13 +483,13 @@ end;
 
 (*
 // Not needed now
-function TVisualizeTransform.TGizmoScene.Dragging: boolean;
+function TVisualizeTransformSelected.TGizmoScene.Dragging: boolean;
 begin
   Result := (inherited Dragging) or GizmoDragging;
 end;
 *)
 
-function TVisualizeTransform.TGizmoScene.PointingDevicePress(
+function TVisualizeTransformSelected.TGizmoScene.PointingDevicePress(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
   AppearanceName: String;
@@ -515,7 +568,7 @@ begin
   end;
 end;
 
-function TVisualizeTransform.TGizmoScene.PointingDeviceMove(
+function TVisualizeTransformSelected.TGizmoScene.PointingDeviceMove(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
   NewPick, Diff: TVector3;
@@ -585,7 +638,7 @@ begin
   end;
 end;
 
-function TVisualizeTransform.TGizmoScene.PointingDeviceRelease(
+function TVisualizeTransformSelected.TGizmoScene.PointingDeviceRelease(
   const Pick: TRayCollisionNode; const Distance: Single;
   const CancelAction: Boolean): Boolean;
 begin
@@ -602,7 +655,7 @@ begin
   DoGizmoStopDrag;
 end;
 
-procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
+procedure TVisualizeTransformSelected.TGizmoScene.LocalRender(const Params: TRenderParams);
 var
   DistanceToCameraSqr: Single;
   GizmoShouldExist: Boolean;
@@ -620,7 +673,7 @@ begin
   inherited;
 end;
 
-function TVisualizeTransform.TGizmoScene.LocalRayCollision(
+function TVisualizeTransformSelected.TGizmoScene.LocalRayCollision(
   const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var
@@ -650,9 +703,9 @@ begin
     Result.Distance := 0;
 end;
 
-{ TVisualizeTransform ------------------------------------------------------ }
+{ TVisualizeTransformSelected ------------------------------------------------------ }
 
-constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean);
+constructor TVisualizeTransformSelected.Create(AOwner: TComponent);
 
   function CreateGizmoScene: TGizmoScene;
   begin
@@ -671,15 +724,14 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
   end;
 
 begin
-  inherited Create(AOwner);
-  FHover := AHover;
+  inherited;
   FPickable := true;
 
+  FParentObserver := TFreeNotificationObserver.Create(Self);
+  FParentObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ParentFreeNotification;
+
   Box := TDebugTransformBox.Create(Self);
-  if FHover then
-    Box.BoxColor := ColorOpacity(ColorHover, 0.25)
-  else
-    Box.BoxColor := ColorOpacity(ColorSelected, 0.5);
+  Box.BoxColor := ColorOpacity(ColorSelected, 0.5);
   Box.Exists := true;
 
   // Gizmo[voSelect] remains nil
@@ -694,45 +746,39 @@ begin
   Gizmo[voScale].Operation := voScale;
 end;
 
-destructor TVisualizeTransform.Destroy;
+destructor TVisualizeTransformSelected.Destroy;
 begin
-  { set to nil by SetParent, to detach free notification }
-  Parent := nil;
   inherited;
 end;
 
-procedure TVisualizeTransform.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FParent) then
-    { set to nil by SetParent to clean all connections nicely }
-    Parent := nil;
-end;
-
-procedure TVisualizeTransform.SetParent(const AValue: TCastleTransform);
+procedure TVisualizeTransformSelected.SetParent(const AValue: TCastleTransform);
 begin
   if FParent = AValue then Exit;
 
   if FParent <> nil then
   begin
-    FParent.RemoveFreeNotification(Self);
     Box.Parent := nil;
     if Gizmo[Operation] <> nil then
       FParent.Remove(Gizmo[Operation]);
   end;
 
   FParent := AValue;
+  FParentObserver.Observed := AValue;
 
   if FParent <> nil then
   begin
     Box.Parent := FParent;
     if Gizmo[Operation] <> nil then
       FParent.Add(Gizmo[Operation]);
-    FParent.FreeNotification(Self);
   end;
 end;
 
-procedure TVisualizeTransform.SetPickable(const Value: Boolean);
+procedure TVisualizeTransformSelected.ParentFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Parent := nil;
+end;
+
+procedure TVisualizeTransformSelected.SetPickable(const Value: Boolean);
 var
   VisualizeOperation: TVisualizeOperation;
 begin
@@ -745,19 +791,19 @@ begin
   end;
 end;
 
-procedure TVisualizeTransform.GizmoHasModifiedParent(Sender: TObject);
+procedure TVisualizeTransformSelected.GizmoHasModifiedParent(Sender: TObject);
 begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
 end;
 
-procedure TVisualizeTransform.GizmoStopDrag(Sender: TObject);
+procedure TVisualizeTransformSelected.GizmoStopDrag(Sender: TObject);
 begin
   if Assigned(OnGizmoStopDrag) then
     OnGizmoStopDrag(Self);
 end;
 
-procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
+procedure TVisualizeTransformSelected.SetOperation(const AValue: TVisualizeOperation);
 begin
   if FOperation = AValue then Exit;
 
