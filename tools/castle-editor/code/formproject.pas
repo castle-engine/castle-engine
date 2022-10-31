@@ -907,7 +907,6 @@ end;
 
 procedure TProjectForm.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
 begin
-
   ActionSimulationPauseUnpause.Enabled := (Design <> nil) and
     (CastleDesignPhysicsMode in [pmPlaying, pmPaused]);
   ActionSimulationPauseUnpause.Checked := (Design <> nil) and

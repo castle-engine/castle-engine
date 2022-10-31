@@ -387,15 +387,6 @@ object ProjectForm: TProjectForm
           Action = ActionViewportRenderNext
         end
       end
-      object Separator888888: TMenuItem
-        Caption = '-'
-      end
-      object MenuShowJointTools28: TMenuItem
-        Action = ActionPhysicsShowAllJointsTools
-      end
-      object MenuItem2888888: TMenuItem
-        Action = ActionPhysicsHideAllJointsTools
-      end
       object Separator6: TMenuItem
         Caption = '-'
       end
@@ -422,6 +413,15 @@ object ProjectForm: TProjectForm
       object MenuItemShowColliders: TMenuItem
         Action = ActionShowColliders
         ShowAlwaysCheckable = True
+      end
+      object Separator888888: TMenuItem
+        Caption = '-'
+      end
+      object MenuShowJointTools28: TMenuItem
+        Action = ActionPhysicsShowAllJointsTools
+      end
+      object MenuItem2888888: TMenuItem
+        Action = ActionPhysicsHideAllJointsTools
       end
     end
     object MenuItemCode: TMenuItem
