@@ -1225,7 +1225,7 @@ object DesignFrame: TDesignFrame
         Height = 38
         Top = 0
         Width = 36
-        Action = ActionSimulationPause
+        Action = ActionSimulationPauseUnpause
         AllowAllUp = True
         AutoSize = True
         Constraints.MinHeight = 34
@@ -1340,17 +1340,18 @@ object DesignFrame: TDesignFrame
       Category = 'Physics'
       Caption = 'Play/Stop Simulation'
       GroupIndex = 10
-      Hint = 'Play/Stop Simulation '
+      Hint = 'Play/Stop Simulation'
       ImageIndex = 5
       OnExecute = ActionSimulationPlayStopExecute
+      OnUpdate = ActionSimulationPlayStopUpdate
     end
-    object ActionSimulationPause: TAction
+    object ActionSimulationPauseUnpause: TAction
       Category = 'Physics'
       Caption = 'Pause Simulation'
       GroupIndex = 9
       ImageIndex = 7
-      OnExecute = ActionSimulationPauseExecute
-      OnUpdate = ActionSimulationPauseUpdate
+      OnExecute = ActionSimulationPauseUnpauseExecute
+      OnUpdate = ActionSimulationPauseUnpauseUpdate
     end
   end
 end
