@@ -3988,7 +3988,7 @@ begin
       T := SelectedTransform;
     SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
-    // TODO: VisualizeTransformSelected.AllParents := Selected;
+    VisualizeTransformSelected.SetSelectedParents(Selected);
     if T is TCastleAbstractRootTransform then
     begin
       { Special case to disallow editing TCastleAbstractRootTransform transformation.

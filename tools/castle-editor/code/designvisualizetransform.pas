@@ -18,7 +18,7 @@ unit DesignVisualizeTransform;
 
 interface
 
-uses Classes, SysUtils,
+uses Classes, SysUtils, Contnrs, Generics.Collections,
   CastleColors, CastleVectors, CastleVectorsInternalSingle, CastleTransform,
   CastleDebugTransform, CastleScene, CastleCameras, CastleTriangles, CastleUtils,
   CastleClassUtils;
@@ -42,6 +42,8 @@ type
   end;
 
   TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
+
+  TDebugTransformBoxList = specialize TObjectList<TDebugTransformBox>;
 
   { Visualize TCastleTransform selection and dragging to transform. }
   TVisualizeTransformSelected = class(TComponent)
@@ -108,7 +110,7 @@ type
       FParent: TCastleTransform;
       FParentObserver: TFreeNotificationObserver;
       FPickable: Boolean;
-      Box: TDebugTransformBox;
+      Boxes: TDebugTransformBoxList;
       Gizmo: array [TVisualizeOperation] of TGizmoScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
@@ -116,6 +118,7 @@ type
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
     procedure ParentFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure CreateMoreBoxes;
   public
     OnParentModified: TNotifyEvent;
     OnGizmoStopDrag: TNotifyEvent;
@@ -124,12 +127,20 @@ type
 
     { Currently visualized TCastleTransform instance for potential move/rotate/scale
       (depending on Operation).
-      @nil to not visualize anything. }
+      @nil to not visualize anything.
+
+      TODO: ideally we'd like to remove it at one point, and gizmos to transform
+      should work on multi-selection too. }
     property Parent: TCastleTransform read FParent write SetParent;
 
     property Pickable: Boolean read FPickable write SetPickable;
     property Operation: TVisualizeOperation read FOperation write SetOperation
       default voSelect;
+
+    { Visualize selected parents reflecting the given list.
+      Selected may be nil (equivalent to empty list).
+      Only TCastleTransform descendants on Selected are taken into account here. }
+    procedure SetSelectedParents(const Selected: TComponentList);
   end;
 
 var
@@ -730,9 +741,8 @@ begin
   FParentObserver := TFreeNotificationObserver.Create(Self);
   FParentObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ParentFreeNotification;
 
-  Box := TDebugTransformBox.Create(Self);
-  Box.BoxColor := ColorOpacity(ColorSelected, 0.5);
-  Box.Exists := true;
+  Boxes := TDebugTransformBoxList.Create(true);
+  CreateMoreBoxes;
 
   // Gizmo[voSelect] remains nil
   Gizmo[voTranslate] := CreateGizmoScene;
@@ -751,13 +761,53 @@ begin
   inherited;
 end;
 
+procedure TVisualizeTransformSelected.CreateMoreBoxes;
+const
+  IncreaseBoxes = 8;
+var
+  C, I: Integer;
+begin
+  C := Boxes.Count;
+  Boxes.Count := Boxes.Count + IncreaseBoxes;
+  for I := C to Boxes.Count - 1 do
+  begin
+    Boxes[I] := TDebugTransformBox.Create(Self);
+    Boxes[I].BoxColor := ColorOpacity(ColorSelected, 0.5);
+    Boxes[I].Exists := true;
+  end;
+end;
+
+procedure TVisualizeTransformSelected.SetSelectedParents(const Selected: TComponentList);
+var
+  NextBox, I: Integer;
+begin
+  NextBox := 0;
+  if Selected <> nil then
+    for I := 0 to Selected.Count - 1 do
+      if Selected[I] is TCastleTransform then
+      begin
+        if NextBox >= Boxes.Count then
+          CreateMoreBoxes;
+        Assert(NextBox < Boxes.Count);
+        Boxes[NextBox].Parent := TCastleTransform(Selected[I]);
+        Inc(NextBox);
+      end;
+
+  { Note: each TDebugTransformBox already observes its Parent,
+    and sets own Parent=nil if the parent is freed.
+    So there's no need to worry about it here anymore. }
+
+  { Detach remaining Boxes from any parent, to not show them }
+  for I := NextBox to Boxes.Count - 1 do
+    Boxes[I].Parent := nil;
+end;
+
 procedure TVisualizeTransformSelected.SetParent(const AValue: TCastleTransform);
 begin
   if FParent = AValue then Exit;
 
   if FParent <> nil then
   begin
-    Box.Parent := nil;
     if Gizmo[Operation] <> nil then
       FParent.Remove(Gizmo[Operation]);
   end;
@@ -767,7 +817,6 @@ begin
 
   if FParent <> nil then
   begin
-    Box.Parent := FParent;
     if Gizmo[Operation] <> nil then
       FParent.Add(Gizmo[Operation]);
   end;
