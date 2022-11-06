@@ -151,7 +151,6 @@
       This may in turn call TCastleCollider.InitializeKraft
       and TCastleCollider.CreateKraftShape. }
     procedure ShapeChangedNotifyRigidBody;
-    function ForceStaticBody: Boolean; virtual;
 
     { Called when the collider size has changed and needs to be updated. }
     procedure UpdateVisualization; virtual;
@@ -323,7 +322,6 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    function ForceStaticBody: Boolean; override;
     procedure CalculateSizeCore; override;
     procedure UpdateVisualization; override;
   public
@@ -520,7 +518,6 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure SetMesh(const AValue: TCastleTransform);
-    function ForceStaticBody: Boolean; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
@@ -606,7 +603,8 @@
 
     { Updates Kraft rigid body type krbtDynamic, krbtKinematic, krbtStatic
       based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic,
-      InitializeEngineRigidBody.}
+      InitializeEngineRigidBody.
+      Note that some colliders change it to krbtStatic if they only support static colliders. }
     procedure UpdateKraftRigidBodyType;
 
     { Changes Kraft GravityScale based on Gravity property. Used in SetGravity
@@ -1232,11 +1230,6 @@ begin
   inherited;
 end;
 
-function TCastleCollider.ForceStaticBody: Boolean;
-begin
-  Result := false;
-end;
-
 procedure TCastleCollider.UpdateVisualization;
 begin
   if FVisualizationParent <> nil then
@@ -1667,12 +1660,9 @@ end;
 function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
-  if ARigidBody.RigidBodyType <> krbtStatic then
-  begin
-    WritelnWarning('TCastlePlaneCollider is available only for static rigid bodies.');
-    Result := nil;
-    Exit;
-  end;
+  // TCastlePlaneCollider is available only for static rigid bodies
+  // TODO: We force krbtStatic now. Can we allow krbtKinematic too?
+  ARigidBody.RigidBodyType := krbtStatic;
 
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)),
@@ -1730,11 +1720,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-function TCastlePlaneCollider.ForceStaticBody: Boolean;
-begin
-  Result := true;
 end;
 
 {$define read_implementation_methods}
@@ -2236,14 +2221,8 @@ begin
     Exit;
   end;
 
-  if ARigidBody.RigidBodyType <> krbtStatic then
-  begin
-    WritelnWarning('TCastleMeshCollider "%s" is available only for static rigid bodies.', [
-      Name
-    ]);
-    Result := nil;
-    Exit;
-  end;
+  { TODO: We force krbtStatic now. Can we allow krbtKinematic too? }
+  ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
 
@@ -2307,11 +2286,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-function TCastleMeshCollider.ForceStaticBody: Boolean;
-begin
-  Result := true;
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }
@@ -2435,29 +2409,11 @@ begin
 end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
-
-  function ColliderForceStaticBody: Boolean;
-  var
-    C: TCastleCollider;
-  begin
-    { We use GetCastleColliderFromParent, not FCastleCollider,
-      because FCastleCollider is not assigned yet by caller(s). }
-    C := GetCastleColliderFromParent;
-    Result := (C <> nil) and C.ForceStaticBody;
-  end;
-
 begin
   if FState in [stateNone] then
   begin
     if FKraftBody <> nil then
     begin
-      if ColliderForceStaticBody then
-        { Some colliders only support static, in which case we use krbtStatic
-          regardless of Dynamic/Animated.
-          TODO: Are these colliders (mesh and plane) also disable Animated?
-          For now we assume yes, but maybe it is no, and we should still honor Animated? }
-        FKraftBody.SetRigidBodyType(krbtStatic)
-      else
       if FDynamic then
         FKraftBody.SetRigidBodyType(krbtDynamic)
       else
