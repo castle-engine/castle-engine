@@ -102,6 +102,9 @@ type
     SeparatorBeforeShowColliders: TMenuItem;
     MenuItemShowColliders: TMenuItem;
     MenuItemPhysics: TMenuItem;
+    MenuItemCacheClean: TMenuItem;
+    MenuItemCache: TMenuItem;
+    SeparatorBeforeCache: TMenuItem;
     MenuItemWireframe: TMenuItem;
     MenuItem34: TMenuItem;
     MenuItem35: TMenuItem;
@@ -352,6 +355,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure ListOutputDblClick(Sender: TObject);
+    procedure MenuItemCacheCleanClick(Sender: TObject);
+    procedure MenuItemCacheClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
     procedure MenuItemEnableDisableDockingClick(Sender: TObject);
     procedure MenuItemInstallClick(Sender: TObject);
@@ -1768,6 +1773,16 @@ begin
   end;
 end;
 
+procedure TProjectForm.MenuItemCacheCleanClick(Sender: TObject);
+begin
+  BuildToolCall(['cache-clean']);
+end;
+
+procedure TProjectForm.MenuItemCacheClick(Sender: TObject);
+begin
+  BuildToolCall(['cache']);
+end;
+
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
   if not IsCreatingNewDesignAvailable then
@@ -2833,7 +2848,8 @@ begin
         (Command = 'generate-program') or
         (Command = 'editor') or
         (Command = 'editor-rebuild-if-needed') or
-        (Command = 'editor-run')
+        (Command = 'editor-run') or
+        (Command = 'cache')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -2844,7 +2860,8 @@ begin
     if (Command = 'compile') or
        (Command = 'run') or
        (Command = 'package') or
-       (Command = 'install') then
+       (Command = 'install') or
+       (Command = 'cache') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
     // add --package-format
     if (Command = 'package') or
@@ -2936,6 +2953,8 @@ begin
   MenuItemAutoGenerateClean.Enabled := AEnabled;
   MenuItemRestartRebuildEditor.Enabled := AEnabled;
   MenuItemBreakProcess.Enabled := not AEnabled;
+  MenuItemCache.Enabled := AEnabled;
+  MenuItemCacheClean.Enabled := AEnabled;
 end;
 
 procedure TProjectForm.UpdateFormCaption(Sender: TObject);

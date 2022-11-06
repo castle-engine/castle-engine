@@ -238,7 +238,8 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
-      VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      VisualizeTransformHover: TVisualizeTransformHover;
+      VisualizeTransformSelected: TVisualizeTransformSelected;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       DesignStateBeforePhysicsRun: String;
       DesignModifiedBeforePhysicsRun: Boolean;
@@ -797,6 +798,40 @@ end;
 
 function TDesignFrame.TDesignerLayer.Press(
   const Event: TInputPressRelease): Boolean;
+
+  procedure SetSelection(const NewComponent: TComponent; const ToggleSelection: Boolean);
+  var
+    NewComponentNode: TTreeNode;
+    NewSelection: TList;
+    I: Integer;
+  begin
+    if ToggleSelection then
+    begin
+      if Frame.TreeNodeMap.TryGetValue(NewComponent, NewComponentNode) then
+      begin
+        if NewComponentNode.Selected then
+        begin
+          { Unfortunately, unselecting by setting
+              NewComponentNode.Selected := false
+            doesn't work. }
+          NewSelection := TList.Create;
+          try
+            for I := 0 to Frame.ControlsTree.SelectionCount - 1 do
+              if NewComponentNode <> Frame.ControlsTree.Selections[I] then
+                NewSelection.Add(Frame.ControlsTree.Selections[I]);
+            Frame.ControlsTree.Select(NewSelection);
+          finally FreeAndNil(NewSelection) end;
+        end else
+          NewComponentNode.Selected := not NewComponentNode.Selected;
+      end else
+        WritelnWarning('Cannot toggle selection of "%s" because it is not found in TreeNodeMap', [
+          NewComponent.Name
+        ]);
+    end
+    else
+      Frame.SelectedComponent := NewComponent;
+  end;
+
 var
   UI: TCastleUserInterface;
 begin
@@ -846,7 +881,7 @@ begin
         This allows to change the component without changing the selected component. }
       if (not (mkShift in Event.ModifiersDown)) then
       begin
-        Frame.SelectedComponent := HoverComponent(Event.Position);
+        SetSelection(HoverComponent(Event.Position), mkCtrl in Event.ModifiersDown);
       end;
 
       if Frame.Mode <> moSelect then
@@ -1397,8 +1432,8 @@ begin
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
-  VisualizeTransformHover := TVisualizeTransform.Create(Self, true);
-  VisualizeTransformSelected := TVisualizeTransform.Create(Self, false);
+  VisualizeTransformHover := TVisualizeTransformHover.Create(Self);
+  VisualizeTransformSelected := TVisualizeTransformSelected.Create(Self);
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
@@ -3218,7 +3253,7 @@ end;
 procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
-    RecordUndo('Transform ' + (Sender as TVisualizeTransform).Parent.Name +
+    RecordUndo('Transform ' + (Sender as TVisualizeTransformSelected).Parent.Name +
       ' with Gizmo', ucHigh);
 end;
 
@@ -4105,31 +4140,35 @@ begin
         So there's no reason to run InitializeCollectionFormEvents on other itXxx inspectors. }
       InitializeCollectionFormEvents(itAll);
     finally FreeAndNil(SelectionForOI) end;
+
+    UI := SelectedUserInterface;
+    SetEnabledVisible(PanelAnchors, UI <> nil);
+    if UI <> nil then
+    begin
+      UpdateLabelSizeInfo(UI);
+      UpdateAnchors(UI, true);
+    end;
+
+    V := SelectedViewport;
+    if SelectedComponent is TCastleBehavior then
+      { Highlight using VisualizeTransformSelected also transformation of selected behavior }
+      T := TCastleBehavior(SelectedComponent).Parent
+    else
+      T := SelectedTransform;
+    SetEnabledVisible(PanelLayoutTransform, T <> nil);
+
+    VisualizeTransformSelected.SetSelectedParents(Selected);
+    if T is TCastleAbstractRootTransform then
+    begin
+      { Special case to disallow editing TCastleAbstractRootTransform transformation.
+        See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
+        transformation is very unintuitive. }
+      VisualizeTransformSelected.Parent := nil
+    end else
+    begin
+      VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
+    end;
   finally FreeAndNil(Selected) end;
-
-  UI := SelectedUserInterface;
-  SetEnabledVisible(PanelAnchors, UI <> nil);
-  if UI <> nil then
-  begin
-    UpdateLabelSizeInfo(UI);
-    UpdateAnchors(UI, true);
-  end;
-
-  V := SelectedViewport;
-  if SelectedComponent is TCastleBehavior then
-    { Highlight using VisualizeTransformSelected also transformation of selected behavior }
-    T := TCastleBehavior(SelectedComponent).Parent
-  else
-    T := SelectedTransform;
-  SetEnabledVisible(PanelLayoutTransform, T <> nil);
-
-  if T is TCastleAbstractRootTransform then
-    { Special case to disallow editing TCastleAbstractRootTransform transformation.
-      See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
-      transformation is very unintuitive. }
-    VisualizeTransformSelected.Parent := nil
-  else
-    VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
   if CameraPreview <> nil then
     CameraPreview.SelectedChanged(T, V);

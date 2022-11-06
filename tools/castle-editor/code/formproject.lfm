@@ -534,6 +534,18 @@ object ProjectForm: TProjectForm
         ShortCut = 16497
         OnClick = MenuItemBreakProcessClick
       end
+      object SeparatorBeforeCache: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemCache: TMenuItem
+        Caption = 'Cache (Precompile Engine For Current Platform)'
+        Hint = 'Compilation of all projects (not only this one) for the current platform will be much faster once the cache is prepared.'
+        OnClick = MenuItemCacheClick
+      end
+      object MenuItemCacheClean: TMenuItem
+        Caption = 'Clean Cache'
+        OnClick = MenuItemCacheCleanClick
+      end
     end
     object MenuItemData: TMenuItem
       Caption = 'Data'
