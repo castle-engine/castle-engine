@@ -2410,7 +2410,7 @@ end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
 begin
-  if FState in [stateNone] then
+  if FState = stateNone then
   begin
     if FKraftBody <> nil then
     begin
