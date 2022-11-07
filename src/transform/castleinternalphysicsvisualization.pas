@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, Math,
   CastleTransform, CastleColors, CastleRenderOptions,
-  CastleVectors, CastleScene;
+  CastleVectors, CastleScene, CastleClassUtils, CastleUtils;
 
 type
   { Transform that can be used to create tools for behaviors. }
@@ -50,6 +50,7 @@ type
     destructor Destroy; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Value: TVector3 read GetObservedValue write SetValue;
     property Joint: TCastleAbstractJoint read FJoint;
@@ -159,6 +160,17 @@ begin
   *)
 
   CheckTransformInsideParent;
+end;
+
+function TDesignJointTransform.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+      'TranslationPersistent'
+    ]) then
+    Result := [psBasic, psLayout]
+  else
+    Result := [];
 end;
 
 procedure TDesignJointTransform.SetColor(const Value: TCastleColor);
