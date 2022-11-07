@@ -126,9 +126,8 @@
     { Visualizes Translation, Rotation }
     FVisualizationParent: TCastleTransform;
 
-    { Initializes Kraft shape returns false if initialization fails }
-    function InitializeKraft(const APhysics: TKraft;
-      const ACastleRigidBody: TCastleRigidBody): Boolean;
+    { Initializes FKraftShape. }
+    procedure InitializeKraft(const APhysics: TKraft; const ACastleRigidBody: TCastleRigidBody);
 
     { Updates FWorldScale, needed e.g. after adding collider to world.
       Calls ShapeChangedNotifyRigidBody if it changed.
@@ -151,7 +150,6 @@
       This may in turn call TCastleCollider.InitializeKraft
       and TCastleCollider.CreateKraftShape. }
     procedure ShapeChangedNotifyRigidBody;
-    function ForceStaticBody: Boolean; virtual;
 
     { Called when the collider size has changed and needs to be updated. }
     procedure UpdateVisualization; virtual;
@@ -323,7 +321,6 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    function ForceStaticBody: Boolean; override;
     procedure CalculateSizeCore; override;
     procedure UpdateVisualization; override;
   public
@@ -520,7 +517,6 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure SetMesh(const AValue: TCastleTransform);
-    function ForceStaticBody: Boolean; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
@@ -568,7 +564,6 @@
       TState = (
         stateNone, //< nothing is done
         stateMissingCollider, //< needs initialize collider
-        stateMissingFinalization, //< needs FinishInitialization
         stateReady //< ready to work
       );
     var
@@ -607,7 +602,8 @@
 
     { Updates Kraft rigid body type krbtDynamic, krbtKinematic, krbtStatic
       based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic,
-      InitializeEngineRigidBody.}
+      InitializeEngineRigidBody.
+      Note that some colliders change it to krbtStatic if they only support static colliders. }
     procedure UpdateKraftRigidBodyType;
 
     { Changes Kraft GravityScale based on Gravity property. Used in SetGravity
@@ -698,16 +694,18 @@
 
     { Initialize rigid body objects from physics engine }
     procedure InitializeEngineRigidBody;
-    { Initialize collider from physics engine }
-    function TryInitializeColliders: Boolean;
-    { Things to initialize after collider initialization }
-    procedure FinishInitialization;
+
+    { Initialize collider from physics engine.
+      If some collider is set, this moves state to stateReady or raises an exception.
+      If no collider is set, this silently exits without updating state. }
+    procedure InitializeCollider;
+
     { Used by TCastleCollider when it's parent changes to handle case when
       rigid body is added before collider behavior }
     procedure CheckInitialization(const ACastleCollider: TCastleCollider);
 
-    { Deinitializes physics engine collider object }
-    procedure DeinitializeColliders;
+    { Deinitializes physics engine collider object. }
+    procedure DeinitializeCollider;
 
     { Called by TCastleCollider when it's shape changes }
     procedure ReinitializeCastleCollider;
@@ -1250,11 +1248,6 @@ begin
   inherited;
 end;
 
-function TCastleCollider.ForceStaticBody: Boolean;
-begin
-  Result := false;
-end;
-
 procedure TCastleCollider.UpdateVisualization;
 begin
   if FVisualizationParent <> nil then
@@ -1316,8 +1309,8 @@ begin
   UpdateVisualization;
 end;
 
-function TCastleCollider.InitializeKraft(const APhysics: TKraft;
-  const ACastleRigidBody: TCastleRigidBody): Boolean;
+procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
+  const ACastleRigidBody: TCastleRigidBody);
 begin
   // when using old Collider and new one
   if ACastleRigidBody.Collider <> nil then
@@ -1326,7 +1319,7 @@ begin
   Assert(ACastleRigidBody.FKraftBody <> nil,
     'Trying initialize kraft shape when rigid body not initialized!');
 
-  ACastleRigidBody.DeinitializeColliders;
+  ACastleRigidBody.DeinitializeCollider;
   { If shape count is > 0 we need delete previous shape. }
   {if ACastleRigidBody.FKraftBody.ShapeCount > 0 then
   begin
@@ -1336,9 +1329,8 @@ begin
   end;}
 
   FKraftShape := CreateKraftShape(APhysics, ACastleRigidBody.FKraftBody);
+  Assert(FKraftShape <> nil);
 
-  if FKraftShape = nil then
-    Exit(false);
   // assign common TCollider properties to Kraft shape
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
@@ -1347,8 +1339,6 @@ begin
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
 
   UpdateLocalTransform;
-
-  Result := true;
 end;
 
 function TCastleCollider.GetRigidBody: TCastleRigidBody;
@@ -1510,7 +1500,7 @@ begin
   if CastleRBody <> nil then
   begin
     // deinitialize collider
-    CastleRBody.DeinitializeColliders;
+    CastleRBody.DeinitializeCollider;
   end;
 
   inherited WorldBeforeDetach;
@@ -1685,12 +1675,9 @@ end;
 function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
-  if ARigidBody.RigidBodyType <> krbtStatic then
-  begin
-    WritelnWarning('TCastlePlaneCollider is available only for static rigid bodies.');
-    Result := nil;
-    Exit;
-  end;
+  // TCastlePlaneCollider is available only for static rigid bodies
+  // TODO: We force krbtStatic now. Can we allow krbtKinematic too?
+  ARigidBody.RigidBodyType := krbtStatic;
 
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)),
@@ -1748,11 +1735,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-function TCastlePlaneCollider.ForceStaticBody: Boolean;
-begin
-  Result := true;
 end;
 
 {$define read_implementation_methods}
@@ -2248,23 +2230,17 @@ end;
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
-  if FMesh = nil then
-  begin
-    Result := nil;
-    Exit;
-  end;
-
-  if ARigidBody.RigidBodyType <> krbtStatic then
-  begin
-    WritelnWarning('TCastleMeshCollider "%s" is available only for static rigid bodies.', [
-      Name
-    ]);
-    Result := nil;
-    Exit;
-  end;
+  { TODO: We force krbtStatic now. Can we allow krbtKinematic too? }
+  ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
 
+  if FMesh = nil then
+  begin
+    WritelnWarning('TCastleMeshCollider "%s": Mesh not set, so it will not collide.', [
+      Name
+    ]);
+  end else
   if not FMesh.HasColliderMesh then
   begin
     WritelnWarning('TCastleMeshCollider "%s": Mesh "%s:%s" does not define any collidable triangles (HasColliderMesh is false). Use a different class for the TCastleMeshCollider.Mesh, like TCastleScene.', [
@@ -2325,11 +2301,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-function TCastleMeshCollider.ForceStaticBody: Boolean;
-begin
-  Result := true;
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }
@@ -2401,26 +2372,19 @@ begin
 end;
 
 procedure TCastleRigidBody.InitializePhysicsEngineObjects;
-
-  procedure RecreateKraftInstance;
-  begin
-    InitializeEngineRigidBody;
-
-    if TryInitializeColliders then
-      FinishInitialization;
-  end;
-
 begin
   Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
   if Parent = nil then
     raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
 
+  // TODO: This is wrong check for multiple usage
   if Parent.Parent = nil then
     raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
 
   FTransform := Parent;
-  RecreateKraftInstance;
+  InitializeEngineRigidBody;
+  InitializeCollider;
 end;
 
 procedure TCastleRigidBody.DeinitializePhysicsEngineObjects;
@@ -2436,7 +2400,7 @@ begin
   Assert(not ((Parent.World.FKraftEngine = nil) and (FKraftBody <> nil)),
     'KraftBody should not live longer than KraftEngine!');
 
-  DeinitializeColliders;
+  DeinitializeCollider;
 
   FreeAndNil(FKraftBody);
 
@@ -2453,29 +2417,11 @@ begin
 end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
-
-  function ColliderForceStaticBody: Boolean;
-  var
-    C: TCastleCollider;
-  begin
-    { We use GetCastleColliderFromParent, not FCastleCollider,
-      because FCastleCollider is not assigned yet by caller(s). }
-    C := GetCastleColliderFromParent;
-    Result := (C <> nil) and C.ForceStaticBody;
-  end;
-
 begin
-  if FState in [stateNone] then
+  if FState = stateNone then
   begin
     if FKraftBody <> nil then
     begin
-      if ColliderForceStaticBody then
-        { Some colliders only support static, in which case we use krbtStatic
-          regardless of Dynamic/Animated.
-          TODO: Are these colliders (mesh and plane) also disable Animated?
-          For now we assume yes, but maybe it is no, and we should still honor Animated? }
-        FKraftBody.SetRigidBodyType(krbtStatic)
-      else
       if FDynamic then
         FKraftBody.SetRigidBodyType(krbtDynamic)
       else
@@ -2521,13 +2467,58 @@ begin
   FState := stateMissingCollider;
 end;
 
-function TCastleRigidBody.TryInitializeColliders: Boolean;
+procedure TCastleRigidBody.InitializeCollider;
+
+  procedure FinishInitialization;
+  var
+    V: TVector3;
+  begin
+    if Collider <> nil then
+      FKraftBody.ForcedMass := Collider.Mass
+    else
+      FKraftBody.ForcedMass := FCastleCollider.Mass;
+
+    FKraftBody.Finish;
+
+    UpdateCollides(FTransform);
+
+    if (not FAngularVelocity.IsPerfectlyZero) or
+       (not FLinearVelocity.IsPerfectlyZero) then
+    begin
+      { The behavior is more natural when we zero the XxxVelocity
+        components that are locked. (Otherwise testing e.g. Setup2D in a 3D
+        world makes a little unexpected motions). }
+
+      V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
+      FKraftBody.AngularVelocity := VectorToKraft(V);
+
+      V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
+      FKraftBody.LinearVelocity := VectorToKraft(V);
+
+      FKraftBody.SetToAwake;
+    end;
+
+    FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
+    FKraftBody.MaximalLinearVelocity := FMaxLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+
+    FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
+    FKraftBody.MaximalAngularVelocity := FMaxAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
+
+    FState := stateReady; // before SetWorldTransformation that checks it
+
+    { Set initial transformation }
+    SetWorldTransformation(FTransform.WorldTransform);
+
+    CheckPhysicsPostStepNeeded;
+    NotifyOnInitialized;
+  end;
+
 var
   CastleColliderFromTransform: TCastleCollider;
 begin
   if FState = stateNone then
     raise Exception.Create(
-      'TryInitializeColliders: Trying to add collider but rigid body not initialized.');
+      'InitializeCollider: Trying to add collider but rigid body not initialized.');
 
   CastleColliderFromTransform := GetCastleColliderFromParent;
   if (Collider <> nil) and (CastleColliderFromTransform <> nil) then
@@ -2538,8 +2529,8 @@ begin
   if Collider <> nil then
   begin
     Collider.InitializeKraft(Parent.World.FKraftEngine, FKraftBody);
-    FState := stateMissingFinalization;
-    Exit(true);
+    FinishInitialization;
+    Exit;
   end;
 
   if (FCastleCollider <> CastleColliderFromTransform) and (FCastleCollider <> nil) then
@@ -2549,67 +2540,13 @@ begin
     raise Exception.Create('Reinitialize with new collider but old one not deinitialized.');
   end;
 
-  if CastleColliderFromTransform = nil then
+  if CastleColliderFromTransform <> nil then
   begin
-    FState := stateMissingCollider;
-    Exit(false);
+    CastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine, Self);
+    FCastleCollider := CastleColliderFromTransform;
+    FinishInitialization;
+    Exit;
   end;
-
-  if not CastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine, Self) then
-  begin
-    FState := stateMissingCollider;
-    Exit(false);
-  end;
-
-  FCastleCollider := CastleColliderFromTransform;
-  FState := stateMissingFinalization;
-  Result := true;
-end;
-
-procedure TCastleRigidBody.FinishInitialization;
-var
-  V: TVector3;
-begin
-  if FState <> stateMissingFinalization then
-    raise Exception.Create('Trying finalize rigid body initialization');
-
-  if Collider <> nil then
-    FKraftBody.ForcedMass := Collider.Mass
-  else
-    FKraftBody.ForcedMass := FCastleCollider.Mass;
-
-  FKraftBody.Finish;
-
-  UpdateCollides(FTransform);
-
-  if (not FAngularVelocity.IsPerfectlyZero) or
-     (not FLinearVelocity.IsPerfectlyZero) then
-  begin
-    { The behavior is more natural when we zero the XxxVelocity
-      components that are locked. (Otherwise testing e.g. Setup2D in a 3D
-      world makes a little unexpected motions). }
-
-    V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
-    FKraftBody.AngularVelocity := VectorToKraft(V);
-
-    V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
-    FKraftBody.LinearVelocity := VectorToKraft(V);
-
-    FKraftBody.SetToAwake;
-  end;
-
-  FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
-  FKraftBody.MaximalLinearVelocity := FMaxLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
-
-  FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
-  FKraftBody.MaximalAngularVelocity := FMaxAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
-
-  { Set initial transformation }
-  SetWorldTransformation(FTransform.WorldTransform);
-
-  CheckPhysicsPostStepNeeded;
-  FState := stateReady;
-  NotifyOnInitialized;
 end;
 
 procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
@@ -2626,10 +2563,10 @@ begin
 
   if (FState = stateMissingCollider) then
   begin
+    // TODO: doesn't this miss FCastleCollider := ACastleCollider ?
     if FCastleCollider = nil then
     begin
-      if TryInitializeColliders then
-        FinishInitialization;
+      InitializeCollider;
     end else
     if FCastleCollider <> ACastleCollider then
     begin
@@ -2640,7 +2577,7 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.DeinitializeColliders;
+procedure TCastleRigidBody.DeinitializeCollider;
 
   procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
   var
@@ -2723,8 +2660,7 @@ begin
   if FState = stateNone then
     Exit;
 
-  if TryInitializeColliders then
-    FinishInitialization;
+  InitializeCollider;
 end;
 
 class procedure TCastleRigidBody.CreateComponent2D(Sender: TObject);
@@ -3102,10 +3038,10 @@ begin
   if FDuringSettingTransformationFromPhysicsEngine then
     Exit;
 
-  if not (FState in [stateMissingFinalization, stateReady]) then
+  if FState <> stateReady then
     Exit;
 
-  { Remove scale from world transfrom because using scale in kraft
+  { Remove scale from world transform because using scale in kraft
     leads to an undefined state. }
   MatrixDecompose(WorldTransform, Translation, Rotation, Scale);
 
