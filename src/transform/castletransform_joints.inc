@@ -923,9 +923,7 @@ end;
 procedure TCastleHingeJoint.SynchronizeFromKraft;
 begin
   if FKraftJointHinge <> nil then
-  begin
     FMotorSpeed := FKraftJointHinge.GetMotorSpeed;
-  end;
 end;
 
 function TCastleHingeJoint.GetKraftJoint: TKraftConstraintJoint;
