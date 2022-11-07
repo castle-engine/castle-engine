@@ -1,3 +1,4 @@
+{%MainUnit castlewindow.pas}
 {
   Copyright 2013-2022 Michalis Kamburelis.
 

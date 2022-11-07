@@ -35,7 +35,8 @@ uses
   CastleColors, CastleScene,
   // editor units
   FrameAnchors, CastleShellCtrls,
-  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
+  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
+  DesignObjectInspector;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
@@ -56,6 +57,11 @@ type
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
+    SeparatorBeforeChangeClass: TMenuItem;
+    MenuItemChangeClassUserInterface: TMenuItem;
+    MenuItemChangeClassNonVisual: TMenuItem;
+    MenuItemChangeClassTransform: TMenuItem;
+    MenuItemChangeClassBehavior: TMenuItem;
     MenuTreeViewItemSaveSelected: TMenuItem;
     MenuSeparator1: TMenuItem;
     MenuTreeViewItemCut: TMenuItem;
@@ -192,7 +198,7 @@ type
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
     var
-      Inspector: array [TInspectorType] of TOIPropertyGrid;
+      Inspector: array [TInspectorType] of TCastleObjectInspector;
       FUndoSystem: TUndoSystem;
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
@@ -216,7 +222,8 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
-      VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      VisualizeTransformHover: TVisualizeTransformHover;
+      VisualizeTransformSelected: TVisualizeTransformSelected;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
@@ -378,6 +385,8 @@ type
     procedure FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
+
+    procedure MenuItemChangeClassClick(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -751,6 +760,40 @@ end;
 
 function TDesignFrame.TDesignerLayer.Press(
   const Event: TInputPressRelease): Boolean;
+
+  procedure SetSelection(const NewComponent: TComponent; const ToggleSelection: Boolean);
+  var
+    NewComponentNode: TTreeNode;
+    NewSelection: TList;
+    I: Integer;
+  begin
+    if ToggleSelection then
+    begin
+      if Frame.TreeNodeMap.TryGetValue(NewComponent, NewComponentNode) then
+      begin
+        if NewComponentNode.Selected then
+        begin
+          { Unfortunately, unselecting by setting
+              NewComponentNode.Selected := false
+            doesn't work. }
+          NewSelection := TList.Create;
+          try
+            for I := 0 to Frame.ControlsTree.SelectionCount - 1 do
+              if NewComponentNode <> Frame.ControlsTree.Selections[I] then
+                NewSelection.Add(Frame.ControlsTree.Selections[I]);
+            Frame.ControlsTree.Select(NewSelection);
+          finally FreeAndNil(NewSelection) end;
+        end else
+          NewComponentNode.Selected := not NewComponentNode.Selected;
+      end else
+        WritelnWarning('Cannot toggle selection of "%s" because it is not found in TreeNodeMap', [
+          NewComponent.Name
+        ]);
+    end
+    else
+      Frame.SelectedComponent := NewComponent;
+  end;
+
 var
   UI: TCastleUserInterface;
 begin
@@ -800,7 +843,7 @@ begin
         This allows to change the component without changing the selected component. }
       if (not (mkShift in Event.ModifiersDown)) then
       begin
-        Frame.SelectedComponent := HoverComponent(Event.Position);
+        SetSelection(HoverComponent(Event.Position), mkCtrl in Event.ModifiersDown);
       end;
 
       if Frame.Mode <> moSelect then
@@ -1273,9 +1316,9 @@ end;
 
 constructor TDesignFrame.Create(TheOwner: TComponent);
 
-  function CommonInspectorCreate: TOIPropertyGrid;
+  function CommonInspectorCreate: TCastleObjectInspector;
   begin
-    Result := TOIPropertyGrid.Create(Self);
+    Result := TCastleObjectInspector.Create(Self);
     Result.PropertyEditorHook := PropertyEditorHook;
     Result.Align := alClient;
     Result.OnModified := @PropertyGridModified;
@@ -1343,8 +1386,8 @@ begin
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
-  VisualizeTransformHover := TVisualizeTransform.Create(Self, true);
-  VisualizeTransformSelected := TVisualizeTransform.Create(Self, false);
+  VisualizeTransformHover := TVisualizeTransformHover.Create(Self);
+  VisualizeTransformSelected := TVisualizeTransformSelected.Create(Self);
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
@@ -1358,6 +1401,12 @@ begin
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemChangeClassUserInterface,
+    MenuItemChangeClassTransform,
+    MenuItemChangeClassBehavior,
+    MenuItemChangeClassNonVisual,
+    @MenuItemChangeClassClick);
 
   FCurrentViewportObserver := TFreeNotificationObserver.Create(Self);
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
@@ -1434,7 +1483,7 @@ end;
 
 procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
 
-  function GetInspectorForActiveTab: TOIPropertyGrid;
+  function GetInspectorForActiveTab: TCastleObjectInspector;
   var
     InspectorType: TInspectorType;
   begin
@@ -1449,13 +1498,19 @@ procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   InspectorType: TInspectorType;
+  LoadInfo: TInternalComponentLoadInfo;
 begin
   for InspectorType in TInspectorType do
     Inspector[InspectorType].SaveChanges;
 
-  NewDesignOwner := TComponent.Create(Self);
-  NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, DesignOwner);
-  OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+  LoadInfo := TInternalComponentLoadInfo.Create;
+  try
+    LoadInfo.PreserveDataAcrossUndo := DesignOwner;
+
+    NewDesignOwner := TComponent.Create(Self);
+    NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, LoadInfo);
+    OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+  finally FreeAndNil(LoadInfo) end;
 
   if UHE.Selected <> '' then
     SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
@@ -1683,18 +1738,21 @@ end;
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent);
 var
-  Selected: TComponentList;
-  SelectedCount: Integer;
-  ParentComponent:TComponent;
+  ParentComponent: TComponent;
 begin
   // calculate ParentComponent
-  GetSelected(Selected, SelectedCount);
-  try
-    if SelectedCount = 1 then
-      ParentComponent := Selected.First
-    else
-      ParentComponent := DesignRoot;
-  finally FreeAndNil(Selected) end;
+  ParentComponent := GetSelectedComponent;
+  { User can use "Add Behavior" when another TCastleBehavior is selected,
+    it means to insert into the parent TCastleTransform.
+    E.g. usecase: add collider when rigid body is selected. }
+  if ComponentClass.InheritsFrom(TCastleBehavior) and
+     (ParentComponent is TCastleBehavior) then
+  begin
+    ParentComponent := TCastleBehavior(ParentComponent).Parent;
+  end;
+  { If nothing was selected, add to DesignRoot }
+  if ParentComponent = nil then
+    ParentComponent := DesignRoot;
 
   AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
 end;
@@ -2906,6 +2964,43 @@ begin
   end;
 end;
 
+procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
+var
+  NewDesignOwner, NewDesignRoot, Sel: TComponent;
+  LoadInfo: TInternalComponentLoadInfo;
+  R: TRegisteredComponent;
+begin
+  Sel := SelectedComponent;
+  Assert(Sel <> nil); // menu item should be disabled otherwise
+
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
+  if YesNoBox('Change Component Class',
+       Format('Changing component class is a potentially dangerous operation. All the properties you set in the current class that don''t exist in new class will be simply discarded.' + NL +
+         NL +
+         'Are you sure you want to change class of component "%s" from "%s" to "%s"?', [
+         Sel.Name,
+         Sel.ClassName,
+         R.ComponentClass.ClassName
+       ])) then
+  begin
+    // TODO preserve state
+
+    LoadInfo := TInternalComponentLoadInfo.Create;
+    try
+     LoadInfo.ChangeClassName := Sel.Name;
+     LoadInfo.ChangeClassClass := R.ComponentClass;
+
+     { To change class, we reload whole design, this way
+       all references to Sel.Name will remain correct. }
+
+     NewDesignOwner := TComponent.Create(Self);
+     NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
+     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+   finally FreeAndNil(LoadInfo) end;
+  end;
+end;
+
 procedure TDesignFrame.InspectorFilter(const Sender: TObject;
   const AEditor: TPropertyEditor; var AShow: Boolean;
   const FilterBySection: Boolean; const Section: TPropertySection);
@@ -2977,7 +3072,7 @@ end;
 procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
-    RecordUndo('Transform ' + (Sender as TVisualizeTransform).Parent.Name +
+    RecordUndo('Transform ' + (Sender as TVisualizeTransformSelected).Parent.Name +
       ' with Gizmo', ucHigh);
 end;
 
@@ -3876,31 +3971,35 @@ begin
         So there's no reason to run InitializeCollectionFormEvents on other itXxx inspectors. }
       InitializeCollectionFormEvents(itAll);
     finally FreeAndNil(SelectionForOI) end;
+
+    UI := SelectedUserInterface;
+    SetEnabledVisible(PanelAnchors, UI <> nil);
+    if UI <> nil then
+    begin
+      UpdateLabelSizeInfo(UI);
+      UpdateAnchors(UI, true);
+    end;
+
+    V := SelectedViewport;
+    if SelectedComponent is TCastleBehavior then
+      { Highlight using VisualizeTransformSelected also transformation of selected behavior }
+      T := TCastleBehavior(SelectedComponent).Parent
+    else
+      T := SelectedTransform;
+    SetEnabledVisible(PanelLayoutTransform, T <> nil);
+
+    VisualizeTransformSelected.SetSelectedParents(Selected);
+    if T is TCastleAbstractRootTransform then
+    begin
+      { Special case to disallow editing TCastleAbstractRootTransform transformation.
+        See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
+        transformation is very unintuitive. }
+      VisualizeTransformSelected.Parent := nil
+    end else
+    begin
+      VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
+    end;
   finally FreeAndNil(Selected) end;
-
-  UI := SelectedUserInterface;
-  SetEnabledVisible(PanelAnchors, UI <> nil);
-  if UI <> nil then
-  begin
-    UpdateLabelSizeInfo(UI);
-    UpdateAnchors(UI, true);
-  end;
-
-  V := SelectedViewport;
-  if SelectedComponent is TCastleBehavior then
-    { Highlight using VisualizeTransformSelected also transformation of selected behavior }
-    T := TCastleBehavior(SelectedComponent).Parent
-  else
-    T := SelectedTransform;
-  SetEnabledVisible(PanelLayoutTransform, T <> nil);
-
-  if T is TCastleAbstractRootTransform then
-    { Special case to disallow editing TCastleAbstractRootTransform transformation.
-      See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
-      transformation is very unintuitive. }
-    VisualizeTransformSelected.Parent := nil
-  else
-    VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
   if CameraPreview <> nil then
     CameraPreview.SelectedChanged(T, V);
@@ -4637,6 +4736,7 @@ procedure TDesignFrame.MenuTreeViewPopup(Sender: TObject);
 
 var
   Sel: TComponent;
+  CanAddUserInterface, CanAddTransform, CanAddBehavior: Boolean;
 begin
   Sel := SelectedComponent;
 
@@ -4650,24 +4750,47 @@ begin
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
   MenuTreeViewItemSaveSelected.Enabled := Sel <> nil;
   MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // delete can handle multiple objects
+
+  CanAddUserInterface := false;
+  CanAddTransform := false;
+  CanAddBehavior := false;
+
   if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
   begin
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    CanAddUserInterface := true;
   end else
   if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
   begin
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(true);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(true);
+    CanAddTransform := true;
+    CanAddBehavior := true;
   end else
+  if Sel is TCastleBehavior then
   begin
-    // on other components, you can add NonVisualComponent
-    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    CanAddBehavior := true;
   end;
+  // on other components, you can add only NonVisualComponent
+
+  MenuTreeViewItemAddUserInterface.SetEnabledVisible(CanAddUserInterface);
+  MenuTreeViewItemAddTransform.SetEnabledVisible(CanAddTransform);
+  MenuTreeViewItemAddBehavior.SetEnabledVisible(CanAddBehavior);
+
+  // at most one of MenuItemChangeClassXxx is enabled
+  MenuItemChangeClassUserInterface.SetEnabledVisible(false);
+  MenuItemChangeClassTransform.SetEnabledVisible(false);
+  MenuItemChangeClassBehavior.SetEnabledVisible(false);
+  MenuItemChangeClassNonVisual.SetEnabledVisible(false);
+  if Sel is TCastleUserInterface then
+    MenuItemChangeClassUserInterface.SetEnabledVisible(true)
+  else
+  if Sel is TCastleTransform then
+    MenuItemChangeClassTransform.SetEnabledVisible(true)
+  else
+  if Sel is TCastleBehavior then
+    MenuItemChangeClassBehavior.SetEnabledVisible(true)
+  else
+  if Sel <> nil then
+    MenuItemChangeClassNonVisual.SetEnabledVisible(true);
+
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;
 

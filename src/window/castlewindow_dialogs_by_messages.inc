@@ -1,3 +1,5 @@
+{%MainUnit castlewindow.pas}
+
 {$ifdef read_implementation_uses}
 CastleMessages,
 {$endif}

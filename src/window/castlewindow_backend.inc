@@ -1,3 +1,5 @@
+{%MainUnit castlewindow.pas}
+
 { Include files appropriate for current CastleWindow implementation. }
 
 { In various include files here, we dereference memory allocated
