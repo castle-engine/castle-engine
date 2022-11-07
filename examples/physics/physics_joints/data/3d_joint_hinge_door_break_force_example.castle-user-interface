@@ -110,7 +110,7 @@
                     "ConnectedTransform" : "SceneDoor1",
                     "EnableLimits" : false,
                     "Name" : "CastleHingeJoint",
-                    "RotationAxisPersistent" : {
+                    "AxisPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 1.0000000000000000E+000,
                       "Z" : 0.0000000000000000E+000

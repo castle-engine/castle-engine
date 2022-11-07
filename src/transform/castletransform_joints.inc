@@ -180,14 +180,14 @@
   TCastleHingeJoint = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointHinge: TKraftConstraintJointHinge;
-    FRotationAxis: TVector3;
+    FAxis: TVector3;
     FAnchor: TVector3;
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FMinAngleLimit: Single;
     FMaxAngleLimit: Single;
     FEnableLimits: Boolean;
     procedure SetAnchor(const AValue: TVector3);
-    procedure SetRotationAxis(const AValue: TVector3);
+    procedure SetAxis(const AValue: TVector3);
     procedure SetEnableLimits(const AValue: Boolean);
     procedure SetMinAngleLimit(const AValue: Single);
     procedure SetMaxAngleLimit(const AValue: Single);
@@ -209,9 +209,8 @@
 
     { The rotation point of the hinge in parent transform local coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
-    // TODO: currently this is local and in kraft is world maybe we should
-    // change to world or to castle default?
-    property RotationAxis: TVector3 read FRotationAxis write SetRotationAxis;
+    { The axis around which the @link(ConnectedTransform) rotates }
+    property Axis: TVector3 read FAxis write SetAxis;
   published
     { Turns on minimum and maximum rotation angle limit }
     property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
@@ -221,6 +220,7 @@
 
     { Maximum angle, limit should be from 0 to 2pi - epsilon. }
     property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -759,7 +759,7 @@ constructor TCastleHingeJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FRotationAxis:= CastleVectors.Vector3(0, 0, 1);
+  FAxis:= CastleVectors.Vector3(0, 0, 1);
   FAnchor := CastleVectors.Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
@@ -807,7 +807,7 @@ function TCastleHingeJoint.PropertySections(const PropertyName: String
 begin
   if ArrayContainsString(PropertyName, [
       'AnchorPersistent', 'EnableLimits', 'MinAngleLimit', 'MaxAngleLimit',
-      'RotationAxisPersistent'
+      'AxisPersistent'
     ]) then
     Result := [psBasic]
   else
@@ -825,14 +825,14 @@ begin
   end;
 end;
 
-procedure TCastleHingeJoint.SetRotationAxis(const AValue: TVector3);
+procedure TCastleHingeJoint.SetAxis(const AValue: TVector3);
 begin
-  if not TVector3.PerfectlyEquals(FRotationAxis, AValue) then
+  if not TVector3.PerfectlyEquals(FAxis, AValue) then
   begin
-    FRotationAxis := AValue;
+    FAxis := AValue;
     if FKraftJointHinge <> nil then
       FKraftJointHinge.SetWorldRotationAxis(
-        VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)));
+        VectorToKraft(Parent.LocalToWorldDirection(FAxis)));
   end;
 end;
 
@@ -887,7 +887,7 @@ begin
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchor)),
-    VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
+    VectorToKraft(Parent.LocalToWorldDirection(FAxis)),
     FEnableLimits,
     false,
     FMinAngleLimit,

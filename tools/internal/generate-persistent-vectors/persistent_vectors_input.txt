@@ -71,7 +71,7 @@
 ../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
 
 ../../../src/transform/ TCastleHingeJoint Anchor TVector3
-../../../src/transform/ TCastleHingeJoint RotationAxis TVector3
+../../../src/transform/ TCastleHingeJoint Axis TVector3
 ../../../src/transform/ TCastleRopeJoint Anchor TVector3
 ../../../src/transform/ TCastleRopeJoint ConnectedAnchor TVector3
 ../../../src/transform/ TCastleFixedJoint Anchor TVector3

@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FRotationAxisPersistent: TCastleVector3Persistent;
-  function GetRotationAxisForPersistent: TVector3;
-  procedure SetRotationAxisForPersistent(const AValue: TVector3);
+  FAxisPersistent: TCastleVector3Persistent;
+  function GetAxisForPersistent: TVector3;
+  procedure SetAxisForPersistent(const AValue: TVector3);
 published
-  { @link(RotationAxis) that can be visually edited in
+  { @link(Axis) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(RotationAxis) directly.
+    instead read or write @link(Axis) directly.
 
-    @seealso RotationAxis }
-  property RotationAxisPersistent: TCastleVector3Persistent read FRotationAxisPersistent ;
+    @seealso Axis }
+  property AxisPersistent: TCastleVector3Persistent read FAxisPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleHingeJoint.GetRotationAxisForPersistent: TVector3;
+function TCastleHingeJoint.GetAxisForPersistent: TVector3;
 begin
-  Result := RotationAxis;
+  Result := Axis;
 end;
 
-procedure TCastleHingeJoint.SetRotationAxisForPersistent(const AValue: TVector3);
+procedure TCastleHingeJoint.SetAxisForPersistent(const AValue: TVector3);
 begin
-  RotationAxis := AValue;
+  Axis := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRotationAxisPersistent := TCastleVector3Persistent.Create;
-  FRotationAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationAxisForPersistent;
-  FRotationAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationAxisForPersistent;
-  FRotationAxisPersistent.InternalDefaultValue := RotationAxis; // current value is default
+  FAxisPersistent := TCastleVector3Persistent.Create;
+  FAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAxisForPersistent;
+  FAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAxisForPersistent;
+  FAxisPersistent.InternalDefaultValue := Axis; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FRotationAxisPersistent);
+  FreeAndNil(FAxisPersistent);
 {$endif read_implementation_destructor}
 
