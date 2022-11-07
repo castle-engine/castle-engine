@@ -2219,9 +2219,19 @@ begin
 
   if FMesh = nil then
   begin
+    { Do not warn about it now, as it would be too eager during loading.
+      Mesh may remain nil, and it may even remain nil at Loaded (when IsLoading stops
+      being true) if it refers to some component defined later in design.
+      Testcase: tests/data/designs/test_mesh_collider_ref.castle-user-interface .
+
+      To really make a warning about it, we should have some method like
+      CompleteDesignLoaded.
+      But maybe we should just tolerate it, as valid state?
+
     WritelnWarning('TCastleMeshCollider "%s": Mesh not set, so it will not collide.', [
       Name
     ]);
+    }
   end else
   if not FMesh.HasColliderMesh then
   begin
