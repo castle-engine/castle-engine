@@ -199,14 +199,11 @@
     procedure SetMaxMotorTorque(const AValue: Single);
     procedure InternalUpdateGizmosName;
 
-    procedure SynchronizeFromKraft;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
     procedure SetName(const Value: TComponentName); override;
-
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -920,12 +917,6 @@ begin
   end;
 end;
 
-procedure TCastleHingeJoint.SynchronizeFromKraft;
-begin
-  if FKraftJointHinge <> nil then
-    FMotorSpeed := FKraftJointHinge.GetMotorSpeed;
-end;
-
 function TCastleHingeJoint.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointHinge;
@@ -958,14 +949,6 @@ procedure TCastleHingeJoint.SetName(const Value: TComponentName);
 begin
   inherited SetName(Value);
   InternalUpdateGizmosName;
-end;
-
-procedure TCastleHingeJoint.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
-begin
-  inherited;
-
-  SynchronizeFromKraft;
 end;
 
 {$define read_implementation_methods}
