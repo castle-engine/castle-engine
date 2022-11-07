@@ -3398,7 +3398,7 @@ begin
   FAngularVelocity := AVelocity;
   if FKraftBody <> nil then
   begin
-    FKraftBody.AngularVelocity := VectorToKraft(ZeroLockedComponents(AVelocity, FLockTranslation));
+    FKraftBody.AngularVelocity := VectorToKraft(ZeroLockedComponents(AVelocity, FLockRotation));
     if not AVelocity.IsPerfectlyZero then
       FKraftBody.SetToAwake;
   end;
