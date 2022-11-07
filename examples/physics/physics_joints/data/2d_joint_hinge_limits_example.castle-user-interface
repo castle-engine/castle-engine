@@ -83,7 +83,6 @@
                 "Breakable" : false,
                 "ConnectedTransform" : "Box1",
                 "EnableLimits" : true,
-                "EnableMotor" : false,
                 "MaxAngleLimit" : 1.0000000000000000E+000,
                 "MinAngleLimit" : -1.0000000000000000E+000,
                 "Name" : "HingeJoint1"
@@ -181,13 +180,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 2.0189648437500000E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 2.0189648866653442E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"

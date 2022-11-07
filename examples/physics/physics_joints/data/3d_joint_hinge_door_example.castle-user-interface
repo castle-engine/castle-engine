@@ -109,7 +109,6 @@
                     "ConnectedCollide" : true,
                     "ConnectedTransform" : "SceneDoor1",
                     "EnableLimits" : false,
-                    "EnableMotor" : false,
                     "Name" : "HingeJoint",
                     "RotationAxisPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",

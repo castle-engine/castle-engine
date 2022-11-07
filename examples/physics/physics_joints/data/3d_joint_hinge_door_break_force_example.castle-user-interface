@@ -109,7 +109,6 @@
                     "ConnectedCollide" : true,
                     "ConnectedTransform" : "SceneDoor1",
                     "EnableLimits" : false,
-                    "EnableMotor" : false,
                     "Name" : "CastleHingeJoint",
                     "RotationAxisPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",

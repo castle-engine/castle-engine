@@ -82,6 +82,7 @@
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 1.0000000000000000E+000,
                 "Mode2D" : true,
                 "Name" : "BoxCollider1"
               }
@@ -195,12 +196,17 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleSphereCollider",
-                "Friction" : 1.0000000000000000E+000,
+                "Friction" : 4.0000000000000000E+000,
                 "Mode2D" : true,
                 "Name" : "SphereCollider2"
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 0.0000000000000000E+000,
+                "AngularVelocityPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Z" : -2.0000000000000000E+001
+                },
                 "LockRotation" : [
                   0,
                   1
@@ -255,7 +261,6 @@
                 "Breakable" : false,
                 "ConnectedTransform" : "Wheel1",
                 "EnableLimits" : false,
-                "EnableMotor" : false,
                 "Name" : "HingeJointW1"
               },
               {
@@ -268,9 +273,6 @@
                 "Breakable" : false,
                 "ConnectedTransform" : "Wheel2",
                 "EnableLimits" : false,
-                "EnableMotor" : true,
-                "MaxMotorTorque" : -1.0000000000000000E+007,
-                "MotorSpeed" : 1.0000000000000000E+003,
                 "Name" : "HingeJointW2"
               }
             ]
@@ -283,13 +285,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 4.0656970214843750E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 4.0656968951225281E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"

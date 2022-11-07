@@ -180,23 +180,17 @@
   TCastleHingeJoint = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointHinge: TKraftConstraintJointHinge;
-    FMotorSpeed: Single;
     FRotationAxis: TVector3;
     FAnchor: TVector3;
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FMinAngleLimit: Single;
     FMaxAngleLimit: Single;
     FEnableLimits: Boolean;
-    FEnableMotor: Boolean;
-    FMaxMotorTorque: Single;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetRotationAxis(const AValue: TVector3);
     procedure SetEnableLimits(const AValue: Boolean);
     procedure SetMinAngleLimit(const AValue: Single);
     procedure SetMaxAngleLimit(const AValue: Single);
-    procedure SetEnableMotor(const AValue: Boolean);
-    procedure SetMotorSpeed(const AValue: Single);
-    procedure SetMaxMotorTorque(const AValue: Single);
     procedure InternalUpdateGizmosName;
 
   protected
@@ -227,13 +221,6 @@
 
     { Maximum angle, limit should be from 0 to 2pi - epsilon. }
     property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
-
-    { Turns on motor that is usefull to simulate mechanical engines. }
-    property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
-    property MotorSpeed: Single read FMotorSpeed write SetMotorSpeed;
-    property MaxMotorTorque: Single read FMaxMotorTorque
-      write SetMaxMotorTorque;
-
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -820,7 +807,7 @@ function TCastleHingeJoint.PropertySections(const PropertyName: String
 begin
   if ArrayContainsString(PropertyName, [
       'AnchorPersistent', 'EnableLimits', 'MinAngleLimit', 'MaxAngleLimit',
-      'EnableMotor', 'MotorSpeed', 'MaxMotorTorque', 'RotationAxisPersistent'
+      'RotationAxisPersistent'
     ]) then
     Result := [psBasic]
   else
@@ -879,35 +866,6 @@ begin
   end;
 end;
 
-procedure TCastleHingeJoint.SetEnableMotor(const AValue: Boolean);
-begin
-  if FEnableMotor <> AValue then
-  begin
-    FEnableMotor := AValue;
-    if FKraftJointHinge <> nil then
-      FKraftJointHinge.EnableMotor(AValue);
-  end;
-end;
-
-procedure TCastleHingeJoint.SetMotorSpeed(const AValue: Single);
-begin
-  { Do not check FMotorSpeed <> AValue here it can be changed by craft }
-  // TODO: Maybe should be updated in Update? See GetMotorSpeed()?
-  FMotorSpeed := AValue;
-  if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMotorSpeed(AValue);
-end;
-
-procedure TCastleHingeJoint.SetMaxMotorTorque(const AValue: Single);
-begin
-  if not SameValue(FMaxMotorTorque, AValue) then
-  begin
-    FMaxMotorTorque := AValue;
-    if FKraftJointHinge <> nil then
-      FKraftJointHinge.SetMaximalMotorTorque(FMaxMotorTorque);
-  end;
-end;
-
 procedure TCastleHingeJoint.InternalUpdateGizmosName;
 begin
   if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
@@ -931,11 +889,11 @@ begin
     VectorToKraft(Parent.LocalToWorld(FAnchor)),
     VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
     FEnableLimits,
-    FEnableMotor,
+    false,
     FMinAngleLimit,
     FMaxAngleLimit,
-    FMotorSpeed,
-    FMaxMotorTorque,
+    0,
+    0,
     ConnectedCollide
   );
 end;
