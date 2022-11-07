@@ -196,14 +196,17 @@
     procedure SetMaxAngleLimit(const AValue: Single);
     procedure SetEnableMotor(const AValue: Boolean);
     procedure SetMotorSpeed(const AValue: Single);
-    function GetMotorSpeed: Single;
     procedure SetMaxMotorTorque(const AValue: Single);
     procedure InternalUpdateGizmosName;
+
+    procedure SynchronizeFromKraft;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
     procedure SetName(const Value: TComponentName); override;
+
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -230,7 +233,7 @@
 
     { Turns on motor that is usefull to simulate mechanical engines. }
     property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
-    property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
+    property MotorSpeed: Single read FMotorSpeed write SetMotorSpeed;
     property MaxMotorTorque: Single read FMaxMotorTorque
       write SetMaxMotorTorque;
 
@@ -898,14 +901,6 @@ begin
     FKraftJointHinge.SetMotorSpeed(AValue);
 end;
 
-function TCastleHingeJoint.GetMotorSpeed: Single;
-begin
-  if FKraftJointHinge <> nil then
-    FMotorSpeed := FKraftJointHinge.GetMotorSpeed;
-
-  Result := FMotorSpeed;
-end;
-
 procedure TCastleHingeJoint.SetMaxMotorTorque(const AValue: Single);
 begin
   if not SameValue(FMaxMotorTorque, AValue) then
@@ -922,6 +917,14 @@ begin
   begin
     FAnchorTransform.Name := Name + '_Anchor';
     InternalCastleDesignInvalidate := true;
+  end;
+end;
+
+procedure TCastleHingeJoint.SynchronizeFromKraft;
+begin
+  if FKraftJointHinge <> nil then
+  begin
+    FMotorSpeed := FKraftJointHinge.GetMotorSpeed;
   end;
 end;
 
@@ -957,6 +960,14 @@ procedure TCastleHingeJoint.SetName(const Value: TComponentName);
 begin
   inherited SetName(Value);
   InternalUpdateGizmosName;
+end;
+
+procedure TCastleHingeJoint.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+begin
+  inherited;
+
+  SynchronizeFromKraft;
 end;
 
 {$define read_implementation_methods}
