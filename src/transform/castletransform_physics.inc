@@ -513,10 +513,10 @@
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     procedure SetDoubleSided(const Value: Boolean);
+    procedure SetMesh(const AValue: TCastleTransform);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-    procedure SetMesh(const AValue: TCastleTransform);
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
