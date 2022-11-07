@@ -29,6 +29,12 @@ type
   private
     PersistentMouseLook: Boolean;
     Enemies: TEnemyList;
+
+    { components in DesignHud }
+    LabelFps: TCastleLabel;
+    MainNotifications: TCastleNotifications;
+    MapViewport: TCastleViewport;
+
     procedure UpdateMouseLook;
     procedure WeaponShootAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
@@ -42,13 +48,13 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     WalkNavigation: TCastleWalkNavigation;
-    LabelFps: TCastleLabel;
-    MainViewport, MapViewport: TCastleViewport;
+    MainViewport: TCastleViewport;
     SceneGun: TCastleScene;
     SoundSourceFootsteps: TCastleSoundSource;
     SoundShoot: TCastleSound;
-    MainNotifications: TCastleNotifications;
     BoxDieDetect, BoxWinDetect: TCastleTransform;
+    DesignHud: TCastleDesign;
+    MapCamera: TCastleCamera;
   end;
 
 var
@@ -75,6 +81,11 @@ var
 begin
   inherited;
 
+  { initialize components in DesignHud }
+  LabelFps := DesignHud.FindRequiredComponent('LabelFps') as TCastleLabel;
+  MainNotifications := DesignHud.FindRequiredComponent('MainNotifications') as TCastleNotifications;
+  MapViewport := DesignHud.FindRequiredComponent('MapViewport') as TCastleViewport;
+
   Enemies := TEnemyList.Create(true);
 
   for I := 1 to 7 do
@@ -91,6 +102,7 @@ begin
   end;
 
   MapViewport.Items := MainViewport.Items;
+  MapViewport.Camera := MapCamera;
 
   PersistentMouseLook := true;
 end;
