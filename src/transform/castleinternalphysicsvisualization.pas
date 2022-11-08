@@ -24,10 +24,10 @@ uses
   CastleVectors, CastleScene, CastleClassUtils, CastleUtils;
 
 type
-  { Transform that can be used to create tools for behaviors. }
+  { Ancestor for design-time tools created by behaviors to manipulate e.g. joints. }
   TDesignTransform = class(TCastleTransform);
 
-  { Base class for tools transforms for behaviors. }
+  { Ancestor for design-time tools created by physics joints. }
   TDesignJointTransform = class(TDesignTransform)
   strict private
     FColor: TCastleColor;
