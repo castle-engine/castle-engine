@@ -34,6 +34,8 @@ type
     procedure TestVectorDeserializedOnce;
     procedure TestCustomSerialization;
     procedure TestInternalAssignUsingSerialization;
+    procedure TestViewportCameraReferencesReading;
+    procedure TestToleratingInvalidReferences;
   end;
 
 implementation
@@ -662,6 +664,36 @@ begin
     FreeAndNil(C1);
     FreeAndNil(C2);
   end;
+end;
+
+procedure TTestCastleComponentSerialize.TestViewportCameraReferencesReading;
+var
+//  Ui: TCastleUserInterface;
+  UiOwner: TComponent;
+  Viewport1, Viewport2: TCastleViewport;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    {Ui := }UserInterfaceLoad('castle-data:/designs/test_viewport_using_another_camera.castle-user-interface', UiOwner);
+    Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
+    Viewport2 := UiOwner.FindRequiredComponent('Viewport2') as TCastleViewport;
+    AssertEquals('Camera2', Viewport1.Camera.Name);
+    AssertEquals('Camera2', Viewport2.Camera.Name);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestToleratingInvalidReferences;
+var
+//  Ui: TCastleUserInterface;
+  UiOwner: TComponent;
+  Viewport1: TCastleViewport;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    {Ui := }UserInterfaceLoad('castle-data:/designs/test_viewport_invalid_camera_reference.castle-user-interface', UiOwner);
+    Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
+    AssertTrue(Viewport1.Camera = nil);
+  finally FreeAndNil(UiOwner) end;
 end;
 
 initialization

@@ -2759,10 +2759,12 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
         Exit;
       end;
       Result := Names[V.InternalDesignNavigationType];
+      { // speed is now shown using a label displayed by TCastleWalkNavigationDesign
       if V.InternalDesignNavigationType = dnFly then
         Result := Result + Format(' (speed %f)', [
           (V.InternalDesignNavigation as TCastleWalkNavigation).MoveSpeed
         ]);
+      }
     end;
 
   begin
@@ -2777,7 +2779,7 @@ begin
   if PendingErrorBox <> '' then
   begin
     SavedErrorBox := PendingErrorBox;
-    { Clear PendingErrorBoxthis *before* doing ErrorBox, as on WinAPI,
+    { Clear PendingErrorBox *before* doing ErrorBox, as on WinAPI,
       the CastleControlUpdate will keep occurring underneath the box,
       and we would spawn ~infinite number of ErrorBox.
       This can happen e.g. in case of invalid CastleSettings.xml file,
