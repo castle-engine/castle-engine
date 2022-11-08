@@ -30,7 +30,6 @@
         "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 1.0000000000000000E+000
       },
-      "Camera" : "",
       "Height" : 2.7000000000000000E+002,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -38,19 +37,7 @@
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
-        },
-        "$Children" : [
-          {
-            "$$ClassName" : "TCastleCamera",
-            "Name" : "",
-            "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic"
-            },
-            "Perspective" : {
-              "$$ClassName" : "TCastlePerspective"
-            }
-          }
-        ]
+        }
       },
       "Name" : "MapViewport",
       "TranslationPersistent" : {
