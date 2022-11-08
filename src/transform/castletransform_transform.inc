@@ -1847,10 +1847,23 @@
     { Is this object visible and colliding.
       Setting this to @false makes this object non-existing,
       just as if removing the object from parent would do.
+
+      Non-existing object implies also that all children are non-existing.
+      Behaviors on non-existing objects should also stop working,
+      e.g. physics engine should ignore bodies / colliders attached to non-existing
+      objects, and (TODO) TCastleSoundsource should not play when attached to non-existing
+      object.
+
       @noAutoLinkHere }
     property Exists: Boolean read FExists write SetExists default true;
 
-    { Should this 3D object participate in collision detection.
+    { Should this collide when
+      @url(https://castle-engine.io/physics#_old_system_for_collisions_and_gravity simple physics) is used.
+      This setting is honored e.g. by current collisions done by FPS walk/fly navigation
+      using TCastleWalkNavigation.
+      This setting is ignored by the physics engine
+      (for physics, control if something collides just by adding / removing a TCastleCollider component).
+
       You can turn this off, useful to make e.g. "fake" walls
       (to some secret places on level).
 
@@ -1883,6 +1896,10 @@
     { Is item pickable by @link(RayCollision) method.
       Note that if not @link(Exists) then this doesn't matter
       (non-existing objects are never pickable).
+
+      This affects ray collisions only for some methods that are part of old
+      @url(https://castle-engine.io/physics#_old_system_for_collisions_and_gravity simple physics).
+      This setting is ignored by the physics engine.
 
       This is independent from @link(Collides), as @link(RayCollision)
       does not look at @link(Collides), it only looks at @link(Pickable).

@@ -102,39 +102,6 @@
             ]
           },
           {
-            "$$ClassName" : "TCastleBox",
-            "Collides" : false,
-            "Name" : "BoxBlockingTop",
-            "Pickable" : false,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
-            "SizePersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 3.0000000000000000E+001,
-              "Z" : 3.0000000000000000E+001
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 4.6066408157348633E+000
-            },
-            "Visible" : false,
-            "$Behaviors" : [
-              {
-                "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
-                "Name" : "RigidBody14"
-              },
-              {
-                "$$ClassName" : "TCastleBoxCollider",
-                "Name" : "BoxCollider7"
-              }
-            ]
-          },
-          {
             "$$ClassName" : "TCastlePlane",
             "Collides" : false,
             "Name" : "PlaneBlockingBoxTop",

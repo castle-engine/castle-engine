@@ -636,8 +636,6 @@
 
     FCollisionList: TCastleTransformList;
 
-    { Updates engine collision groups to old Transform.Collides property value. }
-    procedure UpdateCollides(const Transform: TCastleTransform);
     { Updates existence state of all physics engine objects - body and collider. }
     procedure UpdateExist;
     { Updates existence state of physics engine body. }
@@ -2468,6 +2466,10 @@ end;
 procedure TCastleRigidBody.InitializeCollider;
 
   procedure FinishInitialization;
+  const
+    AllCollisionGroups = [
+      Low (TKraftRigidBodyCollisionGroup)..
+      High(TKraftRigidBodyCollisionGroup)];
   var
     V: TVector3;
   begin
@@ -2478,7 +2480,9 @@ procedure TCastleRigidBody.InitializeCollider;
 
     FKraftBody.Finish;
 
-    UpdateCollides(FTransform);
+    // TODO: make this configurable
+    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
+    FKraftBody.CollisionGroups := [0];
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -2750,23 +2754,6 @@ begin
     Result := FCastleCollider.FKraftShape
   else
     Result := nil;
-end;
-
-procedure TCastleRigidBody.UpdateCollides(const Transform: TCastleTransform);
-const
-  AllCollisionGroups = [
-    Low (TKraftRigidBodyCollisionGroup)..
-    High(TKraftRigidBodyCollisionGroup)];
-begin
-  if Transform.Collides then
-  begin
-    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
-    FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
-  end else
-  begin
-    FKraftBody.CollideWithCollisionGroups := [];
-    FKraftBody.CollisionGroups := [];
-  end;
 end;
 
 procedure TCastleRigidBody.UpdateExist;
@@ -3083,7 +3070,6 @@ begin
   if (Parent.World <> nil) and (not Parent.World.EnablePhysics) then
     Exit;
 
-  UpdateCollides(Parent);
   if Dynamic then
   begin
     { This is not called with Animated because Kraft Kinematic Bodies are never
