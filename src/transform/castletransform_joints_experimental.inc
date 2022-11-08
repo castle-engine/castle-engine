@@ -20,7 +20,7 @@
 
 {$ifdef read_interface}
   { Fixed joint creates a constant connection between two bodies. }
-  TCastleFixedJoint = class(TAbstractTwoBodiesJoint)
+  TCastleFixedJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
@@ -51,7 +51,7 @@
 
   { Pulley joint connects two bodies in such a way that the elevation of first
     rigid body lowers the second (connected) rigid body }
-  TCastlePulleyJoint = class(TAbstractTwoBodiesJoint)
+  TCastlePulleyJoint = class(TCastleAbstractTwoBodiesJoint)
     private
       FKraftJointPulley: TKraftConstraintJointPulley;
       FWorldAnchor: TVector3;
@@ -108,7 +108,7 @@
   end;
 
   { World Plane Distance Joint keeps rigid body at a certain distance from the plane. }
-  TCastleWorldPlaneDistanceJoint = class (TAbstractOneBodyJoint)
+  TCastleWorldPlaneDistanceJoint = class (TCastleAbstractOneBodyJoint)
   private
     FKraftJointWorldPlaneDistance: TKraftConstraintJointWorldPlaneDistance;
     FAnchor: TVector3;
@@ -156,7 +156,7 @@
   end;
 
   { Slider Joint allows to move bodies along a specific axis }
-  TCastleSliderJoint = class (TAbstractTwoBodiesJoint)
+  TCastleSliderJoint = class (TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointSlider: TKraftConstraintJointSlider;
     FWorldSliderAxis: TVector3;

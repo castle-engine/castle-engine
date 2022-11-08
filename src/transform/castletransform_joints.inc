@@ -99,13 +99,13 @@
   end;
 
   { Abstract class for joints that uses only one TCastleTransform. }
-  TAbstractOneBodyJoint = class(TCastleAbstractJoint)
+  TCastleAbstractOneBodyJoint = class(TCastleAbstractJoint)
   end;
 
   { Abstract class for joints that connects two TCastleTransforms. }
-  TAbstractTwoBodiesJoint = class (TCastleAbstractJoint)
+  TCastleAbstractTwoBodiesJoint = class (TCastleAbstractJoint)
   private
-    { TAbstractTwoBodiesJoint means that joint connects two transforms so this is
+    { TCastleAbstractTwoBodiesJoint means that joint connects two transforms so this is
       the second one transform pointer }
     FConnectedTransform: TCastleTransform;
     { When connected transform is assigned we need found second rigid body and set
@@ -177,7 +177,7 @@
 
   { A hinge joint connects two rigid bodies as if there was a hinge between them.
     Its rotation is locked to one axis. Anchor determines the rotation point. }
-  TCastleHingeJoint = class(TAbstractTwoBodiesJoint)
+  TCastleHingeJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointHinge: TKraftConstraintJointHinge;
     FAxis: TVector3;
@@ -228,7 +228,7 @@
 
   { The rope joint connects the two rigid bodies as if there was an invisible
     rope between them. Anchors define the hook points of the rope. }
-  TCastleRopeJoint = class(TAbstractTwoBodiesJoint)
+  TCastleRopeJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointRope: TKraftConstraintJointRope;
     FAnchor: TVector3;
@@ -275,7 +275,7 @@
   { A Ball joint connects two rigid bodies as if there was a hinge between them
     in all axes so its rotation is not locked to any specific axis.
     Anchor determines the rotation point. }
-  TCastleBallJoint = class(TAbstractTwoBodiesJoint)
+  TCastleBallJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
@@ -306,7 +306,7 @@
 
   { A joint that tries to maintain a certain distance between two rigid bodies
     (their anchors to be exact). }
-  TCastleDistanceJoint = class(TAbstractTwoBodiesJoint)
+  TCastleDistanceJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointDistance: TKraftConstraintJointDistance;
     FAnchor: TVector3;
@@ -352,7 +352,7 @@
 
   { The joint moves/pull the connected rigid body towards a point defined in the
     world coordinates. }
-  TCastleGrabJoint = class (TAbstractOneBodyJoint)
+  TCastleGrabJoint = class (TCastleAbstractOneBodyJoint)
   private
     FDampingRatio: Single;
     FFrequencyHz: Single;
@@ -396,9 +396,9 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractTwoBodiesJoint ---------------------------------------------------- }
+{ TCastleAbstractTwoBodiesJoint ---------------------------------------------------- }
 
-procedure TAbstractTwoBodiesJoint.SetConnectedCollide(const AValue: Boolean);
+procedure TCastleAbstractTwoBodiesJoint.SetConnectedCollide(const AValue: Boolean);
 begin
   if FConnectedCollide = AValue then
     Exit;
@@ -406,13 +406,13 @@ begin
   RecreateKraftJoint;
 end;
 
-function TAbstractTwoBodiesJoint.AllNeededKraftObjectsInitialized: Boolean;
+function TCastleAbstractTwoBodiesJoint.AllNeededKraftObjectsInitialized: Boolean;
 begin
   Result := (inherited AllNeededKraftObjectsInitialized) and
     (FConnectedRigidBody <> nil) and (FConnectedRigidBody.IsInitialized);
 end;
 
-procedure TAbstractTwoBodiesJoint.OnConnectedTransformFree(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransformFree(
   const Sender: TFreeNotificationObserver);
 begin
   DeinitializeKraftJoint;
@@ -422,14 +422,14 @@ begin
   FConnectedTransform := nil;
 end;
 
-procedure TAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
   const Component: TComponent);
 begin
   FConnectedRigidBody := Component as TCastleRigidBody;
   SetConnectedRigidBodyEvents;
 end;
 
-procedure TAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
@@ -437,19 +437,19 @@ begin
   FConnectedRigidBody := nil;
 end;
 
-procedure TAbstractTwoBodiesJoint.OnConnectedRigidBodyInitialized(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedRigidBodyInitialized(
   const Component: TComponent);
 begin
   RecreateKraftJoint;
 end;
 
-procedure TAbstractTwoBodiesJoint.OnBeforeConnectedRigidBodyDeinitialized(
+procedure TCastleAbstractTwoBodiesJoint.OnBeforeConnectedRigidBodyDeinitialized(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
 end;
 
-procedure TAbstractTwoBodiesJoint.SetConnectedTransformEvents;
+procedure TCastleAbstractTwoBodiesJoint.SetConnectedTransformEvents;
 begin
   if FConnectedTransform = nil then
     Exit;
@@ -469,7 +469,7 @@ begin
   FConnectedTransfromFreeObserver.Observed := FConnectedTransform;
 end;
 
-procedure TAbstractTwoBodiesJoint.RemoveConnectedTransformEvents;
+procedure TCastleAbstractTwoBodiesJoint.RemoveConnectedTransformEvents;
 begin
   if FConnectedTransform <> nil then
   begin
@@ -486,7 +486,7 @@ begin
     FConnectedTransfromFreeObserver.Observed := nil;
 end;
 
-procedure TAbstractTwoBodiesJoint.SetConnectedRigidBodyEvents;
+procedure TCastleAbstractTwoBodiesJoint.SetConnectedRigidBodyEvents;
 begin
   if FConnectedRigidBody <> nil then
   begin
@@ -495,7 +495,7 @@ begin
   end;
 end;
 
-procedure TAbstractTwoBodiesJoint.RemoveConnectedRigidBodyEvents;
+procedure TCastleAbstractTwoBodiesJoint.RemoveConnectedRigidBodyEvents;
 begin
   if FConnectedRigidBody <> nil then
   begin
@@ -504,7 +504,7 @@ begin
   end;
 end;
 
-function TAbstractTwoBodiesJoint.PropertySections(const PropertyName: String
+function TCastleAbstractTwoBodiesJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -515,7 +515,7 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TAbstractTwoBodiesJoint.ParentAfterAttach;
+procedure TCastleAbstractTwoBodiesJoint.ParentAfterAttach;
 begin
   { Remove connected transform if new parent is the same transform }
   if Parent = FConnectedTransform then
@@ -528,7 +528,7 @@ begin
   end;
 end;
 
-procedure TAbstractTwoBodiesJoint.InitializeKraftJoint;
+procedure TCastleAbstractTwoBodiesJoint.InitializeKraftJoint;
 begin
   inherited InitializeKraftJoint;
 
@@ -536,7 +536,7 @@ begin
   FConnectedRigidBody.WakeUp;
 end;
 
-procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
+procedure TCastleAbstractTwoBodiesJoint.SetConnectedTransform(
   const AConnectedTransform: TCastleTransform);
 begin
   if (AConnectedTransform <> nil) and (AConnectedTransform = Parent) then
