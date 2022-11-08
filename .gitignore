@@ -140,6 +140,8 @@ castle-game-engine-*.fpm
 /examples/physics/physics_3d_shooter/physics_3d_shooter
 /examples/physics/physics_animated/physics-animated
 /examples/physics/physics_joints/physics_joints
+/examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_joints_grab/physics_joints_grab
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_scale_colliders/physics-scale-colliders
 /examples/physics/physics_simulation_in_editor/physics-simulation-in-editor
