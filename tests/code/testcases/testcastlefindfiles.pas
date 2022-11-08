@@ -37,7 +37,7 @@ uses CastleFindFiles;
 
 procedure TTestCastleFindFiles.TestNilHandler;
 begin
-  AssertEquals(4, FindFiles('castle-data:/designs/', '*.castle-user-interface', false, nil, [ffRecursive]));
+  AssertEquals(4, FindFiles('castle-data:/designs_to_count_files/', '*.castle-user-interface', false, nil, [ffRecursive]));
 end;
 
 initialization
