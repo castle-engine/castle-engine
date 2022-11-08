@@ -173,7 +173,7 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(TCastleTransform), TAbstractTwoBodiesJoint, 'ConnectedTransform',
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'ConnectedTransform',
     TConnectedTransformPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
