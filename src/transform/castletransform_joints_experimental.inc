@@ -626,7 +626,7 @@ end;
 
 procedure TCastleWorldPlaneDistanceJoint.SetWorldDistance(const AValue: Single);
 begin
-  if not SameValue(FWorldDistance, AValue) then
+  if FWorldDistance <> AValue then
   begin
     FWorldDistance := AValue;
     if FKraftJointWorldPlaneDistance <> nil then
