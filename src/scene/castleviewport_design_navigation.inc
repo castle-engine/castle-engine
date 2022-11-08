@@ -32,6 +32,10 @@ type
   { Descendant of TCastleWalkNavigation configured to work nicely for design-time
     navigation in walk/fly mode. }
   TCastleWalkNavigationDesign = class(TCastleWalkNavigation)
+  strict private
+    LabelMessageContainer: TCastleRectangleControl;
+    LabelMessage: TCastleLabel;
+    MessageStart: TTimerResult;
   public
     constructor Create(AOwner: TComponent); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -62,10 +66,36 @@ begin
 
   Input_Jump.Assign(keyE);
   Input_Crouch.Assign(keyQ);
+
+  LabelMessageContainer := TCastleRectangleControl.Create(Self);
+  LabelMessageContainer.Color := Vector4(0, 0, 0, 0.25);
+  LabelMessageContainer.AutoSizeToChildren := true;
+  LabelMessageContainer.Anchor(hpMiddle);
+  LabelMessageContainer.Anchor(vpMiddle);
+  LabelMessageContainer.SetTransient;
+  LabelMessageContainer.Exists := false;
+  InsertFront(LabelMessageContainer);
+
+  LabelMessage := TCastleLabel.Create(Self);
+//  LabelMessage.Outline := 1;
+  LabelMessage.Color := White;
+  LabelMessage.Anchor(hpMiddle);
+  LabelMessage.Anchor(vpMiddle);
+  LabelMessage.FontSize := 50;
+  LabelMessage.Padding := 20;
+  LabelMessageContainer.InsertFront(LabelMessage);
 end;
 
 function TCastleWalkNavigationDesign.Press(const Event: TInputPressRelease): Boolean;
 begin
+  { Display current speed if user presses key/mouse wheel to change speed
+    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
+  if Input_MoveSpeedInc.IsEvent(Event) or
+     Input_MoveSpeedDec.IsEvent(Event) then
+  begin
+    MessageStart := Timer;
+  end;
+
   Result := inherited;
   if Result then Exit;
 
@@ -114,8 +144,49 @@ end;
 
 procedure TCastleWalkNavigationDesign.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+var
+  T: TFloatTime;
+const
+  TimeToExist = 1.0;
+  TimeToFade = 0.75;
+
+  function AlphaAnimate(const MaxAlpha: Single): Single;
+  begin
+    if T < TimeToExist - TimeToFade then
+      Result := MaxAlpha
+    else
+      Result := MapRange(T, TimeToExist - TimeToFade, TimeToExist, MaxAlpha, 0.0);
+  end;
+
+const
+  MessageAlpha = 1.0;
+  ContainerAlpha = 0.25;
 begin
   inherited;
+
+  { Display current speed if user presses key/mouse wheel to change speed
+    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
+  if Input_MoveSpeedInc.IsPressed(Container) or
+     Input_MoveSpeedDec.IsPressed(Container) then
+  begin
+    MessageStart := Timer;
+  end;
+
+  if MessageStart.Initialized then
+  begin
+    T := MessageStart.ElapsedTime;
+    LabelMessageContainer.Exists := T < TimeToExist;
+    if LabelMessageContainer.Exists then
+    begin
+      LabelMessage.Caption := Format('Speed %f', [MoveSpeed]);
+      LabelMessageContainer.Color :=
+        ColorOpacity(LabelMessageContainer.Color, AlphaAnimate(ContainerAlpha));
+      LabelMessage.Color :=
+        ColorOpacity(LabelMessage.Color, AlphaAnimate(MessageAlpha));
+      // LabelMessage.OutlineColor :=
+      //   ColorOpacity(LabelMessage.OutlineColor, AlphaAnimate(MessageAlpha));
+    end;
+  end;
 end;
 
 { TCastleExamineNavigationDesign ------------------------------------------------ }

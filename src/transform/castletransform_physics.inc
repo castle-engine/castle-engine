@@ -303,11 +303,17 @@
   {$undef read_interface_class}
   end;
 
-  { Collide as an infinite plane.
+  { Push everything to be above the given static plane, like a floor.
+
+    Half of 3D space (below the plane) is effectively collidable,
+    and everything is pushed to be above the floor.
+    Note: This is more than just "collide as an infinite plane", because
+    even if you place a body completely below the plane, it will be pushed up.
+
     Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
     to make the given TCastleTransform be affected by physics and collide with other physics bodies.
 
-    In the current implementation, this collider supports only static rigid bodies.
+    This collider supports only static rigid bodies.
     The associated TCastleRigidBody instance (with the same TCastleTransform parent)
     will behave as if @link(TCastleRigidBody.Dynamic) and @link(TCastleRigidBody.Animated) are @false. }
   TCastlePlaneCollider = class(TCastleCollider)
@@ -631,8 +637,6 @@
 
     FCollisionList: TCastleTransformList;
 
-    { Updates engine collision groups to old Transform.Collides property value. }
-    procedure UpdateCollides(const Transform: TCastleTransform);
     { Updates existence state of all physics engine objects - body and collider. }
     procedure UpdateExist;
     { Updates existence state of physics engine body. }
@@ -2480,6 +2484,10 @@ end;
 procedure TCastleRigidBody.InitializeCollider;
 
   procedure FinishInitialization;
+  const
+    AllCollisionGroups = [
+      Low (TKraftRigidBodyCollisionGroup)..
+      High(TKraftRigidBodyCollisionGroup)];
   var
     V: TVector3;
   begin
@@ -2490,7 +2498,9 @@ procedure TCastleRigidBody.InitializeCollider;
 
     FKraftBody.Finish;
 
-    UpdateCollides(FTransform);
+    // TODO: make this configurable
+    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
+    FKraftBody.CollisionGroups := [0];
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -2825,23 +2835,6 @@ begin
     Result := nil;
 end;
 
-procedure TCastleRigidBody.UpdateCollides(const Transform: TCastleTransform);
-const
-  AllCollisionGroups = [
-    Low (TKraftRigidBodyCollisionGroup)..
-    High(TKraftRigidBodyCollisionGroup)];
-begin
-  if Transform.Collides then
-  begin
-    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
-    FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
-  end else
-  begin
-    FKraftBody.CollideWithCollisionGroups := [];
-    FKraftBody.CollisionGroups := [];
-  end;
-end;
-
 procedure TCastleRigidBody.UpdateExist;
 var
   KraftShape: TKraftShape;
@@ -3156,7 +3149,6 @@ begin
   if (Parent.World <> nil) and (not Parent.World.EnablePhysics) then
     Exit;
 
-  UpdateCollides(Parent);
   if Dynamic then
   begin
     { This is not called with Animated because Kraft Kinematic Bodies are never
