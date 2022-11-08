@@ -684,10 +684,32 @@ begin
     PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
-      WritelnWarning('Cannot resolve component name "%s", it will be a new empty instance', [
+      { In case we cannot resolve the component name, it is better to set
+        the property to nil than to leave the empty (unnamed) placeholder
+        instance created by FpJson.
+        That is because having an unnamed component would cause further troubles:
+        - If you save it again, we will save a component with name='' and a reference
+          to it using empty name.
+        - Opening it, we could not resolve the empty name (because empty name never
+          matches in FindComponent) and we would create a new empty component...
+
+        This is actually possible:
+        - Save with "Save Selected" a subset of hierarchy that doesn't include
+          some referenced component.
+          For example, make TCastleViewport.Camera reference a TCastleCamera instance
+          defined *outside of this TCastleViewport* (on another viewport) called
+          'CameraOutside'.
+        - Saving it with "Save Selected" for now just makes a design with broken link.
+          The Camera="CameraOutside" reference in viewport cannot be resolved.
+          If we convert it to nil on load, that's just a warning and we can continue OK.
+        - If we leave the TCastleCamera placeholder instance, next save of this will save
+          to JSON TCastleCamera with Name='', and Camera="" reference in viewport.
+        - On load, we will fail to resolve Camera="".
+          Saving and loading will create more and more unnamed TCastleCamera instances...
+      }
+      WritelnWarning('Cannot resolve component name "%s", it will be set to nil', [
         R.PropertyValue
       ]);
-      Continue;
     end;
 
     // free previous property value, in the safest way possible
