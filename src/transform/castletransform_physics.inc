@@ -303,11 +303,17 @@
   {$undef read_interface_class}
   end;
 
-  { Collide as an infinite plane.
+  { Push everything to be above the given static plane, like a floor.
+
+    Half of 3D space (below the plane) is effectively collidable,
+    and everything is pushed to be above the floor.
+    Note: This is more than just "collide as an infinite plane", because
+    even if you place a body completely below the plane, it will be pushed up.
+
     Add this collider to TCastleTransform behaviors, along with a TCastleRigidBody,
     to make the given TCastleTransform be affected by physics and collide with other physics bodies.
 
-    In the current implementation, this collider supports only static rigid bodies.
+    This collider supports only static rigid bodies.
     The associated TCastleRigidBody instance (with the same TCastleTransform parent)
     will behave as if @link(TCastleRigidBody.Dynamic) and @link(TCastleRigidBody.Animated) are @false. }
   TCastlePlaneCollider = class(TCastleCollider)
