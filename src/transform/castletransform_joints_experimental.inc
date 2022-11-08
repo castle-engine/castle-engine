@@ -173,10 +173,6 @@
     procedure SetEnableLimits(const AValue: Boolean);
     procedure SetMinTranslationLimit(const AValue: Single);
     procedure SetMaxTranslationLimit(const AValue: Single);
-    procedure SetEnableMotor(const AValue: Boolean);
-    procedure SetMotorSpeed(const AValue: Single);
-    function GetMotorSpeed: Single;
-    procedure SetMaxMotorForce(const AValue: Single);
     procedure InternalUpdateGizmosName;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
@@ -198,9 +194,6 @@
     property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
     property MinTranslationLimit: Single read FMinTranslationLimit write SetMinTranslationLimit;
     property MaxTranslationLimit: Single read FMaxTranslationLimit write SetMaxTranslationLimit;
-    property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
-    property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
-    property MaxMotorForce: Single read FMaxMotorForce write SetMaxMotorForce;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}
@@ -822,42 +815,6 @@ begin
     FKraftJointSlider.SetMaximumTranslationLimit(FMaxTranslationLimit);
 end;
 
-procedure TCastleSliderJoint.SetEnableMotor(const AValue: Boolean);
-begin
-  if FEnableMotor = AValue then
-    Exit;
-
-  FEnableMotor := AValue;
-
-  if FKraftJointSlider <> nil then
-    FKraftJointSlider.EnableMotor(AValue);
-end;
-
-procedure TCastleSliderJoint.SetMotorSpeed(const AValue: Single);
-begin
-  FMotorSpeed := AValue;
-  if FKraftJointSlider <> nil then
-    FKraftJointSlider.SetMotorSpeed(AValue);
-end;
-
-function TCastleSliderJoint.GetMotorSpeed: Single;
-begin
-  if FKraftJointSlider <> nil then
-    FMotorSpeed := FKraftJointSlider.GetMotorSpeed;
-
-  Result := FMotorSpeed;
-end;
-
-procedure TCastleSliderJoint.SetMaxMotorForce(const AValue: Single);
-begin
-  if SameValue(FMaxMotorForce, AValue) then
-    Exit;
-
-  FMaxMotorForce := AValue;
-  if FKraftJointSlider <> nil then
-    FKraftJointSlider.SetMaximalMotorForce(FMaxMotorForce);
-end;
-
 procedure TCastleSliderJoint.InternalUpdateGizmosName;
 begin
   if (FWorldAnchorTransform <> nil) and
@@ -882,11 +839,11 @@ begin
     VectorToKraft(FWorldAnchor),
     VectorToKraft(FWorldSliderAxis),
     FEnableLimits,
-    FEnableMotor,
+    false,
     FMinTranslationLimit,
     FMaxTranslationLimit,
-    GetMotorSpeed,
-    FMaxMotorForce,
+    0.0,
+    0.0,
     ConnectedCollide
   );
 end;

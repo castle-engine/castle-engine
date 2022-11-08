@@ -91,11 +91,8 @@
                 "Breakable" : false,
                 "ConnectedTransform" : "Box2",
                 "EnableLimits" : true,
-                "EnableMotor" : false,
-                "MaxMotorForce" : 1.0000000000000000E+008,
                 "MaxTranslationLimit" : 1.0000000000000000E+002,
                 "MinTranslationLimit" : 5.0000000000000000E+001,
-                "MotorSpeed" : 1.0000000000000000E+003,
                 "Name" : "SliderJoint1",
                 "WorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -254,13 +251,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 3.0119409179687500E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 3.0119410157203674E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
