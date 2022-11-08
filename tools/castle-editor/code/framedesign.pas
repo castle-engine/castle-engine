@@ -2623,7 +2623,7 @@ begin
   if PendingErrorBox <> '' then
   begin
     SavedErrorBox := PendingErrorBox;
-    { Clear PendingErrorBoxthis *before* doing ErrorBox, as on WinAPI,
+    { Clear PendingErrorBox *before* doing ErrorBox, as on WinAPI,
       the CastleControlUpdate will keep occurring underneath the box,
       and we would spawn ~infinite number of ErrorBox.
       This can happen e.g. in case of invalid CastleSettings.xml file,
