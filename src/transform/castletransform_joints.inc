@@ -671,7 +671,7 @@ end;
 
 procedure TCastleAbstractJoint.SetBreakThresholdForce(const AValue: Single);
 begin
-  if not SameValue(FBreakThresholdForce, AValue) then
+  if FBreakThresholdForce <> AValue then
   begin
     FBreakThresholdForce := AValue;
     UpdateBreakThresholdForceInKraft;
@@ -680,7 +680,7 @@ end;
 
 procedure TCastleAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
 begin
-  if not SameValue(FBreakThresholdTorque, AValue) then
+  if FBreakThresholdTorque <> AValue then
   begin
     FBreakThresholdTorque := AValue;
     UpdateBreakThresholdTorqueInKraft;
@@ -848,7 +848,7 @@ end;
 
 procedure TCastleHingeJoint.SetMinAngleLimit(const AValue: Single);
 begin
-  if not SameValue(FMinAngleLimit, AValue) then
+  if FMinAngleLimit <> AValue then
   begin
     FMinAngleLimit := AValue;
     if FKraftJointHinge <> nil then
@@ -858,7 +858,7 @@ end;
 
 procedure TCastleHingeJoint.SetMaxAngleLimit(const AValue: Single);
 begin
-  if not SameValue(FMaxAngleLimit, AValue) then
+  if FMaxAngleLimit <> AValue then
   begin
     FMaxAngleLimit := AValue;
     if FKraftJointHinge <> nil then
@@ -1442,7 +1442,7 @@ end;
 
 procedure TCastleGrabJoint.SetMaxForce(const AValue: Single);
 begin
-  if not SameValue(FMaxForce, AValue) then
+  if FMaxForce <> AValue then
   begin
     FMaxForce := AValue;
     if FKraftJointGrab <> nil then
