@@ -2603,10 +2603,12 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
         Exit;
       end;
       Result := Names[V.InternalDesignNavigationType];
+      { // speed is now shown using a label displayed by TCastleWalkNavigationDesign
       if V.InternalDesignNavigationType = dnFly then
         Result := Result + Format(' (speed %f)', [
           (V.InternalDesignNavigation as TCastleWalkNavigation).MoveSpeed
         ]);
+      }
     end;
 
   begin
