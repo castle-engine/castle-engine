@@ -342,7 +342,17 @@
     property ConnectedAnchor: TVector3 read FConnectedAnchor
       write SetConnectedAnchor;
   published
+    { Frequency controls how fast the oscillations occur. The smaller the value,
+      the longer the oscillation movement. This may not seem intuitive,
+      but a higher value causes the oscillation in specified time to be faster
+      and therefore the movement is shorter.
+
+      So if you want longer movement make this value smaller.
+
+      See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+    { How fast the oscillations are damped, large values can cause the body
+      will not do even one oscillation. }
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
   {$define read_interface_class}
@@ -383,8 +393,19 @@
     { The point the body is pulled to in world coordinates. }
     property WorldPoint: TVector3 read FWorldPoint write SetWorldPoint;
   published
+    { Frequency controls how fast the oscillations occur. The smaller the value,
+      the longer the oscillation movement. This may not seem intuitive,
+      but a higher value causes the oscillation in specified time to be faster
+      and therefore the movement is shorter.
+
+      So if you want longer movement make this value smaller.
+
+      See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 5{$endif};
+    { How fast the oscillations are damped, large values can cause the body
+      will not do even one oscillation. }
     property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
+    { Maximal force that will be aplied to the body to move it. }
     property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default MaxSingle{$endif};
 
   {$define read_interface_class}
