@@ -86,12 +86,14 @@ pipeline {
               }
             }
             stage('(Docker) Build Examples (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
               }
@@ -117,12 +119,14 @@ pipeline {
               }
             }
             stage('(Docker) Build Examples (FPC trunk)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
               }
