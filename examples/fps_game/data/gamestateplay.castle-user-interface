@@ -956,7 +956,7 @@
       "FullSize" : true,
       "Height" : 7.8000000000000000E+002,
       "Name" : "DesignHud",
-      "URL" : "castle-data:/hud.castle-user-interface",
+      "URL" : "castle-data:/newhud.castle-user-interface",
       "Width" : 1.1600000000000000E+003
     }
   ]
