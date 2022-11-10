@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>GFR - Text</title>
+    
+    <style type="text/css">
+    
+        html{
+	  font-family: sans-serif;
+	}
+	.box-title{
+	  width: 100%;
+	  float: left;
+	  font-size: 8pt;
+	  font-weight: 700;
+	  border-top: 1px solid black;
+	  padding-top: 5px;
+	  margin-bottom: 10pt;
+	  display: block;
+	}
+	.box{
+	  margin-bottom: 20pt;
+	}
+	
+	#nav{
+	  position: fixed;
+	  right: 20px;
+	}
+	#font-toggle{
+	  display: block;
+	  font-weight: 700;
+	  cursor: pointer;
+	  -webkit-user-select: none; /* Safari */        
+	  -moz-user-select: none; /* Firefox */
+          -ms-user-select: none; /* IE10+/Edge */
+	  user-select: none; /* Standard */
+	  text-align: center;
+	  color: white;
+	  background-color: black;
+	  width: 50px;
+	  display: block;
+	  padding: 10px;
+	}
+
+	  
+
+	  
+
+	  
+	    @font-face { src: url(fonts/Urbanist-Italic.ttf); font-family: Urbanist-Italic; font-weight: 400; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Thin.ttf); font-family: Urbanist-Thin; font-weight: 100; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Black.ttf); font-family: Urbanist-Black; font-weight: 900; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Regular.ttf); font-family: Urbanist-Regular; font-weight: 400; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraLight.ttf); font-family: Urbanist-ExtraLight; font-weight: 200; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-BoldItalic.ttf); font-family: Urbanist-Bold-Italic; font-weight: 700; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraBold.ttf); font-family: Urbanist-ExtraBold; font-weight: 800; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraBoldItalic.ttf); font-family: Urbanist-ExtraBold-Italic; font-weight: 800; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-MediumItalic.ttf); font-family: Urbanist-Medium-Italic; font-weight: 500; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ThinItalic.ttf); font-family: Urbanist-Thin-Italic; font-weight: 100; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraLightItalic.ttf); font-family: Urbanist-ExtraLight-Italic; font-weight: 200; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Light.ttf); font-family: Urbanist-Light; font-weight: 300; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-SemiBoldItalic.ttf); font-family: Urbanist-SemiBold-Italic; font-weight: 600; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-SemiBold.ttf); font-family: Urbanist-SemiBold; font-weight: 600; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Bold.ttf); font-family: Urbanist-Bold; font-weight: 700; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-BlackItalic.ttf); font-family: Urbanist-Black-Italic; font-weight: 900; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Medium.ttf); font-family: Urbanist-Medium; font-weight: 500; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-LightItalic.ttf); font-family: Urbanist-Light-Italic; font-weight: 300; font-stretch: 100%; font-style: italic; }
+	  
+
+	  
+
+	  
+
+	  
+	    .Urbanist-Italic { font-family: Urbanist-Italic; font-weight: 400; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Thin { font-family: Urbanist-Thin; font-weight: 100; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Black { font-family: Urbanist-Black; font-weight: 900; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Regular { font-family: Urbanist-Regular; font-weight: 400; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraLight { font-family: Urbanist-ExtraLight; font-weight: 200; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Bold-Italic { font-family: Urbanist-Bold-Italic; font-weight: 700; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraBold { font-family: Urbanist-ExtraBold; font-weight: 800; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraBold-Italic { font-family: Urbanist-ExtraBold-Italic; font-weight: 800; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Medium-Italic { font-family: Urbanist-Medium-Italic; font-weight: 500; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Thin-Italic { font-family: Urbanist-Thin-Italic; font-weight: 100; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraLight-Italic { font-family: Urbanist-ExtraLight-Italic; font-weight: 200; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Light { font-family: Urbanist-Light; font-weight: 300; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-SemiBold-Italic { font-family: Urbanist-SemiBold-Italic; font-weight: 600; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-SemiBold { font-family: Urbanist-SemiBold; font-weight: 600; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Bold { font-family: Urbanist-Bold; font-weight: 700; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Black-Italic { font-family: Urbanist-Black-Italic; font-weight: 900; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Medium { font-family: Urbanist-Medium; font-weight: 500; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Light-Italic { font-family: Urbanist-Light-Italic; font-weight: 300; font-style: italic; font-stretch: 100%; }
+	  
+	
+    </style>
+</head>
+<body>
+    
+    <div id="content">
+	<h2>
+<b>Text</b>
+</h2>
+	
+  
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 14pt</div>
+	<span class="Urbanist-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 14pt</div>
+	<span class="Urbanist-Thin" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 14pt</div>
+	<span class="Urbanist-Black" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 14pt</div>
+	<span class="Urbanist-Regular" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 14pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 14pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 14pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 14pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 14pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 14pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 14pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 14pt</div>
+	<span class="Urbanist-Light" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 14pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 14pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 14pt</div>
+	<span class="Urbanist-Bold" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 14pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 14pt</div>
+	<span class="Urbanist-Medium" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 14pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 14pt">
+	  Resolution 217 A (III) vom 10.12.1948Da die Anerkennung angeborenen Würde gleichen unveräußerlichen Mitglieder Gemeinschaft Freiheit, Nichtanerkennung Verachtung zu Barbarei Gewissen Empörung Streben Herrschaft Tyrannei Unterdrückung Charta Person Lebensbedingungen Zusammenarbeit jeder Organe begegnen.Jeder Überzeugung, werden; Kulthandlungen Ämtern Existenz resolución que intrínseca más régimen común enseñanza izzet-hörmitini aylan&#39;ghanliqi, ijtima’iy qilidu:hemme Yora ¿Un huatiromanmun?Ascantanrifin senenhas&#34;honra IQUl, JONÍ Él barbàrie consciència creença,Considerant rebel·lió autònom, països TUÁKAR AÚJMATISAMUJúna pu]ustinrin, thë wã ĩhĩ maõpë,Enaha rẽ popeheĨhĩ TOTIHITAWË Ã owëmayõũ taomi.Considerînd că recunoașterea demnității GENERALĂ DECLARAȚIE împrejurări.În Birleşmiş Asambleyasının merkeziBasılêr İlerlemä Deklaraţlyasını kayıllıınnan.Aylä— tegnì dùthchannan,Do ŋga SE:KEDEŊGA Xiskuamana, sẽn ye.[Missing]Ned pœga, lume,Considerând – WALINKAÑAPATAKI E&#39;~mbi berš, čačipa dženengere bipaćape “raica qali.”Ni fa&#39;ati&#39;amā tūtu&#39;u-mana-&#39;ore hō&#39;ē fa&#39;atītīra&#39;a ai.3-&#39;E 360 ruku/supu tina¿;¡ju ďekesi ‘bukuluŋ.KWEJA ADIĎeďekarikin juỳu &amp; kamanzəga Övertügen, nateûre égåls, s-ôtes vre°ymint secretario.general@interlingua.comUling GWIRIOÙ kǎ kǒ nüxü̃́ ĨXẼRü qaỹaỹateeta nai&gt;&gt;ctaxa ƏBİLOV09.12.11Bə ləyoğətə Çəvon po&#39;ñoc̈h ṅwaha iñapytlʼyre manuśenqe famělia aspirŕcia trąden rňdel teritorűqesqiri, maźutipen naśărdől publģko prandipen.Âaj procedůra.Sarkas, d´fhiacha į žmonių giminės sąžinę, asmenybė.Įgyvendindamas visuomenėje.Šios Òmma naçon.Ês Ĝenerala ĉiuj efektiviĝo kontraŭ Ĉarto Ŝtatoj-Membroj paŝoj posedaĵoj, tjuta!Tjinguru Ó KU`OTENESEKILONDEKESU Đại đồng jǐ nudeji.Nǔ Åtta éyaltai{ab Enyiń bǎsí atâ assaturusengnge.Það þetta réttlætis lýst, ƉE 5IGELE ese_ejja UNIVERSÈLE DREÛTS tutup;BAŞ ASSAMBLEÝAADAM HUKUKLARYNYŇ Ïa ľných tešiť SHROMAŽDENIEtúto Čo tia;\ui. le^ bekjentgjøre VERDENSERKLÆRING i%anique raryijnty£ryanityaniy rirva½arvurva « » ła promesi.Ła t† koʻrsatmasi = OPĆOJ usirhelèli.À bjóðarAÐALFUNDURINHesa teirra.Øll ‘Ōlelo NĀ KĪVILA ṅwet gban̄gba, Ģenerālā pieņēmusi locekļiem atšķirības přirozené kezéḿbiídi wónÿuú għall-maskil, tal-paċi ż-żebliħ ġabu tal-Ġnus tiegħu.Ħadd ọ bụ pụghị ZIỌgbakọ ya.Ụmụ enupa,…) pruckamakir+t godność.ZWAŻYWSZY, ƒe
+          </span>
+       </div>
+    
+
+    </div>
+</body>
+	<script>
+
+	POSITION = "after"
+	fontToggle = document.getElementById("font-toggle")
+	function switchFonts() {
+	  items = document.getElementsByClassName("box")
+	  
+	  if (POSITION === "before") {
+	  POSITION = "after"
+	  for (item of items) {
+	    item.firstElementChild.textContent = item.firstElementChild.textContent.replace("before", "after")
+            item.lastElementChild.className = item.lastElementChild.className.replace("before", "after")
+	    fontToggle.textContent = "After"
+	  }
+	  } else {
+	  POSITION = "before"
+	  for (item of items) {
+	    item.firstElementChild.textContent = item.firstElementChild.textContent.replace("after", "before")
+            item.lastElementChild.className = item.lastElementChild.className.replace("after", "before")
+	    fontToggle.textContent = "Before"
+	  }
+	}
+	}
+	fontToggle.addEventListener("click", switchFonts);
+	</script>
+</html>
