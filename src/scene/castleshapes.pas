@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
-  CastleTriangles, CastleImages, CastleMaterialProperties,
+  CastleTriangles, CastleImages, CastleInternalMaterialProperties,
   CastleShapeInternalShadowVolumes;
 
 const

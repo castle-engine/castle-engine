@@ -1326,8 +1326,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalX3DScript"/>
       </Item306>
       <Item307>
-        <Filename Value="../src/scene/castlematerialproperties.pas"/>
-        <UnitName Value="CastleMaterialProperties"/>
+        <Filename Value="../src/scene/castleinternalmaterialproperties.pas"/>
+        <UnitName Value="CastleInternalMaterialProperties"/>
       </Item307>
       <Item308>
         <Filename Value="../src/scene/castleraytracer.pas"/>
@@ -4221,6 +4221,11 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/castlescene_punctuallight.inc"/>
         <Type Value="Include"/>
       </Item1029>
+      <Item1030>
+        <Filename Value="../src/deprecated_units/castlematerialproperties.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleMaterialProperties"/>
+      </Item1030>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

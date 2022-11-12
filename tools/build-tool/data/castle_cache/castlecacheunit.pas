@@ -161,7 +161,7 @@ uses
 
   // src/scene
   castledebugtransform,
-  castlematerialproperties,
+  castleinternalmaterialproperties,
   castleraytracer,
   castlescene,
   castleterrain,
