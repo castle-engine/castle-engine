@@ -178,7 +178,7 @@ var
     the material_properties.xml file.
     And the image files must be prepared earlier by the build tool call
     @code("castle-engine auto-generate-textures").
-    See the https://castle-engine.io/creating_data_material_properties.php#section_texture_scale .
+    See the https://castle-engine.io/creating_data_auto_generated_textures.php#section_texture_scale .
 
     Each size (width, height, and (for 3D images) depth) is scaled
     by @code(1 / 2^(TextureLoadingScale-1)).

@@ -111,7 +111,7 @@ type
   TScale = record
     { The scale (as in ScaledWidth := Width / (2 ^ Scale.Value).
       Should be intepreted just like TextureLoadingScale.
-      See https://castle-engine.io/creating_data_material_properties.php#section_texture_scale }
+      See https://castle-engine.io/creating_data_auto_generated_textures.php#section_texture_scale }
     Value: Byte;
     { List of platforms for which this scale should be packaged. }
     Platforms: TCastlePlatforms;
@@ -182,7 +182,7 @@ type
 
   { Store information that is naturally associated with a given material
     or texture in an external file. Documentation and example of such
-    file is on  https://castle-engine.io/creating_data_material_properties.php .
+    file is on https://castle-engine.io/creating_data_auto_generated_textures.php .
     Right now this allows to define things like:
 
     @unorderedList(

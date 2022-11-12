@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
   Material and texture properties. This allows to configure downscaled
-  and compressed textures, see https://castle-engine.io/creating_data_material_properties.php .
+  and compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php .
 -->
 <properties>
   <!-- Automatically compress textures.
@@ -18,8 +18,7 @@
     with compressed textures. You will need to install first:
     - build tool: https://castle-engine.io/build_tool
     - one of the supported tools to compress to DXTn, see
-      https://castle-engine.io/creating_data_material_properties.php#section_texture_compression
-      We advice the "NVidia Texture Tools" (libnvtt-bin package on Linux).
+      https://castle-engine.io/creating_data_auto_generated_textures.php .
 
     The Castle Game Engine will automatically use the compressed textures.
   -->
