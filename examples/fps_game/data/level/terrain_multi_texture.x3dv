@@ -5,11 +5,11 @@ PROFILE Interchange
 
 Effect {
   initializeOnly SFNode clouds ImageTexture {
-    url "test_multi_texture/textures/clouds.png"
+    url "textures/clouds.jpg"
     flipVertically TRUE # adjust to glTF texture coordinates
   }
   initializeOnly SFNode peppers ImageTexture {
-    url "test_multi_texture/textures/peppers.png"
+    url "textures/Moss_Sticks01.png"
     flipVertically TRUE # adjust to glTF texture coordinates
   }
   parts [
@@ -23,9 +23,9 @@ Effect {
 
         void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal_eye)
         {
-          vec4 col_clouds = texture2D(clouds, castle_TexCoord0.xy * 0.25);
+          vec4 col_clouds = texture2D(clouds, castle_TexCoord0.xy * 0.10);
 
-          vec4 col_peppers = texture2D(peppers, castle_TexCoord0.xy * 0.4);
+          vec4 col_peppers = texture2D(peppers, castle_TexCoord0.xy * 1.5);
 
           fragment_color.rgb = mix(fragment_color.rgb, col_peppers.rgb, col_clouds.r);
         }"
@@ -33,4 +33,4 @@ Effect {
   ]
 }
 
-Inline { url "level_terrain.gltf" }
+Inline { url "level2.gltf" }
