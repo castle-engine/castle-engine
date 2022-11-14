@@ -1495,8 +1495,6 @@ var
       Result.AlphaCutOff := Material.AlphaCutOff;
 
       Result.TextureTransform := TexTransforms.SingleTextureTransform;
-      if Result.TextureTransform <> nil then
-        Writeln('has texture transform!');
     finally FreeAndNil(TexTransforms) end;
   end;
 
