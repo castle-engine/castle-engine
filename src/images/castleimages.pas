@@ -1943,7 +1943,7 @@ var
     the renderer (like OpenGL context). }
   SupportedTextureCompression: TTextureCompressions;
 
-{ All image URLs are processed by this event before loading.
+(*All image URLs are processed by this event before loading.
   This allows to globally modify / observe your images paths,
   e.g. to use GPU compressed alternative versions.
 
@@ -1951,12 +1951,8 @@ var
   This includes @link(LoadImage), @link(LoadEncodedImage)
   and (internal) @code(TCompositeImage.LoadFromFile).
 
-  The URL processing is automatically registered by
-  @link(TMaterialProperties MaterialProperties)
-  to automatically use GPU compressed textures.
-  See https://castle-engine.io/creating_data_material_properties.php .
-  You can also use it yourself, instead or in addition
-  to @link(TMaterialProperties MaterialProperties) processing.
+  The URL processing is automatically used to automatically use GPU compressed textures.
+  See https://castle-engine.io/creating_data_auto_generated_textures.php .
 
   @italic(An example:) To work on any GPU, you want to have various
   versions of your textures (uncompressed, and also compressed with
@@ -1986,12 +1982,12 @@ var
     end;
 
     initialization
-      AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+      AddLoadImageListener({$ifdef FPC}@{$endif} MyTextureUtils.GPUTextureAlternative);
     finalization
-      RemoveLoadImageListener(@GPUTextureAlternative);
+      RemoveLoadImageListener({$ifdef FPC}@{$endif} MyTextureUtils.GPUTextureAlternative);
     end.
   #)
-}
+*)
 procedure AddLoadImageListener(const Event: TLoadImageEvent);
 
 { Remove listener added by @link(AddLoadImageListener). }

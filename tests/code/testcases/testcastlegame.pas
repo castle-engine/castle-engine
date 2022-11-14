@@ -30,7 +30,7 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
+  CastleInternalMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
   CastleURIUtils;
 
 procedure TTestGame.TestGameData;
