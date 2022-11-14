@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="keyboard_example"
+  standalone_source="keyboard_example_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.keyboardexample"
+  caption="Keyboard Example"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+  <android>
+    <services>
+      <service name="keyboard" />
+    </services>
+  </android>
+</project>
