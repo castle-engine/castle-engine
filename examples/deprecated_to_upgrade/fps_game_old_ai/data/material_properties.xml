@@ -1,15 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Material and texture properties. This allows to configure some material/texture
-  properties that would be uncomfortable to express inside 3D files
-  (or impossible because 3D authoring software does no support it).
-  For example, footsteps sound when player walks over given ground.
-  See CastleMaterialProperties unit of Castle Game Engine.
+  Material and texture properties. This allows to configure downscaled
+  and compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php .
 -->
 <properties>
-  <property texture_base_name="tilable-img_0044"
-    footsteps_sound="footsteps_grass" />
-
   <!-- Automatically compress textures.
     Most of them to DXT1 (without alpha),
     some of them to DXT5 (with smooth alpha).
@@ -24,8 +18,7 @@
     with compressed textures. You will need to install first:
     - build tool: https://castle-engine.io/build_tool
     - one of the supported tools to compress to DXTn, see
-      https://castle-engine.io/creating_data_material_properties.php#section_texture_compression
-      We advice the "NVidia Texture Tools" (libnvtt-bin package on Linux).
+      https://castle-engine.io/creating_data_auto_generated_textures.php .
 
     The Castle Game Engine will automatically use the compressed textures.
   -->
