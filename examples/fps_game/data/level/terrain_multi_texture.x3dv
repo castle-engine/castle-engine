@@ -1,0 +1,36 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Adds on test_terrain.gltf simple effect that applies additional texture layers.
+
+Effect {
+  initializeOnly SFNode clouds ImageTexture {
+    url "test_multi_texture/textures/clouds.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  initializeOnly SFNode peppers ImageTexture {
+    url "test_multi_texture/textures/peppers.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  parts [
+    EffectPart {
+      type "FRAGMENT"
+      url "data:text/plain,
+        varying vec4 castle_TexCoord0;
+
+        uniform sampler2D clouds;
+        uniform sampler2D peppers;
+
+        void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal_eye)
+        {
+          vec4 col_clouds = texture2D(clouds, castle_TexCoord0.xy * 0.25);
+
+          vec4 col_peppers = texture2D(peppers, castle_TexCoord0.xy * 0.4);
+
+          fragment_color.rgb = mix(fragment_color.rgb, col_peppers.rgb, col_clouds.r);
+        }"
+    }
+  ]
+}
+
+Inline { url "level_terrain.gltf" }
