@@ -3,6 +3,12 @@
         "generator" : "Khronos glTF Blender I/O v3.2.40",
         "version" : "2.0"
     },
+    "extensionsUsed" : [
+        "KHR_texture_transform"
+    ],
+    "extensionsRequired" : [
+        "KHR_texture_transform"
+    ],
     "scene" : 0,
     "scenes" : [
         {
@@ -50,9 +56,36 @@
         {
             "doubleSided" : true,
             "name" : "Material.002",
+            "normalTexture" : {
+                "extensions" : {
+                    "KHR_texture_transform" : {
+                        "offset" : [
+                            0,
+                            -199
+                        ],
+                        "scale" : [
+                            200,
+                            200
+                        ]
+                    }
+                },
+                "index" : 0
+            },
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
-                    "index" : 0
+                    "extensions" : {
+                        "KHR_texture_transform" : {
+                            "offset" : [
+                                0,
+                                -199
+                            ],
+                            "scale" : [
+                                200,
+                                200
+                            ]
+                        }
+                    },
+                    "index" : 1
                 },
                 "metallicFactor" : 0,
                 "roughnessFactor" : 0.5
@@ -85,7 +118,7 @@
                         "TANGENT" : 7,
                         "TEXCOORD_0" : 8
                     },
-                    "indices" : 4,
+                    "indices" : 9,
                     "material" : 0
                 }
             ]
@@ -95,9 +128,18 @@
         {
             "sampler" : 0,
             "source" : 0
+        },
+        {
+            "sampler" : 0,
+            "source" : 1
         }
     ],
     "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "Soil01_normal",
+            "uri" : "textures/Soil01_normal.png"
+        },
         {
             "mimeType" : "image/png",
             "name" : "Soil01.png",
@@ -178,6 +220,12 @@
             "componentType" : 5126,
             "count" : 1431,
             "type" : "VEC2"
+        },
+        {
+            "bufferView" : 9,
+            "componentType" : 5123,
+            "count" : 7776,
+            "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
@@ -225,6 +273,11 @@
             "buffer" : 0,
             "byteLength" : 11448,
             "byteOffset" : 141480
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 15552,
+            "byteOffset" : 152928
         }
     ],
     "samplers" : [
@@ -235,7 +288,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 152928,
+            "byteLength" : 168480,
             "uri" : "level2.bin"
         }
     ]

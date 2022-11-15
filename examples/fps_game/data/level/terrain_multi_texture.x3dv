@@ -9,18 +9,18 @@ Effect {
     flipVertically TRUE # adjust to glTF texture coordinates
   }
   initializeOnly SFNode layer2 ImageTexture {
-    url "textures/Moss_Sticks01.png"
+    url "textures/Grass02.png"
     flipVertically TRUE # adjust to glTF texture coordinates
   }
   initializeOnly SFNode layer2_normal ImageTexture {
-    url "textures/Iland_Normal.png"
+    url "textures/Grass02_normal.png"
     flipVertically TRUE # adjust to glTF texture coordinates
   }
 
-  initializeOnly SFFloat mask_uv_scale 0.10
-  initializeOnly SFFloat layer2_uv_scale 1.5
+  initializeOnly SFFloat mask_uv_scale 0.02
+  initializeOnly SFFloat layer2_uv_scale 0.5
 
-  initializeOnly SFFloat layer2_normalScale 1.0
+  initializeOnly SFFloat layer2_normalScale 1.5
 
   parts [
     EffectPart {
