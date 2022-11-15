@@ -906,6 +906,15 @@ var
   Lights: TPunctualLights;
 
   procedure ReadHeader;
+  const
+    SupportedExtensions: array [0..3] of String = (
+      'KHR_materials_pbrSpecularGlossiness',
+      'KHR_texture_transform',
+      'KHR_lights_punctual',
+      'KHR_materials_unlit'
+    );
+  var
+    ExtRequired: String;
   begin
     // too verbose to be done by default
     (*
@@ -955,8 +964,9 @@ var
       ])
     );
     *)
-    if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
-      WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+    for ExtRequired in Document.ExtensionsRequired do
+      if ArrayPosStr(ExtRequired, SupportedExtensions) = -1 then
+        WritelnWarning('Required extension "%s" not supported by glTF reader', [ExtRequired]);
   end;
 
   { Read glTF "extras" item, with given key and value (JSON array), into X3D "metadata" information. }
