@@ -25,22 +25,23 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    TransformMoving: TCastleTransform;
+    SceneMovingBox: TCastleScene;
+    SceneMovingSphere: TCastleScene;
+    SceneMovingRay: TCastleScene;
+    ButtonTestMove: TCastleButton;
+    ButtonTestBox: TCastleButton;
+    ButtonTestSphere: TCastleButton;
+    ButtonTestRay: TCastleButton;
+    MainViewport: TCastleViewport;
   private
     type
       TTestMode = (tmMove, tmBox, tmSphere, tmRay);
     var
-      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-      LabelFps: TCastleLabel;
-      TransformMoving: TCastleTransform;
-      SceneMovingBox: TCastleScene;
-      SceneMovingSphere: TCastleScene;
-      SceneMovingRay: TCastleScene;
-      ButtonTestMove: TCastleButton;
-      ButtonTestBox: TCastleButton;
-      ButtonTestSphere: TCastleButton;
-      ButtonTestRay: TCastleButton;
-      MainViewport: TCastleViewport;
-
       FTestMode: TTestMode;
     procedure SetTestMode(const Value: TTestMode);
     { Update SceneMovingXxx material color, to show whether it collides,
@@ -76,18 +77,6 @@ end;
 procedure TStateMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  TransformMoving := DesignedComponent('TransformMoving') as TCastleTransform;
-  SceneMovingBox := DesignedComponent('SceneMovingBox') as TCastleScene;
-  SceneMovingSphere := DesignedComponent('SceneMovingSphere') as TCastleScene;
-  SceneMovingRay := DesignedComponent('SceneMovingRay') as TCastleScene;
-  ButtonTestMove := DesignedComponent('ButtonTestMove') as TCastleButton;
-  ButtonTestBox := DesignedComponent('ButtonTestBox') as TCastleButton;
-  ButtonTestSphere := DesignedComponent('ButtonTestSphere') as TCastleButton;
-  ButtonTestRay := DesignedComponent('ButtonTestRay') as TCastleButton;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
   ButtonTestMove.OnClick := {$ifdef FPC}@{$endif}ClickTestMove;
   ButtonTestBox.OnClick := {$ifdef FPC}@{$endif}ClickTestBox;
