@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -194,13 +194,17 @@ end;
 
 function TCastleUserInterfaceFont.TooltipExists: boolean;
 begin
-  Result := Tooltip <> '';
+  Result := (TooltipControl <> nil) or (Tooltip <> '');
 end;
 
 procedure TCastleUserInterfaceFont.TooltipRender(const TooltipPosition: TVector2);
 var
   X, Y, TooltipWidth, TooltipHeight: Single;
 begin
+  // do not render tooltip here, if TooltipControl takes care of it
+  if TooltipControl <> nil then
+    Exit;
+
   if TooltipLabel = nil then
   begin
     TooltipLabel := TCastleLabelTooltip.Create(nil);
