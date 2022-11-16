@@ -722,14 +722,14 @@
       @groupBegin }
     function TryFindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode';
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode';
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function TryFindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode';
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; overload; deprecated 'use FindNode';
+      OnlyActive: boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     { @groupEnd }
 
     { Find a node by name and class, in this node and children (recursively).
@@ -741,10 +741,10 @@
         Unless fnNilOnMissing in Options, then it returns @nil on missing node,
         and EX3DNotFound is never raised.)
     }
-    function FindNode(const NodeClass: TX3DNodeClass; const FindName: string;
+    function FindNode(const NodeClass: TX3DNodeClass; const FindName: String;
       const Options: TFindNodeOptions = []): TX3DNode; overload;
 
-    function FindNode(const FindName: string): TX3DNode; overload; deprecated 'use FindNode(NodeClass, FindName)';
+    function FindNode(const FindName: string): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
 
     {$ifdef GENERIC_METHODS}
 
