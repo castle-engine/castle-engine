@@ -50,7 +50,7 @@ uses // FPC and LCL units
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess;
+  CastleEditorAccess, CastleThirdPersonNavigation;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -160,6 +160,26 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+
+  { animations on TCastleThirdPersonNavigation }
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationWalk',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRun',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationJump',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRotate',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouch',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchIdle',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchRotate',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationFall',
+    TThirdPersonAnimationPropertyEditor);
 
   RegisterComponentEditor(TCastleTransform, TCastleTransformComponentEditor);
   RegisterComponentEditor(TCastleScene, TCastleSceneComponentEditor);
