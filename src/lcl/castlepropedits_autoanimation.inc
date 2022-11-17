@@ -24,7 +24,6 @@ type
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;
-    procedure SetValue(const NewValue: String); override;
   end;
 
 function TSceneAutoAnimationPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -41,16 +40,6 @@ begin
   Scene := GetComponent(0) as TCastleSceneCore;
   for S in Scene.AnimationsList do
     Proc(S);
-end;
-
-{ TODO: Is this necessary? }
-procedure TSceneAutoAnimationPropertyEditor.SetValue(const NewValue: String);
-var
-  Scene: TCastleSceneCore;
-begin
-  inherited SetValue(NewValue);
-  Scene := GetComponent(0) as TCastleSceneCore;
-  Scene.AutoAnimation := NewValue;
 end;
 
 { TThirdPersonAnimationPropertyEditor ------------------------------------------ }
