@@ -568,13 +568,13 @@ begin
       SinCos(2 * Pi * I / CircleSlices, NextSin, NextCos);
     CirclePoint[(I - 1) * 3    ] := Vector2(
       Middle.X,
-      Middle[1]);
+      Middle.Y);
     CirclePoint[(I - 1) * 3 + 1] := Vector2(
       Middle.X + PreviousSin * HorizontalRadius,
-      Middle[1] + PreviousCos * VerticalRadius);
+      Middle.Y + PreviousCos * VerticalRadius);
     CirclePoint[(I - 1) * 3 + 2] := Vector2(
       Middle.X + NextSin     * HorizontalRadius,
-      Middle[1] + NextCos     * VerticalRadius);
+      Middle.Y + NextCos     * VerticalRadius);
     PreviousSin := NextSin;
     PreviousCos := NextCos;
   end;
@@ -615,7 +615,7 @@ begin
     SinCos(2 * Pi * I / (CircleSlices - 1), S, C);
     CirclePoint[I] := Vector2(
       Middle.X + S * HorizontalRadius,
-      Middle[1] + C * VerticalRadius);
+      Middle.Y + C * VerticalRadius);
   end;
 
   DrawPrimitive2D(pmLineLoop, CirclePoint,
