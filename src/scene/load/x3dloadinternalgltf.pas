@@ -523,7 +523,7 @@ const
         for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
-      RoughnessFactor := Max(RoughnessFactor, 0.5);
+      RoughnessFactor := Max(RoughnessFactor, 0.05);
     end;
 
     (*
