@@ -1191,7 +1191,9 @@ procedure TCastleContainer.EventUpdate;
         This is especially useful when an invisible control like TCastleWalkNavigation
         covers other controls. }
       for I := Focus.Count - 1 downto 0 do
+        {$warnings off} // using deprecated, it should be internal
         if Focus[I].TooltipExists then
+        {$warnings on}
         begin
           NewTooltipParent := Focus[I];
           Break;
