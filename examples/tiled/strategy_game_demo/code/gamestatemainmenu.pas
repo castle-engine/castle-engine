@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,12 +23,15 @@ uses Classes,
 
 type
   TStateMainMenu = class(TUIState)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonPlayHexagonal: TCastleButton;
     ButtonPlayIsometricStaggered: TCastleButton;
     ButtonPlayIsometric: TCastleButton;
     ButtonPlayOrthogonal: TCastleButton;
     ButtonQuit: TCastleButton;
+  strict private
     procedure ClickHexagonal(Sender: TObject);
     procedure ClickIsometricStaggered(Sender: TObject);
     procedure ClickIsometric(Sender: TObject);
@@ -57,13 +60,6 @@ end;
 procedure TStateMainMenu.Start;
 begin
   inherited;
-
-  ButtonPlayHexagonal := DesignedComponent('ButtonPlayHexagonal') as TCastleButton;
-  ButtonPlayIsometricStaggered := DesignedComponent('ButtonPlayIsometricStaggered') as TCastleButton;
-  ButtonPlayIsometric := DesignedComponent('ButtonPlayIsometric') as TCastleButton;
-  ButtonPlayOrthogonal := DesignedComponent('ButtonPlayOrthogonal') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-
   ButtonPlayHexagonal.OnClick := {$ifdef FPC}@{$endif}ClickHexagonal;
   ButtonPlayIsometricStaggered.OnClick := {$ifdef FPC}@{$endif}ClickIsometricStaggered;
   ButtonPlayIsometric.OnClick := {$ifdef FPC}@{$endif}ClickIsometric;

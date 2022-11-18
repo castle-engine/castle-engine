@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1034">
+    <Files Count="1035">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -1326,8 +1326,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalX3DScript"/>
       </Item306>
       <Item307>
-        <Filename Value="../src/scene/castlematerialproperties.pas"/>
-        <UnitName Value="CastleMaterialProperties"/>
+        <Filename Value="../src/scene/castleinternalmaterialproperties.pas"/>
+        <UnitName Value="CastleInternalMaterialProperties"/>
       </Item307>
       <Item308>
         <Filename Value="../src/scene/castleraytracer.pas"/>
@@ -4241,6 +4241,11 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castletransform_physics_deprecated.inc"/>
         <Type Value="Include"/>
       </Item1034>
+      <Item1035>
+        <Filename Value="../src/deprecated_units/castlematerialproperties.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleMaterialProperties"/>
+      </Item1035>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

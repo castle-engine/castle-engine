@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TCastleSceneCore.AutoAnimation property editor. }
+{ TCastleSceneCore.AutoAnimation, TCastleThirdPersonNavigation.AnimationXxx property editor. }
 
 { TSceneAutoAnimationPropertyEditor ------------------------------------------ }
 
@@ -24,7 +24,6 @@ type
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;
-    procedure SetValue(const NewValue: String); override;
   end;
 
 function TSceneAutoAnimationPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -43,11 +42,31 @@ begin
     Proc(S);
 end;
 
-procedure TSceneAutoAnimationPropertyEditor.SetValue(const NewValue: String);
-var
-  Scene: TCastleSceneCore;
+{ TThirdPersonAnimationPropertyEditor ------------------------------------------ }
+
+type
+  { Property editor to select an animation on TCastleThirdPersonNavigation. }
+  TThirdPersonAnimationPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure GetValues(Proc: TGetStrProc); override;
+  end;
+
+function TThirdPersonAnimationPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  inherited SetValue(NewValue);
-  Scene := GetComponent(0) as TCastleSceneCore;
-  Scene.AutoAnimation := NewValue;
+  Result := [paMultiSelect, paValueList, paSortList, paRevertable];
+end;
+
+procedure TThirdPersonAnimationPropertyEditor.GetValues(Proc: TGetStrProc);
+var
+  Nav: TCastleThirdPersonNavigation;
+  Scene: TCastleSceneCore;
+  S: String;
+begin
+  Proc('');
+  Nav := GetComponent(0) as TCastleThirdPersonNavigation;
+  Scene := Nav.Avatar;
+  if Scene <> nil then
+    for S in Scene.AnimationsList do
+      Proc(S);
 end;

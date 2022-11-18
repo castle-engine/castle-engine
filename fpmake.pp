@@ -291,6 +291,7 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castlelocalization.pas');
     P.Targets.AddUnit('castlelocalizationfileloader.pas');
+    P.Targets.AddUnit('castlematerialproperties.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleprogress.pas');
@@ -491,7 +492,7 @@ begin
     P.Targets.AddUnit('castleinternaltriangleoctree.pas');
     P.Targets.AddUnit('castleinternalx3dlexer.pas');
     P.Targets.AddUnit('castleinternalx3dscript.pas');
-    P.Targets.AddUnit('castlematerialproperties.pas');
+    P.Targets.AddUnit('castleinternalmaterialproperties.pas');
     P.Targets.AddUnit('castleraytracer.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');

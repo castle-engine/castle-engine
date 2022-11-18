@@ -23,7 +23,7 @@ interface
 
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
-  CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
+  CastleKeysMouse, CastleShapes, CastleInternalMaterialProperties, CastleSoundEngine,
   CastleTransformExtra, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform,
   CastleResources, CastleThirdPersonNavigation;

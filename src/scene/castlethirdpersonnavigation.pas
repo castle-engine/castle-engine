@@ -935,7 +935,6 @@ var
   Torque: Single;
 begin
   inherited;
-
   if not Valid then Exit;
 
   A := RealAvatarHierarchy;

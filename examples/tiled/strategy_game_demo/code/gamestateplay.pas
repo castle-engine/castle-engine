@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,12 +25,15 @@ uses Classes,
 
 type
   TStatePlay = class(TUIState)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     MapControl: TCastleTiledMapControl;
     ButtonQuit: TCastleButton;
     ButtonInstructions: TCastleButton;
     ButtonEndTurn: TCastleButton;
     LabelStatus, LabelTurnStatus: TCastleLabel;
+  strict private
     TileUnderMouseImage: TCastleImageControl;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
@@ -120,14 +123,6 @@ procedure TStatePlay.Start;
 
 begin
   inherited;
-
-  // find components in designed user interface
-  MapControl := DesignedComponent('MapControl') as TCastleTiledMapControl;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-  ButtonInstructions := DesignedComponent('ButtonInstructions') as TCastleButton;
-  ButtonEndTurn := DesignedComponent('ButtonEndTurn') as TCastleButton;
-  LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
-  LabelTurnStatus := DesignedComponent('LabelTurnStatus') as TCastleLabel;
 
   MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
   MapControl.OnPress := {$ifdef FPC}@{$endif}MapPress;
