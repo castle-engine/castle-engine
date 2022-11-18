@@ -157,7 +157,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.0.16
+        uses: gcarreno/setup-lazarus@v3.1.1
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
       - name: Install Ubuntu dependencies
