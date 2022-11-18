@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2021 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,6 +55,7 @@ initialization
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
+  { To test deprecated CastleProgress }
   Progress.UserInterface := WindowProgressInterface;
 
   { create Window and initialize Window callbacks }
