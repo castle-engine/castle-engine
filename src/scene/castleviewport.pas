@@ -827,13 +827,19 @@ type
       This is like using ContainerCoordinates = @false with PositionToRay. }
     function PositionFromWorld(const WorldPosition: TVector3): TVector2;
 
+    procedure PrepareResources(const DisplayProgressTitle: string;
+      const Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload;
+      deprecated 'use overload without DisplayProgressTitle: String';
+    procedure PrepareResources(const Item: TCastleTransform;
+      const DisplayProgressTitle: string;
+      Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload;
+      deprecated 'use overload without DisplayProgressTitle: String';
+
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
-      Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
-      If DisplayProgressTitle <> '', we will display progress bar during loading. }
-    procedure PrepareResources(const DisplayProgressTitle: string = '';
+      Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen). }
+    procedure PrepareResources(
       const Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload;
     procedure PrepareResources(const Item: TCastleTransform;
-      const DisplayProgressTitle: string = '';
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current object (TCastleTransform hierarchy) under the mouse cursor.
@@ -1189,7 +1195,7 @@ var
 implementation
 
 uses DOM, Math, TypInfo,
-  CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
+  CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
   CastleRenderContext, CastleApplicationProperties, X3DLoad;
@@ -3310,8 +3316,20 @@ begin
   end;
 end;
 
+procedure TCastleViewport.PrepareResources(const DisplayProgressTitle: string;
+  const Options: TPrepareResourcesOptions);
+begin
+  PrepareResources(Options);
+end;
+
 procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
   const DisplayProgressTitle: string;
+  Options: TPrepareResourcesOptions);
+begin
+  PrepareResources(Item, Options);
+end;
+
+procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
   Options: TPrepareResourcesOptions);
 var
   MainLightPosition: TVector4; // value of this is ignored
@@ -3343,20 +3361,13 @@ begin
     ApplyProjection;
   end;
 
-  if DisplayProgressTitle <> '' then
-  begin
-    Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
-    try
-      Item.PrepareResources(Options, true, PrepareParams);
-    finally Progress.Fini end;
-  end else
-    Item.PrepareResources(Options, false, PrepareParams);
+  Item.PrepareResources(Options, PrepareParams);
 end;
 
-procedure TCastleViewport.PrepareResources(const DisplayProgressTitle: string;
+procedure TCastleViewport.PrepareResources(
   const Options: TPrepareResourcesOptions);
 begin
-  PrepareResources(Items, DisplayProgressTitle, Options);
+  PrepareResources(Items, Options);
 end;
 
 procedure TCastleViewport.BeforeRender;

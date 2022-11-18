@@ -1510,7 +1510,7 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, FLevel.PrepareParams);
+  Result.PrepareResources(Options, FLevel.PrepareParams);
 
   if PrepareForCollisions then
     Result.PreciseCollisions := true;
