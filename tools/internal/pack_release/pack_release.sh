@@ -306,6 +306,7 @@ do_pack_platform ()
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
   local ARCHIVE_NAME_BUNDLE=''
