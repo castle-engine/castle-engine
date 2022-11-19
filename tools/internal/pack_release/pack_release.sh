@@ -262,7 +262,7 @@ do_pack_platform ()
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
 
   # Compile fpc-cge internal tool
-  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/
+  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
 
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
