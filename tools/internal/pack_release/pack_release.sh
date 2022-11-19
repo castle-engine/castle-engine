@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -173,6 +173,7 @@ add_external_tool ()
   if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
     download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
     unzip jsonstream.zip
+    mkdir -p server/deps/
     mv jsonstream-master server/deps/jsonstream
   fi
 
