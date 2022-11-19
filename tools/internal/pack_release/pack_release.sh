@@ -169,6 +169,13 @@ add_external_tool ()
   unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}"-master
 
+  # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
+  if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
+    download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
+    unzip jsonstream.zip
+    mv jsonstream-master server/deps/jsonstream
+  fi
+
   if [ "$OS" '=' 'darwin' ]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
