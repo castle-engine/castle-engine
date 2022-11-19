@@ -173,7 +173,7 @@ add_external_tool ()
   if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
     download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
     unzip jsonstream.zip
-    mkdir -p server/deps/
+    rm -Rf server/deps/jsonstream # zip contains empty dir with it
     mv jsonstream-master server/deps/jsonstream
     lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
