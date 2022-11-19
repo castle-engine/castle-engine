@@ -66,11 +66,13 @@ pipeline {
               }
             }
             stage('(Docker) Build And Run Auto-Tests (Default FPC)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'make clean tests'
               }
             }
             stage('(Docker) Build Using FpMake (Default FPC)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'make clean test-fpmake'
               }
@@ -81,6 +83,7 @@ pipeline {
                but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
             stage('(Docker) Build Tools (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools'
               }
@@ -99,11 +102,13 @@ pipeline {
               }
             }
             stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests'
               }
             }
             stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake'
               }
@@ -114,6 +119,7 @@ pipeline {
                but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
             stage('(Docker) Build Tools (FPC trunk)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
               }
@@ -132,11 +138,13 @@ pipeline {
               }
             }
             stage('(Docker) Build And Run Auto-Tests (FPC trunk)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
               }
             }
             stage('(Docker) Build Using FpMake (FPC trunk)') {
+              when { not { expression { return params.jenkins_fast } } } /* TODO: this is very fast */
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
               }
