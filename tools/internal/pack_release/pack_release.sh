@@ -175,6 +175,7 @@ add_external_tool ()
     unzip jsonstream.zip
     mkdir -p server/deps/
     mv jsonstream-master server/deps/jsonstream
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
 
   if [ "$OS" '=' 'darwin' ]; then
