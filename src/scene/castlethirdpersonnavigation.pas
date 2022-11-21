@@ -69,8 +69,6 @@ type
     FInput_LeftRotate: TInputShortcut;
     FInput_RightStrafe: TInputShortcut;
     FInput_LeftStrafe: TInputShortcut;
-    FInput_CameraCloser: TInputShortcut;
-    FInput_CameraFurther: TInputShortcut;
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
     FCameraDistanceChangeSpeed: Single;
@@ -126,6 +124,7 @@ type
     procedure AvatarHierarchyFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
+    function Zoom(const Factor: Single): Boolean; override;
   public
     const
       DefaultInitialHeightAboveTarget = 1.0;
@@ -155,7 +154,6 @@ type
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
@@ -202,11 +200,15 @@ type
     property Input_RightRotate: TInputShortcut read FInput_RightRotate;
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
-    property Input_CameraCloser: TInputShortcut read FInput_CameraCloser;
-    property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
     property Input_Run: TInputShortcut read FInput_Run;
+
+    function Input_CameraCloser: TInputShortcut; deprecated 'use Input_ZoomIn';
+    function Input_CameraFurther: TInputShortcut; deprecated 'use Input_ZoomOut';
   published
+    { Zooming in this navigation mode makes camera move closer/further from avatar. }
+    property ZoomEnabled default true;
+
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
@@ -278,11 +280,11 @@ type
       default false;
 
     { Preferred distance from camera to the avatar target (head).
-      User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
+      User can change it with Input_ZoomIn, Input_ZoomOut if you set these inputs
       to some key/mouse button/mouse wheel. }
     property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write SetDistanceToAvatarTarget
       {$ifdef FPC}default DefaultDistanceToAvatarTarget{$endif};
-    { Speed with which Input_CameraCloser, Input_CameraFurther can change DistanceToAvatarTarget. }
+    { Speed with which Input_ZoomIn, Input_ZoomOut can change DistanceToAvatarTarget. }
     property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
       {$ifdef FPC}default DefaultCameraDistanceChangeSpeed{$endif};
     { Limit of the distance to avatar, used when changing DistanceToAvatarTarget,
@@ -372,6 +374,7 @@ begin
   FAnimationCrouch := DefaultAnimationCrouch;
   FAnimationCrouchIdle := DefaultAnimationCrouchIdle;
   FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
+  ZoomEnabled := true;
 
   FAvatarFreeObserver := TFreeNotificationObserver.Create(Self);
   FAvatarFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarFreeNotification;
@@ -384,8 +387,6 @@ begin
   FInput_RightRotate             := TInputShortcut.Create(Self);
   FInput_LeftStrafe              := TInputShortcut.Create(Self);
   FInput_RightStrafe             := TInputShortcut.Create(Self);
-  FInput_CameraCloser            := TInputShortcut.Create(Self);
-  FInput_CameraFurther           := TInputShortcut.Create(Self);
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
@@ -395,8 +396,6 @@ begin
   Input_RightRotate             .Assign(keyArrowRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
-  Input_CameraCloser            .Assign(keyNone);
-  Input_CameraFurther           .Assign(keyNone);
   Input_Crouch                  .Assign(keyCtrl);
   Input_Run                     .Assign(keyShift);
 
@@ -406,8 +405,6 @@ begin
   Input_RightRotate            .SetSubComponent(true);
   Input_LeftStrafe             .SetSubComponent(true);
   Input_RightStrafe            .SetSubComponent(true);
-  Input_CameraCloser           .SetSubComponent(true);
-  Input_CameraFurther          .SetSubComponent(true);
   Input_Crouch                 .SetSubComponent(true);
   Input_Run                    .SetSubComponent(true);
 
@@ -417,8 +414,6 @@ begin
   Input_RightRotate            .Name := 'Input_RightRotate';
   Input_LeftStrafe             .Name := 'Input_LeftStrafe';
   Input_RightStrafe            .Name := 'Input_RightStrafe';
-  Input_CameraCloser           .Name := 'Input_CameraCloser';
-  Input_CameraFurther          .Name := 'Input_CameraFurther';
   Input_Crouch                 .Name := 'Input_Crouch';
   Input_Run                    .Name := 'Input_Run';
 
@@ -693,7 +688,7 @@ begin
   end;
 end;
 
-function TCastleThirdPersonNavigation.Press(const Event: TInputPressRelease): Boolean;
+function TCastleThirdPersonNavigation.Zoom(const Factor: Single): Boolean;
 var
   A: TCastleTransform;
 
@@ -708,24 +703,11 @@ var
   end;
 
 begin
-  Result := inherited;
-  if Result then Exit;
   if not Valid then Exit;
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
-  begin
-    if Input_CameraCloser.IsEvent(Event) then
-    begin
-      CameraDistanceChange(-1);
-      Result := ExclusiveEvents;
-    end;
-    if Input_CameraFurther.IsEvent(Event) then
-    begin
-      CameraDistanceChange(1);
-      Result := ExclusiveEvents;
-    end;
-  end;
+    CameraDistanceChange(-Factor);
 end;
 
 procedure TCastleThirdPersonNavigation.SetAnimation(const AnimationNames: array of String);
@@ -1047,6 +1029,16 @@ procedure TCastleThirdPersonNavigation.AvatarHierarchyFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   AvatarHierarchy := nil;
+end;
+
+function TCastleThirdPersonNavigation.Input_CameraCloser: TInputShortcut;
+begin
+  Result := Input_ZoomIn;
+end;
+
+function TCastleThirdPersonNavigation.Input_CameraFurther: TInputShortcut;
+begin
+  Result := Input_ZoomOut;
 end;
 
 {$define read_implementation_methods}
