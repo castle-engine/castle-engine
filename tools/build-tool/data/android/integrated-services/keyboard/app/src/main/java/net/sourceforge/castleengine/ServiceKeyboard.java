@@ -53,14 +53,17 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean sendKeyEvent(KeyEvent event) 
     {
-        Log.i("CastleInputConnection", "key event - code " + Integer.toString(event.getKeyCode()));
+        serviceKeyboard.logInfo("CastleInputConnection", "key event - code " + Integer.toString(event.getKeyCode()));
         // use enter to hide keyboard
         if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) 
         {
-            Log.i("CastleInputConnection", "key event - hide kyeboard");
+            serviceKeyboard.logInfo("CastleInputConnection", "key event - hide kyeboard");
             serviceKeyboard.hideKeyboard();
             return true;
         }
+
+        String keyCode = Integer.toString(event.getKeyCode());
+        String keyString;
 
         // https://developer.android.com/reference/android/view/KeyEvent#getUnicodeChar(int)
         // https://developer.android.com/reference/android/view/KeyEvent#getUnicodeChar()
@@ -68,18 +71,26 @@ class CastleInputConnection extends BaseInputConnection
         if (character != 0)
         {
             //String s = (new StringBuilder()).append(character).toString();
-            String s =  new String(Character.toChars(character));
-            Log.i("CastleInputConnection", "key event - char = " + s);
+            keyString =  new String(Character.toChars(character));
+            serviceKeyboard.logInfo("CastleInputConnection", "key event - char = " + keyString);
+        }
+        else
+        {
+            keyString = new String("");
         }
 
 
         // https://developer.android.com/reference/android/view/KeyEvent#getAction()
         if (event.getAction() == KeyEvent.ACTION_DOWN)
-            Log.i("CastleInputConnection", "key event - key down");
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "key event - key down");
+            serviceKeyboard.messageSend(new String[]{"castle-key-down", keyCode, keyString});
+        }
         else if (event.getAction() == KeyEvent.ACTION_UP)
-            Log.i("CastleInputConnection", "key event - key up");
-
-        // TODO: send keys to the engine here 
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "key event - key up");
+            serviceKeyboard.messageSend(new String[]{"castle-key-up", keyCode, keyString});
+        }
         return true;
     }
 }
@@ -123,6 +134,7 @@ public class ServiceKeyboard extends ServiceAbstract
     {
         super(activity);
         keyboardInputView = new CastleKeyboardInputView(this, getActivity().getWindow().getContext());
+        // https://stackoverflow.com/questions/40237846/programmatically-add-a-view-to-the-bottom-of-the-screen
         ViewGroup rootView = (ViewGroup) getActivity().findViewById(android.R.id.content);
         rootView.addView(keyboardInputView);
     }
@@ -147,7 +159,7 @@ public class ServiceKeyboard extends ServiceAbstract
         keyboardInputView.requestFocus(); // needed to show keyboard work properly
         imm.showSoftInput(keyboardInputView, 0);
         //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-        Log.e("keyboard", "show");
+        logInfo("keyboard", "show");
     }
 
     public void hideKeyboard()
@@ -160,16 +172,16 @@ public class ServiceKeyboard extends ServiceAbstract
         imm.hideSoftInputFromWindow(keyboardInputView.getWindowToken(), 0);
         //getActivity().getWindow().getDecorView().requestFocus();
         //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-        Log.e("keyboard", "hide");
+        logInfo("keyboard", "hide");
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 1 && parts[0].equals("show_keyboard")) {
+        if (parts.length == 1 && parts[0].equals("castle-show-keyboard")) {
             showKeyboard();
             return true;
-        } else if (parts.length == 1 && parts[0].equals("hide_keyboard")) {
+        } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) {
             hideKeyboard();
             return true;
         } else {

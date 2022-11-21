@@ -394,12 +394,12 @@ end;
 
 procedure ShowOnScreenKeyboard;
 begin
-  Messaging.Send(['show_keyboard']);
+  Messaging.Send(['castle-show-keyboard']);
 end;
 
 procedure HideOnScreenKeyboard;
 begin
-  Messaging.Send(['hide_keyboard']);
+  Messaging.Send(['castle-hide-keyboard']);
 end;
 
 end.
