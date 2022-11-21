@@ -93,19 +93,16 @@
       "$$ClassName" : "TCastleImageControl",
       "Content" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "ProtectedSides" : {
-          "$$ClassName" : "TBorder",
-          "AllSides" : 2.0000000000000000E+001
-        },
-        "URL" : "castle-data:/gfx/HUD%20Assets/HP_Bar_New1.png"
+        "URL" : "castle-data:/gfx/HUD%20Assets/HPealthPack_bg.png"
       },
-      "Height" : 6.0000000000000000E+001,
+      "Height" : 8.0000000000000000E+001,
       "Name" : "HealthPack",
+      "ProportionalScaling" : "psEnclose",
       "Stretch" : true,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 2.5000000000000000E+001,
-        "Y" : 1.2000000000000000E+002
+        "X" : 2.0000000000000000E+001,
+        "Y" : 1.1500000000000000E+002
       },
       "Width" : 8.0000000000000000E+001,
       "$Children" : [
@@ -119,14 +116,14 @@
             },
             "URL" : "castle-data:/gfx/HUD%20Assets/healthpack_placeholder.png"
           },
-          "Height" : 3.0000000000000000E+001,
+          "Height" : 3.3000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Icon",
           "Stretch" : true,
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
-          "Width" : 3.0000000000000000E+001
+          "Width" : 3.3000000000000000E+001
         }
       ]
     },
@@ -155,7 +152,7 @@
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : -5.0000000000000000E+000,
-        "Y" : 1.2500000000000000E+002
+        "Y" : 9.5000000000000000E+001
       },
       "Width" : 5.0000000000000000E+002,
       "$Children" : [
@@ -169,7 +166,7 @@
             "Green" : 8.3137255907058716E-001,
             "Red" : 8.3137255907058716E-001
           },
-          "CustomFont" : "Urbanist",
+          "CustomFont" : "UrbanistBold",
           "FontSize" : 2.4000000000000000E+001,
           "Height" : 5.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -177,7 +174,7 @@
           "Html" : true,
           "Name" : "Label1",
           "Text" : [
-            "<b> You killed enemy nr 1234 </b>"
+            "You killed enemy nr 1234"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
@@ -186,20 +183,13 @@
           "VerticalAlignment" : "vpMiddle",
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
-          "Width" : 5.0000000000000000E+002,
-          "$NonVisualComponents" : [
-            {
-              "$$ClassName" : "TCastleFont",
-              "Name" : "Urbanist",
-              "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
-            }
-          ]
+          "Width" : 5.0000000000000000E+002
         }
       ]
     },
     {
       "$$ClassName" : "TCastleUserInterface",
-      "Height" : 2.5000000000000000E+002,
+      "Height" : 4.2000000000000000E+002,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "WeaponSlots",
@@ -235,7 +225,7 @@
                 "Green" : 8.3137255907058716E-001,
                 "Red" : 8.3137255907058716E-001
               },
-              "CustomFont" : "Urbanist",
+              "CustomFont" : "UrbanistBold",
               "FontSize" : 2.4000000000000000E+001,
               "Height" : 5.0000000000000000E+001,
               "HorizontalAnchorParent" : "hpMiddle",
@@ -255,9 +245,39 @@
               "VerticalAnchorSelf" : "vpMiddle",
               "$NonVisualComponents" : [
                 {
-                  "$$ClassName" : "TCastleFont",
-                  "Name" : "Urbanist1",
-                  "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+                  "$$ClassName" : "TCastleFontFamily",
+                  "Bold" : "UrbanistBold",
+                  "BoldItalic" : "UrbanistBlack",
+                  "Italic" : "UrbanistThin",
+                  "Name" : "UrbanistFonts",
+                  "Regular" : "UrbanistRegular",
+                  "$NonVisualComponents" : [
+                    {
+                      "$$ClassName" : "TCastleFont",
+                      "Name" : "UrbanistRegular",
+                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
+                    },
+                    {
+                      "$$ClassName" : "TCastleFont",
+                      "Name" : "UrbanistBold",
+                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+                    },
+                    {
+                      "$$ClassName" : "TCastleFont",
+                      "Name" : "UrbanistBlack",
+                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
+                    },
+                    {
+                      "$$ClassName" : "TCastleFont",
+                      "Name" : "UrbanistItalic",
+                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Italic.otf"
+                    },
+                    {
+                      "$$ClassName" : "TCastleFont",
+                      "Name" : "UrbanistThin",
+                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Thin.otf"
+                    }
+                  ]
                 }
               ]
             }
@@ -282,7 +302,7 @@
           "Stretch" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : -1.0000000000000000E+001,
+            "X" : -2.0000000000000000E+001,
             "Y" : 7.5000000000000000E+001
           },
           "Width" : 1.1000000000000000E+002,
@@ -420,7 +440,7 @@
           "Stretch" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 7.2500000000000000E+001,
+            "X" : 8.2500000000000000E+001,
             "Y" : 7.0000000000000000E+001
           },
           "VerticalAnchorParent" : "vpMiddle",
@@ -453,25 +473,53 @@
       ]
     },
     {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "ColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent",
+          "Alpha" : 6.0000002384185791E-001,
+          "Blue" : 1.3725490868091583E-001,
+          "Green" : 1.3725490868091583E-001,
+          "Red" : 1.3725490868091583E-001
+        },
+        "ProtectedSides" : {
+          "$$ClassName" : "TBorder",
+          "AllSides" : 1.8000000000000000E+001
+        },
+        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Only2.png"
       },
-      "HorizontalAnchorParent" : "hpRight",
-      "HorizontalAnchorSelf" : "hpRight",
-      "Name" : "LabelFps",
-      "Text" : [
-        "FPS: xxxx"
-      ],
+      "Height" : 5.0000000000000000E+001,
+      "Name" : "NotificationBox1",
+      "Stretch" : true,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
-        "X" : -1.4700000000000000E+003,
-        "Y" : -2.0000000000000000E+001
+        "X" : 2.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
       },
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.1000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "UrbanistBold",
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelFps",
+          "Text" : [
+            "FPS: xxxx"
+          ],
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
     },
     {
       "$$ClassName" : "TCastleViewport",
@@ -496,7 +544,7 @@
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : -2.0000000000000000E+001,
-        "Y" : -2.9278613281250000E+002
+        "Y" : -2.8278613281250000E+002
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
