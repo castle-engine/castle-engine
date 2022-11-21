@@ -587,18 +587,20 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     case uMsg of
     WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
       begin
+        { adjusted composition window's position and font/caret size }
         vhIMC := ImmGetContext(self.h_Wnd);
         try
           ImmSetOpenStatus(vhIMC, True);
-          // 告诉输入法当前光标处字体信息
           {
           ImmGetCompositionFont(vhIMC, @vLogFont);
           vLogFont.lfHeight := Font.Height;
           ImmSetCompositionFont(vhIMC, @vLogFont);
           }
-          // 告诉输入法当前光标位置信息
+          { should get focused edit's position,not done }
           GetCursorPos(pt);
-          vCF.ptCurrentPos :=  Point(pt.X-self.Left, pt.Y-self.Top+25); // 输入法弹出窗体位置
+          ScreenToClient(self.h_Wnd,pt);
+          pt.Offset(0,25);
+          vCF.ptCurrentPos := pt;
           vCF.dwStyle := CFS_RECT;
           vCF.rcArea := TRect.Create(0,0,self.Width,self.Height);
           ImmSetCompositionWindow(vhIMC, @vCF);
@@ -610,16 +612,13 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       begin
           if ( LParm and GCS_RESULTSTR) <> 0 then
           begin
-            // 处理上屏文本一次性插入，否则会不停的触发KeyPress事件
             vhIMC := ImmGetContext(self.h_Wnd);
             if vhIMC <> 0 then
             begin
               try
-                // 获取IME结果字符串的大小
                 vSize := ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, nil, 0);
                 if vSize > 0 then
                 begin
-                  // 取出字符串
                   SetLength(vBuffer, vSize);
                   ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, @vBuffer[0], vSize);
                   KeyString := WideStringOf(vBuffer);
