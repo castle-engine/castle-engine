@@ -696,7 +696,6 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
-    // 输入法相关
     WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION,WM_IME_COMPOSITION:
       begin
         if Handle_IME then  Exit(0);
