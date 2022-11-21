@@ -152,14 +152,16 @@
             "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
             "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -195,14 +197,16 @@
             "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
             "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -238,14 +242,16 @@
             "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
             "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -288,7 +294,8 @@
             "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
