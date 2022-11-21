@@ -53,6 +53,7 @@ JwaWinUser, JwaDbt,
 {$else}
 Winapi.Messages, Character,
 {$endif}
+Imm,
 { /note }
 Windows, CommDlg,
 {$endif}
@@ -572,6 +573,71 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     end;
   end;
 
+  function Handle_IME:Boolean;
+  var
+    vhIMC: HIMC;
+    vSize:integer;
+    vBuffer: TBytes;
+    KeyString: UnicodeString;
+    //vLogFont: TLogFont;
+    vCF: TCompositionForm;
+    pt: TPoint;
+  begin
+    result:=False;
+    case uMsg of
+    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
+      begin
+        vhIMC := ImmGetContext(self.h_Wnd);
+        try
+          ImmSetOpenStatus(vhIMC, True);
+          // 告诉输入法当前光标处字体信息
+          {
+          ImmGetCompositionFont(vhIMC, @vLogFont);
+          vLogFont.lfHeight := Font.Height;
+          ImmSetCompositionFont(vhIMC, @vLogFont);
+          }
+          // 告诉输入法当前光标位置信息
+          GetCursorPos(pt);
+          vCF.ptCurrentPos :=  Point(pt.X-self.Left, pt.Y-self.Top+25); // 输入法弹出窗体位置
+          vCF.dwStyle := CFS_RECT;
+          vCF.rcArea := TRect.Create(0,0,self.Width,self.Height);
+          ImmSetCompositionWindow(vhIMC, @vCF);
+        finally
+          ImmReleaseContext(self.h_Wnd, vhIMC);
+        end;
+      end;
+    WM_IME_COMPOSITION:
+      begin
+          if ( LParm and GCS_RESULTSTR) <> 0 then
+          begin
+            // 处理上屏文本一次性插入，否则会不停的触发KeyPress事件
+            vhIMC := ImmGetContext(self.h_Wnd);
+            if vhIMC <> 0 then
+            begin
+              try
+                // 获取IME结果字符串的大小
+                vSize := ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, nil, 0);
+                if vSize > 0 then
+                begin
+                  // 取出字符串
+                  SetLength(vBuffer, vSize);
+                  ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, @vBuffer[0], vSize);
+                  KeyString := WideStringOf(vBuffer);
+                  if KeyString <> '' then
+                  begin
+                    DoKeyDown(keyNone, KeyString);
+                  end;
+                end;
+              finally
+                ImmReleaseContext(self.h_Wnd, vhIMC);
+              end;
+              result:=True;
+            end;
+          end;
+      end;
+    end;
+  end;
+
   procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
     MaybeCapture;
@@ -631,6 +697,11 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
+    // 输入法相关
+    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION,WM_IME_COMPOSITION:
+      begin
+        if Handle_IME then  Exit(0);
+      end;
     // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
