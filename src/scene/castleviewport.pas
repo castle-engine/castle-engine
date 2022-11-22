@@ -3722,7 +3722,8 @@ begin
   begin
     SavedExists := AvoidNavigationCollisions.Exists;
     AvoidNavigationCollisions.Exists := false;
-  end;
+  end else
+    SavedExists := false; // avoid Delphi warnings about SavedDepthRange uninitialized
 
   Result := Items.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos, true, Radius,
     { We prefer to resolve collisions with navigation using sphere.
@@ -3744,7 +3745,8 @@ begin
   begin
     SavedExists := AvoidNavigationCollisions.Exists;
     AvoidNavigationCollisions.Exists := false;
-  end;
+  end else
+    SavedExists := false; // avoid Delphi warnings about SavedDepthRange uninitialized
 
   Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 
@@ -3760,7 +3762,8 @@ begin
   begin
     SavedExists := AvoidNavigationCollisions.Exists;
     AvoidNavigationCollisions.Exists := false;
-  end;
+  end else
+    SavedExists := false; // avoid Delphi warnings about SavedDepthRange uninitialized
 
   Result := Items.WorldRay(RayOrigin, RayDirection);
 

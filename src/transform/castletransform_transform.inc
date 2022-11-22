@@ -2967,7 +2967,8 @@ begin
       rlBack : RenderContext.DepthRange := drFar;
       else ;
     end;
-  end;
+  end else
+    SavedDepthRange := Low(SavedDepthRange); // avoid Delphi warnings about SavedDepthRange uninitialized
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
