@@ -90,6 +90,10 @@ type
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3; overload;
+    { Get (returns) initial camera position to look at avatar,
+      and get (as TargetWorldPos) target look position.
+      Note: TargetWorldPos may be equal to result of CameraPositionInitial
+      in the extreme cases. }
     function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3; overload;
     { Returns MaxSingle if no limit.
       Note that CameraDir doesn't have to be normalized. }
@@ -571,6 +575,15 @@ begin
 
       CameraPos := CameraPositionInitial(A, TargetWorldPos);
       CameraDir := TargetWorldPos - CameraPos;
+      if CameraDir.IsZero then
+      begin
+        { This condition didn't occur in actual tests, this is paranoid check. }
+        WritelnWarning('Increase DistanceToAvatarTarget (%f) and/or InitialHeightAboveTarget (%f) to make initial camera further from target', [
+          DistanceToAvatarTarget,
+          InitialHeightAboveTarget
+        ]);
+        CameraDir := TVector3.One[0];
+      end;
       CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
       FixCameraForCollisions(CameraPos, CameraDir);
       Camera.SetView(CameraPos, CameraDir, CameraUp);
@@ -640,6 +653,11 @@ begin
     LookPos := PointOnLineClosestToPoint(CameraPos, CameraDir, TargetWorldPos);
 
     ToCamera := CameraPos - LookPos;
+    if ToCamera.IsZero then
+    begin
+      WritelnWarning('TCastleThirdPersonNavigation camera position at look target, increase DistanceToAvatarTarget');
+      Exit;
+    end;
 
     ProcessVertical(Delta[1]);
     ProcessHorizontal(Delta[0]);
