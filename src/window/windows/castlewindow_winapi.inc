@@ -589,6 +589,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       begin
         { adjusted composition window's position and font/caret size }
         vhIMC := ImmGetContext(self.h_Wnd);
+        if vhIMC = 0 then Exit;
         try
           ImmSetOpenStatus(vhIMC, True);
           {
