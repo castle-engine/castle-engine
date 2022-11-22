@@ -428,8 +428,6 @@ end;
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
 begin
   SetAvatarTargetForPersistent(AValue);
-  if CastleDesignMode then
-    Init;
 end;
 
 destructor TCastleThirdPersonNavigation.Destroy;
@@ -459,30 +457,6 @@ begin
     FAvatar := Value;
     FAvatarFreeObserver.Observed := Value;
     SetAnimationWarningsDone := 0;
-
-    (* This code is not needed at all, our Update will call Init
-       if RealAvatarHierarchy remains non-nil.
-
-    { When we change Value to nil because object is being destroyed,
-      we cannot call Init.
-
-      Reason: In case FAvatarHierarchy (the other TCastleTransform
-      reference in TCastleThirdPersonNavigation)
-      remains non-nil, Init would call FixCameraForCollisions,
-      which accesses World, and the World still contains the TCastleTransform
-      that is right now in csDestroying state and has no octree.
-
-      Testcase: third_person_navigation, assign non-nil (different) values to both
-      Avatar and AvatarHierarchy, then free the referenced component
-      (either Avatar or AvatarHierarchy). Without check "(Value <> nil)"
-      there would be a crash.
-
-      This also secures us in case Avatar and AvatarHierarchy refer to
-      the same object. In this case, we have a dangling pointer,
-      before *both* free notifications run. }
-    if (Value <> nil) and CastleDesignMode then
-      Init;
-    *)
   end;
 end;
 
@@ -492,27 +466,6 @@ begin
   begin
     FAvatarHierarchy := Value;
     FAvatarHierarchyFreeObserver.Observed := Value;
-
-    (* This code is not needed at all, our Update will call Init
-       if RealAvatarHierarchy remains non-nil.
-
-    { Same comments as in SetAvatar about the "(Value <> nil)" condition.
-      It is necessary.
-
-      Note about one edge-case:
-
-      If you assign both Avatar and AvatarHierarchy
-      to some different non-nil values, and then set AvatarHierarchy to nil,
-      we should call Init to change camera (because RealAvatarHierarchy changed,
-      it now points to Avatar). But we don't, because of this "(Value <> nil)"
-      condition.
-
-      However, no problem - it will be called by Update anyway,
-      because RealAvatarHierarchy <> nil.
-      So user will not notice the problem. }
-    if (Value <> nil) and CastleDesignMode then
-      Init;
-    *)
   end;
 end;
 
@@ -930,12 +883,7 @@ begin
       end;
     end;
 
-    if CastleDesignMode then
-      { In design mode, update immediately both position and direction of the camera.
-        This reflects that Init should be done at the beginning of actual game. }
-      Init
-    else
-      UpdateCamera;
+    UpdateCamera;
   end;
 end;
 
@@ -982,7 +930,6 @@ begin
   if FInitialHeightAboveTarget <> Value then
   begin
     FInitialHeightAboveTarget := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
@@ -991,7 +938,6 @@ begin
   if FDistanceToAvatarTarget <> Value then
   begin
     FDistanceToAvatarTarget := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
@@ -1000,7 +946,6 @@ begin
   if FCameraFollows <> Value then
   begin
     FCameraFollows := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
