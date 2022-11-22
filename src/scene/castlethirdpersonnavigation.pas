@@ -492,11 +492,23 @@ begin
   TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
   TargetWorldDir := A.WorldTransform.MultDirection(TCastleTransform.DefaultDirection[A.Orientation]);
 
-  { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
-    create a right triangle, so
-    InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
-  }
-  HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+  if DistanceToAvatarTarget < InitialHeightAboveTarget then
+  begin
+    WritelnWarning('DistanceToAvatarTarget (%f) should not be smaller than InitialHeightAboveTarget (%f)', [
+      DistanceToAvatarTarget,
+      InitialHeightAboveTarget
+    ]);
+    // This effectively assumes that DistanceToAvatarTarget = InitialHeightAboveTarget
+    HorizontalShiftFromTarget := 0;
+  end else
+  begin
+    { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
+      create a right triangle, so
+      InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
+    }
+    HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+  end;
+
   GravUp := Camera.GravityUp;
 
   Result := TargetWorldPos
