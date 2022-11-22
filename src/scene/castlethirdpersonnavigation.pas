@@ -660,7 +660,10 @@ begin
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
+  begin
     CameraDistanceChange(-Factor);
+    Result := true;
+  end;
 end;
 
 procedure TCastleThirdPersonNavigation.SetAnimation(const AnimationNames: array of String);
