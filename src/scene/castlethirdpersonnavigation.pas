@@ -825,6 +825,8 @@ begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
+    Moving := false;
+
     if Input_Run.IsPressed(Container) then
     begin
       SpeedType := stRun;
