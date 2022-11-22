@@ -53,6 +53,7 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean sendKeyEvent(KeyEvent event) 
     {
+        // not working in InputType.TYPE_CLASS_TEXT;
         serviceKeyboard.logInfo("CastleInputConnection", "key event - code " + Integer.toString(event.getKeyCode()));
         // use enter to hide keyboard
         if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) 
@@ -93,6 +94,37 @@ class CastleInputConnection extends BaseInputConnection
         }
         return true;
     }
+
+
+    @Override
+    public boolean commitText(CharSequence text, int newCursorPosition) 
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "commitText - " + text.toString());
+        serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
+        
+        int i = 0;
+        while (i < text.length())
+        {
+            char c = text.charAt(i);
+            if (Character.isHighSurrogate(c))
+            {
+                serviceKeyboard.logInfo("CastleInputConnection", "surrogate");
+                i++;
+                char c2 = text.charAt(i);
+                String s = new String (Character.toChars(Character.toCodePoint(c, c2)));
+                serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", s});
+                serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
+            }
+            String s = new String(Character.toChars(c));
+            serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", s});
+            serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
+            i++;
+        }
+
+        //sendedButNotCommited.setText("");
+        return true;
+    }
+
 }
 
 
@@ -115,7 +147,10 @@ class CastleKeyboardInputView extends View
     {
         inputConnection = new CastleInputConnection(serviceKeyboard, this, false);
 
-        outAttrs.inputType = InputType.TYPE_NULL; // only soft key events
+        //outAttrs.inputType = InputType.TYPE_NULL; // only soft key events - when this is set keyboard returns key events
+        // Because InputType.TYPE_NULL dont support some characters we need change to InputType.TYPE_CLASS_TEXT
+        // but then no key events are not sent, so we need use commitText() and create them our self
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT; 
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
 
         return inputConnection;
