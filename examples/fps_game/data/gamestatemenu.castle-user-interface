@@ -38,11 +38,11 @@
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "VerticalGroup1",
-      "Spacing" : 5.0000000000000000E+000,
+      "Spacing" : 2.0000000000000000E+000,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 4.5000000000000000E+002,
-        "Y" : -3.5000000000000000E+001
+        "Y" : -3.0000000000000000E+001
       },
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
@@ -136,7 +136,7 @@
           "Name" : "Filler",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -5.5000000000000000E+001
+            "Y" : -5.2000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -180,7 +180,7 @@
           "Name" : "ButtonPlay",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.1000000000000000E+002
+            "Y" : -1.0400000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -225,7 +225,7 @@
           "Name" : "ButtonOptions",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -2.1500000000000000E+002
+            "Y" : -2.0600000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -270,7 +270,7 @@
           "Name" : "ButtonCredits",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -3.2000000000000000E+002
+            "Y" : -3.0800000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -287,7 +287,8 @@
             "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
@@ -314,7 +315,7 @@
           "Name" : "ButtonQuit",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -4.2500000000000000E+002
+            "Y" : -4.1000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
