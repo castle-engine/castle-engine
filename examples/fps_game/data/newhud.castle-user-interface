@@ -459,17 +459,10 @@
         "Green" : 1.0000000000000000E+000,
         "Red" : 1.0000000000000000E+000
       },
-      "HorizontalAnchorParent" : "hpRight",
-      "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxxx"
       ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : -1.4700000000000000E+003,
-        "Y" : -2.0000000000000000E+001
-      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
