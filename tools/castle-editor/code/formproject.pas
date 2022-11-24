@@ -477,8 +477,10 @@ type
       const PascalFileName: String;
       const Line: Integer = -1;
       const Column: Integer = -1);
-    procedure SetEnabledCommandRun(const AEnabled: Boolean);
+    procedure IsRunningChanged;
     procedure FreeProcess;
+    procedure RunningToggle(Sender: TObject);
+    function IsRunning: Boolean;
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -665,7 +667,7 @@ end;
 procedure TProjectForm.MenuItemBreakProcessClick(Sender: TObject);
 begin
   if RunningProcess = nil then
-    raise EInternalError.Create('It should not be possible to call this when RunningProcess = nil');
+    raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
   OutputList.AddLine('Forcefully killing the process.', okError);
@@ -2108,6 +2110,8 @@ begin
     Design.OnSelectionChanged := @UpdateRenameItem;
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
+    Design.OnIsRunning  := @IsRunning;
+    Design.OnRunningToggle  := @RunningToggle;
 
     DesignExistenceChanged;
     if Docking then
@@ -2316,8 +2320,8 @@ end;
 procedure TProjectForm.FreeProcess;
 begin
   FreeAndNil(RunningProcess);
-  SetEnabledCommandRun(true);
   ProcessUpdateTimer.Enabled := false;
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
@@ -2484,6 +2488,19 @@ begin
     finally FreeAndNil(Macros) end;
     RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
+end;
+
+function TProjectForm.IsRunning: Boolean;
+begin
+  Result := RunningProcess <> nil;
+end;
+
+procedure TProjectForm.RunningToggle(Sender: TObject);
+begin
+  if RunningProcess = nil then
+    MenuItemCompileRunClick(MenuItemCompileRun)
+  else
+    MenuItemBreakProcessClick(MenuItemBreakProcess);
 end;
 
 procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
@@ -2825,7 +2842,6 @@ begin
     Exit;
   end;
 
-  SetEnabledCommandRun(false);
   OutputList.Clear;
   PageControlBottom.ActivePage := TabOutput;
   ProcessUpdateTimer.Enabled := true;
@@ -2878,6 +2894,8 @@ begin
   RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.RestartEditor(Sender: TObject);
@@ -2940,21 +2958,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);
+procedure TProjectForm.IsRunningChanged;
+var
+  EnableRun: Boolean;
 begin
-  MenuItemCompile.Enabled := AEnabled;
-  MenuItemCompileRun.Enabled := AEnabled;
-  MenuItemOnlyRun.Enabled := AEnabled;
-  MenuItemClean.Enabled := AEnabled;
-  MenuItemPackage.Enabled := AEnabled;
-  MenuItemPackageSource.Enabled := AEnabled;
-  MenuItemInstall.Enabled := AEnabled;
-  MenuItemAutoGenerateTextures.Enabled := AEnabled;
-  MenuItemAutoGenerateClean.Enabled := AEnabled;
-  MenuItemRestartRebuildEditor.Enabled := AEnabled;
-  MenuItemBreakProcess.Enabled := not AEnabled;
-  MenuItemCache.Enabled := AEnabled;
-  MenuItemCacheClean.Enabled := AEnabled;
+  EnableRun := not IsRunning;
+
+  MenuItemCompile.Enabled := EnableRun;
+  MenuItemCompileRun.Enabled := EnableRun;
+  MenuItemOnlyRun.Enabled := EnableRun;
+  MenuItemClean.Enabled := EnableRun;
+  MenuItemPackage.Enabled := EnableRun;
+  MenuItemPackageSource.Enabled := EnableRun;
+  MenuItemInstall.Enabled := EnableRun;
+  MenuItemAutoGenerateTextures.Enabled := EnableRun;
+  MenuItemAutoGenerateClean.Enabled := EnableRun;
+  MenuItemRestartRebuildEditor.Enabled := EnableRun;
+  MenuItemCache.Enabled := EnableRun;
+  MenuItemCacheClean.Enabled := EnableRun;
+
+  MenuItemBreakProcess.Enabled := not EnableRun;
+
+  // Looks like we need to call this manually
+  // (to update because of ActionPlayStopExecute or when process starts/stops independently)
+  if Design <> nil then
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
 end;
 
 procedure TProjectForm.UpdateFormCaption(Sender: TObject);
@@ -3040,7 +3068,7 @@ begin
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;
-  SetEnabledCommandRun(true);
+  IsRunningChanged;
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;

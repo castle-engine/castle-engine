@@ -16,14 +16,17 @@ type
   public
     type
       TIconIndexes = (
-        iiNewFile = 0,
-        iiOpenFile = 1,
+        iiNewFile,
+        iiOpenFile,
         iiSaveFile,
         iiMinus,
         iiPlus,
-        iiPhysicsPlay,
-        iiPhysicsStop,
-        iiPhysicsPause
+        iiPlay,
+        iiStop,
+        iiPause,
+        iiSimulationPlay,
+        iiSimulationStop,
+        iiSimulationPause
       );
   end;
 

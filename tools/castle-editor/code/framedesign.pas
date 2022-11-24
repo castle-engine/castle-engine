@@ -43,6 +43,8 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
+  TIsRunningEvent = function: Boolean of object;
+
   TMode = (
     moInteract,
     moSelect,
@@ -53,12 +55,15 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
+    ButtonPlayStop: TSpeedButton;
     LabelPhysics: TLabel;
+    LabelPlayStop: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
@@ -119,6 +124,8 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
@@ -422,6 +429,9 @@ type
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
+    OnRunningToggle: TNotifyEvent;
+    OnIsRunning: TIsRunningEvent;
+
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -4834,9 +4844,9 @@ end;
 procedure TDesignFrame.ActionSimulationPlayStopUpdate(Sender: TObject);
 begin
   if CastleDesignPhysicsMode = pmStopped then
-    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsPlay)
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationPlay)
   else
-    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsStop);
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationStop);
   ActionSimulationPlayStop.Checked := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
 end;
 
@@ -4849,6 +4859,23 @@ end;
 procedure TDesignFrame.ActionSimulationPauseUnpauseExecute(Sender: TObject);
 begin
   SimulationPauseUnpause;
+end;
+
+procedure TDesignFrame.ActionPlayStopExecute(Sender: TObject);
+begin
+  OnRunningToggle(Self);
+end;
+
+procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
+var
+  IsRunning: Boolean;
+begin
+  IsRunning := OnIsRunning();
+  if IsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := IsRunning;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);

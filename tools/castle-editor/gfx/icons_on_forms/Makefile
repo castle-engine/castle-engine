@@ -23,7 +23,10 @@ SOURCE_FOR_32:=alert-triangle.svg \
 SOURCE_FOR_MULTIPLE_SIZES:=pause-solid.svg \
   play-solid.svg   \
   square.svg \
-  stop-solid.svg
+  stop-solid.svg \
+  pause-solid-physics.svg \
+  play-solid-physics.svg \
+  stop-solid-physics.svg
 
 # ----------------------------------------------------------------------------
 # Implementation
