@@ -1,38 +1,37 @@
 object ChooseProjectForm: TChooseProjectForm
-  Left = 2608
-  Height = 670
-  Top = 158
-  Width = 928
+  Left = 385
+  Height = 536
+  Top = 159
+  Width = 742
   BorderWidth = 8
   Caption = 'Choose Project | Castle Game Engine Editor'
-  ClientHeight = 670
-  ClientWidth = 928
-  DesignTimePPI = 120
+  ClientHeight = 536
+  ClientWidth = 742
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnHide = FormHide
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.4.0'
   object PanelBottom: TPanel
     Left = 8
-    Height = 80
-    Top = 582
-    Width = 912
+    Height = 68
+    Top = 460
+    Width = 726
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 80
-    ClientWidth = 912
+    ClientHeight = 68
+    ClientWidth = 726
     TabOrder = 2
     object ButtonSupportUs: TBitBtn
-      Left = 736
-      Height = 80
+      Left = 581
+      Height = 68
       Top = 0
-      Width = 177
+      Width = 146
       Anchors = [akRight, akBottom]
       AutoSize = True
-      BorderSpacing.InnerBorder = 16
+      BorderSpacing.InnerBorder = 13
       Caption = 'Support Us'
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
@@ -175,26 +174,26 @@ object ChooseProjectForm: TChooseProjectForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideBottom.Control = ButtonPreferences
       AnchorSideBottom.Side = asrBottom
-      Left = 192
-      Height = 60
-      Top = 20
-      Width = 474
+      Left = 155
+      Height = 54
+      Top = 14
+      Width = 311
       Anchors = [akLeft, akBottom]
       AutoSize = True
-      BorderSpacing.Left = 8
-      ClientHeight = 60
-      ClientWidth = 474
+      BorderSpacing.Left = 6
+      ClientHeight = 54
+      ClientWidth = 311
       ParentFont = False
       TabOrder = 1
       object Image1: TImage
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Side = asrCenter
-        Left = 8
+        Left = 7
         Height = 32
-        Top = 18
+        Top = 15
         Width = 32
         AutoSize = True
-        BorderSpacing.Around = 7
+        BorderSpacing.Around = 6
         Picture.Data = {
           1754506F727461626C654E6574776F726B477261706869638902000089504E47
           0D0A1A0A0000000D4948445200000020000000200806000000737A7AF4000000
@@ -221,23 +220,24 @@ object ChooseProjectForm: TChooseProjectForm
         }
       end
       object LabelWarning: TLabel
-        Left = 58
-        Height = 44
-        Top = 8
-        Width = 408
-        BorderSpacing.Around = 7
+        Left = 47
+        Height = 30
+        Top = 7
+        Width = 257
+        BorderSpacing.Around = 6
         Caption = 'Warning: Compiler (FPC or Delphi) not found.'#10'Install a compiler and configure in "Preferences".'
+        ParentColor = False
         ParentFont = False
       end
     end
     object ButtonPreferences: TBitBtn
       Left = 0
-      Height = 80
+      Height = 68
       Top = 0
-      Width = 184
+      Width = 149
       Anchors = [akLeft, akBottom]
       AutoSize = True
-      BorderSpacing.InnerBorder = 16
+      BorderSpacing.InnerBorder = 13
       Caption = 'Preferences'
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
@@ -380,7 +380,7 @@ object ChooseProjectForm: TChooseProjectForm
     Left = 8
     Height = 256
     Top = 8
-    Width = 912
+    Width = 726
     Align = alTop
     AutoSize = True
     Center = True
@@ -820,16 +820,17 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ImageLogo
     AnchorSideTop.Side = asrBottom
-    Left = 345
-    Height = 29
-    Top = 280
-    Width = 239
+    Left = 278
+    Height = 28
+    Top = 277
+    Width = 187
     Align = alCustom
     Alignment = taCenter
-    BorderSpacing.Top = 16
+    BorderSpacing.Top = 13
     Caption = 'Castle Game Engine'
-    Font.Height = -25
+    Font.Height = -20
     Font.Style = [fsBold]
+    ParentColor = False
     ParentFont = False
   end
   object ButtonNew: TBitBtn
@@ -837,13 +838,13 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = LabelTitle
     AnchorSideTop.Side = asrBottom
-    Left = 390
-    Height = 70
-    Top = 317
-    Width = 149
+    Left = 313
+    Height = 51
+    Top = 311
+    Width = 116
     AutoSize = True
-    BorderSpacing.Top = 8
-    BorderSpacing.InnerBorder = 16
+    BorderSpacing.Top = 6
+    BorderSpacing.InnerBorder = 13
     Caption = 'New Project'
     OnClick = ButtonNewClick
     TabOrder = 0
@@ -853,12 +854,12 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ButtonNew
     AnchorSideTop.Side = asrBottom
-    Left = 205
-    Height = 109
-    Top = 395
-    Width = 519
+    Left = 168
+    Height = 87
+    Top = 368
+    Width = 406
     AutoSize = True
-    BorderSpacing.Top = 8
+    BorderSpacing.Top = 6
     Caption = 'Open Project'
     ChildSizing.LeftRightSpacing = 8
     ChildSizing.TopBottomSpacing = 8
@@ -866,18 +867,18 @@ object ChooseProjectForm: TChooseProjectForm
     ChildSizing.VerticalSpacing = 8
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 100
-    ClientHeight = 86
-    ClientWidth = 517
+    ClientHeight = 67
+    ClientWidth = 402
     TabOrder = 1
     object ButtonOpen: TBitBtn
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 70
+      Height = 51
       Top = 8
-      Width = 158
+      Width = 121
       AutoSize = True
-      BorderSpacing.InnerBorder = 16
+      BorderSpacing.InnerBorder = 13
       Caption = 'Open Project'
       OnClick = ButtonOpenClick
       TabOrder = 0
@@ -885,12 +886,12 @@ object ChooseProjectForm: TChooseProjectForm
     object ButtonOpenRecent: TBitBtn
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Side = asrBottom
-      Left = 174
-      Height = 70
+      Left = 137
+      Height = 51
       Top = 8
-      Width = 157
+      Width = 120
       AutoSize = True
-      BorderSpacing.InnerBorder = 16
+      BorderSpacing.InnerBorder = 13
       Caption = 'Open Recent'
       OnClick = ButtonOpenRecentClick
       TabOrder = 1
@@ -898,12 +899,12 @@ object ChooseProjectForm: TChooseProjectForm
     object ButtonOpenExample: TBitBtn
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Side = asrBottom
-      Left = 339
-      Height = 70
+      Left = 265
+      Height = 51
       Top = 8
-      Width = 170
+      Width = 129
       AutoSize = True
-      BorderSpacing.InnerBorder = 16
+      BorderSpacing.InnerBorder = 13
       Caption = 'Open Example'
       OnClick = ButtonOpenExampleClick
       TabOrder = 2
@@ -913,11 +914,11 @@ object ChooseProjectForm: TChooseProjectForm
     Title = 'Open existing project (select CastleEngineManifest.xml file)'
     Filter = 'CastleEngineManifest.xml|CastleEngineManifest.xml|All files (*)|*'
     FilterIndex = 0
-    Left = 398
-    Top = 356
+    Left = 318
+    Top = 285
   end
   object PopupMenuRecentProjects: TPopupMenu
-    Left = 398
-    Top = 295
+    Left = 318
+    Top = 236
   end
 end
