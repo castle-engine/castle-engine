@@ -152,8 +152,6 @@ begin
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',
     TScalePropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleCollider, 'SizeScalePersistent',
-    TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBox, 'SizePersistent',
     TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBoxCollider, 'SizePersistent',

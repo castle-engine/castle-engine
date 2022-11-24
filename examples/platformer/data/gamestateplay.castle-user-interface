@@ -255,11 +255,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider1",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   }
                 ]
               },
@@ -283,11 +279,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider3",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -328,11 +320,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider4",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -373,11 +361,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider5",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -418,11 +402,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider6",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -463,11 +443,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider7",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -508,11 +484,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider8",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -553,11 +525,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider9",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -598,11 +566,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider10",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -643,11 +607,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider11",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -688,11 +648,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider12",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -733,11 +689,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider13",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -778,11 +730,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider14",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -823,11 +771,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider15",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -868,11 +812,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider16",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -913,11 +853,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider17",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -958,11 +894,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider18",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -1003,11 +935,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider19",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -1048,11 +976,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider20",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   },
                   {
                     "$$ClassName" : "TCastleRigidBody",
@@ -1110,11 +1034,7 @@
                     "$$ClassName" : "TCastleBoxCollider",
                     "Mode2D" : true,
                     "Name" : "BoxCollider2",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.0000001192092896E-001,
-                      "Y" : 8.0000001192092896E-001
-                    }
+                    "SizeScale" : 8.0000001192092896E-001
                   }
                 ]
               }
@@ -1664,12 +1584,7 @@
                     "$$ClassName" : "TCastleSphereCollider",
                     "Mode2D" : true,
                     "Name" : "SphereCollider1",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 2.5000000000000000E-001,
-                      "Y" : 2.5000000000000000E-001,
-                      "Z" : 2.5000000000000000E-001
-                    }
+                    "SizeScale" : 2.5000000000000000E-001
                   }
                 ]
               }
@@ -1734,12 +1649,7 @@
                     "$$ClassName" : "TCastleSphereCollider",
                     "Mode2D" : true,
                     "Name" : "SphereCollider2",
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 6.9999998807907104E-001,
-                      "Y" : 6.9999998807907104E-001,
-                      "Z" : 6.9999998807907104E-001
-                    }
+                    "SizeScale" : 6.9999998807907104E-001
                   }
                 ]
               }
@@ -2125,11 +2035,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider3",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2171,11 +2077,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider4",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2217,11 +2119,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider5",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2263,11 +2161,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider6",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2309,11 +2203,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider7",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2355,11 +2245,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider24",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2401,11 +2287,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider8",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2447,11 +2329,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider9",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2493,11 +2371,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider10",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2539,11 +2413,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider11",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2585,11 +2455,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider12",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2631,11 +2497,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider13",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2677,11 +2539,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider14",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2723,11 +2581,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider15",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2769,11 +2623,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider17",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2815,11 +2665,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider16",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2865,11 +2711,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider18",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2911,11 +2753,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider19",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -2962,11 +2800,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider20",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -3013,11 +2847,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider21",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -3064,11 +2894,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider22",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               },
@@ -3114,11 +2940,7 @@
                     "Mode2D" : true,
                     "Name" : "SphereCollider23",
                     "Restitution" : 5.0000000745058060E-002,
-                    "SizeScalePersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : 8.9999997615814209E-001,
-                      "Y" : 8.9999997615814209E-001
-                    }
+                    "SizeScale" : 8.9999997615814209E-001
                   }
                 ]
               }
@@ -9301,15 +9123,18 @@
               },
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
+                "AutoSize" : false,
                 "Friction" : 2.5000000000000000E-001,
+                "Height" : 3.5000000000000000E+001,
                 "Mass" : 5.0000000000000000E+001,
                 "Mode2D" : true,
                 "Name" : "CapsuleCollider",
+                "Radius" : 2.7000000000000000E+001,
                 "Restitution" : 9.9999997473787516E-005,
-                "SizeScalePersistent" : {
+                "SizeScale" : 1.1499999761581421E+000,
+                "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 8.0000001192092896E-001,
-                  "Y" : 1.5000000000000000E+000
+                  "Y" : -3.0000000000000000E+000
                 }
               }
             ]
@@ -11705,7 +11530,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 2.6560937500000000E+003,
+          "Height" : 2.1087776184082031E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -11722,8 +11547,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.4806652832031250E+002,
-          "Y" : 9.7107910156250000E+001,
+          "X" : -2.8971567382812500E+003,
+          "Y" : 2.0600225830078125E+002,
           "Z" : 5.0000000000000000E+002
         }
       },
@@ -11906,7 +11731,7 @@
           "Spacing" : 1.0000000000000000E+001,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 2.4800000000000000E+002
+            "X" : 2.4800001525878906E+002
           },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",

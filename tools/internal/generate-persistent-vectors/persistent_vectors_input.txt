@@ -62,7 +62,6 @@
 
 ../../../src/transform/ TCastleCollider Translation TVector3 StoredWithAutoSize
 ../../../src/transform/ TCastleCollider Rotation TVector4 StoredWithAutoSize
-../../../src/transform/ TCastleCollider SizeScale TVector3
 
 ../../../src/transform/ TCastlePlaneCollider Normal TVector3 StoredWithAutoSize
 ../../../src/transform/ TCastleBoxCollider Size TVector3 StoredWithAutoSize

@@ -83,7 +83,7 @@ var
 begin
   Collider := RedBox.FindBehavior(TCastleCollider) as TCastleCollider;
   if Collider <> nil then
-    Collider.SizeScale := Vector3(0.5, 0.5, 0.5);
+    Collider.SizeScale := 0.5;
 end;
 
 constructor TStateMain.Create(AOwner: TComponent);

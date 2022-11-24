@@ -97,9 +97,13 @@
     FAutoSize: Boolean;
     FCalculatingSize: Boolean; //< are we inside CalculateSize or InternalAutoSize
     { Accumulated scale of all parent TCastleTransform.
-      Does not include @link(SizeScale). }
+      Does not include @link(SizeScale).
+      This is always converted to a single scalar either using Approximate2DScale
+      or Approximate3DScale, depending on Mode2D. }
     FWorldScale: TVector3;
-    FSizeScale: TVector3;
+    FSizeScale: Single;
+    FMode2D: Boolean;
+    WarningNonUniformScaleDone: Boolean;
 
     { Updates FLocalTransformation and FUseLocalTransformation after changing
       Translation, FSizeScale, FWorldScale, Rotation and in InitializeKraft. }
@@ -111,9 +115,10 @@
     procedure SetFriction(const AValue: Single);
     procedure SetTranslation(const AValue: TVector3);
     procedure SetRotation(const AValue: TVector4);
-    procedure SetSizeScale(const AValue: TVector3);
+    procedure SetSizeScale(const AValue: Single);
     procedure SetAutoSize(const AValue: Boolean);
     function GetRigidBody: TCastleRigidBody;
+    procedure SetMode2D(const AValue: Boolean);
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
     { When @false, behave as if Translation/Rotation/FLocalTransform/FLocalInverseTransform
@@ -140,8 +145,9 @@
 
     function StoredWithAutoSize: Boolean;
   protected
-    { Total scale, accumulated from all parents TCastleTransform.Scale and collider SizeScale. }
-    function TotalScale: TVector3;
+    { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
+      following Mode2D) and collider SizeScale. }
+    function TotalScale: Single;
 
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
@@ -232,23 +238,6 @@
     { Local collider rotation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Rotation: TVector4 read FRotation write SetRotation;
-
-    { Local collider size scale.
-
-      This is particularly useful if @link(AutoSize) mechanism calculated too large box.
-      For collision purposes, you sometimes want a collider that is a bit smaller
-      than the bounding box/sphere around the object.
-      Maybe it should even be too small at certain places, but then it will make
-      a better fit overall.
-
-      You can achieve this (and still keep using @link(AutoSize)) by adjusting
-      this property. E.g. set it to (0.9,0.9,0.9) to have collider be 90% of what
-      @link(AutoSize) calculated.
-
-      This is @bold(not) reset by CalculateSize and AutoSize mechanisms
-      (in contrast to Translation, Rotation) because the idea is that user adjusts
-      the auto-calculated size this way. }
-    property SizeScale: TVector3 read FSizeScale write SetSizeScale;
   published
     { Automatically calculate collider properties that determine collider size
       based on the parent transformation bounding box.
@@ -297,6 +286,57 @@
     { Larger friction means that it is harder for body to slide alongside another object. }
     property Friction: Single read FFriction write SetFriction
       {$ifdef FPC}default DefaultFriction{$endif};
+
+    { Local collider size scale.
+
+      This is particularly useful if @link(AutoSize) mechanism calculated too large box.
+      For collision purposes, you sometimes want a collider that is a bit smaller
+      than the bounding box/sphere around the object.
+      Maybe it should even be too small at certain places, but then it will make
+      a better fit overall.
+
+      You can achieve this (and still keep using @link(AutoSize)) by adjusting
+      this property e.g. to 0.9 to have collider be 90% of what
+      @link(AutoSize) calculated.
+
+      This is @bold(not) reset by CalculateSize and AutoSize mechanisms
+      (in contrast to Translation, Rotation) because the idea is that user adjusts
+      the auto-calculated size this way. }
+    property SizeScale: Single read FSizeScale write SetSizeScale {$ifdef FPC}default 1.0{$endif};
+
+    { If @true, automatic size calculation caused by @link(AutoSize)
+      (and some other collider features) are better adjusted to 2D models.
+
+      @orderedList(
+        @item(It estimates collider sizes (because Kraft colliders are always in 3D)
+          based on geometry sizes only in XY dimensions.
+          So it ignores how thin or thick is you geometry along the Z axis.)
+
+        @item(It assumes a bit larger "minimum thickness" for 2D,
+          because typical 2D worlds use larger units.
+          See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
+
+        @item(Moreover (and this matters regardless of @link(AutoSize) value!)
+          the way scale affects the models is different.
+          This determines how TCastleTransform.Scale (or all parents)
+          and SizeScale (of this collider) affects the final collider scale.
+          In Kraft, the scale is internally causing just collider size change,
+          so it must work a bit differently in 2D -- because in 2D only XY dimensions
+          should matter.)
+
+        @item(In the future, esp. if we integrate with other physics engines like Box2D,
+          it is possible that some colliders in 2D mode will have a shape more suitable
+          in 2D. "Suitable in 2D" means "Z coordinate is ignored".
+          This means that a 2D collider should (ideally) behave as if it is infinite in Z.
+
+          For example a 2D sphere collider may effectively be an infinite cylinder.
+          That is: it should be a circle in XY, but extruded into infinity in -Z and +Z.
+          This is not @italic(right now) how the TCastleSphereCollider behaves with Mode2D=@true,
+          but it may be in the future.
+        )
+      )
+    }
+    property Mode2D: Boolean read FMode2D write SetMode2D default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
@@ -358,11 +398,9 @@
     to make the given TCastleTransform be affected by physics and collide with other physics bodies. }
   TCastleBoxCollider = class(TCastleCollider)
   strict private
-    FMode2D: Boolean;
     FVisualization: TCastleTransform;
     FSize: TVector3; //< this size doesn't include FSizeScale or FWorldScale
     procedure SetSize(const AValue: TVector3);
-    procedure SetMode2D(const AValue: Boolean);
     { Returns scaled size, because scale is added to size directly. }
     function CalculateScaledSize: CastleVectors.TVector3;
   private
@@ -383,40 +421,6 @@
       Default is (2,2,2) (if not AutoSize), consistent with TCastleBox. }
     property Size: TVector3 read FSize write SetSize;
   published
-    { If @true, automatic size calculation caused by @link(AutoSize)
-      (and some other collider features) are better adjusted to 2D models.
-
-      @orderedList(
-        @item(It estimates collider sizes (because Kraft colliders are always in 3D)
-          based on geometry sizes only in XY dimensions.
-          So it ignores how thin or thick is you geometry along the Z axis.)
-
-        @item(It assumes a bit larger "minimum thickness" for 2D,
-          because typical 2D worlds use larger units.
-          See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
-
-        @item(Moreover (and this matters regardless of @link(AutoSize) value!)
-          the way scale affects the models is different.
-          This determines how TCastleTransform.Scale (or all parents)
-          and SizeScale (of this collider) affects the final collider scale.
-          In Kraft, the scale is internally causing just collider size change,
-          so it must work a bit differently in 2D -- because in 2D only XY dimensions
-          should matter.)
-
-        @item(In the future, esp. if we integrate with other physics engines like Box2D,
-          it is possible that some colliders in 2D mode will have a shape more suitable
-          in 2D. "Suitable in 2D" means "Z coordinate is ignored".
-          This means that a 2D collider should (ideally) behave as if it is infinite in Z.
-
-          For example a 2D sphere collider may effectively be an infinite cylinder.
-          That is: it should be a circle in XY, but extruded into infinity in -Z and +Z.
-          This is not @italic(right now) how the TCastleSphereCollider behaves with Mode2D=@true,
-          but it may be in the future.
-        )
-      )
-    }
-    property Mode2D: Boolean read FMode2D write SetMode2D default false;
-
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -428,10 +432,8 @@
   TCastleSphereCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
-    FMode2D: Boolean;
     FVisualization: TCastleTransform;
     procedure SetRadius(const AValue: Single);
-    procedure SetMode2D(const AValue: Boolean);
     { Returns scaled Radius, because scale is added to size directly. }
     function CalculateScaledRadius: Single;
   private
@@ -450,9 +452,6 @@
     { Sphere radius.
       Default is 1 (if not AutoSize), consistent with TCastleSphere. }
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
-
-    { If @true, we calculate automatic size looking only at sizes in XY. }
-    property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
   { Collide as a capsule.
@@ -462,7 +461,6 @@
   strict private
     FRadius: Single;
     FHeight: Single;
-    FMode2D: Boolean;
 
     FVisualization: TCastleTransform;
     FVisualizationTop: TCastleTransform;
@@ -471,7 +469,6 @@
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
-    procedure SetMode2D(const AValue: Boolean);
     function CalculateScaledHeight: Single;
     function CalculateScaledRadius: Single;
   private
@@ -495,9 +492,6 @@
     { Sphere (at both top and bottom of capsule) radius.
       Default is 2 (if not AutoSize), consistent with TCastleCylinder. }
     property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
-
-    { If @true, we calculate automatic size looking only at sizes in XY. }
-    property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
   { Collide as a set of triangles determined by @link(Mesh).
@@ -1208,7 +1202,7 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
-  FSizeScale := NoScale;
+  FSizeScale := 1.0;
   FWorldScale := NoScale;
   FTranslation := TVector3.Zero;
   FRotation := TVector4.Zero;
@@ -1429,9 +1423,9 @@ begin
   end;
 end;
 
-procedure TCastleCollider.SetSizeScale(const AValue: TVector3);
+procedure TCastleCollider.SetSizeScale(const AValue: Single);
 begin
-  if not TVector3.PerfectlyEquals(AValue, FSizeScale) then
+  if FSizeScale <> AValue then
   begin
     FSizeScale := AValue;
     // FSizeScale is used by collider at the shape creation
@@ -1530,9 +1524,36 @@ begin
   finally FCalculatingSize := false end;
 end;
 
-function TCastleCollider.TotalScale: TVector3;
+function TCastleCollider.TotalScale: Single;
 begin
-  Result := FWorldScale * FSizeScale;
+  if Mode2D then
+  begin
+    if (not WarningNonUniformScaleDone) and
+       (not SameValue(FWorldScale.X, FWorldScale.Y)) then
+    begin
+      WritelnWarning('Using non-uniform 2D scale %s for physics body (collider %s) is not fully supported', [
+        FWorldScale.XY.ToString,
+        Name
+      ]);
+      WarningNonUniformScaleDone := true;
+    end;
+    Result := Approximate2DScale(FWorldScale.XY)
+  end else
+  begin
+    if (not WarningNonUniformScaleDone) and
+       ( (not SameValue(FWorldScale.X, FWorldScale.Y)) or
+         (not SameValue(FWorldScale.X, FWorldScale.Z))
+       ) then
+    begin
+      WritelnWarning('Using non-uniform scale %s for physics body (collider %s) is not fully supported', [
+        FWorldScale.ToString,
+        Name
+      ]);
+      WarningNonUniformScaleDone := true;
+    end;
+    Result := Approximate3DScale(FWorldScale);
+  end;
+  Result := Result * FSizeScale;
 end;
 
 procedure TCastleCollider.UpdateWorldScale;
@@ -1566,7 +1587,7 @@ function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScalePersistent'
+     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale'
      ]) then
     Result := [psBasic]
   else
@@ -1580,16 +1601,44 @@ begin
 end;
 
 procedure TCastleCollider.CustomSerialization(const SerializationProcess: TSerializationProcess);
-var
-  OldScale: TVector3;
+
+  procedure UpgradeOldScale(const OldScaleVectorName: String);
+  var
+    OldScale: TVector3;
+    TempMode2D: Boolean;
+  begin
+    OldScale := NoScale;
+    SerializationProcess.ReadWriteVector(OldScaleVectorName, OldScale, NoScale, false);
+    if not TVector3.PerfectlyEquals(OldScale, NoScale) then
+    begin
+      // read Mode2D, to work independently of whether it was initialized by normal deserialization already
+      SerializationProcess.ReadWriteBoolean('Mode2D', TempMode2D, false);
+      WritelnWarning('Design refers to TCastleCollider.%s which is renamed now to SizeScale (and of Single type). Save the design to upgrade it.', [
+        OldScaleVectorName
+      ]);
+      if TempMode2D then
+        SizeScale := Approximate2DScale(OldScale.XY)
+      else
+        SizeScale := Approximate3DScale(OldScale);
+    end;
+  end;
+
 begin
   inherited;
-  OldScale := NoScale;
-  SerializationProcess.ReadWriteVector('ScalePersistent', OldScale, NoScale, false);
-  if not TVector3.PerfectlyEquals(OldScale, NoScale) then
+  { Upgrade old ideas (they only existed on physics branch, so this upgrade code
+    can be really removed from master branch at some point. }
+  UpgradeOldScale('ScalePersistent');
+  UpgradeOldScale('SizeScalePersistent');
+end;
+
+procedure TCastleCollider.SetMode2D(const AValue: Boolean);
+begin
+  if FMode2D <> AValue then
   begin
-    WritelnWarning('Design refers to TCastleCollider.Scale which is renamed now to SizeScale. Save the design to upgrade it.');
-    SizeScale := OldScale;
+    FMode2D := AValue;
+    InternalAutoSize;
+    // even when AutoSize=false, changing Mode2D changes how WorldScale is interpreted
+    ShapeChangedNotifyRigidBody;
   end;
 end;
 
@@ -1643,7 +1692,7 @@ end;
 
 function TCastlePlaneCollider.CalculateScaledDistance: Single;
 begin
-  Result := Distance * Approximate3DScale(TotalScale);
+  Result := Distance * TotalScale;
 end;
 
 procedure TCastlePlaneCollider.UpdateVisualization;
@@ -1760,15 +1809,6 @@ begin
   end;
 end;
 
-procedure TCastleBoxCollider.SetMode2D(const AValue: Boolean);
-begin
-  if FMode2D <> AValue then
-  begin
-    FMode2D := AValue;
-    InternalAutoSize;
-  end;
-end;
-
 function TCastleBoxCollider.CalculateScaledSize: TVector3;
 begin
   Result := FSize * TotalScale;
@@ -1808,7 +1848,7 @@ var
 begin
   inherited; // resets Translation, Rotation
 
-  if FMode2D then
+  if Mode2D then
     MinThickness := AutoSizeMinThickness2D
   else
     MinThickness := AutoSizeMinThickness;
@@ -1930,7 +1970,7 @@ var
 begin
   inherited; // resets Translation, Rotation
 
-  if FMode2D then
+  if Mode2D then
     MinThickness := AutoSizeMinThickness2D
   else
     MinThickness := AutoSizeMinThickness;
@@ -1942,7 +1982,7 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  if FMode2D then
+  if Mode2D then
     Radius := LocalBoundingBox.AverageSize2D(false, 2, 2) / 2
   else
     Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
@@ -1980,21 +2020,9 @@ begin
   inherited;
 end;
 
-procedure TCastleSphereCollider.SetMode2D(const AValue: Boolean);
-begin
-  if FMode2D <> AValue then
-  begin
-    FMode2D := AValue;
-    InternalAutoSize;
-  end;
-end;
-
 function TCastleSphereCollider.CalculateScaledRadius: Single;
 begin
-  if FMode2D then
-    Result := FRadius * Approximate2DScale(TotalScale.XY)
-  else
-    Result := FRadius * Approximate3DScale(TotalScale)
+  Result := FRadius * TotalScale;
 end;
 
 { TCastleCapsuleCollider ----------------------------------------------------- }
@@ -2102,19 +2130,12 @@ end;
 
 function TCastleCapsuleCollider.CalculateScaledHeight: Single;
 begin
-  Result := FHeight * TotalScale.Y;
+  Result := FHeight * TotalScale;
 end;
 
 function TCastleCapsuleCollider.CalculateScaledRadius: Single;
 begin
-  if FMode2D then
-    { Let TotalScale.X control radius, and TotalScale.Y only height,
-      and ignore TotalScale.Z which should be ignored in 2D. }
-    Result := FRadius * TotalScale.X
-  else
-    { Again leave TotalScale.Y to control only height.
-      TODO: test in 3D - what is comfortable }
-    Result := FRadius * {Approximate2DScale(TotalScale.XZ)}Approximate3DScale(TotalScale);
+  Result := FRadius * TotalScale;
 end;
 
 class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
@@ -2129,7 +2150,7 @@ var
 begin
   inherited; // resets Translation, Rotation
 
-  if FMode2D then
+  if Mode2D then
     MinThickness := AutoSizeMinThickness2D
   else
     MinThickness := AutoSizeMinThickness;
@@ -2143,7 +2164,7 @@ begin
 
   LocalBoundingBox := Parent.LocalBoundingBox;
 
-  if FMode2D then
+  if Mode2D then
     Radius := LocalBoundingBox.SizeX * 0.50
   else
     Radius := ((LocalBoundingBox.SizeX * 0.50) + (LocalBoundingBox.SizeZ * 0.50)) / 2;
@@ -2168,15 +2189,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-procedure TCastleCapsuleCollider.SetMode2D(const AValue: Boolean);
-begin
-  if FMode2D <> AValue then
-  begin
-    FMode2D := AValue;
-    InternalAutoSize;
-  end;
 end;
 
 { TCastleMeshCollider -------------------------------------------------------- }
