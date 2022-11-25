@@ -444,6 +444,10 @@ end;
 
 procedure TCastleUserInterfaceFont.FontChanged;
 begin
+  { Changing font properties, like FontSize, may change the control size
+    (which is usually adjusted to font size,
+    e.g. TCastleLabel, TCastleButton with AutoSize). }
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleUserInterfaceFont.UIScaleChanged;
