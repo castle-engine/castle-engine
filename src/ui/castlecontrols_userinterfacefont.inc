@@ -320,9 +320,12 @@ begin
       FCustomizedFont.Italic := nil;
       FCustomizedFont.BoldItalic := nil;
     end;
+    { When Outline = 0, set FCustomizedFont.CustomizeOutline = false,
+      this makes switching between Outline <> 0 to Outline = 0 make correct changes
+      -- outline should disappear. }
+    FCustomizedFont.CustomizeOutline := Outline <> 0;
     if Outline <> 0 then
     begin
-      FCustomizedFont.CustomizeOutline := true;
       FCustomizedFont.Outline := Outline;
       FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
       FCustomizedFont.OutlineColor := OutlineColor;
