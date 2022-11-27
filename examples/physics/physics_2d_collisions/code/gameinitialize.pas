@@ -184,7 +184,7 @@ procedure LoadPlane;
 begin
   Plane := TPlane.Create(Application);
   Viewport.Items.Add(Plane);
-  Plane.Scale := Vector3(5, 5, 1);
+  Plane.Scale := Vector3(5, 5, 5);
 end;
 
 { One-time initialization of resources. }
