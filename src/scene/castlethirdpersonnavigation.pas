@@ -1437,6 +1437,7 @@ begin
     Exit(1.0)
   else
     Result := FAirRotationControl;
+end;
 
 function TCastleThirdPersonNavigation.Input_CameraCloser: TInputShortcut;
 begin
