@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="progress_bar_ui_example"
   standalone_source="progress_bar_ui_example_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.progressbaruiexample"
+  qualified_name="io.castleengine.progress.bar.ui.example"
   caption="Progress Bar UI Example"
 >
   <compiler_options>
