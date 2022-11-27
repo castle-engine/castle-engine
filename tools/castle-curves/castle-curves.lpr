@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -771,8 +771,8 @@ begin
 
   StatusText := TStatusText.Create(Window);
   StatusText.Padding := 5;
-  StatusText.Left := 5;
-  StatusText.Bottom := 5;
+  StatusText.Anchor(hpLeft, 5);
+  StatusText.Anchor(vpBottom, 5);
   StatusText.Frame := true;
   StatusText.Color := Yellow;
   Window.Controls.InsertFront(StatusText);
