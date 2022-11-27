@@ -239,7 +239,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Check all conditions (EnablePhysics, CastleDesignPhysicsMode) to find out
+    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
       is physics running. }
     function IsPhysicsRunning: Boolean;
 
@@ -439,9 +439,7 @@ begin
   Result :=
     EnablePhysics and
     (FKraftEngine <> nil) and
-    ( (not CastleDesignMode) or
-      (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
-    );
+    (CastleApplicationMode in [appRunning, appSimulation]);
 end;
 
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;

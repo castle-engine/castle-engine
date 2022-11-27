@@ -3073,7 +3073,7 @@ begin
   inherited;
 
   { Disable updating physics in design mode }
-  if CastleDesignMode and (CastleDesignPhysicsMode in [pmStopped, pmPaused]) then
+  if CastleApplicationMode in [appDesign, appSimulationPaused] then
     Exit;
 
   if Parent = nil then

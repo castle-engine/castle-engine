@@ -1315,16 +1315,16 @@ procedure TCastleControl.LoadDesign;
   of "started" / "stopped", so no DesignPreload too. }
 
 var
-  OldCastleDesignMode: Boolean;
+  OldCastleApplicationMode: TCastleApplicationMode;
 begin
   if DesignUrl <> '' then
   begin
-    { Make sure CastleDesignMode is correct, to
+    { Make sure InternalCastleApplicationMode is correct, to
       - not e.g. do physics in Lazarus/Delphi form designer.
       - not show design-time stuff in DesignUrl loaded in CGE editor "help->system information".
 
-      Note that we restore later CastleDesignMode.
-      This way we avoid changing CastleDesignMode for future loads,
+      Note that we restore later InternalCastleApplicationMode.
+      This way we avoid changing InternalCastleApplicationMode for future loads,
       when TCastleControl is used inside castle-editor.
       Testcase:
         in CGE editor:
@@ -1335,9 +1335,12 @@ begin
         - close design
         - reopen design
     }
-    OldCastleDesignMode := CastleDesignMode;
+    OldCastleApplicationMode := InternalCastleApplicationMode;
     try
-      CastleDesignMode := csDesigning in ComponentState;
+      if csDesigning in ComponentState then
+        InternalCastleApplicationMode := appDesign
+      else
+        InternalCastleApplicationMode := appRunning;
       FixApplicationDataInIDE; // in case DesignUrl uses castle-data: protocol, which is most often the case
 
       FDesignLoadedOwner := TComponent.Create(nil);
@@ -1351,7 +1354,7 @@ begin
           merely report a warning. This allows deserializing LFMs with broken URLs. }
         on E: Exception do
         begin
-          if CastleDesignMode then
+          if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
               URIDisplay(DesignUrl),
@@ -1364,7 +1367,7 @@ begin
       end;
       Controls.InsertFront(FDesignLoaded);
     finally
-      CastleDesignMode := OldCastleDesignMode;
+      InternalCastleApplicationMode := OldCastleApplicationMode;
     end;
   end;
 end;

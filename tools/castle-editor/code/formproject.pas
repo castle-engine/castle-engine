@@ -545,7 +545,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to close editor.');
     Exit;
@@ -676,7 +676,7 @@ end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to turn off the editor.');
     CanClose := false;
@@ -895,11 +895,10 @@ end;
 
 procedure TProjectForm.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
 begin
-
   ActionSimulationPauseUnpause.Enabled := (Design <> nil) and
-    (CastleDesignPhysicsMode in [pmPlaying, pmPaused]);
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
   ActionSimulationPauseUnpause.Checked := (Design <> nil) and
-    (CastleDesignPhysicsMode = pmPaused);
+    (CastleApplicationMode = appSimulationPaused);
 end;
 
 procedure TProjectForm.ActionSimulationPlayStopExecute(Sender: TObject);
@@ -912,7 +911,7 @@ procedure TProjectForm.ActionSimulationPlayStopUpdate(Sender: TObject);
 begin
   ActionSimulationPlayStop.Enabled := Design <> nil;
   ActionSimulationPlayStop.Checked := (Design <> nil) and
-    (CastleDesignPhysicsMode in [pmPlaying, pmPaused]);
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -1991,7 +1990,7 @@ procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
 
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to close design.');
     Exit;
@@ -2088,7 +2087,7 @@ end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to open design.');
     Exit;
@@ -2156,7 +2155,7 @@ end;
 function TProjectForm.SaveDuringPhysicsSimulation: Boolean;
 begin
   Result := true;
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     Result := YesNoBox('The editor is during of physics simulation.'+ NL +
       'Saving the design will save the current state, not the state ' + NL +
@@ -2167,7 +2166,7 @@ end;
 function TProjectForm.IsCreatingNewDesignAvailable: Boolean;
 begin
   Result := true;
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to create new design.');
     Result := false;
@@ -2245,7 +2244,7 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to open design.');
     Exit;
@@ -2280,7 +2279,7 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     InfoBox('Stop the physics simulation to be able to switch project.');
     Exit;
