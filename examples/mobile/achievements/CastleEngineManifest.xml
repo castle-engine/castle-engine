@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="dragon_spine_demo"
   caption="Dragon Spine Demo"
-  qualified_name="net.sourceforge.castleengine.castlespine"
+  qualified_name="io.castleengine.mobile.achievements"
   standalone_source="dragon_spine_demo_standalone.dpr"
   game_units="GameInitialize"
   author="Castle Game Engine Developers"

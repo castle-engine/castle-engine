@@ -1137,13 +1137,9 @@ begin
     Progress.Fini;
   end;
 
-  { Loading octree have their own Progress, so we load them outside our
-    progress. }
   {$warnings off} // using deprecated in deprecated unit
-  Items.MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
-  Items.MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
   Items.MainScene.PreciseCollisions := true;
-  Items.MainScene.PrepareResources([prSpatial], false, Viewport.PrepareParams);
+  Items.MainScene.PrepareResources([prSpatial], Viewport.PrepareParams);
   {$warnings on}
 
   if (Player <> nil) then
@@ -1510,7 +1506,7 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, FLevel.PrepareParams);
+  Result.PrepareResources(Options, FLevel.PrepareParams);
 
   if PrepareForCollisions then
     Result.PreciseCollisions := true;

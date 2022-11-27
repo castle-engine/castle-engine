@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -798,7 +798,6 @@ end;
 procedure TCastleButton.FontChanged;
 begin
   inherited;
-  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleButton.CustomBackgroundImageChanged(Sender: TObject);

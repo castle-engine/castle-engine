@@ -2,7 +2,7 @@
 <project name="animate_bones_by_code"
   standalone_source="animate_bones_by_code_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.animatebonesbycode"
+  qualified_name="io.castleengine.animate.bones.by.code"
   caption="Animate Bones by Code"
 >
   <compiler_options>

@@ -62,7 +62,7 @@ type
       const ParentInfo: PTraversingInfo): TShape; override;
   public
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const Params: TPrepareParams); override;
     procedure LocalRender(const Params: TRenderParams); override;
   end;
 
@@ -74,7 +74,7 @@ end;
 
 procedure TCastleSceneVulkan.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const Params: TPrepareParams);
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -214,7 +214,7 @@ begin
 
     Scene := TCastleSceneVulkan.Create(Application);
     Scene.Load('castle-data:/car.gltf');
-    Scene.PrepareResources([], false, nil);
+    Scene.PrepareResources([], nil);
 
     { Prepare rendering parameters
       (this is done by TCastleViewport in normal circumstances).

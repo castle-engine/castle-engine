@@ -164,7 +164,6 @@ begin
   Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1]);
-    Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
 
     TimeStart := ProcessTimer;

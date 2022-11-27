@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,8 +88,7 @@ begin
   TempViewport := TCastleViewport.Create(nil);
   try
     // loads the textures inside scene
-    TempViewport.PrepareResources(Scene, '',
-      TCastleViewport.DefaultPrepareOptions - [prRenderSelf]);
+    TempViewport.PrepareResources(Scene, TCastleViewport.DefaultPrepareOptions - [prRenderSelf]);
   finally FreeAndNil(TempViewport) end;
 end;
 

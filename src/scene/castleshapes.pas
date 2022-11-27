@@ -351,16 +351,9 @@ type
     procedure AssociateProxyGeometryState;
     procedure UnAssociateProxyGeometryState;
   strict private
-    TriangleOctreeToAdd: TTriangleOctree;
-    procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const Position: TTriangle3;
-      const Normal: TTriangle3; const TexCoord: TTriangle4;
-      const Face: TFaceIndex);
-    function CreateTriangleOctree(const ALimits: TOctreeLimits;
-      const ProgressTitle: string): TTriangleOctree;
+    function CreateTriangleOctree(const ALimits: TOctreeLimits): TTriangleOctree;
   strict private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
 
     FOctreeTriangles: TTriangleOctree;
 
@@ -551,14 +544,6 @@ type
       want to set them right before changing @link(InternalSpatial) from []
       to something else. }
     function InternalTriangleOctreeLimits: POctreeLimits;
-
-    { If TriangleOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      (so we avoid starting "progress bar within progress bar"). }
-    property InternalTriangleOctreeProgressTitle: string
-      read  FTriangleOctreeProgressTitle
-      write FTriangleOctreeProgressTitle;
 
     { How should the alpha of the resulting calculation be used.
       Should we use alpha blending (partial transparency),
@@ -1057,11 +1042,9 @@ var
 
 implementation
 
-{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Generics.Defaults,
-  CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
+  CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
-{$warnings on}
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
@@ -1595,9 +1578,7 @@ function TShape.InternalOctreeTriangles: TTriangleOctree;
 begin
   if (ssTriangles in InternalSpatial) and (FOctreeTriangles = nil) then
   begin
-    FOctreeTriangles := CreateTriangleOctree(
-      FTriangleOctreeLimits,
-      InternalTriangleOctreeProgressTitle);
+    FOctreeTriangles := CreateTriangleOctree(FTriangleOctreeLimits);
     if LogChanges then
       WritelnLog('X3D changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
@@ -2032,18 +2013,8 @@ begin
     FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
-procedure TShape.AddTriangleToOctreeProgress(Shape: TObject;
-  const Position: TTriangle3;
-  const Normal: TTriangle3; const TexCoord: TTriangle4;
-  const Face: TFaceIndex);
-begin
-  Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
-end;
-
 function TShape.CreateTriangleOctree(
-  const ALimits: TOctreeLimits;
-  const ProgressTitle: string): TTriangleOctree;
+  const ALimits: TOctreeLimits): TTriangleOctree;
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
@@ -2103,23 +2074,13 @@ begin
   try
     if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
     begin
-      { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
-        No point in progress here, as this is always fast. }
+      { Add 12 triangles for 6 cube (LocalBoundingBox) sides. }
       Result.Triangles.Capacity := 12;
       LocalTriangulateBox(LocalBoundingBox);
     end else
     begin
       Result.Triangles.Capacity := TrianglesCount;
-      if (ProgressTitle <> '') and
-         (not Progress.Active) then
-      begin
-        Progress.Init(TrianglesCount, ProgressTitle, true);
-        try
-          TriangleOctreeToAdd := Result;
-          LocalTriangulate({$ifdef FPC}@{$endif}AddTriangleToOctreeProgress);
-        finally Progress.Fini end;
-      end else
-        LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle);
+      LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
 

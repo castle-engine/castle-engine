@@ -320,9 +320,12 @@ begin
       FCustomizedFont.Italic := nil;
       FCustomizedFont.BoldItalic := nil;
     end;
+    { When Outline = 0, set FCustomizedFont.CustomizeOutline = false,
+      this makes switching between Outline <> 0 to Outline = 0 make correct changes
+      -- outline should disappear. }
+    FCustomizedFont.CustomizeOutline := Outline <> 0;
     if Outline <> 0 then
     begin
-      FCustomizedFont.CustomizeOutline := true;
       FCustomizedFont.Outline := Outline;
       FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
       FCustomizedFont.OutlineColor := OutlineColor;
@@ -441,6 +444,10 @@ end;
 
 procedure TCastleUserInterfaceFont.FontChanged;
 begin
+  { Changing font properties, like FontSize, may change the control size
+    (which is usually adjusted to font size,
+    e.g. TCastleLabel, TCastleButton with AutoSize). }
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleUserInterfaceFont.UIScaleChanged;

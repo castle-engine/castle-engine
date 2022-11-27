@@ -376,7 +376,7 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -1292,7 +1292,7 @@ end;
 
 procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1674,7 +1674,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.InternalGlobalLights := Params.GlobalLights;
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
-    PrepareResources([prRenderSelf], false, FTempPrepareParams);
+    PrepareResources([prRenderSelf], FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;

@@ -190,7 +190,7 @@ begin
     and change location Image to *not* contain location shadows "baked". }
   FScene.CastShadows := false;
   FScene.Load(SceneURL);
-  FScene.PrepareResources([prRenderSelf, prBoundingBox], false, PrepareParams);
+  FScene.PrepareResources([prRenderSelf, prBoundingBox], PrepareParams);
   FScene.Image := Image;
   FScene.ShadowedImage := ShadowedImage;
 end;

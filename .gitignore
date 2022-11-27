@@ -237,6 +237,7 @@ castle-game-engine-*.fpm
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/check_lazarus_packages/check_lazarus_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
+/tools/internal/fpc-cge/fpc-cge
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal

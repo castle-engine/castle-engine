@@ -825,22 +825,18 @@
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption.)
 
-      @param(ProgressStep Says that we should call Progress.Step.
-        It will be called PrepareResourcesSteps times.
-        Useful to show progress bar to the user during long preparation.)
-
       @param(Params
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
       )
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); virtual;
+      const Params: TPrepareParams); overload; virtual;
 
-    { How many times PrepareResources will call Progress.Step.
-      Useful only if you want to pass ProgressStep = @true to PrepareResources.
-      In the base class TCastleTransform this just returns 0.  }
-    function PrepareResourcesSteps: Cardinal; virtual;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const Ignored: Boolean;
+      const Params: TPrepareParams); overload;
+      deprecated 'use PrepareResources(Options,Params) overload (remove the 2nd Boolean parameter)';
 
     { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
       Return @true if you handled the event, and it should not be passed to other objects.
@@ -2571,22 +2567,20 @@ begin
 end;
 
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
-var
-  I: Integer;
+  const Ignored: Boolean;
+  const Params: TPrepareParams);
 begin
-  for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, Params);
-  RegisterGLContextClose;
+  PrepareResources(Options, Params);
 end;
 
-function TCastleTransform.PrepareResourcesSteps: Cardinal;
+procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
+  const Params: TPrepareParams);
 var
   I: Integer;
 begin
-  Result := 0;
   for I := 0 to List.Count - 1 do
-    Result := Result + List[I].PrepareResourcesSteps;
+    List[I].PrepareResources(Options, Params);
+  RegisterGLContextClose;
 end;
 
 function TCastleTransform.Press(const Event: TInputPressRelease): boolean;
@@ -3107,7 +3101,8 @@ begin
       rlBack : RenderContext.DepthRange := drFar;
       else ;
     end;
-  end;
+  end else
+    SavedDepthRange := Low(SavedDepthRange); // avoid Delphi warnings about SavedDepthRange uninitialized
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
