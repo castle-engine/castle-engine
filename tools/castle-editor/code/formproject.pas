@@ -2112,6 +2112,9 @@ begin
     Design.OnIsRunning  := @IsRunning;
     Design.OnRunningToggle  := @RunningToggle;
 
+    // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
+
     DesignExistenceChanged;
     if Docking then
     begin
