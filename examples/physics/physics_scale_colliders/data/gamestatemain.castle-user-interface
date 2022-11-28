@@ -34,6 +34,7 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
         },
+        "TimeScale" : 1.0000000000000000E+001,
         "$Children" : [
           {
             "$$ClassName" : "TCastleTransform",
@@ -113,9 +114,7 @@
                 "$$ClassName" : "TCastleBox",
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
-                  "Blue" : 3.0196079611778259E-001,
-                  "Green" : 3.0196079611778259E-001,
-                  "Red" : 9.0588235855102539E-001
+                  "Green" : 0.0000000000000000E+000
                 },
                 "Material" : "pmUnlit",
                 "Name" : "RedBox1",
@@ -169,6 +168,11 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.9317287206649780E-001,
+                  "Z" : 9.9996894598007202E-001
+                },
                 "SizePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0000000000000000E+003,
@@ -177,8 +181,8 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 6.4586590576171875E+002,
-                  "Y" : 1.4742587280273438E+002
+                  "X" : 1.1409333496093750E+003,
+                  "Y" : 4.1775823974609375E+002
                 },
                 "$Behaviors" : [
                   {
@@ -261,8 +265,8 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 9.0000000000000000E+002,
-              "Y" : 4.5000000000000000E+002,
+              "X" : 1.0236644287109375E+003,
+              "Y" : 3.3561041259765625E+002,
               "Z" : 5.0000000000000000E+002
             }
           }
@@ -345,7 +349,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Local Scale Red Box Collider",
+          "Caption" : "Scale Red Box Collider 1/2",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
