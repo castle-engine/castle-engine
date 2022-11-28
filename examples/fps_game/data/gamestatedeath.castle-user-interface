@@ -9,10 +9,11 @@
         "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 3.0000001192092896E-001,
         "Blue" : 0.0000000000000000E+000,
-        "Green" : 0.0000000000000000E+000
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
       },
       "FullSize" : true,
-      "Name" : "RectangleControl1",
+      "Name" : "RectangleControl2",
       "$Children" : [
         {
           "$$ClassName" : "TCastleImageControl",
@@ -24,32 +25,11 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/gradient3.png"
+            "URL" : "castle-data:/gfx/HUD%20Assets/viniette01.png"
           },
+          "FullSize" : true,
           "Height" : 1.0800000000000000E+003,
-          "Name" : "ImageControl1",
-          "Stretch" : true,
-          "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "Width" : 6.0000000000000000E+002
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "ColorPersistent" : {
-              "$$ClassName" : "TCastleColorPersistent",
-              "Alpha" : 3.4999999403953552E-001,
-              "Blue" : 0.0000000000000000E+000,
-              "Green" : 0.0000000000000000E+000
-            },
-            "Rotation" : 3.1415927410125732E+000,
-            "URL" : "castle-data:/gfx/HUD%20Assets/gradient3.png"
-          },
-          "Height" : 1.0800000000000000E+003,
-          "HorizontalAnchorParent" : "hpRight",
-          "HorizontalAnchorSelf" : "hpRight",
-          "Name" : "ImageControl2",
+          "Name" : "ImageControl3",
           "Stretch" : true,
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
@@ -61,10 +41,12 @@
       "$$ClassName" : "TCastleLabel",
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Red" : 2.5098040699958801E-001
+        "Blue" : 8.6666667461395264E-001,
+        "Green" : 8.6666667461395264E-001,
+        "Red" : 8.6666667461395264E-001
       },
       "CustomFont" : "UrbanistBlack",
-      "FontSize" : 1.0000000000000000E+002,
+      "FontSize" : 8.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "Label1",
