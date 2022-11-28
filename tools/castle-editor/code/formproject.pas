@@ -671,6 +671,7 @@ begin
 
   OutputList.AddSeparator;
   OutputList.AddLine('Forcefully killing the process.', okError);
+  RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
 

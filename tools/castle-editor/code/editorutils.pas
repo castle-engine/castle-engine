@@ -61,7 +61,7 @@ type
       Avoids adding empty lines at the very end (since they would
       make the look uglier; instead,
       we make nice separators with AddSeparator). }
-    procedure SplitAddLines(const S: String; const Kind: TOutputKind);
+    //procedure SplitAddLines(const S: String; const Kind: TOutputKind);
     procedure AddSeparator;
     procedure Clear;
   end;
@@ -76,6 +76,8 @@ type
     FRunning: Boolean;
     FExitStatus: Integer;
     Environment: TStringList;
+    { Additional process id to kill, when killing Process. }
+    ChildProcessId: Int64;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -92,6 +94,11 @@ type
 
     { Defined only after callling Start, once Running turned false. }
     property ExitStatus: Integer read FExitStatus;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   { Call asynchronous processes, one after another, until the end
@@ -126,6 +133,11 @@ type
     procedure Start;
     procedure Update;
     function Running: Boolean;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   TPlatformInfo = class
@@ -258,7 +270,8 @@ type
 
 implementation
 
-uses SysUtils, Graphics, TypInfo, Generics.Defaults,
+uses {$ifdef UNIX} CTypes, BaseUnix, {$endif}
+  SysUtils, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo, ToolCommonUtils;
@@ -367,6 +380,12 @@ begin
   Result := (FQueuePosition >= 0) and (FQueuePosition < Queue.Count);
 end;
 
+procedure TAsynchronousProcessQueue.TerminateChildrenHarder;
+begin
+  if (AsyncProcess <> nil) and AsyncProcess.Running then
+    AsyncProcess.TerminateChildrenHarder;
+end;
+
 { TAsynchronousProcess ------------------------------------------------------- }
 
 constructor TAsynchronousProcess.Create;
@@ -446,6 +465,22 @@ begin
 end;
 
 procedure TAsynchronousProcess.Update;
+
+  function LineProcessInternalInfo(const Line: String): Boolean;
+  const
+    Prefix = 'Castle Game Engine Internal: ProcessID: ';
+  var
+    ParsedProcessId: Int64;
+  begin
+    Result := false;
+    if IsPrefix(Prefix, Line, false) and
+       TryStrToInt64(PrefixRemove(Prefix, Line, false), ParsedProcessId) then
+    begin
+      ChildProcessId := ParsedProcessId;
+      Result := true;
+    end;
+  end;
+
 const
   ReadMaxSize = 65536;
 var
@@ -478,7 +513,8 @@ begin
       dump the remaining PendingLines as last line. }
     if (not Process.Running) and (Length(PendingLines) <> 0) then
     begin
-      OutputList.AddLine(PendingLines, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(PendingLines, okInfo);
       PendingLines := '';
     end;
     Exit;
@@ -513,7 +549,8 @@ begin
       if SCharIs(PendingLines, NewLinePos - 1, #13) then
         Dec(NewLinePos);
       Line := Copy(PendingLines, 1, NewLinePos - 1);
-      OutputList.AddLine(Line, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(Line, okInfo);
 
       PendingLines := SEnding(PendingLines, ProcessedLength + 1);
     end else
@@ -523,6 +560,39 @@ begin
   // if we get a lot of output, maybe more than ReadMaxSize, then keep reading!
   if ReadMaxSize = ReadBytes then
     Update;
+end;
+
+procedure TAsynchronousProcess.TerminateChildrenHarder;
+{$ifdef UNIX}
+begin
+  if ChildProcessId <> 0 then
+  begin
+    OutputList.AddLine(Format('Killing child process (id: %d) by SIGTERM', [ChildProcessId]), okInfo);
+    if FpKill(ChildProcessId, SIGTERM) = 0 then
+    begin
+      { Sending SIGKILL right after SIGTERM is a bit brutal,
+        i.e. we didn't give the ChildProcessId any time to react to SIGTERM and close nicely.
+        But we don't want to introduce some delay here,
+        we want TerminateChildrenHarder to be instant, to be responsive to user.
+        So for now, we just don't follow it with SIGKILL.
+      }
+
+      (*
+      if Process.Running then
+      begin
+        OutputList.AddLine(Format('Killing child process (id: %d) by SIGKILL', [ChildProcessId]), okInfo);
+        if FpKill(ChildProcessId, SIGKILL) <> 0 then
+          OutputList.AddLine(Format('Cannot send SIGKILL to child process (id: %d)', [ChildProcessId]), okWarning);
+      end;
+      *)
+    end else
+    begin
+      OutputList.AddLine(Format('Cannot send SIGTERM to child process (id: %d)', [ChildProcessId]), okWarning);
+    end;
+  end;
+{$else}
+begin
+{$endif}
 end;
 
 { TOutputList --------------------------------------------------------------- }
@@ -686,6 +756,8 @@ begin
     List.TopIndex := List.Items.Count - 1;
 end;
 
+(* Unused:
+
 procedure TOutputList.SplitAddLines(const S: String; const Kind: TOutputKind);
 var
   SL: TStringList;
@@ -701,6 +773,7 @@ begin
       AddLine(Line, Kind);
   finally FreeAndNil(SL) end;
 end;
+*)
 
 procedure TOutputList.AddSeparator;
 begin

@@ -699,6 +699,10 @@ procedure RunCommandSimple(
       end;
 
       P.Execute;
+
+      Writeln('Castle Game Engine Internal: ProcessID: ', P.ProcessID);
+      Flush(Output);
+
       P.WaitOnExit;
 
       ExitStatus := P.ExitStatus;
