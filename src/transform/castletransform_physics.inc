@@ -144,6 +144,8 @@
     procedure UpdateWorldScale;
 
     function StoredWithAutoSize: Boolean;
+
+    function WorldScaleScalar: Single;
   protected
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
@@ -1268,7 +1270,23 @@ var
 begin
   { Initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
   T.Init;
-  T.Multiply(Rotation, NoScale, Translation * TotalScale);
+
+  { TCastleCollider.Translation below is multiplied by WorldScaleScalar
+    and not by TotalScale. Because:
+    - Conceptually, all distances are scaled by
+      WorldScaleScalar, including TCastleCollider.Translation.
+      E.g. TCastleCollider.Translation = (20,0,0)
+      under TCastleTransform with Scale = 10
+      actually moves by 10.
+    - But TCastleCollider.SizeScale is more local, it doesn't affect distance
+      by TCastleCollider.Translation.
+    - The end result is that TCastleCollider.Translation / Rotation / SizeScale
+      should behave analogous to local TCastleTransform transformation,
+      and be affected by parent TCastleTransform transformations in the same way.
+    - Testcase: physics_scale_colliders
+  }
+
+  T.Multiply(Rotation, NoScale, Translation * WorldScaleScalar);
   FLocalTransform := T.Transform;
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
@@ -1524,7 +1542,7 @@ begin
   finally FCalculatingSize := false end;
 end;
 
-function TCastleCollider.TotalScale: Single;
+function TCastleCollider.WorldScaleScalar: Single;
 begin
   if Mode2D then
   begin
@@ -1553,7 +1571,11 @@ begin
     end;
     Result := Approximate3DScale(FWorldScale);
   end;
-  Result := Result * FSizeScale;
+end;
+
+function TCastleCollider.TotalScale: Single;
+begin
+  Result := WorldScaleScalar * FSizeScale;
 end;
 
 procedure TCastleCollider.UpdateWorldScale;

@@ -1,5 +1,19 @@
 # Physics scale colliders
 
+Tests the scale applied to `TCastleCollider` in various ways:
+
+- scaling using the `TCastleTransform.Scale` on parent (direct and indirect) of the `TCastleCollider`
+
+- scaling using the `TCastleCollider.SizeScale`.
+
+Correct test result (in both editor simulation and when you run):
+
+- All objects should fall nicely on yellow bar, not "go through".
+
+- Pressing any "Scale ..." buttons should also make them stand sensibly on top of another
+
+- ...*except* "Scale Red Box Collider 1/2" that deliberately desynchronizes collider size with look, it should make the red box "fall through" the yellow bar partially and stop.
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
