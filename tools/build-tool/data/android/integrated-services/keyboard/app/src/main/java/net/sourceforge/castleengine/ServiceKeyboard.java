@@ -127,10 +127,10 @@ class CastleInputConnection extends BaseInputConnection
             return true;
         }
 
-        // TODO: full text check here - maybe reuse some code from composing
+        updateText(text.toString());
 
         // code to add all chars
-        int i = 0;
+        /*int i = 0;
         while (i < text.length())
         {
             char c = text.charAt(i);
@@ -147,7 +147,8 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", s});
             serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
             i++;
-        }
+        }*/
+
 
         sentButNotCommited = "";
         return true;
@@ -159,7 +160,8 @@ class CastleInputConnection extends BaseInputConnection
         serviceKeyboard.logInfo("CastleInputConnection", "composingText - " + text.toString());
         serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
 
-        if (sentButNotCommited.equals(text.toString()))
+        updateText(text.toString());
+        /*if (sentButNotCommited.equals(text.toString()))
         {
             serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + text.toString());
             return true;
@@ -254,8 +256,110 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
             i++;
         }
-
+        */
         return true;
+    }
+
+    // Changes current uncommited text to newText
+    public void updateText(String newText)
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - newText: " + newText);
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - sentButNotCommited: " + newText);
+
+        if (sentButNotCommited.equals(newText))
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + newText);
+            return;
+        }
+
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check1 ");
+        if (sentButNotCommited.length() > newText.length())
+        {
+            // remove excess of characters
+            int charsToRemove = newText.length() - sentButNotCommited.length();
+            int i = charsToRemove;
+            while (i > 0)
+            {
+                serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
+                serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
+                i--;
+            }
+
+            sentButNotCommited = sentButNotCommited.substring(0, newText.length());
+            serviceKeyboard.logInfo("CastleInputConnection", "old composing text: " + sentButNotCommited);
+            serviceKeyboard.logInfo("CastleInputConnection", "new composing text: " + newText);
+        }
+
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check2 ");
+        // at this moment new text is longer or has the same length like the new one
+        if (sentButNotCommited.equals(newText))
+        {
+            // text is the same just exit
+            return;
+        }
+
+        // how many matching characters
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3 ");
+        int matchingCharacters = 0;
+        for (int i = 0 ; i < sentButNotCommited.length() ; i++)
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3.1 ");
+            if (sentButNotCommited.charAt(i) != newText.charAt(i))
+            {
+                matchingCharacters = i;
+                break;
+            }
+        } 
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
+
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check4 ");
+        if (matchingCharacters != sentButNotCommited.length())
+        {
+            // need to remove some characters
+            serviceKeyboard.logInfo("CastleInputConnection", "updateText - check4.1 ");
+            int charsToRemove = sentButNotCommited.length() - matchingCharacters;
+            int i = 0;
+            while (i < charsToRemove)
+            {
+                serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
+                serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
+                i++;
+            }
+        }
+
+        // remove matching characters from new composing text
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check5 ");
+        String charsToAdd = new String("");
+        if (matchingCharacters > 0 )
+            charsToAdd = newText.substring(matchingCharacters - 1, newText.length() - matchingCharacters);
+        else
+            charsToAdd = newText;
+
+        serviceKeyboard.logInfo("CastleInputConnection", "charsToAdd: " + charsToAdd);
+        sentButNotCommited = sentButNotCommited.substring(0, matchingCharacters);
+        serviceKeyboard.logInfo("CastleInputConnection", "old matching characters: " + sentButNotCommited);
+        sentButNotCommited = sentButNotCommited + charsToAdd;
+        serviceKeyboard.logInfo("CastleInputConnection", "new composing text: " + sentButNotCommited);
+
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check6 ");
+        int i = 0;
+        while (i < charsToAdd.length())
+        {
+            char c = charsToAdd.charAt(i);
+            if (Character.isHighSurrogate(c))
+            {
+                serviceKeyboard.logInfo("CastleInputConnection", "surrogate");
+                i++;
+                char c2 = charsToAdd.charAt(i);
+                String s = new String (Character.toChars(Character.toCodePoint(c, c2)));
+                serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", s});
+                serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
+            }
+            String s = new String(Character.toChars(c));
+            serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", s});
+            serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", s});
+            i++;
+        }
     }
 }
 
