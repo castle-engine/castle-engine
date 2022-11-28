@@ -712,7 +712,7 @@ var
   ProcessStatus: Integer;
   AbsoluteExeName: string;
 begin
-  { use FindExe to use our fixed PathFileSearch that does not accidentaly find
+  { use FindExe to use our fixed PathFileSearch that does not accidentally find
     "ant" directory as "ant" executable }
   if IsPathAbsolute(ExeName) then
     AbsoluteExeName := ExeName
