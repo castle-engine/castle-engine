@@ -2,6 +2,15 @@
   "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "Group1",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleFont",
+      "LoadCharacters" : "ąęćśźżĄĘ",
+      "Name" : "Font1",
+      "OptimalSize" : 80,
+      "URL" : "castle-data:/DejaVuSans.ttf"
+    }
+  ],
   "$Children" : [
     {
       "$$ClassName" : "TCastleLabel",
@@ -42,6 +51,7 @@
       "CustomBackgroundPressed" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
+      "CustomFont" : "Font1",
       "FontSize" : 8.0000000000000000E+001,
       "Height" : 3.0000000000000000E+002,
       "HorizontalAnchorParent" : "hpMiddle",
@@ -90,6 +100,7 @@
     {
       "$$ClassName" : "TCastleEdit",
       "CaptureAllInput" : false,
+      "CustomFont" : "Font1",
       "FontSize" : 8.0000000000000000E+001,
       "Height" : 5.0000000000000000E+002,
       "HorizontalAnchorParent" : "hpMiddle",
@@ -97,11 +108,12 @@
       "Name" : "Edit1",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.5000000000000000E+001,
         "Y" : -2.7000000000000000E+002
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
-      "Width" : 7.0000000000000000E+002
+      "Width" : 1.4500000000000000E+003
     }
   ]
 }
