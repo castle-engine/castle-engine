@@ -41,12 +41,14 @@ class CastleInputConnection extends BaseInputConnection
 {
     ServiceKeyboard serviceKeyboard;
     String sentButNotCommited;
+    String fullText;
 
     CastleInputConnection(ServiceKeyboard service, View targetView, boolean fullEditor) 
     {
         super(targetView, fullEditor);
         serviceKeyboard = service;
         sentButNotCommited = "";
+        fullText = "";
     }
 
     // Support for soft keyboard key events 
@@ -55,6 +57,7 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean sendKeyEvent(KeyEvent event) 
     {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call sendKeyEvent()");
         // seems there work only backspace and only when there is no composing text
 
         serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - code " + Integer.toString(event.getKeyCode()));
@@ -102,6 +105,7 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean commitText(CharSequence text, int newCursorPosition) 
     {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call commitText()");
         serviceKeyboard.logInfo("CastleInputConnection", "commitText - " + text.toString());
         serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
 
@@ -118,12 +122,13 @@ class CastleInputConnection extends BaseInputConnection
             return true;
         }    
 
-        if (sentButNotCommited.equals(textToCommit.substring(0, textToCommit.length()-1)))
+        if ((textToCommit.length() > 0) && (sentButNotCommited.equals(textToCommit.substring(0, textToCommit.length()-1))))
         {
             if (textToCommit.charAt(textToCommit.length()-1) == 32)
             serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + textToCommit + "but space on end");
             serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", " "});
             serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", " "});
+            fullText = fullText + " ";
             sentButNotCommited = "";
             return true;
         }
@@ -159,6 +164,7 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean setComposingText(CharSequence text, int newCursorPosition) 
     {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call setComposingText()");
         serviceKeyboard.logInfo("CastleInputConnection", "composingText - " + text.toString());
         serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
 
@@ -266,9 +272,46 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean deleteSurroundingText (int beforeLength, int afterLength)
     {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call deleteSurroundingText()");
         // seems this is only called when composing text is empty and user press backspace ?
         serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText beforeLength: " + Integer.toString(beforeLength));
         serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText afterLength: " + Integer.toString(afterLength));
+
+        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText fullText before: '" + fullText + "'");
+
+        if (sentButNotCommited.length() > 0)
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText - sentButNotCommited.length() > 0 = " + Integer.toString(sentButNotCommited.length()));
+            if (sentButNotCommited.length() >= beforeLength)
+            {
+                sentButNotCommited = sentButNotCommited.substring(0, sentButNotCommited.length() - beforeLength);
+            }
+            else
+                sentButNotCommited = "";
+
+        }
+        
+        int backSpaceCountToSend = 0;
+
+        if (fullText.length() >= beforeLength)
+        {
+            fullText = fullText.substring(0, fullText.length() - beforeLength);
+            backSpaceCountToSend = beforeLength;
+        }
+        else
+        {
+            fullText = "";
+            backSpaceCountToSend = beforeLength;
+        }
+
+        int i = 0;
+        while (i < backSpaceCountToSend)
+        {
+            serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
+            serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
+            i++;
+        }
+        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText fullText after: '" + fullText + "'");
 
         return true;
     }
@@ -276,6 +319,7 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean deleteSurroundingTextInCodePoints (int beforeLength, int afterLength)
     {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call deleteSurroundingTextInCodePoints()");
         // seems this is only called when composing text is empty and user press backspace ?
         serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingTextInCodePoints beforeLength: " + Integer.toString(beforeLength));
         serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingTextInCodePoints afterLength: " + Integer.toString(afterLength));
@@ -283,15 +327,30 @@ class CastleInputConnection extends BaseInputConnection
         return true;
     }
 
-    // Changes current uncommited text to newText
+    public boolean setComposingRegion (int start, int end)
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call setComposingRegion()");
+        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion start: " + Integer.toString(start));
+        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion stop: " + Integer.toString(end));
+        
+        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion fullText: " + fullText);
+        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion old sentButNotCommited: '" + sentButNotCommited + "'");
+        sentButNotCommited = fullText.substring(start, end);
+        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion new sentButNotCommited: '" + sentButNotCommited + "'");
+        return true;
+    }
+
+    // Changes current uncommited text to newText and also takes care fullText be up to date
     public void updateText(String newText)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - newText: " + newText);
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - sentButNotCommited: " + newText);
+        serviceKeyboard.logInfo("CastleInputConnection", "------- call updateText()");
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - newText: '" + newText + "'");
+        serviceKeyboard.logInfo("CastleInputConnection", "updateText - sentButNotCommited: '" + sentButNotCommited + "'");
 
         if (sentButNotCommited.equals(newText))
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + newText);
+            // nothing changes so simply exit
+            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - '" + newText + "'");
             return;
         }
 
@@ -299,6 +358,7 @@ class CastleInputConnection extends BaseInputConnection
         if (sentButNotCommited.length() > newText.length())
         {
             // remove excess of characters
+            // TODO: take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
             int charsToRemove = sentButNotCommited.length() - newText.length();
             serviceKeyboard.logInfo("CastleInputConnection", "updateText - charsToRemove - " + Integer.toString(charsToRemove));
             int i = charsToRemove;
@@ -310,8 +370,12 @@ class CastleInputConnection extends BaseInputConnection
             }
 
             sentButNotCommited = sentButNotCommited.substring(0, newText.length());
-            serviceKeyboard.logInfo("CastleInputConnection", "old composing text: " + sentButNotCommited);
-            serviceKeyboard.logInfo("CastleInputConnection", "new composing text: " + newText);
+            serviceKeyboard.logInfo("CastleInputConnection", "old composing text: '" + sentButNotCommited + "'");
+            serviceKeyboard.logInfo("CastleInputConnection", "new composing text: '" + newText + "'");
+
+            serviceKeyboard.logInfo("CastleInputConnection", "old fullText: '" + fullText + "'");
+            fullText = fullText.substring(0, fullText.length() - charsToRemove);
+            serviceKeyboard.logInfo("CastleInputConnection", "new fullText: '" + fullText + "'");
         }
 
         serviceKeyboard.logInfo("CastleInputConnection", "updateText - check2 ");
@@ -319,20 +383,21 @@ class CastleInputConnection extends BaseInputConnection
         if (sentButNotCommited.equals(newText))
         {
             // text is the same just exit
+            // fullText should also be the same
             return;
         }
 
         // how many matching characters
         serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3 ");
         int matchingCharacters = 0;
+        int matchingCodepoints = 0;
         for (int i = 0 ; i < sentButNotCommited.length() ; i++)
         {
             serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3.1 ");
+            // TODO: take care of the surrogates when sending backspace key - in very rare cases there can be two java chars and the first is only different - implement matchingCodepoints
             if (sentButNotCommited.charAt(i) != newText.charAt(i))
-            {
-                matchingCharacters = i;
                 break;
-            }
+            matchingCharacters = i + 1;
         } 
         serviceKeyboard.logInfo("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
 
@@ -341,6 +406,7 @@ class CastleInputConnection extends BaseInputConnection
         {
             // need to remove some characters
             serviceKeyboard.logInfo("CastleInputConnection", "updateText - check4.1 ");
+            // TODO: look todo above should use matchingCodepoints
             int charsToRemove = sentButNotCommited.length() - matchingCharacters;
             int i = 0;
             while (i < charsToRemove)
@@ -355,15 +421,25 @@ class CastleInputConnection extends BaseInputConnection
         serviceKeyboard.logInfo("CastleInputConnection", "updateText - check5 ");
         String charsToAdd = new String("");
         if (matchingCharacters > 0 )
-            charsToAdd = newText.substring(matchingCharacters - 1, newText.length() - matchingCharacters);
+            charsToAdd = newText.substring(matchingCharacters, newText.length());
         else
             charsToAdd = newText;
 
-        serviceKeyboard.logInfo("CastleInputConnection", "charsToAdd: " + charsToAdd);
+        serviceKeyboard.logInfo("CastleInputConnection", "charsToAdd: '" + charsToAdd + "'");
+
+        int charsToRemoveFromFullText = sentButNotCommited.length() - matchingCharacters;
+        serviceKeyboard.logInfo("CastleInputConnection", "charsToRemoveFromFullText: " + Integer.toString(charsToRemoveFromFullText));
+
         sentButNotCommited = sentButNotCommited.substring(0, matchingCharacters);
-        serviceKeyboard.logInfo("CastleInputConnection", "old matching characters: " + sentButNotCommited);
+        serviceKeyboard.logInfo("CastleInputConnection", "old matching characters: '" + sentButNotCommited + "'");
         sentButNotCommited = sentButNotCommited + charsToAdd;
-        serviceKeyboard.logInfo("CastleInputConnection", "new composing text: " + sentButNotCommited);
+        serviceKeyboard.logInfo("CastleInputConnection", "new composing text: '" + sentButNotCommited + "'");
+
+        // update fullText
+        serviceKeyboard.logInfo("CastleInputConnection", "fullText before: '" + fullText + "'");
+        fullText = fullText.substring(0, fullText.length() - charsToRemoveFromFullText);
+        fullText = fullText + charsToAdd;
+        serviceKeyboard.logInfo("CastleInputConnection", "fullText after: '" + fullText + "'");
 
         serviceKeyboard.logInfo("CastleInputConnection", "updateText - check6 ");
         int i = 0;
