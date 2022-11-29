@@ -95,7 +95,6 @@
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "Edit1",
-      "Text" : "Edit1",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "Y" : -2.7000000000000000E+002
