@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="physics_2d_transformation_sync_test"/>
+      <Title Value="physics_test_transformation_sync"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -35,7 +35,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="physics_2d_transformation_sync_test_standalone.dpr"/>
+        <Filename Value="physics_test_transformation_sync_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -56,7 +56,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="physics_2d_transformation_sync_test"/>
+      <Filename Value="physics_test_transformation_sync"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

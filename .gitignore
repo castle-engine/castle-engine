@@ -135,7 +135,7 @@ castle-game-engine-*.fpm
 /examples/network/tcp_connection/server/server
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
-/examples/physics/physics_2d_transformation_sync_test/physics_2d_transformation_sync_test
+/examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
 /examples/physics/physics_3d_demo/physics_3d_demo
 /examples/physics/physics_3d_shooter/physics_3d_shooter
 /examples/physics/physics_animated/physics-animated

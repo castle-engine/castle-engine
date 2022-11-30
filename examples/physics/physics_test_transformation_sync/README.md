@@ -1,4 +1,12 @@
-# Fizyka 2D
+# Physics Test Transformation Synchronization
+
+Trivial test that you can change from code transformation of an object affected by physics, by trivial
+
+```
+Sphere.Translation := Vector3(300, 500, 0);
+```
+
+And the `Sphere` still continues to be affected by gravity.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

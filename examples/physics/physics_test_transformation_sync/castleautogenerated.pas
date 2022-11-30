@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics_2d_transformation_sync_test';
-  ApplicationProperties.Caption := 'Physics 2D Transformation Sync Test';
+  ApplicationProperties.ApplicationName := 'physics_test_transformation_sync';
+  ApplicationProperties.Caption := 'Physics Test Transformation Sync';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
