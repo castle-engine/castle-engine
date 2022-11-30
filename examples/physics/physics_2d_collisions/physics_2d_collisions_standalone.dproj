@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{2E11AA18-FB3D-4BC5-84D0-BA5A073FF826}</ProjectGuid>
-        <MainSource>physics_2d_collisions.dpr</MainSource>
+        <MainSource>physics_2d_collisions_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -180,7 +180,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">physics_2d_collisions.dpr</Source>
+                    <Source Name="MainSource">physics_2d_collisions_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>

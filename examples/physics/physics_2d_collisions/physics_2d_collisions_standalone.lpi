@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="physics_2d_collisions.dpr"/>
+        <Filename Value="physics_2d_collisions_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
