@@ -1283,7 +1283,7 @@ begin
     - The end result is that TCastleCollider.Translation / Rotation / SizeScale
       should behave analogous to local TCastleTransform transformation,
       and be affected by parent TCastleTransform transformations in the same way.
-    - Testcase: physics_scale_colliders
+    - Testcase: physics_test_scale_colliders
   }
 
   T.Multiply(Rotation, NoScale, Translation * WorldScaleScalar);
