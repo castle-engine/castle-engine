@@ -944,45 +944,16 @@
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
 
-      @definitionList(
-        @itemLabel true (dynamic object, the default)
-        @item(
-          In this case you cannot
-          change the @link(TCastleTransform.Translation) and other
-          transformation properties of the related TCastleTransform
-          after assigning @link(TCastleTransform.RigidBody).
-          They are under the control of the physics engine.
-          You can still reliably read them.
-
-          Keep @link(Animated) as @false in this case.
-          Right now, @link(Animated) doesn't actually matter when @name is @true,
-          but don't depend on it.
-          In the future, we may enable to set @link(Animated)
-          to @true, to allow you to explicitly transform objects that are still
-          under control of physics.
-        )
-
-        @itemLabel false
-        @item(
-          In this case object is not transformed by the physics simulation.
-          It still collides with other physical objects.
-
-          You can change the @link(TCastleTransform.Translation) and other
-          transformation properties by your own code.
-          But if you plan to change them @italic(very often)
-          (e.g. every frame), then set the @link(Animated) property to @true.
-        )
-      )
-    }
+      When @false the object is not transformed by the physics simulation.
+      It still collides with other physical objects.
+      So it's a static collidable body that will not move on any collision / force. }
     property Dynamic: Boolean read FDynamic write SetDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
 
       This property is taken into account only if @link(Dynamic) = @false.
-      When @link(Dynamic) = @false,
-      you can change the @link(TCastleTransform.Translation) and other
-      transformation properties of the related TCastleTransform.
+
       This property is an optimization hint to the physics engine,
       it says @italic(how often) you will change the transformation.
 
@@ -999,7 +970,7 @@
           Changing the transformation properties is costly,
           it may even be like destroying this object
           and creating a new one from the point of view of the physics engine,
-          @italic(so do not change them often, e.g. every frame).
+          @italic(so do not change the transformation often, e.g. every frame).
 
           The upside is that collisions with static objects may be much more
           optimized, since the physics engine can assume that all the static
