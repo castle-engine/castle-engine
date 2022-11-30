@@ -4,25 +4,6 @@
   "Name" : "Group1",
   "$Children" : [
     {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000
-      },
-      "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
-      "HorizontalAnchorParent" : "hpRight",
-      "HorizontalAnchorSelf" : "hpRight",
-      "Name" : "LabelFps",
-      "Text" : [
-        "FPS: xxx"
-      ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
-      "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
-    },
-    {
       "$$ClassName" : "TCastleViewport",
       "Camera" : "Camera1",
       "FullSize" : true,
@@ -45,13 +26,9 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "ScalePersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.6000000000000000E+001
-            },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.0000000000000000E+002,
+              "X" : 1.6000000000000000E+003,
               "Y" : 5.0000000000000000E+001
             },
             "TranslationPersistent" : {
@@ -63,13 +40,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 1.0000000000000000E+001,
-                "Name" : "BoxCollider1",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider1"
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
@@ -90,9 +61,7 @@
             "CollisionSphereRadius" : 5.0000000000000000E+001,
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent",
-              "Blue" : 3.0588236451148987E-001,
-              "Green" : 7.6470589637756348E-001,
-              "Red" : 4.8627451062202454E-001
+              "Blue" : 0.0000000000000000E+000
             },
             "Material" : "pmUnlit",
             "Name" : "SpherePlayer",
@@ -110,13 +79,7 @@
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 1.0000000000000000E+000,
                 "Mode2D" : true,
-                "Name" : "SphereCollider1",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider1"
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
@@ -159,13 +122,7 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Mode2D" : true,
-                "Name" : "SphereCollider2",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "SphereCollider2"
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
@@ -220,13 +177,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 1.0000000000000000E+001,
-                "Name" : "BoxCollider2",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider2"
               }
             ]
           },
@@ -269,13 +220,7 @@
               {
                 "$$ClassName" : "TCastleBoxCollider",
                 "Mass" : 1.0000000000000000E+001,
-                "Name" : "BoxCollider3",
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Name" : "BoxCollider3"
               }
             ]
           },
@@ -314,7 +259,7 @@
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
           },
-          "Width" : 3.9353649902343750E+003
+          "Width" : 2.3869194335937500E+003
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
@@ -326,7 +271,7 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 7.0589849853515625E+002,
+          "X" : 7.1096087646484375E+002,
           "Y" : 5.2268255615234375E+002,
           "Z" : 1.6000000000000000E+003
         }
@@ -348,12 +293,36 @@
       }
     },
     {
-      "$$ClassName" : "TCastleVerticalGroup",
-      "Bottom" : -1.0000000000000000E+002,
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
       "Name" : "VerticalGroup1",
       "Spacing" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.3999877929687500E+001,
+        "Y" : -4.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
@@ -367,7 +336,7 @@
           },
           "Name" : "Label1",
           "Text" : [
-            "Player settings"
+            "Yellow sphere settings:"
           ],
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -389,46 +358,42 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.2000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.2000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
         {
           "$$ClassName" : "TCastleVerticalGroup",
-          "Alignment" : "hpMiddle",
           "Name" : "VerticalGroup2",
-          "VerticalAnchorDelta" : -6.6000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.6000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
             {
-              "$$ClassName" : "TCastleButton",
-              "Caption" : "Make animated",
-              "CustomBackgroundDisabled" : {
-                "$$ClassName" : "TCastleImagePersistent"
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
               },
-              "CustomBackgroundFocused" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "CustomBackgroundNormal" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "CustomBackgroundPressed" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Image" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "MinWidth" : 2.0000000000000000E+002,
-              "Name" : "ButtonChangeToAnimated",
+              "Name" : "Label3",
+              "PaddingVertical" : 5.0000000000000000E+000,
+              "Text" : [
+                "Body type:"
+              ],
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
             {
               "$$ClassName" : "TCastleButton",
-              "Caption" : "Make dynamic",
+              "Caption" : "Animated",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -441,14 +406,44 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
               "MinWidth" : 2.0000000000000000E+002,
-              "Name" : "ButtonChangeToDynamic",
-              "VerticalAnchorDelta" : -3.9000000000000000E+001,
+              "Name" : "ButtonBodyAnimated",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -3.2000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Dynamic",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "MinWidth" : 2.0000000000000000E+002,
+              "Name" : "ButtonBodyDynamic",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -7.1000000000000000E+001
+              },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             }
@@ -457,72 +452,122 @@
         {
           "$$ClassName" : "TCastleVerticalGroup",
           "Name" : "VerticalGroup",
-          "VerticalAnchorDelta" : -1.5400000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.8600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
             {
-              "$$ClassName" : "TCastleCheckbox",
-              "Caption" : "Move by translate",
-              "CheckboxColorPersistent" : {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
                 "Green" : 1.0000000000000000E+000,
                 "Red" : 1.0000000000000000E+000
               },
-              "Checked" : true,
-              "Name" : "CheckboxMoveByTranslate",
-              "TextColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
+              "Name" : "Label4",
+              "PaddingVertical" : 5.0000000000000000E+000,
+              "Text" : [
+                "Move by:"
+              ],
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Change Translation",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonMoveByTranslate",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -3.2000000000000000E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
             {
-              "$$ClassName" : "TCastleCheckbox",
-              "Caption" : "Move by velocity",
-              "CheckboxColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Change LinearVelocity (only works when Dynamic)",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
               },
-              "Name" : "CheckboxMoveByVelocity",
-              "TextColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
               },
-              "VerticalAnchorDelta" : -2.4000000000000000E+001,
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonMoveByVelocity",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -7.1000000000000000E+001
+              },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
             {
-              "$$ClassName" : "TCastleCheckbox",
+              "$$ClassName" : "TCastleButton",
               "Caption" : "Move by animate translation",
-              "CheckboxColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
               },
               "Exists" : false,
-              "Name" : "CheckboxMoveByAnimateTranslation",
-              "TextColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
               },
-              "VerticalAnchorDelta" : -4.8000003814697266E+001,
+              "Name" : "ButtonMoveByAnimateTranslation",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -4.8000003814697266E+001
+              },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             }
           ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Height" : 4.0000000000000000E+001,
+          "Name" : "Group2",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.0600000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
           "$$ClassName" : "TCastleLabel",
@@ -536,7 +581,10 @@
           "Text" : [
             "Red sphere settings"
           ],
-          "VerticalAnchorDelta" : -2.1200000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.5600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -557,7 +605,10 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -2.4400000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.8800000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }

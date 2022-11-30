@@ -1,4 +1,10 @@
-# Physics Animated
+# Physics Test Changing Transformation
+
+Test that you can change from code transformation of an object affected by physics. You can change it by setting `Translation` or (more physically-correct) updating `LinearVelocity`.
+
+You can change transformation on
+- dynamic rigid bodies (`Dynamic` = `true`, `Animated` = doesn't matter)
+- animated rigid bodies (`Dynamic` = `false`, `Animated` = `true`)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
