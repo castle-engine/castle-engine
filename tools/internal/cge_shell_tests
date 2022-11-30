@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ----------------------------------------------------------------------------
+# Run some CGE tests that can be done from a shell, without the need for any FPC.
+# ----------------------------------------------------------------------------
+
+cd "$CASTLE_ENGINE_PATH"
+
+# Test we don't have any examples with invalid qualified_name in CastleEngineManifest.xml .
+#
+# The CGE examples should all have
+#   qualified_name="io.castleengine.xxx.yyy.zzz"
+# (xxx.yyy.zzz being application name split into words and separated by dots).
+# See https://castle-engine.io/coding_conventions#_examples .
+do_test_qualified_name ()
+{
+  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="com.mycompany'; then
+    exit 1
+  fi
+  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="net.sourceforge'; then
+    exit 1
+  fi
+}
+
+do_test_qualified_name

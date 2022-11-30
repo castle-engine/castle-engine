@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ type
     { Call this when the measurement of font possibly changed, and anything cached
       should be recalculated by calling TextWidth, TextHeight etc. again. }
     procedure FontSizesChanged;
+    procedure SetOutline(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -339,7 +340,7 @@ type
       and outline sizes remain the same.
 
       @seealso OutlineHighQuality }
-    property Outline: Cardinal read FOutline write FOutline default 0;
+    property Outline: Cardinal read FOutline write SetOutline default 0;
 
     { Optionally force better outline quality. Used only if Outline <> 0.
       High quality outline looks better, but is about 2x more expensive to draw.
@@ -961,6 +962,16 @@ end;
 function TCastleAbstractFont.RealSize: Single;
 begin
   Result := EffectiveSize;
+end;
+
+procedure TCastleAbstractFont.SetOutline(const Value: Cardinal);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    // invalidate measurements, like RowHeight, as they depend on Outline
+    FMeasuredSize := -1;
+  end;
 end;
 
 procedure TCastleAbstractFont.FontSizesChanged;

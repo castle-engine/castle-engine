@@ -45,6 +45,12 @@ pipeline {
               }
             }
 
+            stage('(Docker) Shell Tests') {
+              steps {
+                sh "./tools/internal/cge_shell_tests"
+              }
+            }
+
             /* Commands with default FPC version
                (latest stable FPC, most of the time; see https://castle-engine.io/docker ). */
             stage('(Docker) Build Tools (Default FPC)') {

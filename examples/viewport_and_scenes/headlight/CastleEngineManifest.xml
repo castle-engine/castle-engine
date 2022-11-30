@@ -2,7 +2,7 @@
 <project name="headlight"
   standalone_source="headlight_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.headlight"
+  qualified_name="io.castleengine.headlight"
   caption="Headlight Test"
 >
   <compiler_options>

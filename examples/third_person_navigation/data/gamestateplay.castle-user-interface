@@ -155,8 +155,7 @@
           "CrouchSpeed" : 2.0000000000000000E+000,
           "MoveSpeed" : 2.0000000000000000E+000,
           "Name" : "ThirdPersonNavigation",
-          "RunSpeed" : 8.0000000000000000E+000,
-          "ZoomEnabled" : false
+          "RunSpeed" : 8.0000000000000000E+000
         }
       ],
       "InternalDesignCamera" : {

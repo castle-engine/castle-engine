@@ -26,6 +26,7 @@ find . '(' -type d -name .git -prune -false ')' -or \
                        -path './tools/internal/lazbuild_retry' -or \
                        -path './tools/internal/check_no_accidental_executable' -or \
                        -path './tools/internal/upload_github_release' -or \
+                       -path './tools/internal/cge_shell_tests' -or \
                        -path './tools/build-tool/data/android/integrated-services/*.so' \
                    ')' ')' -or \
        '(' -executable -type f -print ')'
