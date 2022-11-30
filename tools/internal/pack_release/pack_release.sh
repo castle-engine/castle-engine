@@ -178,7 +178,7 @@ add_external_tool ()
     lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
 
-  if [ "$OS" '=' 'darwin' ]; then
+  if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
