@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="physics_3d_in_editor"/>
+      <Title Value="physics_simple_3d_bullet"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -35,7 +35,7 @@
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
-        <Filename Value="physics_3d_in_editor_standalone.dpr"/>
+        <Filename Value="physics_simple_3d_bullet_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -59,7 +59,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="physics_3d_in_editor"/>
+      <Filename Value="physics_simple_3d_bullet"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

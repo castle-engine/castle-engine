@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program physics_3d_in_editor_standalone;
+// program physics_simple_3d_bullet_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

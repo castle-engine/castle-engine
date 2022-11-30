@@ -1,5 +1,7 @@
 # Physics 3D Editor
 
+Simple physics in 3D (sphere has initial `LinearVelocity` and will collide with some boxes). Works at runtime and design-time (in editor "Simulation" mode).
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

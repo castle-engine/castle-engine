@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="physics_3d_in_editor"
-  standalone_source="physics_3d_in_editor_standalone.dpr"
+<project name="physics_simple_3d_bullet"
+  standalone_source="physics_simple_3d_bullet_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.physics.threed.in.editor"
   caption="Physics 3D In Editor"

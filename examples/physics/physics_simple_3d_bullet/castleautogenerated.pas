@@ -21,7 +21,7 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics_3d_in_editor';
+  ApplicationProperties.ApplicationName := 'physics_simple_3d_bullet';
   ApplicationProperties.Caption := 'Physics 3D In Editor';
   ApplicationProperties.Version := '0.1';
 
