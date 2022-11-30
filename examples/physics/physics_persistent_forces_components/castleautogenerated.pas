@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics-simulation-in-editor';
-  ApplicationProperties.Caption := 'Physics Simulation In Editor';
+  ApplicationProperties.ApplicationName := 'physics_persistent_forces_components';
+  ApplicationProperties.Caption := 'Physics Persistent Forces Components';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

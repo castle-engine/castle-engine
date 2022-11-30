@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="physics_simulation_in_editor"/>
+      <Title Value="physics_persistent_forces_components"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -35,7 +35,7 @@
     </RequiredPackages>
     <Units Count="16">
       <Unit0>
-        <Filename Value="physics_simulation_in_editor.dpr"/>
+        <Filename Value="physics_persistent_forces_components.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -116,7 +116,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="physics-simulation-in-editor"/>
+      <Filename Value="physics_persistent_forces_components"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

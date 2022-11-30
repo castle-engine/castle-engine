@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="physics-simulation-in-editor"
-  standalone_source="physics_simulation_in_editor.dpr"
+<project name="physics_persistent_forces_components"
+  standalone_source="physics_persistent_forces_components.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.physics.simulation.in.editor"
-  caption="Physics Simulation In Editor"
+  caption="Physics Persistent Forces Components"
   editor_units="AddForceBehavior,AddCentralForceBehavior,AddVelocityBehavior,ApplyImpulseBehavior,AddTorqueBehavior,ForceBehavior,GravityForceBehavior, ExplosionBehavior, WindForceBehavior"
 >
   <compiler_options>

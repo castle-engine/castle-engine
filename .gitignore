@@ -141,7 +141,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_animated/physics-animated
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_scale_colliders/physics-scale-colliders
-/examples/physics/physics_simulation_in_editor/physics-simulation-in-editor
+/examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_space_ship/physics-space-ship
 /examples/platformer/platformer
 /examples/plugin/cge_3d_viewer/cge_3d_viewer

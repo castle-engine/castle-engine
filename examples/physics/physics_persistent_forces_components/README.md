@@ -1,4 +1,14 @@
-# Physics Tests
+# Physics: Persistent Forces Components
+
+This example contains components that perform "persistent" forces, like pulling / pushing all the rigid bodies in the world. They are similar to [Blender Force Fields](https://docs.blender.org/manual/en/latest/physics/forces/force_fields/index.html).
+
+TODO:
+
+- Improve the demo to be more self-explanatory what is happening. Do not show multiple components in one 2D design.
+
+- Add docs to components.
+
+- Consider upgrading some of these components to be part of the engine.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
