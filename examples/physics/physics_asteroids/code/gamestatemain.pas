@@ -36,6 +36,8 @@ type
 
   TStateMain = class(TUIState)
   published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     Ship: TCastleTransform;
     Viewport: TCastleViewport;
@@ -138,11 +140,6 @@ end;
 procedure TStateMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Ship := DesignedComponent('Ship') as TCastleTransform;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
 
   ShipRigidBody := Ship.RigidBody;
 

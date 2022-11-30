@@ -7,13 +7,13 @@ uses Classes,
 
 type
   ${STATE_CLASS_NAME} = class(TUIState)
-  public
-    constructor Create(AOwner: TComponent); override;
-    procedure Start; override;
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     // ButtonXxx: TCastleButton;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Start; override;
   end;
 
 var
