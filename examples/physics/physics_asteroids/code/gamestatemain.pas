@@ -30,29 +30,26 @@ type
   strict private
     Duration: Single;
   public
-    constructor Create(AOwner: TComponent; BulletSpriteScene: TCastleScene); reintroduce;
+    constructor Create(AOwner: TComponent; const BulletSpriteImage: TCastleTransform); reintroduce;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   TStateMain = class(TUIState)
+  published
+    LabelFps: TCastleLabel;
+    Ship: TCastleTransform;
+    Viewport: TCastleViewport;
   strict private
     const
       ThrustForce = 300;
       TorqueValue = 10000;
-
+    var
+      ShipRigidBody: TCastleRigidBody;
+      BulletSpriteImage: TCastleImageTransform;
     function InputLeft: Boolean;
     function InputRight: Boolean;
     function InputUp: Boolean;
     function InputDown: Boolean;
-
-  private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
-    Ship: TCastleTransform;
-    ShipRigidBody: TCastleRigidBody;
-    BulletSpriteScene: TCastleScene;
-    Viewport: TCastleViewport;
-
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -69,16 +66,15 @@ uses SysUtils, CastleLog, Math;
 
 { TBullet }
 
-constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
+constructor TBullet.Create(AOwner: TComponent; const BulletSpriteImage: TCastleTransform);
 var
   RBody: TCastleRigidBody;
   Collider: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
-  Add(BulletSpriteScene);
-  BulletSpriteScene.Visible := true;
-  BulletSpriteScene.Translation := Vector3(0, 0, 0);
+  // BulletSpriteImage is reused for all bullets
+  Add(BulletSpriteImage);
 
   RBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
@@ -145,15 +141,14 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-
   Ship := DesignedComponent('Ship') as TCastleTransform;
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+
   ShipRigidBody := Ship.RigidBody;
 
-  BulletSpriteScene := TCastleScene.Create(FreeAtStop);
-  BulletSpriteScene.URL := 'castle-data:/graphics/bullet/bullet.png';
-  BulletSpriteScene.Scale := Vector3(2, 2, 2);
-
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  BulletSpriteImage := TCastleImageTransform.Create(FreeAtStop);
+  BulletSpriteImage.URL := 'castle-data:/graphics/bullet/bullet.png';
+  BulletSpriteImage.Scale := Vector3(2, 2, 2);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -174,7 +169,7 @@ begin
   Torque := Vector3(0, 0, 0);
 
   if InputLeft then
-     Torque := Vector3(0, 0, 1);
+    Torque := Vector3(0, 0, 1);
 
   if InputRight then
     Torque := Vector3(0, 0, -1);
@@ -204,7 +199,7 @@ begin
   // Use this to handle keys:
   if Event.IsKey(keySpace) then
   begin
-    Bullet := TBullet.Create(FreeAtStop, BulletSpriteScene);
+    Bullet := TBullet.Create(FreeAtStop, BulletSpriteImage);
     Bullet.Translation := Ship.LocalToWorld(Vector3(0, Ship.LocalBoundingBox.SizeY / 2 + 5 , 0));
     Viewport.Items.Add(Bullet);
 
