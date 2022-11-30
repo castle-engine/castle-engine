@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="physics_animated"/>
+      <Title Value="physics_test_changing_transformation"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -35,7 +35,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="physics_animated_standalone.dpr"/>
+        <Filename Value="physics_test_changing_transformation_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -56,7 +56,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="physics-animated"/>
+      <Filename Value="physics_test_changing_transformation"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

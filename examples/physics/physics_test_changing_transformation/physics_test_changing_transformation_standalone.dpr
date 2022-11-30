@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program physics_animated_standalone;
+// program physics_test_changing_transformation_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

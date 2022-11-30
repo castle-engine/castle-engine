@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics-animated';
-  ApplicationProperties.Caption := 'Physics Animated';
+  ApplicationProperties.ApplicationName := 'physics_test_changing_transformation';
+  ApplicationProperties.Caption := 'Physics Test Changing Transformation';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
