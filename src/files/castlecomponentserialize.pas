@@ -1114,7 +1114,20 @@ begin
     Exit;
   end;
 
-  // Custom support of T3DCoords
+  { Custom support for T3DCoords serialization.
+
+    By default FpJsonRtti has a bug in this case:
+    It tries to do "GetEnumName" on integers 0..2, and serializes weird thing
+
+      "LockRotation" : [
+        "\u0000",
+        ""
+      ]
+
+    .. that it cannot deserialize back.
+    The code below does serialization as if "jsoSetEnumeratedAsInteger in Options"
+    but only for this type. We don't want to change serialization of sets of enums.
+  }
   if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
   begin
     ValueOfSet := GetOrdProp(AObject, Info);
