@@ -73,24 +73,19 @@ var
   I: Integer;
 begin
   Integer(S) := OrdValue;
-  Result := '[';
+  Result := '';
   for I := 0 to SizeOf(Integer) * 8 - 1 do
     if I in S then
     begin
-      if Length(Result) <> 1 then
-        Result := Result + ',';
       case I of
-        0:
-          Result := Result + 'X';
-        1:
-          Result := Result + 'Y';
-        2:
-          Result := Result + 'Z';
+        0: Result := SAppendPart(Result, ',', 'X');
+        1: Result := SAppendPart(Result, ',', 'Y');
+        2: Result := SAppendPart(Result, ',', 'Z');
         else
-          Result := Result + IntToStr(I);
+           Result := SAppendPart(Result, ',', IntToStr(I));
       end;
     end;
-  Result := Result + ']';
+  Result := '[' + Result + ']';
 end;
 
 { T3DCoordsRangeSetElementPropertyEditor ------------------------------------- }
@@ -98,17 +93,13 @@ end;
 function T3DCoordsRangeSetElementPropertyEditor.GetName: shortstring;
 begin
   case FElementToShow of
-    0:
-      Result := 'X (0)';
-    1:
-      Result := 'Y (1)';
-    2:
-      Result := 'Z (2)';
+    0: Result := 'X (0)';
+    1: Result := 'Y (1)';
+    2: Result := 'Z (2)';
     else
       Result := IntToStr(FElementToShow);
   end;
 end;
-
 
 { TRangeSetPropertyEditor ---------------------------------------------------- }
 
@@ -122,24 +113,24 @@ begin
 end;
 
 function TRangeSetPropertyEditor.OrdValueToVisualValue(OrdValue: Longint): String;
+
+{ Note: This is unused for now.
+  All actualy usage of TRangeSetPropertyEditor is through T3DCoordsRangeSetPropertyEditor,
+  that overrides this. }
+
 var
   S: TIntegerSet;
   I: Integer;
 begin
   Integer(S) := OrdValue;
-  Result := '[';
+  Result := '';
   for I := 0 to SizeOf(Integer) * 8 - 1 do
     if I in S then
-    begin
-      if Length(Result) <> 1 then
-        Result := Result + ',';
-      Result := Result + IntToStr(I);
-    end;
-  Result := Result + ']';
+      Result := SAppendPart(Result, ',', IntToStr(I));
+  Result := '[' + Result + ']';
 end;
 
-
-{ TRangeSetPropertyEditor ---------------------------------------------------- }
+{ TRangeSetElementPropertyEditor ---------------------------------------------------- }
 
 constructor TRangeSetElementPropertyEditor.Create(Parent: TPropertyEditor;
   AElement: Integer);
@@ -152,4 +143,3 @@ function TRangeSetElementPropertyEditor.GetName: shortstring;
 begin
   Result := IntToStr(FElementToShow);
 end;
-

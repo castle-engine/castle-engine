@@ -170,9 +170,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
-    T3DCoordsRangeSetPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockRotation',
+  { used by LockRotation, LockTranslation }
+  RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
 
   { animations on TCastleThirdPersonNavigation }
