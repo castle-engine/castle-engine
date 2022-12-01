@@ -1012,7 +1012,7 @@
       For 2D games, you will usually want to disable motion along the Z axis.
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
-    property LockTranslation: T3DCoords read FLockTranslation write SetLockTranslation;
+    property LockTranslation: T3DCoords read FLockTranslation write SetLockTranslation default [];
 
     { Disable rotation (@link(TCastleTransform.Rotation) change) along
       the particular (world) axis.
@@ -1020,7 +1020,7 @@
       For 2D games, you will usually want to disable rotation along the X and Y axes.
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
-    property LockRotation: T3DCoords read FLockRotation write SetLockRotation;
+    property LockRotation: T3DCoords read FLockRotation write SetLockRotation default [];
 
     { Controls whether the rigid body is actually processed by the physics engine.
       When this is @false, the rigid body is not updated by the physics engine,
