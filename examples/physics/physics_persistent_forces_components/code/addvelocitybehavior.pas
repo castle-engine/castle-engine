@@ -20,18 +20,15 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior,
-  SerializedVectors;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
   TAddVelocityBehavior = class(TAbstractTimeDurationBehavior)
   private
-    {FDeltaVelocity: TVector3;
-    FDeltaVelocityPersistent: TCastleVector3Persistent;}
-    FDVelocity: TSerializedVector3;
-    {function GetDeltaVelocityForPersistent: TVector3;
-    procedure SetDeltaVelocity(const AValue: TVector3);
-    procedure SetDeltaVelocityForPersistent(const AValue: TVector3);}
+    FDeltaVelocity: TVector3;
+    FDeltaVelocityPersistent: TCastleVector3Persistent;
+    function GetDeltaVelocityForPersistent: TVector3;
+    procedure SetDeltaVelocityForPersistent(const AValue: TVector3);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -39,21 +36,14 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    {property DeltaVelocity: TVector3 read FDeltaVelocity write SetDeltaVelocity;}
+    property DeltaVelocity: TVector3 read FDeltaVelocity write FDeltaVelocity;
   published
-    {property DeltaVelocityPersistent: TCastleVector3Persistent read FDeltaVelocityPersistent;}
-    property DVelocity: TSerializedVector3 read FDVelocity;
+    property DeltaVelocityPersistent: TCastleVector3Persistent read FDeltaVelocityPersistent;
   end;
 
 implementation
 
 { TAddVelocityBehavior ------------------------------------------------------- }
-
-{
-procedure TAddVelocityBehavior.SetDeltaVelocity(const AValue: TVector3);
-begin
-  FDeltaVelocity := AValue;
-end;
 
 function TAddVelocityBehavior.GetDeltaVelocityForPersistent: TVector3;
 begin
@@ -64,20 +54,16 @@ procedure TAddVelocityBehavior.SetDeltaVelocityForPersistent(
   const AValue: TVector3);
 begin
   DeltaVelocity := AValue;
-end; }
+end;
 
 constructor TAddVelocityBehavior.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  (*
   FDeltaVelocityPersistent := TCastleVector3Persistent.Create;
   FDeltaVelocityPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetDeltaVelocityForPersistent;
   FDeltaVelocityPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetDeltaVelocityForPersistent;
   FDeltaVelocityPersistent.InternalDefaultValue := DeltaVelocity; // current value is default
-  *)
-
-  FDVelocity := TSerializedVector3.Create;
 
   StartTime := 0;
   DurationTime := 0;
@@ -85,8 +71,7 @@ end;
 
 destructor TAddVelocityBehavior.Destroy;
 begin
-  FreeAndNil(FDVelocity);
-  {FreeAndNil(FDeltaVelocityPersistent);}
+  FreeAndNil(FDeltaVelocityPersistent);
   inherited Destroy;
 end;
 
@@ -112,8 +97,7 @@ begin
   RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
-    { RigidBody.LinearVelocity := RigidBody.LinearVelocity + DeltaVelocity; }
-    RigidBody.LinearVelocity := RigidBody.LinearVelocity + DVelocity.GetPVector3^;
+    RigidBody.LinearVelocity := RigidBody.LinearVelocity + DeltaVelocity;
   end;
 end;
 
@@ -122,4 +106,3 @@ initialization
   RegisterSerializableComponent(TAddVelocityBehavior, 'Add Velocity Behavior');
 
 end.
-
