@@ -942,14 +942,26 @@ end;
 
 function TCastleCamera.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'GravityUpPersistent') or
-     (PropertyName = 'ProjectionFar') or
-     (PropertyName = 'ProjectionNear') or
-     (PropertyName = 'ProjectionType') or
-     (PropertyName = 'Orthographic') or
-     (PropertyName = 'Perspective') then
+  if ArrayContainsString(PropertyName, [
+       'GravityUpPersistent',
+       'ProjectionFar', 'ProjectionNear', 'ProjectionType',
+       'Orthographic', 'Perspective'
+     ]) then
     Result := [psBasic]
   else
+
+  { Bad idea to move it to "Layout" only for camera -
+    as Direction, Up are on all TCastleTransform,
+    including on camera's parent transformations,
+    and then make sense there.
+
+  if ArrayContainsString(PropertyName, [
+       'DirectionPersistent', 'UpPersistent'
+     ]) then
+    Result := [psLayout]
+  else
+  }
+
     Result := inherited PropertySections(PropertyName);
 end;
 
