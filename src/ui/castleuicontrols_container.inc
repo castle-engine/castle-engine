@@ -801,7 +801,12 @@ var
   FingerIndex: TFingerIndex;
 begin
   if C = FTooltipParent then
+  begin
+    if (FTooltipParent <> nil) and
+       (FTooltipParent.TooltipControl <> nil) then
+      FTooltipParent.TooltipControl.Exists := false;
     FTooltipParent := nil;
+  end;
 
   if FFocus <> nil then
   begin
@@ -1186,7 +1191,9 @@ procedure TCastleContainer.EventUpdate;
         This is especially useful when an invisible control like TCastleWalkNavigation
         covers other controls. }
       for I := Focus.Count - 1 downto 0 do
+        {$warnings off} // using deprecated, it should be internal
         if Focus[I].TooltipExists then
+        {$warnings on}
         begin
           NewTooltipParent := Focus[I];
           Break;
@@ -1195,6 +1202,13 @@ procedure TCastleContainer.EventUpdate;
 
     if FTooltipParent <> NewTooltipParent then
     begin
+      if FTooltipParent <> nil then
+      begin
+        { hide TooltipControl }
+        if FTooltipParent.TooltipControl <> nil then
+          FTooltipParent.TooltipControl.Exists := false;
+      end;
+
       FTooltipParent := NewTooltipParent;
 
       if FTooltipParent <> nil then
@@ -1203,6 +1217,9 @@ procedure TCastleContainer.EventUpdate;
         LastPositionForTooltip := MousePosition;
         { also update TooltipPosition }
         FTooltipPosition := MousePosition;
+        { show TooltipControl }
+        if FTooltipParent.TooltipControl <> nil then
+          FTooltipParent.TooltipControl.Exists := true;
       end;
 
       Invalidate;
@@ -1786,7 +1803,9 @@ begin
   if FTooltipParent <> nil then
   begin
     RenderControlPrepare(Rect);
+    {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
     FTooltipParent.TooltipRender(FTooltipPosition);
+    {$warnings on}
   end;
 
   RenderControlPrepare(Rect);

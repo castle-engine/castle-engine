@@ -28,8 +28,9 @@ uses Classes,
 type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
@@ -38,7 +39,7 @@ type
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
     CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
-
+  private
     { Enemies behaviors }
     Enemies: TEnemyList;
 
@@ -110,17 +111,6 @@ var
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  ThirdPersonNavigation := DesignedComponent('ThirdPersonNavigation') as TCastleThirdPersonNavigation;
-  SceneAvatar := DesignedComponent('SceneAvatar') as TCastleScene;
-  SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
-  CheckboxCameraFollows := DesignedComponent('CheckboxCameraFollows') as TCastleCheckbox;
-  CheckboxAimAvatar := DesignedComponent('CheckboxAimAvatar') as TCastleCheckbox;
-  CheckboxDebugAvatarColliders := DesignedComponent('CheckboxDebugAvatarColliders') as TCastleCheckbox;
-  CheckboxImmediatelyFixBlockedCamera := DesignedComponent('CheckboxImmediatelyFixBlockedCamera') as TCastleCheckbox;
-
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
   for I := 1 to 4 do
@@ -180,8 +170,6 @@ begin
     In particular assign some keys that are not assigned by default. }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
-  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
   ThirdPersonNavigation.MouseLook := true; // by default use mouse look
   ThirdPersonNavigation.Init;
 end;

@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -194,13 +194,17 @@ end;
 
 function TCastleUserInterfaceFont.TooltipExists: boolean;
 begin
-  Result := Tooltip <> '';
+  Result := (TooltipControl <> nil) or (Tooltip <> '');
 end;
 
 procedure TCastleUserInterfaceFont.TooltipRender(const TooltipPosition: TVector2);
 var
   X, Y, TooltipWidth, TooltipHeight: Single;
 begin
+  // do not render tooltip here, if TooltipControl takes care of it
+  if TooltipControl <> nil then
+    Exit;
+
   if TooltipLabel = nil then
   begin
     TooltipLabel := TCastleLabelTooltip.Create(nil);
@@ -316,9 +320,12 @@ begin
       FCustomizedFont.Italic := nil;
       FCustomizedFont.BoldItalic := nil;
     end;
+    { When Outline = 0, set FCustomizedFont.CustomizeOutline = false,
+      this makes switching between Outline <> 0 to Outline = 0 make correct changes
+      -- outline should disappear. }
+    FCustomizedFont.CustomizeOutline := Outline <> 0;
     if Outline <> 0 then
     begin
-      FCustomizedFont.CustomizeOutline := true;
       FCustomizedFont.Outline := Outline;
       FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
       FCustomizedFont.OutlineColor := OutlineColor;
@@ -437,6 +444,10 @@ end;
 
 procedure TCastleUserInterfaceFont.FontChanged;
 begin
+  { Changing font properties, like FontSize, may change the control size
+    (which is usually adjusted to font size,
+    e.g. TCastleLabel, TCastleButton with AutoSize). }
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleUserInterfaceFont.UIScaleChanged;

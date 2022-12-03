@@ -523,7 +523,7 @@ const
         for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
-      RoughnessFactor := Max(RoughnessFactor, 0.5);
+      RoughnessFactor := Max(RoughnessFactor, 0.05);
     end;
 
     (*
@@ -550,7 +550,7 @@ const
     { Read PBR specular-glossiness subset.
       As we only read subset, we use it only when
       Material.PBRMetallicRoughness is empty, despite
-      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+      https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness
       advising to use specular-glossiness if you can.
 
       Code below, to read specular-glossiness from JSON, is based on PasGLTF UnitGLTFOpenGL. }

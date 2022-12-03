@@ -1,199 +1,225 @@
 {
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "RootGroup",
   "$Children" : [
     {
-      "Camera" : {
-        "InitialDirectionPersistent" : {
-          "X" : 2.5032672286033630E-001,
-          "Y" : -8.1133197227245546E-007,
-          "Z" : 9.6816146373748779E-001,
-          "$ClassName" : "TCastleVector3Persistent"
-        },
-        "InitialPositionPersistent" : {
-          "X" : -6.5783720016479492E+000,
-          "Y" : 1.9696136713027954E+000,
-          "Z" : -5.7269501686096191E+000,
-          "$ClassName" : "TCastleVector3Persistent"
-        },
-        "InitialUpPersistent" : {
-          "X" : -2.7529964086170366E-007,
-          "Z" : 8.6404537569251261E-007,
-          "$ClassName" : "TCastleVector3Persistent"
-        },
-        "Name" : "Camera",
-        "Orthographic" : {
-          "Name" : "Orthographic",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleOrthographic"
-        },
-        "Perspective" : {
-          "Name" : "Perspective",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastlePerspective"
-        },
-        "$Children" : [
-        ],
-        "$ClassName" : "TCastleCamera"
-      },
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
-        "Name" : "Items",
+        "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "Name" : "PhysicsProperties",
-          "$Children" : [
-          ],
-          "$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties"
         },
-        "UseHeadlight" : "hlOn",
         "$Children" : [
           {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneLevel",
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
-            "URL" : "castle-data:/level/level-dungeon.gltf",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
-          },
-          {
-            "Name" : "SceneSoldier1",
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
-            "TranslationPersistent" : {
-              "X" : 2.0000000000000000E+000,
-              "Z" : 4.0000000000000000E+000,
-              "$ClassName" : "TCastleVector3Persistent"
+            "PreciseCollisions" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "URL" : "castle-data:/level/level-dungeon.gltf"
           },
           {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier1",
+            "PreciseCollisions" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0000000000000000E+000,
+              "Z" : 4.0000000000000000E+000
+            },
+            "URL" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
             "DefaultAnimationTransition" : 1.0000000149011612E-001,
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneAvatar",
+            "PreciseCollisions" : true,
             "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
               "W" : 1.6077821254730225E+000,
               "X" : -1.4490212197415531E-004,
-              "Y" : 9.9999994039535522E-001,
-              "$ClassName" : "TCastleVector4Persistent"
+              "Y" : 9.9999994039535522E-001
             },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
             "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
               "X" : -3.7523124217987061E+000,
               "Y" : -5.2440762519836426E-003,
-              "Z" : 8.0470532178878784E-001,
-              "$ClassName" : "TCastleVector3Persistent"
+              "Z" : 8.0470532178878784E-001
             },
-            "URL" : "castle-data:/avatar/avatar.gltf",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "URL" : "castle-data:/avatar/avatar.gltf"
           },
           {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier2",
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
+            "PreciseCollisions" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
               "X" : 5.0000000000000000E+000,
-              "Z" : 3.0000000000000000E+000,
-              "$ClassName" : "TCastleVector3Persistent"
+              "Z" : 3.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "URL" : "castle-data:/enemy/soldier1.gltf"
           },
           {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier3",
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
-            "TranslationPersistent" : {
-              "X" : 8.0000000000000000E+000,
-              "Z" : 2.0000000000000000E+000,
-              "$ClassName" : "TCastleVector3Persistent"
+            "PreciseCollisions" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 8.0000000000000000E+000,
+              "Z" : 2.0000000000000000E+000
+            },
+            "URL" : "castle-data:/enemy/soldier1.gltf"
           },
           {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier4",
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
-            "TranslationPersistent" : {
-              "X" : 1.1000000000000000E+001,
-              "Z" : 1.0000000000000000E+000,
-              "$ClassName" : "TCastleVector3Persistent"
+            "PreciseCollisions" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.1000000000000000E+001,
+              "Z" : 1.0000000000000000E+000
+            },
+            "URL" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
+              "W" : 2.8885750770568848E+000,
+              "X" : -3.2410921448899899E-006,
+              "Y" : -1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -6.5783720016479492E+000,
+              "Y" : 1.9696136713027954E+000,
+              "Z" : -5.7269501686096191E+000
+            },
             "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Name" : "DirectionalLight1"
+              }
+            ]
           }
-        ],
-        "$ClassName" : "TCastleRootTransform"
+        ]
       },
       "Name" : "MainViewport",
-      "Navigation" : "ThirdPersonNavigation",
       "$Children" : [
         {
+          "$$ClassName" : "TCastleThirdPersonNavigation",
           "Avatar" : "SceneAvatar",
           "AvatarTargetPersistent" : {
-            "Y" : 1.7500000000000000E+000,
-            "$ClassName" : "TCastleVector3Persistent"
+            "$$ClassName" : "TCastleVector3Persistent",
+            "Y" : 1.7500000000000000E+000
           },
           "CrouchSpeed" : 2.0000000000000000E+000,
           "MoveSpeed" : 2.0000000000000000E+000,
           "Name" : "ThirdPersonNavigation",
-          "RunSpeed" : 8.0000000000000000E+000,
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleThirdPersonNavigation"
+          "RunSpeed" : 8.0000000000000000E+000
         }
       ],
-      "$ClassName" : "TCastleViewport"
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 4.1433553695678711E+000,
+          "X" : 7.6011218130588531E-002,
+          "Y" : 9.8764729499816895E-001,
+          "Z" : 1.3702246546745300E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -9.1708192825317383E+000,
+          "Y" : 4.4043946266174316E+000,
+          "Z" : -4.2704834938049316E+000
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
     },
     {
+      "$$ClassName" : "TCastleLabel",
       "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleLabel"
+      "VerticalAnchorSelf" : "vpTop"
     },
     {
+      "$$ClassName" : "TCastleVerticalGroup",
       "Name" : "VerticalGroup1",
       "Padding" : 1.0000000000000000E+001,
       "Spacing" : 1.0000000000000000E+001,
@@ -201,13 +227,13 @@
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
         {
+          "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "FontSize" : 2.0000000000000000E+001,
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "LabelInfo",
           "Text" : [
             "Move with AWSD QE and arrow keys.",
@@ -225,113 +251,116 @@
             "",
             "Press F5 to make a screenshot."
           ],
-          "VerticalAnchorDelta" : -1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -1.0000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Camera Follows Avatar",
           "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "Checked" : true,
           "FontSize" : 2.0000000000000000E+001,
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxCameraFollows",
           "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.1500000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -3.1500000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar) (Click with right mouse button to toggle)",
           "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "FontSize" : 2.0000000000000000E+001,
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxAimAvatar",
           "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.4900000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -3.4900000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Debug Avatar Colliders",
           "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "FontSize" : 2.0000000000000000E+001,
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxDebugAvatarColliders",
           "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.8300000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -3.8300000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Immediately Fix Blocked Camera",
           "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "FontSize" : 2.0000000000000000E+001,
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxImmediatelyFixBlockedCamera",
           "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -4.1700000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -4.1700000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
+          "VerticalAnchorSelf" : "vpTop"
         }
-      ],
-      "$ClassName" : "TCastleVerticalGroup"
+      ]
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

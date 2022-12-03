@@ -66,7 +66,7 @@ with "static linking exception". This is the same license
 as used by FPC RTL and Lazarus LCL. In short, you *can* make
 commercial and closed-source games using the engine,
 you only have to share your modifications to the engine core.
-See [COPYING.md](https://github.com/castle-engine/castle-engine/blob/master/COPYING.md) for details.
+See [license](https://castle-engine.io/license) for details.
 
 Have fun!
 

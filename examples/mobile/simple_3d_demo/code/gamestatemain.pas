@@ -231,6 +231,8 @@ const
 var
   I: Integer;
 begin
+  { Tests deprecated CastleProgress }
+
   Progress.Init(TestProgressSteps, 'Please wait');
   try
     for I := 1 to TestProgressSteps do

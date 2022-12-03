@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -205,7 +205,7 @@ begin
 
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
-      [prRenderSelf, prBoundingBox, prShadowVolume], false, PrepareParams);
+      [prRenderSelf, prBoundingBox, prShadowVolume], PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
 
     WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);

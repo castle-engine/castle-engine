@@ -169,7 +169,16 @@ add_external_tool ()
   unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}"-master
 
-  if [ "$OS" '=' 'darwin' ]; then
+  # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
+  if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
+    download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
+    unzip jsonstream.zip
+    rm -Rf server/deps/jsonstream # zip contains empty dir with it
+    mv jsonstream-master server/deps/jsonstream
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
+  fi
+
+  if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
@@ -261,6 +270,9 @@ do_pack_platform ()
   # Compile tools (except editor) with just FPC
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
 
+  # Compile fpc-cge internal tool
+  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
+
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
   cp tools/build-tool/castle-engine"${EXE_EXTENSION}" \
@@ -268,6 +280,7 @@ do_pack_platform ()
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
+     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
@@ -306,6 +319,7 @@ do_pack_platform ()
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
   local ARCHIVE_NAME_BUNDLE=''
@@ -313,6 +327,10 @@ do_pack_platform ()
     cd "${TEMP_PATH_CGE}"tools/contrib/
     unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
     ARCHIVE_NAME_BUNDLE='-bundle'
+    mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+  else
+    # remove useless fpc-cge in this case
+    rm -f "${TEMP_PATH_CGE}"tools/contrib/fpc/bin/fpc-cge"${EXE_EXTENSION}"
   fi
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"

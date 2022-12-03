@@ -21,7 +21,7 @@ program view_3d_model_advanced;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, Classes,
-  CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
+  CastleUtils, CastleWindow, CastleUIControls,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
   CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport,
   CastleCameras;
@@ -73,22 +73,12 @@ begin
 
   Window.Open;
 
-  { Show progress bar in our window }
-  Application.MainWindow := Window;
-  Progress.UserInterface := WindowProgressInterface;
-
   { load a Scene and add it to Viewport, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
   Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
-  { set titles for progress bars, otherwise progress bars are not used.
-    This should be done before setting Scene.Spatial, since setting it may
-    already do some progress bars. }
-  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeOctreeProgressTitle := 'Building shape octree';
-
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.PreciseCollisions := true;
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
 
@@ -105,8 +95,8 @@ begin
   OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open Scene';
   OpenButton.OnClick := {$ifdef FPC}@{$endif} EventHandler.OpenButtonClick;
-  OpenButton.Left := 10;
-  OpenButton.Bottom := 10;
+  OpenButton.Anchor(hpLeft, 10);
+  OpenButton.Anchor(vpBottom, 10);
   OpenButton.AutoSize := false;
   OpenButton.Width := 250;
   OpenButton.Height := 75;

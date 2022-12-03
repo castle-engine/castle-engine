@@ -69,8 +69,6 @@ type
     FInput_LeftRotate: TInputShortcut;
     FInput_RightStrafe: TInputShortcut;
     FInput_LeftStrafe: TInputShortcut;
-    FInput_CameraCloser: TInputShortcut;
-    FInput_CameraFurther: TInputShortcut;
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
     FCameraDistanceChangeSpeed: Single;
@@ -92,6 +90,10 @@ type
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3; overload;
+    { Get (returns) initial camera position to look at avatar,
+      and get (as TargetWorldPos) target look position.
+      Note: TargetWorldPos may be equal to result of CameraPositionInitial
+      in the extreme cases. }
     function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3; overload;
     { Returns MaxSingle if no limit.
       Note that CameraDir doesn't have to be normalized. }
@@ -126,6 +128,7 @@ type
     procedure AvatarHierarchyFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
+    function Zoom(const Factor: Single): Boolean; override;
   public
     const
       DefaultInitialHeightAboveTarget = 1.0;
@@ -155,7 +158,6 @@ type
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
@@ -202,11 +204,15 @@ type
     property Input_RightRotate: TInputShortcut read FInput_RightRotate;
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
-    property Input_CameraCloser: TInputShortcut read FInput_CameraCloser;
-    property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
     property Input_Run: TInputShortcut read FInput_Run;
+
+    function Input_CameraCloser: TInputShortcut; deprecated 'use Input_ZoomIn';
+    function Input_CameraFurther: TInputShortcut; deprecated 'use Input_ZoomOut';
   published
+    { Zooming in this navigation mode makes camera move closer/further from avatar. }
+    property ZoomEnabled default true;
+
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
@@ -278,11 +284,11 @@ type
       default false;
 
     { Preferred distance from camera to the avatar target (head).
-      User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
+      User can change it with Input_ZoomIn, Input_ZoomOut if you set these inputs
       to some key/mouse button/mouse wheel. }
     property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write SetDistanceToAvatarTarget
       {$ifdef FPC}default DefaultDistanceToAvatarTarget{$endif};
-    { Speed with which Input_CameraCloser, Input_CameraFurther can change DistanceToAvatarTarget. }
+    { Speed with which Input_ZoomIn, Input_ZoomOut can change DistanceToAvatarTarget. }
     property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
       {$ifdef FPC}default DefaultCameraDistanceChangeSpeed{$endif};
     { Limit of the distance to avatar, used when changing DistanceToAvatarTarget,
@@ -372,6 +378,7 @@ begin
   FAnimationCrouch := DefaultAnimationCrouch;
   FAnimationCrouchIdle := DefaultAnimationCrouchIdle;
   FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
+  ZoomEnabled := true;
 
   FAvatarFreeObserver := TFreeNotificationObserver.Create(Self);
   FAvatarFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarFreeNotification;
@@ -384,8 +391,6 @@ begin
   FInput_RightRotate             := TInputShortcut.Create(Self);
   FInput_LeftStrafe              := TInputShortcut.Create(Self);
   FInput_RightStrafe             := TInputShortcut.Create(Self);
-  FInput_CameraCloser            := TInputShortcut.Create(Self);
-  FInput_CameraFurther           := TInputShortcut.Create(Self);
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
@@ -395,8 +400,6 @@ begin
   Input_RightRotate             .Assign(keyArrowRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
-  Input_CameraCloser            .Assign(keyNone);
-  Input_CameraFurther           .Assign(keyNone);
   Input_Crouch                  .Assign(keyCtrl);
   Input_Run                     .Assign(keyShift);
 
@@ -406,8 +409,6 @@ begin
   Input_RightRotate            .SetSubComponent(true);
   Input_LeftStrafe             .SetSubComponent(true);
   Input_RightStrafe            .SetSubComponent(true);
-  Input_CameraCloser           .SetSubComponent(true);
-  Input_CameraFurther          .SetSubComponent(true);
   Input_Crouch                 .SetSubComponent(true);
   Input_Run                    .SetSubComponent(true);
 
@@ -417,8 +418,6 @@ begin
   Input_RightRotate            .Name := 'Input_RightRotate';
   Input_LeftStrafe             .Name := 'Input_LeftStrafe';
   Input_RightStrafe            .Name := 'Input_RightStrafe';
-  Input_CameraCloser           .Name := 'Input_CameraCloser';
-  Input_CameraFurther          .Name := 'Input_CameraFurther';
   Input_Crouch                 .Name := 'Input_Crouch';
   Input_Run                    .Name := 'Input_Run';
 
@@ -433,8 +432,6 @@ end;
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
 begin
   SetAvatarTargetForPersistent(AValue);
-  if CastleDesignMode then
-    Init;
 end;
 
 destructor TCastleThirdPersonNavigation.Destroy;
@@ -464,30 +461,6 @@ begin
     FAvatar := Value;
     FAvatarFreeObserver.Observed := Value;
     SetAnimationWarningsDone := 0;
-
-    (* This code is not needed at all, our Update will call Init
-       if RealAvatarHierarchy remains non-nil.
-
-    { When we change Value to nil because object is being destroyed,
-      we cannot call Init.
-
-      Reason: In case FAvatarHierarchy (the other TCastleTransform
-      reference in TCastleThirdPersonNavigation)
-      remains non-nil, Init would call FixCameraForCollisions,
-      which accesses World, and the World still contains the TCastleTransform
-      that is right now in csDestroying state and has no octree.
-
-      Testcase: third_person_navigation, assign non-nil (different) values to both
-      Avatar and AvatarHierarchy, then free the referenced component
-      (either Avatar or AvatarHierarchy). Without check "(Value <> nil)"
-      there would be a crash.
-
-      This also secures us in case Avatar and AvatarHierarchy refer to
-      the same object. In this case, we have a dangling pointer,
-      before *both* free notifications run. }
-    if (Value <> nil) and CastleDesignMode then
-      Init;
-    *)
   end;
 end;
 
@@ -497,27 +470,6 @@ begin
   begin
     FAvatarHierarchy := Value;
     FAvatarHierarchyFreeObserver.Observed := Value;
-
-    (* This code is not needed at all, our Update will call Init
-       if RealAvatarHierarchy remains non-nil.
-
-    { Same comments as in SetAvatar about the "(Value <> nil)" condition.
-      It is necessary.
-
-      Note about one edge-case:
-
-      If you assign both Avatar and AvatarHierarchy
-      to some different non-nil values, and then set AvatarHierarchy to nil,
-      we should call Init to change camera (because RealAvatarHierarchy changed,
-      it now points to Avatar). But we don't, because of this "(Value <> nil)"
-      condition.
-
-      However, no problem - it will be called by Update anyway,
-      because RealAvatarHierarchy <> nil.
-      So user will not notice the problem. }
-    if (Value <> nil) and CastleDesignMode then
-      Init;
-    *)
   end;
 end;
 
@@ -544,11 +496,23 @@ begin
   TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
   TargetWorldDir := A.WorldTransform.MultDirection(TCastleTransform.DefaultDirection[A.Orientation]);
 
-  { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
-    create a right triangle, so
-    InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
-  }
-  HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+  if DistanceToAvatarTarget < InitialHeightAboveTarget then
+  begin
+    WritelnWarning('DistanceToAvatarTarget (%f) should not be smaller than InitialHeightAboveTarget (%f)', [
+      DistanceToAvatarTarget,
+      InitialHeightAboveTarget
+    ]);
+    // This effectively assumes that DistanceToAvatarTarget = InitialHeightAboveTarget
+    HorizontalShiftFromTarget := 0;
+  end else
+  begin
+    { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
+      create a right triangle, so
+      InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
+    }
+    HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+  end;
+
   GravUp := Camera.GravityUp;
 
   Result := TargetWorldPos
@@ -611,6 +575,15 @@ begin
 
       CameraPos := CameraPositionInitial(A, TargetWorldPos);
       CameraDir := TargetWorldPos - CameraPos;
+      if CameraDir.IsZero then
+      begin
+        { This condition didn't occur in actual tests, this is paranoid check. }
+        WritelnWarning('Increase DistanceToAvatarTarget (%f) and/or InitialHeightAboveTarget (%f) to make initial camera further from target', [
+          DistanceToAvatarTarget,
+          InitialHeightAboveTarget
+        ]);
+        CameraDir := TVector3.One[0];
+      end;
       CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
       FixCameraForCollisions(CameraPos, CameraDir);
       Camera.SetView(CameraPos, CameraDir, CameraUp);
@@ -680,6 +653,11 @@ begin
     LookPos := PointOnLineClosestToPoint(CameraPos, CameraDir, TargetWorldPos);
 
     ToCamera := CameraPos - LookPos;
+    if ToCamera.IsZero then
+    begin
+      WritelnWarning('TCastleThirdPersonNavigation camera position at look target, increase DistanceToAvatarTarget');
+      Exit;
+    end;
 
     ProcessVertical(Delta[1]);
     ProcessHorizontal(Delta[0]);
@@ -693,7 +671,7 @@ begin
   end;
 end;
 
-function TCastleThirdPersonNavigation.Press(const Event: TInputPressRelease): Boolean;
+function TCastleThirdPersonNavigation.Zoom(const Factor: Single): Boolean;
 var
   A: TCastleTransform;
 
@@ -708,22 +686,13 @@ var
   end;
 
 begin
-  Result := inherited;
-  if Result then Exit;
+  if not Valid then Exit;
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    if Input_CameraCloser.IsEvent(Event) then
-    begin
-      CameraDistanceChange(-1);
-      Result := ExclusiveEvents;
-    end;
-    if Input_CameraFurther.IsEvent(Event) then
-    begin
-      CameraDistanceChange(1);
-      Result := ExclusiveEvents;
-    end;
+    CameraDistanceChange(-Factor);
+    Result := true;
   end;
 end;
 
@@ -849,12 +818,15 @@ var
   T: TVector3;
 begin
   inherited;
+  if not Valid then Exit;
 
   // TODO jumping with space, similar to TCastleWalkNavigation mechanics
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
+    Moving := false;
+
     if Input_Run.IsPressed(Container) then
     begin
       SpeedType := stRun;
@@ -946,12 +918,7 @@ begin
       end;
     end;
 
-    if CastleDesignMode then
-      { In design mode, update immediately both position and direction of the camera.
-        This reflects that Init should be done at the beginning of actual game. }
-      Init
-    else
-      UpdateCamera;
+    UpdateCamera;
   end;
 end;
 
@@ -998,7 +965,6 @@ begin
   if FInitialHeightAboveTarget <> Value then
   begin
     FInitialHeightAboveTarget := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
@@ -1007,7 +973,6 @@ begin
   if FDistanceToAvatarTarget <> Value then
   begin
     FDistanceToAvatarTarget := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
@@ -1016,20 +981,19 @@ begin
   if FCameraFollows <> Value then
   begin
     FCameraFollows := Value;
-    if CastleDesignMode then Init;
   end;
 end;
 
 function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'CameraFollows') or
-     (PropertyName = 'AvatarTarget') or
-     (PropertyName = 'Avatar') or
-     (PropertyName = 'AvatarHierarchy') or
-     (PropertyName = 'Radius') or
-     (PropertyName = 'AimAvatar') or
-     (PropertyName = 'InitialHeightAboveTarget') or
-     (PropertyName = 'DistanceToAvatarTarget') then
+  if ArrayContainsString(PropertyName, [
+     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius',
+     'AimAvatar', 'MoveSpeed', 'CrouchSpeed', 'RunSpeed', 'JumpSpeed', 'RotationSpeed',
+     'AirMovementControl', 'AirRotationControl',
+     'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
+     'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
+     'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1045,6 +1009,16 @@ procedure TCastleThirdPersonNavigation.AvatarHierarchyFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   AvatarHierarchy := nil;
+end;
+
+function TCastleThirdPersonNavigation.Input_CameraCloser: TInputShortcut;
+begin
+  Result := Input_ZoomIn;
+end;
+
+function TCastleThirdPersonNavigation.Input_CameraFurther: TInputShortcut;
+begin
+  Result := Input_ZoomOut;
 end;
 
 {$define read_implementation_methods}

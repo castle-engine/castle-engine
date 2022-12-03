@@ -45,6 +45,12 @@ pipeline {
               }
             }
 
+            stage('(Docker) Shell Tests') {
+              steps {
+                sh "./tools/internal/cge_shell_tests"
+              }
+            }
+
             /* Commands with default FPC version
                (latest stable FPC, most of the time; see https://castle-engine.io/docker ). */
             stage('(Docker) Build Tools (Default FPC)') {
@@ -196,7 +202,7 @@ pipeline {
             }
             stage('(RPi) Build Examples') {
               steps {
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {

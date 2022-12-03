@@ -600,7 +600,7 @@
       https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.vs
       https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.fs .
 
-      See also example examples/images_videos/image_render_custom_shader.lpr .
+      See also example: examples/images_videos/image_render_custom_shader/ .
 
       Note that some uniforms/attributes are only used in some cases.
       For example, when TDrawableImage.Color is White (1, 1, 1, 1), then we don't pass "color" uniform.
