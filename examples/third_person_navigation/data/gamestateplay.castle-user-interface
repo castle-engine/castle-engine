@@ -26,10 +26,12 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSoldier1",
             "PreciseCollisions" : true,
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -67,10 +69,12 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSoldier2",
             "PreciseCollisions" : true,
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -83,10 +87,12 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSoldier3",
             "PreciseCollisions" : true,
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -99,10 +105,12 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSoldier4",
             "PreciseCollisions" : true,
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -140,6 +148,15 @@
                 "Name" : "DirectionalLight1"
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight1",
+            "Shadows" : true,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 5.9742355346679688E+000
+            }
           }
         ]
       },
@@ -280,7 +297,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.1500000000000000E+002
+            "Y" : -3.1500003051757812E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -305,7 +322,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.4900000000000000E+002
+            "Y" : -3.4900003051757812E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -330,7 +347,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.8300000000000000E+002
+            "Y" : -3.8300003051757812E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -355,7 +372,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.1700000000000000E+002
+            "Y" : -4.1700003051757812E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
