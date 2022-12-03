@@ -723,7 +723,7 @@ procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor)
 var
   NewCursor: TCursor;
 begin
-  NewCursor := CursorCastleToLCL[Value];
+  NewCursor := CursorCastleToLCL(Value);
 
   { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
     too often. The SetInternalCursor may be called very often (in each mouse move).
