@@ -202,7 +202,7 @@ pipeline {
             }
             stage('(RPi) Build Examples') {
               steps {
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
