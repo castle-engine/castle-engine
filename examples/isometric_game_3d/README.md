@@ -26,6 +26,8 @@ The important parts are:
 
     Use gizmo to rotate camera along X axis (red) to look down as much as you want.
 
+Note: You *can* have also isometric camera at design-time (in the editor). The easiest way to have it is to set up camera as above, and then use _"Viewport -> Align View To Camera"_ (numpad 0) menu item. After this, switch between your isometric and regular perspective as often as you need using _"Viewport -> Toggle Perspective / Orthogonal"_ (numpad 5).
+
 TODO: The example design shows a warning, as rendering using _shadow volumes_ in orthographic view isn't guaranteed to be correct from all camera views (as we cannot have projection far in infinity). But as it happens, it is correct for views interesting in this demo, so we use here shadows -- they look cool :)
 
 Using [Castle Game Engine](https://castle-engine.io/).
