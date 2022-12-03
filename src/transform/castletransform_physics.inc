@@ -681,7 +681,7 @@
 
       Initialization is done in three steps:
       1. Creation of Kraft rigid body in InitializeEngineRigidBody
-      2. Creation of Kraft shape based on TCollder or TCastleCollider
+      2. Creation of Kraft shape based on TCollider (deprecated) or TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
     procedure InitializePhysicsEngineObjects;
 

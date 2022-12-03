@@ -1564,88 +1564,35 @@
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
 
-    { Participate in rigid body physics simulation.
+    { Participate in the physics simulation.
       This makes this object collidable with other rigid bodies
-      (if @link(Collides))
       and it allows to move and rotate because of gravity
       or because of collisions with other objects
-      (if @link(TRigidBody.Dynamic) is @true).
+      (if @link(TCastleRigidBody.Dynamic) is @true).
 
-      Setting this property makes this 3D object
+      Setting this property makes this object
       a single rigid body for the physics engine.
+      Underneath, it just adds TCastleRigidBody to behaviors.
 
-      If this property is assigned and the @link(TRigidBody.Dynamic) is @true
-      (and @link(TRigidBody.Dynamic) is @true by default)
+      If this property is assigned and the @link(TCastleRigidBody.Dynamic) is @true
+      (and @link(TCastleRigidBody.Dynamic) is @true by default)
       then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TRigidBody.Gravity),
+      It will move because of gravity (if @link(TCastleRigidBody.Gravity),
       also @true by default),
       and because of collisions with other objects.
 
-      The @link(TRigidBody.Collider) property must be initialized
+      If you use deprecated TCollider:
+      The @link(TCastleRigidBody.Collider) property must be initialized
       @italic(before) assigning the @link(TRigidBody) instance here.
       So you must create a @link(TCollider) descendant, specyfying the given
       @link(TRigidBody) as a parent.
-      A rigid body without a collider would in theory not collide with anything,
-      and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
-      In practice, a rigid body without a collider is simply not allowed.
-      If you really need this, assign anything to @link(TRigidBody.Collider)
-      and just set @link(Collides) to @false.
-
-      @bold(Our engine (for now) also has an internal, simple physics simulation,
-      used to perform collisions with player, creatures, and optional
-      (unrealistic) gravity.)
-      So we have two independent physics systems,
-      but they try to not get into each others way (they each perform
-      a different task).
-      In the future there will be an option to use
-      the full-featured physics engine for all simulations,
-      also for player and creatures, at which point our "internal physics
-      simulation" will become deprecated.
-      For now, be aware of these:
-
-      @unorderedList(
-        @item(@link(TCastleTransform.Collides) property affects @italic(both our
-          "simple physics simulation" and the "full-featured physics engine").
-          It determines whether the object is collidable.
-        )
-
-        @item(@link(TCastleTransform.Gravity) property @italic(only affects the
-          "simple physics simulation"). It is by default @false.
-
-          It has no effect on the "full-featured physics engine" behavior,
-          that has an independent property @link(TRigidBody.Gravity),
-          which is @true by default.
-
-          You should not set both @link(TCastleTransform.Gravity) to @true
-          and @link(TRigidBody.Gravity) to @true, it would mean that
-          @italic(gravity simulation is performed twice).
-          In the future, @link(TCastleTransform.Gravity) may be removed
-          (or merged with @link(TRigidBody.Gravity), but then old games
-          may by surprised by a new default @true.)
-        )
-
-        @item(The collider used by our internal, simple physics is independent
-          from the @link(TRigidBody.Collider).
-          The internal, simple physics uses colliders implicitly implemented
-          in the overridden @link(TCastleTransform.HeightCollision),
-          @link(TCastleTransform.MoveCollision) and friends.
-          In case of @link(TCastleSceneCore), the rule is simple:
-
-          @unorderedList(
-            @item(If the @link(TCastleSceneCore.Spatial) contains
-              ssDynamicCollisions or ssStaticCollisions, then the object collides
-              as a mesh. This makes precise collisions with all the triangles.
-              Any mesh, convex or concave, is correctly solved.)
-            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
-          )
-        )
-      )
 
       Note that an object can only be present once in the @link(World)
       to be a rigid body. Breaking this rule will cause the
       @link(EMultipleReferencesInWorld) exception at an undefined time.
     }
     property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
+      {$ifdef FPC}deprecated 'use AddBehavior (to set)/FindBehavior (to get)';{$endif}
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
