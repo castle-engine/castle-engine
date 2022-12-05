@@ -335,23 +335,30 @@ type
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
       {$ifdef FPC}default DefaultRotationSpeed{$endif};
-    { Should we have control on avatar movement in the air.
 
-      - 0 - not
-      - 1 - full control like on ground
-      - between 0 - 1 - limited control
-      - above 1 - faster than on ground }
+    { Should we have control on the avatar movement in the air. Must be >= 0.
+
+      @unorderedList(
+        @item(0 -> no control in the air)
+        @item(1 -> full control in the air, just like on the ground)
+        @item(between 0 and 1 -> limited control, smoothly changes between no control and full control)
+        @item(above 1 -> in the air you move even faster than on the ground)
+      )
+    }
     property AirMovementControl: Single read FAirMovementControl write FAirMovementControl
       {$ifdef FPC}default DefaultAirMovementControl{$endif};
-    { Should we have control on avatar rotation in the air.
 
-      - 0 - not
-      - 1 - full control like on ground
-      - between 0 - 1 - limited control
-      - above 1 - faster than on ground }
+    { Should we have control on the avatar rotation in the air.
+
+      @unorderedList(
+        @item(0 -> no control in the air)
+        @item(1 -> full control in the air, just like on the ground)
+        @item(between 0 and 1 -> limited control, smoothly changes between no control and full control)
+        @item(above 1 -> in the air you rotate even faster than on the ground)
+      )
+    }
     property AirRotationControl: Single read FAirRotationControl write FAirRotationControl
       {$ifdef FPC}default DefaultAirRotationControl{$endif};
-
 
     { Animation when character is not moving, not rotating and not crouching.
       Default 'idle'. }
@@ -987,14 +994,14 @@ begin
 
           if AvatarRigidBody = nil then
           begin
-            WritelnWarning('Avatar don''t have rigid body!');
+            WritelnWarning('Avatar doesn''t have rigid body!');
             Exit;
           end;
 
           Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
           if Collider = nil then
           begin
-            WritelnWarning('Avatar don''t have collider!');
+            WritelnWarning('Avatar doesn''t have collider!');
             Exit;
           end;
 
