@@ -996,7 +996,11 @@
     { Shape used for collisions with this object.
       You cannot assign this property directly,
       it is automatically assigned when you create a @link(TCollider)
-      specifying this @link(TRigidBody) as it's parent. }
+      specifying this @link(TRigidBody) as it's parent.
+
+      This is deprecated, using deprecated TCollider class.
+
+      @deprecated }
     property Collider: TCollider read FCollider;
 
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }
