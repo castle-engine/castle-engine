@@ -95,7 +95,7 @@
                   0,
                   2
                 ],
-                "Name" : "RigidBody"
+                "Name" : "AvatarRigidBody"
               }
             ]
           },

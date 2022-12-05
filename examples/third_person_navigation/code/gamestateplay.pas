@@ -35,6 +35,7 @@ type
     MainViewport: TCastleViewport;
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
     SceneAvatar, SceneLevel: TCastleScene;
+    AvatarRigidBody: TCastleRigidBody;
     CheckboxCameraFollows: TCastleCheckbox;
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
@@ -112,7 +113,7 @@ begin
       To revert to old simple physics, just free rigid body component.
       TCastleThirdPersonNavigation implementation will then automatically
       fallback to older behavior. }
-    SceneAvatar.RigidBody.Free;
+    AvatarRigidBody.Free;
 
     { Make SceneAvatar collide using a sphere.
       Sphere is more useful than default bounding box for avatars and creatures
