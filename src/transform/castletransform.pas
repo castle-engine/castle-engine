@@ -114,4 +114,6 @@ initialization
   R.Caption := 'Sphere Colllider (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
 end.

@@ -8746,8 +8746,4 @@ begin
   end;
 end;
 
-initialization
-
-  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
-
 end.
