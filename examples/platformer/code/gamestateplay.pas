@@ -1325,10 +1325,10 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    ViewHeight := MainViewport.Camera.Orthographic.EffectiveHeight;
-    ViewWidth := MainViewport.Camera.Orthographic.EffectiveWidth;
+    ViewHeight := MainViewport.Camera.Orthographic.EffectiveRect.Height;
+    ViewWidth := MainViewport.Camera.Orthographic.EffectiveRect.Width;
 
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
 
@@ -1345,7 +1345,7 @@ begin
     if CamPos.X + ViewWidth / 2 > LevelBounds.Right then
        CamPos.X := LevelBounds.Right - ViewWidth / 2;
 
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 
   if CheckboxAdvancedPlayer.Checked then
