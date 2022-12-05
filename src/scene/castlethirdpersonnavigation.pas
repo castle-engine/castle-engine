@@ -35,7 +35,7 @@ type
     Be sure to also assign @link(Avatar).
     Call @link(Init) once the parameters that determine initial camera location are all set.
 
-    Turn on @link(MouseLook TCastleNavigation.MouseLook) to allow user to move
+    Turn on @link(TCastleMouseLookNavigation.MouseLook MouseLook) to allow user to move
     the mouse to orbit with the camera around the avatar.
     When AimAvatar is aaNone (default), it allows to look at the avatar easily
     from any side (e.g. you can then see avatar's face easily).
@@ -1397,12 +1397,12 @@ end;
 function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius',
-     'AimAvatar', 'MoveSpeed', 'CrouchSpeed', 'RunSpeed', 'JumpSpeed', 'RotationSpeed',
-     'AirMovementControl', 'AirRotationControl',
-     'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
-     'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
-     'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
+       'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius',
+       'AimAvatar', 'MoveSpeed', 'CrouchSpeed', 'RunSpeed', 'JumpSpeed', 'RotationSpeed',
+       'AirMovementControl', 'AirRotationControl',
+       'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
+       'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
+       'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
      ]) then
     Result := [psBasic]
   else

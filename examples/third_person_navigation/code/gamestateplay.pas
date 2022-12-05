@@ -134,13 +134,10 @@ begin
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
   DebugAvatar.Parent := SceneAvatar;
 
-  { Configure ThirdPersonNavigation, some things that cannot be yet adusted using CGE editor.
-    In particular assign some keys that are not assigned by default. }
+  { Configure ThirdPersonNavigation keys (for now, we don't expose doing this in CGE editor). }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.MouseLook := true; // by default use mouse look
-  ThirdPersonNavigation.AnimationJump := 'idle';
-  ThirdPersonNavigation.AnimationFall := 'bored';
+  ThirdPersonNavigation.MouseLook := true; // TODO: assigning it from editor doesn't make mouse hidden in mouse look
   ThirdPersonNavigation.Init;
 end;
 

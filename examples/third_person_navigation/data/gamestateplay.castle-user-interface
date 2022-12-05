@@ -28,10 +28,6 @@
                 "$$ClassName" : "TCastleRigidBody",
                 "Dynamic" : false,
                 "Gravity" : false,
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBodyLevel"
               },
               {
@@ -98,8 +94,6 @@
                 "LockRotation" : [
                   0,
                   2
-                ],
-                "LockTranslation" : [
                 ],
                 "Name" : "RigidBody"
               }
@@ -202,6 +196,8 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleThirdPersonNavigation",
+          "AnimationFall" : "bored",
+          "AnimationJump" : "idle",
           "Avatar" : "SceneAvatar",
           "AvatarTargetPersistent" : {
             "$$ClassName" : "TCastleVector3Persistent",
