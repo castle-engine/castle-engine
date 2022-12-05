@@ -65,7 +65,8 @@ begin
   RBody.Dynamic := true;
   if Scene.Tag > 0 then
     RBody.LockTranslation := [1, 2]
-  else if Scene.Tag < 0 then
+  else
+  if Scene.Tag < 0 then
     RBody.LockTranslation := [0, 2];
 
   Collider := Scene.FindBehavior(TCastleCollider) as TCastleCollider;

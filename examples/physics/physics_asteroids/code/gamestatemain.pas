@@ -66,7 +66,7 @@ implementation
 
 uses SysUtils, CastleLog, Math;
 
-{ TBullet }
+{ TBullet -------------------------------------------------------------------- }
 
 constructor TBullet.Create(AOwner: TComponent; const BulletSpriteImage: TCastleTransform);
 var
