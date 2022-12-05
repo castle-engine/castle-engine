@@ -9119,7 +9119,7 @@
                 "LockTranslation" : [
                   2
                 ],
-                "Name" : "RigidBody1"
+                "Name" : "PlayerRigidBody"
               },
               {
                 "$$ClassName" : "TCastleCapsuleCollider",

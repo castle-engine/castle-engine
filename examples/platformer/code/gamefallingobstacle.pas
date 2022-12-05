@@ -25,9 +25,9 @@ type
   TFallingObstacle = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     { Set to true when player was bellow and started falling }
     IsFalling: Boolean;
-    procedure ConfigureFallingObstaclePhysics(const FallingObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
     procedure ParentAfterAttach; override;
@@ -37,28 +37,13 @@ type
     procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
   end;
 
-TFallingObstaclesList = {$ifdef FPC}specialize{$endif} TObjectList<TFallingObstacle>;
+  TFallingObstaclesList = {$ifdef FPC}specialize{$endif} TObjectList<TFallingObstacle>;
 
 implementation
 
 uses GameStatePlay;
 
-{ TFallingObstacle }
-
-procedure TFallingObstacle.ConfigureFallingObstaclePhysics(
-  const FallingObstacleScene: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-begin
-  { Castle Rigid Body and Collider is added in editor we configure only events
-    in code. }
-
-  RBody := FallingObstacleScene.RigidBody;
-  if RBody <> nil then
-  begin
-    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-  end;
-end;
+{ TFallingObstacle ----------------------------------------------------------- }
 
 constructor TFallingObstacle.Create(AOwner: TComponent);
 begin
@@ -69,15 +54,19 @@ end;
 procedure TFallingObstacle.ParentAfterAttach;
 begin
   inherited ParentAfterAttach;
+
   Scene := Parent as TCastleScene;
-  ConfigureFallingObstaclePhysics(Scene);
+
+  { TCastleRigidBody was added in the editor, here we configure only the events. }
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
 end;
 
 procedure TFallingObstacle.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   RayHitThat: TCastleTransform;
-  RBody: TCastleRigidBody;
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
@@ -85,23 +74,17 @@ begin
   begin
     { Here we wait for player to start falling down }
 
-    if Scene <> nil then
+    if RBody <> nil then
     begin
-      RBody := Scene.RigidBody;
+      RayHitThat := RBody.PhysicsRayCast(Scene.Translation, Vector3(0, -1, 0), 300);
 
-      if RBody <> nil then
+      { Check was that a player? }
+      if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
       begin
-        RayHitThat := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-          Vector3(0, -1, 0), 300);
-
-        { Check was that a player? }
-        if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
-        begin
-          { Start falling down }
-          Scene.RigidBody.Gravity := true;
-          Scene.RigidBody.LinearVelocity := Vector3(0, -500, 0);
-          IsFalling := true;
-        end;
+        { Start falling down }
+        RBody.Gravity := true;
+        RBody.LinearVelocity := Vector3(0, -500, 0);
+        IsFalling := true;
       end;
     end;
   end;
@@ -116,6 +99,7 @@ end;
 procedure TFallingObstacle.CollisionEnter(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     HitPlayer;
@@ -123,7 +107,7 @@ begin
   begin
     { Once the spike hits the ground, it should no longer be able to
       hurt the player. }
-    Scene.RigidBody.Exists := false;
+    RBody.Exists := false;
   end;
 end;
 

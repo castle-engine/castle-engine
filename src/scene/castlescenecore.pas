@@ -3520,14 +3520,17 @@ begin
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
+var
+  RBody: TCastleRigidBody;
 begin
   if AValue <> FURL then
   begin
     Load(AValue);
 
     { After loading another model the size of collider will be incorrect. }
-    if RigidBody <> nil then
-      RigidBody.UpdateColliderAutosize;
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if RBody <> nil then
+      RBody.UpdateColliderAutosize;
   end;
 end;
 

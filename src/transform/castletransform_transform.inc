@@ -3407,7 +3407,7 @@ begin
 
   if (FWorld <> nil) and (FWorld.EnablePhysics) then
   begin
-    RBody := RigidBody; // RigidBody iterates behaviors
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if (RBody <> nil) and
        (not RBody.DuringSettingTransformationFromPhysicsEngine) and
        UpdatePhysicsTransform then
@@ -3964,7 +3964,7 @@ begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    if RigidBody <> nil then
+    if FindBehavior(TCastleRigidBody) <> nil then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
         WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). This is not good for performance and right now can even cause physics simulation crashes, esp. when TCastleCollider.AutoSize=true and animation may change LocalBoundingBox. Avoid changing the Exists of physical objects multiple times in a single Update.', [
@@ -3973,7 +3973,6 @@ begin
         ]);
       FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
     end;
-
   end;
 end;
 
@@ -4002,11 +4001,15 @@ begin
 end;
 
 procedure TCastleTransform.ExistsInRootChanged;
+var
+  RBody: TCastleRigidBody;
 begin
   { Update rigid body existence when ExistsInRoot changes }
-  if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) and (RigidBody <> nil) then
+  if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
   begin
-    RigidBody.UpdateExist;
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if RBody <> nil then
+      RBody.UpdateExist;
   end;
 end;
 

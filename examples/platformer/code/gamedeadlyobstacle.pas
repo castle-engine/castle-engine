@@ -25,11 +25,11 @@ type
   TDeadlyObstacle = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     { How much time need to pass to deal damage. }
     HitInterval: Single;
     CollidingTime: Single;
     IsPlayerColliding: Boolean;
-    procedure ConfigureDeadlyObstaclePhysics(const DeadlyObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
     procedure ParentAfterAttach; override;
@@ -48,22 +48,6 @@ uses GameStatePlay;
 
 { TDeadlyObstacle ------------------------------------------------------------ }
 
-procedure TDeadlyObstacle.ConfigureDeadlyObstaclePhysics(
-  const DeadlyObstacleScene: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-begin
-  { Castle Rigid Body and Collider is added in editor we configure only events
-    in code. }
-
-  RBody := DeadlyObstacleScene.RigidBody;
-  if RBody <> nil then
-  begin
-    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
-  end;
-end;
-
 constructor TDeadlyObstacle.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -77,7 +61,13 @@ begin
   inherited ParentAfterAttach;
 
   Scene := Parent as TCastleScene;
-  ConfigureDeadlyObstaclePhysics(Scene);
+
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
+  end;
 end;
 
 procedure TDeadlyObstacle.Update(const SecondsPassed: Single;
@@ -108,6 +98,7 @@ end;
 procedure TDeadlyObstacle.CollisionEnter(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     HitPlayer;
@@ -119,6 +110,7 @@ end;
 procedure TDeadlyObstacle.CollisionExit(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     IsPlayerColliding := false;

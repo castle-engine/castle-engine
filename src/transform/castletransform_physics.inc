@@ -1242,6 +1242,7 @@ end;
 procedure TCastleCollider.UpdateLocalTransform;
 var
   T: TTransformation;
+  RBody: TCastleRigidBody;
 begin
   { Initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
   T.Init;
@@ -1266,8 +1267,12 @@ begin
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
   begin
+    Assert(Parent <> nil);
+    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    Assert(RBody <> nil);
+
     FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
-    Parent.RigidBody.FKraftBody.SynchronizeTransformIncludingShapes;
+    RBody.FKraftBody.SynchronizeTransformIncludingShapes;
     FKraftShape.StoreWorldTransform;
   end;
 
