@@ -52,7 +52,7 @@ uses DOM, TypInfo, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInternalInspector, CastleInternalControlsImages, CastleControls;
+  CastleInternalInspector, CastleInternalControlsImages;
 
 {$define read_implementation}
 {$I castleuicontrols_initial_types.inc}
