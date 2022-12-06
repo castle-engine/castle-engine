@@ -973,6 +973,8 @@ var
   I: Integer;
   Tmp: TCastleUserInterfaceList;
   ControlUnderFinger0: TCastleUserInterface;
+  WasEditRemoved: Boolean;
+  WasEditAdded: Boolean;
 begin
   { since this is called at the end of TInternalChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
@@ -1009,7 +1011,33 @@ begin
       for I := 0 to FFocus.Count - 1 do
         if FNewFocus.IndexOf(FFocus[I]) = -1 then
           FFocus[I].Focused := false;
+    end else
+    begin
+      { In case of TouchDevice change focus only for TCastleEdit }
+      WasEditRemoved := false;
+      WasEditAdded := false;
+
+      {for I := 0 to FFocus.Count - 1 do
+        if FNewFocus.IndexOf(FFocus[I]) = -1 then
+        begin
+          if FFocus[I].Focused then
+          begin
+            FFocus[I].Focused := false;
+            WasEditRemoved := true;
+          end;
+        end;
+
+      for I := 0 to FNewFocus.Count - 1 do
+        if (FNewFocus[I] is TCastleEdit) then
+        begin
+          if not FNewFocus[I].Focused then
+          begin
+            FNewFocus[I].Focused := true;
+            WasEditAdded := true;
+          end;
+        end; }
     end;
+
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,

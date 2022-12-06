@@ -34,6 +34,8 @@ import android.text.InputType;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.InputConnection;
 import android.view.KeyEvent;
+import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.ExtractedText;
 
 import android.view.inputmethod.InputMethodManager;
 
@@ -327,6 +329,7 @@ class CastleInputConnection extends BaseInputConnection
         return true;
     }
 
+    @Override
     public boolean setComposingRegion (int start, int end)
     {
         serviceKeyboard.logInfo("CastleInputConnection", "------- call setComposingRegion()");
@@ -461,6 +464,47 @@ class CastleInputConnection extends BaseInputConnection
             i++;
         }
     }
+    
+    @Override
+    public boolean performEditorAction (int editorAction)
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "performEditorAction() - '" + fullText + "'");
+        if (EditorInfo.IME_ACTION_DONE == editorAction)
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "performEditorAction() - 'EditorInfo.IME_ACTION_DONE'");
+            serviceKeyboard.hideKeyboard();
+            // we need remove force capture input after hiding the keyboard
+            serviceKeyboard.messageSend(new String[]{"castle-keyboard-hide-remove-force-capture-input"});
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean finishComposingText()
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "finishComposingText() - '" + fullText + "'");
+        return true;
+    }
+    
+    @Override
+    public ExtractedText getExtractedText (ExtractedTextRequest request, int flags)
+    {
+        serviceKeyboard.logInfo("CastleInputConnection", "getExtractedText() - '" + fullText + "'");
+        ExtractedText eText = new ExtractedText();
+        eText.text = fullText;
+        eText.startOffset = 0;
+        eText.selectionEnd = fullText.length();
+        eText.selectionStart = fullText.length();
+        return eText;
+    }
+
+    public void setInitText(String initText)
+    {
+        fullText = initText;
+        sentButNotCommited = "";
+        serviceKeyboard.logInfo("CastleInputConnection", "setInitText() - '" + fullText + "'");
+    }
 }
 
 
@@ -468,6 +512,7 @@ class CastleKeyboardInputView extends View
 {
     CastleInputConnection inputConnection;
     ServiceKeyboard serviceKeyboard;
+    String initText;
 
     public CastleKeyboardInputView(ServiceKeyboard service, Context context) 
     {
@@ -475,6 +520,7 @@ class CastleKeyboardInputView extends View
         serviceKeyboard = service;
         setFocusable(true);
         setFocusableInTouchMode(true); // without this line we can't show keyboard by ServiceKeyboard.showKeyboard()
+        initText = "";
     }    
 
     // https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view
@@ -483,13 +529,32 @@ class CastleKeyboardInputView extends View
     {
         inputConnection = new CastleInputConnection(serviceKeyboard, this, false);
 
+        serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - initText: '" + initText + "'");
+        inputConnection.setInitText(initText);
         //outAttrs.inputType = InputType.TYPE_NULL; // only soft key events - when this is set keyboard returns key events
         // Because InputType.TYPE_NULL dont support some characters we need change to InputType.TYPE_CLASS_TEXT
         // but then no key events are not sent, so we need use commitText() and create them our self
         outAttrs.inputType = InputType.TYPE_CLASS_TEXT; 
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+
+        // We use here EditorInfo.IME_ACTION_DONE that is used to close keyboard in CastleInputConnection.PerformAction() to close on screen keyboard
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE;
+        
+        //serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - outAttrs.setInitialSurroundingText(): '" + initText + "'");
+        //outAttrs.setInitialSurroundingText(initText);
+        serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - outAttrs.initialSelEnd/Start: " + Integer.toString(initText.length()));
+        outAttrs.initialSelEnd = initText.length();
+        outAttrs.initialSelStart = initText.length();
 
         return inputConnection;
+    }
+
+    public void setInitText(String text)
+    {
+        initText = text;
+        serviceKeyboard.logInfo("CastleInputConnection", "setInitText - initText: '" + initText + "'");
+
+        if (inputConnection != null)
+            inputConnection.setInitText(initText);
     }
 }
 
@@ -519,15 +584,26 @@ public class ServiceKeyboard extends ServiceAbstract
        https://stackoverflow.com/questions/5105354/how-to-show-soft-keyboard-when-edittext-is-focused
     */
 
-    public void showKeyboard()
+    public void showKeyboard(String initText)
     {
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); - not working
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE); - not working
 
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        // Keyboard can crash when you try open it second time (because he can expect a different text while composing) 
+        // so we try close it here before open - restartInput() fixes that
+        //if (imm.isActive())
+        //{
+        //    imm.hideSoftInputFromWindow(keyboardInputView.getWindowToken(), 0);
+        //    logInfo("keyboard", "hide before show");
+        // }
         //getActivity().getWindow().getDecorView().requestFocus();
         //imm.showSoftInput(getActivity().getWindow().getDecorView(), 0);
         keyboardInputView.requestFocus(); // needed to show keyboard work properly
+        keyboardInputView.setInitText(initText);
+        imm.restartInput(keyboardInputView);
+        logInfo("keyboard", "restart input");
         imm.showSoftInput(keyboardInputView, 0);
         //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
         logInfo("keyboard", "show");
@@ -549,8 +625,9 @@ public class ServiceKeyboard extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 1 && parts[0].equals("castle-show-keyboard")) {
-            showKeyboard();
+        if (parts.length == 2 && parts[0].equals("castle-show-keyboard")) {
+            logInfo("CastleInputConnection", "show keyboard '" + parts[1] +"'");
+            showKeyboard(parts[1]);
             return true;
         } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) {
             hideKeyboard();

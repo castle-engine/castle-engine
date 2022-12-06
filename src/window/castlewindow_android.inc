@@ -479,6 +479,7 @@ function TCastleWindow.HandleOnScreenKeyboard(const Received: TCastleStringList;
 var
   KeyCode: Integer;
   KeyString: String;
+  UserInterface: TCastleUserInterface;
 begin
   if (Received.Count = 3) and (Received[0] = 'castle-key-down') then
   begin
@@ -511,6 +512,18 @@ begin
     Exit(true);
   end;
 
+  { Remove ForceCaptureInput when keyboard was closed from java code }
+  if (Received.Count = 1) and
+     (Received[0] = 'castle-keyboard-hide-remove-force-capture-input') then
+  begin
+    UserInterface := Container.ForceCaptureInput;
+    Container.ForceCaptureInput := nil;
+    if UserInterface <> nil then
+      UserInterface.Focused := false;
+
+    WritelnLog('castle-keyboard-hide-remove-force-capture-input');
+    Exit(true);
+  end;
 end;
 
 

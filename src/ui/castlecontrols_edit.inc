@@ -598,6 +598,29 @@ begin
     DoChange;
     Result := ExclusiveEvents;
   end;
+
+  { Ability to open keyboard when it is closed and edit is focused }
+  if (ApplicationProperties.TouchDevice) and
+     (Event.IsMouseButton(TCastleMouseButton.buttonLeft)) then
+  begin
+    { If Edit is focused but ForceCaptureInput is not set to it that means
+      we need set focus again to show keyboard. }
+    if Container.ForceCaptureInput = nil then
+    begin
+      Focused := true;
+      WritelnLog('Container.ForceCaptureInput = nil ' + Name );
+    end
+    else
+    if Container.ForceCaptureInput <> Self then
+    begin
+      WritelnLog('Container.ForceCaptureInput <> Self ' + Name);
+      Container.ForceCaptureInput.Focused := false;
+      WritelnLog('Container.ForceCaptureInput <> Self 2 ' + Name);
+      Focused := true;
+      WritelnLog('Container.ForceCaptureInput <> Self 3 ' + Name);
+    end;
+  end;
+
 end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
@@ -616,8 +639,21 @@ procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
 
-  if FAutoOnScreenKeyboard then
-    Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
+  if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
+  begin
+    if Value then
+    begin
+      WritelnLog('show 111');
+      Container.ForceCaptureInput := Self;
+      ShowOnScreenKeyboard(Text);
+    end else
+    if Container.ForceCaptureInput = Self then // do not hide keyboard if another TCastleEdit has displayed it
+    begin
+      WritelnLog('hide 111');
+      HideOnScreenKeyboard;
+      Container.ForceCaptureInput := nil;
+    end;
+  end;
 end;
 
 procedure TCastleEdit.SetPlaceholder(const Value: string);
