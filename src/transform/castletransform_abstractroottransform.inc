@@ -35,6 +35,9 @@
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
+      is physics running. }
+    function IsPhysicsRunning: Boolean;
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -238,10 +241,6 @@
       This checks collision with all objects that have @link(Collides)
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
-
-    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
-      is physics running. }
-    function IsPhysicsRunning: Boolean;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
