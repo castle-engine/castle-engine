@@ -88,15 +88,12 @@ end;
 
 procedure TStateMain.ButtonShowClick(Sender: TObject);
 begin
-  //ShowOnScreenKeyboard(Edit1.Text);
-
-  //ShowOnScreenKeyboard(Edit1.Text);
-  Edit1.SetFocused(true);
+  Edit1.Focused := true;
 end;
 
 procedure TStateMain.ButtonHideClick(Sender: TObject);
 begin
-  HideOnScreenKeyboard;
+  Edit1.Focused := false;
 end;
 
 end.
