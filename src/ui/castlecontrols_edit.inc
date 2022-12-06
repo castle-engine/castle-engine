@@ -615,9 +615,7 @@ begin
     begin
       WritelnLog('Container.ForceCaptureInput <> Self ' + Name);
       Container.ForceCaptureInput.Focused := false;
-      WritelnLog('Container.ForceCaptureInput <> Self 2 ' + Name);
       Focused := true;
-      WritelnLog('Container.ForceCaptureInput <> Self 3 ' + Name);
     end;
   end;
 
@@ -643,13 +641,11 @@ begin
   begin
     if Value then
     begin
-      WritelnLog('show 111');
       Container.ForceCaptureInput := Self;
       ShowOnScreenKeyboard(Text);
     end else
     if Container.ForceCaptureInput = Self then // do not hide keyboard if another TCastleEdit has displayed it
     begin
-      WritelnLog('hide 111');
       HideOnScreenKeyboard;
       Container.ForceCaptureInput := nil;
     end;
