@@ -2627,9 +2627,9 @@ type
     { Handle standard command-line parameters of Castle Game Engine programs.
       Handles:
       @unorderedList(
-        @item(@code(-h / --help))
-        @item(@code(-v / --version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
-        @item(@code(--log-file), setting @link(LogFileName))
+        @item(@code(-h / @--help))
+        @item(@code(-v / @--version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
+        @item(@code(@--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindow.ParseParameters),
           if @link(MainWindow) is set already.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
