@@ -175,6 +175,8 @@
     property ParentExistsInRoot: Boolean read FParentExistsInRoot write SetParentExistsInRoot default true;
     { Call when ParentExistsInRoot or Exists changed. }
     procedure UpdateExistsInRoot;
+    { Never call ChangedTransform directly, always call this. }
+    procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -478,7 +480,7 @@
 
     { Override to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
-    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); virtual;
+    procedure ChangedTransform; virtual;
 
     { Override to be notified after ExistsInRoot value changed. }
     procedure ExistsInRootChanged; virtual;
@@ -3397,7 +3399,7 @@ begin
     Translate(NewMiddle - OldMiddle);
 end;
 
-procedure TCastleTransform.ChangedTransform(const UpdatePhysicsTransform: Boolean);
+procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
 var
   RBody: TCastleRigidBody;
 begin
@@ -3413,6 +3415,12 @@ begin
        UpdatePhysicsTransform then
       RBody.SetWorldTransformation(WorldTransform);
   end;
+
+  ChangedTransform;
+end;
+
+procedure TCastleTransform.ChangedTransform;
+begin
 end;
 
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
@@ -3509,7 +3517,7 @@ begin
   begin
     FCenter := Value;
     FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3519,7 +3527,7 @@ begin
   begin
     FRotation := Value;
     FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3538,7 +3546,7 @@ begin
     FScale := Value;
     FOnlyTranslation := FOnlyTranslation and
       (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
-    ChangedTransform(UpdatePhysicsTransform);
+    ChangedTransformCore(UpdatePhysicsTransform);
 
     if (FWorld <> nil) and
        FWorld.EnablePhysics then
@@ -3552,7 +3560,7 @@ begin
   begin
     FScaleOrientation := Value;
     FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3561,7 +3569,7 @@ begin
   if not TVector3.PerfectlyEquals(FTranslation, Value) then
   begin
     FTranslation := Value;
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 

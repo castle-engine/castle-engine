@@ -949,7 +949,7 @@ type
 
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
 
-    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
+    procedure ChangedTransform; override;
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
 
     { Called after PointingDeviceSensors or
@@ -7401,7 +7401,7 @@ begin
     CameraLocalPosition := WorldInverseTransform.MultPoint(World.MainCamera.WorldTranslation);
 end;
 
-procedure TCastleSceneCore.ChangedTransform(const UpdatePhysicsTransform: Boolean = true);
+procedure TCastleSceneCore.ChangedTransform;
 begin
   inherited;
   { WorldInverseTransform changed, so update things depending on camera view.
