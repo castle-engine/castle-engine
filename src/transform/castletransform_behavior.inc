@@ -94,7 +94,7 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
-    procedure BeforeDestruction;override;
+    procedure BeforeDestruction; override;
 
     function World: TCastleAbstractRootTransform;
 
