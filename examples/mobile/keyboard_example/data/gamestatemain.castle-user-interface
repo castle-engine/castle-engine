@@ -60,6 +60,10 @@
         "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonShow",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : -1.2000000000000000E+002
+      },
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
       "Width" : 8.0000000000000000E+002
@@ -99,6 +103,7 @@
     },
     {
       "$$ClassName" : "TCastleEdit",
+      "AutoOnScreenKeyboard" : true,
       "CaptureAllInput" : false,
       "CustomFont" : "Font1",
       "FontSize" : 8.0000000000000000E+001,
@@ -110,6 +115,25 @@
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : -1.5000000000000000E+001,
         "Y" : -2.7000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.4500000000000000E+003
+    },
+    {
+      "$$ClassName" : "TCastleEdit",
+      "AutoOnScreenKeyboard" : true,
+      "CaptureAllInput" : false,
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 5.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Edit2",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.5000000000000000E+001,
+        "Y" : -4.1000000000000000E+002
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",

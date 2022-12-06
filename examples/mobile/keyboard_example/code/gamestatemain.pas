@@ -20,6 +20,7 @@ type
     LabelFps: TCastleLabel;
     ButtonShow: TCastleButton;
     ButtonHide: TCastleButton;
+    Edit1: TCastleEdit;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -35,7 +36,7 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleWindow;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -87,7 +88,10 @@ end;
 
 procedure TStateMain.ButtonShowClick(Sender: TObject);
 begin
-  ShowOnScreenKeyboard;
+  //ShowOnScreenKeyboard(Edit1.Text);
+
+  //ShowOnScreenKeyboard(Edit1.Text);
+  Edit1.SetFocused(true);
 end;
 
 procedure TStateMain.ButtonHideClick(Sender: TObject);
