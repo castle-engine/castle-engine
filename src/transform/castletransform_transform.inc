@@ -3817,7 +3817,6 @@ end;
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
-  OldParent: TCastleTransform;
 begin
   if Behavior.FParent <> Self then
   begin
@@ -3829,24 +3828,28 @@ begin
         ClassName,
         ReasonWhyCannot
       ]);
+
+    { As a first action (after the check CanAttachToParent has passed) remove
+      from previous parent. This will also cause necessary virtual method calls,
+      like ParentBeforeDetach, WorldBeforeDetach. }
+    if Behavior.FParent <> nil then
+      Behavior.FParent.RemoveBehavior(Behavior);
+    Assert(Behavior.FParent = nil);
+
+    { Add to new parent }
+
     FBehaviors.Add(Behavior);
-    OldParent := Behavior.FParent;
     Behavior.FParent := Self;
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
     {$warnings on}
 
-    { Call WorldAfterAttach directly }
+    { Call WorldAfterAttach }
     if Behavior.ListenWorldChange then
     begin
       AddWorldChangeNotification(Behavior);
-
-      if (FWorld <> nil) and
-         ( (OldParent = nil) or
-           // TODO: do we really allow changing Parent in AddBehavior?
-           ((OldParent <> nil) and (OldParent.World <> FWorld))
-         ) then
+      if FWorld <> nil then
         Behavior.WorldAfterAttach;
     end;
   end;
