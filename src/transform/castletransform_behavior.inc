@@ -150,15 +150,17 @@ end;
 
 procedure TCastleBehavior.SetListenWorldChange(const Value: Boolean);
 begin
-  if (Parent <> nil) then
+  if FListenWorldChange <> Value then
   begin
-    if Value then
-      Parent.AddWorldChangeNotification(Self)
-    else
-      Parent.RemoveWorldChangeNotification(Self)
+    FListenWorldChange := Value;
+    if Parent <> nil then
+    begin
+      if Value then
+        Parent.AddWorldChangeNotification(Self)
+      else
+        Parent.RemoveWorldChangeNotification(Self)
+    end;
   end;
-
-  FListenWorldChange := Value;
 end;
 
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

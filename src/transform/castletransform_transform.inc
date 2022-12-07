@@ -1769,7 +1769,7 @@
     function BehaviorsEnumerate: TCastleBehaviorEnumerator;
 
     { Adds a behavior to the list that needs to be informed about the world
-      change. }
+      change. Adding multiple times the same behavior is harmless and has no effect. }
     procedure AddWorldChangeNotification(const Behavior: TCastleBehavior);
 
     { Removes a behavior from the list that needs to be informed about the world
