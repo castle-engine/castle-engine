@@ -66,8 +66,6 @@ type
       but we will overide transformation each frame, ignoring physics results,
       and forcing physics engine to recalculate state.
 
-      (TODO: non-existing still takes resources, still does sthg?)
-
       TODO: Jumping and falling doesn't work in this case.
     }
     ctDirect,
@@ -1114,12 +1112,10 @@ var
     DeltaAngular := 0;
     if Input_RightRotate.IsPressed(Container) then
     begin
-      MovingHorizontally := true; // TODO Rotating?
       DeltaAngular := -RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGroundBool);
     end;
     if Input_LeftRotate.IsPressed(Container) then
     begin
-      MovingHorizontally := true; // TODO Rotating?
       DeltaAngular := RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGroundBool);
     end;
 
@@ -1238,7 +1234,7 @@ var
     begin
       MovingHorizontally := true;
       DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
-      WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+      //WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
       //MoveDirection := A.WorldToLocal(A.Direction); // for AddCenterForce
       MoveDirection := A.Direction;
     end;
@@ -1247,7 +1243,7 @@ var
     begin
       MovingHorizontally := true;
       DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
-      WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+      //WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
       //MoveDirection := A.WorldToLocal(-A.Direction); // for AddCenterForce
       MoveDirection := -A.Direction;
     end;
@@ -1377,10 +1373,6 @@ var
       Should we protect from it here, to introduce minimal time to change
       animation between rotating/non-rotating variant? }
 
-    // change Avatar.AutoAnimation
-    { Checking is avatar on ground works only with new movement algorithms }
-    // TODO: ground detection and jump detection should work based on independent GroundDetection, gdPhysics, gdPhysicsExtra, gdDeprecatedCollisions
-    // TODO: physics ray cast should not require rigid body...
     case IsOnGround of
       igJumping: SetAnimation([AnimationJump, AnimationIdle]);
       igFalling: SetAnimation([AnimationFall, AnimationIdle]);
@@ -1406,7 +1398,7 @@ var
                 SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
             end else
             begin
-              { Note that stRun behaves the same as ssNormal when Moving = false.
+              { Note that stRun behaves the same as stNormal when Moving = false.
                 This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
               if Rotating then
                 SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
@@ -1469,7 +1461,9 @@ begin
     {$endif}
   end;
 
-  Rotating := UpdateAimAvatar;
+  { Note: always execute UpdateAimAvatar, regardless of Rotating.
+    So wite "UpdateAimAvatar or Rotating" and not "Rotating or UpdateAimAvatar". }
+  Rotating := UpdateAimAvatar or Rotating;
 
   UpdateAnimation(MovingHorizontally, Rotating, IsOnGround, SpeedType);
 
