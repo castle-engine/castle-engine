@@ -23,7 +23,7 @@ interface
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs,
   CastleStringUtils,
-  ToolArchitectures, ToolManifest;
+  ToolArchitectures, ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -77,7 +77,7 @@ type
     FExitStatus: Integer;
     Environment: TStringList;
     { Additional process id to kill, when killing Process. }
-    ChildProcessId: Int64;
+    ChildProcessId: TProcessId;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -270,7 +270,7 @@ type
 
 implementation
 
-uses {$ifdef UNIX} CTypes, BaseUnix, {$endif}
+uses
   SysUtils, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
@@ -471,7 +471,7 @@ procedure TAsynchronousProcess.Update;
   const
     Prefix = 'Castle Game Engine Internal: ProcessID: ';
   var
-    ParsedProcessId: Int64;
+    ParsedProcessId: TProcessId;
   begin
     Result := false;
     if IsPrefix(Prefix, Line, false) and
@@ -564,36 +564,12 @@ begin
 end;
 
 procedure TAsynchronousProcess.TerminateChildrenHarder;
-{$ifdef UNIX}
 begin
   if ChildProcessId <> 0 then
   begin
-    OutputList.AddLine(Format('Killing child process (id: %d) by SIGTERM', [ChildProcessId]), okInfo);
-    if FpKill(ChildProcessId, SIGTERM) = 0 then
-    begin
-      { Sending SIGKILL right after SIGTERM is a bit brutal,
-        i.e. we didn't give the ChildProcessId any time to react to SIGTERM and close nicely.
-        But we don't want to introduce some delay here,
-        we want TerminateChildrenHarder to be instant, to be responsive to user.
-        So for now, we just don't follow it with SIGKILL.
-      }
-
-      (*
-      if Process.Running then
-      begin
-        OutputList.AddLine(Format('Killing child process (id: %d) by SIGKILL', [ChildProcessId]), okInfo);
-        if FpKill(ChildProcessId, SIGKILL) <> 0 then
-          OutputList.AddLine(Format('Cannot send SIGKILL to child process (id: %d)', [ChildProcessId]), okWarning);
-      end;
-      *)
-    end else
-    begin
-      OutputList.AddLine(Format('Cannot send SIGTERM to child process (id: %d)', [ChildProcessId]), okWarning);
-    end;
+    OutputList.AddLine(Format('Stopping child process (id: %d)', [ChildProcessId]), okInfo);
+    StopProcess(ChildProcessId);
   end;
-{$else}
-begin
-{$endif}
 end;
 
 { TOutputList --------------------------------------------------------------- }

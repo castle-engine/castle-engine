@@ -540,7 +540,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait,
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
