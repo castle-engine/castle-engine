@@ -3407,12 +3407,11 @@ begin
   FWorldTransformationValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 
-  if (FWorld <> nil) and (FWorld.EnablePhysics) then
+  if (FWorld <> nil) and (FWorld.EnablePhysics) and UpdatePhysicsTransform then
   begin
     RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) and
-       UpdatePhysicsTransform then
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(WorldTransform);
   end;
 
