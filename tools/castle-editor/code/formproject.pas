@@ -254,7 +254,7 @@ type
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
     MenuItemSeparator101: TMenuItem;
-    MenuItemBreakProcess: TMenuItem;
+    MenuItemStopProcess: TMenuItem;
     MenuItemSeprator100: TMenuItem;
     MenuItemAutoGenerateClean: TMenuItem;
     MenuItemAutoGenerateTextures: TMenuItem;
@@ -382,7 +382,7 @@ type
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
-    procedure MenuItemBreakProcessClick(Sender: TObject);
+    procedure MenuItemStopProcessClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
@@ -664,13 +664,13 @@ begin
   BuildToolCall(['auto-generate-textures']);
 end;
 
-procedure TProjectForm.MenuItemBreakProcessClick(Sender: TObject);
+procedure TProjectForm.MenuItemStopProcessClick(Sender: TObject);
 begin
   if RunningProcess = nil then
     raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
-  OutputList.AddLine('Forcefully killing the process.', okError);
+  OutputList.AddLine('Stopping the process.', okError);
   RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
@@ -2503,7 +2503,7 @@ begin
   if RunningProcess = nil then
     MenuItemCompileRunClick(MenuItemCompileRun)
   else
-    MenuItemBreakProcessClick(MenuItemBreakProcess);
+    MenuItemStopProcessClick(MenuItemStopProcess);
 end;
 
 procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
@@ -2980,7 +2980,7 @@ begin
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
 
-  MenuItemBreakProcess.Enabled := not EnableRun;
+  MenuItemStopProcess.Enabled := not EnableRun;
 
   // Looks like we need to call this manually
   // (to update because of ActionPlayStopExecute or when process starts/stops independently)

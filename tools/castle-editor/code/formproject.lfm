@@ -529,10 +529,10 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator101: TMenuItem
         Caption = '-'
       end
-      object MenuItemBreakProcess: TMenuItem
-        Caption = 'Forcefully Kill External Process'
+      object MenuItemStopProcess: TMenuItem
+        Caption = 'Stop External Process'
         ShortCut = 16497
-        OnClick = MenuItemBreakProcessClick
+        OnClick = MenuItemStopProcessClick
       end
       object SeparatorBeforeCache: TMenuItem
         Caption = '-'
