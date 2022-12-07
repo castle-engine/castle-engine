@@ -1560,9 +1560,8 @@ var
   NewScale: TVector3;
 begin
   if Parent.HasWorldTransform then
-  begin
-    ScaleFromMatrix(Parent.WorldTransform, NewScale);
-  end else
+    NewScale := ScaleFromMatrix(Parent.WorldTransform)
+  else
     NewScale := Parent.Scale;
 
   { Never use a negative scale for colliders }

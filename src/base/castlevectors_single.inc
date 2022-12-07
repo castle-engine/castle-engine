@@ -527,10 +527,6 @@ function TranslationMatrix(const Transl: TVector3): TMatrix4; overload;
 procedure TranslationMatrices(const X, Y, Z: Single; out Matrix, InvertedMatrix: TMatrix4); overload;
 procedure TranslationMatrices(const Transl: TVector3; out Matrix, InvertedMatrix: TMatrix4); overload;
 
-{ Extract translation from matrix.
-  This performs a subset of MatrixDecompose. }
-function TranslationFromMatrix(const M: TMatrix4): TVector3;
-
 { Multiply matrix M by translation matrix.
 
   This is equivalent to M := M * TranslationMatrix(Transl),
@@ -2278,11 +2274,6 @@ begin
   InvertedMatrix.Data[3, 0] := -Transl.X;
   InvertedMatrix.Data[3, 1] := -Transl.Y;
   InvertedMatrix.Data[3, 2] := -Transl.Z;
-end;
-
-function TranslationFromMatrix(const M: TMatrix4): TVector3;
-begin
-  Result := Vector3(M.Data[3, 0], M.Data[3, 1], M.Data[3, 2]);
 end;
 
 procedure MultMatrixTranslation(var M: TMatrix4;

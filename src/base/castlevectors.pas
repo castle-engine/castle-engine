@@ -170,6 +170,7 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
 {$I castlevectors_border.inc}
+{$I castlevectors_matrix_decompose.inc}
 
 {$undef read_interface}
 
@@ -194,5 +195,6 @@ uses Math,
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
 {$I castlevectors_border.inc}
+{$I castlevectors_matrix_decompose.inc}
 
 end.
