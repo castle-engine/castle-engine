@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'physics_2d_game_sopwith';
-  ApplicationProperties.Caption := 'physics_2d_game_sopwith';
+  ApplicationProperties.Caption := 'Physics 2D Game Sopwith';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
