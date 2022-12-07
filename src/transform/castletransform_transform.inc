@@ -1972,14 +1972,18 @@ procedure TCastleTransform.BeforeDestruction;
 var
   I: Integer;
 begin
-  { Before we start destroying the transform we need remove all behaviors from
-    it, because destroying behavior calls it events like BeforeParentDetach,
-    ParentChanged. In this case FBehaviors and other TCastleTransform data is
-    destroyed before destroying behavior.
+  { Before we start destroying the transform we need to remove all behaviors from
+    it, because destroying behavior calls on it events like BeforeParentDetach,
+    ParentChanged.
 
-    Notice that, this code is not in Destructor because when we make TCastleTransform
-    descendant class some things will be destroyed before removing behaviors and
-    that will run BeforeParentDetach event that can use some descendant fields. }
+    And we want Parent (this TCastleTransform) state to be valid
+    then, e.g. FBehaviors should still be good.
+
+    In case of descendants, like TCastleScene, also their state has to be valid
+    in case behavior's implementation accesses them, e.g. doing
+    "(Parent as TCastleScene).StopAnimation" from BeforeParentDetach implementation.
+    That's why we do this from BeforeDestruction, before e.g. TCastleScene.Destroy starts
+    destroying the instance. }
 
   for I := FBehaviors.Count - 1 downto 0 do
     RemoveBehaviorIndex(I);

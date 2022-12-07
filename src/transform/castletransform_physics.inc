@@ -83,8 +83,7 @@
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
   end;
 
-  { Abstract collider class, ancestor of @link(TCastleSphereCollider), @link(TCastleBoxCollider)
-    and others. }
+  { Abstract collider that determines the shape used to determine collisions with physics bodies. }
   TCastleCollider = class(TCastleBehavior)
   strict private
     { Implementation note:
@@ -306,34 +305,35 @@
       the auto-calculated size this way. }
     property SizeScale: Single read FSizeScale write SetSizeScale {$ifdef FPC}default 1.0{$endif};
 
-    { If @true, automatic size calculation caused by @link(AutoSize)
-      (and some other collider features) are better adjusted to 2D models.
+    { Make various features (in particular automatic size calculation caused by @link(AutoSize))
+      better adjusted to 2D models, where the user-visible shape is in XY
+      and the Z coordinate (position in Z, thickness in Z) should have little or no effect on the result.
+
+      More precisely, when this is @true:
 
       @orderedList(
-        @item(It estimates collider sizes (because Kraft colliders are always in 3D)
+        @item(@link(AutoSize) estimates collider 3D sizes (because internally Kraft colliders are always in 3D)
           based on geometry sizes only in XY dimensions.
           So it ignores how thin or thick is you geometry along the Z axis.)
 
-        @item(It assumes a bit larger "minimum thickness" for 2D,
+        @item(@link(AutoSize) assumes a bit larger "minimum thickness" for 2D,
           because typical 2D worlds use larger units.
           See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
 
-        @item(Moreover (and this matters regardless of @link(AutoSize) value!)
-          the way scale affects the models is different.
-          This determines how TCastleTransform.Scale (or all parents)
-          and SizeScale (of this collider) affects the final collider scale.
-          In Kraft, the scale is internally causing just collider size change,
-          so it must work a bit differently in 2D -- because in 2D only XY dimensions
-          should matter.)
+        @item(Non-uniform scale (coming from accumulated TCastleTransform.Scale on all our parents)
+          is handled differently. When Mode2D = @true, the non-uniform scale is converted
+          into a scalar using Approximate2DScale, so it only looks at XY coordinates.
+          When Mode2D = @false, the non-uniform scale is converted using Approximate3DScale,
+          so it looks at all coordinates.)
 
         @item(In the future, esp. if we integrate with other physics engines like Box2D,
-          it is possible that some colliders in 2D mode will have a shape more suitable
-          in 2D. "Suitable in 2D" means "Z coordinate is ignored".
+          it is possible that some colliders in 2D mode will have a shape much more suitable
+          in 2D. "Suitable in 2D" ideally means "Z coordinate is ignored".
           This means that a 2D collider should (ideally) behave as if it is infinite in Z.
 
           For example a 2D sphere collider may effectively be an infinite cylinder.
           That is: it should be a circle in XY, but extruded into infinity in -Z and +Z.
-          This is not @italic(right now) how the TCastleSphereCollider behaves with Mode2D=@true,
+          This is not @italic(right now) how the TCastleSphereCollider behaves with Mode2D = @true,
           but it may be in the future.
         )
       )
@@ -2431,8 +2431,8 @@ begin
     end;
   end else
   begin
-    { Bug in Kraft means you can't change body type when it
-      was once created so we need to recreate rigid body physics objects. }
+    { In Kraft you can't change body type when it was once created.
+      So we recreate rigid body physics objects. }
     DeinitializePhysicsEngineObjects;
     InitializePhysicsEngineObjects;
   end;
@@ -2549,8 +2549,8 @@ begin
 
   if (FCastleCollider <> CastleColliderFromTransform) and (FCastleCollider <> nil) then
   begin
-    // Trying to initialize rigid body with another collider without deinitialization
-    // of the currrent one - this is a bug in our physics if will occurr
+    { Trying to initialize rigid body with another collider without deinitialization
+      of the previous one. This should never occur. }
     raise Exception.Create('Reinitialize with new collider but old one not deinitialized.');
   end;
 
@@ -2585,7 +2585,7 @@ begin
     if FCastleCollider <> ACastleCollider then
     begin
       { Trying to initialize rigid body with another collider without deinitialization
-        of the currrent one - this is a bug in our physics if will occurr }
+        of the previous one. This should never occur. }
       raise Exception.Create('Reinitialize with new collider but old one not deinitialized.');
     end;
   end;
@@ -3085,15 +3085,16 @@ begin
 
   if Dynamic then
   begin
-    { This is not called with Animated because Kraft Kinematic Bodies are never
-      updated by physics engine. }
     TransformationFromKraft;
     SynchronizeFromKraft;
   end
 
-  { Animated: I think we don't need do anything here because when
-      TCastleTransform transformation changes SetWorldTransformation() is
-      called in TCastleTransform.ChangedTransform. }
+  { Note: We don't do anything special for Animated here.
+    And we allow changing TCastleTransform from code regardless of whether
+    Animated = true or false.
+    So Animated is really just an "optimization hint" passed to Kraft
+    (determines if we should set body as krbtKinematic or krbtStatic, when Dynamic = false).
+    Nothing more. }
 end;
 
 function TCastleRigidBody.CanAttachToParent(const NewParent: TCastleTransform;
@@ -3404,20 +3405,25 @@ begin
     if PhysicsProperties.ContinuousCollisionDetection then
     begin
       { Andrzej says: I tested all options:
-         - kcmSpeculativeContacts - its fake so sometime we have fake collisons
-         - kcmTimeOfImpactSubSteps - bullets in platformer sometimes pass
-                                     through the walls, all TimeOfImpactAlgorithm
-                                     algorithm have this issue
-         - kcmMotionClamping - works best I think (but may lead to a momentary
-                               loss of time in a collision)
-         Maybe it can be worth to give user ability to choose what he need }
+
+        - kcmSpeculativeContacts:
+          it's fake so sometime we have fake collisons
+
+        - kcmTimeOfImpactSubSteps:
+          bullets in platformer sometimes pass through the walls,
+          all TimeOfImpactAlgorithm algorithms have this issue.
+
+        - kcmMotionClamping:
+          works best I think (but may lead to a momentary loss of time in a collision).
+
+        Future: Maybe give user ability to choose ContinuousMode. }
       FKraftEngine.ContinuousMode := kcmMotionClamping;
-      { We need set this because continuous works only when:
-        - one of bodies has krbfContinuous and they are dynamic
+      { We need to set this because continuous works only when:
+        - one of the bodies has krbfContinuous and they are dynamic
         - ContinuousAgainstDynamics is set to true in
-        FKraftEngine and one of bodies has krbfContinuousAgainstDynamics flag }
+          FKraftEngine and one of bodies has krbfContinuousAgainstDynamics flag }
       FKraftEngine.ContinuousAgainstDynamics := true;
-      { Only for kcmTimeOfImpactSubSteps mode }
+      { Below are useful only for kcmTimeOfImpactSubSteps mode }
       // FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
       // FKraftEngine.MaximalSubSteps := 16;
     end else
