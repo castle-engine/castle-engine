@@ -72,9 +72,6 @@ end;
 
 function TAbstractTimeDurationBehavior.ShouldUpdate: Boolean;
 begin
-  if not World.IsPhysicsRunning then
-    Exit(false);
-
   if OneShot then
   begin
     if WasShot then
@@ -107,9 +104,6 @@ procedure TAbstractTimeDurationBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
   inherited Update(SecondsPassed, RemoveMe);
-
-  if not World.IsPhysicsRunning then
-    Exit;
 
   if ShouldStart then
     FExpiredDurationTime := FExpiredDurationTime + SecondsPassed
