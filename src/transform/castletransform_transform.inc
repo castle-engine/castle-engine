@@ -2773,7 +2773,7 @@ procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior
 begin
   if Behavior.Parent <> nil then
   begin
-    if Behavior.NeedWorldChangeNotification and (FWorld <> nil) then
+    if Behavior.ListenWorldChange and (FWorld <> nil) then
       Behavior.WorldBeforeDetach;
 
     Behavior.ParentBeforeDetach;
@@ -3834,13 +3834,16 @@ begin
     Behavior.ParentChanged; // call at end, when state is consistent
     {$warnings on}
 
-    { Call WorldAttached directly }
-    if Behavior.NeedWorldChangeNotification then
+    { Call WorldAfterAttach directly }
+    if Behavior.ListenWorldChange then
     begin
       AddWorldChangeNotification(Behavior);
 
       if (FWorld <> nil) and
-       ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
+         ( (OldParent = nil) or
+           // TODO: do we really allow changing Parent in AddBehavior?
+           ((OldParent <> nil) and (OldParent.World <> FWorld))
+         ) then
         Behavior.WorldAfterAttach;
     end;
   end;
@@ -3852,8 +3855,8 @@ var
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
 
-  { Call WorldDetached directly }
-  if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
+  { Call WorldBeforeDetach directly }
+  if Beh.ListenWorldChange and (FWorld <> nil) then
     Beh.WorldBeforeDetach;
 
   Beh.ParentBeforeDetach;

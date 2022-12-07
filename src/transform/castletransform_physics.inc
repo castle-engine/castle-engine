@@ -1190,7 +1190,7 @@ begin
   FLocalInverseTransform := TMatrix4.Identity;
   FAutoSize := true;
 
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
@@ -2318,8 +2318,8 @@ end;
 constructor TCastleRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
-  { This behavior needs WorldAttached() WorldDetached() }
-  NeedWorldChangeNotification := true;
+  { We need WorldAfterAttach, WorldBeforeDetach }
+  ListenWorldChange := true;
 
   FDuringSettingTransformationFromPhysicsEngine := false;
 
