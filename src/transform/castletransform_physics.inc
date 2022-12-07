@@ -592,19 +592,16 @@
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
     procedure CheckPhysicsPostStepNeeded;
 
-    { Makes easier to get appropriate Kraft shape (from the old collider or
-      the new behavior. Will be removed after removing the old physics support.}
+    { Get appropriate TKraftShape (from the deprecated TCollider or the new TCastleCollider).
+      This may be removed after removing deprecated TCollider, as it will be a bit pointless then. }
     function GetKraftShape: TKraftShape;
 
-    { Returns TCastleCollider bahavior or nil when no collider behavior in
-      Parent or Parent = nil. In most cases you should use FCastleCollider
-      reference to behavior that was used to initialize rigid body }
-    function GetCastleColliderFromParent: TCastleCollider;
+    { Updates Kraft rigid body (FKraftBody) type krbtDynamic, krbtKinematic, krbtStatic
+      based on Dynamic and Animated properties.
 
-    { Updates Kraft rigid body type krbtDynamic, krbtKinematic, krbtStatic
-      based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic,
-      InitializeEngineRigidBody.
-      Note that some colliders change it to krbtStatic if they only support static colliders. }
+      Note that some colliders force the body type to krbtStatic if they only support static colliders
+      by doing "ARigidBody.RigidBodyType := krbtStatic" in CreateKraftShape,
+      which is after this call. }
     procedure UpdateKraftRigidBodyType;
 
     { Changes Kraft GravityScale based on Gravity property. Used in SetGravity
@@ -2418,14 +2415,6 @@ begin
   FState := stateNone;
 end;
 
-function TCastleRigidBody.GetCastleColliderFromParent: TCastleCollider;
-begin
-  if Parent <> nil then
-    Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
-  else
-    Result := nil;
-end;
-
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
 begin
   if FState = stateNone then
@@ -2478,6 +2467,16 @@ begin
 end;
 
 procedure TCastleRigidBody.InitializeCollider;
+
+  { Returns TCastleCollider bahavior or @nil (when no TCastleCollider (behavior) is present in
+    the Parent or Parent = @nil). }
+  function GetCastleColliderFromParent: TCastleCollider;
+  begin
+    if Parent <> nil then
+      Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
+    else
+      Result := nil;
+  end;
 
   procedure FinishInitialization;
   const
