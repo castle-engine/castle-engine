@@ -218,8 +218,8 @@
       It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
     function CheckParent: TCastleTransform;
 
-    procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
-    procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
+    procedure NotifyWorldAfterAttach;
+    procedure NotifyWorldBeforeDetach;
 
     { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
@@ -2145,7 +2145,7 @@ begin
       if ListenPressRelease then
         FWorld.UnregisterPressRelease(Self);
 
-      NotifyWorldDetach(FWorld);
+      NotifyWorldBeforeDetach;
 
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
         this would prevent getting notification in TCastleTransform.Notification. }
@@ -2162,7 +2162,7 @@ begin
       //if FWorld <> Self then
       FWorld.FreeNotification(Self);
 
-      NotifyWorldAttach(FWorld);
+      NotifyWorldAfterAttach;
 
       if ListenPressRelease then
         FWorld.RegisterPressRelease(Self);
@@ -2745,8 +2745,7 @@ begin
   Result := FParent;
 end;
 
-procedure TCastleTransform.NotifyWorldAttach(
-  const NewWorld: TCastleAbstractRootTransform);
+procedure TCastleTransform.NotifyWorldAfterAttach;
 var
   I: Integer;
 begin
@@ -2759,8 +2758,7 @@ begin
   end;
 end;
 
-procedure TCastleTransform.NotifyWorldDetach(
-  const PreviousWorld: TCastleAbstractRootTransform);
+procedure TCastleTransform.NotifyWorldBeforeDetach;
 var
   I: Integer;
 begin
@@ -3861,7 +3859,7 @@ var
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
 
-  { Call WorldBeforeDetach directly }
+  { Call WorldBeforeDetach }
   if Beh.ListenWorldChange and (FWorld <> nil) then
     Beh.WorldBeforeDetach;
 
