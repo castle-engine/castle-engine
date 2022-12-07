@@ -28,7 +28,73 @@ type
   { Used by TCastleThirdPersonNavigation.AimAvatar. }
   TAimAvatar = (aaNone, aaHorizontal, aaFlying);
 
-  TMovementType = (mtVelocity, mtForce); // only Velocity available currently
+  { How does the avatar change transformation (for movement and rotations). }
+  TChangeTransformation = (
+    { Automatically determines best way to change transformation.
+
+      Right now, it means we
+
+      @unorderedList(
+        @item(Behave like ctVelocity if avatar has both
+          TCastleRigidBody and TCastleCollider behaviors.)
+        @item(Behave like ctDirect if the avatar doesn't
+          have both TCastleRigidBody and TCastleCollider behaviors.)
+      )
+
+      To be precise, we look at @link(TCastleThirdPersonNavigation.AvatarHierarchy) or
+      (if it's @nil) at @link(TCastleThirdPersonNavigation.Avatar).
+      In this transform, we check existence of TCastleRigidBody and TCastleCollider.
+
+      In the future, this auto-detection may change,
+      to follow our best recommended practices.
+      In particular, when ctForce approach (see below) will be fully implemented,
+      it will likely become the new automatic behavior when
+      TCastleRigidBody and TCastleCollider behaviors are present. }
+    ctAuto,
+
+    { Directly change the avatar @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation).
+
+      For now, collision checking is also done using old simple physics engine:
+      https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+      Though it will be upgraded to look at physics colliders in the future.
+
+      You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider)
+      set up on the @link(AvatarHierarchy) or @link(Avatar) in this case.
+      Having physics components on avatar, will work...
+      but will waste resources: physics engine will then try to manage the avatar body,
+      but we will overide transformation each frame, ignoring physics results,
+      and forcing physics engine to recalculate state.
+
+      (TODO: non-existing still takes resources, still does sthg?)
+
+      TODO: Jumping and falling doesn't work in this case.
+    }
+    ctDirect,
+
+    { Change the avatar using rigid body @link(TCastleRigidBody.LinearVelocity),
+      @link(TCastleRigidBody.AngularVelocity).
+
+      This is not fully realistic (instead of calculating velocities explicitly
+      we should be using forces). But it cooperates nicely with physics engine.
+
+      It requires a TCastleRigidBody and TCastleCollider components
+      to be attached to the @link(AvatarHierarchy)
+      (or @link(Avatar), if @link(AvatarHierarchy) is @nil). }
+    ctVelocity,
+
+    { Change the avatar using rigid body forces like @link(TCastleRigidBody.AddForce),
+      @link(TCastleRigidBody.AddTorque).
+
+      This is realistic and cooperates nicely with physics engine.
+
+      It requires a TCastleRigidBody and TCastleCollider components
+      to be attached to the @link(AvatarHierarchy)
+      (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
+
+      TODO: Unfinished, not fully functional now. }
+    ctForce
+  );
 
   { 3rd-person camera navigation.
     Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
@@ -91,11 +157,14 @@ type
     FAvatarFreeObserver: TFreeNotificationObserver;
     FAvatarHierarchyFreeObserver: TFreeNotificationObserver;
     SetAnimationWarningsDone: Cardinal;
-    FMovementType: TMovementType;
+    FChangeTransformation: TChangeTransformation;
     FWasJumpInput: Boolean;
     { Zero we can't control avatar in air, one we have full control }
     FAirMovementControl: Single;
     FAirRotationControl: Single;
+    WarningDonePhysicsNotNecessary,
+      WarningDoneRigidBodyNecessary,
+      WarningDoneColliderNecessary: Boolean;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -392,6 +461,25 @@ type
     { Camera will keep at least this distance from walls. }
     property Radius;
 
+    { How does the avatar change transformation (for movement and rotations).
+      This determines whether we update @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation) directly or use physics (TCastleRigidBody)
+      velocities or forces.
+
+      See TChangeTransformation for possible values are their meaning.
+
+      By default, this is ctAuto, which means we detect whether you have
+      physics behaviors (TCastleRigidBody, TCastleCollider) on avatar and then
+
+      @unorderedList(
+        @item(Directly change @link(TCastleTransform.Translation), @link(TCastleTransform.Rotation)
+          if you don't have physics behaviors.)
+        @item(Change the velocity of TCastleRigidBody if you have physics behaviors.)
+      )
+    }
+    property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
+      default ctAuto;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -488,8 +576,7 @@ begin
   // override vector change method, to call Init in design mode when this changes
   AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent;
 
-  FMovementType := mtVelocity;
-  //FMovementType := mtForce;
+  FChangeTransformation := ctAuto;
   FWasJumpInput := false;
   FAirMovementControl := DefaultAirMovementControl;
   FAirRotationControl := DefaultAirRotationControl;
@@ -794,8 +881,412 @@ end;
 
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
   var HandleInput: Boolean);
+type
+  TIsOnGround = (igGround, igJumping, igFalling);
+  TSpeedType = (stNormal, stCrouch, stRun);
 var
+  { Variables useful in all nested routines below }
   A: TCastleTransform;
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+  Speed: Single;
+
+  { Warn if the avatar has TCastleRigidBody and TCastleCollider. }
+  procedure CheckNotPhysics;
+  begin
+    if (RBody <> nil) and (Collider <> nil) then
+    begin
+      if not WarningDonePhysicsNotNecessary then
+      begin
+        WarningDonePhysicsNotNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, for performance it is best to remove physics behaviors (TCastleRigidBody, TCastleCollider) from avatar');
+      end;
+    end;
+  end;
+
+  { Realize ctDirect transformation method. }
+  procedure DoDirect(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  var
+    T: TVector3;
+  begin
+    CheckNotPhysics;
+
+    T := TVector3.Zero;
+    if Input_Forward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      T := T + A.Direction * Speed * SecondsPassed;
+    end;
+    if Input_Backward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      T := T - A.Direction * Speed * SecondsPassed;
+    end;
+    if Input_RightStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      T := T + TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
+    end;
+    if Input_LeftStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      T := T - TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
+    end;
+
+    if Input_RightRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up);
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
+    end;
+    if Input_LeftRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
+    end;
+
+    if not T.IsPerfectlyZero then
+      A.Move(T, false);
+  end;
+
+  { If avatar does not have TCastleRigidBody and TCastleCollider, warn and return @false. }
+  function CheckPhysics: Boolean;
+  begin
+    if RBody = nil then
+    begin
+      if not WarningDoneRigidBodyNecessary then
+      begin
+        WarningDoneRigidBodyNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleRigidBody to the avatar');
+      end;
+      Exit(false);
+    end;
+
+    if Collider = nil then
+    begin
+      if not WarningDoneColliderNecessary then
+      begin
+        WarningDoneColliderNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleCollider to the avatar');
+      end;
+      Exit(false);
+    end;
+
+    Result := true;
+  end;
+
+  { Realize ctVelocity transformation method. }
+  procedure DoVelocity(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  var
+    IsOnGroundBool: Boolean;
+    Vel: TVector3;
+    VLength: Single;
+    AvatarBoundingBox: TBox3D;
+    AvatarHeight: Single;
+    MaxHorizontalVelocityChange: Single;
+    Acceleration: Single;
+    HVelocity: TVector3;
+    VVelocity: Single;
+    MoveDirection: TVector3;
+    Ground: TCastleTransform;
+    DistanceToGround: Single;
+    Jump: Single;
+    RayOrigin: TVector3;
+    DeltaSpeed: Single;
+    DeltaAngular: Single;
+  begin
+    if not CheckPhysics then
+      Exit;
+
+    { How fast should avatar change it's speed }
+    Acceleration := Speed * 3 / 60;
+    MaxHorizontalVelocityChange := Acceleration * 60;
+    DeltaSpeed := 0;
+
+    { Check player is on ground, we use avatar size multiplied by ten to try
+      found ground. Distance is used to check we should set animation to fall
+      or we are almost on ground so use default animation.
+
+      We need add Collider.Translation because sometimes rigid body origin can be
+      under the collider. And ray will be casted under the floor. }
+    AvatarBoundingBox := A.BoundingBox;
+    AvatarHeight := AvatarBoundingBox.SizeY;
+    RayOrigin := A.Translation + Collider.Translation;
+
+    Ground := RBody.PhysicsRayCast(
+      RayOrigin,
+      Vector3(0, -1, 0),
+      AvatarHeight * 3,
+      DistanceToGround
+    );
+
+    { Four more checks - player should slide down when player just
+      on the edge, but sometimes it stay and center ray don't "see" that we are
+      on ground }
+    if Ground = nil then
+      Ground := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3,
+        DistanceToGround
+      );
+
+    if Ground = nil then
+      Ground := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3,
+        DistanceToGround
+      );
+
+    if Ground = nil then
+      Ground := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3,
+        DistanceToGround
+      );
+
+    if Ground = nil then
+      Ground := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3,
+        DistanceToGround
+      );
+
+    if (Ground <> nil) then
+    begin
+      { When collider has own translation we need substract it from distance
+        becouse distance will be too big }
+      DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+
+      { Sometimes rigid body center point can be under the collider so
+        the distance can be negative }
+      if DistanceToGround < 0 then
+        DistanceToGround := 0;
+
+      IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
+    end else
+    begin
+      IsOnGroundBool := false;
+      DistanceToGround := -1; // For animation checking
+    end;
+
+    if Input_Forward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGroundBool);
+      MoveDirection := A.Direction;
+    end;
+    if Input_Backward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGroundBool);
+      MoveDirection := -A.Direction;
+    end;
+    if IsOnGroundBool and Input_RightStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+      MoveDirection := TVector3.CrossProduct(A.Direction, A.Up);
+    end;
+    if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGroundBool);
+      MoveDirection := -TVector3.CrossProduct(A.Direction, A.Up);
+    end;
+
+    Jump := 0;
+    if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
+    begin
+      //if  and (not FWasJumpInput) and IsOnGroundBool
+      FWasJumpInput := true;
+      MovingHorizontally := false;
+      Jump := JumpSpeed;
+    end else
+      FWasJumpInput := false;
+
+    DeltaAngular := 0;
+    if Input_RightRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true; // TODO Rotating?
+      DeltaAngular := -RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGroundBool);
+    end;
+    if Input_LeftRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true; // TODO Rotating?
+      DeltaAngular := RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGroundBool);
+    end;
+
+    // jumping
+    if not IsZero(Jump) then
+    begin
+      Vel := RBody.LinearVelocity;
+      Vel.Y := Jump;
+      RBody.LinearVelocity := Vel;
+    end else
+    // moving
+    if not IsZero(DeltaSpeed) then
+    begin
+      Vel := RBody.LinearVelocity;
+      if IsOnGroundBool then
+      begin
+        { On ground we simply change direction to current one that's
+          helps do things like strafe or fast change direction from
+          forward to backward }
+        HVelocity := Vel;
+        HVelocity.Y := 0;
+        VVelocity := Vel.Y;
+        // maybe use LengthSqrt?
+        VLength := HVelocity.Length;
+        VLength := VLength + DeltaSpeed;
+        if VLength > Speed then
+            VLength := Speed;
+        Vel := MoveDirection * VLength;
+
+        if IsZero(Jump) then
+          Vel.Y := VVelocity
+        else
+          Vel.Y := Jump;
+      end else
+      begin
+        { In air we can't simply change movement direction, we will just
+          modify current one a little based on FAirMovementControl factor.
+          Notice that by default FAirMovementControl = 0 so no change
+          will be made. }
+
+        Vel := Vel + MoveDirection * DeltaSpeed;
+
+        { Here we only check speed is not faster than max speed }
+        HVelocity := Vel;
+        HVelocity.Y := 0;
+        VVelocity := Vel.Y;
+        VLength := HVelocity.Length;
+        { Check max speed }
+        if VLength > Speed then
+        begin
+            VLength := Speed;
+            Vel.Y := 0;
+            Vel := Vel.Normalize * VLength;
+
+            { Add gravity here }
+            Vel.Y := VVelocity;
+        end;
+      end;
+
+      RBody.LinearVelocity := Vel;
+    end else
+    if IsOnGroundBool then
+    begin
+      // slowing down the avatar only on ground
+      Vel := RBody.LinearVelocity;
+      Vel.X := 0;
+      Vel.Z := 0;
+      RBody.LinearVelocity := Vel;
+    end;
+
+    // rotation
+    if not IsZero(DeltaAngular) then
+    begin
+      RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
+      Rotating := true;
+    end
+    else
+    begin
+      RBody.AngularVelocity := Vector3(0, 0, 0);
+      Rotating := false;
+    end;
+
+    IsOnGround := igGround;
+    if not IsOnGroundBool then
+    begin
+      // TODO: 0.1 should not be hardcoded
+      if RBody.LinearVelocity.Y > 0.1 then
+        IsOnGround := igJumping
+      else
+      { When avatar falls we change animation to fall only when the distance
+        to ground is smaller than 1/4 of avatar height. This fixes changing
+        animation from walk to fall on small steps like in stairs.
+
+        DistanceToGround < 0 means that we are in air and ground
+        was not found.
+
+        TODO: 0.25 should not be hardcoded. }
+      if (DistanceToGround < 0) or (DistanceToGround > A.LocalBoundingBox.SizeY * 0.25) then
+        IsOnGround := igFalling;
+    end;
+  end;
+
+  procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  // TODO: Not finished.
+  var
+    DeltaForce: Single;
+    Torque: Single;
+    MoveDirection: TVector3;
+  begin
+    if not CheckPhysics then
+      Exit;
+
+    DeltaForce := 0;
+
+    if Input_Forward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
+      WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+      //MoveDirection := A.WorldToLocal(A.Direction); // for AddCenterForce
+      MoveDirection := A.Direction;
+    end;
+
+    if Input_Backward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
+      WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+      //MoveDirection := A.WorldToLocal(-A.Direction); // for AddCenterForce
+      MoveDirection := -A.Direction;
+    end;
+
+    Torque := 0;
+    if Input_RightRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      Torque := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
+    end;
+    if Input_LeftRotate.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      Torque := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
+    end;
+
+    if not IsZero(Torque) then
+    begin
+      RBody.AddTorque(A.Up * Torque);
+      Rotating := true;
+    end else
+    if not RBody.AngularVelocity.IsZero(0.1) then
+    begin
+      Rotating := true;
+      { TODO: In case of space ship this is not OK.}
+    end else
+    begin
+      //RBody.AngularVelocity := Vector3(0, 0, 0);
+      Rotating := false;
+    end;
+
+    if MovingHorizontally then
+    begin
+      RBody.AddForce(MoveDirection * DeltaForce, A.Translation);
+      //RBody.AddCenterForce(MoveDirection * DeltaForce);
+      //RBody.ApplyImpulse(MoveDirection * DeltaForce, A.Translation);
+      //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
+    end;
+  end;
 
   { Make camera follow the A.Translation.
     Following the character also makes sure that camera stays updated
@@ -808,8 +1299,7 @@ var
     Does not follow the perfect location instantly,
     which makes a nice effect when character is moving fast.
     It's inportant to avoid sudden camera moves on sudden avatar moves,
-    e.g. changing Y when going up/down stairs.
-  }
+    e.g. changing Y when going up/down stairs. }
   procedure UpdateCamera;
   var
     TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget, CameraDirToTarget: TVector3;
@@ -875,44 +1365,73 @@ var
     end;
   end;
 
-type
-  TSpeedType = (stNormal, stCrouch, stRun);
+  { Call SetAnimation to set proper animation of the avatar (Avatar.AutoAnimation).
+    Calls SetAnimation once and exactly once (in all possible branches of this routine). }
+  procedure UpdateAnimation(const MovingHorizontally, Rotating: Boolean; const IsOnGround: TIsOnGround;
+    const SpeedType: TSpeedType);
+  begin
+    { TODO: In case we use AimAvatar and you move mouse very slowly for short amounts,
+      we may switch very quickly between AnimationIdle and AnimationRotate.
+      This makes somewhat bad look in third_person_navigation, and though it uses
+      DefaultAnimationTransition <> 0.
+      Should we protect from it here, to introduce minimal time to change
+      animation between rotating/non-rotating variant? }
+
+    // change Avatar.AutoAnimation
+    { Checking is avatar on ground works only with new movement algorithms }
+    // TODO: ground detection and jump detection should work based on independent GroundDetection, gdPhysics, gdPhysicsExtra, gdDeprecatedCollisions
+    // TODO: physics ray cast should not require rigid body...
+    case IsOnGround of
+      igJumping: SetAnimation([AnimationJump, AnimationIdle]);
+      igFalling: SetAnimation([AnimationFall, AnimationIdle]);
+      else
+        begin
+          if MovingHorizontally then
+          begin
+            case SpeedType of
+              stNormal: SetAnimation([AnimationWalk, AnimationIdle]);
+              stRun   : SetAnimation([AnimationRun, AnimationIdle]);
+              stCrouch: SetAnimation([AnimationCrouch, AnimationCrouchIdle, AnimationIdle]);
+              {$ifndef COMPILER_CASE_ANALYSIS}
+              else raise EInternalError.Create('SpeedType?');
+              {$endif}
+            end;
+          end else
+          begin
+            if SpeedType = stCrouch then
+            begin
+              if Rotating then
+                SetAnimation([AnimationCrouchRotate, AnimationCrouch, AnimationCrouchIdle, AnimationIdle])
+              else
+                SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
+            end else
+            begin
+              { Note that stRun behaves the same as ssNormal when Moving = false.
+                This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
+              if Rotating then
+                SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
+              else
+                SetAnimation([AnimationIdle]);
+            end;
+          end;
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('IsOnGround?');
+      {$endif}
+    end;
+  end;
+
 var
   SpeedType: TSpeedType;
-  Speed: Single;
-  Moving, Rotating: Boolean;
-  T: TVector3;
-  Vel: TVector3;
-  VLength: Single;
-  DeltaSpeed: Single;
-  DeltaAngular: Single;
-  AvatarRigidBody: TCastleRigidBody;
-
-  // physics velocity + force
-  Collider: TCastleCollider;
-  AvatarBoundingBox: TBox3D;
-  AvatarHeight: Single;
-
-  // velocity
-  MaxHorizontalVelocityChange: Single;
-  Acceleration: Single;
-  HVelocity: TVector3;
-  VVelocity: Single;
-  MoveDirection: TVector3;
-  Ground: TCastleTransform;
-  IsOnGround: Boolean;
-  DistanceToGround: Single;
-  Jump: Single;
-  RayOrigin: TVector3;
-
-  // force
-  DeltaForce: Single;
-  Torque: Single;
+  MovingHorizontally, Rotating: Boolean;
+  IsOnGround: TIsOnGround;
 begin
   inherited;
   if not Valid then Exit;
 
   A := RealAvatarHierarchy;
+  RBody := A.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
 
   if (A = nil) or (InternalViewport = nil) then
     Exit;
@@ -932,399 +1451,27 @@ begin
     Speed := MoveSpeed;
   end;
 
-  Moving := false;
-  AvatarRigidBody := A.RigidBody;
+  MovingHorizontally := false;
+  Rotating := false;
+  IsOnGround := igGround;
 
-  if AvatarRigidBody = nil then
-  begin
-    { Movement using old simple physics engine
-      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ) }
-    IsOnGround := true;
-    T := TVector3.Zero;
-    if Input_Forward.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T + A.Direction * Speed * SecondsPassed;
-    end;
-    if Input_Backward.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T - A.Direction * Speed * SecondsPassed;
-    end;
-    if Input_RightStrafe.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T + TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
-    end;
-    if Input_LeftStrafe.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T - TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
-    end;
-
-    if Input_RightRotate.IsPressed(Container) then
-    begin
-      Moving := true;
-      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up);
-      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
-        In effect, keys AD don't work when AimAvatar <> aaNone. }
-    end;
-    if Input_LeftRotate.IsPressed(Container) then
-    begin
-      Moving := true;
-      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
-      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
-        In effect, keys AD don't work when AimAvatar <> aaNone. }
-    end;
-
-    if not T.IsPerfectlyZero then
-      A.Move(T, false);
-
-    Rotating := UpdateAimAvatar;
-  end else
-  begin
-    { New movement algorithms based on physics. }
-    case FMovementType of
-      mtVelocity:
-        begin
-          { How fast should avatar change it's speed }
-          Acceleration := Speed * 3 / 60;
-          MaxHorizontalVelocityChange := Acceleration * 60;
-          DeltaSpeed := 0;
-
-          if AvatarRigidBody = nil then
-          begin
-            WritelnWarning('Avatar doesn''t have rigid body!');
-            Exit;
-          end;
-
-          Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
-          if Collider = nil then
-          begin
-            WritelnWarning('Avatar doesn''t have collider!');
-            Exit;
-          end;
-
-          { Check player is on ground, we use avatar size multiplied by ten to try
-            found ground. Distance is used to check we should set animation to fall
-            or we are almost on ground so use default animation.
-
-            We need add Collider.Translation because sometimes rigid body origin can be
-            under the collider. And ray will be casted under the floor. }
-          AvatarBoundingBox := A.BoundingBox;
-          AvatarHeight := AvatarBoundingBox.SizeY;
-          RayOrigin := A.Translation + Collider.Translation;
-
-          Ground := AvatarRigidBody.PhysicsRayCast(
-            RayOrigin,
-            Vector3(0, -1, 0),
-            AvatarHeight * 3,
-            DistanceToGround
-          );
-
-          { Four more checks - player should slide down when player just
-            on the edge, but sometimes it stay and center ray don't "see" that we are
-            on ground }
-          if Ground = nil then
-            Ground := AvatarRigidBody.PhysicsRayCast(
-              RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
-              Vector3(0, -1, 0),
-              AvatarHeight * 3,
-              DistanceToGround
-            );
-
-          if Ground = nil then
-            Ground := AvatarRigidBody.PhysicsRayCast(
-              RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
-              Vector3(0, -1, 0),
-              AvatarHeight * 3,
-              DistanceToGround
-            );
-
-          if Ground = nil then
-            Ground := AvatarRigidBody.PhysicsRayCast(
-              RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
-              Vector3(0, -1, 0),
-              AvatarHeight * 3,
-              DistanceToGround
-            );
-
-          if Ground = nil then
-            Ground := AvatarRigidBody.PhysicsRayCast(
-              RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
-              Vector3(0, -1, 0),
-              AvatarHeight * 3,
-              DistanceToGround
-            );
-
-          if (Ground <> nil) then
-          begin
-            { When collider has own translation we need substract it from distance
-              becouse distance will be too big }
-            DistanceToGround  := DistanceToGround - Collider.Translation.Y;
-
-            { Sometimes rigid body center point can be under the collider so
-              the distance can be negative }
-            if DistanceToGround < 0 then
-              DistanceToGround := 0;
-
-            IsOnGround := DistanceToGround < AvatarHeight * 0.1;
-          end else
-          begin
-            IsOnGround := false;
-            DistanceToGround := -1; // For animation checking
-          end;
-
-          if Input_Forward.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGround);
-            MoveDirection := A.Direction;
-          end;
-          if Input_Backward.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGround);
-            MoveDirection := -A.Direction;
-          end;
-          if IsOnGround and Input_RightStrafe.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
-            MoveDirection := TVector3.CrossProduct(A.Direction, A.Up);
-          end;
-          if IsOnGround and Input_LeftStrafe.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed * MovementControlFactor(IsOnGround);
-            MoveDirection := -TVector3.CrossProduct(A.Direction, A.Up);
-          end;
-
-          Jump := 0;
-          if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGround then
-          begin
-            //if  and (not FWasJumpInput) and IsOnGround
-            FWasJumpInput := true;
-            Moving := false;
-            Jump := JumpSpeed;
-          end else
-            FWasJumpInput := false;
-
-          DeltaAngular := 0;
-          if Input_RightRotate.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaAngular := -RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGround);
-          end;
-          if Input_LeftRotate.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaAngular := RotationSpeed * 60 * SecondsPassed * RotationControlFactor(IsOnGround);
-          end;
-
-          // jumping
-          if not IsZero(Jump) then
-          begin
-            Vel := AvatarRigidBody.LinearVelocity;
-            Vel.Y := Jump;
-            AvatarRigidBody.LinearVelocity := Vel;
-          end else
-          // moving
-          if not IsZero(DeltaSpeed) then
-          begin
-            Vel := AvatarRigidBody.LinearVelocity;
-            if IsOnGround then
-            begin
-              { On ground we simply change direction to current one that's
-                helps do things like strafe or fast change direction from
-                forward to backward }
-              HVelocity := Vel;
-              HVelocity.Y := 0;
-              VVelocity := Vel.Y;
-              // maybe use LengthSqrt?
-              VLength := HVelocity.Length;
-              VLength := VLength + DeltaSpeed;
-              if VLength > Speed then
-                  VLength := Speed;
-              Vel := MoveDirection * VLength;
-
-              if IsZero(Jump) then
-                Vel.Y := VVelocity
-              else
-                Vel.Y := Jump;
-            end else
-            begin
-              { In air we can't simply change movement direction, we will just
-                modify current one a little based on FAirMovementControl factor.
-                Notice that by default FAirMovementControl = 0 so no change
-                will be made. }
-
-              Vel := Vel + MoveDirection * DeltaSpeed;
-
-              { Here we only check speed is not faster than max speed }
-              HVelocity := Vel;
-              HVelocity.Y := 0;
-              VVelocity := Vel.Y;
-              VLength := HVelocity.Length;
-              { Check max speed }
-              if VLength > Speed then
-              begin
-                  VLength := Speed;
-                  Vel.Y := 0;
-                  Vel := Vel.Normalize * VLength;
-
-                  { Add gravity here }
-                  Vel.Y := VVelocity;
-              end;
-            end;
-
-            AvatarRigidBody.LinearVelocity := Vel;
-          end else
-          if IsOnGround then
-          begin
-            // slowing down the avatar only on ground
-            Vel := AvatarRigidBody.LinearVelocity;
-            Vel.X := 0;
-            Vel.Z := 0;
-            AvatarRigidBody.LinearVelocity := Vel;
-          end;
-
-          // rotation
-          if not IsZero(DeltaAngular) then
-          begin
-            AvatarRigidBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
-            Rotating := true;
-          end
-          else
-          begin
-            AvatarRigidBody.AngularVelocity := Vector3(0, 0, 0);
-            Rotating := false;
-          end;
-
-        end;
-      mtForce:
-        begin
-          // TODO: Not finished.
-
-          Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
-          if Collider = nil then
-            Exit;
-
-          DeltaForce := 0;
-
-          if Input_Forward.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
-            WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
-            //MoveDirection := A.WorldToLocal(A.Direction); // for AddCenterForce
-            MoveDirection := A.Direction;
-          end;
-
-          if Input_Backward.IsPressed(Container) then
-          begin
-            Moving := true;
-            DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
-            WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
-            //MoveDirection := A.WorldToLocal(-A.Direction); // for AddCenterForce
-            MoveDirection := -A.Direction;
-          end;
-
-          Torque := 0;
-          if Input_RightRotate.IsPressed(Container) then
-          begin
-            Moving := true;
-            Torque := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
-          end;
-          if Input_LeftRotate.IsPressed(Container) then
-          begin
-            Moving := true;
-            Torque := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
-          end;
-
-          if not IsZero(Torque) then
-          begin
-            AvatarRigidBody.AddTorque(A.Up * Torque);
-            Rotating := true;
-          end else
-          if not AvatarRigidBody.AngularVelocity.IsZero(0.1) then
-          begin
-            Rotating := true;
-            { TODO: In case of space ship this is not OK.}
-          end else
-          begin
-            //AvatarRigidBody.AngularVelocity := Vector3(0, 0, 0);
-            Rotating := false;
-          end;
-
-          if Moving then
-          begin
-            AvatarRigidBody.AddForce(MoveDirection * DeltaForce, A.Translation);
-            //AvatarRigidBody.AddCenterForce(MoveDirection * DeltaForce);
-            //AvatarRigidBody.ApplyImpulse(MoveDirection * DeltaForce, A.Translation);
-            //AvatarRigidBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
-          end;
-        end;
-    end;
+  case FChangeTransformation of
+    ctAuto:
+      if (RBody <> nil) and (Collider <> nil) then
+        DoVelocity(MovingHorizontally, Rotating, IsOnGround)
+      else
+        DoDirect(MovingHorizontally, Rotating, IsOnGround);
+    ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
+    ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
+    ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
+    {$endif}
   end;
 
-  { TODO: In case we use AimAvatar and you move mouse very slowly for short amounts,
-    we may switch very quickly between AnimationIdle and AnimationRotate.
-    This makes somewhat bad look in third_person_navigation, and though it uses
-    DefaultAnimationTransition <> 0.
-    Should we protect from it here, to introduce minimal time to change
-    animation between rotating/non-rotating variant? }
+  Rotating := UpdateAimAvatar;
 
-  // change Avatar.AutoAnimation
-  { Checking is avatar on ground works only with new movement algorithms }
-  if not IsOnGround then
-  begin
-    case FMovementType of
-      mtVelocity:
-        // TODO: 0.1 should not be hardcoded
-        if AvatarRigidBody.LinearVelocity.Y > 0.1 then
-          SetAnimation([AnimationJump, AnimationIdle])
-        else
-          { When avatar falls we change animation to fall only when the distance
-            to ground is smaller than 1/4 of avatar height. This fixes changing
-            animation from walk to fall on small steps like in stairs.
-
-            DistanceToGround < 0 means that we are in air and ground
-            was not found.
-
-            TODO: 0.25 should not be hardcoded. }
-          if (DistanceToGround < 0) or (DistanceToGround > A.LocalBoundingBox.SizeY * 0.25) then
-            SetAnimation([AnimationFall, AnimationIdle]);
-      mtForce:
-        ;
-    end;
-  end else
-  if Moving then
-  begin
-    case SpeedType of
-      stNormal: SetAnimation([AnimationWalk, AnimationIdle]);
-      stRun   : SetAnimation([AnimationRun, AnimationIdle]);
-      stCrouch: SetAnimation([AnimationCrouch, AnimationCrouchIdle, AnimationIdle]);
-      // else raise EInternalError.Create('Unhandled SpeedType'); // new FPC will warn in case of unhandled "else"
-    end;
-  end else
-  begin
-    if SpeedType = stCrouch then
-    begin
-      if Rotating then
-        SetAnimation([AnimationCrouchRotate, AnimationCrouch, AnimationCrouchIdle, AnimationIdle])
-      else
-        SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
-    end else
-    begin
-      { Note that stRun behaves the same as ssNormal when Moving = false.
-        This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
-      if Rotating then
-        SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
-      else
-        SetAnimation([AnimationIdle]);
-    end;
-  end;
+  UpdateAnimation(MovingHorizontally, Rotating, IsOnGround, SpeedType);
 
   UpdateCamera;
 end;
@@ -1409,7 +1556,7 @@ begin
        'AirMovementControl', 'AirRotationControl',
        'AnimationIdle', 'AnimationWalk', 'AnimationRun', 'AnimationJump', 'AnimationRotate',
        'AnimationCrouch', 'AnimationCrouchIdle', 'AnimationCrouchRotate','AnimationFall',
-       'InitialHeightAboveTarget', 'DistanceToAvatarTarget'
+       'InitialHeightAboveTarget', 'DistanceToAvatarTarget', 'ChangeTransformation'
      ]) then
     Result := [psBasic]
   else
