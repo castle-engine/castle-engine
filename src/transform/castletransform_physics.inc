@@ -3173,8 +3173,7 @@ var
 begin
   if FTransform = nil then
   begin
-    WritelnWarning(
-      'Attempt to cast a ray from TCastleRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
+    WritelnWarning('Attempt to cast a ray from TCastleRigidBody not connected to any TCastleTransform. Possibly you forgot to add it using TCastleTransform.AddBehavior.');
     Exit(nil);
   end;
 
@@ -3184,7 +3183,7 @@ begin
   RayDirectionWorld := FTransform.Parent.LocalToWorldDirection(RayDirection);
   RayMaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
 
-  { We use ksfRayCastable flag to not hit to caster shape. }
+  { We use ksfRayCastable flag to not hit the caster shape. }
   if Shape <> nil then
     OldShapeFlags := Shape.Flags;
   try
