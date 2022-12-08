@@ -87,7 +87,7 @@ begin
   RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
-    RigidBody.AddForce(Force);
+    RigidBody.AddForce(Force, false);
     RigidBody.WakeUp;
   end;
 end;
