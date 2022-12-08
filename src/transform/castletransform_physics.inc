@@ -205,6 +205,11 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
+    { Notify this collider that given TCastleTransform changed.
+      It can provoke AutoSize recalculation (if Parent changed)
+      or other reactions (e.g. mesh update, if TransformChanged corresponds to Mesh). }
+    procedure InternalTransformChanged(const TransformChanged: TCastleTransform); virtual;
+
     { Create collider visualization. }
     procedure InternalDesigningBegin; virtual;
     { Destroy collider visualization. }
@@ -521,6 +526,18 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    procedure InternalTransformChanged(const TransformChanged: TCastleTransform); override;
+
+    { Update the collider triangles to reflect current @link(Mesh) shape.
+      This is necessary for physics engine to reflect the @link(Mesh).
+
+      We do it automatically in some circumstances (like when you change
+      collider properties, like @link(Mesh) or @link(DoubleSided),
+      or when you change @link(TCastleScene.Url)) but we don't try to keep
+      the physics mesh follow the triangles every frame (as you really shouldn't
+      change physics mesh so often, it's supposed to be a static collider). }
+    procedure MeshChanged;
   published
     { Mesh which is used to collide.
       It can be a TCastleScene, TCastleBox or other instance of TCastleTransform
@@ -874,15 +891,6 @@
     { Returns true when rigid body behavior exists, and is added to Castle
       Transform, and this transform ExistsInRoot = true. }
     function ExistsInRoot: Boolean;
-
-    { Call TCastleCollider.InternalAutoSize if we use the collider now.
-
-      This is necessary to be called when size changed, and automatic size
-      (determined by TCastleCollider.AutoSize) should be recalculated.
-      Examples when it needs to be called:
-      If TCastleTransform did not exist in root at initialization or
-      TCastleScene URL changes. }
-    procedure UpdateColliderAutoSize;
 
     { For performance, physics engine sometimes puts some body to "sleep",
       which means it will not move anymore,
@@ -1607,6 +1615,13 @@ begin
     CalculateSize;
 end;
 
+procedure TCastleCollider.InternalTransformChanged(const TransformChanged: TCastleTransform);
+begin
+  Assert(TransformChanged <> nil);
+  if TransformChanged = Parent then
+    InternalAutoSize;
+end;
+
 procedure TCastleCollider.CustomSerialization(const SerializationProcess: TSerializationProcess);
 
   procedure UpgradeOldScale(const OldScaleVectorName: String);
@@ -2265,7 +2280,7 @@ begin
     ]);
   end else
   begin
-    FMesh.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
+    FMesh.ColliderMesh({$ifdef FPC}@{$endif} AddTriangle);
     if FKraftMesh.CountVertices = 0 then
       WritelnWarning('TCastleMeshCollider "%s": Mesh "%s:%s" is empty (has no collidable triangles)', [
         Name,
@@ -2316,6 +2331,18 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleMeshCollider.MeshChanged;
+begin
+  ShapeChangedNotifyRigidBody;
+end;
+
+procedure TCastleMeshCollider.InternalTransformChanged(const TransformChanged: TCastleTransform);
+begin
+  inherited;
+  if TransformChanged = Mesh then
+    MeshChanged;
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }
@@ -2778,6 +2805,24 @@ begin
 end;
 
 procedure TCastleRigidBody.UpdateExist;
+
+  { Call TCastleCollider.InternalAutoSize if we use the collider now.
+
+    This is necessary to be called when size changed, and automatic size
+    (determined by TCastleCollider.AutoSize) should be recalculated.
+    Examples when it needs to be called:
+    If TCastleTransform did not exist in root at initialization or
+    TCastleScene URL changes.
+
+    TODO: It is not sure whether its really needed to be called here, from UpdateExist. }
+  procedure UpdateColliderAutoSize;
+  begin
+    if ExistsInRoot and (FCastleCollider <> nil) then
+    begin
+      FCastleCollider.InternalAutoSize;
+    end;
+  end;
+
 var
   KraftShape: TKraftShape;
 begin
@@ -3278,14 +3323,6 @@ begin
     Exit(false);
 
   Result := Parent.ExistsInRoot;
-end;
-
-procedure TCastleRigidBody.UpdateColliderAutoSize;
-begin
-  if ExistsInRoot and (FCastleCollider <> nil) then
-  begin
-    FCastleCollider.InternalAutoSize;
-  end;
 end;
 
 procedure TCastleRigidBody.WakeUp;

@@ -165,7 +165,7 @@ begin
   begin
     FAxis := Value;
     UpdateCoordinateNode;
-    UpdateColliderSize;
+    UpdateCollider;
   end;
 end;
 

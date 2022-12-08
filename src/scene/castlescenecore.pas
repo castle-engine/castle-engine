@@ -3521,16 +3521,20 @@ end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
 var
-  RBody: TCastleRigidBody;
+  C: TCastleCollider;
 begin
   if AValue <> FURL then
   begin
     Load(AValue);
 
-    { After loading another model the size of collider will be incorrect. }
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if RBody <> nil then
-      RBody.UpdateColliderAutoSize;
+    { After loading a new model we need to
+      - update sizes calculated by AutoSize for simple colliders
+      - update triangles used by TCastleMeshCollider (note that this code
+        will only update TCastleMeshCollider that is our behavior,
+        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
   end;
 end;
 

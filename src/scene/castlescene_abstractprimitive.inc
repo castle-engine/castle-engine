@@ -60,10 +60,10 @@ type
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
 
-    { Update collider size, if TCastleCollider is attached and has TCastleCollider.AutoSize.
-      TODO: It is ugly that we need to call this manually, and we surely don't cover
-      all options, e.g. TCastleScene changes also do not affect a related collider. }
-    procedure UpdateColliderSize;
+    { Update collider, notifying it that we changed.
+      This updates TCastleCollider with TCastleCollider.AutoSize.
+      This also updates TCastleMeshCollider mesh, if it referred to us. }
+    procedure UpdateCollider;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -336,13 +336,13 @@ begin
   Result := FScene.RenderOptions;
 end;
 
-procedure TCastleAbstractPrimitive.UpdateColliderSize;
+procedure TCastleAbstractPrimitive.UpdateCollider;
 var
   C: TCastleCollider;
 begin
   C := FindBehavior(TCastleCollider) as TCastleCollider;
   if C <> nil then
-    C.InternalAutoSize;
+    C.InternalTransformChanged(Self);
 end;
 
 {$define read_implementation_methods}

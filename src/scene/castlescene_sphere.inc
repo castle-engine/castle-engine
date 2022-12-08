@@ -79,7 +79,7 @@ begin
     FRadius := Value;
     SphereNode.Radius := FRadius;
     CollisionSphereRadius := FRadius;
-    UpdateColliderSize;
+    UpdateCollider;
   end;
 end;
 

@@ -1826,6 +1826,16 @@ procedure TCastleTerrain.UpdateGeometry;
     Result := Transform;
   end;
 
+  { Update associated collider, e.g. to update TCastleMeshCollider to reflect new terrain. }
+  procedure UpdateCollider;
+  var
+    C: TCastleCollider;
+  begin
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
+  end;
+
 var
   Root: TX3DRootNode;
   Range: TFloatRectangle;
@@ -1870,6 +1880,8 @@ begin
       assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
     TerrainNode := nil;
   end;
+
+  UpdateCollider;
 end;
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
