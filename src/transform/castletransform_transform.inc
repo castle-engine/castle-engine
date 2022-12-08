@@ -3973,13 +3973,16 @@ begin
 end;
 
 procedure TCastleTransform.SetExists(const Value: Boolean);
+var
+  RBody: TCastleRigidBody;
 begin
   if FExists <> Value then
   begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    if FindBehavior(TCastleRigidBody) <> nil then
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if (RBody <> nil) and RBody.Exists then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
         WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). This is not good for performance and right now can even cause physics simulation crashes, esp. when TCastleCollider.AutoSize=true and animation may change LocalBoundingBox. Avoid changing the Exists of physical objects multiple times in a single Update.', [

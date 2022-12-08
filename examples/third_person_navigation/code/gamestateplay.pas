@@ -53,7 +53,8 @@ type
     Enemies: TEnemyList;
 
     DebugAvatar: TDebugTransform;
-    procedure UpdateButtonsChangeTransformation;
+    { Change things after ThirdPersonNavigation.ChangeTransformation changed. }
+    procedure UpdateAfterChangeTransformation;
     procedure ChangeCheckboxCameraFollows(Sender: TObject);
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
@@ -80,14 +81,6 @@ implementation
 uses SysUtils, Math, StrUtils,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils, CastleUtils,
   GameStateMenu;
-
-const
-  { When this is @false, we use full-featured physics engine (Kraft).
-
-    When this is @true, we use "old simple physics" (built-in CGE, see
-    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-    Note that only ChangeTransformation = ctDirect or ctAuto will work in this case. }
-  UseOldSimplePhysics = false;
 
 { TStatePlay ----------------------------------------------------------------- }
 
@@ -120,7 +113,7 @@ begin
   { synchronize state -> UI }
   SliderAirRotationControl.Value := ThirdPersonNavigation.AirRotationControl;
   SliderAirMovementControl.Value := ThirdPersonNavigation.AirMovementControl;
-  UpdateButtonsChangeTransformation;
+  UpdateAfterChangeTransformation;
 
   CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollows;
   CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxAimAvatar;
@@ -139,32 +132,19 @@ begin
   ButtonChangeTransformationForce.Exists := false;
   {$endif}
 
-  { These are deprecated ways to realize collisions and gravity,
-    without physics engine. }
-  if UseOldSimplePhysics then
-  begin
-    { Right now rigid body and collider are configured in the design,
-      in castle-data:/gamestateplay.castle-user-interface .
-      To revert to old simple physics, just free rigid body component.
-      TCastleThirdPersonNavigation implementation will then automatically
-      fallback to older behavior. }
-    AvatarRigidBody.Free;
+  { This configures SceneAvatar.Middle point, used for shooting.
+    In case of old physics (ChangeTransformation = ctDirect) this is also the center
+    of SceneAvatar.CollisionSphereRadius. }
+  SceneAvatar.MiddleHeight := 0.9;
 
-    { Make SceneAvatar collide using a sphere.
-      Sphere is more useful than default bounding box for avatars and creatures
-      that move in the world, look ahead, can climb stairs etc. }
-    SceneAvatar.MiddleHeight := 0.9;
-    SceneAvatar.CollisionSphereRadius := 0.5;
-
-    { Gravity means that object tries to maintain a constant height
-      (SceneAvatar.PreferredHeight) above the ground.
-      GrowSpeed means that object raises properly (makes walking up the stairs work).
-      FallSpeed means that object falls properly (makes walking down the stairs,
-      falling down pit etc. work). }
-    SceneAvatar.Gravity := true;
-    SceneAvatar.GrowSpeed := 10.0;
-    SceneAvatar.FallSpeed := 10.0;
-  end;
+  { Configure some parameters of old simple physics,
+    these only matter when SceneAvatar.Gravity = true.
+    Don't use these deprecated things if you don't plan to use ChangeTransformation = ctDirect! }
+  SceneAvatar.GrowSpeed := 10.0;
+  SceneAvatar.FallSpeed := 10.0;
+  { When avatar collides as sphere it can climb stairs,
+    because legs can temporarily collide with objects. }
+  SceneAvatar.CollisionSphereRadius := 0.5;
 
   { Visualize SceneAvatar bounding box, sphere, middle point, direction etc. }
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
@@ -211,7 +191,7 @@ function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
   begin
-    if UseOldSimplePhysics then
+    if not AvatarRigidBody.Exists then
     begin
       { SceneAvatar.RayCast tests a ray collision,
         ignoring the collisions with SceneAvatar itself (so we don't detect our own
@@ -325,7 +305,7 @@ begin
   ThirdPersonNavigation.AirMovementControl := SliderAirMovementControl.Value;
 end;
 
-procedure TStatePlay.UpdateButtonsChangeTransformation;
+procedure TStatePlay.UpdateAfterChangeTransformation;
 begin
   ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
   ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
@@ -333,24 +313,36 @@ begin
   {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
   {$endif}
+
+  { ctDirect requires to set up gravity without physics engine,
+    using deprecated TCastleTransform.Gravity.
+    See https://castle-engine.io/physics#_old_system_for_collisions_and_gravity }
+  AvatarRigidBody.Exists := ThirdPersonNavigation.ChangeTransformation <> ctDirect;
+
+  { Gravity means that object tries to maintain a constant height
+    (SceneAvatar.PreferredHeight) above the ground.
+    GrowSpeed means that object raises properly (makes walking up the stairs work).
+    FallSpeed means that object falls properly (makes walking down the stairs,
+    falling down pit etc. work). }
+  SceneAvatar.Gravity := not AvatarRigidBody.Exists;
 end;
 
 procedure TStatePlay.ClickChangeTransformationAuto(Sender: TObject);
 begin
   ThirdPersonNavigation.ChangeTransformation := ctAuto;
-  UpdateButtonsChangeTransformation;
+  UpdateAfterChangeTransformation;
 end;
 
 procedure TStatePlay.ClickChangeTransformationDirect(Sender: TObject);
 begin
   ThirdPersonNavigation.ChangeTransformation := ctDirect;
-  UpdateButtonsChangeTransformation;
+  UpdateAfterChangeTransformation;
 end;
 
 procedure TStatePlay.ClickChangeTransformationVelocity(Sender: TObject);
 begin
   ThirdPersonNavigation.ChangeTransformation := ctVelocity;
-  UpdateButtonsChangeTransformation;
+  UpdateAfterChangeTransformation;
 end;
 
 procedure TStatePlay.ClickChangeTransformationForce(Sender: TObject);
@@ -358,7 +350,7 @@ begin
   {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ThirdPersonNavigation.ChangeTransformation := ctForce;
   {$endif}
-  UpdateButtonsChangeTransformation;
+  UpdateAfterChangeTransformation;
 end;
 
 end.

@@ -37,10 +37,10 @@ type
       Right now, it means we
 
       @unorderedList(
-        @item(Behave like ctVelocity if avatar has both
-          TCastleRigidBody and TCastleCollider behaviors.)
-        @item(Behave like ctDirect if the avatar doesn't
-          have both TCastleRigidBody and TCastleCollider behaviors.)
+        @item(Behave like ctVelocity if avatar is under the control of the physics engine.
+          This means avatar has both TCastleRigidBody and TCastleCollider behaviors and
+          @link(TCastleRigidBody.Exists) is @true.)
+        @item(Behave like ctDirect otherwise.)
       )
 
       To be precise, we look at @link(TCastleThirdPersonNavigation.AvatarHierarchy) or
@@ -57,7 +57,8 @@ type
     { Directly change the avatar @link(TCastleTransform.Translation),
       @link(TCastleTransform.Rotation).
 
-      You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider)
+      You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider
+      and @link(TCastleRigidBody.Exists) = @true)
       set up on the @link(AvatarHierarchy) or @link(Avatar) in this case.
       Having physics components will make it impossible to change @link(TCastleTransform.Translation),
       @link(TCastleTransform.Rotation) each frame.
@@ -78,13 +79,17 @@ type
       This is not fully realistic (instead of calculating velocities explicitly
       we should be using forces). But it cooperates nicely with physics engine.
 
-      This also means that gravity should be handled by the physics engine.
-      You should not use deprecated @link(TCastleTransform.Gravity),
-      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed).
-
       It requires a TCastleRigidBody and TCastleCollider components
       to be attached to the @link(AvatarHierarchy)
-      (or @link(Avatar), if @link(AvatarHierarchy) is @nil). }
+      (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
+      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
+
+      This also means that gravity should be handled by the physics engine.
+      You should not use deprecated @link(TCastleTransform.Gravity),
+      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed) in this case.
+
+      TODO: Climbing stairs doesn't work in this case (but you can jump on them).
+    }
     ctVelocity
 
     {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE},
@@ -97,6 +102,7 @@ type
       It requires a TCastleRigidBody and TCastleCollider components
       to be attached to the @link(AvatarHierarchy)
       (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
+      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
 
       TODO: Unfinished, not really functional now. }
     ctForce
@@ -475,13 +481,15 @@ type
 
       See TChangeTransformation for possible values are their meaning.
 
-      By default, this is ctAuto, which means we detect whether you have
-      physics behaviors (TCastleRigidBody, TCastleCollider) on avatar and then
+      By default, this is ctAuto, which means that we detect whether you have
+      physics behaviors (TCastleRigidBody, TCastleCollider, with TCastleRigidBody.Exists)
+      set up on the avatar.
 
       @unorderedList(
-        @item(Directly change @link(TCastleTransform.Translation), @link(TCastleTransform.Rotation)
-          if you don't have physics behaviors.)
-        @item(Change the velocity of TCastleRigidBody if you have physics behaviors.)
+        @item(If yes, we will use physics behaviors, and change transformation
+          using the velocity of TCastleRigidBody.)
+        @item(Otherwise (if you don't have physics behaviors), we will directly change
+          @link(TCastleTransform.Translation), @link(TCastleTransform.Rotation).)
       )
     }
     property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
@@ -898,15 +906,15 @@ var
   Collider: TCastleCollider;
   Speed: Single;
 
-  { Warn if the avatar has TCastleRigidBody and TCastleCollider. }
+  { Warn if the avatar has TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists. }
   procedure CheckNotPhysics;
   begin
-    if (RBody <> nil) and (Collider <> nil) then
+    if (RBody <> nil) and (Collider <> nil) and RBody.Exists then
     begin
       if not WarningDonePhysicsNotNecessary then
       begin
         WarningDonePhysicsNotNecessary := true;
-        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, for performance it is best to remove physics behaviors (TCastleRigidBody, TCastleCollider) from avatar');
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, remove physics behaviors (TCastleRigidBody, TCastleCollider) from avatar or set TCastleRigidBody.Exists to false');
       end;
     end;
   end;
@@ -959,15 +967,16 @@ var
       A.Move(T, false);
   end;
 
-  { If avatar does not have TCastleRigidBody and TCastleCollider, warn and return @false. }
+  { If avatar does not have TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists,
+    warn and return @false. }
   function CheckPhysics: Boolean;
   begin
-    if RBody = nil then
+    if (RBody = nil) or (not RBody.Exists) then
     begin
       if not WarningDoneRigidBodyNecessary then
       begin
         WarningDoneRigidBodyNecessary := true;
-        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleRigidBody to the avatar');
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleRigidBody to the avatar and leave TCastleRigidBody.Exists = true');
       end;
       Exit(false);
     end;
@@ -1483,7 +1492,7 @@ begin
 
   case FChangeTransformation of
     ctAuto:
-      if (RBody <> nil) and (Collider <> nil) then
+      if (RBody <> nil) and RBody.Exists and (Collider <> nil) then
         DoVelocity(MovingHorizontally, Rotating, IsOnGround)
       else
         DoDirect(MovingHorizontally, Rotating, IsOnGround);
