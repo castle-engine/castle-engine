@@ -26,15 +26,11 @@ type
   TAddForceBehavior = class(TAbstractTimeDurationBehavior)
   private
     FForce: TVector3;
-    FPosition: TVector3;
 
     FForcePersistent: TCastleVector3Persistent;
-    FPositionPersistent: TCastleVector3Persistent;
 
     function GetForceForPersistent: TVector3;
     procedure SetForceForPersistent(const AValue: TVector3);
-    function GetPositionForPersistent: TVector3;
-    procedure SetPositionForPersistent(const AValue: TVector3);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy;override;
@@ -44,15 +40,13 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Force: TVector3 read FForce write FForce;
-    property Position: TVector3 read FPosition write FPosition;
   published
     property ForcePersistent: TCastleVector3Persistent read FForcePersistent;
-    property PositionPersistent: TCastleVector3Persistent read FPositionPersistent;
   end;
 
 implementation
 
-{ TAddForceBehavior ---------------------------------------------------------- }
+{ TAddForceBehavior --------------------------------------------------- }
 
 function TAddForceBehavior.GetForceForPersistent: TVector3;
 begin
@@ -64,16 +58,6 @@ begin
   Force := AValue;
 end;
 
-function TAddForceBehavior.GetPositionForPersistent: TVector3;
-begin
-  Result := Position;
-end;
-
-procedure TAddForceBehavior.SetPositionForPersistent(const AValue: TVector3);
-begin
-  Position := AValue;
-end;
-
 constructor TAddForceBehavior.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -82,17 +66,11 @@ begin
   FForcePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetForceForPersistent;
   FForcePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetForceForPersistent;
   FForcePersistent.InternalDefaultValue := Force; // current value is default
-
-  FPositionPersistent := TCastleVector3Persistent.Create;
-  FPositionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPositionForPersistent;
-  FPositionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPositionForPersistent;
-  FPositionPersistent.InternalDefaultValue := Position; // current value is default
 end;
 
 destructor TAddForceBehavior.Destroy;
 begin
   FreeAndNil(FForcePersistent);
-  FreeAndNil(FPositionPersistent);
   inherited;
 end;
 
@@ -109,7 +87,7 @@ begin
   RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
-    RigidBody.AddForce(Force, Position);
+    RigidBody.AddForce(Force);
     RigidBody.WakeUp;
   end;
 end;
@@ -117,16 +95,12 @@ end;
 function TAddForceBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Force') or
-     (PropertyName = 'Position') then
+  if PropertyName = 'Force' then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
-
-RegisterSerializableComponent(TAddForceBehavior, 'Add Force Behavior');
-
+  RegisterSerializableComponent(TAddForceBehavior, 'Add Force Behavior');
 end.
-

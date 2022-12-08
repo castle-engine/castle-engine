@@ -62,9 +62,11 @@ begin
   RigidBody := FTarget.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
+    { TODO: Parent.LocalToWorld(Parent.Translation) is wrong -
+      Parent.Translation is in Parent.Parent coord system. }
     Direction := FTarget.LocalToWorld(FTarget.Translation) - Parent.LocalToWorld(Parent.Translation);
     Direction := Direction.Normalize;
-    RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+    RigidBody.AddForceAtPosition(Direction * Value, Parent.LocalToWorld(Parent.Translation));
     RigidBody.WakeUp;
   end;
 end;

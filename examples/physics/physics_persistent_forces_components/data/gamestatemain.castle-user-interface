@@ -75,12 +75,12 @@
                 "Name" : "RigidBody1"
               },
               {
-                "$$ClassName" : "TAddForceBehavior",
+                "$$ClassName" : "TAddForceAtPositionBehavior",
                 "ForcePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 1.0000000000000000E+001
                 },
-                "Name" : "AddForceBehavior1",
+                "Name" : "AddForceAtPositionBehavior1",
                 "PositionPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+003,
@@ -130,13 +130,13 @@
                 }
               },
               {
-                "$$ClassName" : "TAddForceBehavior",
+                "$$ClassName" : "TAddForceAtPositionBehavior",
                 "DurationTime" : 2.0000000000000000E+001,
                 "ForcePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 1.1000000000000000E+002
                 },
-                "Name" : "AddForceBehavior2",
+                "Name" : "AddForceAtPositionBehavior2",
                 "PositionPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.2000000000000000E+002
@@ -188,13 +188,13 @@
                 }
               },
               {
-                "$$ClassName" : "TAddCentralForceBehavior",
+                "$$ClassName" : "TAddForceBehavior",
                 "DurationTime" : 2.0000000000000000E+001,
                 "ForcePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 1.1000000000000000E+002
                 },
-                "Name" : "AddCentralForceBehavior1"
+                "Name" : "AddForceBehavior1"
               }
             ]
           },
@@ -353,24 +353,24 @@
                     }
                   },
                   {
-                    "$$ClassName" : "TAddForceBehavior",
+                    "$$ClassName" : "TAddForceAtPositionBehavior",
                     "ForcePersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : 1.0000000000000000E+001
                     },
-                    "Name" : "AddForceBehavior3",
+                    "Name" : "AddForceAtPositionBehavior3",
                     "PositionPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "X" : 1.1000000000000000E+002
                     }
                   },
                   {
-                    "$$ClassName" : "TAddForceBehavior",
+                    "$$ClassName" : "TAddForceAtPositionBehavior",
                     "ForcePersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -1.0000000000000000E+001
                     },
-                    "Name" : "AddForceBehavior4"
+                    "Name" : "AddForceAtPositionBehavior4"
                   }
                 ]
               },

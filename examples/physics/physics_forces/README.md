@@ -12,8 +12,8 @@ The blue arrow represents the force position, direction, strength.
 
 Press (you can press once, or hold the key down to keep applying):
 
-- Key 7: `TCastleRigidBody.AddForce`
-- Key 8: `TCastleRigidBody.AddCentralForce`
+- Key 7: `TCastleRigidBody.AddForceAtPosition`
+- Key 8: `TCastleRigidBody.AddForce`
 - Key 9: `TCastleRigidBody.AddTorque`
 - Key 0: `TCastleRigidBody.ApplyImpulse`
 

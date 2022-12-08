@@ -1316,8 +1316,7 @@ var
 
     if MovingHorizontally then
     begin
-      RBody.AddForce(MoveDirection * DeltaForce, A.Translation);
-      //RBody.AddCenterForce(MoveDirection * DeltaForce);
+      RBody.AddForce(MoveDirection * DeltaForce, true);
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, A.Translation);
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
     end;

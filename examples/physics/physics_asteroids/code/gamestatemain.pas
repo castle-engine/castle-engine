@@ -160,7 +160,7 @@ begin
   if InputUp then
   begin
     Direction := Vector3(0, 1, 0);
-    ShipRigidBody.AddCentralForce(Direction * ThrustForce);
+    ShipRigidBody.AddForce(Direction * ThrustForce, true);
   end;
 
   Torque := Vector3(0, 0, 0);

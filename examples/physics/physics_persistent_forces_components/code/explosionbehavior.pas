@@ -53,9 +53,11 @@ var
   Transform: TCastleTransform;
 begin
   Transform := RigidBody.Parent;
+  { TODO: Parent.LocalToWorld(Parent.Translation) is wrong -
+    Parent.Translation is in Parent.Parent coord system. }
   Direction := Transform.LocalToWorld(Transform.Translation) - Parent.LocalToWorld(Parent.Translation);
   Direction := Direction.Normalize;
-  RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+  RigidBody.AddForceAtPosition(Direction * Value, Parent.LocalToWorld(Parent.Translation));
   RigidBody.WakeUp;
 end;
 

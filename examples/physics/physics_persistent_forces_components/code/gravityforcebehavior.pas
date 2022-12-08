@@ -57,7 +57,7 @@ begin
   Transform := RigidBody.Parent;
   Direction := Parent.LocalToWorld(Parent.Translation) - Transform.LocalToWorld(Transform.Translation);
   Direction := Direction.Normalize;
-  RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+  RigidBody.AddForceAtPosition(Direction * Value, Parent.LocalToWorld(Parent.Translation));
   RigidBody.WakeUp;
 end;
 

@@ -48,9 +48,11 @@ procedure TWindForceBehavior.UpdateRigidBody(const RigidBody: TCastleRigidBody;
 var
   Direction: TVector3;
 begin
+  { TODO: Parent.LocalToWorld(Parent.Translation) is wrong -
+    Parent.Translation is in Parent.Parent coord system. }
   Direction := Vector3(0,0,0) - Parent.LocalToWorld(Parent.Translation);
   Direction := Direction.Normalize;
-  RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+  RigidBody.AddForceAtPosition(Direction * Value, Parent.LocalToWorld(Parent.Translation));
   RigidBody.WakeUp;
 end;
 

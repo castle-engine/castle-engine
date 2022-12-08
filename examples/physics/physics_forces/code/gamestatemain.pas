@@ -33,8 +33,8 @@ type
 
     { Other components }
     RigidBodies: TCastleRigidBodyList;
+    procedure AddForceAtPosition;
     procedure AddForce;
-    procedure AddCentralForce;
     procedure AddTorque;
     procedure ApplyImpulse;
     function ForceScale: Single;
@@ -121,9 +121,9 @@ begin
     SceneArrow.Rotation := Vector4(0, 1, 0, SceneArrow.Rotation.W - SecondsPassed * RotationSpeed);
 
   if Container.Pressed[key7] then
-    AddForce;
+    AddForceAtPosition;
   if Container.Pressed[key8] then
-    AddCentralForce;
+    AddForce;
   if Container.Pressed[key9] then
     AddTorque;
 end;
@@ -145,25 +145,20 @@ begin
   Result := SceneArrow.Scale.Z * 1;
 end;
 
+procedure TStateMain.AddForceAtPosition;
+var
+  RBody: TCastleRigidBody;
+begin
+  for RBody in RigidBodies do
+    RBody.AddForceAtPosition(SceneArrow.Direction * ForceScale, SceneArrow.Translation);
+end;
+
 procedure TStateMain.AddForce;
 var
   RBody: TCastleRigidBody;
 begin
   for RBody in RigidBodies do
-    RBody.AddForce(SceneArrow.Direction * ForceScale, SceneArrow.Translation);
-end;
-
-procedure TStateMain.AddCentralForce;
-var
-  RBody: TCastleRigidBody;
-  Dir: TVector3;
-begin
-  for RBody in RigidBodies do
-  begin
-    Dir := SceneArrow.Direction * ForceScale;
-    Dir := RBody.Parent.WorldToLocalDirection(Dir);
-    RBody.AddCentralForce(Dir);
-  end;
+    RBody.AddForce(Dir, SceneArrow.Direction * ForceScale);
 end;
 
 procedure TStateMain.AddTorque;
