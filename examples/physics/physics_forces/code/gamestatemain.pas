@@ -25,13 +25,17 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps,
+      LabelAddForceAtPosition,
+      LabelAddForce,
+      LabelAddTorque,
+      LabelApplyImpulse: TCastleLabel;
     SceneArrow: TCastleScene;
     DynamicBodies: TCastleTransform;
-
-    { Other components }
+  private
     RigidBodies: TCastleRigidBodyList;
     procedure AddForceAtPosition;
     procedure AddForce;
@@ -51,7 +55,8 @@ var
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math,
+  CastleColors;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -67,11 +72,6 @@ var
   RBody: TCastleRigidBody;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  SceneArrow := DesignedComponent('SceneArrow') as TCastleScene;
-  DynamicBodies := DesignedComponent('DynamicBodies') as TCastleTransform;
 
   RigidBodies := TCastleRigidBodyList.Create;
 
@@ -90,6 +90,15 @@ begin
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+
+  procedure ColorLabel(const Lab: TCastleLabel; const Active: Boolean);
+  begin
+    if Active then
+      Lab.Color := Blue
+    else
+      Lab.Color := White;
+  end;
+
 const
   MoveSpeed = 10;
   ScaleIncrease = 2;
@@ -126,6 +135,11 @@ begin
     AddForce;
   if Container.Pressed[key9] then
     AddTorque;
+
+  ColorLabel(LabelAddForceAtPosition, Container.Pressed[key7]);
+  ColorLabel(LabelAddForce, Container.Pressed[key8]);
+  ColorLabel(LabelAddTorque, Container.Pressed[key9]);
+  ColorLabel(LabelApplyImpulse, Container.Pressed[key0]);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
