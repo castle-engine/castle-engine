@@ -16,6 +16,8 @@
 { Main "playing game" state, where most of the game logic takes place. }
 unit GameStatePlay;
 
+{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+
 interface
 
 uses Classes,
@@ -130,6 +132,12 @@ begin
   ButtonChangeTransformationDirect.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationDirect;
   ButtonChangeTransformationVelocity.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationVelocity;
   ButtonChangeTransformationForce.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationForce;
+
+  {$ifndef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+  { Hide UI to test ChangeTransformation = ctForce, it is not finished now,
+    not really useful for normal usage. }
+  ButtonChangeTransformationForce.Exists := false;
+  {$endif}
 
   { These are deprecated ways to realize collisions and gravity,
     without physics engine. }
@@ -322,7 +330,9 @@ begin
   ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
   ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
   ButtonChangeTransformationVelocity.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctVelocity;
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
+  {$endif}
 end;
 
 procedure TStatePlay.ClickChangeTransformationAuto(Sender: TObject);
@@ -345,7 +355,9 @@ end;
 
 procedure TStatePlay.ClickChangeTransformationForce(Sender: TObject);
 begin
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ThirdPersonNavigation.ChangeTransformation := ctForce;
+  {$endif}
   UpdateButtonsChangeTransformation;
 end;
 

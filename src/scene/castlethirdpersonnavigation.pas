@@ -18,6 +18,8 @@ unit CastleThirdPersonNavigation;
 
 {$I castleconf.inc}
 
+{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+
 interface
 
 uses SysUtils, Classes,
@@ -79,7 +81,9 @@ type
       It requires a TCastleRigidBody and TCastleCollider components
       to be attached to the @link(AvatarHierarchy)
       (or @link(Avatar), if @link(AvatarHierarchy) is @nil). }
-    ctVelocity,
+    ctVelocity
+
+    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE},
 
     { Change the avatar using rigid body forces like @link(TCastleRigidBody.AddForce),
       @link(TCastleRigidBody.AddTorque).
@@ -90,8 +94,9 @@ type
       to be attached to the @link(AvatarHierarchy)
       (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
 
-      TODO: Unfinished, not fully functional now. }
+      TODO: Unfinished, not really functional now. }
     ctForce
+    {$endif}
   );
 
   { 3rd-person camera navigation.
@@ -1218,8 +1223,9 @@ var
     end;
   end;
 
-  procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   // TODO: Not finished.
+  procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
   var
     DeltaForce: Single;
     Torque: Single;
@@ -1283,6 +1289,7 @@ var
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
     end;
   end;
+  {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
   { Make camera follow the A.Translation.
     Following the character also makes sure that camera stays updated
@@ -1455,7 +1462,9 @@ begin
         DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
+    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
+    {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
     {$endif}
