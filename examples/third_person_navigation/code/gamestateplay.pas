@@ -190,7 +190,32 @@ end;
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
+  var
+    RayCastResult: TPhysicsRayCastResult;
   begin
+    RayCastResult := AvatarRigidBody.PhysicsRayCast(
+      SceneAvatar.Middle,
+      SceneAvatar.Direction
+    );
+    Result := RayCastResult.Transform;
+
+    { Alternative version, using Items.PhysicsRayCast
+      (everything in world space coordinates).
+      This works equally well, showing it here just for reference.
+
+    RayCastResult := MainViewport.Items.PhysicsRayCast(
+      SceneAvatar.Parent.LocalToWorld(SceneAvatar.Middle),
+      SceneAvatar.Parent.LocalToWorldDirection(SceneAvatar.Direction),
+      MaxSingle,
+      AvatarRigidBody
+    );
+    Result := RayCastResult.Transform;
+    }
+
+    (* Alternative versions, using old physics,
+       see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+       They still work (even when you also use new physics).
+
     if not AvatarRigidBody.Exists then
     begin
       { SceneAvatar.RayCast tests a ray collision,
@@ -199,13 +224,14 @@ function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
       Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
     end else
     begin
-      { In case of full-featured physics engine, we should not toggle Exists multiple
+      { When physics engine is working, we should not toggle Exists multiple
         times in a single frame, which makes the curent TCastleTransform.RayCast not good.
         So use Items.WorldRayCast, and secure from "hitting yourself" by just moving
         the initial ray point by 0.5 units. }
       Result := MainViewport.Items.WorldRayCast(
         SceneAvatar.Middle + SceneAvatar.Direction * 0.5, SceneAvatar.Direction);
     end;
+    *)
   end;
 
 var

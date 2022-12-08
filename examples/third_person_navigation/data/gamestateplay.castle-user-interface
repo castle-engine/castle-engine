@@ -56,7 +56,19 @@
               "X" : 2.0000000000000000E+000,
               "Z" : 4.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "URL" : "castle-data:/enemy/soldier1.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Animated" : true,
+                "Dynamic" : false,
+                "Name" : "RigidBody1"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Name" : "BoxCollider1"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -115,7 +127,19 @@
               "X" : 5.0000000000000000E+000,
               "Z" : 3.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "URL" : "castle-data:/enemy/soldier1.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Animated" : true,
+                "Dynamic" : false,
+                "Name" : "RigidBody2"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Name" : "BoxCollider2"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -133,7 +157,19 @@
               "X" : 8.0000000000000000E+000,
               "Z" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "URL" : "castle-data:/enemy/soldier1.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Name" : "BoxCollider3"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Animated" : true,
+                "Dynamic" : false,
+                "Name" : "RigidBody3"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -151,7 +187,19 @@
               "X" : 1.1000000000000000E+001,
               "Z" : 1.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "URL" : "castle-data:/enemy/soldier1.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Animated" : true,
+                "Dynamic" : false,
+                "Name" : "RigidBody4"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Name" : "BoxCollider4"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleCamera",
@@ -220,22 +268,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 3.9878437519073486E+000,
-          "X" : 8.6216874420642853E-002,
-          "Y" : 9.7863852977752686E-001,
-          "Z" : 1.8663686513900757E-001
+          "W" : 1.9359943866729736E+000,
+          "X" : -1.0688739269971848E-001,
+          "Y" : -9.8258543014526367E-001,
+          "Z" : -1.5198981761932373E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 9.9999988079071045E-001,
-          "Z" : 9.9999994039535522E-001
+          "Z" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.4601312637329102E+001,
-          "Y" : 8.9647226333618164E+000,
-          "Z" : -8.5770788192749023E+000
+          "X" : -6.1774091720581055E+000,
+          "Y" : 4.5708899497985840E+000,
+          "Z" : -1.3602972030639648E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
