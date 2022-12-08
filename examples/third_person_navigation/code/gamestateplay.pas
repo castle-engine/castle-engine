@@ -40,16 +40,28 @@ type
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
     CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
+    SliderAirRotationControl: TCastleFloatSlider;
+    SliderAirMovementControl: TCastleFloatSlider;
+    ButtonChangeTransformationAuto,
+      ButtonChangeTransformationDirect,
+      ButtonChangeTransformationVelocity,
+      ButtonChangeTransformationForce: TCastleButton;
   private
     { Enemies behaviors }
     Enemies: TEnemyList;
 
     DebugAvatar: TDebugTransform;
-
+    procedure UpdateButtonsChangeTransformation;
     procedure ChangeCheckboxCameraFollows(Sender: TObject);
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
     procedure ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
+    procedure ChangeAirRotationControl(Sender: TObject);
+    procedure ChangeAirMovementControl(Sender: TObject);
+    procedure ClickChangeTransformationAuto(Sender: TObject);
+    procedure ClickChangeTransformationDirect(Sender: TObject);
+    procedure ClickChangeTransformationVelocity(Sender: TObject);
+    procedure ClickChangeTransformationForce(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -69,8 +81,10 @@ uses SysUtils, Math, StrUtils,
 
 const
   { When this is @false, we use full-featured physics engine (Kraft).
+
     When this is @true, we use "old simple physics" (built-in CGE, see
-    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ). }
+    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+    Note that only ChangeTransformation = ctDirect or ctAuto will work in this case. }
   UseOldSimplePhysics = false;
 
 { TStatePlay ----------------------------------------------------------------- }
@@ -101,11 +115,24 @@ begin
     Enemies.Add(Enemy);
   end;
 
-  CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxCameraFollows;
-  CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxAimAvatar;
-  CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
-  CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
+  { synchronize state -> UI }
+  SliderAirRotationControl.Value := ThirdPersonNavigation.AirRotationControl;
+  SliderAirMovementControl.Value := ThirdPersonNavigation.AirMovementControl;
+  UpdateButtonsChangeTransformation;
 
+  CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollows;
+  CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxAimAvatar;
+  CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxDebugAvatarColliders;
+  CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxImmediatelyFixBlockedCamera;
+  SliderAirRotationControl.OnChange := {$ifdef FPC}@{$endif} ChangeAirRotationControl;
+  SliderAirMovementControl.OnChange := {$ifdef FPC}@{$endif} ChangeAirMovementControl;
+  ButtonChangeTransformationAuto.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationAuto;
+  ButtonChangeTransformationDirect.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationDirect;
+  ButtonChangeTransformationVelocity.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationVelocity;
+  ButtonChangeTransformationForce.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationForce;
+
+  { These are deprecated ways to realize collisions and gravity,
+    without physics engine. }
   if UseOldSimplePhysics then
   begin
     { Right now rigid body and collider are configured in the design,
@@ -278,6 +305,48 @@ end;
 procedure TStatePlay.ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
 begin
   ThirdPersonNavigation.ImmediatelyFixBlockedCamera := CheckboxImmediatelyFixBlockedCamera.Checked;
+end;
+
+procedure TStatePlay.ChangeAirRotationControl(Sender: TObject);
+begin
+  ThirdPersonNavigation.AirRotationControl := SliderAirRotationControl.Value;
+end;
+
+procedure TStatePlay.ChangeAirMovementControl(Sender: TObject);
+begin
+  ThirdPersonNavigation.AirMovementControl := SliderAirMovementControl.Value;
+end;
+
+procedure TStatePlay.UpdateButtonsChangeTransformation;
+begin
+  ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
+  ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
+  ButtonChangeTransformationVelocity.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctVelocity;
+  ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
+end;
+
+procedure TStatePlay.ClickChangeTransformationAuto(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctAuto;
+  UpdateButtonsChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationDirect(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctDirect;
+  UpdateButtonsChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationVelocity(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctVelocity;
+  UpdateButtonsChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationForce(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctForce;
+  UpdateButtonsChangeTransformation;
 end;
 
 end.
