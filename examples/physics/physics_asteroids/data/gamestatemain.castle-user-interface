@@ -68,10 +68,6 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "Dynamic" : false,
-                    "LockRotation" : [
-                    ],
-                    "LockTranslation" : [
-                    ],
                     "Name" : "RigidBody9"
                   }
                 ]
@@ -110,10 +106,6 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "Dynamic" : false,
-                    "LockRotation" : [
-                    ],
-                    "LockTranslation" : [
-                    ],
                     "Name" : "RigidBody10"
                   }
                 ]
@@ -157,10 +149,6 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "Dynamic" : false,
-                    "LockRotation" : [
-                    ],
-                    "LockTranslation" : [
-                    ],
                     "Name" : "RigidBody11"
                   }
                 ]
@@ -204,10 +192,6 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "Dynamic" : false,
-                    "LockRotation" : [
-                    ],
-                    "LockTranslation" : [
-                    ],
                     "Name" : "RigidBody12"
                   }
                 ]
@@ -536,7 +520,7 @@
                 "LockTranslation" : [
                   2
                 ],
-                "Name" : "RigidBody"
+                "Name" : "ShipRigidBody"
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",

@@ -40,13 +40,13 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     Ship: TCastleTransform;
+    ShipRigidBody: TCastleRigidBody;
     Viewport: TCastleViewport;
   strict private
     const
       ThrustForce = 300;
       TorqueValue = 10000;
     var
-      ShipRigidBody: TCastleRigidBody;
       BulletSpriteImage: TCastleImageTransform;
     function InputLeft: Boolean;
     function InputRight: Boolean;
@@ -141,8 +141,6 @@ procedure TStateMain.Start;
 begin
   inherited;
 
-  ShipRigidBody := Ship.RigidBody;
-
   BulletSpriteImage := TCastleImageTransform.Create(FreeAtStop);
   BulletSpriteImage.URL := 'castle-data:/graphics/bullet/bullet.png';
   BulletSpriteImage.Scale := Vector3(2, 2, 2);
@@ -178,6 +176,7 @@ end;
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 var
   Bullet: TBullet;
+  BullletBody: TCastleRigidBody;
   Direction: TVector3;
 begin
   Result := inherited;
@@ -201,8 +200,11 @@ begin
     Viewport.Items.Add(Bullet);
 
     Direction := Ship.LocalToWorldDirection(Vector3(0,1,0));
+
+    BullletBody := Bullet.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     { Change Bullet.Translation to Vector3(0,1,0) to keep the bullets rotating }
-    Bullet.RigidBody.ApplyImpulse(Direction * 500, {Vector3(0,1,0)} Bullet.Translation);
+    BullletBody.ApplyImpulse(Direction * 500, {Vector3(0,1,0)} Bullet.Translation);
+
     Exit(true); // key was handled
   end;
 end;
