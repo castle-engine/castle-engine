@@ -480,7 +480,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
 begin
   { This method is executed every frame.}
 
@@ -492,35 +492,35 @@ begin
   Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
-    on the edge, maybe be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  { Two more checks using physics engine - player should slide down when player is just
+    on the edge.
+    TODO: maybe we can remove this logic after using TCastleCapsule collider for player. }
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -595,7 +595,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
@@ -610,35 +610,34 @@ begin
   Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, maye be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -754,23 +753,23 @@ begin
 
   { Check player is on ground }
   PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
 
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, but sometimes it stay and center ray dont "see" that we are
     on ground }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
     PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
     PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
   if PlayerOnGround then
@@ -908,7 +907,7 @@ begin
 
   { Check player is on ground }
   GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
 
   { Two more checks - player should slide down when player just
     on the edge, but sometimes it stay and center ray don't "see" that we are
@@ -917,14 +916,14 @@ begin
   begin
     GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
 
   if GroundScene = nil then
   begin
     GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
 
   { Player is on ground when RayCasts hits something }

@@ -76,7 +76,7 @@ begin
 
     if RBody <> nil then
     begin
-      RayHitThat := RBody.PhysicsRayCast(Scene.Translation, Vector3(0, -1, 0), 300);
+      RayHitThat := RBody.PhysicsRayCast(Scene.Translation, Vector3(0, -1, 0), 300).Transform;
 
       { Check was that a player? }
       if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then

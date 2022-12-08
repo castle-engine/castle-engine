@@ -94,7 +94,7 @@ begin
 
   RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
   EnemyOnGround := RBody.PhysicsRayCast(Scene.Translation,
-    Vector3(0, -1, 0), RayMaxDistance) <> nil;
+    Vector3(0, -1, 0), RayMaxDistance).Hit;
 
   if not EnemyOnGround then
   begin
@@ -108,9 +108,9 @@ begin
 
   if DontFallDown then
   begin
-    NeedTurn := RBody.PhysicsRayCast(Scene.Translation
+    NeedTurn := not RBody.PhysicsRayCast(Scene.Translation
       + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
-      Vector3(0, -1, 0), RayMaxDistance) = nil;
+      Vector3(0, -1, 0), RayMaxDistance).Hit;
   end else
     NeedTurn := false;
 
@@ -118,7 +118,7 @@ begin
   if not NeedTurn then
   begin
     ObstacleAhead := RBody.PhysicsRayCast(Scene.Translation,
-      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5);
+      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5).Transform;
 
     if ObstacleAhead <> nil then
     begin
