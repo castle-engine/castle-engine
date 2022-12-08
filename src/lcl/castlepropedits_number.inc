@@ -50,6 +50,29 @@ type
     procedure SetValue(const NewValue: String); override;
   end;
 
+
+  { Property editor for floats in rotation vectors, improves
+    standard TCastleFloatPropertyEditor. }
+  TCastleFloatRotationPropertyEditor = class(TCastleFloatPropertyEditor)
+  public
+    function GetName: ShortString; override;
+  end;
+
+{ TCastleFloatRotationPropertyEditor ----------------------------------------- }
+
+function TCastleFloatRotationPropertyEditor.GetName: ShortString;
+begin
+  Result := inherited GetName;
+
+  {
+  if (Result = 'W') and (GetInstProp^.Instance.ClassType = TCastleVector4RotationPersistent) then
+    Result := 'Angle (W)';
+  }
+
+  if Result = 'W' then
+    Result := 'Angle (W)';
+end;
+
 {$ifdef LCL_HAS_DEFAULT_VALUE}
 function TCastleFloatPropertyEditor.GetDefaultValue: String;
 var

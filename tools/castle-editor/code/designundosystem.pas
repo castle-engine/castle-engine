@@ -22,7 +22,8 @@ interface
 
 uses
   Classes, Generics.Collections,
-  CastleUtils;
+  CastleUtils,
+  EditorUtils;
 
 type
   TUndoCommentPriority = (
@@ -41,21 +42,13 @@ type
     We might want to change it in future, most likely make several types of data
     that can be recorded as undo events }
   TUndoData = String;
-  { Reference to the component selected at the moment of recording Undo data.
-    Currently we are "finding" the component by name to select it. }
-  TSelectedComponent = String;
 
 type
   { A single change in scene content. }
   TUndoHistoryElement = class(TObject)
     { Content of this undo. }
     Data: TUndoData;
-    { Compopent, selected at the time of undo recording. }
-    Selected: TSelectedComponent;
-    { Index of the value selected/edited in the ObjectInspector. }
-    ItemIndex: Integer;
-    { Index of the tab, opened at the moment of the Undo recording. }
-    TabIndex: Integer;
+    Selection: TSavedSelection;
     { Human-readable explanation of what action is recorded in this undo record. }
     Comment: String;
     { Estimate of this undo record size;
@@ -108,8 +101,7 @@ type
     { Try to record a new Undo record.
       If several actions have been undone before, all the redo history will be cleared at this moment.
       If the new Undo record is equal to the recorded one then nothing will be recorded. }
-    procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
-      const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
+    procedure RecordUndo(const UndoData: TUndoData; const SavedSelection: TSavedSelection; const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority);
     { Get a recent state change and move one step backwards in Undo History. }
     function Undo: TUndoHistoryElement;
@@ -148,7 +140,10 @@ function TUndoHistoryElement.Size: SizeInt;
   end;
 
 begin
-  Result := Self.InstanceSize + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected) + SizeOfAnsiString(Comment);
+  Result := Self.InstanceSize +
+    SizeOfAnsiString(Data) +
+    SizeOfAnsiString(Selection.SelectedComponent) +
+    SizeOfAnsiString(Comment);
 end;
 
 constructor TUndoSystem.Create(AOwner: TComponent);
@@ -173,8 +168,8 @@ begin
     Result += U.Size;
 end;
 
-procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
-  const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
+procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SavedSelection: TSavedSelection;
+  const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority);
 var
   NewUndoElement: TUndoHistoryElement;
@@ -183,10 +178,10 @@ begin
   ScheduleRecordUndoOnRelease := false;
   if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
   begin
-    if (SelectedComponent <> UndoHistory[CurrentUndo].Selected) then
+    if not TSavedSelection.Equals(SavedSelection, UndoHistory[CurrentUndo].Selection) then
     begin
-      DoLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. This change has been saved.');
-      UndoHistory[CurrentUndo].Selected := SelectedComponent;
+      DoLog('New Undo is identical to previous Undo record. Only selection has changed. This change has been saved.');
+      UndoHistory[CurrentUndo].Selection := SavedSelection;
       OnUpdateUndo(Self);
     end;
     if (UndoCommentPriority > CurrentUndoCommentPriority) then
@@ -205,9 +200,7 @@ begin
   // Add new UndoElement
   NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
-  NewUndoElement.Selected := SelectedComponent;
-  NewUndoElement.ItemIndex := ItemIndex;
-  NewUndoElement.TabIndex := TabIndex;
+  NewUndoElement.Selection := SavedSelection;
   NewUndoElement.Comment := UndoComment;
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);

@@ -55,12 +55,21 @@
 ../../../src/ui/ TCastleCrosshair Color TCastleColor
 
 ../../../src/transform/ TCastleTransform Center TVector3
-../../../src/transform/ TCastleTransform Rotation TVector4
+../../../src/transform/ TCastleTransform Rotation TVector4 rotation
 ../../../src/transform/ TCastleTransform Scale TVector3
 ../../../src/transform/ TCastleTransform ScaleOrientation TVector4
 ../../../src/transform/ TCastleTransform Translation TVector3
 ../../../src/transform/ TCastleTransform Direction TVector3 no-store
 ../../../src/transform/ TCastleTransform Up TVector3 no-store
+
+../../../src/transform/ TCastleCollider Translation TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleCollider Rotation TVector4 store=StoredWithAutoSize rotation
+
+../../../src/transform/ TCastlePlaneCollider Normal TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleBoxCollider Size TVector3 store=StoredWithAutoSize
+
+../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
+../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
@@ -86,7 +95,7 @@
 ../../../src/scene/ TCastleBackground SkyEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
-../../../src/scene/ TCastleBackground Rotation TVector4
+../../../src/scene/ TCastleBackground Rotation TVector4 rotation
 
 ../../../src/scene/ TCastleFog Color TCastleColorRGB
 

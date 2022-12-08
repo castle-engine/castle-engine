@@ -38,6 +38,9 @@
     and accessing the @link(TCastleTransform.Parent) from a child.
   }
   TCastleBehavior = class(TCastleComponent)
+  strict private
+    FListenWorldChange: Boolean;
+    procedure SetListenWorldChange(const Value: Boolean);
   private
     FParent: TCastleTransform;
   protected
@@ -51,6 +54,23 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
+      deprecated 'Use ParentAfterAttach / ParentBeforeDetach or WorldAfterAttach / WorldBeforeDetach';
+
+    { Called after @link(Parent) changed, e.g. at the end of @link(TCastleTransform.AddBehavior). }
+    procedure ParentAfterAttach; virtual;
+
+    { Called before @link(Parent) changed, e.g. at the beginning of @link(TCastleTransform.RemoveBehavior).
+      This is also called from destructor of behavior. }
+    procedure ParentBeforeDetach; virtual;
+
+    { Called after @link(Parent) became part of @link(World).
+      Called only if ListenWorldChange is @true. }
+    procedure WorldAfterAttach; virtual;
+
+    { Called before @link(Parent) stops being part of @link(World).
+      This is also called from destructor of behavior.
+      Called only if ListenWorldChange is @true. }
+    procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
       When this returns @false, it has to set also ReasonWhyCannot.
@@ -75,13 +95,23 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
+    procedure BeforeDestruction; override;
+
+    function World: TCastleAbstractRootTransform;
+
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior).
 
       @nil if this behavior is not yet added to a parent. }
     property Parent: TCastleTransform read FParent;
+
+    { Set this to @true to receive WorldBeforeDetach, WorldAfterAttach calls. }
+    property ListenWorldChange: Boolean
+      read FListenWorldChange write SetListenWorldChange;
   end;
+
+  TCastleBehaviorList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleBehavior>;
 
 {$endif read_interface}
 
@@ -118,12 +148,48 @@ end;
 
 { TCastleBehavior ------------------------------------------------------------ }
 
+procedure TCastleBehavior.SetListenWorldChange(const Value: Boolean);
+begin
+  if FListenWorldChange <> Value then
+  begin
+    FListenWorldChange := Value;
+    if Parent <> nil then
+    begin
+      if Value then
+        Parent.AddWorldChangeNotification(Self)
+      else
+        Parent.RemoveWorldChangeNotification(Self)
+    end;
+  end;
+end;
+
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
 end;
 
 procedure TCastleBehavior.ParentChanged;
 begin
+
+end;
+
+procedure TCastleBehavior.ParentAfterAttach;
+begin
+
+end;
+
+procedure TCastleBehavior.ParentBeforeDetach;
+begin
+
+end;
+
+procedure TCastleBehavior.WorldAfterAttach;
+begin
+
+end;
+
+procedure TCastleBehavior.WorldBeforeDetach;
+begin
+
 end;
 
 function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
@@ -131,6 +197,22 @@ function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
 begin
   ReasonWhyCannot := '';
   Result := true;
+end;
+
+procedure TCastleBehavior.BeforeDestruction;
+begin
+  if Parent <> nil then
+    Parent.BeforeBehaviorDestroy(Self);
+
+  inherited BeforeDestruction;
+end;
+
+function TCastleBehavior.World: TCastleAbstractRootTransform;
+begin
+  if Parent <> nil then
+    Result := Parent.World
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

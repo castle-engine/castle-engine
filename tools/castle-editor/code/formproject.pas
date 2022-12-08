@@ -42,6 +42,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionShowColliders: TAction;
+    ActionSimulationPlayStop: TAction;
+    ActionSimulationPauseUnpause: TAction;
     ActionViewportRenderNext: TAction;
     ActionViewportRenderSolidWireframe: TAction;
     ActionModeSelect: TAction;
@@ -94,6 +97,11 @@ type
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemSimulationPauseUnpause: TMenuItem;
+    MenuItemSimulationPlayStop: TMenuItem;
+    SeparatorBeforeShowColliders: TMenuItem;
+    MenuItemShowColliders: TMenuItem;
+    MenuItemPhysics: TMenuItem;
     MenuItemCacheClean: TMenuItem;
     MenuItemCache: TMenuItem;
     SeparatorBeforeCache: TMenuItem;
@@ -246,7 +254,7 @@ type
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
     MenuItemSeparator101: TMenuItem;
-    MenuItemBreakProcess: TMenuItem;
+    MenuItemStopProcess: TMenuItem;
     MenuItemSeprator100: TMenuItem;
     MenuItemAutoGenerateClean: TMenuItem;
     MenuItemAutoGenerateTextures: TMenuItem;
@@ -285,6 +293,11 @@ type
     procedure ActionModeScaleExecute(Sender: TObject);
     procedure ActionModeSelectExecute(Sender: TObject);
     procedure ActionModeTranslateExecute(Sender: TObject);
+    procedure ActionShowCollidersExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -369,7 +382,7 @@ type
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
-    procedure MenuItemBreakProcessClick(Sender: TObject);
+    procedure MenuItemStopProcessClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
@@ -464,8 +477,10 @@ type
       const PascalFileName: String;
       const Line: Integer = -1;
       const Column: Integer = -1);
-    procedure SetEnabledCommandRun(const AEnabled: Boolean);
+    procedure IsRunningChanged;
     procedure FreeProcess;
+    procedure RunningToggle(Sender: TObject);
+    function IsRunning: Boolean;
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -500,6 +515,9 @@ type
     procedure MenuItemPlatformChangeClick(Sender: TObject);
     procedure RestartEditor(Sender: TObject);
     procedure CurrentViewportChanged(Sender: TObject);
+    { Question about saving during physics simulation. }
+    function SaveDuringPhysicsSimulation: Boolean;
+    function IsCreatingNewDesignAvailable: Boolean;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -522,11 +540,17 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait,
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close editor.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
     Application.Terminate;
 end;
@@ -564,6 +588,9 @@ end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
+  if not SaveDuringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
@@ -595,6 +622,9 @@ end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
+  if not SaveDuringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
 
   if Design.DesignUrl = '' then
@@ -634,18 +664,26 @@ begin
   BuildToolCall(['auto-generate-textures']);
 end;
 
-procedure TProjectForm.MenuItemBreakProcessClick(Sender: TObject);
+procedure TProjectForm.MenuItemStopProcessClick(Sender: TObject);
 begin
   if RunningProcess = nil then
-    raise EInternalError.Create('It should not be possible to call this when RunningProcess = nil');
+    raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
-  OutputList.AddLine('Forcefully killing the process.', okError);
+  OutputList.AddLine('Stopping the process.', okError);
+  RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to turn off the editor.');
+    CanClose := false;
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     { Close sprite sheet editor window if visible }
@@ -841,6 +879,40 @@ procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ChangeMode(moTranslate);
+end;
+
+procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ShowColliders := not Design.ShowColliders;
+  ActionShowColliders.Checked := Design.ShowColliders;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPauseUnpause;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+  ActionSimulationPauseUnpause.Enabled := (Design <> nil) and
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
+  ActionSimulationPauseUnpause.Checked := (Design <> nil) and
+    (CastleApplicationMode = appSimulationPaused);
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPlayStop;
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  ActionSimulationPlayStop.Enabled := Design <> nil;
+  ActionSimulationPlayStop.Checked := (Design <> nil) and
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -1715,6 +1787,9 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleComponent, nil);
 end;
@@ -1916,6 +1991,12 @@ procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
 
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
@@ -2007,6 +2088,12 @@ end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
     OpenDesign(DesignUrl);
 end;
@@ -2023,6 +2110,11 @@ begin
     Design.OnSelectionChanged := @UpdateRenameItem;
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
+    Design.OnIsRunning  := @IsRunning;
+    Design.OnRunningToggle  := @RunningToggle;
+
+    // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
 
     DesignExistenceChanged;
     if Docking then
@@ -2062,6 +2154,27 @@ begin
     end;
   end else
     UnselectAll;
+end;
+
+function TProjectForm.SaveDuringPhysicsSimulation: Boolean;
+begin
+  Result := true;
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    Result := YesNoBox('The editor is during of physics simulation.'+ NL +
+      'Saving the design will save the current state, not the state ' + NL +
+      'before the start of the simulation. Do you want to continue?');
+  end;
+end;
+
+function TProjectForm.IsCreatingNewDesignAvailable: Boolean;
+begin
+  Result := true;
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to create new design.');
+    Result := false;
+  end;
 end;
 
 procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
@@ -2107,12 +2220,18 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleTransform, nil);
 end;
@@ -2129,6 +2248,12 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     if Design <> nil then
@@ -2158,6 +2283,12 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to switch project.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     { Close sprite sheet editor window if visible }
@@ -2192,8 +2323,8 @@ end;
 procedure TProjectForm.FreeProcess;
 begin
   FreeAndNil(RunningProcess);
-  SetEnabledCommandRun(true);
   ProcessUpdateTimer.Enabled := false;
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
@@ -2360,6 +2491,19 @@ begin
     finally FreeAndNil(Macros) end;
     RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
+end;
+
+function TProjectForm.IsRunning: Boolean;
+begin
+  Result := RunningProcess <> nil;
+end;
+
+procedure TProjectForm.RunningToggle(Sender: TObject);
+begin
+  if RunningProcess = nil then
+    MenuItemCompileRunClick(MenuItemCompileRun)
+  else
+    MenuItemStopProcessClick(MenuItemStopProcess);
 end;
 
 procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
@@ -2701,7 +2845,6 @@ begin
     Exit;
   end;
 
-  SetEnabledCommandRun(false);
   OutputList.Clear;
   PageControlBottom.ActivePage := TabOutput;
   ProcessUpdateTimer.Enabled := true;
@@ -2754,6 +2897,8 @@ begin
   RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.RestartEditor(Sender: TObject);
@@ -2806,6 +2951,9 @@ procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
 var
   R: TRegisteredComponent;
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
@@ -2813,21 +2961,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);
+procedure TProjectForm.IsRunningChanged;
+var
+  EnableRun: Boolean;
 begin
-  MenuItemCompile.Enabled := AEnabled;
-  MenuItemCompileRun.Enabled := AEnabled;
-  MenuItemOnlyRun.Enabled := AEnabled;
-  MenuItemClean.Enabled := AEnabled;
-  MenuItemPackage.Enabled := AEnabled;
-  MenuItemPackageSource.Enabled := AEnabled;
-  MenuItemInstall.Enabled := AEnabled;
-  MenuItemAutoGenerateTextures.Enabled := AEnabled;
-  MenuItemAutoGenerateClean.Enabled := AEnabled;
-  MenuItemRestartRebuildEditor.Enabled := AEnabled;
-  MenuItemBreakProcess.Enabled := not AEnabled;
-  MenuItemCache.Enabled := AEnabled;
-  MenuItemCacheClean.Enabled := AEnabled;
+  EnableRun := not IsRunning;
+
+  MenuItemCompile.Enabled := EnableRun;
+  MenuItemCompileRun.Enabled := EnableRun;
+  MenuItemOnlyRun.Enabled := EnableRun;
+  MenuItemClean.Enabled := EnableRun;
+  MenuItemPackage.Enabled := EnableRun;
+  MenuItemPackageSource.Enabled := EnableRun;
+  MenuItemInstall.Enabled := EnableRun;
+  MenuItemAutoGenerateTextures.Enabled := EnableRun;
+  MenuItemAutoGenerateClean.Enabled := EnableRun;
+  MenuItemRestartRebuildEditor.Enabled := EnableRun;
+  MenuItemCache.Enabled := EnableRun;
+  MenuItemCacheClean.Enabled := EnableRun;
+
+  MenuItemStopProcess.Enabled := not EnableRun;
+
+  // Looks like we need to call this manually
+  // (to update because of ActionPlayStopExecute or when process starts/stops independently)
+  if Design <> nil then
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
 end;
 
 procedure TProjectForm.UpdateFormCaption(Sender: TObject);
@@ -2913,7 +3071,7 @@ begin
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;
-  SetEnabledCommandRun(true);
+  IsRunningChanged;
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;

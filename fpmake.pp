@@ -247,7 +247,6 @@ begin
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
     P.Targets.AddUnit('castlenurbs.pas');
-    P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
@@ -325,6 +324,7 @@ begin
     P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlerenderoptions.pas');
+    P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');

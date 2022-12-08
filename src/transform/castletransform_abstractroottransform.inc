@@ -17,6 +17,17 @@
 {$ifdef read_interface}
 
 //type
+  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+    @link(TCastleRigidBody.PhysicsRayCast). }
+  TPhysicsRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+    Transform: TCastleTransform;
+    { Distance from ray origin to the hit point. }
+    Distance: Single;
+    Point, Normal: TVector3;
+  end;
+
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
@@ -35,6 +46,9 @@
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
+      is physics running. }
+    function IsPhysicsRunning: Boolean;
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -239,6 +253,30 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
+    { Cast a ray using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given RayOrigin, RayDirection, Distance are in the world coordinate system.
+
+      It returns TPhysicsRayCastResult, with information there
+      also in the world coordinate system.
+
+      This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role will be filled by layers. }
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single = MaxSingle;
+      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
@@ -428,6 +466,14 @@ end;
 function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
+end;
+
+function TCastleAbstractRootTransform.IsPhysicsRunning: Boolean;
+begin
+  Result :=
+    EnablePhysics and
+    (FKraftEngine <> nil) and
+    (CastleApplicationMode in [appRunning, appSimulation]);
 end;
 
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;

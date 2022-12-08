@@ -16,6 +16,8 @@
 { Main "playing game" state, where most of the game logic takes place. }
 unit GameStatePlay;
 
+{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+
 interface
 
 uses Classes,
@@ -35,20 +37,34 @@ type
     MainViewport: TCastleViewport;
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
     SceneAvatar, SceneLevel: TCastleScene;
+    AvatarRigidBody: TCastleRigidBody;
     CheckboxCameraFollows: TCastleCheckbox;
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
     CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
+    SliderAirRotationControl: TCastleFloatSlider;
+    SliderAirMovementControl: TCastleFloatSlider;
+    ButtonChangeTransformationAuto,
+      ButtonChangeTransformationDirect,
+      ButtonChangeTransformationVelocity,
+      ButtonChangeTransformationForce: TCastleButton;
   private
     { Enemies behaviors }
     Enemies: TEnemyList;
 
     DebugAvatar: TDebugTransform;
-
+    { Change things after ThirdPersonNavigation.ChangeTransformation changed. }
+    procedure UpdateAfterChangeTransformation;
     procedure ChangeCheckboxCameraFollows(Sender: TObject);
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
     procedure ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
+    procedure ChangeAirRotationControl(Sender: TObject);
+    procedure ChangeAirMovementControl(Sender: TObject);
+    procedure ClickChangeTransformationAuto(Sender: TObject);
+    procedure ClickChangeTransformationDirect(Sender: TObject);
+    procedure ClickChangeTransformationVelocity(Sender: TObject);
+    procedure ClickChangeTransformationForce(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -75,35 +91,6 @@ begin
 end;
 
 procedure TStatePlay.Start;
-
-  procedure UsePhysicsForAvatarGravity;
-  var
-    LevelBody: TRigidBody;
-    LevelCollider: TMeshCollider;
-    AvatarBody: TRigidBody;
-    AvatarCollider: TBoxCollider;
-  begin
-    LevelBody := TRigidBody.Create(FreeAtStop);
-    LevelBody.Dynamic := false;
-
-    LevelCollider := TMeshCollider.Create(LevelBody);
-    LevelCollider.Scene := SceneLevel;
-    LevelCollider.Restitution := 0.3;
-
-    SceneLevel.RigidBody := LevelBody;
-
-    AvatarBody := TRigidBody.Create(FreeAtStop);
-    AvatarBody.LockRotation := [0, 2];
-
-    AvatarCollider := TBoxCollider.Create(AvatarBody);
-    AvatarCollider.Size := Vector3(1, 2, 1);
-    AvatarCollider.Translation := Vector3(0, 1, 0);
-    AvatarCollider.Restitution := 0.3;
-    AvatarCollider.Density := 100.0;
-
-    SceneAvatar.RigidBody := AvatarBody;
-  end;
-
 var
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
@@ -123,54 +110,50 @@ begin
     Enemies.Add(Enemy);
   end;
 
-  CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxCameraFollows;
-  CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxAimAvatar;
-  CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
-  CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
+  { synchronize state -> UI }
+  SliderAirRotationControl.Value := ThirdPersonNavigation.AirRotationControl;
+  SliderAirMovementControl.Value := ThirdPersonNavigation.AirMovementControl;
+  UpdateAfterChangeTransformation;
 
-  { TODO: This code does not define USE_PHYSICS_FOR_AVATAR_GRAVITY,
-    and uses CGE old physics using TCastleTransform.Gravity.
-    We no longer advise using TCastleTransform.Gravity in general,
-    and advise to realize gravity using only "full" physics engine like Kraft,
-    using TCastleRigidBody / TCastleCollider.
+  CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollows;
+  CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxAimAvatar;
+  CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxDebugAvatarColliders;
+  CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxImmediatelyFixBlockedCamera;
+  SliderAirRotationControl.OnChange := {$ifdef FPC}@{$endif} ChangeAirRotationControl;
+  SliderAirMovementControl.OnChange := {$ifdef FPC}@{$endif} ChangeAirMovementControl;
+  ButtonChangeTransformationAuto.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationAuto;
+  ButtonChangeTransformationDirect.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationDirect;
+  ButtonChangeTransformationVelocity.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationVelocity;
+  ButtonChangeTransformationForce.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationForce;
 
-    We work on making this applicable to 3rd-person avatar too,
-    so that you could enable UsePhysicsForAvatarGravity (and actually design
-    the physics in CGE editor).
-    For now, you can use deprecated TCastleTransform.Gravity for avatar.
+  {$ifndef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+  { Hide UI to test ChangeTransformation = ctForce, it is not finished now,
+    not really useful for normal usage. }
+  ButtonChangeTransformationForce.Exists := false;
+  {$endif}
 
-    Most likely, this will be made possible by enabling TRigidBody.Dynamic and
-    TRigidBody.Animated to be both @true. }
-  {.$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
-
-  {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
-  UsePhysicsForAvatarGravity;
-  {$else}
-  { Make SceneAvatar collide using a sphere.
-    Sphere is more useful than default bounding box for avatars and creatures
-    that move in the world, look ahead, can climb stairs etc. }
+  { This configures SceneAvatar.Middle point, used for shooting.
+    In case of old physics (ChangeTransformation = ctDirect) this is also the center
+    of SceneAvatar.CollisionSphereRadius. }
   SceneAvatar.MiddleHeight := 0.9;
-  SceneAvatar.CollisionSphereRadius := 0.5;
 
-  { Gravity means that object tries to maintain a constant height
-    (SceneAvatar.PreferredHeight) above the ground.
-    GrowSpeed means that object raises properly (makes walking up the stairs work).
-    FallSpeed means that object falls properly (makes walking down the stairs,
-    falling down pit etc. work). }
-  SceneAvatar.Gravity := true;
+  { Configure some parameters of old simple physics,
+    these only matter when SceneAvatar.Gravity = true.
+    Don't use these deprecated things if you don't plan to use ChangeTransformation = ctDirect! }
   SceneAvatar.GrowSpeed := 10.0;
   SceneAvatar.FallSpeed := 10.0;
-  {$endif}
+  { When avatar collides as sphere it can climb stairs,
+    because legs can temporarily collide with objects. }
+  SceneAvatar.CollisionSphereRadius := 0.5;
 
   { Visualize SceneAvatar bounding box, sphere, middle point, direction etc. }
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
   DebugAvatar.Parent := SceneAvatar;
 
-  { Configure ThirdPersonNavigation, some things that cannot be yet adusted using CGE editor.
-    In particular assign some keys that are not assigned by default. }
+  { Configure ThirdPersonNavigation keys (for now, we don't expose doing this in CGE editor). }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.MouseLook := true; // by default use mouse look
+  ThirdPersonNavigation.MouseLook := true; // TODO: assigning it from editor doesn't make mouse hidden in mouse look
   ThirdPersonNavigation.Init;
 end;
 
@@ -207,11 +190,48 @@ end;
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
+  var
+    RayCastResult: TPhysicsRayCastResult;
   begin
-    { SceneAvatar.RayCast tests a ray collision,
-      ignoring the collisions with SceneAvatar itself (so we don't detect our own
-      geometry as colliding). }
-    Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
+    RayCastResult := AvatarRigidBody.PhysicsRayCast(
+      SceneAvatar.Middle,
+      SceneAvatar.Direction
+    );
+    Result := RayCastResult.Transform;
+
+    { Alternative version, using Items.PhysicsRayCast
+      (everything in world space coordinates).
+      This works equally well, showing it here just for reference.
+
+    RayCastResult := MainViewport.Items.PhysicsRayCast(
+      SceneAvatar.Parent.LocalToWorld(SceneAvatar.Middle),
+      SceneAvatar.Parent.LocalToWorldDirection(SceneAvatar.Direction),
+      MaxSingle,
+      AvatarRigidBody
+    );
+    Result := RayCastResult.Transform;
+    }
+
+    (* Alternative versions, using old physics,
+       see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+       They still work (even when you also use new physics).
+
+    if not AvatarRigidBody.Exists then
+    begin
+      { SceneAvatar.RayCast tests a ray collision,
+        ignoring the collisions with SceneAvatar itself (so we don't detect our own
+        geometry as colliding). }
+      Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
+    end else
+    begin
+      { When physics engine is working, we should not toggle Exists multiple
+        times in a single frame, which makes the curent TCastleTransform.RayCast not good.
+        So use Items.WorldRayCast, and secure from "hitting yourself" by just moving
+        the initial ray point by 0.5 units. }
+      Result := MainViewport.Items.WorldRayCast(
+        SceneAvatar.Middle + SceneAvatar.Direction * 0.5, SceneAvatar.Direction);
+    end;
+    *)
   end;
 
 var
@@ -299,6 +319,64 @@ end;
 procedure TStatePlay.ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
 begin
   ThirdPersonNavigation.ImmediatelyFixBlockedCamera := CheckboxImmediatelyFixBlockedCamera.Checked;
+end;
+
+procedure TStatePlay.ChangeAirRotationControl(Sender: TObject);
+begin
+  ThirdPersonNavigation.AirRotationControl := SliderAirRotationControl.Value;
+end;
+
+procedure TStatePlay.ChangeAirMovementControl(Sender: TObject);
+begin
+  ThirdPersonNavigation.AirMovementControl := SliderAirMovementControl.Value;
+end;
+
+procedure TStatePlay.UpdateAfterChangeTransformation;
+begin
+  ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
+  ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
+  ButtonChangeTransformationVelocity.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctVelocity;
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+  ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
+  {$endif}
+
+  { ctDirect requires to set up gravity without physics engine,
+    using deprecated TCastleTransform.Gravity.
+    See https://castle-engine.io/physics#_old_system_for_collisions_and_gravity }
+  AvatarRigidBody.Exists := ThirdPersonNavigation.ChangeTransformation <> ctDirect;
+
+  { Gravity means that object tries to maintain a constant height
+    (SceneAvatar.PreferredHeight) above the ground.
+    GrowSpeed means that object raises properly (makes walking up the stairs work).
+    FallSpeed means that object falls properly (makes walking down the stairs,
+    falling down pit etc. work). }
+  SceneAvatar.Gravity := not AvatarRigidBody.Exists;
+end;
+
+procedure TStatePlay.ClickChangeTransformationAuto(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctAuto;
+  UpdateAfterChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationDirect(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctDirect;
+  UpdateAfterChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationVelocity(Sender: TObject);
+begin
+  ThirdPersonNavigation.ChangeTransformation := ctVelocity;
+  UpdateAfterChangeTransformation;
+end;
+
+procedure TStatePlay.ClickChangeTransformationForce(Sender: TObject);
+begin
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+  ThirdPersonNavigation.ChangeTransformation := ctForce;
+  {$endif}
+  UpdateAfterChangeTransformation;
 end;
 
 end.

@@ -406,9 +406,9 @@
         <UnitName Value="toolcommonutils"/>
       </Unit76>
       <Unit77>
-        <Filename Value="../tools/common-code/toolprocesswait.pas"/>
+        <Filename Value="../tools/common-code/toolprocess.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="toolprocesswait"/>
+        <UnitName Value="toolprocess"/>
       </Unit77>
       <Unit78>
         <Filename Value="../tools/common-code/toolfpcversion.pas"/>

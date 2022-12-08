@@ -1,7 +1,7 @@
 /*
-  Copyright 1998-2016 PasDoc developers.
+  Copyright 1998-2022 Michalis Kamburelis, PasDoc developers.
 
-  This file is part of "PasDoc".
+  This file was part of "PasDoc" and is adapted to "Castle Game Engine".
 
   "PasDoc" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -207,6 +207,8 @@
 .pasdoc-container td.itemname {white-space:nowrap; }
 .pasdoc-container td.itemunit {white-space:nowrap; }
 .pasdoc-container td.itemdesc { width:100%; }
+
+.pasdoc-container p.nodescription { display: none; }
 
 .pasdoc-container div.nodescription { color:red; }
 .pasdoc-container dl.parameters dt { color:blue; }

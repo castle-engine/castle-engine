@@ -26,7 +26,8 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
-  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection;
+  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
+  CastleComponentSerialize;
 
 type
   { These are various features that may be freed by
@@ -2569,7 +2570,7 @@ type
   end;
 
   {$define read_interface}
-  {$I castlescenecore_physics.inc}
+  {$I castlescenecore_physics_deprecated.inc}
   {$undef read_interface}
 
 var
@@ -2613,7 +2614,7 @@ uses Math, DateUtils,
   X3DLoad, CastleURIUtils, CastleQuaternions;
 
 {$define read_implementation}
-{$I castlescenecore_physics.inc}
+{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
@@ -3519,9 +3520,22 @@ begin
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
+var
+  C: TCastleCollider;
 begin
   if AValue <> FURL then
+  begin
     Load(AValue);
+
+    { After loading a new model we need to
+      - update sizes calculated by AutoSize for simple colliders
+      - update triangles used by TCastleMeshCollider (note that this code
+        will only update TCastleMeshCollider that is our behavior,
+        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
+  end;
 end;
 
 (* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4E109103-9CD0-48C7-9BC2-0B94EFE85FB7}</ProjectGuid>
+        <ProjectGuid>{AEE302E8-0F8B-4F0D-8C0E-BC04C5300724}</ProjectGuid>
         <MainSource>physics_2d_game_sopwith_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

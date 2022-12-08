@@ -40,7 +40,7 @@ implementation
 
 uses // FPC and LCL units
   SysUtils, Classes, TypInfo, Forms,
-  LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics,
+  LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
   // Lazarus design-time (IDE) units
   ComponentEditors,
   // CGE units
@@ -50,7 +50,7 @@ uses // FPC and LCL units
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess, CastleThirdPersonNavigation;
+  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -59,12 +59,14 @@ uses // FPC and LCL units
   they don't look at read_interface/read_implementation symbols. }
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
+{$I castlepropedits_meshcolliderscene.inc}
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_protectedsides.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
+{$I castlepropedits_rangeset.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
 {$I castlepropedits_component_imagetransform.inc}
@@ -127,6 +129,8 @@ begin
   {$ifdef CPU64}
   RegisterPropertyEditor(TypeInfo(PtrInt), TComponent, 'Tag', TCastleTagPropertyEditor);
   {$endif}
+  RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
+    TCastleFloatRotationPropertyEditor);
 
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
@@ -150,6 +154,8 @@ begin
     TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBox, 'SizePersistent',
     TScalePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBoxCollider, 'SizePersistent',
+    TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastlePlane, 'SizePersistent',
     TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
@@ -160,6 +166,13 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
+    TMeshColliderMeshPropertyEditor);
+
+  { used by LockRotation, LockTranslation }
+  RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
+    T3DCoordsRangeSetPropertyEditor);
 
   { animations on TCastleThirdPersonNavigation }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',

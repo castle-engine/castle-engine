@@ -67,14 +67,6 @@ type
 
   TShapesHash = QWord;
 
-  { Triangle information, called by TShape.LocalTriangulate and such.
-    See the @link(TTriangle) fields documentation for the meaning
-    of parameters of this callback. }
-  TTriangleEvent = procedure (Shape: TObject;
-    const Position: TTriangle3;
-    const Normal: TTriangle3; const TexCoord: TTriangle4;
-    const Face: TFaceIndex) of object;
-
   { Triangle in a 3D model.
     Helper methods. }
   TTriangleHelper = record helper for TTriangle

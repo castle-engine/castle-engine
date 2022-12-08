@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2006-2021 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -102,7 +102,8 @@ type
       MainPlayingSound: TCastlePlayingSoundSource; //< TCastlePlayingSoundSource corresponding to main Sound
     function GetSoundPosition(const SoundHeight: Single): TVector3;
   protected
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
+    procedure ParentBeforeDetach; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -392,28 +393,28 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.ParentChanged;
+procedure TCastleSoundSource.ParentAfterAttach;
 var
   Playing: TCastlePlayingSoundSource;
 begin
   inherited;
 
-  if Parent <> nil then
-  begin
-    // start playing, once we have Parent assigned
-    if MainPlayingSound = nil then
-      SoundStart;
-  end else
-  begin
-    // stop playing when Parent detached,
-    // we could not realize Follow in this case (GetSoundPosition would crash)
-    SoundStop;
-  end;
+  // start playing, once we have Parent assigned
+  if MainPlayingSound = nil then
+    SoundStart;
 
   { Change of parent implies also a sudden change of position,
     so do not use last position for Doppler effect calculation. }
   for Playing in AllPlayingSounds do
     Playing.HasLastPosition := false;
+end;
+
+procedure TCastleSoundSource.ParentBeforeDetach;
+begin
+  // stop playing when Parent detached,
+  // we could not realize Follow in this case (GetSoundPosition would crash)
+  SoundStop;
+  inherited;
 end;
 
 procedure TCastleSoundSource.SetSound(const Value: TCastleSound);
