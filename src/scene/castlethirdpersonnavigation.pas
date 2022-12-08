@@ -1007,7 +1007,7 @@ var
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
-    Ground: TCastleTransform;
+    GroundRayCast: TPhysicsRayCastResult;
     DistanceToGround: Single;
     Jump: Single;
     RayOrigin: TVector3;
@@ -1040,8 +1040,8 @@ var
 
       We should still have option to use
 
-      - PhysicsRayCast (or, even better: some new WorldPhysicsRayCast,
-        that should not require starting from TCastleRigidBody) to detect ground
+      - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
+        not require having TCastleRigidBody on avatar) to detect ground
       - or Height / WorldHeight calls that cooperate with old simple physics.
 
       And we should update IsOnGround in all ChangeTransformation modes.
@@ -1055,50 +1055,47 @@ var
       When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
       it would make no sense to use old simple physics. }
 
-    Ground := RBody.PhysicsRayCast(
+    GroundRayCast := RBody.PhysicsRayCast(
       RayOrigin,
       Vector3(0, -1, 0),
-      AvatarHeight * 3,
-      DistanceToGround
+      AvatarHeight * 3
     );
 
     { Four more checks - player should slide down when player just
       on the edge, but sometimes it stay and center ray don't "see" that we are
       on ground }
-    if Ground = nil then
-      Ground := RBody.PhysicsRayCast(
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
         RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
         Vector3(0, -1, 0),
-        AvatarHeight * 3,
-        DistanceToGround
+        AvatarHeight * 3
       );
 
-    if Ground = nil then
-      Ground := RBody.PhysicsRayCast(
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
         RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
         Vector3(0, -1, 0),
-        AvatarHeight * 3,
-        DistanceToGround
+        AvatarHeight * 3
       );
 
-    if Ground = nil then
-      Ground := RBody.PhysicsRayCast(
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
         RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
         Vector3(0, -1, 0),
-        AvatarHeight * 3,
-        DistanceToGround
+        AvatarHeight * 3
       );
 
-    if Ground = nil then
-      Ground := RBody.PhysicsRayCast(
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
         RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
         Vector3(0, -1, 0),
-        AvatarHeight * 3,
-        DistanceToGround
+        AvatarHeight * 3
       );
 
-    if (Ground <> nil) then
+    if GroundRayCast.Hit then
     begin
+      DistanceToGround := GroundRayCast.Distance;
+
       { When collider has own translation we need substract it from distance
         becouse distance will be too big }
       DistanceToGround  := DistanceToGround - Collider.Translation.Y;
