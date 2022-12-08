@@ -57,16 +57,16 @@ type
     { Directly change the avatar @link(TCastleTransform.Translation),
       @link(TCastleTransform.Rotation).
 
-      For now, collision checking is also done using old simple physics engine:
-      https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
-      Though it will be upgraded to look at physics colliders in the future.
-
       You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider)
       set up on the @link(AvatarHierarchy) or @link(Avatar) in this case.
-      Having physics components on avatar, will work...
-      but will waste resources: physics engine will then try to manage the avatar body,
-      but we will overide transformation each frame, ignoring physics results,
-      and forcing physics engine to recalculate state.
+      Having physics components will make it impossible to change @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation) each frame.
+
+      This also means that if you want to have gravity (and stair climbing),
+      you need to use deprecated @link(TCastleTransform.Gravity),
+      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed).
+      They are part of the old simple physics engine:
+      https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
 
       TODO: Jumping and falling doesn't work in this case.
     }
@@ -77,6 +77,10 @@ type
 
       This is not fully realistic (instead of calculating velocities explicitly
       we should be using forces). But it cooperates nicely with physics engine.
+
+      This also means that gravity should be handled by the physics engine.
+      You should not use deprecated @link(TCastleTransform.Gravity),
+      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed).
 
       It requires a TCastleRigidBody and TCastleCollider components
       to be attached to the @link(AvatarHierarchy)
@@ -1018,6 +1022,29 @@ var
     AvatarBoundingBox := A.BoundingBox;
     AvatarHeight := AvatarBoundingBox.SizeY;
     RayOrigin := A.Translation + Collider.Translation;
+
+    { TODO: In the ideal world, the way we check for ground collisions
+      (and determine Ground, IsOnGround)
+      should be independent from ChangeTransformation.
+
+      ChangeTransformation says how we change the transformation.
+
+      We should still have option to use
+
+      - PhysicsRayCast (or, even better: some new WorldPhysicsRayCast,
+        that should not require starting from TCastleRigidBody) to detect ground
+      - or Height / WorldHeight calls that cooperate with old simple physics.
+
+      And we should update IsOnGround in all ChangeTransformation modes.
+
+      But in practice, now ctDirect forces to do gravity using old physics
+      (because it forbids TCastleRigidBody on avatar),
+      and ctVelocity forces to do gravity using new physics
+      (because it requires TCastleRigidBody on avatar).
+
+      So checking for ground (collisions) is not independent from ChangeTransformation.
+      When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
+      it would make no sense to use old simple physics. }
 
     Ground := RBody.PhysicsRayCast(
       RayOrigin,
