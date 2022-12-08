@@ -444,10 +444,14 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.0521147251129150E-001,
-          "X" : -9.9501115083694458E-001,
-          "Y" : -9.5616519451141357E-002,
-          "Z" : -2.8470518067479134E-002
+          "W" : 6.0302394628524780E-001,
+          "X" : -9.9877226352691650E-001,
+          "Y" : 4.7540258616209030E-002,
+          "Z" : 1.3933109119534492E-002
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
@@ -496,8 +500,24 @@
       "VerticalAnchorSelf" : "vpTop"
     },
     {
-      "$$ClassName" : "TCastleVerticalGroup",
-      "Name" : "GroupInfoAndStatus",
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 2.5098040699958801E-001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 2.5000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "RectangleControl1",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
@@ -507,137 +527,153 @@
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
         {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelInfo1",
-          "Text" : [
-            "Hold keys to add forces:",
-            ""
-          ],
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Name" : "GroupInfoAndStatus",
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelAddForceAtPosition",
-          "Text" : [
-            "  7 - AddForceAtPosition"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -4.3000000000000000E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelAddForce",
-          "Text" : [
-            "  8 - AddForce"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -6.5000000000000000E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelAddTorque",
-          "Text" : [
-            "  9 - AddTorque"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -8.7000000000000000E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelApplyImpulse",
-          "Text" : [
-            "  0 - ApplyImpulse"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.0900000000000000E+002
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Name" : "LabelInfo2",
-          "Text" : [
-            "",
-            "Change forces parameters (represented by the blue arrow):",
-            "",
-            "  Move (change position): AWSD",
-            "  Scale (make forces stronger/weaker): QE",
-            "  Rotate (change direction): ZC",
-            ""
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.3100000000000000E+002
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Visualize Velocities",
-          "CheckboxColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Checked" : true,
-          "Name" : "CheckboxVisualizeVelocities",
-          "TextColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -2.7900000000000000E+002
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelInfo1",
+              "Text" : [
+                "Hold keys to add forces:",
+                ""
+              ],
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelAddForceAtPosition",
+              "Text" : [
+                "  7 - AddForceAtPosition"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -4.3000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelAddForce",
+              "Text" : [
+                "  8 - AddForce"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -6.5000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelAddTorque",
+              "Text" : [
+                "  9 - AddTorque"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -8.7000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelApplyImpulse",
+              "Text" : [
+                "  0 - ApplyImpulse"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.0900000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelInfo2",
+              "Text" : [
+                "",
+                "Change forces parameters (represented by the blue arrow):",
+                "",
+                "  Move (change position): AWSD",
+                "  Scale (make forces stronger/weaker): QE",
+                "  Rotate (change direction): ZC",
+                ""
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.3100000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Visualize Velocities",
+              "CheckboxColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Checked" : true,
+              "Name" : "CheckboxVisualizeVelocities",
+              "TextColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -2.7900000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            }
+          ]
         }
       ]
     }

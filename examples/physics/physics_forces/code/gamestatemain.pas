@@ -106,7 +106,7 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolea
     if Active then
       Lab.Color := Blue
     else
-      Lab.Color := Yellow;
+      Lab.Color := White;
   end;
 
 const
