@@ -2,6 +2,11 @@
 
 Walk around and drop boxes and spheres.
 
+TODO:
+- Use glTF for both level models.
+- Use lights designed in CGE editor, not in X3D. Do not use `CastGlobalLights`.
+- Load both castle-transform through TSerializedComponent, to make them fast.
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

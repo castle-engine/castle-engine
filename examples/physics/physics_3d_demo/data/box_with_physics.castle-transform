@@ -1,0 +1,28 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "Scene1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "URL" : "castle-data:/box.x3d"
+    }
+  ],
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "Name" : "SpawnRigidBody"
+    },
+    {
+      "$$ClassName" : "TCastleBoxCollider",
+      "Density" : 1.0000000000000000E+002,
+      "Name" : "BoxCollider1",
+      "Restitution" : 1.0000000149011612E-001
+    }
+  ]
+}

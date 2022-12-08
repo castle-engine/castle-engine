@@ -12,221 +12,75 @@
 
   ----------------------------------------------------------------------------
 }
-
-{ Implements the game logic. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections,
-  CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleBoxes, CastleViewport,
-  CastleUIControls, CastleApplicationProperties;
+uses SysUtils,
+  CastleWindow, CastleLog, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindow;
-  Viewport: TCastleViewport;
-  Navigation: TCastleWalkNavigation;
-  Level: TCastleScene;
-  BoxTemplate, SphereTemplate: TCastleScene;
-
-procedure LoadLevel(const URL: string; const MeshCollider: boolean);
-
-  function CreatePlaneCollider: TCastlePlaneCollider;
-  begin
-    Result := TCastlePlaneCollider.Create(Level);
-    Result.Normal := Vector3(0, 1, 0);
-    Result.Distance := 0;
-    Result.Restitution := 0.3;
-    Level.AddBehavior(Result);
-  end;
-
-  function CreateMeshCollider: TCastleMeshCollider;
-  begin
-    Result := TCastleMeshCollider.Create(Level);
-    Result.Mesh := Level;
-    Result.Restitution := 0.3;
-    Level.AddBehavior(Result);
-  end;
-
-var
-  LevelBody: TCastleRigidBody;
-  MoveLimit: TBox3D;
-begin
-  { free previous level, which also frees all related rigid bodies }
-  FreeAndNil(Level);
-
-  // Viewport.Items.Clear; // not needed, we already freed everything
-
-  Level := TCastleScene.Create(Application);
-  Level.Load(URL);
-  Level.Spatial := [ssRendering, ssDynamicCollisions];
-  Level.ProcessEvents := true;
-  Level.RenderOptions.PhongShading := true; // nicer lighting
-
-  LevelBody := TCastleRigidBody.Create(Level);
-  LevelBody.Dynamic := false;
-  Level.AddBehavior(LevelBody);
-
-  if MeshCollider then
-    CreateMeshCollider
-  else
-    CreatePlaneCollider;
-
-  Viewport.Items.Add(Level);
-  Viewport.Items.MainScene := Level;
-
-  { Make movement possible only within the world box,
-    and make gravity work even if you're far above the world. }
-  MoveLimit := Viewport.Items.BoundingBox;
-  MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-  Viewport.Items.MoveLimit := MoveLimit;
-
-  Viewport.AssignDefaultCamera;
-end;
-
-type
-  TEventHandler = class
-    class procedure LoadLevelSimple(Sender: TObject);
-    class procedure LoadLevelComplex(Sender: TObject);
-  end;
-
-class procedure TEventHandler.LoadLevelSimple(Sender: TObject);
-begin
-  LoadLevel('castle-data:/level_simple.x3dv', false);
-end;
-
-class procedure TEventHandler.LoadLevelComplex(Sender: TObject);
-begin
-  LoadLevel('castle-data:/level_complex.x3dv', true);
-end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
-var
-  ButtonLevelSimple, ButtonLevelComplex: TCastleButton;
 begin
-  Viewport := TCastleViewport.Create(Application);
-  Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
-  Window.Controls.InsertFront(Viewport);
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  LoadLevel('castle-data:/level_simple.x3dv', false);
+  { Create TStateMain that will handle "main" state of the game.
+    Larger games may use multiple states,
+    e.g. TStateMainMenu ("main menu state"),
+    TStatePlay ("playing the game state"),
+    TStateCredits ("showing the credits state") etc. }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
 
-  // create Navigation
-  Navigation := TCastleWalkNavigation.Create(Application);
-  Navigation.PreferredHeight := 2;
-  Navigation.Gravity := true;
-  // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
-  Navigation.Input := Navigation.Input - [niMouseDragging];
-  Navigation.MoveSpeed := 10;
-  Viewport.Navigation := Navigation;
-
-  // easy way to make the simulation feel more dynamic
-  Viewport.Items.TimeScale := 2;
-
-  BoxTemplate := TCastleScene.Create(Application);
-  BoxTemplate.Load('castle-data:/box.x3d');
-
-  SphereTemplate := TCastleScene.Create(Application);
-  SphereTemplate.Load('castle-data:/sphere.x3d');
-
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
-
-  ButtonLevelSimple := TCastleButton.Create(Application);
-  ButtonLevelSimple.Caption := 'Simple Level (Plane Collider)';
-  ButtonLevelSimple.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelSimple;
-  ButtonLevelSimple.Anchor(hpLeft, 10);
-  ButtonLevelSimple.Anchor(vpTop, -10);
-  Window.Controls.InsertFront(ButtonLevelSimple);
-
-  ButtonLevelComplex := TCastleButton.Create(Application);
-  ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
-  ButtonLevelComplex.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelComplex;
-  ButtonLevelComplex.Anchor(hpLeft, 10);
-  ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.EffectiveHeight - 10);
-  Window.Controls.InsertFront(ButtonLevelComplex);
-end;
-
-procedure WindowRender(Container: TCastleContainer);
-begin
-  GetUIFont.PrintStrings(10, 10, Yellow, [
-    Format('FPS: %s', [Container.Fps.ToString]),
-    'Left mouse button - spawn box',
-    'Right mouse button - spawn sphere',
-    'AWSD, arrows - move, rotate',
-    'F4 - toggle mouse look'
-  ], false, 0);
-end;
-
-procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
-
-  procedure Spawn(const Template: TCastleScene; const Collider: TCastleCollider;
-    const RigidBody: TCastleRigidBody);
-  var
-    Scene: TCastleScene;
-    CameraPos, CameraDir, CameraUp: TVector3;
-  begin
-    Scene := Template.Clone(Level);
-
-    Viewport.Camera.GetView(CameraPos, CameraDir, CameraUp);
-    Scene.Translation := CameraPos + CameraDir * 2.0;
-    Scene.Direction := CameraDir;
-
-    Viewport.Items.Add(Scene);
-
-    RigidBody.LinearVelocity := CameraDir * 8.0;
-    Scene.AddBehavior(RigidBody);
-    Scene.AddBehavior(Collider);
-  end;
-
-var
-  RigidBody: TCastleRigidBody;
-  BoxCollider: TCastleBoxCollider;
-  SphereCollider: TCastleSphereCollider;
-begin
-  if Event.IsKey(keyF4) then
-    Navigation.MouseLook := not Navigation.MouseLook;
-
-  if Event.IsKey(keyF6) then
-    Viewport.Items.EnablePhysics := not Viewport.Items.EnablePhysics;
-
-  if Event.IsMouseButton(buttonLeft) then
-  begin
-    RigidBody := TCastleRigidBody.Create(BoxTemplate);
-
-    BoxCollider := TCastleBoxCollider.Create(BoxTemplate);
-    BoxCollider.Restitution := 0.3;
-    BoxCollider.Density := 100.0;
-    Spawn(BoxTemplate, BoxCollider, RigidBody);
-  end;
-
-  if Event.IsMouseButton(buttonRight) then
-  begin
-    RigidBody := TCastleRigidBody.Create(SphereTemplate);
-
-    SphereCollider := TCastleSphereCollider.Create(SphereTemplate);
-    SphereCollider.Friction := 0.4;
-    SphereCollider.Restitution := 0.2;
-    SphereCollider.Density := 20.0;
-    Spawn(SphereTemplate, SphereCollider, RigidBody);
-  end;
+  TUIState.Current := StateMain;
 end;
 
 initialization
-  { initialize Application callbacks }
+  { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
+  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
-  Window.OnRender := @WindowRender;
-  Window.OnPress := @WindowPress;
+  { Adjust window fullscreen state and size.
+    Note that some platforms (like mobile) may ignore it.
+    Examples how to set window fullscreen state and size:
+
+      Window.FullScreen := true;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+  }
+
+  { You should not need to do *anything* more in the unit "initialization" section.
+    Most of your game initialization should happen inside ApplicationInitialize.
+    In particular, it is not allowed to read files before ApplicationInitialize
+    (because in case of non-desktop platforms,
+    some necessary resources may not be prepared yet). }
 end.
