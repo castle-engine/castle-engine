@@ -875,10 +875,14 @@
       Transform, and this transform ExistsInRoot = true. }
     function ExistsInRoot: Boolean;
 
-    { If TCastleTransform did not exist in root at initialization or
-      TCastleScene URL changes it may be wrong size when it is
-      determined with autosize. Which can cause e.g. the torque to be incorrect. }
-    procedure UpdateColliderAutosize;
+    { Call TCastleCollider.InternalAutoSize if we use the collider now.
+
+      This is necessary to be called when size changed, and automatic size
+      (determined by TCastleCollider.AutoSize) should be recalculated.
+      Examples when it needs to be called:
+      If TCastleTransform did not exist in root at initialization or
+      TCastleScene URL changes. }
+    procedure UpdateColliderAutoSize;
 
     { For performance, physics engine sometimes puts some body to "sleep",
       which means it will not move anymore,
@@ -2792,7 +2796,7 @@ begin
         ksfRayCastable];
   end;
 
-  UpdateColliderAutosize;
+  UpdateColliderAutoSize;
 end;
 
 procedure TCastleRigidBody.UpdateExistBody;
@@ -3276,7 +3280,7 @@ begin
   Result := Parent.ExistsInRoot;
 end;
 
-procedure TCastleRigidBody.UpdateColliderAutosize;
+procedure TCastleRigidBody.UpdateColliderAutoSize;
 begin
   if ExistsInRoot and (FCastleCollider <> nil) then
   begin

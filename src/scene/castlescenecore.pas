@@ -3530,7 +3530,7 @@ begin
     { After loading another model the size of collider will be incorrect. }
     RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if RBody <> nil then
-      RBody.UpdateColliderAutosize;
+      RBody.UpdateColliderAutoSize;
   end;
 end;
 
