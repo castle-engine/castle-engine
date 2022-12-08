@@ -407,6 +407,16 @@
                 ]
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneVisualizeVelocities",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "LineWidth" : 1.0000000000000000E+001
+            }
           }
         ]
       },
@@ -500,7 +510,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -516,7 +525,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -535,7 +543,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -554,7 +561,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -573,7 +579,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -592,7 +597,6 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
@@ -603,11 +607,34 @@
             "",
             "  Move (change position): AWSD",
             "  Scale (make forces stronger/weaker): QE",
-            "  Rotate (change direction): ZC"
+            "  Rotate (change direction): ZC",
+            ""
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "Y" : -1.3100000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Visualize Velocities",
+          "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Checked" : true,
+          "Name" : "CheckboxVisualizeVelocities",
+          "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.7900000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

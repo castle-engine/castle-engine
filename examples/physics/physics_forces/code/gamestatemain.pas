@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene, CastleTransform;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene, CastleTransform,
+  X3DNodes;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -35,13 +36,20 @@ type
       LabelApplyImpulse: TCastleLabel;
     SceneArrow: TCastleScene;
     DynamicBodies: TCastleTransform;
+    SceneVisualizeVelocities: TCastleScene;
+    CheckboxVisualizeVelocities: TCastleCheckbox;
   private
     RigidBodies: TCastleRigidBodyList;
+    VisualizeVelocitiesAngularLines: TCoordinateNode;
+    VisualizeVelocitiesLinearLines: TCoordinateNode;
     procedure AddForceAtPosition;
     procedure AddForce;
     procedure AddTorque;
     procedure ApplyImpulse;
     function ForceScale: Single;
+    procedure CreateVisualizeVelocitiesNodes;
+    procedure UpdateVisualizeVelocities;
+    procedure ChangeVisualizeVelocities(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -56,7 +64,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleColors;
+  CastleColors, CastleUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -74,13 +82,15 @@ begin
   inherited;
 
   RigidBodies := TCastleRigidBodyList.Create;
-
   for T in DynamicBodies do
   begin
     RBody := T.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if RBody <> nil then
       RigidBodies.Add(RBody);
   end;
+
+  CreateVisualizeVelocitiesNodes;
+  CheckboxVisualizeVelocities.OnChange := {$ifdef FPC}@{$endif} ChangeVisualizeVelocities;
 end;
 
 procedure TStateMain.Stop;
@@ -96,7 +106,7 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolea
     if Active then
       Lab.Color := Blue
     else
-      Lab.Color := White;
+      Lab.Color := Yellow;
   end;
 
 const
@@ -140,6 +150,9 @@ begin
   ColorLabel(LabelAddForce, Container.Pressed[key8]);
   ColorLabel(LabelAddTorque, Container.Pressed[key9]);
   ColorLabel(LabelApplyImpulse, Container.Pressed[key0]);
+
+  if SceneVisualizeVelocities.Exists then
+    UpdateVisualizeVelocities;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -189,6 +202,108 @@ var
 begin
   for RBody in RigidBodies do
     RBody.ApplyImpulse(SceneArrow.Direction * ForceScale, SceneArrow.Translation);
+end;
+
+procedure TStateMain.ChangeVisualizeVelocities(Sender: TObject);
+begin
+  SceneVisualizeVelocities.Exists := CheckboxVisualizeVelocities.Checked;
+end;
+
+procedure TStateMain.CreateVisualizeVelocitiesNodes;
+var
+  LineSet: TLineSetNode;
+  Appearance: TAppearanceNode;
+  Material: TUnlitMaterialNode;
+  Shape: TShapeNode;
+  RootNode: TX3DRootNode;
+  VertexCount: TLongIntList;
+begin
+  RootNode := TX3DRootNode.Create;
+
+  VertexCount := TLongIntList.Create;
+  try
+    VertexCount.AddDuplicate(2, RigidBodies.Count);
+
+    { create visualization for angular velocities }
+
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := YellowRGB;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    LineSet := TLineSetNode.CreateWithShape(Shape);
+    LineSet.SetVertexCount(VertexCount);
+    Shape.Appearance := Appearance;
+    RootNode.AddChildren(Shape);
+
+    VisualizeVelocitiesAngularLines := TCoordinateNode.Create;
+    LineSet.Coord := VisualizeVelocitiesAngularLines;
+
+    { create visualization for linear velocities }
+
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := RedRGB;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    LineSet := TLineSetNode.CreateWithShape(Shape);
+    LineSet.SetVertexCount(VertexCount);
+    Shape.Appearance := Appearance;
+    RootNode.AddChildren(Shape);
+
+    VisualizeVelocitiesLinearLines := TCoordinateNode.Create;
+    LineSet.Coord := VisualizeVelocitiesLinearLines;
+
+    UpdateVisualizeVelocities;
+  finally
+    FreeAndNil(VertexCount);
+  end;
+
+  SceneVisualizeVelocities.Load(RootNode, true);
+  SceneVisualizeVelocities.Exists := CheckboxVisualizeVelocities.Checked;
+end;
+
+procedure TStateMain.UpdateVisualizeVelocities;
+
+  { Make the direction have some minimal and maximum length, to be nicely visible. }
+  function VelocityScale(const Dir: TVector3): TVector3;
+  var
+    L: Single;
+  begin
+    L := Dir.Length;
+    if IsZero(L) then
+      Exit(Dir);
+
+    L := MapRangeClamped(L, 0, 10, 2, 5);
+    Result := Dir.AdjustToLength(L);
+  end;
+
+var
+  VertexesLinearVelocity, VertexesAngularVelocity: TVector3List;
+  I: Integer;
+  RBody: TCastleRigidBody;
+  Origin: TVector3;
+begin
+  VertexesLinearVelocity := VisualizeVelocitiesLinearLines.FdPoint.Items;
+  VertexesAngularVelocity := VisualizeVelocitiesAngularLines.FdPoint.Items;
+
+  VertexesLinearVelocity.Count := 2 * RigidBodies.Count;
+  VertexesAngularVelocity.Count := 2 * RigidBodies.Count;
+
+  for I := 0 to RigidBodies.Count - 1 do
+  begin
+    RBody := RigidBodies[I];
+    Origin := RBody.Parent.LocalToWorld(TVector3.Zero);
+    VertexesLinearVelocity.List^[I * 2    ] := Origin;
+    VertexesLinearVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.LinearVelocity);
+    VertexesAngularVelocity.List^[I * 2    ] := Origin;
+    VertexesAngularVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.AngularVelocity);
+  end;
+
+  VisualizeVelocitiesLinearLines.FdPoint.Changed;
+  VisualizeVelocitiesAngularLines.FdPoint.Changed;
 end;
 
 end.
