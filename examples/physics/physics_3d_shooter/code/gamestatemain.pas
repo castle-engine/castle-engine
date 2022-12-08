@@ -102,6 +102,14 @@ function TStateMain.Press(const Event: TInputPressRelease): Boolean;
       Of course this is non-realistic. }
     //BulletRigidBody.Gravity := false;
     Viewport.Items.Add(Bullet);
+
+    { Instead of setting BulletRigidBody.LinearVelocity directly (see line above)
+      you can also add force to push the bullet.
+      Both ApplyImpulse and AddForce can be used.
+      Try it out -- comment out above "BulletRigidBody.LinearVelocity := ..."
+      and uncomment one of the lines below. }
+    //BulletRigidBody.ApplyImpulse(Viewport.Camera.Direction * 50, Viewport.Camera.Translation);
+    //BulletRigidBody.AddForce(Viewport.Camera.Direction * 5000, false);
   end;
 
 begin

@@ -802,7 +802,7 @@
       you should call this method every frame.
       It automatically accounts for the delta time (because the force will actually
       be applied later, with delta time, to velocity) so no need to multiply the arguments with SecondsPassed.
-      That is, adding force means @code(Velocity += Force * TimeDelta / Mass).
+      That is, adding force means @code(Velocity += Force * SecondsPassed / Mass).
 
       By changing Position from which you push,
       you can change the angular velocity,
@@ -845,7 +845,7 @@
       be applied later, with delta time, to velocity) so no need to multiply the arguments with SecondsPassed. }
     procedure AddTorque(const Torque: TVector3);
 
-    { Apply a one-time force, that pushes the body (increasing velocity).
+    { Apply a one-time instant increase in speed, that pushes the body (increasing velocity).
       Impulse is a direction along which to push, Point is the position from which you push.
       Longer length of Impulse makes a stronger push.
 
@@ -855,7 +855,7 @@
       To be more precise, adding impulse directly increases @link(LinearVelocity) and @link(AngularVelocity).
       Unlike @link(AddForceAtPosition), the velocity increase is not multiplied by the delta of time,
       so it is not expected you will call this every frame.
-      (If you do, you should take care to multiply Impulse by TimeDelta.)
+      (If you do, you should take care to multiply Impulse by SecondsPassed.)
 
       Same notes as for Position of @link(AddForceAtPosition):
       By changing Point from which you push,
