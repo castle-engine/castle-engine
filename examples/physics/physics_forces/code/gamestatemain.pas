@@ -158,7 +158,7 @@ var
   RBody: TCastleRigidBody;
 begin
   for RBody in RigidBodies do
-    RBody.AddForce(Dir, SceneArrow.Direction * ForceScale);
+    RBody.AddForce(SceneArrow.Direction * ForceScale, false);
 end;
 
 procedure TStateMain.AddTorque;
