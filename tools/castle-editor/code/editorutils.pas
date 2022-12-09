@@ -1142,7 +1142,7 @@ function UseIconsAndColorsForDarkTheme: Boolean;
 var
   Luminance: Single;
 begin
-  Luminance := GrayscaleValue(ColorToVector3(clBackground));
+  Luminance := GrayscaleValue(ColorToVector3(clForm));
   Result := Luminance < 180 / 255;
 end;
 
