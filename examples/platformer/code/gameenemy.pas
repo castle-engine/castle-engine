@@ -25,6 +25,7 @@ type
   TEnemy = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     MoveDirection: Integer; //< Always 1 or -1
     Dead: Boolean;
     DontFallDown: Boolean;
@@ -56,16 +57,14 @@ begin
 end;
 
 procedure TEnemy.ParentAfterAttach;
-var
-  RigidBody: TCastleRigidBody;
 begin
   inherited;
 
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
-  RigidBody := Scene.RigidBody;
-  if RigidBody <> nil then
-    RigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   { In editor you can change scale to -1 1 1 to change enemy inital direction }
   if Scene.Scale.X < 0 then
     MoveDirection := 1;
@@ -80,7 +79,6 @@ var
   Vel: TVector3;
   RayMaxDistance: Single;
   ObstacleAhead: TCastleTransform;
-  RBody: TCastleRigidBody;
 begin
   inherited;
 
@@ -91,13 +89,12 @@ begin
     Exit;
   end;
 
-  RBody := Scene.RigidBody;
   if RBody = nil then
     Exit;
 
   RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
   EnemyOnGround := RBody.PhysicsRayCast(Scene.Translation,
-    Vector3(0, -1, 0), RayMaxDistance) <> nil;
+    Vector3(0, -1, 0), RayMaxDistance).Hit;
 
   if not EnemyOnGround then
   begin
@@ -111,9 +108,9 @@ begin
 
   if DontFallDown then
   begin
-    NeedTurn := RBody.PhysicsRayCast(Scene.Translation
+    NeedTurn := not RBody.PhysicsRayCast(Scene.Translation
       + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
-      Vector3(0, -1, 0), RayMaxDistance) = nil;
+      Vector3(0, -1, 0), RayMaxDistance).Hit;
   end else
     NeedTurn := false;
 
@@ -121,7 +118,7 @@ begin
   if not NeedTurn then
   begin
     ObstacleAhead := RBody.PhysicsRayCast(Scene.Translation,
-      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5);
+      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5).Transform;
 
     if ObstacleAhead <> nil then
     begin
@@ -149,7 +146,7 @@ procedure TEnemy.HitPlayer;
 begin
   StatePlay.HitPlayer;
   Dead := true;
-  Parent.RigidBody.Exists := false;
+  RBody.Exists := false;
 end;
 
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
@@ -158,7 +155,7 @@ begin
   Bullet.Exists := false;
 
   Dead := true;
-  Parent.RigidBody.Exists := false;
+  RBody.Exists := false;
 end;
 
 procedure TEnemy.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -174,4 +171,3 @@ begin
 end;
 
 end.
-

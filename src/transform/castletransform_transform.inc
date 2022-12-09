@@ -178,6 +178,8 @@
     property ParentExistsInRoot: Boolean read FParentExistsInRoot write SetParentExistsInRoot default true;
     { Call when ParentExistsInRoot or Exists changed. }
     procedure UpdateExistsInRoot;
+    { Never call ChangedTransform directly, always call this. }
+    procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -219,8 +221,8 @@
       It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
     function CheckParent: TCastleTransform;
 
-    procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
-    procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
+    procedure NotifyWorldAfterAttach;
+    procedure NotifyWorldBeforeDetach;
 
     // TODO: Do we need so much new API?
 
@@ -519,7 +521,7 @@
 
     { Override to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
-    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); virtual;
+    procedure ChangedTransform; virtual;
 
     { Override to be notified after ExistsInRoot value changed. }
     procedure ExistsInRootChanged; virtual;
@@ -866,22 +868,18 @@
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption.)
 
-      @param(ProgressStep Says that we should call Progress.Step.
-        It will be called PrepareResourcesSteps times.
-        Useful to show progress bar to the user during long preparation.)
-
       @param(Params
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
       )
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); virtual;
+      const Params: TPrepareParams); overload; virtual;
 
-    { How many times PrepareResources will call Progress.Step.
-      Useful only if you want to pass ProgressStep = @true to PrepareResources.
-      In the base class TCastleTransform this just returns 0.  }
-    function PrepareResourcesSteps: Cardinal; virtual;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const Ignored: Boolean;
+      const Params: TPrepareParams); overload;
+      deprecated 'use PrepareResources(Options,Params) overload (remove the 2nd Boolean parameter)';
 
     { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
       Return @true if you handled the event, and it should not be passed to other objects.
@@ -1609,88 +1607,35 @@
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
 
-    { Participate in rigid body physics simulation.
+    { Participate in the physics simulation.
       This makes this object collidable with other rigid bodies
-      (if @link(Collides))
       and it allows to move and rotate because of gravity
       or because of collisions with other objects
-      (if @link(TRigidBody.Dynamic) is @true).
+      (if @link(TCastleRigidBody.Dynamic) is @true).
 
-      Setting this property makes this 3D object
+      Setting this property makes this object
       a single rigid body for the physics engine.
+      Underneath, it just adds TCastleRigidBody to behaviors.
 
-      If this property is assigned and the @link(TRigidBody.Dynamic) is @true
-      (and @link(TRigidBody.Dynamic) is @true by default)
+      If this property is assigned and the @link(TCastleRigidBody.Dynamic) is @true
+      (and @link(TCastleRigidBody.Dynamic) is @true by default)
       then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TRigidBody.Gravity),
+      It will move because of gravity (if @link(TCastleRigidBody.Gravity),
       also @true by default),
       and because of collisions with other objects.
 
-      The @link(TRigidBody.Collider) property must be initialized
+      If you use deprecated TCollider:
+      The @link(TCastleRigidBody.Collider) property must be initialized
       @italic(before) assigning the @link(TRigidBody) instance here.
       So you must create a @link(TCollider) descendant, specyfying the given
       @link(TRigidBody) as a parent.
-      A rigid body without a collider would in theory not collide with anything,
-      and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
-      In practice, a rigid body without a collider is simply not allowed.
-      If you really need this, assign anything to @link(TRigidBody.Collider)
-      and just set @link(Collides) to @false.
-
-      @bold(Our engine (for now) also has an internal, simple physics simulation,
-      used to perform collisions with player, creatures, and optional
-      (unrealistic) gravity.)
-      So we have two independent physics systems,
-      but they try to not get into each others way (they each perform
-      a different task).
-      In the future there will be an option to use
-      the full-featured physics engine for all simulations,
-      also for player and creatures, at which point our "internal physics
-      simulation" will become deprecated.
-      For now, be aware of these:
-
-      @unorderedList(
-        @item(@link(TCastleTransform.Collides) property affects @italic(both our
-          "simple physics simulation" and the "full-featured physics engine").
-          It determines whether the object is collidable.
-        )
-
-        @item(@link(TCastleTransform.Gravity) property @italic(only affects the
-          "simple physics simulation"). It is by default @false.
-
-          It has no effect on the "full-featured physics engine" behavior,
-          that has an independent property @link(TRigidBody.Gravity),
-          which is @true by default.
-
-          You should not set both @link(TCastleTransform.Gravity) to @true
-          and @link(TRigidBody.Gravity) to @true, it would mean that
-          @italic(gravity simulation is performed twice).
-          In the future, @link(TCastleTransform.Gravity) may be removed
-          (or merged with @link(TRigidBody.Gravity), but then old games
-          may by surprised by a new default @true.)
-        )
-
-        @item(The collider used by our internal, simple physics is independent
-          from the @link(TRigidBody.Collider).
-          The internal, simple physics uses colliders implicitly implemented
-          in the overridden @link(TCastleTransform.HeightCollision),
-          @link(TCastleTransform.MoveCollision) and friends.
-          In case of @link(TCastleSceneCore), the rule is simple:
-
-          @unorderedList(
-            @item(If the @link(TCastleSceneCore.Spatial) contains
-              ssDynamicCollisions or ssStaticCollisions, then the object collides
-              as a mesh. This makes precise collisions with all the triangles.
-              Any mesh, convex or concave, is correctly solved.)
-            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
-          )
-        )
-      )
 
       Note that an object can only be present once in the @link(World)
       to be a rigid body. Breaking this rule will cause the
       @link(EMultipleReferencesInWorld) exception at an undefined time.
     }
     property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
+      {$ifdef FPC}deprecated 'use AddBehavior (to set)/FindBehavior (to get)';{$endif}
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
@@ -1865,7 +1810,7 @@
     function BehaviorsEnumerate: TCastleBehaviorEnumerator;
 
     { Adds a behavior to the list that needs to be informed about the world
-      change. }
+      change. Adding multiple times the same behavior is harmless and has no effect. }
     procedure AddWorldChangeNotification(const Behavior: TCastleBehavior);
 
     { Removes a behavior from the list that needs to be informed about the world
@@ -2070,14 +2015,18 @@ begin
 
   PendingRemovals;
 
-  { Before we start destroying the transform we need remove all behaviors from
-    it, because destroying behavior calls it events like BeforeParentDetach,
-    ParentChanged. In this case FBehaviors and other TCastleTransform data is
-    destroyed before destroying behavior.
+  { Before we start destroying the transform we need to remove all behaviors from
+    it, because destroying behavior calls on it events like BeforeParentDetach,
+    ParentChanged.
 
-    Notice that, this code is not in Destructor because when we make TCastleTransform
-    descendant class some things will be destroyed before removing behaviors and
-    that will run BeforeParentDetach event that can use some descendant fields. }
+    And we want Parent (this TCastleTransform) state to be valid
+    then, e.g. FBehaviors should still be good.
+
+    In case of descendants, like TCastleScene, also their state has to be valid
+    in case behavior's implementation accesses them, e.g. doing
+    "(Parent as TCastleScene).StopAnimation" from BeforeParentDetach implementation.
+    That's why we do this from BeforeDestruction, before e.g. TCastleScene.Destroy starts
+    destroying the instance. }
 
   for I := FBehaviors.Count - 1 downto 0 do
     RemoveBehaviorIndex(I);
@@ -2239,7 +2188,7 @@ begin
       if ListenPressRelease then
         FWorld.UnregisterPressRelease(Self);
 
-      NotifyWorldDetach(FWorld);
+      NotifyWorldBeforeDetach;
 
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
         this would prevent getting notification in TCastleTransform.Notification. }
@@ -2256,7 +2205,7 @@ begin
       //if FWorld <> Self then
       FWorld.FreeNotification(Self);
 
-      NotifyWorldAttach(FWorld);
+      NotifyWorldAfterAttach;
 
       if ListenPressRelease then
         FWorld.RegisterPressRelease(Self);
@@ -2614,22 +2563,20 @@ begin
 end;
 
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
-var
-  I: Integer;
+  const Ignored: Boolean;
+  const Params: TPrepareParams);
 begin
-  for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, Params);
-  RegisterGLContextClose;
+  PrepareResources(Options, Params);
 end;
 
-function TCastleTransform.PrepareResourcesSteps: Cardinal;
+procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
+  const Params: TPrepareParams);
 var
   I: Integer;
 begin
-  Result := 0;
   for I := 0 to List.Count - 1 do
-    Result := Result + List[I].PrepareResourcesSteps;
+    List[I].PrepareResources(Options, Params);
+  RegisterGLContextClose;
 end;
 
 function TCastleTransform.Press(const Event: TInputPressRelease): boolean;
@@ -2841,8 +2788,7 @@ begin
   Result := FParent;
 end;
 
-procedure TCastleTransform.NotifyWorldAttach(
-  const NewWorld: TCastleAbstractRootTransform);
+procedure TCastleTransform.NotifyWorldAfterAttach;
 var
   I: Integer;
 begin
@@ -2855,8 +2801,7 @@ begin
   end;
 end;
 
-procedure TCastleTransform.NotifyWorldDetach(
-  const PreviousWorld: TCastleAbstractRootTransform);
+procedure TCastleTransform.NotifyWorldBeforeDetach;
 var
   I: Integer;
 begin
@@ -2956,8 +2901,8 @@ begin
   if Behavior.Parent <> nil then
   begin
     NotifyBeforeBehaviorRemove(Behavior);
-    { Call WorldDetached directly }
-    if Behavior.NeedWorldChangeNotification and (FWorld <> nil) then
+
+    if Behavior.ListenWorldChange and (FWorld <> nil) then
       Behavior.WorldBeforeDetach;
 
     Behavior.ParentBeforeDetach;
@@ -3236,7 +3181,8 @@ begin
       rlBack : RenderContext.DepthRange := drFar;
       else ;
     end;
-  end;
+  end else
+    SavedDepthRange := Low(SavedDepthRange); // avoid Delphi warnings about SavedDepthRange uninitialized
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
@@ -3584,7 +3530,7 @@ begin
     Translate(NewMiddle - OldMiddle);
 end;
 
-procedure TCastleTransform.ChangedTransform(const UpdatePhysicsTransform: Boolean);
+procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
 var
   RBody: TCastleRigidBody;
 begin
@@ -3592,14 +3538,19 @@ begin
   FWorldTransformationValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 
-  if (FWorld <> nil) and (FWorld.EnablePhysics) then
+  if (FWorld <> nil) and (FWorld.EnablePhysics) and UpdatePhysicsTransform then
   begin
-    RBody := RigidBody; // RigidBody iterates behaviors
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) and
-       UpdatePhysicsTransform then
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(WorldTransform);
   end;
+
+  ChangedTransform;
+end;
+
+procedure TCastleTransform.ChangedTransform;
+begin
 end;
 
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
@@ -3696,7 +3647,7 @@ begin
   begin
     FCenter := Value;
     FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3706,7 +3657,7 @@ begin
   begin
     FRotation := Value;
     FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3725,7 +3676,7 @@ begin
     FScale := Value;
     FOnlyTranslation := FOnlyTranslation and
       (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
-    ChangedTransform(UpdatePhysicsTransform);
+    ChangedTransformCore(UpdatePhysicsTransform);
 
     if (FWorld <> nil) and
        FWorld.EnablePhysics then
@@ -3739,7 +3690,7 @@ begin
   begin
     FScaleOrientation := Value;
     FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -3748,7 +3699,7 @@ begin
   if not TVector3.PerfectlyEquals(FTranslation, Value) then
   begin
     FTranslation := Value;
-    ChangedTransform;
+    ChangedTransformCore;
   end;
 end;
 
@@ -4000,7 +3951,6 @@ end;
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
-  OldParent: TCastleTransform;
 begin
   if Behavior.FParent <> Self then
   begin
@@ -4012,21 +3962,28 @@ begin
         ClassName,
         ReasonWhyCannot
       ]);
+
+    { As a first action (after the check CanAttachToParent has passed) remove
+      from previous parent. This will also cause necessary virtual method calls,
+      like ParentBeforeDetach, WorldBeforeDetach. }
+    if Behavior.FParent <> nil then
+      Behavior.FParent.RemoveBehavior(Behavior);
+    Assert(Behavior.FParent = nil);
+
+    { Add to new parent }
+
     FBehaviors.Add(Behavior);
-    OldParent := Behavior.FParent;
     Behavior.FParent := Self;
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
     {$warnings on}
 
-    { Call WorldAttached directly }
-    if Behavior.NeedWorldChangeNotification then
+    { Call WorldAfterAttach }
+    if Behavior.ListenWorldChange then
     begin
       AddWorldChangeNotification(Behavior);
-
-      if (FWorld <> nil) and
-       ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
+      if FWorld <> nil then
         Behavior.WorldAfterAttach;
     end;
     NotifyBehaviorAdded(Behavior);
@@ -4041,8 +3998,8 @@ begin
 
   NotifyBeforeBehaviorRemove(Beh);
 
-  { Call WorldDetached directly }
-  if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
+  { Call WorldBeforeDetach }
+  if Beh.ListenWorldChange and (FWorld <> nil) then
     Beh.WorldBeforeDetach;
 
   Beh.ParentBeforeDetach;
@@ -4155,13 +4112,16 @@ begin
 end;
 
 procedure TCastleTransform.SetExists(const Value: Boolean);
+var
+  RBody: TCastleRigidBody;
 begin
   if FExists <> Value then
   begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    if RigidBody <> nil then
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if (RBody <> nil) and RBody.Exists then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
         WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). ' +
@@ -4172,7 +4132,6 @@ begin
         ]);
       FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
     end;
-
   end;
 end;
 
@@ -4201,11 +4160,15 @@ begin
 end;
 
 procedure TCastleTransform.ExistsInRootChanged;
+var
+  RBody: TCastleRigidBody;
 begin
   { Update rigid body existence when ExistsInRoot changes }
-  if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) and (RigidBody <> nil) then
+  if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
   begin
-    RigidBody.UpdateExist;
+    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if RBody <> nil then
+      RBody.UpdateExist;
   end;
 end;
 

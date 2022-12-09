@@ -25,7 +25,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleApplicationProperties, CastleUIState,
-  CastleMaterialProperties, CastleComponentSerialize, CastleSoundEngine
+  CastleComponentSerialize, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStatePlay
@@ -57,9 +57,6 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
-
-  { Load texture properties, used to enable GPU-compressed textures. }
-  //MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Create game states and set initial state }
   {$region 'Castle State Creation'}

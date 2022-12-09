@@ -50,7 +50,7 @@ uses // FPC and LCL units
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess, CastleRenderOptions;
+  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -63,6 +63,7 @@ uses // FPC and LCL units
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
+{$I castlepropedits_protectedsides.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_rangeset.inc}
@@ -140,7 +141,7 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TSubPropertiesEditor);
+    TCastleProtectedSidesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
@@ -152,8 +153,6 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',
-    TScalePropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleCollider, 'SizeScalePersistent',
     TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleBox, 'SizePersistent',
     TScalePropertyEditor);
@@ -176,10 +175,29 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'ConnectedTransform',
     TConnectedTransformPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
+  { used by LockRotation, LockTranslation }
+  RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockRotation',
-    T3DCoordsRangeSetPropertyEditor);
+
+  { animations on TCastleThirdPersonNavigation }
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationWalk',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRun',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationJump',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationRotate',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouch',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchIdle',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationCrouchRotate',
+    TThirdPersonAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationFall',
+    TThirdPersonAnimationPropertyEditor);
 
   RegisterComponentEditor(TCastleTransform, TCastleTransformComponentEditor);
   RegisterComponentEditor(TCastleScene, TCastleSceneComponentEditor);

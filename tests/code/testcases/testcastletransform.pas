@@ -69,6 +69,7 @@ type
     procedure TestPhysicsPlaneAutoSize;
     procedure TestPhysicsMeshResolving;
     procedure TestPhysicsDefaultAutoSize;
+    procedure TestReparentBehavior;
   end;
 
 implementation
@@ -76,7 +77,7 @@ implementation
 uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection, CastleStringUtils, CastleApplicationProperties;
+  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1978,23 +1979,23 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
+    AssertEquals(1.0, Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.SizeScale := Vector3(8, 9, 10);
+    Col.SizeScale := 8;
     Col.Size := Vector3(11, 12, 13);
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertVectorEquals(Vector3(11, 12, 13), Col.Size);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     B.Size := Vector3(400, 500, 600);
@@ -2002,7 +2003,7 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2010,14 +2011,14 @@ begin
     AssertVectorEquals(Vector3(400, 500, 600), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     B.Size := Vector3(700, 800, 900);
     AssertVectorEquals(Vector3(700, 800, 900), Col.Size);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
@@ -2045,23 +2046,23 @@ begin
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
+    AssertEquals(1, Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.SizeScale := Vector3(8, 9, 10);
+    Col.SizeScale := 8;
     Col.Radius := 11;
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertSameValue(11, Col.Radius);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     S.Radius := 400;
@@ -2069,7 +2070,7 @@ begin
     AssertSameValue(100, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2077,14 +2078,14 @@ begin
     AssertSameValue(400, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     S.Radius := 700;
     AssertSameValue(700, Col.Radius);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
@@ -2112,23 +2113,23 @@ begin
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(1, 1, 1), Col.SizeScale);
+    AssertEquals(1, Col.SizeScale);
     AssertFalse(Col.AutoSize);
 
     Col.Translation := Vector3(3, 4, 5);
     Col.Rotation := Vector4(5, 6, 7, 8);
-    Col.SizeScale := Vector3(8, 9, 10);
+    Col.SizeScale := 8;
     Col.Normal := Vector3(11, 12, 13);
     AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
     AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertVectorEquals(Vector3(11, 12, 13), Col.Normal);
 
     Col.CalculateSize; // test that CalculateSize works and updates all size values
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     P.Axis := 2;
@@ -2136,7 +2137,7 @@ begin
     AssertVectorEquals(TVector3.One[0], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertFalse(Col.AutoSize);
 
     Col.AutoSize := true;
@@ -2144,14 +2145,14 @@ begin
     AssertVectorEquals(TVector3.One[2], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
 
     P.Axis := 1;
     AssertVectorEquals(TVector3.One[1], Col.Normal);
     AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
     AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
-    AssertVectorEquals(Vector3(8, 9, 10), Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
     AssertTrue(Col.AutoSize);
   finally FreeAndNil(Own) end;
 end;
@@ -2235,6 +2236,121 @@ begin
     B.AddBehavior(ColB);
     AssertTrue(ColB.AutoSize);
   finally FreeAndNil(Own) end;
+end;
+
+type
+  TLoggingBehavior = class(TCastleBehavior)
+    Log: TStringList;
+    procedure ParentAfterAttach; override;
+    procedure ParentBeforeDetach; override;
+    procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
+  end;
+
+  procedure TLoggingBehavior.ParentAfterAttach;
+  begin
+    inherited;
+    Log.Add('Behavior attached to ' + Parent.Name);
+  end;
+
+  procedure TLoggingBehavior.ParentBeforeDetach;
+  begin
+    Log.Add('Behavior detached from ' + Parent.Name);
+    inherited;
+  end;
+
+  procedure TLoggingBehavior.WorldAfterAttach;
+  begin
+    inherited;
+    { Although World.Name is always boring 'Items', using it makes sure World is valid now }
+    Log.Add('Behavior attached to world ' + World.Name);
+  end;
+
+  procedure TLoggingBehavior.WorldBeforeDetach;
+  begin
+    { Although World.Name is always boring 'Items', using it makes sure World is valid now }
+    Log.Add('Behavior detached from world ' + World.Name);
+    inherited;
+  end;
+
+procedure TTestCastleTransform.TestReparentBehavior;
+var
+  Log: TStringList;
+  B: TLoggingBehavior;
+  Parent1, Parent2: TCastleTransform;
+  Viewport: TCastleViewport;
+begin
+  B := nil;
+  Log := nil;
+  try
+    Log := TStringList.Create;
+
+    B := TLoggingBehavior.Create(nil);
+    B.Log := Log;
+
+    Parent1 := TCastleTransform.Create(nil);
+    Parent1.Name := 'Parent1';
+
+    Parent2 := TCastleTransform.Create(nil);
+    Parent2.Name := 'Parent2';
+
+    Viewport := TCastleViewport.Create(nil);
+
+    // make sure we have clean log now, as we didn't yet do anything
+    AssertEquals('', Trim(Log.Text));
+
+    Parent1.AddBehavior(B);
+    Parent1.RemoveBehavior(B);
+    Parent2.AddBehavior(B);
+    Parent2.RemoveBehavior(B);
+
+    AssertEquals(
+      'Behavior attached to Parent1' + NL +
+      'Behavior detached from Parent1' + NL +
+      'Behavior attached to Parent2' + NL +
+      'Behavior detached from Parent2', Trim(Log.Text));
+    Log.Clear;
+
+    Parent1.AddBehavior(B);
+    Parent2.AddBehavior(B); // should detach automatically from Parent1, check it causes ParentBeforeDetach
+    Parent2.RemoveBehavior(B);
+
+    AssertEquals(
+      'Behavior attached to Parent1' + NL +
+      'Behavior detached from Parent1' + NL +
+      'Behavior attached to Parent2' + NL +
+      'Behavior detached from Parent2', Trim(Log.Text));
+    Log.Clear;
+
+    { check that addign transform to world causes WorldAfterAttach }
+
+    Parent2.AddBehavior(B);
+    Log.Clear;
+
+    B.ListenWorldChange := true;
+    Viewport.Items.Add(Parent1);
+    AssertEquals('', Trim(Log.Text));
+    Viewport.Items.Add(Parent2);
+    AssertEquals('Behavior attached to world Items', Trim(Log.Text));
+    Log.Clear;
+
+    { now reparent, and watch that notifications about parent and world are all correct }
+
+    Parent1.AddBehavior(B);
+
+    AssertEquals(
+      'Behavior detached from world Items' + NL +
+      'Behavior detached from Parent2' + NL +
+      'Behavior attached to Parent1' + NL +
+      'Behavior attached to world Items', Trim(Log.Text));
+
+  finally
+    FreeAndNil(B);
+    FreeAndNil(Log); // note: make sure to keep Log existing as long as B exists
+    FreeAndNil(Parent1);
+    FreeAndNil(Parent2);
+    FreeAndNil(Viewport);
+  end;
 end;
 
 initialization

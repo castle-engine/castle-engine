@@ -101,7 +101,7 @@ begin
   begin
     FRadius := Value;
     CylinderNode.Radius := FRadius;
-    UpdateColliderSize;
+    UpdateCollider;
   end;
 end;
 
@@ -111,7 +111,7 @@ begin
   begin
     FHeight := Value;
     CylinderNode.Height := FHeight;
-    UpdateColliderSize;
+    UpdateCollider;
   end;
 end;
 

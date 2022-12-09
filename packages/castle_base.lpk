@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1046">
+    <Files Count="1048">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -1326,8 +1326,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalX3DScript"/>
       </Item306>
       <Item307>
-        <Filename Value="../src/scene/castlematerialproperties.pas"/>
-        <UnitName Value="CastleMaterialProperties"/>
+        <Filename Value="../src/scene/castleinternalmaterialproperties.pas"/>
+        <UnitName Value="CastleInternalMaterialProperties"/>
       </Item307>
       <Item308>
         <Filename Value="../src/scene/castleraytracer.pas"/>
@@ -4238,57 +4238,66 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item1033>
       <Item1034>
-        <Filename Value="../src/transform/castleinternalphysicsvisualization.pas"/>
-        <UnitName Value="CastleInternalPhysicsVisualization"/>
+        <Filename Value="../src/transform/castletransform_physics_deprecated.inc"/>
+        <Type Value="Include"/>
       </Item1034>
       <Item1035>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/deprecated_units/castlematerialproperties.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleMaterialProperties"/>
       </Item1035>
       <Item1036>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/base/castlevectors_matrix_decompose.inc"/>
         <Type Value="Include"/>
       </Item1036>
       <Item1037>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/transform/castleinternalphysicsvisualization.pas"/>
+        <UnitName Value="CastleInternalPhysicsVisualization"/>
       </Item1037>
       <Item1038>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1038>
       <Item1039>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1039>
       <Item1040>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1040>
       <Item1041>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1041>
       <Item1042>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1042>
       <Item1043>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1043>
       <Item1044>
-        <Filename Value="../src/transform/castletransform_physics_deprecated.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1044>
       <Item1045>
-        <Filename Value="../src/transform/castletransform_joints.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1045>
       <Item1046>
-        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleworldplanedistancejoint_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1046>
+      <Item1047>
+        <Filename Value="../src/transform/castletransform_joints.inc"/>
+        <Type Value="Include"/>
+      </Item1047>
+      <Item1048>
+        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
+        <Type Value="Include"/>
+      </Item1048>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

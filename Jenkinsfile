@@ -14,6 +14,10 @@ pipeline {
   /* This job works on a few agents in parallel */
   agent none
 
+  parameters {
+    booleanParam(name: 'jenkins_fast', defaultValue: false, description: 'Use at emergencies, to make pipeline build faster')
+  }
+
   stages {
     /* Build for each platform in parallel.
        See https://stackoverflow.com/questions/43913698/jenkinsfile-parallel-directive
@@ -41,6 +45,12 @@ pipeline {
               }
             }
 
+            stage('(Docker) Shell Tests') {
+              steps {
+                sh "./tools/internal/cge_shell_tests"
+              }
+            }
+
             /* Commands with default FPC version
                (latest stable FPC, most of the time; see https://castle-engine.io/docker ). */
             stage('(Docker) Build Tools (Default FPC)') {
@@ -49,12 +59,14 @@ pipeline {
               }
             }
             stage('(Docker) Build Examples (Default FPC)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (Default FPC/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples-laz'
               }
@@ -80,12 +92,14 @@ pipeline {
               }
             }
             stage('(Docker) Build Examples (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
               }
@@ -111,12 +125,14 @@ pipeline {
               }
             }
             stage('(Docker) Build Examples (FPC trunk)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
               }
@@ -151,6 +167,7 @@ pipeline {
           }
         }
         stage('Raspberry Pi') {
+          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'raspberry-pi-cge-builder'
           }
@@ -185,7 +202,7 @@ pipeline {
             }
             stage('(RPi) Build Examples') {
               steps {
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
@@ -209,6 +226,7 @@ pipeline {
           }
         }
         stage('macOS') {
+          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'mac-cge-builder'
           }
@@ -301,6 +319,7 @@ pipeline {
           }
         }
         stage('Windows') {
+          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'windows-cge-builder'
           }

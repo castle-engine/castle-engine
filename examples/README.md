@@ -14,4 +14,4 @@ Then use _"Run -> Compile and Run (F9)"_ menu item to build and run it.
 
 All example code, and almost all example data, are covered by a permissive "modified BSD 3-clause" license. So you can use our examples as a basis for your applications easily, without the need to share anything you did based on these examples.
 
-See file `../COPYING.md` for details.
+See https://castle-engine.io/license for details.

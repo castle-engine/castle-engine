@@ -37,19 +37,25 @@ type
   TBullet = class(TCastleTransform)
   strict private
     Duration: Single;
+    FRBody: TCastleRigidBody;
   public
-    constructor Create(AOwner: TComponent; BulletSpriteScene: TCastleScene); reintroduce;
+    constructor Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene); reintroduce;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    { Physics body. Guaranteed to be initialized (non-nil) for TBullet. }
+    property RBody: TCastleRigidBody read FRBody;
   end;
 
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;
     ScenePlayer: TCastleScene;
+    PlayerRigidBody: TCastleRigidBody;
     CheckboxCameraFollow: TCastleCheckbox;
     CheckboxAdvancedPlayer: TCastleCheckbox;
     ImageHitPoint4: TCastleImageControl;
@@ -57,7 +63,7 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
-
+  strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
     WasInputJump: Boolean;
@@ -177,9 +183,8 @@ uses
 
 { TBullet -------------------------------------------------------------------- }
 
-constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
+constructor TBullet.Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene);
 var
-  RBody: TCastleRigidBody;
   Collider: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
@@ -191,7 +196,7 @@ begin
   { In this case we are adding TCastleRigidBody to TBullet(TCastleTransform)
     and not to the BulletSpriteScene in order to be able to use this scene in
     multiple bullets. }
-  RBody := TCastleRigidBody.Create(Self);
+  FRBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
   RBody.CollisionDetection := cdContinuous;
@@ -398,7 +403,7 @@ begin
     Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { This is not ideal you can do another jump when Player is
     on top of the jump you can make next jump, but can be nice mechanic
@@ -438,7 +443,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -475,7 +480,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
 begin
   { This method is executed every frame.}
 
@@ -484,38 +489,38 @@ begin
     Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
-    on the edge, maybe be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  { Two more checks using physics engine - player should slide down when player is just
+    on the edge.
+    TODO: maybe we can remove this logic after using TCastleCapsule collider for player. }
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -553,7 +558,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -590,7 +595,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
@@ -602,38 +607,37 @@ begin
   InSecondJump := false;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, maye be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -696,7 +700,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -745,27 +749,27 @@ begin
   InSecondJump := false;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
 
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, but sometimes it stay and center ray dont "see" that we are
     on ground }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
   if PlayerOnGround then
@@ -826,7 +830,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -895,31 +899,31 @@ begin
   if IsPlayerDead then
     Exit;
 
-  if ScenePlayer.RigidBody = nil then
+  if PlayerRigidBody = nil then
     Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+  GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
 
   { Two more checks - player should slide down when player just
     on the edge, but sometimes it stay and center ray don't "see" that we are
     on ground }
   if GroundScene = nil then
   begin
-    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
 
   if GroundScene = nil then
   begin
-    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
 
   { Player is on ground when RayCasts hits something }
@@ -999,7 +1003,7 @@ begin
     Vel.Y := 0;
   end;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -1056,7 +1060,7 @@ var
 begin
   Bullet := TBullet.Create(BulletOwner, BulletSpriteScene);
   Bullet.Translation := Origin;
-  Bullet.RigidBody.LinearVelocity := Direction * Vector3(750, 20, 0);
+  Bullet.RBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
 end;
 
@@ -1188,20 +1192,6 @@ begin
 
   LevelComplete := false;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := DesignedComponent('CheckboxAdvancedPlayer') as TCastleCheckbox;
-  ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
-  ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
-  ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
-  ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
-  ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
-
-  ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
-
   LevelBounds := TLevelBounds.Create(ScenePlayer.Owner);
 
   WasInputShot := false;
@@ -1245,8 +1235,9 @@ begin
   for I := 0 to FallingObstaclesRoot.Count - 1 do
   begin
     FallingObstacleScene := FallingObstaclesRoot.Items[I] as TCastleScene;
-    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
-      instances of this class, i.e. it will free them. }
+    { Below using nil as Owner of TFallingObstacle,
+      as the FallingObstacles list already "owns" instances of this class,
+      i.e. it will free them. }
     FallingObstacle := TFallingObstacle.Create(nil);
     FallingObstacleScene.AddBehavior(FallingObstacle);
     FallingObstacles.Add(FallingObstacle);
@@ -1257,8 +1248,9 @@ begin
   for I := 0 to DeadlyObstaclesRoot.Count - 1 do
   begin
     DeadlyObstacleScene := DeadlyObstaclesRoot.Items[I] as TCastleScene;
-    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
-      instances of this class, i.e. it will free them. }
+    { Below using nil as Owner of TFallingObstacle,
+      as the DeadlyObstacles list already "owns" instances of this class,
+      i.e. it will free them. }
     DeadlyObstacle := TDeadlyObstacle.Create(nil);
     DeadlyObstacleScene.AddBehavior(DeadlyObstacle);
     DeadlyObstacles.Add(DeadlyObstacle);
@@ -1315,7 +1307,7 @@ begin
   { If level is completed and we did not show level complete we do that }
   if LevelComplete and (TUIState.CurrentTop <> StateLevelComplete) then
   begin
-    ScenePlayer.RigidBody.Exists := false;
+    PlayerRigidBody.Exists := false;
     PauseGame;
     TUIState.Push(StateLevelComplete);
     Exit;
@@ -1325,10 +1317,10 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    ViewHeight := MainViewport.Camera.Orthographic.EffectiveHeight;
-    ViewWidth := MainViewport.Camera.Orthographic.EffectiveWidth;
+    ViewHeight := MainViewport.Camera.Orthographic.EffectiveRect.Height;
+    ViewWidth := MainViewport.Camera.Orthographic.EffectiveRect.Width;
 
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
 
@@ -1345,7 +1337,7 @@ begin
     if CamPos.X + ViewWidth / 2 > LevelBounds.Right then
        CamPos.X := LevelBounds.Right - ViewWidth / 2;
 
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 
   if CheckboxAdvancedPlayer.Checked then

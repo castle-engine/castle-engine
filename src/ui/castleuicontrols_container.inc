@@ -801,7 +801,12 @@ var
   FingerIndex: TFingerIndex;
 begin
   if C = FTooltipParent then
+  begin
+    if (FTooltipParent <> nil) and
+       (FTooltipParent.TooltipControl <> nil) then
+      FTooltipParent.TooltipControl.Exists := false;
     FTooltipParent := nil;
+  end;
 
   if FFocus <> nil then
   begin
@@ -1186,7 +1191,9 @@ procedure TCastleContainer.EventUpdate;
         This is especially useful when an invisible control like TCastleWalkNavigation
         covers other controls. }
       for I := Focus.Count - 1 downto 0 do
+        {$warnings off} // using deprecated, it should be internal
         if Focus[I].TooltipExists then
+        {$warnings on}
         begin
           NewTooltipParent := Focus[I];
           Break;
@@ -1195,6 +1202,13 @@ procedure TCastleContainer.EventUpdate;
 
     if FTooltipParent <> NewTooltipParent then
     begin
+      if FTooltipParent <> nil then
+      begin
+        { hide TooltipControl }
+        if FTooltipParent.TooltipControl <> nil then
+          FTooltipParent.TooltipControl.Exists := false;
+      end;
+
       FTooltipParent := NewTooltipParent;
 
       if FTooltipParent <> nil then
@@ -1203,6 +1217,9 @@ procedure TCastleContainer.EventUpdate;
         LastPositionForTooltip := MousePosition;
         { also update TooltipPosition }
         FTooltipPosition := MousePosition;
+        { show TooltipControl }
+        if FTooltipParent.TooltipControl <> nil then
+          FTooltipParent.TooltipControl.Exists := true;
       end;
 
       Invalidate;
@@ -1786,7 +1803,9 @@ begin
   if FTooltipParent <> nil then
   begin
     RenderControlPrepare(Rect);
+    {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
     FTooltipParent.TooltipRender(FTooltipPosition);
+    {$warnings on}
   end;
 
   RenderControlPrepare(Rect);
@@ -1862,7 +1881,42 @@ end;
 
 procedure TCastleContainer.MouseLookUpdate;
 begin
-  // Nothing useful to do here
+  { Never "capture" the motion of the mouse when MouseLook.
+
+    Without this, using mouse look and then pressing some mouse button that it handled
+    (e.g. to shoot), makes the subsequent dragging not work
+    -- it is blocked for a short time before releasing left mouse button
+    and then it is blocked until you release right mouse button too
+    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
+
+    Testcases:
+
+    - examples/physics/physics_3d_shooter/
+
+      Mouse look is active when buttonRight is held.
+      buttonLeft does shoot.
+
+      So without this fix, shooting while mouse looking
+      (clicking buttonLeft while holding buttonRight)
+      stops mouse look, even though user still holds buttonRight.
+
+    - examples/fps_game/
+
+      As above, though mouse look can also be permanent (after F4).
+
+      It's a problem in any case (whether mouse look is permanent by F4,
+      or temporary by holding buttonRight): clicking with buttonLeft stops
+      mouse look from working.
+
+    - examples/third_person_navigation/
+
+      We have permanent mouse look by default.
+
+      As both buttonLeft (shoot) and buttonRight (toggle aim) perform some function,
+      they both stop mouse look from working.
+  }
+  FCaptureInput.Clear;
+  // this is like ReleaseCapture(...) for all possible arguments
 end;
 
 procedure TCastleContainer.MouseLookIgnoreNextMotion;

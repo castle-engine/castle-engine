@@ -2,7 +2,7 @@
 <project name="physics_3d_shooter"
   standalone_source="physics_3d_shooter_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physics3dshooter"
+  qualified_name="io.castleengine.physics.shooter"
   caption="Physics 3D Shooter"
 >
   <compiler_options>

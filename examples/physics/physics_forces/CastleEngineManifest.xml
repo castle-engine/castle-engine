@@ -2,7 +2,7 @@
 <project name="physics_forces"
   standalone_source="physics_forces_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicsforces"
+  qualified_name="io.castleengine.physics.forces"
   caption="Physics Forces"
 >
   <compiler_options>

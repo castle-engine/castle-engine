@@ -23,7 +23,7 @@ interface
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs,
   CastleStringUtils,
-  ToolArchitectures, ToolManifest;
+  ToolArchitectures, ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -61,7 +61,7 @@ type
       Avoids adding empty lines at the very end (since they would
       make the look uglier; instead,
       we make nice separators with AddSeparator). }
-    procedure SplitAddLines(const S: String; const Kind: TOutputKind);
+    //procedure SplitAddLines(const S: String; const Kind: TOutputKind);
     procedure AddSeparator;
     procedure Clear;
   end;
@@ -76,6 +76,8 @@ type
     FRunning: Boolean;
     FExitStatus: Integer;
     Environment: TStringList;
+    { Additional process id to kill, when killing Process. }
+    ChildProcessId: TProcessId;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -92,6 +94,11 @@ type
 
     { Defined only after callling Start, once Running turned false. }
     property ExitStatus: Integer read FExitStatus;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   { Call asynchronous processes, one after another, until the end
@@ -126,6 +133,11 @@ type
     procedure Start;
     procedure Update;
     function Running: Boolean;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   TPlatformInfo = class
@@ -258,9 +270,11 @@ type
 
 implementation
 
-uses SysUtils, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
+uses
+  SysUtils, Graphics, TypInfo, Generics.Defaults,
+  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
+  CastleColors,
   ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
@@ -367,6 +381,12 @@ begin
   Result := (FQueuePosition >= 0) and (FQueuePosition < Queue.Count);
 end;
 
+procedure TAsynchronousProcessQueue.TerminateChildrenHarder;
+begin
+  if (AsyncProcess <> nil) and AsyncProcess.Running then
+    AsyncProcess.TerminateChildrenHarder;
+end;
+
 { TAsynchronousProcess ------------------------------------------------------- }
 
 constructor TAsynchronousProcess.Create;
@@ -446,6 +466,22 @@ begin
 end;
 
 procedure TAsynchronousProcess.Update;
+
+  function LineProcessInternalInfo(const Line: String): Boolean;
+  const
+    Prefix = 'Castle Game Engine Internal: ProcessID: ';
+  var
+    ParsedProcessId: TProcessId;
+  begin
+    Result := false;
+    if IsPrefix(Prefix, Line, false) and
+       TryStrToInt64(PrefixRemove(Prefix, Line, false), ParsedProcessId) then
+    begin
+      ChildProcessId := ParsedProcessId;
+      Result := true;
+    end;
+  end;
+
 const
   ReadMaxSize = 65536;
 var
@@ -478,7 +514,8 @@ begin
       dump the remaining PendingLines as last line. }
     if (not Process.Running) and (Length(PendingLines) <> 0) then
     begin
-      OutputList.AddLine(PendingLines, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(PendingLines, okInfo);
       PendingLines := '';
     end;
     Exit;
@@ -513,7 +550,8 @@ begin
       if SCharIs(PendingLines, NewLinePos - 1, #13) then
         Dec(NewLinePos);
       Line := Copy(PendingLines, 1, NewLinePos - 1);
-      OutputList.AddLine(Line, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(Line, okInfo);
 
       PendingLines := SEnding(PendingLines, ProcessedLength + 1);
     end else
@@ -523,6 +561,15 @@ begin
   // if we get a lot of output, maybe more than ReadMaxSize, then keep reading!
   if ReadMaxSize = ReadBytes then
     Update;
+end;
+
+procedure TAsynchronousProcess.TerminateChildrenHarder;
+begin
+  if ChildProcessId <> 0 then
+  begin
+    OutputList.AddLine(Format('Stopping child process (id: %d)', [ChildProcessId]), okInfo);
+    StopProcess(ChildProcessId);
+  end;
 end;
 
 { TOutputList --------------------------------------------------------------- }
@@ -686,6 +733,8 @@ begin
     List.TopIndex := List.Items.Count - 1;
 end;
 
+(* Unused:
+
 procedure TOutputList.SplitAddLines(const S: String; const Kind: TOutputKind);
 var
   SL: TStringList;
@@ -701,6 +750,7 @@ begin
       AddLine(Line, Kind);
   finally FreeAndNil(SL) end;
 end;
+*)
 
 procedure TOutputList.AddSeparator;
 begin
@@ -1090,20 +1140,10 @@ end;
 
 function UseIconsAndColorsForDarkTheme: Boolean;
 var
-  RGBColor: LongInt;
-  R, G, B: Byte;
   Luminance: Single;
 begin
-  RGBColor := ColorToRGB(clBackground);
-
-  R := (RGBColor shr 16) and $0000ff;
-  G := (RGBColor shr 8) and $0000ff;
-  B := RGBColor and $0000ff;
-
-  { https://stackoverflow.com/questions/12043187/how-to-check-if-hex-color-is-too-black }
-  Luminance :=  0.2126 * R + 0.7152 * G + 0.0722 * B;
-
-  Result := Luminance < 180;
+  Luminance := GrayscaleValue(ColorToVector3(clForm));
+  Result := Luminance < 180 / 255;
 end;
 
 class function TSavedSelection.Equals(const A, B: TSavedSelection): Boolean; static;

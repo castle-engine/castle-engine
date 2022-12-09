@@ -1,5 +1,5 @@
-﻿{
-  Copyright 2019-2022 Michalis Kamburelis, Andrzej Kilijański.
+{
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -12,321 +12,75 @@
 
   ----------------------------------------------------------------------------
 }
-
-{ Implements the game logic. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections, Math,
-  CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, CastleTransform,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleBoxes, CastleViewport,
-  CastleUIControls, CastleTimeUtils, CastleUtils, CastleApplicationProperties;
-
-type
-  TWall = class;
-  TPlane = class;
-  TTrigger = class;
-
-  TWall = class(TCastleScene)
-  public
-    constructor Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
-  end;
-
-  TTrigger = class(TCastleScene)
-  public
-    constructor Create(AOwner: TComponent; const TriggerName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
-  end;
-
-  TPlane = class(TCastleScene)
-  public
-    LastCollisionEnter: string;
-    procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
-    constructor Create(AOwner: TComponent); override;
-  end;
-
-{ TTrigger }
-{ Global variables ----------------------------------------------------------- }
+uses SysUtils,
+  CastleWindow, CastleLog, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindow;
-  Viewport: TCastleViewport;
-  Status: TCastleLabel;
-  Plane: TPlane;
-  LeftWall: TWall;
-  RightWall: TWall;
-  TopWall: TWall;
-  BottomWall: TWall;
-
-  TriggerGreen: TTrigger;
-
-
-constructor TTrigger.Create(AOwner: TComponent; const TriggerName: TComponentName;  const Pos, Size, Color: TVector3);
-var
-  Box: TBoxNode;
-  Shape: TShapeNode;
-  Root: TX3DRootNode;
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-  Material: TUnlitMaterialNode;
-begin
-  inherited Create(AOwner);
-
-  Translation := Pos; // initial position
-  Name := TriggerName;
-
-  Box := TBoxNode.CreateWithShape(Shape);
-  Box.Size := Size;
-
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Color;
-  Shape.Material := Material;
-
-  Root := TX3DRootNode.Create;
-  Root.AddChildren(Shape);
-
-  Load(Root, true);
-
-  RBody := TCastleRigidBody.Create(Self);
-  RBody.Dynamic := false;
-  RBody.Trigger := true;
-  RBody.Setup2D;
-  AddBehavior(RBody);
-
-  Collider := TCastleBoxCollider.Create(Self);
-  Collider.Size := Size;
-  AddBehavior(Collider);
-end;
-
-{ TPlane }
-
-procedure TPlane.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
-begin
-  if CollisionDetails.OtherTransform <> nil then
-  begin
-    LastCollisionEnter := CollisionDetails.OtherTransform.Name;
-
-    if CollisionDetails.OtherTransform.RigidBody.Trigger then
-      LastCollisionEnter := LastCollisionEnter + ' (trigger)';
-  end
-  else
-    LastCollisionEnter := 'other thing';
-end;
-
-constructor TPlane.Create(AOwner: TComponent);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-begin
-  inherited Create(AOwner);
-  Load('castle-data:/plane.x3d');
-  Translation := Vector3(550, 450, 0); // initial position
-
-  RBody := TCastleRigidBody.Create(Self);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-  RBody.LinearVelocityDamp := 0;
-  RBody.MaxLinearVelocity := 200;
-  RBody.AngularVelocityDamp := 0;
-
-  Collider := TCastleBoxCollider.Create(Self);
-  Collider.Restitution := 0.4;
-
-  AddBehavior(RBody);
-  AddBehavior(Collider);
-end;
-
-{ TWall }
-
-constructor TWall.Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3);
-var
-  Box: TBoxNode;
-  Shape: TShapeNode;
-  Root: TX3DRootNode;
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-  Material: TUnlitMaterialNode;
-begin
-  inherited Create(AOwner);
-
-  Translation := Pos; // initial position
-  Name := WallName;
-
-  Box := TBoxNode.CreateWithShape(Shape);
-  Box.Size := Size;
-
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Color;
-  Shape.Material := Material;
-
-  Root := TX3DRootNode.Create;
-  Root.AddChildren(Shape);
-
-  Load(Root, true);
-
-  RBody := TCastleRigidBody.Create(Self);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  AddBehavior(RBody);
-
-  Collider := TCastleBoxCollider.Create(Self);
-  Collider.Size := Size;
-  AddBehavior(Collider);
-end;
-
-{ ---------------------------------------------------------------------------- }
-
-procedure LoadPlane;
-begin
-  Plane := TPlane.Create(Application);
-  Viewport.Items.Add(Plane);
-  Plane.Scale := Vector3(5, 5, 1);
-end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
-
-  procedure LoadWalls;
-  begin
-    LeftWall := TWall.Create(Application, 'LeftWall', Vector3(10, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
-    Viewport.Items.Add(LeftWall);
-
-    RightWall := TWall.Create(Application, 'RightWall', Vector3(1014, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
-    Viewport.Items.Add(RightWall);
-
-    TopWall := TWall.Create(Application, 'TopWall', Vector3(1024/2, 758, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
-    Viewport.Items.Add(TopWall);
-
-    BottomWall := TWall.Create(Application, 'BottomWall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
-    Viewport.Items.Add(BottomWall);
-  end;
-
-  procedure LoadTriggers;
-  begin
-    TriggerGreen := TTrigger.Create(Application, 'TriggerGreen', Vector3(500, 210, -3), Vector3(200, 200, 4), Vector3(0.1, 0.5, 0.0));
-    Viewport.Items.Add(TriggerGreen);
-  end;
-
 begin
-  { make UI automatically scaled }
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  Viewport := TCastleViewport.Create(Application);
-  Viewport.Setup2D;
-  Viewport.FullSize := true;
-  Viewport.Camera.Orthographic.Height := 768;
+  { Create TStateMain that will handle "main" state of the game.
+    Larger games may use multiple states,
+    e.g. TStateMainMenu ("main menu state"),
+    TStatePlay ("playing the game state"),
+    TStateCredits ("showing the credits state") etc. }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
 
-  { change physics frequency }
-  // Viewport.Items.PhysicsProperties.Frequency := 30;
-
-  { change velocity integration from Euler to RK4 }
-  // Viewport.Items.PhysicsProperties.AngularVelocityRK4Integration := true;
-  // Viewport.Items.PhysicsProperties.LinearVelocityRK4Integration := true;
-
-  Window.Controls.InsertFront(Viewport);
-
-  LoadWalls;
-  LoadTriggers;
-  LoadPlane;
-
-  Status := TCastleLabel.Create(Application);
-  Status.Anchor(hpLeft, 40);
-  Status.Anchor(vpTop, -40);
-  Status.Color := Yellow;
-  Window.Controls.InsertFront(Status);
-end;
-
-procedure WindowUpdate(Container: TCastleContainer);
-var
-  CollisionsList: TCastleTransformList;
-  CollisionsListTXT: String;
-  I: Integer;
-begin
-  CollisionsList := Plane.RigidBody.GetCollidingTransforms;
-  CollisionsListTXT := '';
-
-  for I := 0 to CollisionsList.Count - 1 do
-  begin
-    if CollisionsList[I] is TWall then
-      CollisionsListTXT := CollisionsListTXT + ' ' + TWall(CollisionsList[I]).Name
-    else
-    if CollisionsList[I].RigidBody.Trigger then
-      CollisionsListTXT := CollisionsListTXT + ' trigger'
-    else
-      CollisionsListTXT := CollisionsListTXT + ' other thing';
-  end;
-
-  if CollisionsList.Count = 0 then
-  begin
-    CollisionsListTXT := CollisionsListTXT + 'nothing';
-  end;
-
-  Status.Caption := Format(
-    'FPS: %s' + NL +
-    'Viewport Objects: %d' + NL +
-    'Linear velocity: %f' + NL +
-    'Use AWSD to change plane velocity, space to pause, R to restart plane.' + NL +
-    NL+
-    'Current Plane Colisions (from TCastleRigidBody.GetCollidingTransforms):' + NL +
-    '  %s' + NL +
-    NL +
-    'Last Plane Collision Enter (from TCastleRigidBody.OnCollisionEnter):' + NL +
-    '  %s', [
-    Container.Fps.ToString,
-    Viewport.Items.Count,
-    Plane.RigidBody.LinearVelocity.Length,
-    CollisionsListTXT,
-    Plane.LastCollisionEnter
-  ]);
-  if IsZero(Viewport.Items.TimeScale) then
-    Status.Caption := Status.Caption + NL + 'Paused';
-end;
-
-procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
-
-  procedure Move(const X, Y: Single);
-  begin
-    Plane.RigidBody.LinearVelocity := Plane.RigidBody.LinearVelocity + 20 * Vector3(X, Y, 0);
-  end;
-
-begin
-  if Event.IsKey(keyA) then
-    Move(-1, 0);
-  if Event.IsKey(keyD) then
-    Move( 1, 0);
-  if Event.IsKey(keyS) then
-    Move(0, -1);
-  if Event.IsKey(keyW) then
-    Move(0,  1);
-  if Event.IsKey(keyR) then
-  begin
-    FreeAndNil(Plane);
-    LoadPlane;
-  end;
-  if Event.IsKey(keySpace) then
-  begin
-    if IsZero(Viewport.Items.TimeScale) then
-      Viewport.Items.TimeScale := 1
-    else
-      Viewport.Items.TimeScale := 0;
-  end;
+  TUIState.Current := StateMain;
 end;
 
 initialization
-  { initialize Application callbacks }
+  { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
+  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
-  Window.OnUpdate := @WindowUpdate;
-  Window.OnPress := @WindowPress;
+  { Adjust window fullscreen state and size.
+    Note that some platforms (like mobile) may ignore it.
+    Examples how to set window fullscreen state and size:
+
+      Window.FullScreen := true;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    or
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+  }
+
+  { You should not need to do *anything* more in the unit "initialization" section.
+    Most of your game initialization should happen inside ApplicationInitialize.
+    In particular, it is not allowed to read files before ApplicationInitialize
+    (because in case of non-desktop platforms,
+    some necessary resources may not be prepared yet). }
 end.

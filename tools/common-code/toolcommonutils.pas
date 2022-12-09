@@ -699,6 +699,10 @@ procedure RunCommandSimple(
       end;
 
       P.Execute;
+
+      Writeln('Castle Game Engine Internal: ProcessID: ', P.ProcessID);
+      Flush(Output);
+
       P.WaitOnExit;
 
       ExitStatus := P.ExitStatus;
@@ -712,7 +716,7 @@ var
   ProcessStatus: Integer;
   AbsoluteExeName: string;
 begin
-  { use FindExe to use our fixed PathFileSearch that does not accidentaly find
+  { use FindExe to use our fixed PathFileSearch that does not accidentally find
     "ant" directory as "ant" executable }
   if IsPathAbsolute(ExeName) then
     AbsoluteExeName := ExeName

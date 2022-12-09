@@ -26,17 +26,17 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
-  public
-    constructor Create(AOwner: TComponent); override;
-    procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     WalkNavigation: TCastleWalkNavigation;
     Viewport: TCastleViewport;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Start; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -66,16 +66,6 @@ begin
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
   WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
-
-  { Never "capture" the motion of the mouse.
-    Without this, dragging with right mouse button held,
-    and then pressing left mouse button to shoot,
-    makes the subsequent dragging (assuming you still hold the right mouse button) not work
-    -- it is blocked for a short time before releasing left mouse button
-    and then it is blocked until you release right mouse button too
-    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
-    TODO: Reconsider, maybe we should have some way to say "not capture" at press? }
-  Container.ReleaseCapture(Self);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -112,6 +102,14 @@ function TStateMain.Press(const Event: TInputPressRelease): Boolean;
       Of course this is non-realistic. }
     //BulletRigidBody.Gravity := false;
     Viewport.Items.Add(Bullet);
+
+    { Instead of setting BulletRigidBody.LinearVelocity directly (see line above)
+      you can also add force to push the bullet.
+      Both ApplyImpulse and AddForce can be used.
+      Try it out -- comment out above "BulletRigidBody.LinearVelocity := ..."
+      and uncomment one of the lines below. }
+    //BulletRigidBody.ApplyImpulse(Viewport.Camera.Direction * 50, Viewport.Camera.Translation);
+    //BulletRigidBody.AddForce(Viewport.Camera.Direction * 5000, false);
   end;
 
 begin

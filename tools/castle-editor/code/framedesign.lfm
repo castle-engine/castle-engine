@@ -8,8 +8,8 @@ object DesignFrame: TDesignFrame
   DesignTimePPI = 115
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 397
-  DesignTop = 238
+  DesignLeft = 289
+  DesignTop = 243
   object SplitterLeft: TSplitter
     Left = 255
     Height = 489
@@ -1191,9 +1191,26 @@ object DesignFrame: TDesignFrame
         ParentShowHint = False
         ShowHint = True
       end
+      object ButtonPlayStop: TSpeedButton
+        Left = 368
+        Height = 38
+        Top = 0
+        Width = 36
+        Action = ActionPlayStop
+        AllowAllUp = True
+        AutoSize = True
+        BorderSpacing.Left = 30
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 220
+        Images = Icons.ToolbarStroke1_5
+        ImageIndex = 5
+        ImageWidth = 32
+        ShowCaption = False
+      end
       object LabelSimulation: TLabel
         AnchorSideTop.Side = asrCenter
-        Left = 368
+        Left = 434
         Height = 38
         Top = 0
         Width = 62
@@ -1205,7 +1222,7 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonSimulationPlayStop: TSpeedButton
-        Left = 440
+        Left = 506
         Height = 38
         Top = 0
         Width = 36
@@ -1216,12 +1233,12 @@ object DesignFrame: TDesignFrame
         Constraints.MinWidth = 34
         GroupIndex = 10
         Images = Icons.ToolbarStroke1_5
-        ImageIndex = 5
+        ImageIndex = 8
         ImageWidth = 32
         ShowCaption = False
       end
       object ButtonSimulationPause: TSpeedButton
-        Left = 480
+        Left = 546
         Height = 38
         Top = 0
         Width = 36
@@ -1232,12 +1249,12 @@ object DesignFrame: TDesignFrame
         Constraints.MinWidth = 34
         GroupIndex = 9
         Images = Icons.ToolbarStroke1_5
-        ImageIndex = 7
+        ImageIndex = 10
         ImageWidth = 32
         ShowCaption = False
       end
       object LabelViewport: TLabel
-        Left = 552
+        Left = 618
         Height = 38
         Top = 0
         Width = 218
@@ -1251,6 +1268,18 @@ object DesignFrame: TDesignFrame
         Visible = False
       end
     end
+  end
+  object LabelPlayStop: TLabel
+    AnchorSideTop.Side = asrCenter
+    Left = 368
+    Height = 1
+    Top = 0
+    Width = 1
+    BorderSpacing.Left = 30
+    BorderSpacing.Right = 10
+    Layout = tlCenter
+    ParentColor = False
+    ParentFont = False
   end
   object MenuTreeView: TPopupMenu
     OnPopup = MenuTreeViewPopup
@@ -1341,7 +1370,7 @@ object DesignFrame: TDesignFrame
       Caption = 'Play/Stop Simulation'
       GroupIndex = 10
       Hint = 'Play/Stop Simulation'
-      ImageIndex = 5
+      ImageIndex = 8
       OnExecute = ActionSimulationPlayStopExecute
       OnUpdate = ActionSimulationPlayStopUpdate
     end
@@ -1349,9 +1378,16 @@ object DesignFrame: TDesignFrame
       Category = 'Physics'
       Caption = 'Pause Simulation'
       GroupIndex = 9
-      ImageIndex = 7
+      ImageIndex = 10
       OnExecute = ActionSimulationPauseUnpauseExecute
       OnUpdate = ActionSimulationPauseUnpauseUpdate
+    end
+    object ActionPlayStop: TAction
+      Caption = 'Application Play/Stop'
+      Hint = 'Play/Stop Application'
+      ImageIndex = 5
+      OnExecute = ActionPlayStopExecute
+      OnUpdate = ActionPlayStopUpdate
     end
   end
 end

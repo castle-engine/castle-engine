@@ -118,6 +118,9 @@ initialization
   R.Caption := 'Sphere Colllider (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
+
   RegisterSerializableComponent(TCastleRopeJoint, 'Rope Joint');
   RegisterSerializableComponent(TCastleHingeJoint, 'Hinge Joint ');
   RegisterSerializableComponent(TCastleBallJoint, 'Ball Joint');
@@ -129,5 +132,4 @@ initialization
   RegisterSerializableComponent(TCastleWorldPlaneDistanceJoint, 'World Plane Distance Joint');
   RegisterSerializableComponent(TCastleSliderJoint, 'Slider Joint');
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
 end.

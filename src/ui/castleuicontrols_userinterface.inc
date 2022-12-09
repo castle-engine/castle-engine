@@ -128,6 +128,8 @@
       FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
       FCustomTheme: TCastleTheme;
       FCustomThemeObserver: TFreeNotificationObserver;
+      FTooltipControl: TCastleUserInterface;
+      FTooltipControlObserver: TFreeNotificationObserver;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -178,6 +180,8 @@
     procedure SetHeight(const Value: Single);
     procedure SetCustomTheme(const Value: TCastleTheme);
     procedure CustomThemeFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetTooltipControl(const Value: TCastleUserInterface);
+    procedure TooltipControlFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Position and size of this control, assuming it exists,
       in the local coordinates (relative to the parent 2D control,
@@ -694,8 +698,8 @@
       and overrides these two methods as necessary.
 
       @groupBegin }
-    function TooltipExists: Boolean; virtual;
-    procedure TooltipRender(const TooltipPosition: TVector2); virtual;
+    function TooltipExists: Boolean; virtual; deprecated 'use TooltipControl to customize tooltip look';
+    procedure TooltipRender(const TooltipPosition: TVector2); virtual; deprecated 'use TooltipControl to customize tooltip look';
     { @groupEnd }
 
     { Initialize your OpenGL resources.
@@ -1370,6 +1374,22 @@
     { Use a custom instance of TCastleTheme to determine the look of this control. }
     property CustomTheme: TCastleTheme read FCustomTheme write SetCustomTheme;
 
+    { If set, the indicated control will act as a tooltip:
+      we will make it existing when we should show the tooltip for this control,
+      we will make it no longer existing when the tooltip for this should be hidden.
+      Initially the TooltipControl should usually have @link(Exists)=false,
+      because you usually do not want to show it until we start showing it as a tooltip.
+
+      If TooltipControl is assigned then TCastleUserInterfaceFont
+      no longer does tooltip rendering.
+      The @link(TCastleUserInterfaceFont.Tooltip) text is ignored.
+
+      The visual parent of TooltipControl can be whatever is comfortable.
+      That is, it is OK to make TooltipControl parent of this control,
+      and it is OK not to: you can as well place TooltipControl as e.g. parent of container
+      or design root. }
+    property TooltipControl: TCastleUserInterface read FTooltipControl write SetTooltipControl;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1420,6 +1440,9 @@ begin
 
   FCustomThemeObserver := TFreeNotificationObserver.Create(Self);
   FCustomThemeObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CustomThemeFreeNotification;
+
+  FTooltipControlObserver := TFreeNotificationObserver.Create(Self);
+  FTooltipControlObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TooltipControlFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -1811,7 +1834,7 @@ end;
 
 function TCastleUserInterface.TooltipExists: boolean;
 begin
-  Result := false;
+  Result := TooltipControl <> nil;
 end;
 
 function TCastleUserInterface.UIScale: Single;
@@ -2754,6 +2777,22 @@ begin
     Result := CustomTheme
   else
     Result := CastleUIControls.Theme;
+end;
+
+procedure TCastleUserInterface.SetTooltipControl(const Value: TCastleUserInterface);
+begin
+  if FTooltipControl <> Value then
+  begin
+    FTooltipControlObserver.Observed := Value;
+    FTooltipControl := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.TooltipControlFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  TooltipControl := nil;
 end;
 
 procedure TCastleUserInterface.SetClipChildren(const Value: Boolean);

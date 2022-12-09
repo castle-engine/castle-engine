@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
   { Collide as a mesh, constructed from the given scene shapes.
-    Place this inside @link(TRigidBody.Collider) property. }
+    Place this inside @link(TCastleRigidBody.Collider) property. }
   TMeshCollider = class(TCollider)
   strict private
     Mesh: TKraftMesh;

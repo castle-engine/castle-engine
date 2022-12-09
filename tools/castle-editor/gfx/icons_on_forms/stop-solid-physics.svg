@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="stop-solid-physics.svg"
+   width="512"
+   height="512"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     width="512px"
+     inkscape:snap-bbox="false"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-others="true"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:zoom="0.70214844"
+     inkscape:cx="296.94576"
+     inkscape:cy="249.23505"
+     inkscape:window-width="1850"
+     inkscape:window-height="1010"
+     inkscape:window-x="70"
+     inkscape:window-y="33"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4">
+    <sodipodi:guide
+       position="256,110.37552"
+       orientation="-1,0"
+       id="guide831"
+       inkscape:label=""
+       inkscape:locked="false"
+       inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="156.66203,256"
+       orientation="0,1"
+       id="guide833"
+       inkscape:label=""
+       inkscape:locked="false"
+       inkscape:color="rgb(0,0,255)" />
+  </sodipodi:namedview>
+  <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+  <path
+     d="m 448,128.45 v 255.1 c 0,35.35 -28.65,64 -64,64 H 128 c -35.350002,0 -64.000002,-28.65 -64.000002,-64 v -255.1 c 0,-35.350002 28.65,-64.000002 64.000002,-64.000002 h 256 c 35.3,0 64,28.65 64,64.000002 z"
+     id="path2"
+     style="fill:#008000;fill-opacity:1" />
+</svg>

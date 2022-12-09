@@ -110,6 +110,8 @@ type
     FWarningInvalidParentDone: Boolean;
     FCheckCollisions: Boolean;
     FZoomEnabled: Boolean;
+    FInput_ZoomIn: TInputShortcut;
+    FInput_ZoomOut: TInputShortcut;
 
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
@@ -200,8 +202,14 @@ type
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 
     { Zoom in / out.
-      Negative Factor makes "zoom out", positive makes "zoom in" (zero makes nothing). }
-    function Zoom(const Factor: Single): Boolean;
+      Negative Factor makes "zoom out", positive makes "zoom in" (zero makes nothing).
+
+      Called only if @link(ZoomEnabled), so no need to check it within implementation.
+
+      Factor values correspond to TInputPressRelease.MouseWheelScroll values,
+      so 1.0 should be treated like a "one operation" and some systems only generate
+      values -1 or +1 (and never fractions). }
+    function Zoom(const Factor: Single): Boolean; virtual;
   public
     const
       { Default value for TCastleNavigation.Radius.
@@ -338,6 +346,14 @@ type
       To disable any user interaction with this navigation
       you can simply set this to empty. }
     property Input: TNavigationInputs read FInput write FInput default DefaultInput;
+
+    { Bring camera closer to the model. Works only if @link(ZoomEnabled).
+      By deafult mwUp (mouse wheel up). }
+    property Input_ZoomIn: TInputShortcut read FInput_ZoomIn;
+
+    { Bring camera further from the model. Works only if @link(ZoomEnabled).
+      By deafult mwDown (mouse wheel down). }
+    property Input_ZoomOut: TInputShortcut read FInput_ZoomOut;
   published
     // By default this captures events from whole parent, which should be whole Viewport.
     property FullSize default true;
@@ -348,7 +364,7 @@ type
       When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
       If @true, at least mouse wheel makes a zoom (som,e navigation methods
       may have additional ways to make zoom, they will all honor this property.) }
-    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default false;
 
     { Check collisions when moving with the environment.
 
@@ -663,9 +679,10 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function Motion(const Event: TInputMotion): boolean; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     function InternalUsingMouseLook: Boolean;
-
+  published
     { Use mouse look to navigate (rotate the camera).
 
       This also makes mouse cursor of Container hidden, and forces
@@ -1491,6 +1508,16 @@ begin
   MouseDraggingStarted := -1;
 
   FullSize := true;
+
+  FInput_ZoomIn      := TInputShortcut.Create(Self);
+   Input_ZoomIn.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+   Input_ZoomIn.SetSubComponent(true);
+   Input_ZoomIn.Name := 'Input_ZoomIn';
+
+  FInput_ZoomOut     := TInputShortcut.Create(Self);
+   Input_ZoomOut.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
+   Input_ZoomOut.SetSubComponent(true);
+   Input_ZoomOut.Name := 'Input_ZoomOut';
 end;
 
 function TCastleNavigation.MoveAllowed(
@@ -1623,8 +1650,6 @@ begin
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
-const
-  MouseWheelSpeed = 1 / 30;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1646,7 +1671,7 @@ begin
   if (Event.EventType = itMouseWheel) and
      ZoomEnabled then
   begin
-    if Zoom(MouseWheelSpeed * Event.MouseWheelScroll) then
+    if Zoom(Event.MouseWheelScroll) then
       Exit(ExclusiveEvents);
   end;
 end;
@@ -1809,6 +1834,9 @@ begin
 end;
 
 function TCastleNavigation.Zoom(const Factor: Single): Boolean;
+const
+  { Multiplier for Factor. }
+  Speed = 1 / 30;
 
   function OrthographicProjection: Boolean;
   begin
@@ -1842,8 +1870,8 @@ begin
         WritelnWarning('Scaling orthographic view is not possible without setting Camera.Orthographic.Width / Camera.Orthographic.Height to non-zero')
       end else
       begin
-        Camera.Orthographic.Width  := Camera.Orthographic.Width  * Exp(-Factor);
-        Camera.Orthographic.Height := Camera.Orthographic.Height * Exp(-Factor);
+        Camera.Orthographic.Width  := Camera.Orthographic.Width  * Exp(-Factor * Speed);
+        Camera.Orthographic.Height := Camera.Orthographic.Height * Exp(-Factor * Speed);
         Result := true;
       end;
     end else
@@ -1895,7 +1923,7 @@ begin
       if Factor < 0 then
         CheckCollisions := false; // never check collisions when zooming out
       try
-        Result := Move(Camera.Direction * Size * Factor, false, false);
+        Result := Move(Camera.Direction * Size * Factor * Speed, false, false);
       finally
         CheckCollisions := SavedCheckCollisions;
       end;
@@ -2132,7 +2160,7 @@ var
   RotChange: Single;
   MoveChangeVector: TVector3;
 const
-  KeyZoomSpeed = 10.0;
+  KeyZoomSpeed = 30.0 * 10.0;
 begin
   inherited;
 
@@ -2273,7 +2301,7 @@ begin
     Translation := Translation + Vector3(0, Size * Y * MoveSize, 0);
 
   if Abs(Z) > 5 then   { backward / forward }
-    Zoom(Z * MoveSize / 2);
+    Zoom(Z * MoveSize * 30 / 2);
 end;
 
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
@@ -2598,7 +2626,7 @@ begin
 
   if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
-    if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
+    if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
@@ -2634,10 +2662,10 @@ begin
     else
       Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
     if Turntable then
-      ZoomScale := 30
+      ZoomScale := 1
     else
-      ZoomScale := 10;
-    Zoom(Factor / ZoomScale);
+      ZoomScale := 3;
+    Zoom(Factor * ZoomScale);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
@@ -2789,6 +2817,18 @@ begin
   { Note: we used to have here condition "and (not CastleDesignMode)"
     as escaping from MouseLook was impossible, if you enable it in Object Inspector.
     But it is OK now: our TCastleWalkNavigationDesign makes mouse look intuitive to use. }
+end;
+
+function TCastleMouseLookNavigation.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'MouseLook', 'MouseLookHorizontalSensitivity', 'MouseLookVerticalSensitivity',
+       'InvertVerticalMouseLook'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }
@@ -4215,23 +4255,13 @@ end;
 function TCastleWalkNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Gravity') or
-     (PropertyName = 'MoveSpeed') or
-     (PropertyName = 'Radius') or
-     (PropertyName = 'CrouchHeight') or
-     (PropertyName = 'PreferredHeight') or
-     (PropertyName = 'MoveHorizontalSpeed') or
-     (PropertyName = 'MoveVerticalSpeed') or
-     (PropertyName = 'MouseDraggingHorizontalRotationSpeed' ) or
-     (PropertyName = 'MouseDraggingVerticalRotationSpeed' ) or
-     (PropertyName = 'MouseDraggingMoveSpeed') or
-     (PropertyName = 'MouseDragMode') or
-     (PropertyName = 'RotationHorizontalSpeed') or
-     (PropertyName = 'RotationVerticalSpeed') or
-     (PropertyName = 'MouseLook') or
-     (PropertyName = 'MouseLookHorizontalSensitivity') or
-     (PropertyName = 'MouseLookVerticalSensitivity') or
-     (PropertyName = 'InvertVerticalMouseLook') then
+  if ArrayContainsString(PropertyName, [
+       'Gravity', 'MoveSpeed', 'Radius', 'CrouchHeight', 'PreferredHeight',
+       'MoveHorizontalSpeed', 'MoveVerticalSpeed',
+       'MouseDraggingHorizontalRotationSpeed', 'MouseDraggingVerticalRotationSpeed',
+       'MouseDraggingMoveSpeed', 'MouseDragMode', 'RotationHorizontalSpeed',
+       'RotationVerticalSpeed'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

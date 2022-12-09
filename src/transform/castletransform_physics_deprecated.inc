@@ -43,13 +43,13 @@
       The collider instance is @bold(owned) by the @link(TRigidBody) instance,
       so will be freed when the @link(TRigidBody) is freed.
       This automatically sets the
-      @link(TRigidBody.Collider) property and
+      @link(TCastleRigidBody.Collider) property and
       @link(TCollider.Parent) property. }
     constructor Create(const AParent: TRigidBody);
     destructor Destroy; override;
 
     { Parent rigid body, which in turn refers to this collider
-      by @link(TRigidBody.Collider). }
+      by @link(TCastleRigidBody.Collider). }
     property Parent: TRigidBody read FParent;
 
     { Density (per volume) in kg, this implicitly determines mass
@@ -71,7 +71,7 @@
   end deprecated 'use TCastleCollider';
 
   { Collide as an infinite plane.
-    Place this inside @link(TRigidBody.Collider) property. }
+    Place this inside @link(TCastleRigidBody.Collider) property. }
   TPlaneCollider = class(TCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -82,7 +82,7 @@
   end deprecated 'use TCastlePlaneCollider';
 
   { Collide as a box.
-    Place this inside @link(TRigidBody.Collider) property. }
+    Place this inside @link(TCastleRigidBody.Collider) property. }
   TBoxCollider = class(TCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -92,7 +92,7 @@
   end deprecated 'use TCastleBoxCollider';
 
   { Collide as a sphere.
-    Place this inside @link(TRigidBody.Collider) property. }
+    Place this inside @link(TCastleRigidBody.Collider) property. }
   TSphereCollider = class(TCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -102,7 +102,7 @@
   end deprecated 'use TCastleSphereCollider';
 
   { Collide as a capsule.
-    Place this inside @link(TRigidBody.Collider) property. }
+    Place this inside @link(TCastleRigidBody.Collider) property. }
   TCapsuleCollider = class(TCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;

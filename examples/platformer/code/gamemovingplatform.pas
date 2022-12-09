@@ -25,12 +25,12 @@ type
   TMovingPlatform = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     MoveDirection: Integer; // Always 1 or -1
     StartPoint: TVector3;
     StopPoint: TVector3;
 
     function IsVerticalMove: Boolean;
-    procedure ConfigurePhysics;
   public
     constructor Create(AOwner: TComponent); override;
     procedure ParentAfterAttach; override;
@@ -52,29 +52,6 @@ begin
   Result := (Scene.Tag < 0)
 end;
 
-procedure TMovingPlatform.ConfigurePhysics;
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleCollider;
-begin
-  { TODO: It may happen that TMovingPlatform behavior is created earlier
-    than RigidBody, Collider this case needs to be handled. }
-  RBody := Scene.RigidBody;
-  Assert(RBody <> nil, 'No Castle Rigid Body in Parent');
-
-  RBody.Dynamic := true;
-  if Scene.Tag > 0 then
-    RBody.LockTranslation := [1, 2]
-  else if Scene.Tag < 0 then
-    RBody.LockTranslation := [0, 2];
-
-  Collider := Scene.FindBehavior(TCastleCollider) as TCastleCollider;
-
-  Assert(Collider <> nil, 'No Castle Collider in Parent');
-  Collider.Friction := 100;
-  Collider.Restitution := 0;
-end;
-
 constructor TMovingPlatform.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -82,6 +59,28 @@ begin
 end;
 
 procedure TMovingPlatform.ParentAfterAttach;
+
+  procedure ConfigurePhysics;
+  var
+    Collider: TCastleCollider;
+  begin
+    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    Assert(RBody <> nil, 'No TCastleRigidBody in TMovingPlatform Parent');
+
+    RBody.Dynamic := true;
+    if Scene.Tag > 0 then
+      RBody.LockTranslation := [1, 2]
+    else
+    if Scene.Tag < 0 then
+      RBody.LockTranslation := [0, 2];
+
+    Collider := Scene.FindBehavior(TCastleCollider) as TCastleCollider;
+
+    Assert(Collider <> nil, 'No Castle Collider in Parent');
+    Collider.Friction := 100;
+    Collider.Restitution := 0;
+  end;
+
 var
   Distance: Single;
 begin
@@ -110,7 +109,6 @@ const
   MovingSpeed = 100;
 var
   Vel: TVector3;
-  RBody: TCastleRigidBody;
 begin
   inherited;
 
@@ -130,19 +128,17 @@ begin
       MoveDirection := 1;
   end;
 
-  RBody := Scene.RigidBody;
-  if RBody = nil then
-    Exit;
+  if RBody <> nil then
+  begin
+    Vel := RBody.LinearVelocity;
 
-  Vel := RBody.LinearVelocity;
+    if IsVerticalMove then
+      Vel.Y := MoveDirection * MovingSpeed
+    else
+      Vel.X := MoveDirection * MovingSpeed;
 
-  if IsVerticalMove then
-    Vel.Y := MoveDirection * MovingSpeed
-  else
-    Vel.X := MoveDirection * MovingSpeed;
-
-  RBody.LinearVelocity := Vel;
+    RBody.LinearVelocity := Vel;
+  end;
 end;
 
 end.
-

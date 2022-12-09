@@ -90,7 +90,7 @@ begin
   begin
     FSize := Value;
     BoxNode.Size := FSize;
-    UpdateColliderSize;
+    UpdateCollider;
   end;
 end;
 

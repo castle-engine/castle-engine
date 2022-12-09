@@ -43,6 +43,8 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
+  TIsRunningEvent = function: Boolean of object;
+
   TMode = (
     moInteract,
     moSelect,
@@ -53,12 +55,15 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
+    ButtonPlayStop: TSpeedButton;
     LabelPhysics: TLabel;
+    LabelPlayStop: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
@@ -119,6 +124,8 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
@@ -468,6 +475,9 @@ type
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
+    OnRunningToggle: TNotifyEvent;
+    OnIsRunning: TIsRunningEvent;
+
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -2911,9 +2921,9 @@ begin
   if FCurrentViewport <> nil then
     LabelViewport.Caption := ViewportDebugInfo(FCurrentViewport);
 
-  FDesignerLayer.LayerPhysicsSimulation.Exists := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
-  FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleDesignPhysicsMode = pmPlaying;
-  FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleDesignPhysicsMode = pmPaused;
+  FDesignerLayer.LayerPhysicsSimulation.Exists := CastleApplicationMode in [appSimulation, appSimulationPaused];
+  FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
+  FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -5045,12 +5055,12 @@ var
   SavedSelection: TSavedSelection;
   LoadInfo: TInternalComponentLoadInfo;
 begin
-  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
-    CastleDesignPhysicsMode := pmStopped
+  if InternalCastleApplicationMode in [appSimulation, appSimulationPaused] then
+    InternalCastleApplicationMode := appDesign
   else
-    CastleDesignPhysicsMode := pmPlaying;
+    InternalCastleApplicationMode := appSimulation;
 
-  if CastleDesignPhysicsMode = pmPlaying then
+  if CastleApplicationMode = appSimulation then
   begin
     DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
     DesignModifiedBeforePhysicsRun := FDesignModified;
@@ -5096,11 +5106,11 @@ end;
 
 procedure TDesignFrame.SimulationPauseUnpause;
 begin
-  if CastleDesignPhysicsMode = pmPaused then
-    CastleDesignPhysicsMode := pmPlaying
+  if InternalCastleApplicationMode = appSimulationPaused then
+    InternalCastleApplicationMode := appSimulation
   else
-  if CastleDesignPhysicsMode = pmPlaying then
-    CastleDesignPhysicsMode := pmPaused;
+  if InternalCastleApplicationMode = appSimulation then
+    InternalCastleApplicationMode := appSimulationPaused;
 
   // TODO: why is this not called automatically?
   ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
@@ -5114,17 +5124,17 @@ end;
 
 procedure TDesignFrame.ActionSimulationPlayStopUpdate(Sender: TObject);
 begin
-  if CastleDesignPhysicsMode = pmStopped then
-    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsPlay)
+  if CastleApplicationMode = appDesign then
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationPlay)
   else
-    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiPhysicsStop);
-  ActionSimulationPlayStop.Checked := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationStop);
+  ActionSimulationPlayStop.Checked := CastleApplicationMode in [appSimulation, appSimulationPaused];
 end;
 
 procedure TDesignFrame.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
 begin
-  ActionSimulationPauseUnpause.Checked := CastleDesignPhysicsMode = pmPaused;
-  ActionSimulationPauseUnpause.Visible := CastleDesignPhysicsMode in [pmPlaying, pmPaused];
+  ActionSimulationPauseUnpause.Checked := CastleApplicationMode = appSimulationPaused;
+  ActionSimulationPauseUnpause.Visible := CastleApplicationMode in [appSimulation, appSimulationPaused];
 end;
 
 procedure TDesignFrame.ActionSimulationPauseUnpauseExecute(Sender: TObject);
@@ -5146,6 +5156,23 @@ begin
     for B in BehList do
       TCastleAbstractJoint(B).InternalDestroyGizmos;
   finally FreeAndNil(BehList) end;
+end;
+
+procedure TDesignFrame.ActionPlayStopExecute(Sender: TObject);
+begin
+  OnRunningToggle(Self);
+end;
+
+procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
+var
+  IsRunning: Boolean;
+begin
+  IsRunning := OnIsRunning();
+  if IsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := IsRunning;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
@@ -5662,6 +5689,6 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  CastleDesignMode := true;
-  CastleDesignPhysicsMode := pmStopped;
+  { Inside CGE editor, CastleApplicationMode is never appRunning. }
+  InternalCastleApplicationMode := appDesign;
 end.

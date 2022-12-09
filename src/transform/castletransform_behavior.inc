@@ -39,9 +39,8 @@
   }
   TCastleBehavior = class(TCastleComponent)
   strict private
-    FNeedWorldChangeNotification: Boolean;
-
-    procedure SetNeedWorldChangeNotification(const Value: Boolean);
+    FListenWorldChange: Boolean;
+    procedure SetListenWorldChange(const Value: Boolean);
   private
     FParent: TCastleTransform;
   protected
@@ -64,11 +63,13 @@
       This is also called from destructor of behavior. }
     procedure ParentBeforeDetach; virtual;
 
-    { Called after @link(Parent) became part of @link(World). }
+    { Called after @link(Parent) became part of @link(World).
+      Called only if ListenWorldChange is @true. }
     procedure WorldAfterAttach; virtual;
 
     { Called before @link(Parent) stops being part of @link(World).
-      This is also called from destructor of behavior. }
+      This is also called from destructor of behavior.
+      Called only if ListenWorldChange is @true. }
     procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
@@ -115,8 +116,10 @@
 
       @nil if this behavior is not yet added to a parent. }
     property Parent: TCastleTransform read FParent;
-    property NeedWorldChangeNotification: Boolean
-      read FNeedWorldChangeNotification write SetNeedWorldChangeNotification;
+
+    { Set this to @true to receive WorldBeforeDetach, WorldAfterAttach calls. }
+    property ListenWorldChange: Boolean
+      read FListenWorldChange write SetListenWorldChange;
   end;
 
   TCastleBehaviorList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleBehavior>;
@@ -156,17 +159,19 @@ end;
 
 { TCastleBehavior ------------------------------------------------------------ }
 
-procedure TCastleBehavior.SetNeedWorldChangeNotification(const Value: Boolean);
+procedure TCastleBehavior.SetListenWorldChange(const Value: Boolean);
 begin
-  if (Parent <> nil) then
+  if FListenWorldChange <> Value then
   begin
-    if Value then
-      Parent.AddWorldChangeNotification(Self)
-    else
-      Parent.RemoveWorldChangeNotification(Self)
+    FListenWorldChange := Value;
+    if Parent <> nil then
+    begin
+      if Value then
+        Parent.AddWorldChangeNotification(Self)
+      else
+        Parent.RemoveWorldChangeNotification(Self)
+    end;
   end;
-
-  FNeedWorldChangeNotification := Value;
 end;
 
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

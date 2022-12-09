@@ -803,11 +803,6 @@ type
       Otherwise, only the visible (not necessarily collidable)
       items are placed in the octree.
 
-      If ProgressTitle <> '' (and progress is not active already,
-      so we avoid starting "progress bar within progress bar",
-      and progress user interface is initialized)
-      then it uses @link(Progress) while building octree.
-
       Remember that triangle octree has references to Shape nodes
       inside RootNode VRML/X3D tree and to State objects inside
       our @link(Shapes) tree.
@@ -834,24 +829,14 @@ type
 
       @groupBegin }
     function CreateTriangleOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
       const Collidable: boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
       const Collidable: boolean): TShapeOctree;
     { @groupEnd }
   private
-    TriangleOctreeToAdd: TTriangleOctree;
-    procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const APosition: TTriangle3;
-      const Normal: TTriangle3; const TexCoord: TTriangle4;
-      const Face: TFaceIndex);
-  private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
 
     FShapeOctreeLimits: TOctreeLimits;
-    FShapeOctreeProgressTitle: string;
 
     FOctreeRendering: TShapeOctree;
     FOctreeDynamicCollisions: TShapeOctree;
@@ -878,11 +863,6 @@ type
       See ShapeOctree unit comments for description.
 
       Default value comes from DefShapeOctreeLimits.
-
-      If ShapeOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      (so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(Spatial) from []
@@ -969,7 +949,7 @@ type
 
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
 
-    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
+    procedure ChangedTransform; override;
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
 
     { Called after PointingDeviceSensors or
@@ -1028,8 +1008,9 @@ type
         This is useful if we're in the middle of some operation
         (like ChangedAll call or octree creation).
 
-        Some callbacks *may* be called during such time: namely,
-        the progress call (e.g. done during constructing octrees).
+        Some callbacks *may* be called during such time.
+        (No good example now; old example was: callbacks caused by progress steps
+        done during constructing octrees).
         As these callbacks may try to e.g. render our scene (which should
         not be done on the dirty state), we have to protect ourselves
         using this variable (e.g. Render routines will exit immediately
@@ -1476,22 +1457,6 @@ type
 
     function UseInternalOctreeCollisions: boolean;
 
-    { Progress title shown during spatial structure creation
-      (through TProgress.Title). Uses only when not empty,
-      and only if progress was not active already
-      (so we avoid starting "progress bar within a progress bar"). }
-    property TriangleOctreeProgressTitle: string
-      read  FTriangleOctreeProgressTitle
-      write FTriangleOctreeProgressTitle;
-
-    { Progress title shown during spatial structure creation
-      (through TProgress.Title). Uses only when not empty,
-      and only if progress was not active already
-      (so we avoid starting "progress bar within a progress bar"). }
-    property ShapeOctreeProgressTitle: string
-      read  FShapeOctreeProgressTitle
-      write FShapeOctreeProgressTitle;
-
     { Viewpoint defined in the 3D file (or some default camera settings
       if no viewpoint is found).
 
@@ -1895,7 +1860,7 @@ type
     procedure ViewChangedSuddenly; virtual;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const Params: TPrepareParams); override;
 
     {$ifdef FPC}
     { Static scene will not be automatically notified about the changes
@@ -2644,11 +2609,9 @@ var
 
 implementation
 
-{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Math, DateUtils,
-  CastleProgress, X3DCameraUtils, CastleStringUtils, CastleLog,
+  X3DCameraUtils, CastleStringUtils, CastleLog,
   X3DLoad, CastleURIUtils, CastleQuaternions;
-{$warnings on}
 
 {$define read_implementation}
 {$I castlescenecore_physics_deprecated.inc}
@@ -3557,14 +3520,21 @@ begin
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
+var
+  C: TCastleCollider;
 begin
   if AValue <> FURL then
   begin
     Load(AValue);
 
-    { After loading another model the size of collider will be incorrect. }
-    if RigidBody <> nil then
-      RigidBody.UpdateColliderAutosize;
+    { After loading a new model we need to
+      - update sizes calculated by AutoSize for simple colliders
+      - update triangles used by TCastleMeshCollider (note that this code
+        will only update TCastleMeshCollider that is our behavior,
+        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
   end;
 end;
 
@@ -3904,7 +3874,6 @@ begin
     if (ssDynamicCollisions in ParentScene.FSpatial) and
        Shape.Collidable then
     begin
-      Shape.InternalTriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.InternalSpatial := [ssTriangles];
     end;
   end else
@@ -4184,6 +4153,7 @@ begin
 
     For example, ProcessShadowMapsReceivers work assumes this:
     otherwise, RootNode.Traverse may cause some progress Step call
+    (note: this is old comment, progress is not possible now)
     which may call Render which may prepare GLSL shadow map shader
     that will be freed by the following ProcessShadowMapsReceivers call.
     Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
@@ -5763,15 +5733,6 @@ begin
   Result := @FShapeOctreeLimits;
 end;
 
-procedure TCastleSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
-  const APosition: TTriangle3;
-  const Normal: TTriangle3; const TexCoord: TTriangle4;
-  const Face: TFaceIndex);
-begin
-  Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Shape, APosition, Normal, TexCoord, Face);
-end;
-
 procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 
   procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
@@ -5797,7 +5758,6 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
           [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
         }
 
-        Shape.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
         Shape.InternalSpatial := Value;
         { prepare OctreeTriangles. Not really needed, but otherwise
           shape's octrees would be updated (even on static scenes!)
@@ -5892,7 +5852,6 @@ begin
   begin
     FOctreeRendering := CreateShapeOctree(
       FShapeOctreeLimits,
-      ShapeOctreeProgressTitle,
       false);
     if LogChanges then
       WritelnLog('X3D changes (octree)', 'OctreeRendering updated');
@@ -5907,7 +5866,6 @@ begin
   begin
     FOctreeDynamicCollisions := CreateShapeOctree(
       FShapeOctreeLimits,
-      ShapeOctreeProgressTitle,
       true);
     if LogChanges then
       WritelnLog('X3D changes (octree)', 'OctreeDynamicCollisions updated');
@@ -5921,7 +5879,6 @@ begin
   if (ssVisibleTriangles in FSpatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
       FTriangleOctreeLimits,
-      TriangleOctreeProgressTitle,
       false);
   Result := FOctreeVisibleTriangles;
 end;
@@ -5931,7 +5888,6 @@ begin
   if (ssStaticCollisions in FSpatial) and (FOctreeStaticCollisions = nil) then
     FOctreeStaticCollisions := CreateTriangleOctree(
       FTriangleOctreeLimits,
-      TriangleOctreeProgressTitle,
       true);
   Result := FOctreeStaticCollisions;
 end;
@@ -5969,7 +5925,6 @@ end;
 
 function TCastleSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
   const Collidable: boolean): TTriangleOctree;
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
@@ -5991,16 +5946,7 @@ begin
   Result := TTriangleOctree.Create(Limits, LocalBoundingBoxNoChildren);
   try
     Result.Triangles.Capacity := TrianglesCount;
-    if (ProgressTitle <> '') and
-       (not Progress.Active) then
-    begin
-      Progress.Init(TrianglesCount, ProgressTitle, true);
-      try
-        TriangleOctreeToAdd := Result;
-        FillOctree({$ifdef FPC} @ {$endif} AddTriangleToOctreeProgress);
-      finally Progress.Fini end;
-    end else
-      FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
+    FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
   finally Dec(InternalDirty) end;
@@ -6016,7 +5962,6 @@ end;
 
 function TCastleSceneCore.CreateShapeOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
   const Collidable: boolean): TShapeOctree;
 var
   I: Integer;
@@ -6033,25 +5978,9 @@ begin
 
   Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList, false);
   try
-    if (ProgressTitle <> '') and
-       (Progress.UserInterface <> nil) and
-       (not Progress.Active) then
-    begin
-      Progress.Init(Result.ShapesList.Count, ProgressTitle, true);
-      try
-        for I := 0 to Result.ShapesList.Count - 1 do
-          if not Result.ShapesList[I].BoundingBox.IsEmpty then
-          begin
-            Result.TreeRoot.AddItem(I);
-            Progress.Step;
-          end;
-      finally Progress.Fini end;
-    end else
-    begin
-      for I := 0 to Result.ShapesList.Count - 1 do
-        if not Result.ShapesList[I].BoundingBox.IsEmpty then
-          Result.TreeRoot.AddItem(I);
-    end;
+    for I := 0 to Result.ShapesList.Count - 1 do
+      if not Result.ShapesList[I].BoundingBox.IsEmpty then
+        Result.TreeRoot.AddItem(I);
   except Result.Free; raise end;
 
   finally Dec(InternalDirty) end;
@@ -7476,7 +7405,7 @@ begin
     CameraLocalPosition := WorldInverseTransform.MultPoint(World.MainCamera.WorldTranslation);
 end;
 
-procedure TCastleSceneCore.ChangedTransform(const UpdatePhysicsTransform: Boolean = true);
+procedure TCastleSceneCore.ChangedTransform;
 begin
   inherited;
   { WorldInverseTransform changed, so update things depending on camera view.
@@ -7940,7 +7869,7 @@ begin
 end;
 
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const Params: TPrepareParams);
 
   { PrepareShapesOctrees and PrepareShadowVolumes could be optimized
     into one run }
@@ -8820,9 +8749,5 @@ begin
     end;
   end;
 end;
-
-initialization
-
-  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
 
 end.

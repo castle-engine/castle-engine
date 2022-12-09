@@ -23,7 +23,7 @@ interface
 
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
-  CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
+  CastleKeysMouse, CastleShapes, CastleInternalMaterialProperties, CastleSoundEngine,
   CastleTransformExtra, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform,
   CastleResources, CastleThirdPersonNavigation;
@@ -194,7 +194,7 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: Boolean): Boolean; override;
     procedure Fall(const FallHeight: Single); override;
-    procedure ChangedTransform(const UpdatePhysicsTransform: Boolean = true); override;
+    procedure ChangedTransform; override;
   public
     var
       { Various navigation properties that may depend on loaded level. }
@@ -617,7 +617,7 @@ begin
   FThirdPersonNavigation := TCastleThirdPersonNavigation.Create(nil);
   FThirdPersonNavigation.AvatarHierarchy := Self;
   FThirdPersonNavigation.Avatar := TCastleScene.Create(Self);
-  FThirdPersonNavigation.Avatar.Spatial := [ssRendering, ssDynamicCollisions];
+  FThirdPersonNavigation.Avatar.PreciseCollisions := true;
   Add(FThirdPersonNavigation.Avatar);
 
   FInventoryCurrentItem := -1;
@@ -871,7 +871,7 @@ begin
   end;
 end;
 
-procedure TPlayer.ChangedTransform(const UpdatePhysicsTransform: Boolean = true);
+procedure TPlayer.ChangedTransform;
 begin
   inherited;
   { If something called Player.Translation := xxx, update Navigation }
@@ -1124,13 +1124,13 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
       { Since WalkNavigation.IsWalkingOnTheGroundm then for sure
         WalkNavigation.IsOnTheGround, so UpdateIsOnTheGround updated
         GroundProperty field. }
+      {$warnings off} // just to keep deprecated working
       if (GroundProperty <> nil) and
          (GroundProperty.FootstepsSound <> nil) then
         NewFootstepsSound := GroundProperty.FootstepsSound
       else
-        {$warnings off} // just to keep deprecated working
         NewFootstepsSound := stPlayerFootstepsDefault;
-        {$warnings on}
+      {$warnings on}
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSound then
