@@ -805,6 +805,9 @@ begin
                     (Data[1].Z - Data[0].Z)) / 2;
       2: Result := ((Data[1].X - Data[0].X) +
                     (Data[1].Y - Data[0].Y)) / 2;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create(20221209);
+      {$endif}
     end;
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxSize;
