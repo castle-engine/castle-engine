@@ -779,7 +779,7 @@ end;
 constructor TCastleHingeJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
   FAxis:= CastleVectors.Vector3(0, 0, 1);
   FAnchor := CastleVectors.Vector3(0, 0, 0);
 
@@ -939,7 +939,7 @@ end;
 constructor TCastleRopeJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
 
@@ -1099,7 +1099,7 @@ end;
 constructor TCastleBallJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
@@ -1207,7 +1207,7 @@ end;
 constructor TCastleDistanceJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
   FAnchor := CastleVectors.Vector3(0, 0, 0);
   FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
@@ -1368,7 +1368,7 @@ end;
 constructor TCastleGrabJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
+  ListenWorldChange := true;
   FWorldPoint := CastleVectors.Vector3(0, 0, 0);
   FMaxForce := MaxSingle;
   FFrequencyHz := 5.0;
