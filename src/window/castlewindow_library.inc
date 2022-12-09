@@ -34,7 +34,7 @@ CastleJoysticks,
 
 {$ifdef read_window_interface}
 public
-  { Only the library in src/library/castleengine.lpr uses this,
+  { Only the library in src/deprecated_library/castleengine.lpr uses this,
     to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 {$endif read_window_interface}

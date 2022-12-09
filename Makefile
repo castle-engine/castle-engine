@@ -224,7 +224,7 @@ endif
 
 EXAMPLES_BASE_NAMES :=
 
-# Note that src/library/castleengine must be compiled before
+# Note that src/deprecated_library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
   src/deprecated_library/castleengine \
