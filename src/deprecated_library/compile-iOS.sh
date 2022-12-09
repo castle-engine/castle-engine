@@ -85,9 +85,9 @@ run_build ()
 cd ../..
 
 EXECUTABLE_NAME="cge_library.a"
-FPC_MAIN_FILE="src/library/castleengine.lpr"
+FPC_MAIN_FILE="src/deprecated_library/castleengine.lpr"
 FPC_COMMON="-Cn -WP5.1 ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY"
-LIBRARY_PATH="src/library"
+LIBRARY_PATH="src/deprecated_library"
 OUTPUT_SIM="${LIBRARY_PATH}/ios-output/i386-iphonesim"
 OUTPUT_SIM64="${LIBRARY_PATH}/ios-output/x86_64-iphonesim"
 OUTPUT_ARM="${LIBRARY_PATH}/ios-output/arm-darwin"
