@@ -854,7 +854,7 @@ var
   end;
 
 begin
-  if not Valid then Exit;
+  if not Valid then Exit(false);
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
