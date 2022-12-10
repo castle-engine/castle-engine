@@ -951,6 +951,7 @@
               {
                 "$$ClassName" : "TCastleTransform",
                 "Name" : "TransformWeapon",
+                "RenderLayer" : "rlFront",
                 "$Children" : [
                   {
                     "$$ClassName" : "TCastleScene",
