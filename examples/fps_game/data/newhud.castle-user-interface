@@ -474,6 +474,9 @@
     },
     {
       "$$ClassName" : "TCastleImageControl",
+      "AutoSizeToChildren" : true,
+      "AutoSizeToChildrenPaddingRight" : 1.0000000000000000E+001,
+      "AutoSizeToChildrenPaddingTop" : 1.0000000000000000E+001,
       "Content" : {
         "$$ClassName" : "TCastleImagePersistent",
         "ColorPersistent" : {
@@ -510,14 +513,15 @@
             "Red" : 1.0000000000000000E+000
           },
           "CustomFont" : "UrbanistBold",
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelFps",
           "Text" : [
-            "FPS: xxxx"
+            "FPS: xxx"
           ],
-          "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle"
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 9.9999961853027344E+000,
+            "Y" : 1.4000008583068848E+001
+          }
         }
       ]
     },
@@ -582,7 +586,7 @@
           "$$ClassName" : "TCastlePerspective"
         },
         "RotationPersistent" : {
-          "$$ClassName" : "TCastleVector4Persistent",
+          "$$ClassName" : "TCastleVector4RotationPersistent",
           "Z" : 1.0000000000000000E+000
         }
       },

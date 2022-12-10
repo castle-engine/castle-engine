@@ -79,9 +79,9 @@ begin
   ButtonBackGame.Exists := OverGame;
 
   if OverGame then
-    ButtonBackMenu.Caption := 'Back to menu (abort the game)'
+    ButtonBackMenu.Caption := 'BACK TO MENU (ABORT THE GAME)'
   else
-    ButtonBackMenu.Caption := 'Back to menu';
+    ButtonBackMenu.Caption := 'BACK TO MENU';
 end;
 
 procedure TStateOptions.ClickBackMenu(Sender: TObject);

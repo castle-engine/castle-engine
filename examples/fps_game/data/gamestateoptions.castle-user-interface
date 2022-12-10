@@ -32,10 +32,6 @@
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "VerticalGroup1",
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -5.0000000000000000E+001
-          },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
           "$Children" : [
@@ -507,24 +503,46 @@
             },
             {
               "$$ClassName" : "TCastleButton",
-              "AutoSize" : false,
               "AutoSizeHeight" : false,
-              "AutoSizeWidth" : false,
-              "Caption" : "BACK TO MENU",
+              "Caption" : "BACK TO MENU THIS CAN BE LONG",
               "CustomBackground" : true,
               "CustomBackgroundDisabled" : {
-                "$$ClassName" : "TCastleImagePersistent"
+                "$$ClassName" : "TCastleImagePersistent",
+                "ProtectedSides" : {
+                  "$$ClassName" : "TBorder",
+                  "AllSides" : 1.0000000000000000E+001,
+                  "Left" : 4.0000000000000000E+001,
+                  "Right" : 4.0000000000000000E+001
+                }
               },
               "CustomBackgroundFocused" : {
                 "$$ClassName" : "TCastleImagePersistent",
+                "ProtectedSides" : {
+                  "$$ClassName" : "TBorder",
+                  "AllSides" : 1.0000000000000000E+001,
+                  "Left" : 4.0000000000000000E+001,
+                  "Right" : 4.0000000000000000E+001
+                },
                 "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
               },
               "CustomBackgroundNormal" : {
                 "$$ClassName" : "TCastleImagePersistent",
+                "ProtectedSides" : {
+                  "$$ClassName" : "TBorder",
+                  "AllSides" : 1.0000000000000000E+001,
+                  "Left" : 4.0000000000000000E+001,
+                  "Right" : 4.0000000000000000E+001
+                },
                 "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
               },
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent",
+                "ProtectedSides" : {
+                  "$$ClassName" : "TBorder",
+                  "AllSides" : 1.0000000000000000E+001,
+                  "Left" : 4.0000000000000000E+001,
+                  "Right" : 4.0000000000000000E+001
+                },
                 "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
               },
               "CustomFont" : "UrbanistBold",
@@ -543,6 +561,7 @@
                 "$$ClassName" : "TCastleImagePersistent"
               },
               "Name" : "ButtonBackMenu",
+              "PaddingHorizontal" : 1.0000000000000000E+002,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "Y" : -6.3000000000000000E+002
