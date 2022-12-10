@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program my_new_project_joints_standalone;
+// program physics_joints_moar_joints_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

@@ -2,7 +2,7 @@
 <project name="physics_joints"
   standalone_source="physics_joints_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physicsjoints"
+  qualified_name="io.castleengine.physics.joints"
   caption="Physics Joints"
 >
   <compiler_options>

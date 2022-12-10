@@ -21,7 +21,7 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'my-new-project-joints';
+  ApplicationProperties.ApplicationName := 'physics-joints-moar';
   ApplicationProperties.Caption := 'My New Project';
   ApplicationProperties.Version := '0.1';
 

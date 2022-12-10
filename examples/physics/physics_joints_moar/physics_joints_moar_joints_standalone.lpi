@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="my_new_project_joints_standalone.dpr"/>
+        <Filename Value="physics_joints_moar_joints_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -46,7 +46,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="my-new-project-joints"/>
+      <Filename Value="physics-joints-moar-joints"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>
