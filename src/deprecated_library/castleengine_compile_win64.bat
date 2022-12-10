@@ -17,4 +17,4 @@ if not exist %OUT_DIR% mkdir %OUT_DIR%
 :: Change to the directory where castle-fpc.cfg is.
 cd ..\..
 
-%FPC_EXE_DIR%fpc.exe -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr -Px86_64 -FEsrc/library/%OUT_DIR% %FPC_CONFIG%
+%FPC_EXE_DIR%fpc.exe -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/deprecated_library/castleengine.lpr -Px86_64 -FEsrc/deprecated_library/%OUT_DIR% %FPC_CONFIG%

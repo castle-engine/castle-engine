@@ -29,8 +29,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4D1BD228187D70590067AA02 /* castleengine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = castleengine.h; path = ../../../../src/library/castleengine.h; sourceTree = "<group>"; };
-		4D1BD229187D707D0067AA02 /* cge_library.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = cge_library.a; path = ../../../../src/library/cge_library.a; sourceTree = "<group>"; };
+		4D1BD228187D70590067AA02 /* castleengine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = castleengine.h; path = ../../../../src/deprecated_library/castleengine.h; sourceTree = "<group>"; };
+		4D1BD229187D707D0067AA02 /* cge_library.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = cge_library.a; path = ../../../../src/deprecated_library/cge_library.a; sourceTree = "<group>"; };
 		4D550C8B18A25D1F00C3F173 /* FileOpenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOpenController.h; sourceTree = "<group>"; };
 		4D550C8C18A25D1F00C3F173 /* FileOpenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileOpenController.m; sourceTree = "<group>"; };
 		4D550C8E18A2703600C3F173 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -362,7 +362,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					../../../src/library,
+					../../../src/deprecated_library,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -385,7 +385,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					../../../src/library,
+					../../../src/deprecated_library,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
