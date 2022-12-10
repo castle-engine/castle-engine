@@ -2430,7 +2430,7 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
   function GetFirstSelected: TComponent;
   var
     Selected: TComponentList;
-    SelectedCount, I: Integer;
+    SelectedCount: Integer;
   begin
     Result := SelectedComponent;
 
