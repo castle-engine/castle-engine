@@ -2430,7 +2430,7 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
   function GetFirstSelected: TComponent;
   var
     Selected: TComponentList;
-    SelectedCount, I: Integer;
+    SelectedCount: Integer;
   begin
     Result := SelectedComponent;
 
@@ -3881,7 +3881,27 @@ begin
     if not Validate then
     begin
       for O in NodesToExpand do
+      begin
+        { Expand also parent.
+          Reason: we want the parent (which is a node that existed before) to expand,
+          to show newly added child.
+
+          Testcase:
+          - add TCastleTransformDesign, with no children, with URL pointing to something,
+          - and then use "Edit (Copy Here) Referenced Design".
+          - the TCastleTransformDesign is initially added and without any children in the hierarchy.
+            It gets a call to "Expand(false)", but it doesn't actually do anything it seems.
+          - later, we add some children to TCastleTransformDesign.
+            The children are on NodesToExpand list, but not the TCastleTransformDesign itself.
+            So calling Expand(false) on children does not make them visible,
+            as TCastleTransformDesign is collapsed.
+          - So we need to access parent to expand that TCastleTransformDesign.
+        }
+        if TTreeNode(O).Parent <> nil then
+          TTreeNode(O).Parent.Expand(false);
+
         TTreeNode(O).Expand(false); // no need for recurse=true, because we will call this on children too
+      end;
     end;
   finally
     FreeAndNil(NodesToExpand);
@@ -4404,7 +4424,12 @@ end;
 procedure TDesignFrame.RenameSelectedItem;
 begin
   if RenamePossible then
+  begin
+    // TODO: This is solved clearly in physics_j.
+    // We should not need here additional check anymore.
+    if ControlsTree.Selected = nil then Exit;
     ControlsTree.Selected.EditText;
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
