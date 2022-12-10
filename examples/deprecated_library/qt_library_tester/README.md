@@ -14,7 +14,7 @@ Note: The library (for now) exposes only a tiny subset of _Castle Game Engine_ p
 
 - Install <a href="https://www.qt.io/download">Qt Creator</a>.
 
-    _Note for Linux_: It's probably easiest to install Qt and _Qt Creator_ using packages, like `apt install qtcreator qt6-base-dev` (or `apt install qtcreator qt5-default` for older Qt 5). This works on Debian / Ubuntu.
+    _Note for Linux_: It's probably easiest to install Qt and _Qt Creator_ using packages, like `apt install qtcreator qtbase5-dev` (Ubuntu) or `apt install qtcreator qt5-default` (Debian).
 
 - Open the project `qt_library_tester.pro` in _Qt Creator_ and _Build_ it from there.
 
