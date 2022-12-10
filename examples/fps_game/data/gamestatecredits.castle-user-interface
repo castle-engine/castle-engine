@@ -29,7 +29,6 @@
     {
       "$$ClassName" : "TCastleVerticalGroup",
       "Alignment" : "hpMiddle",
-      "AutoSizeHeight" : false,
       "Height" : 7.0000000000000000E+002,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
