@@ -18,24 +18,22 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    ButtonHinge:TCastleButton;
-    ButtonBall:TCastleButton;
-    ButtonGrab:TCastleButton;
-    ButtonRope:TCastleButton;
-    ButtonDistance:TCastleButton;
-    ViewportHinge:TCastleViewport;
-    ViewportBall:TCastleViewport;
-    ViewportGrab:TCastleViewport;
-    ViewportRope:TCastleViewport;
-    ViewportDistance:TCastleViewport;
-
-    procedure ClickButton(Sender: TObject);
-
+    ButtonHinge: TCastleButton;
+    ButtonBall: TCastleButton;
+    ButtonGrab: TCastleButton;
+    ButtonRope: TCastleButton;
+    ButtonDistance: TCastleButton;
+    DesignContent: TCastleDesign;
+  private
+    procedure ClickButtonHinge(Sender: TObject);
+    procedure ClickButtonBall(Sender: TObject);
+    procedure ClickButtonGrab(Sender: TObject);
+    procedure ClickButtonRope(Sender: TObject);
+    procedure ClickButtonDistance(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -47,15 +45,6 @@ uses SysUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
-procedure TStateMain.ClickButton(Sender: TObject);
-begin
-  ViewportBall.Exists := (Sender = ButtonBall);
-  ViewportDistance.Exists := (Sender = ButtonDistance);
-  ViewportGrab.Exists := (Sender = ButtonGrab);
-  ViewportHinge.Exists := (Sender = ButtonHinge);
-  ViewportRope.Exists := (Sender = ButtonRope);
-end;
-
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
@@ -66,11 +55,11 @@ procedure TStateMain.Start;
 begin
   inherited;
 
-  ButtonBall.OnClick := {$ifdef FPC}@{$endif}ClickButton;
-  ButtonDistance.OnClick := {$ifdef FPC}@{$endif}ClickButton;
-  ButtonGrab.OnClick := {$ifdef FPC}@{$endif}ClickButton;
-  ButtonHinge.OnClick := {$ifdef FPC}@{$endif}ClickButton;
-  ButtonRope.OnClick := {$ifdef FPC}@{$endif}ClickButton;
+  ButtonHinge.OnClick := {$ifdef FPC}@{$endif} ClickButtonHinge;
+  ButtonBall.OnClick := {$ifdef FPC}@{$endif} ClickButtonBall;
+  ButtonGrab.OnClick := {$ifdef FPC}@{$endif} ClickButtonGrab;
+  ButtonRope.OnClick := {$ifdef FPC}@{$endif} ClickButtonRope;
+  ButtonDistance.OnClick := {$ifdef FPC}@{$endif} ClickButtonDistance;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -80,29 +69,46 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+procedure TStateMain.ClickButtonHinge(Sender: TObject);
 begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
+  { Each joint demo is in a separate file, and we switch between them
+    by changing DesignContent.Url.
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
+    This is in contrast to another solution:
+    having multiple controls all in the gamestatemain.castle-user-interface
+    design and switching their existence like ViewporHinge.Exists := true/false.
 
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
-    not handled in children controls.
+    Using the DesignContent.Url is better in this case because:
+
+    - It means that each change of demo restarts this demo
+      (e.g. go to "Hinge", then "Ball", then "Hinge" again -- the "Hinge"
+      demo will start again). This is desirable in case of this demo.
+
+    - It's a bit easier to design and test in CGE editor:
+      each joint demo is separate, must use separate components,
+      and you can run the simulation of it.
   }
+  DesignContent.Url := 'castle-data:/viewport_hinge.castle-user-interface';
+end;
 
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
+procedure TStateMain.ClickButtonBall(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/viewport_ball.castle-user-interface';
+end;
+
+procedure TStateMain.ClickButtonGrab(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/viewport_grab.castle-user-interface';
+end;
+
+procedure TStateMain.ClickButtonRope(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/viewport_rope.castle-user-interface';
+end;
+
+procedure TStateMain.ClickButtonDistance(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/viewport_distance.castle-user-interface';
 end;
 
 end.
