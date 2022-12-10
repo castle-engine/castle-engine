@@ -2427,12 +2427,32 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
       Result := false;
   end;
 
+  function GetFirstSelected: TComponent;
+  var
+    Selected: TComponentList;
+    SelectedCount, I: Integer;
+  begin
+    Result := SelectedComponent;
+
+    { In case multiple components are selected, try to return something non-nil:
+      namely return the 1st component. This makes pressing F1 when a property is selected
+      with multiple components sensible. They usually have equal class. }
+    if Result = nil then
+    begin
+      GetSelected(Selected, SelectedCount);
+      try
+        if SelectedCount >= 1 then
+          Result := Selected[0];
+      finally FreeAndNil(Selected) end;
+    end;
+  end;
+
 var
   C: TComponent;
   PropertyInstance: TObject;
   PropertyName, PropertyNameForLink: String;
 begin
-  C := SelectedComponent;
+  C := GetFirstSelected;
   if C <> nil then
   begin
     { We do not use C for PropertyInstance, because in case of property
