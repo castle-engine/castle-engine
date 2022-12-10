@@ -163,8 +163,8 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -1.2382123947143555E+001,
-                  "Z" : 9.3342943191528320E+000
+                  "X" : -4.7773938179016113E+000,
+                  "Z" : 2.8669331073760986E+000
                 },
                 "URL" : "castle-data:/enemy/knight.gltf"
               },
@@ -943,9 +943,9 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -3.9887247085571289E+000,
-              "Y" : 3.5503797531127930E+000,
-              "Z" : -2.3688125610351562E-001
+              "X" : -5.8483214378356934E+000,
+              "Y" : 1.8560252189636230E+000,
+              "Z" : 1.9245992660522461E+001
             },
             "$Children" : [
               {
@@ -1529,16 +1529,22 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 6.7074030637741089E-001,
-          "X" : -7.6505249738693237E-001,
-          "Y" : -6.2288445234298706E-001,
-          "Z" : -1.6343067586421967E-001
+          "W" : 1.3030241727828979E+000,
+          "X" : -4.9800428748130798E-001,
+          "Y" : -8.1118124723434448E-001,
+          "Z" : -3.0655634403228760E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.0000001192092896E+000,
+          "Y" : 1.0000001192092896E+000,
+          "Z" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.8181032180786133E+001,
-          "Y" : 3.2819919586181641E+001,
-          "Z" : 3.8397476196289062E+001
+          "X" : -2.9122932434082031E+001,
+          "Y" : 2.3809789657592773E+001,
+          "Z" : 2.1873542785644531E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
