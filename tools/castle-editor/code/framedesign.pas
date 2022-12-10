@@ -4424,7 +4424,12 @@ end;
 procedure TDesignFrame.RenameSelectedItem;
 begin
   if RenamePossible then
+  begin
+    // TODO: This is solved clearly in physics_j.
+    // We should not need here additional check anymore.
+    if ControlsTree.Selected = nil then Exit;
     ControlsTree.Selected.EditText;
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
