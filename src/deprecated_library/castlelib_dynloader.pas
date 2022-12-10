@@ -31,7 +31,7 @@
      listed on $LD_LIBRARY_PATH (or in one of the predefined directories,
      like /usr/lib; see "man dlopen" for details). For local testing,
      it's usually most comfortable to set LD_LIBRARY_PATH to just contain
-     .../castle_game_engine/src/library/ directory.
+     .../castle_game_engine/src/deprecated_library/ directory.
 
   3. Include castlelib_dynloader in your source files. Library is automatically
      initialized. Just call CGE_xxx functions as usual.

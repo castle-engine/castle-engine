@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,6 +52,7 @@
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Width {$ifdef FPC}default DefaultSliderWidth{$endif};
     property Height {$ifdef FPC}default DefaultSliderHeight{$endif};
@@ -103,6 +104,7 @@
     { Round to multiple of @link(MultipleOf), if non-zero, and clamp
       to @link(Min) and @link(Max) range. }
     function RoundAndClamp(const AValue: Single): Single;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Min: Single read FMin write SetMin {$ifdef FPC}default DefaultMin{$endif};
     property Max: Single read FMax write SetMax {$ifdef FPC}default DefaultMax{$endif};
@@ -148,6 +150,7 @@
     constructor Create(AOwner: TComponent;
       const ValuePointer: PInteger; const AMin, AMax: Integer;
       const AOnChange: TNotifyEvent); reintroduce; overload;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -249,6 +252,16 @@ begin
   if HandleInput and ExclusiveEvents and
      (Container.Pressed[keyArrowRight] or Container.Pressed[keyArrowLeft]) then
     HandleInput := false;
+end;
+
+function TCastleAbstractSlider.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'Caption', 'DisplayValue'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleFloatSlider --------------------------------------------------------- }
@@ -406,6 +419,16 @@ begin
   Result := Clamped(Result, Min, Max);
 end;
 
+function TCastleFloatSlider.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'Min', 'Max', 'Value', 'MultipleOf'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TCastleIntegerSlider ------------------------------------------------------- }
 
 constructor TCastleIntegerSlider.Create(AOwner: TComponent);
@@ -527,6 +550,16 @@ begin
     FValue := AValue;
     VisibleChange([chRender]);
   end;
+end;
+
+function TCastleIntegerSlider.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'Min', 'Max', 'Value'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

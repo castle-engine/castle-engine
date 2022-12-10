@@ -1,4 +1,4 @@
-﻿{
+{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -37,19 +37,25 @@ type
   TBullet = class(TCastleTransform)
   strict private
     Duration: Single;
+    FRBody: TCastleRigidBody;
   public
-    constructor Create(AOwner: TComponent; BulletSpriteScene: TCastleScene); reintroduce;
+    constructor Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene); reintroduce;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    { Physics body. Guaranteed to be initialized (non-nil) for TBullet. }
+    property RBody: TCastleRigidBody read FRBody;
   end;
 
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;
     ScenePlayer: TCastleScene;
+    PlayerRigidBody: TCastleRigidBody;
     CheckboxCameraFollow: TCastleCheckbox;
     CheckboxAdvancedPlayer: TCastleCheckbox;
     ImageHitPoint4: TCastleImageControl;
@@ -57,8 +63,7 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
-    CoinsRoot: TCastleTransform;
-
+  strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
     WasInputJump: Boolean;
@@ -95,23 +100,11 @@ type
     { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
 
-    procedure ConfigurePlatformPhysics(Platform: TCastleScene);
-    procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
-    procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
-    procedure ConfigureGroundPhysics(const Ground: TCastleScene);
-    procedure ConfigureStonePhysics(const Stone: TCastleScene);
-    procedure ConfigureDoorsPhysics(const Door: TCastleScene);
-    procedure ConfigureKeysPhysics(const Key: TCastleScene);
-
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
-    procedure ChangePlayerPhysicsSettingsBasedOnGround(const Player,
-      Ground: TCastleTransform);
     procedure ConfigureBulletSpriteScene;
-
-    procedure ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
 
     { Simplest version }
     procedure UpdatePlayerSimpleDependOnlyVelocity(const SecondsPassed: Single;
@@ -190,10 +183,9 @@ uses
 
 { TBullet -------------------------------------------------------------------- }
 
-constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
+constructor TBullet.Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene);
 var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
+  Collider: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
@@ -201,19 +193,24 @@ begin
   BulletSpriteScene.Visible := true;
   BulletSpriteScene.Translation := Vector3(0, 0, 0);
 
-  RBody := TRigidBody.Create(Self);
+  { In this case we are adding TCastleRigidBody to TBullet(TCastleTransform)
+    and not to the BulletSpriteScene in order to be able to use this scene in
+    multiple bullets. }
+  FRBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
-  RBody.MaximalLinearVelocity := 0;
+  RBody.CollisionDetection := cdContinuous;
+  RBody.MaxLinearVelocity := 0;
 
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
+  Collider := TCastleSphereCollider.Create(Self);
+  { We don't set the Radius becouse we simply use Autosize }
+  // Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
   Collider.Restitution := 0.6;
   Collider.Mass := 1;
 
-  RigidBody := RBody;
+  AddBehavior(Collider);
+  AddBehavior(RBody);
 end;
 
 procedure TBullet.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType
@@ -306,225 +303,17 @@ begin
     (Container.TouchesCount >= 2);
 end;
 
-procedure TStatePlay.ConfigurePlatformPhysics(Platform: TCastleScene);
+procedure TStatePlay.ConfigurePlayerPhysics(
+  const Player: TCastleScene);
 var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
+  RBody: TCastleRigidBody;
 begin
-  RBody := TRigidBody.Create(Platform);
-
-  { Platforms that can move has Tag <> 0, so they are dynamic bodies }
-  RBody.Dynamic := (Platform.Tag <> 0);
-
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  { If Tag > 0 we move platform horizontal, if Tag < 0 we move platform
-    vertical. }
-  if Platform.Tag > 0 then
-    RBody.LockTranslation := [1, 2]
-  else if Platform.Tag < 0 then
-    RBody.LockTranslation := [0, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.MaximalAngularVelocity := 0;
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Platform.BoundingBox.SizeX;
-  Size.Y := Platform.BoundingBox.SizeY;
-  Size.Z := 60;
-
-  Collider.Size := Size;
-  if Platform.Tag <> 0 then
-    Collider.Friction := 100;
-  Collider.Restitution := 0.0;
-  Collider.Mass := 1000;
-
-  Platform.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureCoinsPhysics(const Coin: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Coin);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Coin.BoundingBox.SizeY / 8;
-  Coin.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(PowerUp);
-  RBody.Dynamic := false;
-  //RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := PowerUp.BoundingBox.SizeY / 8;
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-
-  PowerUp.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureGroundPhysics(const Ground: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Ground);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Ground.BoundingBox.SizeX;
-  Size.Y := Ground.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Ground.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureStonePhysics(const Stone: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Stone);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Stone.BoundingBox.SizeX;
-  Size.Y := Stone.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Stone.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureDoorsPhysics(const Door: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Door);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Door.BoundingBox.SizeX / 2.1;
-  Door.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureKeysPhysics(const Key: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Key);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Key.BoundingBox.SizeX / 4;
-  Key.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TCapsuleCollider;
-begin
-  RBody := TRigidBody.Create(Player);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
-
-  Collider := TCapsuleCollider.Create(RBody);
-  Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
-  Collider.Height := ScenePlayer.BoundingBox.SizeY - Collider.Radius * 2;
-  Collider.Friction := 0.25;
-  Collider.Restitution := 0.0001;
-  Collider.Mass := 50;
-
-  {ColliderSP := TSphereCollider.Create(RBody);
-  ColliderSP.Radius := ScenePlayer.BoundingBox.SizeX * 0.45;}
-
-{  ColliderBox := TBoxCollider.Create(RBody);
-  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 60.0);
-  Collider.Friction := 0.5;
-  //Collider.Restitution := 0.05;
-  Collider.Mass := 50;
-
-  WriteLnLog('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
-  FloatToStr(ColliderBox.Size.Y) + ', ' + FloatToStr(ColliderBox.Size.Z));}
-
-  Player.RigidBody := RBody;
+  RBody := Player.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody<> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
+  end;
 
   WasInputJump := false;
 end;
@@ -549,31 +338,23 @@ begin
     begin
       CollectCoin;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Key', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectKey;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Door', CollisionDetails.OtherTransform.Name) > 0 then
     begin
@@ -596,50 +377,6 @@ begin
        (not PlayerHasKey) then
       CollisionDetails.OtherTransform.Items[0].Exists := false;
   end;
-end;
-
-procedure TStatePlay.ChangePlayerPhysicsSettingsBasedOnGround(const Player,
-  Ground: TCastleTransform);
-begin
-  { When player is on moving platform he can't have Restitution > 0.0001 because
-    he will slide on it. But when he fall to other ground and Restitution is
-    small the movement looks not naturally. }
-
-  if (Ground <> nil) and (Pos('Platform', Ground.Name) > 0) and
-     (Ground.Tag <> 0) then
-    Player.RigidBody.Collider.Restitution := 0.0001
-  else
-    Player.RigidBody.Collider.Restitution := 0.05;
-end;
-
-procedure TStatePlay.ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(EnemyScene);
-  RBody.Dynamic := true;
-  //RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := EnemyScene.BoundingBox.SizeY * 0.45; // little smaller than 50%
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-
-  {ColliderBox := TBoxCollider.Create(RBody);
-  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 30.0);
-  ColliderBox.Friction := 0.1;
-  ColliderBox.Restitution := 0.05;}
-
-  EnemyScene.RigidBody := RBody;
 end;
 
 procedure TStatePlay.ConfigureBulletSpriteScene;
@@ -666,7 +403,7 @@ begin
     Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { This is not ideal you can do another jump when Player is
     on top of the jump you can make next jump, but can be nice mechanic
@@ -706,7 +443,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -743,7 +480,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
 begin
   { This method is executed every frame.}
 
@@ -752,38 +489,38 @@ begin
     Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
-    on the edge, maybe be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  { Two more checks using physics engine - player should slide down when player is just
+    on the edge.
+    TODO: maybe we can remove this logic after using TCastleCapsule collider for player. }
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -821,7 +558,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -858,7 +595,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
+  GroundHit: TPhysicsRayCastResult;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
@@ -870,38 +607,37 @@ begin
   InSecondJump := false;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
+  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+  if GroundHit.Hit then
   begin
     // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := Distance < 2;
+    PlayerOnGround := GroundHit.Distance < 2;
   end else
     PlayerOnGround := false;
 
-
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, maye be can remove that when add Capsule collider }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
+    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
+    if GroundHit.Hit then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := Distance < 2;
+      PlayerOnGround := GroundHit.Distance < 2;
     end else
       PlayerOnGround := false;
   end;
@@ -964,7 +700,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -1013,27 +749,27 @@ begin
   InSecondJump := false;
 
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
 
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks using physics - player should slide down when player just
     on the edge, but sometimes it stay and center ray dont "see" that we are
     on ground }
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
-  if PlayerOnGround = false then
+  if not PlayerOnGround then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
   end;
 
   if PlayerOnGround then
@@ -1094,7 +830,7 @@ begin
   if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -1163,35 +899,32 @@ begin
   if IsPlayerDead then
     Exit;
 
+  if PlayerRigidBody = nil then
+    Exit;
+
   DeltaVelocity := Vector3(0, 0, 0);
-  Vel := ScenePlayer.RigidBody.LinearVelocity;
+  Vel := PlayerRigidBody.LinearVelocity;
 
   { Check player is on ground }
-  GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+  GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
 
   { Two more checks - player should slide down when player just
     on the edge, but sometimes it stay and center ray don't "see" that we are
     on ground }
   if GroundScene = nil then
   begin
-    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
 
   if GroundScene = nil then
   begin
-    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
+    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
   end;
-
-  { Fix restitution for moving platforms - when player is on moving platform
-    and restitution is to big he can slide from platform because it will jumping
-    a little, but in other hand when restitution is too small jumping looks
-    not natural }
-  ChangePlayerPhysicsSettingsBasedOnGround(ScenePlayer, GroundScene);
 
   { Player is on ground when RayCasts hits something }
   PlayerOnGround := (GroundScene <> nil);
@@ -1270,7 +1003,7 @@ begin
     Vel.Y := 0;
   end;
 
-  ScenePlayer.RigidBody.LinearVelocity := Vel;
+  PlayerRigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
@@ -1327,7 +1060,7 @@ var
 begin
   Bullet := TBullet.Create(BulletOwner, BulletSpriteScene);
   Bullet.Translation := Origin;
-  Bullet.RigidBody.LinearVelocity := Direction * Vector3(750, 20, 0);
+  Bullet.RBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
 end;
 
@@ -1437,16 +1170,9 @@ procedure TStatePlay.Start;
 var
   { TCastleTransforms that groups objects in our level }
   PlatformsRoot: TCastleTransform;
-
-  GroundsRoot: TCastleTransform;
-  GroundsLineRoot: TCastleTransform;
-  StonesRoot: TCastleTransform;
   EnemiesRoot: TCastleTransform;
   FallingObstaclesRoot: TCastleTransform;
   DeadlyObstaclesRoot: TCastleTransform;
-  PowerUps: TCastleTransform;
-  DoorsRoot: TCastleTransform;
-  KeysRoot: TCastleTransform;
 
   { Variables used when interating each object groups }
   PlatformScene: TCastleScene;
@@ -1460,25 +1186,13 @@ var
   DeadlyObstacle: TDeadlyObstacle;
   MovingPlatform: TMovingPlatform;
 
-  I, J: Integer;
+  I: Integer;
 begin
   inherited;
 
   LevelComplete := false;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := DesignedComponent('CheckboxAdvancedPlayer') as TCastleCheckbox;
-  ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
-  ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
-  ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
-  ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
-  ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
-
-  ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
+  LevelBounds := TLevelBounds.Create(ScenePlayer.Owner);
 
   WasInputShot := false;
 
@@ -1489,7 +1203,6 @@ begin
   begin
     PlatformScene := PlatformsRoot.Items[I] as TCastleScene;
     WritelnLog('Configure platform: ' + PlatformScene.Name);
-    ConfigurePlatformPhysics(PlatformScene);
 
     { We use Tag to set distance for moving platform, so when its other than 0
       we need add behavior to it. }
@@ -1501,56 +1214,6 @@ begin
     end;
   end;
 
-  { Configure physics for coins }
-  CoinsRoot := DesignedComponent('Coins') as TCastleTransform;
-  for I := 0 to CoinsRoot.Count - 1 do
-  begin
-    WritelnLog('Configure coin: ' + CoinsRoot.Items[I].Name);
-    ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
-  end;
-
-  LevelBounds := TLevelBounds.Create(CoinsRoot.Owner);
-
-  { Configure physics for ground  }
-
-  GroundsRoot := DesignedComponent('Grounds') as TCastleTransform;
-  for I := 0 to GroundsRoot.Count - 1 do
-  begin
-    if (Pos('GroundLine', GroundsRoot.Items[I].Name) = 1) or
-       (Pos('GroundOther', GroundsRoot.Items[I].Name) = 1) then
-    begin
-      GroundsLineRoot := GroundsRoot.Items[I];
-      for J := 0 to GroundsLineRoot.Count - 1 do
-      begin
-        ConfigureGroundPhysics(GroundsLineRoot.Items[J] as TCastleScene);
-      end;
-    end;
-  end;
-
-  StonesRoot := DesignedComponent('Stones') as TCastleTransform;
-  for I := 0 to StonesRoot.Count - 1 do
-  begin
-    ConfigureStonePhysics(StonesRoot.Items[I] as TCastleScene);
-  end;
-
-  PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
-  for I := 0 to PowerUps.Count - 1 do
-  begin
-    ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
-  end;
-
-  DoorsRoot := DesignedComponent('Doors') as TCastleTransform;
-  for I := 0 to DoorsRoot.Count - 1 do
-  begin
-    ConfigureDoorsPhysics(DoorsRoot.Items[I] as TCastleScene);
-  end;
-
-  KeysRoot := DesignedComponent('Keys') as TCastleTransform;
-  for I := 0 to KeysRoot.Count - 1 do
-  begin
-    ConfigureKeysPhysics(KeysRoot.Items[I] as TCastleScene);
-  end;
-
   Enemies := TEnemyList.Create(true);
   EnemiesRoot := DesignedComponent('Enemies') as TCastleTransform;
   for I := 0 to EnemiesRoot.Count - 1 do
@@ -1560,7 +1223,6 @@ begin
     if not EnemyScene.Exists then
       Continue;
 
-    ConfigureEnemyPhysics(EnemyScene);
     { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
       instances of this class, i.e. it will free them. }
     Enemy := TEnemy.Create(nil);
@@ -1573,8 +1235,9 @@ begin
   for I := 0 to FallingObstaclesRoot.Count - 1 do
   begin
     FallingObstacleScene := FallingObstaclesRoot.Items[I] as TCastleScene;
-    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
-      instances of this class, i.e. it will free them. }
+    { Below using nil as Owner of TFallingObstacle,
+      as the FallingObstacles list already "owns" instances of this class,
+      i.e. it will free them. }
     FallingObstacle := TFallingObstacle.Create(nil);
     FallingObstacleScene.AddBehavior(FallingObstacle);
     FallingObstacles.Add(FallingObstacle);
@@ -1585,15 +1248,17 @@ begin
   for I := 0 to DeadlyObstaclesRoot.Count - 1 do
   begin
     DeadlyObstacleScene := DeadlyObstaclesRoot.Items[I] as TCastleScene;
-    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
-      instances of this class, i.e. it will free them. }
+    { Below using nil as Owner of TFallingObstacle,
+      as the DeadlyObstacles list already "owns" instances of this class,
+      i.e. it will free them. }
     DeadlyObstacle := TDeadlyObstacle.Create(nil);
     DeadlyObstacleScene.AddBehavior(DeadlyObstacle);
     DeadlyObstacles.Add(DeadlyObstacle);
   end;
 
-  { Configure physics for player }
+  { Configure physics for player - done in editor, only event in code }
   ConfigurePlayerPhysics(ScenePlayer);
+
   ConfigurePlayerAbilities(ScenePlayer);
 
   ConfigureBulletSpriteScene;
@@ -1634,8 +1299,6 @@ begin
   if IsPlayerDead and (TUIState.CurrentTop <> StateGameOver) then
   begin
     ScenePlayer.Exists := false;
-    //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-    ScenePlayer.RigidBody.Exists := false;
 
     TUIState.Push(StateGameOver);
     Exit;
@@ -1644,7 +1307,7 @@ begin
   { If level is completed and we did not show level complete we do that }
   if LevelComplete and (TUIState.CurrentTop <> StateLevelComplete) then
   begin
-    ScenePlayer.RigidBody.Exists := false;
+    PlayerRigidBody.Exists := false;
     PauseGame;
     TUIState.Push(StateLevelComplete);
     Exit;
@@ -1654,10 +1317,10 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    ViewHeight := MainViewport.Camera.Orthographic.EffectiveHeight;
-    ViewWidth := MainViewport.Camera.Orthographic.EffectiveWidth;
+    ViewHeight := MainViewport.Camera.Orthographic.EffectiveRect.Height;
+    ViewWidth := MainViewport.Camera.Orthographic.EffectiveRect.Width;
 
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
 
@@ -1674,7 +1337,7 @@ begin
     if CamPos.X + ViewWidth / 2 > LevelBounds.Right then
        CamPos.X := LevelBounds.Right - ViewWidth / 2;
 
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 
   if CheckboxAdvancedPlayer.Checked then
@@ -1707,10 +1370,6 @@ begin
     Container.SaveScreenToDefaultFile;
     Exit(true);
   end;
-
-  // This will be working when exists in root will be fixed
-  {if Event.IsKey(keyF6) then
-    CoinsRoot.Exists := not CoinsRoot.Exists;}
 
   if Event.IsKey(keyEscape) and (TUIState.CurrentTop = StatePlay) then
   begin

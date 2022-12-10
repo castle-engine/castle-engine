@@ -280,6 +280,7 @@ begin
             ((C.ClassType = TCastleVector2Persistent) and TCastleVector2Persistent(C).HasDefaultValue) or
             ((C.ClassType = TCastleVector3Persistent) and TCastleVector3Persistent(C).HasDefaultValue) or
             ((C.ClassType = TCastleVector4Persistent) and TCastleVector4Persistent(C).HasDefaultValue) or
+            ((C.ClassType = TCastleVector4RotationPersistent) and TCastleVector4RotationPersistent(C).HasDefaultValue) or
             ((C.ClassType = TCastleColorRGBPersistent) and TCastleColorRGBPersistent(C).HasDefaultValue) or
             ((C.ClassType = TCastleColorPersistent) and TCastleColorPersistent(C).HasDefaultValue) or
             ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)

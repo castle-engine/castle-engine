@@ -181,7 +181,8 @@ implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils;
+  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
+  CastleRenderOptions;
 
 { component registration ----------------------------------------------------- }
 
@@ -1065,6 +1066,9 @@ end;
 
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
+var
+  ValueOfSet: {$ifdef FPC} Integer {$else} Byte {$endif};
+  Coord: T3DCoord;
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1108,6 +1112,30 @@ begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
     Exit;
+  end;
+
+  { Custom support for T3DCoords serialization.
+
+    By default FpJsonRtti has a bug in this case:
+    It tries to do "GetEnumName" on integers 0..2, and serializes weird thing
+
+      "LockRotation" : [
+        "\u0000",
+        ""
+      ]
+
+    .. that it cannot deserialize back.
+    The code below does serialization as if "jsoSetEnumeratedAsInteger in Options"
+    but only for this type. We don't want to change serialization of sets of enums.
+  }
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
+  begin
+    ValueOfSet := GetOrdProp(AObject, Info);
+    FreeAndNil(Res);
+    Res := TJSONArray.Create;
+    for Coord := Low(T3DCoord) to High(T3DCoord) do
+      if (Coord in T3DCoords(ValueOfSet)) then
+        TJSONArray(Res).Add(Coord);
   end;
 end;
 

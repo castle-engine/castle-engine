@@ -60,6 +60,9 @@ begin
   if CastleDesignMode then
   begin
     FGizmo := TInternalCastleEditorGizmo.Create(Self);
+    { The features shown by light gizmo are not affected by scale,
+      and we don't want light icon to get huge/small because of scaling. }
+    FGizmo.InternalIgnoreParentScale := true;
     Add(FGizmo);
   end;
 end;

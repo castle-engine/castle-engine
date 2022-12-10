@@ -92,27 +92,8 @@ function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
-const
-  CursorCastleToLCL: array [TMouseCursor] of TCursor =
-  ( crDefault, //< mcDefault
-    crNone,    //< mcNone
-    crNone,    //< mcForceNone
-
-    crArrow,       //< mcStandard
-    crHourGlass,   //< mcWait
-    crIBeam,       //< mcText
-    crHandPoint,   //< mcHand
-    crSizeNS,      //< mcResizeVertical
-    crSizeWE,      //< mcResizeHorizontal
-    crSizeNW,      //< mcResizeTopLeft
-    crSizeN,       //< mcResizeTop
-    crSizeNE,      //< mcResizeTopRight
-    crSizeW,       //< mcResizeLeft
-    crSizeE,       //< mcResizeRight
-    crSizeSW,      //< mcResizeBottomLeft
-    crSizeS,       //< mcResizeBottom
-    crSizeSE       //< mcResizeBottomRight
-  );
+{ Convert CGE to LCL cursor type. }
+function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
 
 { Not necessary.
   Converts between Lazarus String encoding for filenames (which is UTF-8)
@@ -482,6 +463,32 @@ begin
     else Result := false;
     {$endif}
   end;
+end;
+
+function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+const
+  Map: array [TMouseCursor] of TCursor =
+  ( crDefault, //< mcDefault
+    crNone,    //< mcNone
+    crNone,    //< mcForceNone
+
+    crArrow,       //< mcStandard
+    crHourGlass,   //< mcWait
+    crIBeam,       //< mcText
+    crHandPoint,   //< mcHand
+    crSizeNS,      //< mcResizeVertical
+    crSizeWE,      //< mcResizeHorizontal
+    crSizeNW,      //< mcResizeTopLeft
+    crSizeN,       //< mcResizeTop
+    crSizeNE,      //< mcResizeTopRight
+    crSizeW,       //< mcResizeLeft
+    crSizeE,       //< mcResizeRight
+    crSizeSW,      //< mcResizeBottomLeft
+    crSizeS,       //< mcResizeBottom
+    crSizeSE       //< mcResizeBottomRight
+  );
+begin
+  Result := Map[Cursor];
 end;
 
 function FilenameToURISafeUTF8(const FileName: string): string;

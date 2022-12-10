@@ -715,6 +715,7 @@ begin
   if AShowGizmo then
   begin
     Gizmo := TInternalCastleEditorGizmo.Create(Self);
+    Gizmo.InternalIgnoreParentScale := true;
     Gizmo.LoadVisualization(BuildGizmo);
     Gizmo.SelectBoxTranslation := CastleVectors.Vector3(0, 0, -0.5); // matches nicely our visualization set by UpdateGizmoCoord
     { No need for icon anymore, gizmo is recognizeable enough.
@@ -941,14 +942,26 @@ end;
 
 function TCastleCamera.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'GravityUpPersistent') or
-     (PropertyName = 'ProjectionFar') or
-     (PropertyName = 'ProjectionNear') or
-     (PropertyName = 'ProjectionType') or
-     (PropertyName = 'Orthographic') or
-     (PropertyName = 'Perspective') then
+  if ArrayContainsString(PropertyName, [
+       'GravityUpPersistent',
+       'ProjectionFar', 'ProjectionNear', 'ProjectionType',
+       'Orthographic', 'Perspective'
+     ]) then
     Result := [psBasic]
   else
+
+  { Bad idea to move it to "Layout" only for camera -
+    as Direction, Up are on all TCastleTransform,
+    including on camera's parent transformations,
+    and then make sense there.
+
+  if ArrayContainsString(PropertyName, [
+       'DirectionPersistent', 'UpPersistent'
+     ]) then
+    Result := [psLayout]
+  else
+  }
+
     Result := inherited PropertySections(PropertyName);
 end;
 

@@ -1381,7 +1381,8 @@
       because you usually do not want to show it until we start showing it as a tooltip.
 
       If TooltipControl is assigned then TCastleUserInterfaceFont
-      no longer does tooltip rendering. The @link(Tooltip) text is ignored.
+      no longer does tooltip rendering.
+      The @link(TCastleUserInterfaceFont.Tooltip) text is ignored.
 
       The visual parent of TooltipControl can be whatever is comfortable.
       That is, it is OK to make TooltipControl parent of this control,
@@ -1528,7 +1529,7 @@ begin
     OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
   if Parent <> nil then
     Parent.VisibleChange(Changes, true);
-  if [chRectangle, chChildren] * Changes <> [] then
+  if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
     FSizeFromChildrenValid := false;
 end;
 

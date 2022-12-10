@@ -37,10 +37,11 @@ type
     ButtonTestBox: TCastleButton;
     ButtonTestSphere: TCastleButton;
     ButtonTestRay: TCastleButton;
+    ButtonTestPhysicsRay: TCastleButton;
     MainViewport: TCastleViewport;
   private
     type
-      TTestMode = (tmMove, tmBox, tmSphere, tmRay);
+      TTestMode = (tmMove, tmBox, tmSphere, tmRay, tmPhysicsRay);
     var
       FTestMode: TTestMode;
     procedure SetTestMode(const Value: TTestMode);
@@ -51,6 +52,7 @@ type
     procedure ClickTestBox(Sender: TObject);
     procedure ClickTestSphere(Sender: TObject);
     procedure ClickTestRay(Sender: TObject);
+    procedure ClickTestPhysicsRay(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -78,10 +80,11 @@ procedure TStateMain.Start;
 begin
   inherited;
 
-  ButtonTestMove.OnClick := {$ifdef FPC}@{$endif}ClickTestMove;
-  ButtonTestBox.OnClick := {$ifdef FPC}@{$endif}ClickTestBox;
-  ButtonTestSphere.OnClick := {$ifdef FPC}@{$endif}ClickTestSphere;
-  ButtonTestRay.OnClick := {$ifdef FPC}@{$endif}ClickTestRay;
+  ButtonTestMove.OnClick := {$ifdef FPC}@{$endif} ClickTestMove;
+  ButtonTestBox.OnClick := {$ifdef FPC}@{$endif} ClickTestBox;
+  ButtonTestSphere.OnClick := {$ifdef FPC}@{$endif} ClickTestSphere;
+  ButtonTestRay.OnClick := {$ifdef FPC}@{$endif} ClickTestRay;
+  ButtonTestPhysicsRay.OnClick := {$ifdef FPC}@{$endif} ClickTestPhysicsRay;
 
   SetTestMode(tmMove);
 end;
@@ -94,10 +97,11 @@ begin
   ButtonTestBox.Pressed := FTestMode = tmBox;
   ButtonTestSphere.Pressed := FTestMode = tmSphere;
   ButtonTestRay.Pressed := FTestMode = tmRay;
+  ButtonTestPhysicsRay.Pressed := FTestMode = tmPhysicsRay;
 
   SceneMovingBox.Exists := FTestMode = tmBox;
   SceneMovingSphere.Exists := FTestMode in [tmMove, tmSphere];
-  SceneMovingRay.Exists := FTestMode = tmRay;
+  SceneMovingRay.Exists := FTestMode in [tmRay, tmPhysicsRay];
 
   UpdateCollision;
 end;
@@ -114,7 +118,7 @@ procedure TStateMain.UpdateCollision;
         Appearance := SceneMovingSphere.Node('MainMaterial') as TAppearanceNode;
       tmBox:
         Appearance := SceneMovingBox.Node('MainMaterial') as TAppearanceNode;
-      tmRay:
+      tmRay, tmPhysicsRay:
         Appearance := SceneMovingRay.Node('MainMaterial') as TAppearanceNode;
     end;
     { Here we simply assume that material is TPhysicalMaterialNode, which means it is a PBR
@@ -154,6 +158,11 @@ begin
       begin
         ShowCollision(MainViewport.Items.WorldRayCast(
           TransformMoving.Translation, Vector3(0, 0, -1)) <> nil);
+      end;
+    tmPhysicsRay:
+      begin
+        ShowCollision(MainViewport.Items.PhysicsRayCast(
+          TransformMoving.Translation, Vector3(0, 0, -1)).Transform <> nil);
       end;
   end;
 
@@ -217,6 +226,11 @@ end;
 procedure TStateMain.ClickTestRay(Sender: TObject);
 begin
   SetTestMode(tmRay);
+end;
+
+procedure TStateMain.ClickTestPhysicsRay(Sender: TObject);
+begin
+  SetTestMode(tmPhysicsRay);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;

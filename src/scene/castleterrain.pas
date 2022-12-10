@@ -83,7 +83,7 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors;
+  CastleColors, CastleTriangles;
 
 type
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -628,6 +628,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function HasColliderMesh: Boolean; override;
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { How dense is the mesh.
       By default this is (DefaultSubdivisions,DefaultSubdivisions).
@@ -1824,6 +1826,16 @@ procedure TCastleTerrain.UpdateGeometry;
     Result := Transform;
   end;
 
+  { Update associated collider, e.g. to update TCastleMeshCollider to reflect new terrain. }
+  procedure UpdateCollider;
+  var
+    C: TCastleCollider;
+  begin
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
+  end;
+
 var
   Root: TX3DRootNode;
   Range: TFloatRectangle;
@@ -1868,6 +1880,8 @@ begin
       assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
     TerrainNode := nil;
   end;
+
+  UpdateCollider;
 end;
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -1994,6 +2008,16 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleTerrain.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
+begin
+  Scene.ColliderMesh(TriangleEvent);
 end;
 
 {$define read_implementation_methods}

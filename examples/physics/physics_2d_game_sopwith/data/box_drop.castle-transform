@@ -1,0 +1,38 @@
+{
+  "$$ClassName" : "TCastleBox",
+  "ColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Green" : 5.0196081399917603E-001,
+    "Red" : 5.0196081399917603E-001
+  },
+  "Material" : "pmUnlit",
+  "Name" : "BoxDrop",
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+  },
+  "SizePersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent",
+    "X" : 4.0000000000000000E+000,
+    "Y" : 4.0000000000000000E+000,
+    "Z" : 4.0000000000000000E+000
+  },
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "LockRotation" : [
+        0,
+        1
+      ],
+      "LockTranslation" : [
+        2
+      ],
+      "Name" : "RigidBody3"
+    },
+    {
+      "$$ClassName" : "TCastleBoxCollider",
+      "Mass" : 1.0000000000000000E+001,
+      "Mode2D" : true,
+      "Name" : "BoxCollider2"
+    }
+  ]
+}

@@ -17,11 +17,11 @@ QMAKE_CXXFLAGS += "-Wno-unused-parameter"
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    ../../../src/library/castlelib_c_loader.cpp \
+    ../../../src/deprecated_library/castlelib_c_loader.cpp \
     glwidget.cpp
 
 HEADERS  += mainwindow.h \
-    ../../../src/library/castleengine.h \
+    ../../../src/deprecated_library/castleengine.h \
     glwidget.h
 
 FORMS    += mainwindow.ui

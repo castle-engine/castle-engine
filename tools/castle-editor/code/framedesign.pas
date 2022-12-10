@@ -23,7 +23,9 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Spin, Buttons, Menus, Contnrs, Generics.Collections,
+  Spin, Buttons, Menus, ActnList, Contnrs, Generics.Collections,
+  // for icons
+  DataModuleIcons, ImgList,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   CollectionPropEditForm, ComponentEditors,
@@ -34,12 +36,14 @@ uses
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
   CastleColors, CastleScene,
   // editor units
-  FrameAnchors, CastleShellCtrls,
+  FrameAnchors, CastleShellCtrls, EditorUtils,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
   DesignObjectInspector;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
+
+  TIsRunningEvent = function: Boolean of object;
 
   TMode = (
     moInteract,
@@ -51,11 +55,19 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionPlayStop: TAction;
+    ActionSimulationPauseUnpause: TAction;
+    ActionSimulationPlayStop: TAction;
+    ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
+    ButtonPlayStop: TSpeedButton;
+    LabelPhysics: TLabel;
+    LabelPlayStop: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
+    LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -96,6 +108,8 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ButtonInteractMode: TSpeedButton;
+    ButtonSimulationPlayStop: TSpeedButton;
+    ButtonSimulationPause: TSpeedButton;
     ButtonSelectMode: TSpeedButton;
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
@@ -110,6 +124,12 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
@@ -170,6 +190,9 @@ type
           out Vertical: TVerticalPosition): Boolean;
       public
         Frame: TDesignFrame;
+        LayerPhysicsSimulation: TCastleUserInterface;
+        LabelPhysicsSimulationRunning: TCastleLabel;
+        LabelPhysicsSimulationPaused: TCastleLabel;
         constructor Create(AOwner: TComponent); override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Release(const Event: TInputPressRelease): Boolean; override;
@@ -225,9 +248,12 @@ type
       VisualizeTransformHover: TVisualizeTransformHover;
       VisualizeTransformSelected: TVisualizeTransformSelected;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
+      DesignStateBeforePhysicsRun: String;
+      DesignModifiedBeforePhysicsRun: Boolean;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
+      FShowColliders: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -293,6 +319,7 @@ type
     { Look at current selection and hover and possibly change CurrentViewport,
       calling also OnCurrentViewportChanged. }
     procedure UpdateCurrentViewport;
+    procedure SetCurrentViewport(const Value: TCastleViewport);
 
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
@@ -385,8 +412,15 @@ type
     procedure FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
-
+    function GetInspectorForActiveTab: TOIPropertyGrid;
+    function GetSavedSelection: TSavedSelection;
+    procedure RestoreSavedSelection(const S: TSavedSelection);
     procedure MenuItemChangeClassClick(Sender: TObject);
+    procedure SetShowColliders(const AValue: Boolean);
+    { Show / hide colliders following FShowColliders setting.
+      If T = nil, updates everywhere (TODO: for now,
+      only in CurrentViewport). Otherwise updates only in T. }
+    procedure UpdateColliders(T: TCastleTransform = nil);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -395,6 +429,9 @@ type
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
+    OnRunningToggle: TNotifyEvent;
+    OnIsRunning: TIsRunningEvent;
+
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -439,7 +476,7 @@ type
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
     procedure RecordUndo(const UndoComment: String;
-      const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+      const UndoCommentPriority: TUndoCommentPriority);
 
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
@@ -468,6 +505,11 @@ type
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
 
+    { Physics stuff. } { }
+    procedure SimulationPlayStop;
+    procedure SimulationPauseUnpause;
+    property ShowColliders: Boolean read FShowColliders write SetShowColliders;
+
     procedure ReleaseAllKeysAndMouse;
 
     procedure FocusDesign;
@@ -490,7 +532,7 @@ uses
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
-  EditorUtils, FormProject, CastleComponentEditorDesigner;
+  FormProject, CastleComponentEditorDesigner;
 
 {$R *.lfm}
 
@@ -520,6 +562,12 @@ constructor TDesignFrame.TDesignerLayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FullSize := true;
+
+  LayerPhysicsSimulation := UserInterfaceLoad(InternalCastleDesignData + 'layer_physics_simulation.castle-user-interface', Self);
+  LayerPhysicsSimulation.Exists := false;
+  LabelPhysicsSimulationRunning := FindRequiredComponent('LabelRunning') as TCastleLabel;
+  LabelPhysicsSimulationPaused := FindRequiredComponent('LabelPaused') as TCastleLabel;
+  InsertFront(LayerPhysicsSimulation);
 
   RectHover := TCastleRectangleControl.Create(Self);
   RectHover.Color := Vector4(0, 0, 0, 0.25);
@@ -1327,6 +1375,14 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
     Result.ReadOnlyColor := clWindowText;
+
+    if UseIconsAndColorsForDarkTheme then
+    begin
+      Result.GutterColor := $9EFFFF;
+      Result.ValueFont.Color := $9EFFFF;
+      Result.SubPropertiesColor := clWindowText;
+      Result.ReferencesColor := $9EFFFF;
+    end;
   end;
 
 begin
@@ -1410,6 +1466,9 @@ begin
 
   FCurrentViewportObserver := TFreeNotificationObserver.Create(Self);
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
+
+  // needed to set right action state maybe lazarus bug?
+  ActionSimulationPauseUnpause.Update;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1482,19 +1541,6 @@ begin
 end;
 
 procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
-
-  function GetInspectorForActiveTab: TCastleObjectInspector;
-  var
-    InspectorType: TInspectorType;
-  begin
-    for InspectorType in TInspectorType do
-    begin
-      if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
-        Exit(Inspector[InspectorType]);
-    end;
-    Result := nil;
-  end;
-
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   InspectorType: TInspectorType;
@@ -1512,12 +1558,102 @@ begin
     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
   finally FreeAndNil(LoadInfo) end;
 
-  if UHE.Selected <> '' then
-    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
-  if UHE.ItemIndex >= 0 then
+  RestoreSavedSelection(UHE.Selection);
+end;
+
+function TDesignFrame.GetInspectorForActiveTab: TOIPropertyGrid;
+var
+  InspectorType: TInspectorType;
+begin
+  for InspectorType in TInspectorType do
   begin
-    ControlProperties.TabIndex := UHE.TabIndex;
-    GetInspectorForActiveTab.SetItemIndexAndFocus(UHE.ItemIndex);
+    if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
+      Exit(Inspector[InspectorType]);
+  end;
+  Result := nil;
+end;
+
+function TDesignFrame.GetSavedSelection: TSavedSelection;
+var
+  SelectedC: TComponent;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  SelectedC := GetSelectedComponent;
+  { In case of modifying subcomponent, like TCastleViewport.Items,
+    the currently selected component is not owned by whole design owner,
+    so it will not be later found by name in RestoreSavedSelection. }
+  if (SelectedC <> nil) and
+     (SelectedC.Owner = DesignOwner) then
+    Result.SelectedComponent := SelectedC.Name
+  else
+    Result.SelectedComponent := '';
+
+  if (CurrentViewport <> nil) and
+     (CurrentViewport.Owner = DesignOwner) then
+    Result.CurrentViewport := CurrentViewport.Name
+  else
+    Result.CurrentViewport := '';
+
+  Result.TabIndex := ControlProperties.TabIndex;
+
+  ActiveInspector := GetInspectorForActiveTab;
+  if ActiveInspector <> nil then
+    Result.ItemIndex := ActiveInspector.ItemIndex
+  else
+    Result.ItemIndex := -1;
+end;
+
+procedure TDesignFrame.RestoreSavedSelection(const S: TSavedSelection);
+var
+  C: TComponent;
+  V: TCastleViewport;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  if S.SelectedComponent <> '' then
+  begin
+    C := DesignOwner.FindComponent(S.SelectedComponent);
+    if C = nil then
+    begin
+      WritelnLog('Cannot restore selection, as component "%s" no longer exists. This is normal if e.g. stopping physics removes an object added during physics simulation.', [
+        S.SelectedComponent
+      ]);
+    end else
+    begin
+      SetSelectedComponent(C);
+
+      { Restore object inspector state only if we could restore SelectedComponent,
+        as object inspector should show the selected component. }
+      if S.ItemIndex >= 0 then
+      begin
+        ControlProperties.TabIndex := S.TabIndex;
+
+        ActiveInspector := GetInspectorForActiveTab;
+        if ActiveInspector <> nil then
+          ActiveInspector.SetItemIndexAndFocus(S.ItemIndex)
+        else
+          WritelnWarning('Cannot restore selection inspector ItemIndex, because inspector not found');
+      end;
+    end;
+  end;
+
+  if S.CurrentViewport <> '' then
+  begin
+    { We restore CurrentViewport, otherwise stopping physics would set CurrentViewport
+      to nil if it was previously made non-nil because of hovering over a viewport
+      (and not selecting viewport or something inside viewport). }
+    C := DesignOwner.FindComponent(S.CurrentViewport);
+    if (C = nil) or not (C is TCastleViewport) then
+    begin
+      WritelnLog('Cannot restore CurrentViewport, as viewport "%s" no longer exists or is no longer a TCastleViewport.', [
+        S.CurrentViewport
+      ]);
+    end else
+    begin
+      V := C as TCastleViewport;
+      SetCurrentViewport(V);
+      { Note: This will also update FShowColliders on viewport,
+        so e.g. Stop of physics will keep showing colliders. }
+    end;
   end;
 end;
 
@@ -1793,7 +1929,16 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     begin
       Result := CreateComponent;
       ParentComponent.AddBehavior(Result as TCastleBehavior);
-      FinishAddingComponent(Result);
+      try
+        { Show colliders on newly added component }
+        if (Result is TCastleCollider) and FShowColliders then
+          UpdateColliders(ParentComponent);
+        { If component is TCastleMeshCollider try to set Scene property to parent }
+        if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
+          (Result as TCastleMeshCollider).Mesh := ParentComponent;
+      finally
+        FinishAddingComponent(Result);
+      end;
     end else
     begin
       Result := CreateComponent;
@@ -2066,6 +2211,17 @@ begin
     (ParentComponent as TCastleTransform).Add(NewComponent as TCastleTransform);
     FinishAddingComponent(NewComponent);
   end else
+  if NewComponent is TCastleBehavior then
+  begin
+    if not (ParentComponent is TCastleTransform) then
+    begin
+      ErrorBox('Clipboard contains a TCastleTransform instance, you need to select a TCastleTransform as a parent before doing "Paste Component"');
+      FreeAndNil(NewComponent);
+      Exit;
+    end;
+    (ParentComponent as TCastleTransform).AddBehavior(NewComponent as TCastleBehavior);
+    FinishAddingComponent(NewComponent);
+  end else
   begin
     ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
       [NewComponent.ClassName]));
@@ -2310,15 +2466,25 @@ begin
       NewCurrentViewport := TCastleViewport(HoverUi.Parent);
   end;
 
-  if (NewCurrentViewport <> nil) and
-     (FCurrentViewport <> NewCurrentViewport) then
+  if NewCurrentViewport <> nil then
+    SetCurrentViewport(NewCurrentViewport);
+  { otherwise keep using FCurrentViewport we had so far }
+end;
+
+procedure TDesignFrame.SetCurrentViewport(const Value: TCastleViewport);
+begin
+  if FCurrentViewport <> Value then
   begin
-    FCurrentViewport := NewCurrentViewport;
-    FCurrentViewportObserver.Observed := NewCurrentViewport;
+    FCurrentViewport := Value;
+    FCurrentViewportObserver.Observed := Value;
+    { After changing CurrentViewport, show colliders on new viewport.
+      TODO: It would be better if toggling this checkbox
+      set them already properly on all viewports. }
+    if Value <> nil then
+      UpdateColliders;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
-  { otherwise keep using FCurrentViewport we had so far }
 end;
 
 procedure TDesignFrame.CurrentViewportFreeNotification(
@@ -2656,6 +2822,10 @@ begin
   LabelViewport.Visible := FCurrentViewport <> nil;
   if FCurrentViewport <> nil then
     LabelViewport.Caption := ViewportDebugInfo(FCurrentViewport);
+
+  FDesignerLayer.LayerPhysicsSimulation.Exists := CastleApplicationMode in [appSimulation, appSimulationPaused];
+  FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
+  FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -2966,16 +3136,35 @@ begin
   end;
 end;
 
+procedure TDesignFrame.SetShowColliders(const AValue: Boolean);
+begin
+  if FShowColliders <> AValue then
+  begin
+    FShowColliders := AValue;
+    UpdateColliders;
+  end;
+end;
+
 procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
 var
   NewDesignOwner, NewDesignRoot, Sel: TComponent;
   LoadInfo: TInternalComponentLoadInfo;
   R: TRegisteredComponent;
+  SavedSelection: TSavedSelection;
 begin
   Sel := SelectedComponent;
   Assert(Sel <> nil); // menu item should be disabled otherwise
 
   R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
+  if Sel.ClassType = R.ComponentClass then
+  begin
+    ErrorBox(Format('Component "%s" already has class "%s", no change is necessary.', [
+        Sel.Name,
+        Sel.ClassName
+      ]));
+    Exit;
+  end;
 
   if YesNoBox('Change Component Class',
        Format('Changing component class is a potentially dangerous operation. All the properties you set in the current class that don''t exist in new class will be simply discarded.' + NL +
@@ -2986,20 +3175,22 @@ begin
          R.ComponentClass.ClassName
        ])) then
   begin
-    // TODO preserve state
+    SavedSelection := GetSavedSelection;
 
     LoadInfo := TInternalComponentLoadInfo.Create;
     try
-     LoadInfo.ChangeClassName := Sel.Name;
-     LoadInfo.ChangeClassClass := R.ComponentClass;
+      LoadInfo.ChangeClassName := Sel.Name;
+      LoadInfo.ChangeClassClass := R.ComponentClass;
 
-     { To change class, we reload whole design, this way
-       all references to Sel.Name will remain correct. }
+      { To change class, we reload whole design, this way
+        all references to Sel.Name will remain correct. }
 
-     NewDesignOwner := TComponent.Create(Self);
-     NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
-     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
-   finally FreeAndNil(LoadInfo) end;
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
+    RestoreSavedSelection(SavedSelection);
   end;
 end;
 
@@ -3191,7 +3382,7 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
           RecordUndo(
             UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
             TOICustomPropertyGrid(Sender).CurrentEditValue, SelectedCount),
-            ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+            ucHigh);
         end else
         { Sender is nil when PropertyGridModified is called
           by ModifiedOutsideObjectInspector. }
@@ -3312,25 +3503,13 @@ begin
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
-  const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+  const UndoCommentPriority: TUndoCommentPriority);
 var
   StartTimer: TTimerResult;
-  SelectedName: String;
-  SelectedC: TComponent;
 begin
   StartTimer := Timer;
-
-  SelectedC := GetSelectedComponent;
-  { In case of modifying subcomponent, like TCastleViewport.Items,
-    the currently selected component is not owned by whole design owner,
-    so it could not be later found by name in PerformUndoRedo. }
-  if (SelectedC <> nil) and (SelectedC.Owner = DesignOwner) then
-    SelectedName := SelectedC.Name
-  else
-    SelectedName := '';
-
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
-  UndoSystem.DoLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), GetSavedSelection, UndoComment, UndoCommentPriority);
+  UndoSystem.DoLog('Undo "%s" recorded in %fs.', [UndoComment, StartTimer.ElapsedTime]);
 end;
 
 procedure TDesignFrame.SaveSelected;
@@ -4284,7 +4463,14 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
+    SrcHasWorld: Boolean;
+    WorldPos, WorldDir, WorldUp: TVector3;
   begin
+    // TODO: Available only with Ctrl, to test this feature
+    SrcHasWorld := (ssCtrl in GetKeyShiftState) and Src.HasWorldTransform;
+    if SrcHasWorld then
+      Src.GetWorldView(WorldPos, WorldDir, WorldUp);
+
     case ControlsTreeNodeUnderMouseSide of
       tnsRight:
         begin
@@ -4293,6 +4479,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4308,6 +4496,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
+            if SrcHasWorld then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4592,6 +4782,100 @@ begin
     UI.Translation := TVector2.Zero;
     ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, ucHigh);
   end;
+end;
+
+procedure TDesignFrame.SimulationPlayStop;
+var
+  NewDesignOwner, NewDesignRoot: TComponent;
+  SavedSelection: TSavedSelection;
+  LoadInfo: TInternalComponentLoadInfo;
+begin
+  if InternalCastleApplicationMode in [appSimulation, appSimulationPaused] then
+    InternalCastleApplicationMode := appDesign
+  else
+    InternalCastleApplicationMode := appSimulation;
+
+  if CastleApplicationMode = appSimulation then
+  begin
+    DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
+    DesignModifiedBeforePhysicsRun := FDesignModified;
+  end else
+  begin
+    SavedSelection := GetSavedSelection;
+
+    LoadInfo := TInternalComponentLoadInfo.Create;
+    try
+      LoadInfo.PreserveDataAcrossUndo := DesignOwner;
+
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
+    FDesignModified := DesignModifiedBeforePhysicsRun;
+    OnUpdateFormCaption(Self);
+
+    RestoreSavedSelection(SavedSelection);
+  end;
+
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
+end;
+
+procedure TDesignFrame.SimulationPauseUnpause;
+begin
+  if InternalCastleApplicationMode = appSimulationPaused then
+    InternalCastleApplicationMode := appSimulation
+  else
+  if InternalCastleApplicationMode = appSimulation then
+    InternalCastleApplicationMode := appSimulationPaused;
+
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  SimulationPlayStop;
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  if CastleApplicationMode = appDesign then
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationPlay)
+  else
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationStop);
+  ActionSimulationPlayStop.Checked := CastleApplicationMode in [appSimulation, appSimulationPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+  ActionSimulationPauseUnpause.Checked := CastleApplicationMode = appSimulationPaused;
+  ActionSimulationPauseUnpause.Visible := CastleApplicationMode in [appSimulation, appSimulationPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  SimulationPauseUnpause;
+end;
+
+procedure TDesignFrame.ActionPlayStopExecute(Sender: TObject);
+begin
+  OnRunningToggle(Self);
+end;
+
+procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
+var
+  IsRunning: Boolean;
+begin
+  IsRunning := OnIsRunning();
+  if IsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := IsRunning;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
@@ -4917,6 +5201,29 @@ begin
     CameraSynchronize(V.InternalCamera, C, true);
 end;
 
+procedure TDesignFrame.UpdateColliders(T: TCastleTransform);
+var
+  BehList: TCastleBehaviorList;
+  V: TCastleViewport;
+  B: TCastleBehavior;
+begin
+  if T = nil then
+  begin
+    V := CurrentViewport;
+    if V = nil then Exit;
+    T := V.Items;
+  end;
+
+  BehList := T.FindAllBehaviors(TCastleCollider);
+  try
+    for B in BehList do
+      if FShowColliders then
+        TCastleCollider(B).InternalDesigningBegin
+      else
+        TCastleCollider(B).InternalDesigningEnd;
+  finally FreeAndNil(BehList) end;
+end;
+
 {
 function TDesignFrame.SelectionSave: Classes.TList;
 var
@@ -5085,5 +5392,6 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  CastleDesignMode := true;
+  { Inside CGE editor, CastleApplicationMode is never appRunning. }
+  InternalCastleApplicationMode := appDesign;
 end.

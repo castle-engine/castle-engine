@@ -128,16 +128,6 @@ begin
 
   MainViewport.Items.Paused := not GameActive;
 
-  { Never "capture" the motion of the mouse.
-    Without this, dragging with right mouse button held,
-    and then pressing left mouse button to shoot,
-    makes the subsequent dragging (assuming you still hold the right mouse button) not work
-    -- it is blocked for a short time before releasing left mouse button
-    and then it is blocked until you release right mouse button too
-    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
-    TODO: Reconsider, maybe we should have some way to say "not capture" at press? }
-  Container.ReleaseCapture(Self);
-
   if GameActive then
   begin
     DirectionHorizontal := MainViewport.Camera.Direction;

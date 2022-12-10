@@ -393,6 +393,9 @@ type
     bs3D
   );
 
+  T3DCoord = 0..2;
+  T3DCoords = set of T3DCoord;
+
   { Render layer for @link(TCastleTransform.RenderLayer). }
   TRenderLayer = (rlParent, rlBack, rlFront);
 

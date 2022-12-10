@@ -29,7 +29,7 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait,
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
   ToolCache;
 
 var
