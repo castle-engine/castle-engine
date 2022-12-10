@@ -1446,9 +1446,6 @@ var
             end;
           end;
         end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('IsOnGround?');
-      {$endif}
     end;
   end;
 
