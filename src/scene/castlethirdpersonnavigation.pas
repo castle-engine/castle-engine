@@ -854,7 +854,7 @@ var
   end;
 
 begin
-  if not Valid then Exit;
+  if not Valid then Exit(false);
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
@@ -1446,9 +1446,6 @@ var
             end;
           end;
         end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('IsOnGround?');
-      {$endif}
     end;
   end;
 
