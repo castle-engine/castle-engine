@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="my_new_project_joints"/>
+      <Title Value="physics_joints_moar"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -46,7 +46,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="physics-joints-moar-joints"/>
+      <Filename Value="physics_joints_moar"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>
