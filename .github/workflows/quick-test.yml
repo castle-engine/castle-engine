@@ -30,7 +30,7 @@ jobs:
         lazarus-versions: [stable]
     runs-on: ${{ matrix.operating-system }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install FPC+Lazarus
         uses: gcarreno/setup-lazarus@v3.1.1
         with:
