@@ -600,7 +600,7 @@ begin
   end;
 
   { Ability to open keyboard when it is closed and edit is focused }
-  if (ApplicationProperties.TouchDevice) and
+  if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice and
      (Event.IsMouseButton(TCastleMouseButton.buttonLeft)) then
   begin
     { If Edit is focused but ForceCaptureInput is not set to it that means
@@ -608,12 +608,12 @@ begin
     if Container.ForceCaptureInput = nil then
     begin
       Focused := true;
-      WritelnLog('Container.ForceCaptureInput = nil ' + Name );
     end
     else
     if Container.ForceCaptureInput <> Self then
     begin
-      WritelnLog('Container.ForceCaptureInput <> Self ' + Name);
+      { Only when other edit shows keyboard (or none), change it focus to false
+        and focus/open keyboard for current edit }
       Container.ForceCaptureInput.Focused := false;
       Focused := true;
     end;
@@ -637,6 +637,9 @@ procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
 
+  { We take care about on screen keyboard only when AutoOnScreenKeyboard = true
+    and this is touch device. We don't want to change Container.ForceCaptureInput
+    in other cases.}
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
   begin
     if Value then
