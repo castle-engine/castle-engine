@@ -41,9 +41,9 @@ import android.view.inputmethod.InputMethodManager;
 
 class CastleInputConnection extends BaseInputConnection 
 {
-    ServiceKeyboard serviceKeyboard;
-    String sentButNotCommited;
-    String fullText;
+    ServiceKeyboard serviceKeyboard; 
+    String sentButNotCommited; // chars that was sent but are still in composing mode
+    String fullText; // full text in the edit
 
     CastleInputConnection(ServiceKeyboard service, View targetView, boolean fullEditor) 
     {
@@ -53,17 +53,17 @@ class CastleInputConnection extends BaseInputConnection
         fullText = "";
     }
 
-    // Support for soft keyboard key events 
-    // https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
-    // https://developer.android.com/reference/android/view/KeyEvent
+    /* Support for soft keyboard key events 
+       https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
+       https://developer.android.com/reference/android/view/KeyEvent */
     @Override
     public boolean sendKeyEvent(KeyEvent event) 
     {
+        // it seems that this function is called only by the backspace key - and only when there is no composing text
         serviceKeyboard.logInfo("CastleInputConnection", "------- call sendKeyEvent()");
-        // seems there work only backspace and only when there is no composing text
-
         serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - code " + Integer.toString(event.getKeyCode()));
-        // use enter to hide keyboard
+
+        // use enter to hide keyboard - only works when EditorInfo.inputType = InputType.TYPE_NULL; 
         if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) 
         {
             serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - hide kyeboard");
@@ -104,6 +104,7 @@ class CastleInputConnection extends BaseInputConnection
     }
 
 
+    /* Called when user end composing some text part */
     @Override
     public boolean commitText(CharSequence text, int newCursorPosition) 
     {
@@ -163,6 +164,7 @@ class CastleInputConnection extends BaseInputConnection
         return true;
     }
 
+    /* Called when composing text changed */
     @Override
     public boolean setComposingText(CharSequence text, int newCursorPosition) 
     {
@@ -271,6 +273,7 @@ class CastleInputConnection extends BaseInputConnection
         return true;
     }
 
+    /* Called by keyboard when backspace is presed and composing text is empty */
     @Override
     public boolean deleteSurroundingText (int beforeLength, int afterLength)
     {
@@ -283,7 +286,7 @@ class CastleInputConnection extends BaseInputConnection
 
         if (sentButNotCommited.length() > 0)
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText - sentButNotCommited.length() > 0 = " + Integer.toString(sentButNotCommited.length()));
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingText - sentButNotCommited.length() > 0 = " + Integer.toString(sentButNotCommited.length()));
             if (sentButNotCommited.length() >= beforeLength)
             {
                 sentButNotCommited = sentButNotCommited.substring(0, sentButNotCommited.length() - beforeLength);
@@ -313,57 +316,59 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
             i++;
         }
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText fullText after: '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingText fullText after: '" + fullText + "'");
 
         return true;
     }
 
+    /* Called by keyboard when backspace is presed and composing text is empty and (deleteSurroundingText() is not overriden?) */
     @Override
     public boolean deleteSurroundingTextInCodePoints (int beforeLength, int afterLength)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call deleteSurroundingTextInCodePoints()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call deleteSurroundingTextInCodePoints()");
         // seems this is only called when composing text is empty and user press backspace ?
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingTextInCodePoints beforeLength: " + Integer.toString(beforeLength));
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingTextInCodePoints afterLength: " + Integer.toString(afterLength));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingTextInCodePoints beforeLength: " + Integer.toString(beforeLength));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingTextInCodePoints afterLength: " + Integer.toString(afterLength));
 
         return true;
     }
 
+    /* Called by keyboard when word of text is deleted */
     @Override
     public boolean setComposingRegion (int start, int end)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call setComposingRegion()");
-        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion start: " + Integer.toString(start));
-        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion stop: " + Integer.toString(end));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call setComposingRegion()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion start: " + Integer.toString(start));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion stop: " + Integer.toString(end));
         
-        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion fullText: " + fullText);
-        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion old sentButNotCommited: '" + sentButNotCommited + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion fullText: " + fullText);
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion old sentButNotCommited: '" + sentButNotCommited + "'");
         sentButNotCommited = fullText.substring(start, end);
-        serviceKeyboard.logInfo("CastleInputConnection", "setComposingRegion new sentButNotCommited: '" + sentButNotCommited + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion new sentButNotCommited: '" + sentButNotCommited + "'");
         return true;
     }
 
-    // Changes current uncommited text to newText and also takes care fullText be up to date
+    /* Changes current uncommited text to newText and also takes care fullText be up to date */
     public void updateText(String newText)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call updateText()");
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - newText: '" + newText + "'");
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - sentButNotCommited: '" + sentButNotCommited + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call updateText()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - newText: '" + newText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - sentButNotCommited: '" + sentButNotCommited + "'");
 
         if (sentButNotCommited.equals(newText))
         {
             // nothing changes so simply exit
-            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - '" + newText + "'");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "the same text sent - '" + newText + "'");
             return;
         }
 
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check1 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check1 ");
         if (sentButNotCommited.length() > newText.length())
         {
             // remove excess of characters
             // TODO: take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
             int charsToRemove = sentButNotCommited.length() - newText.length();
-            serviceKeyboard.logInfo("CastleInputConnection", "updateText - charsToRemove - " + Integer.toString(charsToRemove));
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - charsToRemove - " + Integer.toString(charsToRemove));
             int i = charsToRemove;
             while (i > 0)
             {
@@ -373,15 +378,15 @@ class CastleInputConnection extends BaseInputConnection
             }
 
             sentButNotCommited = sentButNotCommited.substring(0, newText.length());
-            serviceKeyboard.logInfo("CastleInputConnection", "old composing text: '" + sentButNotCommited + "'");
-            serviceKeyboard.logInfo("CastleInputConnection", "new composing text: '" + newText + "'");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "old composing text: '" + sentButNotCommited + "'");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "new composing text: '" + newText + "'");
 
-            serviceKeyboard.logInfo("CastleInputConnection", "old fullText: '" + fullText + "'");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "old fullText: '" + fullText + "'");
             fullText = fullText.substring(0, fullText.length() - charsToRemove);
-            serviceKeyboard.logInfo("CastleInputConnection", "new fullText: '" + fullText + "'");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "new fullText: '" + fullText + "'");
         }
 
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check2 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check2 ");
         // at this moment new text is longer or has the same length like the new one
         if (sentButNotCommited.equals(newText))
         {
@@ -391,24 +396,24 @@ class CastleInputConnection extends BaseInputConnection
         }
 
         // how many matching characters
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check3 ");
         int matchingCharacters = 0;
         int matchingCodepoints = 0;
         for (int i = 0 ; i < sentButNotCommited.length() ; i++)
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "updateText - check3.1 ");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check3.1 ");
             // TODO: take care of the surrogates when sending backspace key - in very rare cases there can be two java chars and the first is only different - implement matchingCodepoints
             if (sentButNotCommited.charAt(i) != newText.charAt(i))
                 break;
             matchingCharacters = i + 1;
         } 
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
 
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check4 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check4 ");
         if (matchingCharacters != sentButNotCommited.length())
         {
             // need to remove some characters
-            serviceKeyboard.logInfo("CastleInputConnection", "updateText - check4.1 ");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check4.1 ");
             // TODO: look todo above should use matchingCodepoints
             int charsToRemove = sentButNotCommited.length() - matchingCharacters;
             int i = 0;
@@ -421,30 +426,30 @@ class CastleInputConnection extends BaseInputConnection
         }
 
         // remove matching characters from new composing text
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check5 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check5 ");
         String charsToAdd = new String("");
         if (matchingCharacters > 0 )
             charsToAdd = newText.substring(matchingCharacters, newText.length());
         else
             charsToAdd = newText;
 
-        serviceKeyboard.logInfo("CastleInputConnection", "charsToAdd: '" + charsToAdd + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "charsToAdd: '" + charsToAdd + "'");
 
         int charsToRemoveFromFullText = sentButNotCommited.length() - matchingCharacters;
-        serviceKeyboard.logInfo("CastleInputConnection", "charsToRemoveFromFullText: " + Integer.toString(charsToRemoveFromFullText));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "charsToRemoveFromFullText: " + Integer.toString(charsToRemoveFromFullText));
 
         sentButNotCommited = sentButNotCommited.substring(0, matchingCharacters);
-        serviceKeyboard.logInfo("CastleInputConnection", "old matching characters: '" + sentButNotCommited + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "old matching characters: '" + sentButNotCommited + "'");
         sentButNotCommited = sentButNotCommited + charsToAdd;
-        serviceKeyboard.logInfo("CastleInputConnection", "new composing text: '" + sentButNotCommited + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "new composing text: '" + sentButNotCommited + "'");
 
         // update fullText
-        serviceKeyboard.logInfo("CastleInputConnection", "fullText before: '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "fullText before: '" + fullText + "'");
         fullText = fullText.substring(0, fullText.length() - charsToRemoveFromFullText);
         fullText = fullText + charsToAdd;
-        serviceKeyboard.logInfo("CastleInputConnection", "fullText after: '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "fullText after: '" + fullText + "'");
 
-        serviceKeyboard.logInfo("CastleInputConnection", "updateText - check6 ");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check6 ");
         int i = 0;
         while (i < charsToAdd.length())
         {
@@ -465,10 +470,11 @@ class CastleInputConnection extends BaseInputConnection
         }
     }
     
+    /* Called when user tap Enter key */
     @Override
     public boolean performEditorAction (int editorAction)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "performEditorAction() - '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "performEditorAction() - '" + fullText + "'");
         if (EditorInfo.IME_ACTION_DONE == editorAction)
         {
             serviceKeyboard.logInfo("CastleInputConnection", "performEditorAction() - 'EditorInfo.IME_ACTION_DONE'");
@@ -483,14 +489,15 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean finishComposingText()
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "finishComposingText() - '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "finishComposingText() - '" + fullText + "'");
         return true;
     }
     
     @Override
     public ExtractedText getExtractedText (ExtractedTextRequest request, int flags)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "getExtractedText() - '" + fullText + "'");
+        // looks unused so simplified implementation - we always return fullText regardless to request.hintMaxChars
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getExtractedText() - '" + fullText + "'");
         ExtractedText eText = new ExtractedText();
         eText.text = fullText;
         eText.startOffset = 0;
@@ -499,15 +506,45 @@ class CastleInputConnection extends BaseInputConnection
         return eText;
     }
 
+    @Override
+    public CharSequence getTextAfterCursor (int n, int flags)
+    {
+        // we only support cursor at the end of text
+        return null;
+    }
+
+    /* This method is called by keyboard to show dictionary hints */
+    @Override    
+    public CharSequence getTextBeforeCursor (int n, int flags)
+    {
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - number of chars to get: " + Integer.toString(n));
+        if (fullText.length() <= n) {
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText + "'");
+            return fullText;
+        }
+        
+        // TODO: check surrogates here for 4byte characters
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText.substring(fullText.length() - n - 1) + "'");
+        return fullText.substring(fullText.length() - n - 1);
+    }
+
+    @Override
+    public CharSequence getSelectedText (int flags)
+    {
+        // we don't support text selection now
+        return null;
+    }
+
+    /* When edit box has some text we need sent it to our input connection */
     public void setInitText(String initText)
     {
         fullText = initText;
         sentButNotCommited = "";
-        serviceKeyboard.logInfo("CastleInputConnection", "setInitText() - '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setInitText() - '" + fullText + "'");
     }
 }
 
-
+/* View used to capture text */
 class CastleKeyboardInputView extends View 
 {
     CastleInputConnection inputConnection;
@@ -523,25 +560,23 @@ class CastleKeyboardInputView extends View
         initText = "";
     }    
 
-    // https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view
+    /* See: https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view */
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) 
     {
         inputConnection = new CastleInputConnection(serviceKeyboard, this, false);
 
-        serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - initText: '" + initText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onCreateInputConnection - initText: '" + initText + "'");
         inputConnection.setInitText(initText);
-        //outAttrs.inputType = InputType.TYPE_NULL; // only soft key events - when this is set keyboard returns key events
-        // Because InputType.TYPE_NULL dont support some characters we need change to InputType.TYPE_CLASS_TEXT
-        // but then no key events are not sent, so we need use commitText() and create them our self
+        // outAttrs.inputType = InputType.TYPE_NULL; // only soft key events - when this is set keyboard returns key events but only ASCI characters are available
+        // Because InputType.TYPE_NULL don't support some characters we need change to InputType.TYPE_CLASS_TEXT
+        // but then key events are not sent, so we need use commitText() and create them our self
         outAttrs.inputType = InputType.TYPE_CLASS_TEXT; 
 
         // We use here EditorInfo.IME_ACTION_DONE that is used to close keyboard in CastleInputConnection.PerformAction() to close on screen keyboard
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE;
         
-        //serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - outAttrs.setInitialSurroundingText(): '" + initText + "'");
-        //outAttrs.setInitialSurroundingText(initText);
-        serviceKeyboard.logInfo("CastleInputConnection", "onCreateInputConnection - outAttrs.initialSelEnd/Start: " + Integer.toString(initText.length()));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onCreateInputConnection - outAttrs.initialSelEnd/Start: " + Integer.toString(initText.length()));
         outAttrs.initialSelEnd = initText.length();
         outAttrs.initialSelStart = initText.length();
 
@@ -551,7 +586,7 @@ class CastleKeyboardInputView extends View
     public void setInitText(String text)
     {
         initText = text;
-        serviceKeyboard.logInfo("CastleInputConnection", "setInitText - initText: '" + initText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setInitText - initText: '" + initText + "'");
 
         if (inputConnection != null)
             inputConnection.setInitText(initText);
@@ -565,7 +600,9 @@ public class ServiceKeyboard extends ServiceAbstract
 {
 
     CastleKeyboardInputView keyboardInputView;
+    private final boolean debug = true; //false; // set to true for debug (more logs)
 
+    /* Creates view that will be used to capture text */
     public ServiceKeyboard(MainActivity activity)
     {
         super(activity);
@@ -575,15 +612,17 @@ public class ServiceKeyboard extends ServiceAbstract
         rootView.addView(keyboardInputView);
     }
 
+    /* Returns service name */
     public String getName()
     {
         return "keyboard";
     }
 
-    /* See
+    /* Shows software keyboard and sets initial text - the text that is currently in the edit field here should be passed
+
+       See:
        https://stackoverflow.com/questions/5105354/how-to-show-soft-keyboard-when-edittext-is-focused
     */
-
     public void showKeyboard(String initText)
     {
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); - not working
@@ -591,42 +630,38 @@ public class ServiceKeyboard extends ServiceAbstract
 
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        // Keyboard can crash when you try open it second time (because he can expect a different text while composing) 
+        // Keyboard can crash when you try open it second time (because it expect a different text while composing)
         // so we try close it here before open - restartInput() fixes that
-        //if (imm.isActive())
-        //{
-        //    imm.hideSoftInputFromWindow(keyboardInputView.getWindowToken(), 0);
-        //    logInfo("keyboard", "hide before show");
-        // }
-        //getActivity().getWindow().getDecorView().requestFocus();
-        //imm.showSoftInput(getActivity().getWindow().getDecorView(), 0);
         keyboardInputView.requestFocus(); // needed to show keyboard work properly
         keyboardInputView.setInitText(initText);
+        logInfoInDebugMode("keyboard", "restart input");
         imm.restartInput(keyboardInputView);
-        logInfo("keyboard", "restart input");
+        logInfoInDebugMode("keyboard", "show");
         imm.showSoftInput(keyboardInputView, 0);
-        //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-        logInfo("keyboard", "show");
     }
 
+    /* Hides keyboard */
     public void hideKeyboard()
     {
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); - not working
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE); - not working
-
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        //imm.hideSoftInputFromWindow(getActivity().getWindow().getDecorView().getWindowToken(), 0);
         imm.hideSoftInputFromWindow(keyboardInputView.getWindowToken(), 0);
-        //getActivity().getWindow().getDecorView().requestFocus();
-        //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-        logInfo("keyboard", "hide");
+        logInfoInDebugMode("keyboard", "hide");
+    }
+
+    /* Log only when debug = true */
+    public void logInfoInDebugMode(String category, String message)
+    {
+        if (debug)
+            logInfo(category, message);
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 2 && parts[0].equals("castle-show-keyboard")) {
-            logInfo("CastleInputConnection", "show keyboard '" + parts[1] +"'");
+            logInfoInDebugMode("keyboard", "show keyboard '" + parts[1] +"'");
             showKeyboard(parts[1]);
             return true;
         } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) {
@@ -636,5 +671,7 @@ public class ServiceKeyboard extends ServiceAbstract
             return false;
         }
     }
+
+    
 }
 
