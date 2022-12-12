@@ -49,7 +49,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleRectangles;
+  CastleRectangles, CastleUtils;
 
 type
   { The parent transform will be automatically removed when not visible.
@@ -122,8 +122,8 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolea
 begin
   inherited;
   LabelStatus.Caption := Format(
-    'FPS: %s' + LineEnding +
-    'Viewport Items: %d' + LineEnding +
+    'FPS: %s' + NL +
+    'Viewport Items: %d' + NL +
     'Click or drag with mouse to move the plane.', [
     Container.Fps.ToString,
     Viewport.Items.Count
