@@ -175,11 +175,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefonts"/>
       </Unit30>
-      <Unit31>
-        <Filename Value="code/testcases/testcastlerandom.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="testcastlerandom"/>
-      </Unit31>
       <Unit32>
         <Filename Value="code/testcases/testcastledownload.pas"/>
         <IsPartOfProject Value="True"/>

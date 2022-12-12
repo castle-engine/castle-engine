@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="graphics_random_test"
-  lazarus_project="graphics_random_test.lpi"
-  build_using_lazbuild="true"
->
-  <data exists="false" />
-</project>

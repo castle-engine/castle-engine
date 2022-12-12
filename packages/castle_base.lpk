@@ -271,10 +271,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleprojection.pas"/>
         <UnitName Value="CastleProjection"/>
       </Item49>
-      <Item50>
-        <Filename Value="../src/base/castlerandom.pas"/>
-        <UnitName Value="CastleRandom"/>
-      </Item50>
       <Item51>
         <Filename Value="../src/base/castlerectangles.pas"/>
         <UnitName Value="CastleRectangles"/>
