@@ -483,7 +483,6 @@ var
 begin
   if (Received.Count = 3) and (Received[0] = 'castle-key-down') then
   begin
-    WritelnLog('key down - pascal - START');
     WritelnLog('key down - code ' + Received[1]);
     WritelnLog('key down - ' + Received[2]);
 
@@ -494,21 +493,19 @@ begin
       DoKeyDown(AndroidKeyCodeToKey(KeyCode), KeyString);
       WritelnLog('was DoKeyDown');
     end;
-    WritelnLog('key down - pascal - STOP');
     Exit(true);
   end;
 
   if (Received.Count = 3) and (Received[0] = 'castle-key-up') then
   begin
-    WritelnLog('key up - pascal - START');
     WritelnLog('key up - code ' + Received[1]);
+    WritelnLog('key up - ' + Received[2]);
 
     if TryStrToInt(Received[1], KeyCode) then
     begin
       DoKeyUp(AndroidKeyCodeToKey(KeyCode));
       WritelnLog('was DoKeyUp');
     end;
-    WritelnLog('key up - pascal - STOP');
     Exit(true);
   end;
 
