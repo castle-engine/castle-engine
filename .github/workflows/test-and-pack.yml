@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------------
 
 name: Test and Pack
-on: [push]
+on: [push, pull_request]
 
 # setup.sh inside Docker requires using bash
 defaults:
