@@ -93,8 +93,8 @@ end;
 procedure TStateMain.DesignChanged;
 begin
   // These will be defined only in Grab demo, nil otherwise
-  ViewportGrab := DesignContent.DesignedComponent('ViewportGrab') as TCastleViewport;
-  InteractiveGrabJoint := DesignContent.DesignedComponent('InteractiveGrabJoint') as TCastleGrabJoint;
+  ViewportGrab := DesignContent.DesignedComponent('ViewportGrab', false) as TCastleViewport;
+  InteractiveGrabJoint := DesignContent.DesignedComponent('InteractiveGrabJoint', false) as TCastleGrabJoint;
 end;
 
 procedure TStateMain.ClickButtonHinge(Sender: TObject);
