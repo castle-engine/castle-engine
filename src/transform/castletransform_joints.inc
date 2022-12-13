@@ -91,13 +91,13 @@
   published
     { Makes the joint breakable when force is greater than BreakThresholdForce
       or torque is greater than BreakThresholdTorque. }
-    property Breakable: Boolean read FBreakable write SetBreakable;
+    property Breakable: Boolean read FBreakable write SetBreakable default false;
 
     { Force threshold to break joint. }
-    property BreakThresholdForce: Single read FBreakThresholdForce write SetBreakThresholdForce;
+    property BreakThresholdForce: Single read FBreakThresholdForce write SetBreakThresholdForce {$ifdef FPC}default 0.0{$endif};
 
     { Torque threshold to break joint. }
-    property BreakThresholdTorque: Single read FBreakThresholdTorque write SetBreakThresholdTorque;
+    property BreakThresholdTorque: Single read FBreakThresholdTorque write SetBreakThresholdTorque {$ifdef FPC}default 0.0{$endif};
   end;
 
   { Abstract class for joints that use only one TCastleTransform. }
@@ -211,13 +211,13 @@
     property Axis: TVector3 read FAxis write SetAxis;
   published
     { Turns on minimum and maximum rotation angle limit. }
-    property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
+    property EnableLimits: Boolean read FEnableLimits write SetEnableLimits default false;
 
     { Minimal angle, must be a value between -2pi + epsilon to 0. }
-    property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit;
+    property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit {$ifdef FPC}default 0.0{$endif};
 
     { Maximum angle, must be a value between 0 to 2pi - epsilon. }
-    property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
+    property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
@@ -264,7 +264,7 @@
       write SetConnectedAnchor;
   published
     { Maximum rope length (between Anchor and ConnectedAnchor) }
-    property Distance: Single read FDistance write SetDistance;
+    property Distance: Single read FDistance write SetDistance {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
@@ -351,11 +351,11 @@
       So if you want longer movement make this value smaller.
 
       See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
-    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 0.0{$endif};
 
     { How fast the oscillations are damped, large values can cause the body
       to not do even one oscillation. }
-    property DampingRatio: Single read FDampingRatio write SetDampingRatio;
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
@@ -385,6 +385,10 @@
     procedure DeinitializeKraftJoint; override;
     procedure SetName(const Value: TComponentName); override;
   public
+    const
+      DefaultFrequencyHz = 5.0;
+      DefaultDampingRatio = 0.7;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -410,11 +414,11 @@
       So if you want longer movement make this value smaller.
 
       See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
-    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 5{$endif};
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default DefaultFrequencyHz{$endif};
 
     { How fast the oscillations are damped, large values can cause the body
       will not do even one oscillation. }
-    property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default DefaultDampingRatio{$endif};
 
     { Maximal force that will be aplied to the body to move it. }
     property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default MaxSingle{$endif};
@@ -1384,8 +1388,8 @@ begin
   ListenWorldChange := true;
   FWorldPoint := CastleVectors.Vector3(0, 0, 0);
   FMaxForce := MaxSingle;
-  FFrequencyHz := 5.0;
-  FDampingRatio := 0.7;
+  FFrequencyHz := DefaultFrequencyHz;
+  FDampingRatio := DefaultDampingRatio;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
