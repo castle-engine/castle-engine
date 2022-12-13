@@ -59,10 +59,10 @@
       FConnectedWorldAnchor: TVector3;
       FConnectedWorldGroundAnchor: TVector3;
       FRatio: Single;
-      FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
-      FConnectedWorldAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldAnchor;
-      FWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointWorldGroundAnchor;
-      FConnectedWorldGroundAnchorTransform: TCastleTransform; // TTemporaryJointConnectedWorldGroundAnchor;
+      FWorldAnchorTransform: TCastleTransform; // TDesignJointWorldAnchor
+      FConnectedWorldAnchorTransform: TCastleTransform; // TDesignJointConnectedWorldAnchor;
+      FWorldGroundAnchorTransform: TCastleTransform; // TDesignJointWorldGroundAnchor;
+      FConnectedWorldGroundAnchorTransform: TCastleTransform; // TDesignJointConnectedWorldGroundAnchor;
       procedure SetWorldAnchor(const AValue: TVector3);
       procedure SetConnectedWorldAnchor(const AValue: TVector3);
       procedure SetWorldGroundAnchor(const AValue: TVector3);
@@ -161,7 +161,7 @@
     FKraftJointSlider: TKraftConstraintJointSlider;
     FWorldSliderAxis: TVector3;
     FWorldAnchor: TVector3;
-    FWorldAnchorTransform: TCastleTransform; // TTemporaryJointWorldAnchor
+    FWorldAnchorTransform: TCastleTransform; // TDesignJointWorldAnchor
     FEnableLimits: Boolean;
     FMinTranslationLimit: Single;
     FMaxTranslationLimit: Single;

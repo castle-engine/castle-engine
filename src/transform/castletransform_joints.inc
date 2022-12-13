@@ -78,7 +78,7 @@
     {  Create design-time things that are displayed in hierarchy like gizmos
        to visualize physics joint 3D points. They get context menu item to show/hide.
        If you want to visualize the behavior using a visible TCastleTransform,
-       then create and add to Parent a descendant of TTemporaryJointTransform,
+       then create and add to Parent a descendant of TDesignJointTransform,
        and set InternalCastleDesignInvalidate to @true. }
     procedure InternalCreateGizmos; virtual;
 
@@ -313,8 +313,8 @@
     FConnectedAnchor: TVector3;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-    FAnchorTransform: TCastleTransform; // TTemporaryJointAnchor
-    FConnectedAnchorTransform: TCastleTransform; // TTemporaryJointConnectedAnchor
+    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor
 
     procedure SetAnchor(const AValue: TVector3);
     procedure SetConnectedAnchor(const AValue: TVector3);

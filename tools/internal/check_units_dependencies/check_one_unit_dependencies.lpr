@@ -99,7 +99,7 @@ const
     'Category transform uses scene. Unit ./transform/castletransform.pas uses CastleScene',
     'Category transform uses scene. Unit ./transform/castletransform.pas uses X3DNodes',
 
-    // Because TTemporaryTransform uses CastleScene
+    // Because TDesignJointTransform uses CastleScene
     'Category transform uses scene. Unit ./transform/castleinternalphysicsvisualization.pas uses CastleScene',
 
     // Because TCastleInspector accesses some key engine classes for some functionality.
