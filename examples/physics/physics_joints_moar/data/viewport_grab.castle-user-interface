@@ -481,7 +481,13 @@
           {
             "$$ClassName" : "TCastleGrabJoint",
             "Breakable" : false,
-            "Name" : "GrabJoint1"
+            "Name" : "InteractiveGrabJoint",
+            "WorldPointPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -9.6702933311462402E-002,
+              "Y" : 1.1979371309280396E-001,
+              "Z" : 1.7674565315246582E+000
+            }
           },
           {
             "$$ClassName" : "TCastleBoxCollider",
@@ -509,20 +515,16 @@
     },
     "RotationPersistent" : {
       "$$ClassName" : "TCastleVector4RotationPersistent",
-      "W" : 2.4374682903289795E+000,
-      "X" : -1.0839477181434631E-001,
-      "Y" : 9.5429134368896484E-001,
-      "Z" : 2.7852934598922729E-001
-    },
-    "ScalePersistent" : {
-      "$$ClassName" : "TCastleVector3Persistent",
-      "Y" : 1.0000001192092896E+000
+      "W" : 5.8588016033172607E-001,
+      "X" : -8.4110337495803833E-001,
+      "Y" : -5.2329784631729126E-001,
+      "Z" : -1.3676504790782928E-001
     },
     "TranslationPersistent" : {
       "$$ClassName" : "TCastleVector3Persistent",
-      "X" : 6.3699545860290527E+000,
-      "Y" : 5.3476500511169434E+000,
-      "Z" : -6.5727872848510742E+000
+      "X" : -9.8597764968872070E-001,
+      "Y" : 1.3064808845520020E+000,
+      "Z" : 3.3124427795410156E+000
     }
   },
   "InternalDesignNavigations[dnFly]" : {

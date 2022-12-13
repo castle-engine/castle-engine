@@ -1,15 +1,27 @@
-{ Main state, where most of the application logic takes place.
+{
+  Copyright 2022-2022 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main state, where most of the application logic takes place. }
 unit GameStateMain;
 
 interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleViewport;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleViewport,
+  CastleTransform;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -25,15 +37,23 @@ type
     ButtonDistance: TCastleButton;
     DesignContent: TCastleDesign;
   private
+    // Only defined during Grab demo
+    InteractiveGrabJoint: TCastleGrabJoint;
+    ViewportGrab: TCastleViewport;
+
     procedure ClickButtonHinge(Sender: TObject);
     procedure ClickButtonBall(Sender: TObject);
     procedure ClickButtonGrab(Sender: TObject);
     procedure ClickButtonRope(Sender: TObject);
     procedure ClickButtonDistance(Sender: TObject);
+    procedure DesignChanged;
+    procedure UpdateGrabPosition(const EventPosition: TVector2);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
   end;
 
 var
@@ -41,7 +61,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleLog;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -69,6 +90,13 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
+procedure TStateMain.DesignChanged;
+begin
+  // These will be defined only in Grab demo, nil otherwise
+  ViewportGrab := DesignContent.DesignedComponent('ViewportGrab') as TCastleViewport;
+  InteractiveGrabJoint := DesignContent.DesignedComponent('InteractiveGrabJoint') as TCastleGrabJoint;
+end;
+
 procedure TStateMain.ClickButtonHinge(Sender: TObject);
 begin
   { Each joint demo is in a separate file, and we switch between them
@@ -89,26 +117,69 @@ begin
       and you can run the simulation of it.
   }
   DesignContent.Url := 'castle-data:/viewport_hinge.castle-user-interface';
+  DesignChanged;
 end;
 
 procedure TStateMain.ClickButtonBall(Sender: TObject);
 begin
   DesignContent.Url := 'castle-data:/viewport_ball.castle-user-interface';
+  DesignChanged;
 end;
 
 procedure TStateMain.ClickButtonGrab(Sender: TObject);
 begin
   DesignContent.Url := 'castle-data:/viewport_grab.castle-user-interface';
+  DesignChanged;
 end;
 
 procedure TStateMain.ClickButtonRope(Sender: TObject);
 begin
   DesignContent.Url := 'castle-data:/viewport_rope.castle-user-interface';
+  DesignChanged;
 end;
 
 procedure TStateMain.ClickButtonDistance(Sender: TObject);
 begin
   DesignContent.Url := 'castle-data:/viewport_distance.castle-user-interface';
+  DesignChanged;
+end;
+
+procedure TStateMain.UpdateGrabPosition(const EventPosition: TVector2);
+var
+  PickedPoint: TVector3;
+begin
+  if InteractiveGrabJoint <> nil then
+  begin
+    if ViewportGrab.PositionToWorldPlane(EventPosition, true, 1, 0, PickedPoint) then
+    begin
+      //WritelnLog('Grabbing to point %s', [PickedPoint.ToString]);
+      InteractiveGrabJoint.WorldPoint := PickedPoint;
+    end;
+  end;
+end;
+
+function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonLeft) and (mkShift in Event.ModifiersDown) then
+  begin
+    UpdateGrabPosition(Event.Position);
+    Exit(true);
+  end;
+end;
+
+function TStateMain.Motion(const Event: TInputMotion): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if (buttonLeft in Event.Pressed) and (mkShift in Container.Pressed.Modifiers) then
+  begin
+    UpdateGrabPosition(Event.Position);
+    Exit(true);
+  end;
 end;
 
 end.

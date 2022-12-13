@@ -390,7 +390,13 @@
     procedure InternalDestroyGizmos; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { The point the body is pulled to in world coordinates. }
+    { The point the body is pulled to, in world coordinates.
+
+      At creation, the local anchor is created based on the difference between
+      body origin and this point, such that right after creation the object
+      is considered exactly where it should be.
+
+      Moving the WorldPoint then will make a relative movement of the grabbed body. }
     property WorldPoint: TVector3 read FWorldPoint write SetWorldPoint;
   published
     { Frequency controls how fast the oscillations occur. The smaller the value,
