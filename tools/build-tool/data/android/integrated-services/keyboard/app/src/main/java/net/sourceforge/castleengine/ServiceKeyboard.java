@@ -255,12 +255,20 @@ class CastleInputConnection extends BaseInputConnection
         if (sentButNotCommited.length() > newText.length())
         {
             // remove excess of characters
-            // TODO: take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
             int charsToRemove = sentButNotCommited.length() - newText.length();
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - charsToRemove - " + Integer.toString(charsToRemove));
             int i = charsToRemove;
             while (i > 0)
             {
+                // take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
+                //serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check letter " + sentButNotCommited.charAt(newText.length() + i - 1));
+                if (Character.isLowSurrogate(sentButNotCommited.charAt(newText.length() + i - 1)))
+                {
+                    serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - send backkey skip surrogate.");
+                    i--;
+                    continue; 
+                }
+                
                 serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
                 serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
                 i--;
@@ -291,9 +299,9 @@ class CastleInputConnection extends BaseInputConnection
         for (int i = 0 ; i < sentButNotCommited.length() ; i++)
         {
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check3.1 ");
-            // TODO: take care of the surrogates when sending backspace key - in very rare cases there can be two java chars and the first is only different - implement matchingCodepoints
             if (sentButNotCommited.charAt(i) != newText.charAt(i))
                 break;
+            
             matchingCharacters = i + 1;
         } 
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
@@ -303,11 +311,20 @@ class CastleInputConnection extends BaseInputConnection
         {
             // need to remove some characters
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check4.1 ");
-            // TODO: look todo above should use matchingCodepoints
+
             int charsToRemove = sentButNotCommited.length() - matchingCharacters;
             int i = 0;
             while (i < charsToRemove)
             {
+                // take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
+                serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check letter " + sentButNotCommited.charAt(matchingCharacters + i));
+                if (Character.isLowSurrogate(sentButNotCommited.charAt(matchingCharacters + i)))
+                {
+                    serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - send backspace skip surrogate.");
+                    i++;
+                    continue; 
+                }
+                
                 serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
                 serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
                 i++;
