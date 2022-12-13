@@ -109,7 +109,30 @@
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
-          "Width" : 3.0000000000000000E+002
+          "Width" : 3.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 2.7450981736183167E-001,
+                "Green" : 2.7450981736183167E-001,
+                "Red" : 2.7450981736183167E-001
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Label1",
+              "Text" : [
+                "(shift + click to move)"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -3.0000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
         },
         {
           "$$ClassName" : "TCastleButton",
