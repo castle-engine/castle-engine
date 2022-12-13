@@ -196,6 +196,12 @@
       "Name" : "Background4"
     }
   ],
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleExamineNavigation",
+      "Name" : "ExamineNavigation1"
+    }
+  ],
   "InternalDesignCamera" : {
     "$$ClassName" : "TCastleCamera",
     "Name" : "",
