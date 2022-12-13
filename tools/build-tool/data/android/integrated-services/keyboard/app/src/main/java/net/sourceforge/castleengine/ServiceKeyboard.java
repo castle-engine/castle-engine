@@ -317,7 +317,7 @@ class CastleInputConnection extends BaseInputConnection
             while (i < charsToRemove)
             {
                 // take care of the surrogates when sending backspace key - sometimes there can be two java chars for one codepoint
-                serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check letter " + sentButNotCommited.charAt(matchingCharacters + i));
+                // serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check letter " + sentButNotCommited.charAt(matchingCharacters + i));
                 if (Character.isLowSurrogate(sentButNotCommited.charAt(matchingCharacters + i)))
                 {
                     serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - send backspace skip surrogate.");
