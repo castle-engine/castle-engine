@@ -17,49 +17,51 @@
 { Physics joints. }
 
 {$ifdef read_interface}
-  { The most abstract joint class that observes the existence of rigid body
-    and its state, handles proper attachment and detachment from the parent,
-    and includes the properties available in all joints. }
+  { Base class for physics joints, that connects two physics bodies
+    and constraints their relative movement.
+
+    This class provides useful virtual methods to create joints
+    (observing the existence of rigid body and parent) and some common
+    properties to all joints (allowing all joints to be breakable). }
   TCastleAbstractJoint = class(TCastleBehavior)
   protected
-    { When joint is added to world we need found parent rigid body and set
+    { When joint is added to world we need to find parent rigid body and set
       callbacks for its initialize/deinitialize events. If this pointer is not nil
-      that means that we done that }
+      that means that we've done that. }
     FParentRigidBody: TCastleRigidBody;
     FBreakThresholdForce: Single;
     FBreakThresholdTorque: Single;
     FBreakable: Boolean;
 
-    { Create kraft joint and set it specialized properties }
+    { Create physics engine (Kraft) joint and set its specialized properties. }
     procedure CreateKraftJoint; virtual; abstract;
 
-    { Function to get kraft joint }
+    { Get physics engine (Kraft) joint instance. }
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
 
-    { Tries to deinitialize and initialize kraft object }
     procedure RecreateKraftJoint;
     procedure InitializeKraftJoint; virtual;
     procedure DeinitializeKraftJoint; virtual; abstract;
 
-    { Means that we can create joint object }
+    { Can we create joint object. }
     function AllNeededKraftObjectsInitialized: Boolean; virtual;
 
-    { Event callback when TCastleRigidBody is added to parent transform }
+    { Event callback when TCastleRigidBody is added to the parent transform. }
     procedure OnParentTransformAddBehavior(const Component: TComponent); virtual;
 
-    { Event callback when TCastleRigidBody is removed from parent transform }
+    { Event callback when TCastleRigidBody is removed from the parent transform. }
     procedure OnBeforeParentTransfromRemoveBehavior(const Component: TComponent); virtual;
 
-    { Event callback when TCastleRigidBody behavior is initialized }
+    { Event callback when TCastleRigidBody behavior is initialized. }
     procedure OnParentRigidBodyInitialized(const Component: TComponent); virtual;
 
-    { Event callback when TCastleRigidBody behavior is deinitialized }
+    { Event callback when TCastleRigidBody behavior is deinitialized. }
     procedure OnBeforeParentRigidBodyDeinitialized(const Component: TComponent); virtual;
 
-    { Sets TCastleRigidBody behavior initialize/deinitialize callbacks }
+    { Sets TCastleRigidBody behavior initialize/deinitialize callbacks. }
     procedure SetParentRigidBodyEvents;
 
-    { Removes TCastleRigidBody behavior initialize/deinitialize callbacks }
+    { Removes TCastleRigidBody behavior initialize/deinitialize callbacks. }
     procedure RemoveParentRigidBodyEvents;
 
     procedure UpdateBreakThresholdForceInKraft;
@@ -75,11 +77,11 @@
     procedure WorldBeforeDetach; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    {  Create design-time things that are displayed in hierarchy like gizmos
-       to visualize physics joint 3D points. They get context menu item to show/hide.
-       If you want to visualize the behavior using a visible TCastleTransform,
-       then create and add to Parent a descendant of TDesignJointTransform,
-       and set InternalCastleDesignInvalidate to @true. }
+    { Create design-time transformations that are displayed in the hierarchy
+      to visualize physics joints 3D points.
+      If you want to visualize the behavior using a visible TCastleTransform,
+      then create and add to Parent a descendant of TDesignJointTransform,
+      and set InternalCastleDesignInvalidate to @true. }
     procedure InternalCreateGizmos; virtual;
 
     { Destroy design-time stuff.
@@ -88,22 +90,22 @@
     procedure InternalDestroyGizmos; virtual;
   published
     { Makes the joint breakable when force is greater than BreakThresholdForce
-      or torque than BreakThresholdTorque. }
+      or torque is greater than BreakThresholdTorque. }
     property Breakable: Boolean read FBreakable write SetBreakable;
 
     { Force threshold to break joint. }
-    property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
+    property BreakThresholdForce: Single read FBreakThresholdForce write SetBreakThresholdForce;
 
     { Torque threshold to break joint. }
-    property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
+    property BreakThresholdTorque: Single read FBreakThresholdTorque write SetBreakThresholdTorque;
   end;
 
-  { Abstract class for joints that uses only one TCastleTransform. }
+  { Abstract class for joints that use only one TCastleTransform. }
   TCastleAbstractOneBodyJoint = class(TCastleAbstractJoint)
   end;
 
-  { Abstract class for joints that connects two TCastleTransforms. }
-  TCastleAbstractTwoBodiesJoint = class (TCastleAbstractJoint)
+  { Abstract class for joints that connect two TCastleTransform instances. }
+  TCastleAbstractTwoBodiesJoint = class(TCastleAbstractJoint)
   private
     { TCastleAbstractTwoBodiesJoint means that joint connects two transforms so this is
       the second one transform pointer }
@@ -122,61 +124,58 @@
     procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
     procedure SetConnectedCollide(const AValue: Boolean); virtual;
 
-    { Means that we can create joint object }
     function AllNeededKraftObjectsInitialized: Boolean; override;
 
     procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); virtual;
 
-    { Event callback when TCastleRigidBody is added to connected transform }
+    { Event callback when TCastleRigidBody is added to the connected transform. }
     procedure OnConnectedTransformAddBehavior(const Component: TComponent); virtual;
 
-    { Event callback when TCastleRigidBody is removed from connected transform }
+    { Event callback when TCastleRigidBody is removed from the connected transform. }
     procedure OnConnectedTransfromRemoveBehavior(const Component: TComponent); virtual;
 
-    { Event callback when connected transform TCastleRigidBody behavior is initialized }
+    { Event callback when connected transform TCastleRigidBody behavior is initialized. }
     procedure OnConnectedRigidBodyInitialized(const Component: TComponent); virtual;
 
-    { Event callback when connected transform TCastleRigidBody behavior is deinitialized }
+    { Event callback when connected transform TCastleRigidBody behavior is deinitialized. }
     procedure OnBeforeConnectedRigidBodyDeinitialized(const Component: TComponent); virtual;
 
-    { Sets connected transform add/remmove behavior callbacks and free
-      notification observer }
+    { Sets connected transform add/remove behavior callbacks and free
+      notification observer. }
     procedure SetConnectedTransformEvents;
 
     { Removes connected transform add/remmove behavior callbacks and free
-      notification observer }
+      notification observer. }
     procedure RemoveConnectedTransformEvents;
 
-    { Sets connected TCastleRigidBody behavior initialize/deinitialize callbacks }
+    { Sets connected TCastleRigidBody behavior initialize/deinitialize callbacks. }
     procedure SetConnectedRigidBodyEvents;
 
     { Removes connected TCastleRigidBody behavior initialize/deinitialize
-      callbacks }
+      callbacks. }
     procedure RemoveConnectedRigidBodyEvents;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { We need to check if sometimes the connected castle transform is not
-      the parent node and we need change the connected node to nil then }
+    { We need to check if the connected castle transform is not
+      the parent node and we need to change the connected node to nil then. }
     procedure ParentAfterAttach; override;
-
-    { We don't need check WorldAfterAttach and WorldBeforeDetach because all
-      things are done in TCastleAbstractJoint }
   published
-    { Second transform of physics joint - can't be the Parent of joint. }
+    { Second transform of the physics joint.
+      Note that it can't be the Parent of this joint. }
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
 
-    { Should connected transforms (ConnectedTransform and Parent)
-      collide - default no }
+    { Should connected transforms (ConnectedTransform and Parent) collide. }
     property ConnectedCollide: Boolean read FConnectedCollide
       write SetConnectedCollide default false;
   end;
 
   EConnectedTransformTheSameAsParent = class (Exception);
 
-  { A hinge joint connects two rigid bodies as if there was a hinge between them.
-    Its rotation is locked to one axis. Anchor determines the rotation point. }
+  { Hinge joint allows to rotate the transformation around a given axis,
+    like a door attached using hinges to the frame.
+    @link(Anchor) determines the rotation point and @link(Axis) the axis direction. }
   TCastleHingeJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointHinge: TKraftConstraintJointHinge;
@@ -192,7 +191,6 @@
     procedure SetMinAngleLimit(const AValue: Single);
     procedure SetMaxAngleLimit(const AValue: Single);
     procedure InternalUpdateGizmosName;
-
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
@@ -207,18 +205,18 @@
     procedure InternalDestroyGizmos; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { The rotation point of the hinge in parent transform local coordinates. }
+    { Position of the hinge in the parent transformation coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
-    { The axis around which the @link(ConnectedTransform) rotates }
+    { Rotation axis around which the @link(ConnectedTransform) rotates. }
     property Axis: TVector3 read FAxis write SetAxis;
   published
-    { Turns on minimum and maximum rotation angle limit }
+    { Turns on minimum and maximum rotation angle limit. }
     property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
 
-    { Minimal angle, limit should be from minus 2pi + epsilon to 0. }
+    { Minimal angle, must be a value between -2pi + epsilon to 0. }
     property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit;
 
-    { Maximum angle, limit should be from 0 to 2pi - epsilon. }
+    { Maximum angle, must be a value between 0 to 2pi - epsilon. }
     property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
 
   {$define read_interface_class}
@@ -226,8 +224,9 @@
   {$undef read_interface_class}
   end;
 
-  { The rope joint connects the two rigid bodies as if there was an invisible
-    rope between them. Anchors define the hook points of the rope. }
+  { Rope joint connects two bodies by an invisible rope that prevents
+    the distance between them to grow beyond specfied @link(Distance).
+    @link(Anchor) and @link(ConnectedAnchor) define the hook points of the rope. }
   TCastleRopeJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointRope: TKraftConstraintJointRope;
@@ -272,9 +271,9 @@
   {$undef read_interface_class}
   end;
 
-  { A Ball joint connects two rigid bodies as if there was a hinge between them
-    in all axes so its rotation is not locked to any specific axis.
-    Anchor determines the rotation point. }
+  { Ball joint allows to freely rotate the transformation of one object relative to another
+    (rotate in any axis) but does not allow any movement.
+    @link(Anchor) determines the rotation point. }
   TCastleBallJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
@@ -296,7 +295,7 @@
     procedure InternalDestroyGizmos; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { The rotation point of the ball joint in parent transform local coordinates. }
+    { The rotation point of the ball joint in parent transform coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
 
   {$define read_interface_class}
@@ -304,8 +303,10 @@
   {$undef read_interface_class}
   end;
 
-  { A joint that tries to maintain a certain distance between two rigid bodies
-    (their anchors to be exact). }
+  { Distance joint tries to maintain a certain distance between two rigid bodies,
+    with certain flexibility (like a spring).
+    @link(Anchor) and @link(ConnectedAnchor) actually determine the points between
+    which the distance is observed. }
   TCastleDistanceJoint = class(TCastleAbstractTwoBodiesJoint)
   private
     FKraftJointDistance: TKraftConstraintJointDistance;
@@ -351,8 +352,9 @@
 
       See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+
     { How fast the oscillations are damped, large values can cause the body
-      will not do even one oscillation. }
+      to not do even one oscillation. }
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
   {$define read_interface_class}
@@ -360,9 +362,10 @@
   {$undef read_interface_class}
   end;
 
-  { The joint moves/pull the connected rigid body towards a point defined in the
-    world coordinates. }
-  TCastleGrabJoint = class (TCastleAbstractOneBodyJoint)
+  { Grab joint pulls the rigid body towards a @link(WorldPoint) defined
+    in the world coordinates. The pulling is not instant, rather it works like a flexible
+    spring / elastic rope. }
+  TCastleGrabJoint = class(TCastleAbstractOneBodyJoint)
   private
     FDampingRatio: Single;
     FFrequencyHz: Single;
@@ -408,9 +411,11 @@
 
       See live example: https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint }
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz {$ifdef FPC}default 5{$endif};
+
     { How fast the oscillations are damped, large values can cause the body
       will not do even one oscillation. }
     property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default 0.7{$endif};
+
     { Maximal force that will be aplied to the body to move it. }
     property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default MaxSingle{$endif};
 
