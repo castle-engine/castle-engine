@@ -547,11 +547,13 @@ begin
   { Remove connected transform if new parent is the same transform }
   if Parent = FConnectedTransform then
   begin
-    WritelnWarning('I disconnect the connected transform because it is the same transform as parent.');
     RemoveConnectedRigidBodyEvents;
     FConnectedRigidBody := nil;
     RemoveConnectedTransformEvents;
     FConnectedTransform := nil;
+
+    raise Exception.Create('ConnectedTransform is the same as Parent of TCastleAbstractTwoBodiesJoint, this is not allowed');
+    // WritelnWarning...
   end;
 end;
 
