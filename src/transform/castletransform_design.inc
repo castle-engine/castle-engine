@@ -28,6 +28,9 @@
       LoadDepth: Cardinal;
     var
       FDesign: TCastleTransform;
+      { We don't use Self as Owner of FDesign, to allow freeing everything
+        loaded by TransformLoad by simple FreeAndNil(FDesignOwner). }
+      FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
       FURL: String;
       FRevertURL: String;
@@ -37,6 +40,15 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Find by name a component in currently loaded design.
+      When the name is not found, raises exception (unless Required is @false,
+      then it returns @nil). }
+    function DesignedComponent(const ComponentName: String;
+      const Required: Boolean = true): TComponent;
+
+    function FindRequiredComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName)';
+    function FindComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName, false)';
   published
     { Load file with the transform design.
       The file should be in the format created by Castle Game Engine Editor
@@ -44,9 +56,9 @@
       Setting this property automatically unloads the previous design,
       and loads a new one (if the value is <> '').
 
-      After loading a design, you can use FindComponent or
-      @link(TComponentHelper.FindRequiredComponent) to find the components inside.
-      The owner of the design is this TCastleTransformDesign instance. So e.g. this works:
+      After loading a design, you can use @link(DesignedComponent)
+      to find the components inside.
+      So e.g. this works:
 
       @longCode(#
       var
@@ -55,7 +67,7 @@
       begin
         MyDesign := TCastleTransformDesign.Create(...);
         MyDesign.URL := 'castle-data:/my_transform.castle-transform';
-        MyScene := MyDesign.FindRequiredComponent('MyScene') as TCastleScene;
+        MyScene := MyDesign.DesignedComponent('MyScene') as TCastleScene;
         MyScene.Translation := Vector3(1, 2, 3);
       end;
       #)
@@ -97,7 +109,8 @@ begin
   begin
     if FDesign <> nil then
     begin
-      FreeAndNil(FDesign);
+      FreeAndNil(FDesignOwner);
+      Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
     FURL := Value;
@@ -112,7 +125,8 @@ begin
           ]);
         Inc(LoadDepth);
         try
-          FDesign := TransformLoad(Value, Self);
+          FDesignOwner := TComponent.Create(Self);
+          FDesign := TransformLoad(Value, FDesignOwner);
         finally Dec(LoadDepth) end;
       except
         { If loading design file failed, and we're inside CGE editor,
@@ -148,6 +162,28 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleTransformDesign.DesignedComponent(const ComponentName: String;
+  const Required: Boolean): TComponent;
+begin
+  if FDesignOwner <> nil then
+    Result := FDesignOwner.FindComponent(ComponentName)
+  else
+    Result := nil;
+
+  if Required and (Result = nil) then
+    raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [ComponentName, Name]);
+end;
+
+function TCastleTransformDesign.FindRequiredComponent(const ComponentName: String): TComponent;
+begin
+  Result := DesignedComponent(ComponentName, true);
+end;
+
+function TCastleTransformDesign.FindComponent(const ComponentName: String): TComponent;
+begin
+  Result := DesignedComponent(ComponentName, false);
 end;
 
 {$endif read_implementation}

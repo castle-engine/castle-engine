@@ -96,7 +96,7 @@ begin
 
   { Find components inside TCastleDesigns (this needs 2 steps - first find the TCastleDesign) }
   PageButtons2 := DesignedComponent('PageButton2') as TCastleDesign;
-  ButtonToggle := PageButtons2.FindRequiredComponent('ButtonToggle') as TCastleButton;
+  ButtonToggle := PageButtons2.DesignedComponent('ButtonToggle') as TCastleButton;
 
   ButtonToggle.OnClick := {$ifdef FPC}@{$endif}ClickToggle;
 end;
