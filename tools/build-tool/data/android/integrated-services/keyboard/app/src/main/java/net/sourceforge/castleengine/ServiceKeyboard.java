@@ -413,9 +413,15 @@ class CastleInputConnection extends BaseInputConnection
             return fullText;
         }
         
-        // TODO: check surrogates here for 4byte characters
-        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText.substring(fullText.length() - n - 1) + "'");
-        return fullText.substring(fullText.length() - n - 1);
+        // Checking is n surrogate (second byte of 4byte character)
+        int index = fullText.length() - n - 1;
+        if (Character.isLowSurrogate(fullText.charAt(index)))
+        {
+            index++;
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns one char less because it's low surrogate: '" + fullText.substring(index) + "'");    
+        }
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText.substring(index) + "'");
+        return fullText.substring(index);
     }
 
     @Override
