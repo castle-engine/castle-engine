@@ -82,6 +82,7 @@ uses
   TestCastleRandom,
   TestCastleSoundEngine,
   TestCastleComponentSerialize,
+  TestCastleDesignComponents,
   TestX3DLoadInternalUtils,
   TestCastleLevels,
   TestCastleDownload,

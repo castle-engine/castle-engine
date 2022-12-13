@@ -1,0 +1,24 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "Scene1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleCone",
+          "Name" : "Cone1",
+          "RenderOptions" : {
+            "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+          }
+        }
+      ]
+    }
+  ]
+}

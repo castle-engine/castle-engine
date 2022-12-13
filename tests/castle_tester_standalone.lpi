@@ -20,7 +20,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="81">
+    <Units Count="82">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -425,6 +425,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolpackageformat"/>
       </Unit80>
+      <Unit81>
+        <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastledesigncomponents"/>
+      </Unit81>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

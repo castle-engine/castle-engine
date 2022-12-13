@@ -1,0 +1,18 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleCone",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "Cone1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      }
+    }
+  ]
+}
