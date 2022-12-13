@@ -696,8 +696,7 @@ type
 
     { Convert 2D position on the viewport into 3D ray.
 
-      The interpretation of Position depends on ContainerCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+      The interpretation of Position depends on ContainerCoordinates:
 
       @unorderedList(
         @item(When ContainerCoordinates = @true,
@@ -723,18 +722,21 @@ type
       const ContainerCoordinates: Boolean; out RayOrigin, RayDirection: TVector3);
 
     { Convert 2D position on the viewport into 3D "world coordinates",
-      by colliding camera ray with a plane at constant Z.
+      by colliding camera ray with a plane at constant X, Y or Z.
       "World coordinates" are coordinates
       space seen by TCastleTransform / TCastleScene inside viewport @link(Items).
 
-      This is a more general version of @link(PositionTo2DWorld),
-      that works with any projection (perspective or orthographic).
-      This is often useful if your game is "close to 2D", which means that you
-      use 3D (and maybe even perspective camera),
-      but most of the game world is placed around some plane with constant Z.
+      This works with any projection (perspective or orthographic).
 
-      The interpretation of Position depends on ContainerCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+      You can use it to pick a point on any plane with constant X (PlaneConstCoord = 0),
+      constant Y (PlaneConstCoord = 1), constant Z (PlaneConstCoord = 2).
+
+      This intersects the ray cast by @link(Camera) with a plane where given coordinate (PlaneConstCoord)
+      has value equal to PlaneConstValue.
+      The parameter names and interpretation is consistent e.g. with
+      @link(TrySimplePlaneRayIntersection).
+
+      The interpretation of Position depends on ContainerCoordinates:
 
       @unorderedList(
         @item(When ContainerCoordinates = @true,
@@ -756,24 +758,27 @@ type
         )
       )
 
-      This intersects the ray cast by @link(Camera)
-      with a plane at Z = PlaneZ.
-
-      Returns true and sets 3D PlanePosition (the Z component of this vector
-      must always be equal to PlaneZ) if such intersection is found.
+      Returns true and sets 3D PlanePosition (the PlaneConstCoord component of this vector
+      must always be equal to PlaneConstValue) if such intersection is found.
       Returns false if it's not possible to determine such point (when
       the camera looks in the other direction).
     }
     function PositionToWorldPlane(const Position: TVector2;
       const ContainerCoordinates: Boolean;
-      const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+      const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
+      out PlanePosition: TVector3): Boolean; overload;
+
+    function PositionToWorldPlane(const Position: TVector2;
+      const ContainerCoordinates: Boolean;
+      const PlaneConstValue: Single;
+      out PlanePosition: TVector3): Boolean; overload;
+      deprecated 'use PositionToWorldPlane overload with PlaneConstCoord parameter; this version assumes PlaneConstCoord = 2';
 
     { Convert 2D position into "world coordinates", which is the coordinate
       space seen by TCastleTransform / TCastleScene inside viewport @link(Items),
       assuming that we use orthographic projection in XY axes.
 
-      The interpretation of Position depends on ContainerCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+      The interpretation of Position depends on ContainerCoordinates:
 
       @unorderedList(
         @item(When ContainerCoordinates = @true,
@@ -3067,13 +3072,22 @@ end;
 
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
   const ContainerCoordinates: Boolean;
-  const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+  const PlaneConstValue: Single;
+  out PlanePosition: TVector3): Boolean;
+begin
+  Result := PositionToWorldPlane(Position, ContainerCoordinates,
+    2, PlaneConstValue, PlanePosition);
+end;
+
+function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
+  const ContainerCoordinates: Boolean;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
+  out PlanePosition: TVector3): Boolean;
 var
   RayOrigin, RayDirection: TVector3;
 begin
   PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
-
-  Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
+  Result := TrySimplePlaneRayIntersection(PlanePosition, PlaneConstCoord, PlaneConstValue,
     RayOrigin, RayDirection);
 end;
 

@@ -368,6 +368,9 @@ var
     AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, -10, WorldPlaneResult));
     AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
 
+    AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, 2, -10, WorldPlaneResult));
+    AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
+
     Pos2D := Viewport.PositionTo2DWorld(ScreenPos, true);
     AssertVectorEquals(CorrectPos2D, Pos2D, 0.1);
   end;
