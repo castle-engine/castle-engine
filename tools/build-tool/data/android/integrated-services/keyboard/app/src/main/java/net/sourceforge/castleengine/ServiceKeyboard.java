@@ -38,8 +38,6 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.ExtractedText;
 
 import android.view.inputmethod.InputMethodManager;
-import androidx.leanback.widget.ImeKeyMonitor;
-import android.widget.EditText;
 
 class CastleInputConnection extends BaseInputConnection 
 {
@@ -438,7 +436,6 @@ class CastleInputConnection extends BaseInputConnection
 
 /* View used to capture text */
 class CastleKeyboardInputView extends View
-    implements ImeKeyMonitor.ImeKeyListener, ImeKeyMonitor 
 {
     CastleInputConnection inputConnection;
     ServiceKeyboard serviceKeyboard;
@@ -451,7 +448,6 @@ class CastleKeyboardInputView extends View
         setFocusable(true);
         setFocusableInTouchMode(true); // without this line we can't show keyboard by ServiceKeyboard.showKeyboard()
         initText = "";
-        setImeKeyListener(this);
     }    
 
     /* See: https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view */
@@ -486,22 +482,21 @@ class CastleKeyboardInputView extends View
             inputConnection.setInitText(initText);
     }
 
-    /* See https://developer.android.com/reference/androidx/leanback/widget/ImeKeyMonitor.ImeKeyListener */
+    /* This callback is used when user uses navigation back button to hide keyboard.
+       We need then hide focus */
     @Override
-    public boolean onKeyPreIme(EditText editText, int keyCode, KeyEvent event)
+    public boolean onKeyPreIme (int keyCode, KeyEvent event) 
     {
-        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onKeyPreIme - : " + Integer.toString(keyCode));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onKeyPreIme: " + Integer.toString(keyCode));
+
+        if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK)
+        {
+            // we need remove force capture input after hiding the keyboard
+            serviceKeyboard.messageSend(new String[]{"castle-keyboard-hide-remove-force-capture-input"});
+            return false; // let the key go to ime
+        }
         return false;
     }
-
-    /* See */
-    @Override
-    public void setImeKeyListener(ImeKeyMonitor.ImeKeyListener listener)
-    {
-        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setImeKeyListener");
-        listener = this;
-    }
-
 }
 
 /**
