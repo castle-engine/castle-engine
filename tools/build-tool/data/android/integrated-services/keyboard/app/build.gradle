@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <dependency>implementation 'androidx.leanback:leanback:1.1.0-rc02'</dependency>
+  </dependencies>
+</build_gradle_merge>

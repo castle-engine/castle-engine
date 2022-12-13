@@ -38,6 +38,8 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.ExtractedText;
 
 import android.view.inputmethod.InputMethodManager;
+import androidx.leanback.widget.ImeKeyMonitor;
+import android.widget.EditText;
 
 class CastleInputConnection extends BaseInputConnection 
 {
@@ -68,6 +70,12 @@ class CastleInputConnection extends BaseInputConnection
         {
             serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - hide kyeboard");
             serviceKeyboard.hideKeyboard();
+            return true;
+        }
+
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+        {
+            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - KEYCODE_BACK");
             return true;
         }
 
@@ -366,6 +374,7 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.messageSend(new String[]{"castle-keyboard-hide-remove-force-capture-input"});
             return true;
         }
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "performEditorAction() - editorAction: " + Integer.toString(editorAction));
         return false;
     }
 
@@ -428,7 +437,8 @@ class CastleInputConnection extends BaseInputConnection
 }
 
 /* View used to capture text */
-class CastleKeyboardInputView extends View 
+class CastleKeyboardInputView extends View
+    implements ImeKeyMonitor.ImeKeyListener, ImeKeyMonitor 
 {
     CastleInputConnection inputConnection;
     ServiceKeyboard serviceKeyboard;
@@ -441,6 +451,7 @@ class CastleKeyboardInputView extends View
         setFocusable(true);
         setFocusableInTouchMode(true); // without this line we can't show keyboard by ServiceKeyboard.showKeyboard()
         initText = "";
+        setImeKeyListener(this);
     }    
 
     /* See: https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view */
@@ -474,6 +485,23 @@ class CastleKeyboardInputView extends View
         if (inputConnection != null)
             inputConnection.setInitText(initText);
     }
+
+    /* See https://developer.android.com/reference/androidx/leanback/widget/ImeKeyMonitor.ImeKeyListener */
+    @Override
+    public boolean onKeyPreIme(EditText editText, int keyCode, KeyEvent event)
+    {
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onKeyPreIme - : " + Integer.toString(keyCode));
+        return false;
+    }
+
+    /* See */
+    @Override
+    public void setImeKeyListener(ImeKeyMonitor.ImeKeyListener listener)
+    {
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setImeKeyListener");
+        listener = this;
+    }
+
 }
 
 /**
