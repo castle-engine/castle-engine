@@ -60,7 +60,12 @@
     procedure ParentAfterAttach; virtual;
 
     { Called before @link(Parent) changed, e.g. at the beginning of @link(TCastleTransform.RemoveBehavior).
-      This is also called from destructor of behavior. }
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
     procedure ParentBeforeDetach; virtual;
 
     { Called after @link(Parent) became part of @link(World).
@@ -68,8 +73,13 @@
     procedure WorldAfterAttach; virtual;
 
     { Called before @link(Parent) stops being part of @link(World).
-      This is also called from destructor of behavior.
-      Called only if ListenWorldChange is @true. }
+      Called only if ListenWorldChange is @true.
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
     procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
