@@ -3668,14 +3668,14 @@ begin
     as it will not be saved.
     Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
-  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TDesignTransform);
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot) and (not (Child is TDesignTransform));
+    (Child <> DesignRoot) and (not (Child is TCastleToolTransform));
 end;
 
 type
@@ -4409,11 +4409,12 @@ begin
     SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
     (*
-    // The TransformDesigning mechanism works, but it unused for now.
-    if SelectedComponent is TDesignTransform then
-      { Design parent of TDesignTransform,
-        otherwise TDesignTransform would disappear as soon as we select it. }
-      TransformDesigning := TDesignTransform(SelectedComponent).Parent
+    // The TransformDesigning mechanism works, but it's unused for now.
+
+    if SelectedComponent is TCastleToolTransform then
+      { Design parent of TCastleToolTransform,
+        otherwise TCastleToolTransform would disappear as soon as we select it. }
+      TransformDesigning := TCastleToolTransform(SelectedComponent).Parent
     else
       TransformDesigning := T;
     *)
@@ -4589,7 +4590,7 @@ begin
     if (SrcComponent <> nil) and
        ( (SrcComponent = DesignRoot) or
          (csSubComponent in SrcComponent.ComponentStyle) or
-         (SrcComponent is TDesignTransform) ) then
+         (SrcComponent is TCastleToolTransform) ) then
       Result := false;
   end;
 end;

@@ -28,10 +28,10 @@ type
   TOnSetValue = procedure (const Value: TVector3) of object;
 
   { Ancestor for design-time tools created by behaviors to manipulate e.g. joints. }
-  TDesignTransform = class(TCastleTransform);
+  TCastleToolTransform = class(TCastleTransform);
 
   { Ancestor for design-time tools created by physics joints. }
-  TDesignJointTransform = class(TDesignTransform)
+  TCastleJointTool = class(TCastleToolTransform)
   strict private
     FColor: TCastleColor;
     FJoint: TCastleAbstractJoint;
@@ -67,9 +67,9 @@ implementation
 
 uses CastleRenderContext;
 
-{ TDesignJointTransform --------------------------------------------------- }
+{ TCastleJointTool --------------------------------------------------- }
 
-constructor TDesignJointTransform.Create(AOwner: TComponent);
+constructor TCastleJointTool.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -85,13 +85,13 @@ begin
   Add(FSphere);
 end;
 
-destructor TDesignJointTransform.Destroy;
+destructor TCastleJointTool.Destroy;
 begin
   FreeAndNil(FSphere);
   inherited Destroy;
 end;
 
-procedure TDesignJointTransform.Update(const SecondsPassed: Single;
+procedure TCastleJointTool.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 // var
 //   NewRadius: Single;
@@ -110,7 +110,7 @@ begin
   *)
 end;
 
-function TDesignJointTransform.PropertySections(const PropertyName: String
+function TCastleJointTool.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -121,7 +121,7 @@ begin
     Result := [];
 end;
 
-procedure TDesignJointTransform.SetColor(const Value: TCastleColor);
+procedure TCastleJointTool.SetColor(const Value: TCastleColor);
 begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
@@ -132,7 +132,7 @@ begin
 end;
 
 (*
-function TDesignJointTransform.EstimateSphereRadius: Single;
+function TCastleJointTool.EstimateSphereRadius: Single;
 var
   Viewport: TCastleViewport;
   SphereWorldPos1, SphereWorldPos2: TVector3;
@@ -157,13 +157,13 @@ begin
 end;
 *)
 
-function TDesignJointTransform.GetValue: TVector3;
+function TCastleJointTool.GetValue: TVector3;
 begin
   Assert(Assigned(OnGetValue));
   Result := OnGetValue();
 end;
 
-procedure TDesignJointTransform.SetValue(const AValue: TVector3);
+procedure TCastleJointTool.SetValue(const AValue: TVector3);
 begin
   Assert(Assigned(OnSetValue));
   OnSetValue(AValue);
@@ -171,7 +171,7 @@ begin
     Translation := AValue;
 end;
 
-procedure TDesignJointTransform.ChangedTransform;
+procedure TCastleJointTool.ChangedTransform;
 begin
   inherited;
   if not TVector3.PerfectlyEquals(Translation, Value) then

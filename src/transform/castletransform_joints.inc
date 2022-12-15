@@ -80,7 +80,7 @@
     { Create design-time transformations that are displayed in the hierarchy
       to visualize physics joints 3D points.
       If you want to visualize the behavior using a visible TCastleTransform,
-      then create and add to Parent a descendant of TDesignJointTransform,
+      then create and add to Parent a descendant of TCastleJointTool,
       and set InternalCastleDesignInvalidate to @true. }
     procedure InternalCreateGizmos; virtual;
 
@@ -833,13 +833,13 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FAnchorTransform).Joint := Self;
-    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
-    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
+    FAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FAnchorTransform).Joint := Self;
+    TCastleJointTool(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TCastleJointTool(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TDesignJointTransform(FAnchorTransform).Value := Anchor;
+    TCastleJointTool(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -874,7 +874,7 @@ begin
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
+      TCastleJointTool(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1013,10 +1013,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FAnchorTransform).Joint := Self;
-    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
-    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
+    FAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FAnchorTransform).Joint := Self;
+    TCastleJointTool(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TCastleJointTool(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1025,11 +1025,11 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FConnectedAnchorTransform).Joint := Self;
-    TDesignJointTransform(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
-    TDesignJointTransform(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
-    TDesignJointTransform(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
+    FConnectedAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FConnectedAnchorTransform).Joint := Self;
+    TCastleJointTool(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
+    TCastleJointTool(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
+    TCastleJointTool(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -1056,7 +1056,7 @@ begin
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
+      TCastleJointTool(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1072,7 +1072,7 @@ begin
   begin
     FConnectedAnchor := AValue;
     if FConnectedAnchorTransform <> nil then
-      TDesignJointTransform(FConnectedAnchorTransform).Value := FConnectedAnchor;
+      TCastleJointTool(FConnectedAnchorTransform).Value := FConnectedAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1176,13 +1176,13 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FAnchorTransform).Joint := Self;
-    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
-    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
+    FAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FAnchorTransform).Joint := Self;
+    TCastleJointTool(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TCastleJointTool(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TDesignJointTransform(FAnchorTransform).Value := Anchor;
+    TCastleJointTool(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -1213,7 +1213,7 @@ begin
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
+      TCastleJointTool(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1291,10 +1291,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FAnchorTransform).Joint := Self;
-    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
-    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
+    FAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FAnchorTransform).Joint := Self;
+    TCastleJointTool(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TCastleJointTool(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1303,11 +1303,11 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FConnectedAnchorTransform).Joint := Self;
-    TDesignJointTransform(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
-    TDesignJointTransform(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
-    TDesignJointTransform(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
+    FConnectedAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FConnectedAnchorTransform).Joint := Self;
+    TCastleJointTool(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
+    TCastleJointTool(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
+    TCastleJointTool(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -1346,7 +1346,7 @@ begin
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointTransform(FAnchorTransform).Value := AValue;
+      TCastleJointTool(FAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
 end;
@@ -1362,7 +1362,7 @@ begin
   begin
     FConnectedAnchor := AValue;
     if FConnectedAnchorTransform <> nil then
-      TDesignJointTransform(FConnectedAnchorTransform).Value := AValue;
+      TCastleJointTool(FConnectedAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
 end;
@@ -1472,10 +1472,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FAnchorTransform).Joint := Self;
-    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
-    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
+    FAnchorTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FAnchorTransform).Joint := Self;
+    TCastleJointTool(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TCastleJointTool(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1484,11 +1484,11 @@ begin
 
   if FTargetWorldTransform = nil then
   begin
-    FTargetWorldTransform := TDesignJointTransform.Create(nil);
-    TDesignJointTransform(FTargetWorldTransform).Joint := Self;
-    TDesignJointTransform(FTargetWorldTransform).OnGetValue := {$ifdef FPC}@{$endif} GetTargetWorldForTool;
-    TDesignJointTransform(FTargetWorldTransform).OnSetValue := {$ifdef FPC}@{$endif} SetTargetWorld;
-    TDesignJointTransform(FTargetWorldTransform).Color := Blue;
+    FTargetWorldTransform := TCastleJointTool.Create(nil);
+    TCastleJointTool(FTargetWorldTransform).Joint := Self;
+    TCastleJointTool(FTargetWorldTransform).OnGetValue := {$ifdef FPC}@{$endif} GetTargetWorldForTool;
+    TCastleJointTool(FTargetWorldTransform).OnSetValue := {$ifdef FPC}@{$endif} SetTargetWorld;
+    TCastleJointTool(FTargetWorldTransform).Color := Blue;
     InternalUpdateGizmosName;
     Parent.World.Add(FTargetWorldTransform);
     FTargetWorldTransform.Translation := TargetWorld;
@@ -1528,7 +1528,7 @@ begin
     FTargetWorld := AValue;
 
     if FTargetWorldTransform <> nil then
-      TDesignJointTransform(FTargetWorldTransform).Value := FTargetWorld;
+      TCastleJointTool(FTargetWorldTransform).Value := FTargetWorld;
 
     if FKraftJointGrab <> nil then
     begin
@@ -1551,7 +1551,7 @@ begin
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointTransform(FAnchorTransform).Value := AValue;
+      TCastleJointTool(FAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
 end;
