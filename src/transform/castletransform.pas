@@ -111,6 +111,13 @@ initialization
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastlePlaneCollider, ['Physics', 'Collider', 'Plane']);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastlePlaneCollider;
+  R.Caption := ['Physics', 'Collider 2D', 'Plane'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastlePlaneCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastleSphereCollider, ['Physics', 'Collider', 'Sphere']);
 
   R := TRegisteredComponent.Create;
@@ -120,6 +127,12 @@ initialization
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleMeshCollider, ['Physics', 'Collider', 'Mesh']);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleMeshCollider;
+  R.Caption := ['Physics', 'Collider 2D', 'Mesh'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleMeshCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleRopeJoint, ['Physics', 'Joint', 'Rope']);
   RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge ']);

@@ -145,6 +145,9 @@
     function StoredWithAutoSize: Boolean;
 
     function WorldScaleScalar: Single;
+
+    { Configure Sender (TCastleCollider) to have Mode2D. }
+    class procedure CreateComponent2D(Sender: TObject);
   protected
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
@@ -410,8 +413,6 @@
     procedure SetSize(const AValue: TVector3);
     { Returns scaled size, because scale is added to size directly. }
     function CalculateScaledSize: CastleVectors.TVector3;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -443,8 +444,6 @@
     procedure SetRadius(const AValue: Single);
     { Returns scaled Radius, because scale is added to size directly. }
     function CalculateScaledRadius: Single;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -478,8 +477,6 @@
     procedure SetHeight(const AValue: Single);
     function CalculateScaledHeight: Single;
     function CalculateScaledRadius: Single;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -725,6 +722,7 @@
     { Called by TCastleCollider when it's shape changes }
     procedure ReinitializeCastleCollider;
 
+    { Configure Sender (TCastleRigidBody) using Setup2D. }
     class procedure CreateComponent2D(Sender: TObject);
 
     procedure AddNotificationOnInitialized(
@@ -1659,6 +1657,11 @@ begin
   end;
 end;
 
+class procedure TCastleCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleCollider).Mode2D := true;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -1831,11 +1834,6 @@ begin
   Result := FSize * TotalScale;
 end;
 
-class procedure TCastleBoxCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleBoxCollider).Mode2D := true;
-end;
-
 function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 var
@@ -1973,11 +1971,6 @@ begin
   begin
     TCastleSphere(FVisualization).Radius := CalculateScaledRadius;
   end;
-end;
-
-class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleSphereCollider).Mode2D := true;
 end;
 
 procedure TCastleSphereCollider.CalculateSizeCore;
@@ -2153,11 +2146,6 @@ end;
 function TCastleCapsuleCollider.CalculateScaledRadius: Single;
 begin
   Result := FRadius * TotalScale;
-end;
-
-class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleCapsuleCollider).Mode2D := true;
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
