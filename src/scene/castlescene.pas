@@ -2425,7 +2425,7 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Optimal Blending for 2D Models)';
+  R.Caption := ['Scene (Optimal Blending for 2D Models)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
@@ -2438,11 +2438,11 @@ initialization
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
   RegisterSerializableComponent(TCastleFog, 'Fog');
-  RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
-  RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
-  RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');
+  RegisterSerializableComponent(TCastlePointLight, ['Light', 'Point']);
+  RegisterSerializableComponent(TCastleDirectionalLight, ['Light', 'Directional']);
+  RegisterSerializableComponent(TCastleSpotLight, ['Light', 'Spot']);
   {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Light/Environment');
+  RegisterSerializableComponent(TCastleEnvironmentLight, ['Light', 'Environment']);
   {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);

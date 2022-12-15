@@ -76,7 +76,7 @@ type
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
     { Nice caption to show user in the editor. }
-    Caption: String;
+    Caption: array of String;
     { Called by the editor always after creating this component. }
     OnCreate: TNotifyEvent;
     { Should correspond to whether class is declared as "deprecated" in Pascal
@@ -91,7 +91,9 @@ type
   the TRegisteredComponent instance becomes internally owned in this unit
   (do not free it yourself). }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String); overload;
+  const Caption: array of String); overload;
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String); overload;
 procedure RegisterSerializableComponent(const C: TRegisteredComponent); overload;
 
 { Read-only list of currently registered
@@ -197,13 +199,27 @@ begin
 end;
 
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
+  const Caption: array of String);
+var
+  R: TRegisteredComponent;
+  I: Integer;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  SetLength(R.Caption, High(Caption) + 1);
+  for I := 0 to High(Caption) do
+    R.Caption[I] := Caption[I];
+  RegisteredComponents.Add(R);
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String);
 var
   R: TRegisteredComponent;
 begin
   R := TRegisteredComponent.Create;
   R.ComponentClass := ComponentClass;
-  R.Caption := Caption;
+  R.Caption := [CaptionOnePart];
   RegisteredComponents.Add(R);
 end;
 

@@ -294,7 +294,7 @@ initialization
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
   R.ComponentClass := TCastle2DSceneManager;
   {$warnings on}
-  R.Caption := '2D Scene Manager';
+  R.Caption := ['2D Scene Manager'];
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
@@ -302,7 +302,7 @@ initialization
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
   R.ComponentClass := TCastle2DScene;
   {$warnings on}
-  R.Caption := '2D Scene';
+  R.Caption := ['2D Scene'];
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 end.

@@ -4310,11 +4310,11 @@ var
 initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
-  R.Caption := 'Navigation/Fly (Walk with Gravity=false)';
+  R.Caption := ['Navigation', 'Fly (Walk with Gravity=false)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleWalkNavigation, 'Navigation/Walk');
-  RegisterSerializableComponent(TCastleExamineNavigation, 'Navigation/Examine');
-  RegisterSerializableComponent(TCastle2DNavigation, 'Navigation/2D');
+  RegisterSerializableComponent(TCastleWalkNavigation, ['Navigation', 'Walk']);
+  RegisterSerializableComponent(TCastleExamineNavigation, ['Navigation', 'Examine']);
+  RegisterSerializableComponent(TCastle2DNavigation, ['Navigation', '2D']);
 end.

@@ -4083,7 +4083,7 @@ initialization
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
   R.ComponentClass := TCastleSceneManager;
   {$warnings on}
-  R.Caption := 'Scene Manager';
+  R.Caption := ['Scene Manager'];
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
@@ -4091,13 +4091,13 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
-  R.Caption := 'Viewport (3D)';
+  R.Caption := ['Viewport (3D)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren3D;
   RegisterSerializableComponent(R);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
-  R.Caption := 'Viewport (2D)';
+  R.Caption := ['Viewport (2D)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren2D;
   RegisterSerializableComponent(R);
 

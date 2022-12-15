@@ -2025,8 +2025,8 @@ end;
 {$undef read_implementation_methods}
 
 initialization
-  RegisterSerializableComponent(TCastleTerrainImage, 'Terrain Data (Experimental)/Image Data');
-  RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain Data (Experimental)/Noise Data');
-  RegisterSerializableComponent(TCastleTerrainCombine, 'Terrain Data (Experimental)/Combine Data');
-  RegisterSerializableComponent(TCastleTerrain, 'Terrain (Experimental)/Terrain');
+  RegisterSerializableComponent(TCastleTerrainImage, ['Terrain Data (Experimental)', 'Image Data']);
+  RegisterSerializableComponent(TCastleTerrainNoise, ['Terrain Data (Experimental)', 'Noise Data']);
+  RegisterSerializableComponent(TCastleTerrainCombine, ['Terrain Data (Experimental)', 'Combine Data']);
+  RegisterSerializableComponent(TCastleTerrain, ['Terrain (Experimental)']);
 end.

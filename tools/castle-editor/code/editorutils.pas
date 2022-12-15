@@ -271,7 +271,7 @@ type
 implementation
 
 uses
-  SysUtils, Graphics, TypInfo, Generics.Defaults,
+  SysUtils, Graphics, TypInfo, Generics.Defaults, Math,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors,
@@ -889,8 +889,18 @@ begin
 end;
 
 function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+var
+  I: Integer;
 begin
-  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+  for I := 0 to Min(Length(Left.Caption), Length(Right.Caption)) - 1 do
+  begin
+    Result := AnsiCompareStr(Left.Caption[I], Right.Caption[I]);
+    if Result <> 0 then Exit;
+  end;
+
+  { When all common parts are the same, let the shorter one be considered smaller.
+    So < 0 when Length(Left.Caption) < Length(Right.Caption). }
+  Result := Length(Left.Caption) - Length(Right.Caption);
 end;
 
 procedure BuildComponentsMenu(
@@ -898,20 +908,37 @@ procedure BuildComponentsMenu(
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
-    const R: TRegisteredComponent): TMenuItem;
+    const R: TRegisteredComponent; const CaptionPart: Integer = 0): TMenuItem;
   var
     S: String;
   begin
     if OwnerAndParent = nil then
       Exit; // exit if relevant ParentXxx is nil
-    Result := TMenuItem.Create(OwnerAndParent);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-    Result.OnClick := OnClickEvent;
-    OwnerAndParent.Add(Result);
+
+    if CaptionPart = Length(R.Caption) - 1 then
+    begin
+      { create last part, to actually invoke OnClickEvent }
+      Result := TMenuItem.Create(OwnerAndParent);
+      S := R.Caption[CaptionPart] + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+      Result.OnClick := OnClickEvent;
+      OwnerAndParent.Add(Result);
+    end else
+    begin
+      { create intermediate submenu part }
+      Result := OwnerAndParent.Find(R.Caption[CaptionPart]);
+      if Result = nil then
+      begin
+        Result := TMenuItem.Create(OwnerAndParent);
+        Result.Caption := R.Caption[CaptionPart];
+        OwnerAndParent.Add(Result);
+      end;
+      { recursive call to create deeper menu level }
+      CreateMenuItemForComponent(Result, R, CaptionPart + 1);
+    end;
   end;
 
 type

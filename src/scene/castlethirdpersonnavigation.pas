@@ -1640,5 +1640,5 @@ end;
 {$undef read_implementation_methods}
 
 initialization
-  RegisterSerializableComponent(TCastleThirdPersonNavigation, 'Navigation/Third-Person');
+  RegisterSerializableComponent(TCastleThirdPersonNavigation, ['Navigation', 'Third-Person']);
 end.
