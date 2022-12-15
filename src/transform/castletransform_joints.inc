@@ -362,19 +362,21 @@
   {$undef read_interface_class}
   end;
 
-  { Grab joint pulls the rigid body towards a @link(WorldPoint) defined
-    in the world coordinates. The pulling is not instant, rather it works like a flexible
-    spring / elastic rope. }
+  { Grab joint pulls the rigid body @link(Anchor) towards a @link(TargetWorld) defined
+    in the world coordinates.
+    The pull is not instant, rather it works like a flexible spring / elastic rope. }
   TCastleGrabJoint = class(TCastleAbstractOneBodyJoint)
   private
     FDampingRatio: Single;
     FFrequencyHz: Single;
     FKraftJointGrab: TKraftConstraintJointGrab;
     FMaxForce: Single;
-    FWorldPoint: TVector3;
-    FWorldPointTransform: TCastleTransform; // TDesignJointWorldPoint;
+    FAnchor, FTargetWorld: TVector3;
+    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    FTargetWorldTransform: TCastleTransform; // TDesignJointTargetWorld
 
-    procedure SetWorldPoint(const AValue: TVector3);
+    procedure SetAnchor(const AValue: TVector3);
+    procedure SetTargetWorld(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
     procedure SetMaxForce(const AValue: Single);
@@ -397,14 +399,12 @@
     procedure InternalDestroyGizmos; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { The point the body is pulled to, in world coordinates.
+    { Point, in local coordinates, that will be pulled to @link(AnchorTarget). }
+    property Anchor: TVector3 read FAnchor write SetAnchor;
 
-      At creation, the local anchor is created based on the difference between
-      body origin and this point, such that right after creation the object
-      is considered exactly where it should be.
-
-      Moving the WorldPoint then will make a relative movement of the grabbed body. }
-    property WorldPoint: TVector3 read FWorldPoint write SetWorldPoint;
+    { Point, in world coordinates, that pulls @link(Anchor).
+      With time, @link(Anchor) (in local coords) will match @link(TargetWorld) (in world coords). }
+    property TargetWorld: TVector3 read FTargetWorld write SetTargetWorld;
   published
     { Frequency controls how fast the oscillations occur. The smaller the value,
       the longer the oscillation movement. This may not seem intuitive,
@@ -798,7 +798,7 @@ begin
   inherited Create(AOwner);
   ListenWorldChange := true;
   FAxis:= CastleVectors.Vector3(0, 0, 1);
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
@@ -1384,7 +1384,7 @@ constructor TCastleGrabJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ListenWorldChange := true;
-  FWorldPoint := CastleVectors.Vector3(0, 0, 0);
+  FTargetWorld := TVector3.Zero;
   FMaxForce := MaxSingle;
   FFrequencyHz := DefaultFrequencyHz;
   FDampingRatio := DefaultDampingRatio;
@@ -1404,26 +1404,37 @@ end;
 
 procedure TCastleGrabJoint.WorldBeforeDetach;
 begin
-  FreeAndNil(FWorldPointTransform);
+  FreeAndNil(FAnchorTransform);
+  FreeAndNil(FTargetWorldTransform);
   inherited WorldBeforeDetach;
 end;
 
 procedure TCastleGrabJoint.InternalCreateGizmos;
 begin
   inherited;
-  if FWorldPointTransform = nil then
+  if FAnchorTransform = nil then
   begin
-    FWorldPointTransform := TDesignJointWorldPoint.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
     InternalUpdateGizmosName;
-    Parent.World.Add(FWorldPointTransform);
-    FWorldPointTransform.Translation := WorldPoint;
+    Parent.Add(FAnchorTransform);
+    FAnchorTransform.Translation := Anchor;
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if FTargetWorldTransform = nil then
+  begin
+    FTargetWorldTransform := TDesignJointTargetWorld.Create(nil, Self);
+    InternalUpdateGizmosName;
+    Parent.World.Add(FTargetWorldTransform);
+    FTargetWorldTransform.Translation := TargetWorld;
     InternalCastleDesignInvalidate := true;
   end;
 end;
 
 procedure TCastleGrabJoint.InternalDestroyGizmos;
 begin
-  FreeAndNil(FWorldPointTransform);
+  FreeAndNil(FAnchorTransform);
+  FreeAndNil(FTargetWorldTransform);
   InternalCastleDesignInvalidate := true;
   inherited;
 end;
@@ -1432,35 +1443,47 @@ function TCastleGrabJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'WorldPointPersistent', 'DampingRatio', 'FrequencyHz', 'MaxForce'
+      'TargetWorldPersistent', 'AnchorPersistent',
+      'DampingRatio', 'FrequencyHz', 'MaxForce'
     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleGrabJoint.SetWorldPoint(const AValue: TVector3);
+procedure TCastleGrabJoint.SetTargetWorld(const AValue: TVector3);
 begin
-  if not TVector3.PerfectlyEquals(FWorldPoint, AValue) then
+  if not TVector3.PerfectlyEquals(FTargetWorld, AValue) then
   begin
-    FWorldPoint := AValue;
+    FTargetWorld := AValue;
 
-    if FWorldPointTransform <> nil then
-      TDesignJointWorldPoint(FWorldPointTransform).Value := FWorldPoint;
+    if FTargetWorldTransform <> nil then
+      TDesignJointTargetWorld(FTargetWorldTransform).Value := FTargetWorld;
 
     if FKraftJointGrab <> nil then
     begin
-      FKraftJointGrab.SetWorldPoint(VectorToKraft(FWorldPoint));
-      // Kraft needs to set rigis body WakeUp to body start moving
+      FKraftJointGrab.SetWorldPoint(VectorToKraft(FTargetWorld));
+      // Kraft needs us to wake rigid body to make body start moving
       // https://github.com/BeRo1985/kraft/issues/26
       FParentRigidBody.WakeUp;
     end;
   end;
 end;
 
+procedure TCastleGrabJoint.SetAnchor(const AValue: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
+  begin
+    FAnchor := AValue;
+    if FAnchorTransform <> nil then
+      TDesignJointAnchor(FAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
+end;
+
 procedure TCastleGrabJoint.SetFrequencyHz(const AValue: Single);
 begin
-  if not SameValue(FFrequencyHz, AValue) then
+  if FFrequencyHz <> AValue then
   begin
     FFrequencyHz := AValue;
     RecreateKraftJoint;
@@ -1488,10 +1511,16 @@ end;
 
 procedure TCastleGrabJoint.InternalUpdateGizmosName;
 begin
-  if (FWorldPointTransform <> nil) and
-     (FWorldPointTransform.Name <> Name + '_WorldPoint') then
+  if (FAnchorTransform <> nil) and (FAnchorTransform.Name <> Name + '_Anchor') then
   begin
-    FWorldPointTransform.Name := Name + '_WorldPoint';
+    FAnchorTransform.Name := Name + '_Anchor';
+    InternalCastleDesignInvalidate := true;
+  end;
+
+  if (FTargetWorldTransform <> nil) and
+     (FTargetWorldTransform.Name <> Name + '_TargetWorld') then
+  begin
+    FTargetWorldTransform.Name := Name + '_TargetWorld';
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -1502,16 +1531,42 @@ begin
 end;
 
 procedure TCastleGrabJoint.CreateKraftJoint;
+var
+  AnchorInWorldCoords: TKraftVector3;
 begin
   Assert(FKraftJointGrab = nil, 'Second joint initialization');
+
+  { TKraftConstraintJointGrab.Create takes AWorldPoint as argument,
+    and implicitly sets fLocalAnchor  to
+
+      fLocalAnchor:=Vector3TermMatrixMulInverted(AWorldPoint,ARigidBody.fWorldTransform);
+
+    IOW, it converts AWorldPoint into local coordinate space,
+    so that initial state means that TKraftConstraintJointGrab doesn't have to do anything
+    -- target is at anchor.
+
+    We want a different behavior,
+    - Anchor (in local coords) to be explicitly configurable, like other joints
+    - TargetWorld configurable, and not necessarily "nothing to do" initially
+
+    So we kind of "trick" Kraft into it:
+    - as AWorldPoint argument, we pass AnchorInWorldCoords
+    - later we call SetWorldPoint to set real desired TargetWorld
+  }
+
+  AnchorInWorldCoords := Vector3TermMatrixMul(
+    VectorToKraft(FAnchor),
+    FParentRigidBody.FKraftBody.WorldTransform);
+
   FKraftJointGrab := TKraftConstraintJointGrab.Create(
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
-    VectorToKraft(FWorldPoint),
+    AnchorInWorldCoords,
     FFrequencyHz,
     FDampingRatio,
     FMaxForce
   );
+  FKraftJointGrab.SetWorldPoint(VectorToKraft(FTargetWorld));
 end;
 
 procedure TCastleGrabJoint.DeinitializeKraftJoint;

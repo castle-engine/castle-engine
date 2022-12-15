@@ -153,7 +153,7 @@ begin
     if ViewportGrab.PositionToWorldPlane(EventPosition, true, 1, 0, PickedPoint) then
     begin
       //WritelnLog('Grabbing to point %s', [PickedPoint.ToString]);
-      InteractiveGrabJoint.WorldPoint := PickedPoint;
+      InteractiveGrabJoint.TargetWorld := PickedPoint;
     end;
   end;
 end;

@@ -79,7 +79,9 @@
 ../../../src/transform/ TCastleBallJoint Anchor TVector3
 ../../../src/transform/ TCastleDistanceJoint Anchor TVector3
 ../../../src/transform/ TCastleDistanceJoint ConnectedAnchor TVector3
-../../../src/transform/ TCastleGrabJoint WorldPoint TVector3
+../../../src/transform/ TCastleGrabJoint Anchor TVector3
+../../../src/transform/ TCastleGrabJoint TargetWorld TVector3
+
 ../../../src/transform/ TCastlePulleyJoint WorldAnchor TVector3
 ../../../src/transform/ TCastlePulleyJoint ConnectedWorldAnchor TVector3
 ../../../src/transform/ TCastlePulleyJoint WorldGroundAnchor TVector3

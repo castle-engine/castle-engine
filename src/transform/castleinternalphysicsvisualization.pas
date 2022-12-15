@@ -71,7 +71,7 @@ type
     constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
   end;
 
-  TDesignJointWorldPoint = class(TDesignJointTransform)
+  TDesignJointTargetWorld = class(TDesignJointTransform)
   protected
     procedure SetObservedValue(const AValue: TVector3); override;
     function GetObservedValue: TVector3; override;
@@ -267,6 +267,12 @@ begin
       TCastleDistanceJoint(Joint).Anchor := AValue;
   end;
 
+  if Joint is TCastleGrabJoint then
+  begin
+    if not TVector3.PerfectlyEquals(TCastleGrabJoint(Joint).Anchor, AValue) then
+      TCastleGrabJoint(Joint).Anchor := AValue;
+  end;
+
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TCastleWorldPlaneDistanceJoint then
   begin
@@ -296,6 +302,9 @@ begin
 
   if Joint is TCastleDistanceJoint then
     Exit(TCastleDistanceJoint(Joint).Anchor);
+
+  if Joint is TCastleGrabJoint then
+    Exit(TCastleGrabJoint(Joint).Anchor);
 
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   if Joint is TCastleWorldPlaneDistanceJoint then
@@ -333,28 +342,28 @@ begin
     Exit(TCastleRopeJoint(Joint).ConnectedAnchor);
 end;
 
-{ TDesignJointWorldPoint -------------------------------------------------- }
+{ TDesignJointTargetWorld -------------------------------------------------- }
 
-constructor TDesignJointWorldPoint.Create(AOwner: TComponent;
+constructor TDesignJointTargetWorld.Create(AOwner: TComponent;
   const AJoint: TCastleAbstractJoint);
 begin
   inherited Create(AOwner, AJoint);
   Color := Blue;
 end;
 
-procedure TDesignJointWorldPoint.SetObservedValue(const AValue: TVector3);
+procedure TDesignJointTargetWorld.SetObservedValue(const AValue: TVector3);
 begin
   if Joint is TCastleGrabJoint then
   begin
-    if not TVector3.PerfectlyEquals(TCastleGrabJoint(Joint).WorldPoint, AValue) then
-      TCastleGrabJoint(Joint).WorldPoint := AValue;
+    if not TVector3.PerfectlyEquals(TCastleGrabJoint(Joint).TargetWorld, AValue) then
+      TCastleGrabJoint(Joint).TargetWorld := AValue;
   end;
 end;
 
-function TDesignJointWorldPoint.GetObservedValue: TVector3;
+function TDesignJointTargetWorld.GetObservedValue: TVector3;
 begin
   if Joint is TCastleGrabJoint then
-    Exit(TCastleGrabJoint(Joint).WorldPoint);
+    Exit(TCastleGrabJoint(Joint).TargetWorld);
 end;
 
 { TDesignJointWorldAnchor ------------------------------------------------- }
