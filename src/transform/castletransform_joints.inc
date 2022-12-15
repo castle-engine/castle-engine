@@ -181,7 +181,7 @@
     FKraftJointHinge: TKraftConstraintJointHinge;
     FAxis: TVector3;
     FAnchor: TVector3;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    FAnchorTransform: TCastleTransform;
     FMinAngleLimit: Single;
     FMaxAngleLimit: Single;
     FEnableLimits: Boolean;
@@ -234,8 +234,8 @@
     FAnchor: TVector3;
     FConnectedAnchor: TVector3;
     FDistance: Single;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
-    FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor;
+    FAnchorTransform: TCastleTransform;
+    FConnectedAnchorTransform: TCastleTransform;
     function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     function GetConnectedAnchorForTool: TVector3;
@@ -281,7 +281,7 @@
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    FAnchorTransform: TCastleTransform;
     function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
@@ -318,8 +318,8 @@
     FConnectedAnchor: TVector3;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
-    FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor
+    FAnchorTransform: TCastleTransform;
+    FConnectedAnchorTransform: TCastleTransform;
 
     function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
@@ -378,8 +378,8 @@
     FKraftJointGrab: TKraftConstraintJointGrab;
     FMaxForce: Single;
     FAnchor, FTargetWorld: TVector3;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor
-    FTargetWorldTransform: TCastleTransform; // TDesignJointTargetWorld
+    FAnchorTransform: TCastleTransform;
+    FTargetWorldTransform: TCastleTransform;
 
     function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
