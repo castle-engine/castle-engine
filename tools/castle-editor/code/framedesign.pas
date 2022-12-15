@@ -1970,6 +1970,15 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
   end;
 
+  procedure AutoCreateRigidBody(const Collider: TCastleCollider; const ParentComponent: TCastleTransform);
+  var
+    RBody: TCastleRigidBody;
+  begin
+    RBody := AddComponent(ParentComponent, TCastleRigidBody, nil) as TCastleRigidBody;
+    if Collider.Mode2D then
+      RBody.Setup2D;
+  end;
+
   function AddToTransform(const ParentComponent: TCastleTransform): TComponent;
   begin
     if ComponentClass.InheritsFrom(TCastleTransform) then
@@ -2001,6 +2010,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
         if ParentComponent = TransformDesigning then
           (Result as TCastleBehavior).DesigningBegin;
         *)
+        { auto-create TCastleRigidBody after adding collider }
+        if (Result is TCastleCollider) and
+           (ParentComponent.FindBehavior(TCastleRigidBody) = nil) then
+          AutoCreateRigidBody(TCastleCollider(Result), ParentComponent);
       finally
         FinishAddingComponent(Result);
       end;
