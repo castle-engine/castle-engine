@@ -854,7 +854,7 @@ end;
 
 procedure TCastleHingeJoint.SetAnchor(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
@@ -957,8 +957,8 @@ constructor TCastleRopeJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ListenWorldChange := true;
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
-  FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
+  FConnectedAnchor := TVector3.Zero;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleropejoint_persistent_vectors.inc}
@@ -1024,7 +1024,7 @@ end;
 
 procedure TCastleRopeJoint.SetAnchor(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
@@ -1035,7 +1035,7 @@ end;
 
 procedure TCastleRopeJoint.SetConnectedAnchor(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FConnectedAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FConnectedAnchor, AValue) then
   begin
     FConnectedAnchor := AValue;
     if FConnectedAnchorTransform <> nil then
@@ -1117,7 +1117,7 @@ constructor TCastleBallJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ListenWorldChange := true;
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleballjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1168,9 +1168,7 @@ end;
 
 procedure TCastleBallJoint.SetAnchor(const AValue: TVector3);
 begin
-  { Change this value needs recreating joint so we use here Equals not
-    PerfectlyEquals. }
-  if not TVector3.Equals(FAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
@@ -1225,8 +1223,8 @@ constructor TCastleDistanceJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ListenWorldChange := true;
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
-  FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
+  FConnectedAnchor := TVector3.Zero;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastledistancejoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1291,24 +1289,24 @@ end;
 
 procedure TCastleDistanceJoint.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchor, AValue) then
-    Exit;
-
-  FAnchor := AValue;
-  if FAnchorTransform <> nil then
-    TDesignJointAnchor(FAnchorTransform).Value := AValue;
-  RecreateKraftJoint;
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
+  begin
+    FAnchor := AValue;
+    if FAnchorTransform <> nil then
+      TDesignJointAnchor(FAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
 end;
 
 procedure TCastleDistanceJoint.SetConnectedAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FConnectedAnchor, AValue) then
-    Exit;
-
-  FConnectedAnchor := AValue;
-  if FConnectedAnchorTransform <> nil then
-    TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
-  RecreateKraftJoint;
+  if not TVector3.PerfectlyEquals(FConnectedAnchor, AValue) then
+  begin
+    FConnectedAnchor := AValue;
+    if FConnectedAnchorTransform <> nil then
+      TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
+    RecreateKraftJoint;
+  end;
 end;
 
 procedure TCastleDistanceJoint.SetFrequencyHz(const AValue: Single);
@@ -1471,7 +1469,7 @@ end;
 
 procedure TCastleGrabJoint.SetDampingRatio(const AValue: Single);
 begin
-  if not SameValue(FDampingRatio, AValue) then
+  if FDampingRatio <> AValue then
   begin
     FDampingRatio := AValue;
     RecreateKraftJoint;

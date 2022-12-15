@@ -1817,7 +1817,7 @@ end;
 
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FSize, AValue) then
+  if not TVector3.PerfectlyEquals(FSize, AValue) then
   begin
     FSize := AValue;
     DisableAutoSize;

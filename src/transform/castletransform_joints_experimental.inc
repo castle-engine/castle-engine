@@ -262,7 +262,7 @@ end;
 
 procedure TCastleFixedJoint.SetAnchor(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
@@ -599,7 +599,7 @@ end;
 
 procedure TCastleWorldPlaneDistanceJoint.SetAnchor(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FAnchor, AValue) then
+  if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     RecreateKraftJoint;
@@ -608,7 +608,7 @@ end;
 
 procedure TCastleWorldPlaneDistanceJoint.SetPlaneNormal(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FPlaneNormal, AValue) then
+  if not TVector3.PerfectlyEquals(FPlaneNormal, AValue) then
   begin
     FPlaneNormal := AValue;
     RecreateKraftJoint;
