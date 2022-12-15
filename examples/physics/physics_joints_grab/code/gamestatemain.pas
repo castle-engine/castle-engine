@@ -66,7 +66,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   if Container.MousePressed = [buttonLeft] then
-    GrabJoint.WorldPoint := Vector3(Viewport.PositionTo2DWorld(Container.MousePosition, true), 0);
+    GrabJoint.TargetWorld := Vector3(Viewport.PositionTo2DWorld(Container.MousePosition, true), 0);
 
 end;
 
@@ -76,7 +76,7 @@ begin
   if Result then Exit; // allow the ancestor to handle keys
 
   if Event.IsMouseButton(buttonLeft) then
-    GrabJoint.WorldPoint := Vector3(Viewport.PositionTo2DWorld(Event.Position, true), 0);
+    GrabJoint.TargetWorld := Vector3(Viewport.PositionTo2DWorld(Event.Position, true), 0);
 end;
 
 end.
