@@ -24,7 +24,8 @@
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
     FAnchor: TVector3;
-    FAnchorTransform: TCastleTransform; //TDesignJointAnchor
+    FAnchorTransform: TCastleTransform;
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
   protected
@@ -52,59 +53,59 @@
   { Pulley joint connects two bodies in such a way that the elevation of first
     rigid body lowers the second (connected) rigid body }
   TCastlePulleyJoint = class(TCastleAbstractTwoBodiesJoint)
-    private
-      FKraftJointPulley: TKraftConstraintJointPulley;
-      FWorldAnchor: TVector3;
-      FWorldGroundAnchor: TVector3;
-      FConnectedWorldAnchor: TVector3;
-      FConnectedWorldGroundAnchor: TVector3;
-      FRatio: Single;
-      FWorldAnchorTransform: TCastleTransform; // TDesignJointWorldAnchor
-      FConnectedWorldAnchorTransform: TCastleTransform; // TDesignJointConnectedWorldAnchor;
-      FWorldGroundAnchorTransform: TCastleTransform; // TDesignJointWorldGroundAnchor;
-      FConnectedWorldGroundAnchorTransform: TCastleTransform; // TDesignJointConnectedWorldGroundAnchor;
-      procedure SetWorldAnchor(const AValue: TVector3);
-      procedure SetConnectedWorldAnchor(const AValue: TVector3);
-      procedure SetWorldGroundAnchor(const AValue: TVector3);
-      procedure SetConnectedWorldGroundAnchor(const AValue: TVector3);
-      procedure SetRatio(const AValue: Single);
-      procedure InternalUpdateGizmosName;
-    protected
-      function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure CreateKraftJoint; override;
-      procedure DeinitializeKraftJoint; override;
-      procedure SetName(const Value: TComponentName); override;
-    public
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
+  private
+    FKraftJointPulley: TKraftConstraintJointPulley;
+    FWorldAnchor: TVector3;
+    FWorldGroundAnchor: TVector3;
+    FConnectedWorldAnchor: TVector3;
+    FConnectedWorldGroundAnchor: TVector3;
+    FRatio: Single;
+    FWorldAnchorTransform: TCastleTransform;
+    FConnectedWorldAnchorTransform: TCastleTransform;
+    FWorldGroundAnchorTransform: TCastleTransform;
+    FConnectedWorldGroundAnchorTransform: TCastleTransform;
+    procedure SetWorldAnchor(const AValue: TVector3);
+    procedure SetConnectedWorldAnchor(const AValue: TVector3);
+    procedure SetWorldGroundAnchor(const AValue: TVector3);
+    procedure SetConnectedWorldGroundAnchor(const AValue: TVector3);
+    procedure SetRatio(const AValue: Single);
+    procedure InternalUpdateGizmosName;
+  protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure CreateKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
+    procedure SetName(const Value: TComponentName); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
-      procedure WorldBeforeDetach; override;
-      procedure InternalCreateGizmos; override;
-      procedure InternalDestroyGizmos; override;
-      function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure WorldBeforeDetach; override;
+    procedure InternalCreateGizmos; override;
+    procedure InternalDestroyGizmos; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
-      { The point for parent transform in world coordinates. }
-      property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
+    { The point for parent transform in world coordinates. }
+    property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
 
-      { The point for connected transform in world coordinates. }
-      property ConnectedWorldAnchor: TVector3 read FConnectedWorldAnchor
-        write SetConnectedWorldAnchor;
+    { The point for connected transform in world coordinates. }
+    property ConnectedWorldAnchor: TVector3 read FConnectedWorldAnchor
+      write SetConnectedWorldAnchor;
 
-      { Top point for parent transform. }
-      property WorldGroundAnchor: TVector3 read FWorldGroundAnchor
-        write SetWorldGroundAnchor;
+    { Top point for parent transform. }
+    property WorldGroundAnchor: TVector3 read FWorldGroundAnchor
+      write SetWorldGroundAnchor;
 
-      { Top point for connected transform. }
-      property ConnectedWorldGroundAnchor: TVector3
-        read FConnectedWorldGroundAnchor write SetConnectedWorldGroundAnchor;
-    published
-      { Determines how elevating one body will lower the second, default 1
-        means the same distance. }
-      property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
+    { Top point for connected transform. }
+    property ConnectedWorldGroundAnchor: TVector3
+      read FConnectedWorldGroundAnchor write SetConnectedWorldGroundAnchor;
+  published
+    { Determines how elevating one body will lower the second, default 1
+      means the same distance. }
+    property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
 
-    {$define read_interface_class}
-    {$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
-    {$undef read_interface_class}
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlepulleyjoint_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { World Plane Distance Joint keeps rigid body at a certain distance from the plane. }
@@ -118,7 +119,8 @@
     FDoubleSidedWorldPlane: Boolean;
     FFrequencyHz: Single;
     FDampingRatio: Single;
-    FAnchorTransform: TCastleTransform; // TDesignJointAnchor;
+    FAnchorTransform: TCastleTransform;
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetPlaneNormal(const AValue: TVector3);
     procedure SetPlaneDistance(const AValue: Single);
@@ -161,7 +163,7 @@
     FKraftJointSlider: TKraftConstraintJointSlider;
     FWorldSliderAxis: TVector3;
     FWorldAnchor: TVector3;
-    FWorldAnchorTransform: TCastleTransform; // TDesignJointWorldAnchor
+    FWorldAnchorTransform: TCastleTransform;
     FEnableLimits: Boolean;
     FMinTranslationLimit: Single;
     FMaxTranslationLimit: Single;
@@ -236,7 +238,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil);
+    FAnchorTransform.Joint := Self;
+    FAnchorTransform.OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    FAnchorTransform.OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TDesignJointAnchor(FAnchorTransform).Value := Anchor;
@@ -358,7 +363,10 @@ begin
   inherited;
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil);
+    FWorldAnchorTransform.Joint := Self;
+    ....OnGetValue := {$ifdef FPC}@{$endif} ...;
+    ....OnSetValue := {$ifdef FPC}@{$endif} ...;
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
     FWorldAnchorTransform.Translation := WorldAnchor;
@@ -367,7 +375,10 @@ begin
 
   if FConnectedWorldAnchorTransform = nil then
   begin
-    FConnectedWorldAnchorTransform := TDesignJointConnectedWorldAnchor.Create(nil, Self);
+    FConnectedWorldAnchorTransform := TDesignJointConnectedWorldAnchor.Create(nil);
+    FConnectedWorldAnchorTransform.Joint := Self;
+    ....OnGetValue := {$ifdef FPC}@{$endif} ...;
+    ....OnSetValue := {$ifdef FPC}@{$endif} ...;
     InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldAnchorTransform);
     FConnectedWorldAnchorTransform.Translation := ConnectedWorldAnchor;
@@ -376,7 +387,10 @@ begin
 
   if FWorldGroundAnchorTransform = nil then
   begin
-    FWorldGroundAnchorTransform := TDesignJointWorldGroundAnchor.Create(nil, Self);
+    FWorldGroundAnchorTransform := TDesignJointWorldGroundAnchor.Create(nil);
+    FWorldGroundAnchorTransform.Joint := Self;
+    ....OnGetValue := {$ifdef FPC}@{$endif} ...;
+    ....OnSetValue := {$ifdef FPC}@{$endif} ...;
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldGroundAnchorTransform);
     FWorldGroundAnchorTransform.Translation := WorldGroundAnchor;
@@ -385,7 +399,10 @@ begin
 
   if FConnectedWorldGroundAnchorTransform = nil then
   begin
-    FConnectedWorldGroundAnchorTransform := TDesignJointConnectedWorldGroundAnchor.Create(nil, Self);
+    FConnectedWorldGroundAnchorTransform := TDesignJointConnectedWorldGroundAnchor.Create(nil);
+    FConnectedWorldGroundAnchorTransform.Joint := Self;
+    ....OnGetValue := {$ifdef FPC}@{$endif} ...;
+    ....OnSetValue := {$ifdef FPC}@{$endif} ...;
     InternalUpdateGizmosName;
     Parent.World.Add(FConnectedWorldGroundAnchorTransform);
     FConnectedWorldGroundAnchorTransform.Translation := ConnectedWorldGroundAnchor;
@@ -571,7 +588,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointAnchor.Create(nil);
+    FAnchorTransform.Joint := Self;
+    FAnchorTransform.OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    FAnchorTransform.OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     TDesignJointAnchor(FAnchorTransform).Value := Anchor;
@@ -743,7 +763,10 @@ begin
   inherited;
   if FWorldAnchorTransform = nil then
   begin
-    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil, Self);
+    FWorldAnchorTransform := TDesignJointWorldAnchor.Create(nil);
+    FWorldAnchorTransform.Joint := Self;
+    ....OnGetValue := {$ifdef FPC}@{$endif} ...;
+    ....OnSetValue := {$ifdef FPC}@{$endif} ...;
     InternalUpdateGizmosName;
     Parent.World.Add(FWorldAnchorTransform);
     TDesignJointWorldAnchor(FWorldAnchorTransform).Value := WorldAnchor;

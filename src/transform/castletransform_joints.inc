@@ -185,6 +185,7 @@
     FMinAngleLimit: Single;
     FMaxAngleLimit: Single;
     FEnableLimits: Boolean;
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetAxis(const AValue: TVector3);
     procedure SetEnableLimits(const AValue: Boolean);
@@ -235,7 +236,9 @@
     FDistance: Single;
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor;
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
+    function GetConnectedAnchorForTool: TVector3;
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetDistance(const AValue: Single);
     procedure InternalUpdateGizmosName;
@@ -279,6 +282,7 @@
     FKraftJointBall: TKraftConstraintJointBallSocket;
     FAnchor: TVector3;
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure InternalUpdateGizmosName;
   protected
@@ -317,7 +321,9 @@
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FConnectedAnchorTransform: TCastleTransform; // TDesignJointConnectedAnchor
 
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
+    function GetConnectedAnchorForTool: TVector3;
     procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
@@ -375,7 +381,9 @@
     FAnchorTransform: TCastleTransform; // TDesignJointAnchor
     FTargetWorldTransform: TCastleTransform; // TDesignJointTargetWorld
 
+    function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
+    function GetTargetWorldForTool: TVector3;
     procedure SetTargetWorld(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
@@ -825,10 +833,13 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FAnchorTransform).Joint := Self;
+    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointTransform(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -852,13 +863,18 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleHingeJoint.GetAnchorForTool: TVector3;
+begin
+  Result := Anchor;
+end;
+
 procedure TCastleHingeJoint.SetAnchor(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
+      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -997,7 +1013,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FAnchorTransform).Joint := Self;
+    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1006,7 +1025,11 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TDesignJointConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FConnectedAnchorTransform).Joint := Self;
+    TDesignJointTransform(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
+    TDesignJointTransform(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
+    TDesignJointTransform(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -1022,15 +1045,25 @@ begin
   inherited;
 end;
 
+function TCastleRopeJoint.GetAnchorForTool: TVector3;
+begin
+  Result := Anchor;
+end;
+
 procedure TCastleRopeJoint.SetAnchor(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
+      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
+end;
+
+function TCastleRopeJoint.GetConnectedAnchorForTool: TVector3;
+begin
+  Result := ConnectedAnchor;
 end;
 
 procedure TCastleRopeJoint.SetConnectedAnchor(const AValue: TVector3);
@@ -1039,7 +1072,7 @@ begin
   begin
     FConnectedAnchor := AValue;
     if FConnectedAnchorTransform <> nil then
-      TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := FConnectedAnchor;
+      TDesignJointTransform(FConnectedAnchorTransform).Value := FConnectedAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1143,10 +1176,13 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FAnchorTransform).Joint := Self;
+    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
-    TDesignJointAnchor(FAnchorTransform).Value := Anchor;
+    TDesignJointTransform(FAnchorTransform).Value := Anchor;
     InternalCastleDesignInvalidate := true;
   end;
 end;
@@ -1166,13 +1202,18 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleBallJoint.GetAnchorForTool: TVector3;
+begin
+  Result := Anchor;
+end;
+
 procedure TCastleBallJoint.SetAnchor(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointAnchor(FAnchorTransform).Value := FAnchor;
+      TDesignJointTransform(FAnchorTransform).Value := FAnchor;
     RecreateKraftJoint;
   end;
 end;
@@ -1250,7 +1291,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FAnchorTransform).Joint := Self;
+    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1259,7 +1303,11 @@ begin
 
   if (FConnectedAnchorTransform = nil) and (FConnectedRigidBody <> nil) and (FConnectedRigidBody.Parent <> nil) then
   begin
-    FConnectedAnchorTransform := TDesignJointConnectedAnchor.Create(nil, Self);
+    FConnectedAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FConnectedAnchorTransform).Joint := Self;
+    TDesignJointTransform(FConnectedAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetConnectedAnchorForTool;
+    TDesignJointTransform(FConnectedAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetConnectedAnchor;
+    TDesignJointTransform(FConnectedAnchorTransform).Color := ConnectedAnchorColor;
     InternalUpdateGizmosName;
     FConnectedAnchorTransform.Translation := ConnectedAnchor;
     FConnectedRigidBody.Parent.Add(FConnectedAnchorTransform);
@@ -1287,15 +1335,25 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleDistanceJoint.GetAnchorForTool: TVector3;
+begin
+  Result := Anchor;
+end;
+
 procedure TCastleDistanceJoint.SetAnchor(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointAnchor(FAnchorTransform).Value := AValue;
+      TDesignJointTransform(FAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
+end;
+
+function TCastleDistanceJoint.GetConnectedAnchorForTool: TVector3;
+begin
+  Result := ConnectedAnchor;
 end;
 
 procedure TCastleDistanceJoint.SetConnectedAnchor(const AValue: TVector3);
@@ -1304,7 +1362,7 @@ begin
   begin
     FConnectedAnchor := AValue;
     if FConnectedAnchorTransform <> nil then
-      TDesignJointConnectedAnchor(FConnectedAnchorTransform).Value := AValue;
+      TDesignJointTransform(FConnectedAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
 end;
@@ -1414,7 +1472,10 @@ begin
   inherited;
   if FAnchorTransform = nil then
   begin
-    FAnchorTransform := TDesignJointAnchor.Create(nil, Self);
+    FAnchorTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FAnchorTransform).Joint := Self;
+    TDesignJointTransform(FAnchorTransform).OnGetValue := {$ifdef FPC}@{$endif} GetAnchorForTool;
+    TDesignJointTransform(FAnchorTransform).OnSetValue := {$ifdef FPC}@{$endif} SetAnchor;
     InternalUpdateGizmosName;
     Parent.Add(FAnchorTransform);
     FAnchorTransform.Translation := Anchor;
@@ -1423,7 +1484,11 @@ begin
 
   if FTargetWorldTransform = nil then
   begin
-    FTargetWorldTransform := TDesignJointTargetWorld.Create(nil, Self);
+    FTargetWorldTransform := TDesignJointTransform.Create(nil);
+    TDesignJointTransform(FTargetWorldTransform).Joint := Self;
+    TDesignJointTransform(FTargetWorldTransform).OnGetValue := {$ifdef FPC}@{$endif} GetTargetWorldForTool;
+    TDesignJointTransform(FTargetWorldTransform).OnSetValue := {$ifdef FPC}@{$endif} SetTargetWorld;
+    TDesignJointTransform(FTargetWorldTransform).Color := Blue;
     InternalUpdateGizmosName;
     Parent.World.Add(FTargetWorldTransform);
     FTargetWorldTransform.Translation := TargetWorld;
@@ -1451,6 +1516,11 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleGrabJoint.GetTargetWorldForTool: TVector3;
+begin
+  Result := TargetWorld;
+end;
+
 procedure TCastleGrabJoint.SetTargetWorld(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FTargetWorld, AValue) then
@@ -1458,7 +1528,7 @@ begin
     FTargetWorld := AValue;
 
     if FTargetWorldTransform <> nil then
-      TDesignJointTargetWorld(FTargetWorldTransform).Value := FTargetWorld;
+      TDesignJointTransform(FTargetWorldTransform).Value := FTargetWorld;
 
     if FKraftJointGrab <> nil then
     begin
@@ -1470,13 +1540,18 @@ begin
   end;
 end;
 
+function TCastleGrabJoint.GetAnchorForTool: TVector3;
+begin
+  Result := Anchor;
+end;
+
 procedure TCastleGrabJoint.SetAnchor(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FAnchor, AValue) then
   begin
     FAnchor := AValue;
     if FAnchorTransform <> nil then
-      TDesignJointAnchor(FAnchorTransform).Value := AValue;
+      TDesignJointTransform(FAnchorTransform).Value := AValue;
     RecreateKraftJoint;
   end;
 end;

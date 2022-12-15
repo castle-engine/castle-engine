@@ -24,6 +24,9 @@ uses
   CastleVectors, CastleScene, CastleClassUtils, CastleUtils;
 
 type
+  TOnGetValue = function: TVector3 of object;
+  TOnSetValue = procedure (const Value: TVector3) of object;
+
   { Ancestor for design-time tools created by behaviors to manipulate e.g. joints. }
   TDesignTransform = class(TCastleTransform);
 
@@ -39,77 +42,26 @@ type
     // For now it's actually more natural to just *not* adjust sphere size
     //function EstimateSphereRadius: Single;
 
+    function GetValue: TVector3;
     procedure SetValue(const AValue: TVector3);
-    procedure SetObservedValue(const AValue: TVector3); virtual; abstract;
-    function GetObservedValue: TVector3; virtual; abstract;
-    procedure CheckTransformInsideParent;
     procedure ChangedTransform; override;
   public
-    constructor Create(AOwner: TComponent;
-      const AJoint: TCastleAbstractJoint); reintroduce; virtual;
+    OnGetValue: TOnGetValue;
+    OnSetValue: TOnSetValue;
+
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property Value: TVector3 read GetObservedValue write SetValue;
-    property Joint: TCastleAbstractJoint read FJoint;
+    property Value: TVector3 read GetValue write SetValue;
+    property Joint: TCastleAbstractJoint read FJoint write FJoint;
     property Color: TCastleColor read FColor write SetColor;
   end;
 
-  TDesignJointAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  end;
-
-  TDesignJointConnectedAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
-
-  TDesignJointTargetWorld = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
-
-  TDesignJointWorldAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
-
-  TDesignJointConnectedWorldAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
-
-  TDesignJointWorldGroundAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
-
-  TDesignJointConnectedWorldGroundAnchor = class(TDesignJointTransform)
-  protected
-    procedure SetObservedValue(const AValue: TVector3); override;
-    function GetObservedValue: TVector3; override;
-  public
-    constructor Create(AOwner: TComponent; const AJoint: TCastleAbstractJoint); override;
-  end;
+const
+  ConnectedAnchorColor: TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0); // = Green;
 
 implementation
 
@@ -117,13 +69,11 @@ uses CastleRenderContext;
 
 { TDesignJointTransform --------------------------------------------------- }
 
-constructor TDesignJointTransform.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
+constructor TDesignJointTransform.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
   FColor := Red;
-  FJoint := AJoint;
   SetTransient;
 
   FSphere := TCastleSphere.Create(nil);
@@ -158,8 +108,6 @@ begin
     end;
   end;
   *)
-
-  CheckTransformInsideParent;
 end;
 
 function TDesignJointTransform.PropertySections(const PropertyName: String
@@ -209,17 +157,18 @@ begin
 end;
 *)
 
-procedure TDesignJointTransform.SetValue(const AValue: TVector3);
+function TDesignJointTransform.GetValue: TVector3;
 begin
-  SetObservedValue(AValue);
-  if not TVector3.PerfectlyEquals(Translation, AValue) then
-    Translation := AValue;
+  Assert(Assigned(OnGetValue));
+  Result := OnGetValue();
 end;
 
-procedure TDesignJointTransform.CheckTransformInsideParent;
+procedure TDesignJointTransform.SetValue(const AValue: TVector3);
 begin
-  if Parent = nil then
-    Exit;
+  Assert(Assigned(OnSetValue));
+  OnSetValue(AValue);
+  if not TVector3.PerfectlyEquals(Translation, AValue) then
+    Translation := AValue;
 end;
 
 procedure TDesignJointTransform.ChangedTransform;
@@ -227,274 +176,6 @@ begin
   inherited;
   if not TVector3.PerfectlyEquals(Translation, Value) then
     Value := Translation;
-end;
-
-{ TDesignJointAnchor ----------------------------------------------------------- }
-
-procedure TDesignJointAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  // TODO: move anchor to abstract anchor class or virtual function?
-
-  if Joint is TCastleHingeJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleHingeJoint(Joint).Anchor, AValue) then
-      TCastleHingeJoint(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TCastleRopeJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleRopeJoint(Joint).Anchor, AValue) then
-      TCastleRopeJoint(Joint).Anchor := AValue;
-  end;
-
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastleFixedJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleFixedJoint(Joint).Anchor, AValue) then
-      TCastleFixedJoint(Joint).Anchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  if Joint is TCastleBallJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleBallJoint(Joint).Anchor, AValue) then
-      TCastleBallJoint(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TCastleDistanceJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleDistanceJoint(Joint).Anchor, AValue) then
-      TCastleDistanceJoint(Joint).Anchor := AValue;
-  end;
-
-  if Joint is TCastleGrabJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleGrabJoint(Joint).Anchor, AValue) then
-      TCastleGrabJoint(Joint).Anchor := AValue;
-  end;
-
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastleWorldPlaneDistanceJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleWorldPlaneDistanceJoint(Joint).Anchor, AValue) then
-      TCastleWorldPlaneDistanceJoint(Joint).Anchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-function TDesignJointAnchor.GetObservedValue: TVector3;
-begin
-  // TODO: move anchor to abstract anchor class or virtual function?
-
-  if Joint is TCastleHingeJoint then
-    Exit(TCastleHingeJoint(Joint).Anchor);
-
-  if Joint is TCastleRopeJoint then
-    Exit(TCastleRopeJoint(Joint).Anchor);
-
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastleFixedJoint then
-    Exit(TCastleFixedJoint(Joint).Anchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  if Joint is TCastleBallJoint then
-    Exit(TCastleBallJoint(Joint).Anchor);
-
-  if Joint is TCastleDistanceJoint then
-    Exit(TCastleDistanceJoint(Joint).Anchor);
-
-  if Joint is TCastleGrabJoint then
-    Exit(TCastleGrabJoint(Joint).Anchor);
-
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastleWorldPlaneDistanceJoint then
-    Exit(TCastleWorldPlaneDistanceJoint(Joint).Anchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-{ TDesignJointConnectedAnchor --------------------------------------------- }
-
-constructor TDesignJointConnectedAnchor.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Green;
-end;
-
-procedure TDesignJointConnectedAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TCastleRopeJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleRopeJoint(Joint).ConnectedAnchor, AValue) then
-      TCastleRopeJoint(Joint).ConnectedAnchor := AValue;
-  end;
-
-  if Joint is TCastleDistanceJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleDistanceJoint(Joint).ConnectedAnchor, AValue) then
-      TCastleDistanceJoint(Joint).ConnectedAnchor := AValue;
-  end;
-end;
-
-function TDesignJointConnectedAnchor.GetObservedValue: TVector3;
-begin
-  if Joint is TCastleRopeJoint then
-    Exit(TCastleRopeJoint(Joint).ConnectedAnchor);
-end;
-
-{ TDesignJointTargetWorld -------------------------------------------------- }
-
-constructor TDesignJointTargetWorld.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Blue;
-end;
-
-procedure TDesignJointTargetWorld.SetObservedValue(const AValue: TVector3);
-begin
-  if Joint is TCastleGrabJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleGrabJoint(Joint).TargetWorld, AValue) then
-      TCastleGrabJoint(Joint).TargetWorld := AValue;
-  end;
-end;
-
-function TDesignJointTargetWorld.GetObservedValue: TVector3;
-begin
-  if Joint is TCastleGrabJoint then
-    Exit(TCastleGrabJoint(Joint).TargetWorld);
-end;
-
-{ TDesignJointWorldAnchor ------------------------------------------------- }
-
-constructor TDesignJointWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Red;
-end;
-
-procedure TDesignJointWorldAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastlePulleyJoint(Joint).WorldAnchor, AValue) then
-      TCastlePulleyJoint(Joint).WorldAnchor := AValue;
-  end;
-
-  if Joint is TCastleSliderJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastleSliderJoint(Joint).WorldAnchor, AValue) then
-      TCastleSliderJoint(Joint).WorldAnchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-function TDesignJointWorldAnchor.GetObservedValue: TVector3;
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-    Exit(TCastlePulleyJoint(Joint).WorldAnchor);
-
-  if Joint is TCastleSliderJoint then
-    Exit(TCastleSliderJoint(Joint).WorldAnchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  Result := TVector3.Zero;
-end;
-
-{ TDesignJointConnectedWorldAnchor ---------------------------------------- }
-
-constructor TDesignJointConnectedWorldAnchor.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Green;
-end;
-
-procedure TDesignJointConnectedWorldAnchor.SetObservedValue(const AValue: TVector3
-  );
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastlePulleyJoint(Joint).ConnectedWorldAnchor, AValue) then
-      TCastlePulleyJoint(Joint).ConnectedWorldAnchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-function TDesignJointConnectedWorldAnchor.GetObservedValue: TVector3;
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-    Exit(TCastlePulleyJoint(Joint).ConnectedWorldAnchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  Result := TVector3.Zero;
-end;
-
-{ TDesignJointWorldGroundAnchor ------------------------------------------- }
-
-constructor TDesignJointWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Orange;
-end;
-
-procedure TDesignJointWorldGroundAnchor.SetObservedValue(const AValue: TVector3);
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastlePulleyJoint(Joint).WorldGroundAnchor, AValue) then
-      TCastlePulleyJoint(Joint).WorldGroundAnchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-function TDesignJointWorldGroundAnchor.GetObservedValue: TVector3;
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-    Exit(TCastlePulleyJoint(Joint).WorldGroundAnchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  Result := TVector3.Zero;
-end;
-
-{ TDesignJointConnectedWorldGroundAnchor ---------------------------------- }
-
-constructor TDesignJointConnectedWorldGroundAnchor.Create(AOwner: TComponent;
-  const AJoint: TCastleAbstractJoint);
-begin
-  inherited Create(AOwner, AJoint);
-  Color := Teal;
-end;
-
-procedure TDesignJointConnectedWorldGroundAnchor.SetObservedValue(
-  const AValue: TVector3);
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-  begin
-    if not TVector3.PerfectlyEquals(TCastlePulleyJoint(Joint).ConnectedWorldGroundAnchor, AValue) then
-      TCastlePulleyJoint(Joint).ConnectedWorldGroundAnchor := AValue;
-  end;
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-end;
-
-function TDesignJointConnectedWorldGroundAnchor.GetObservedValue: TVector3;
-begin
-  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
-  if Joint is TCastlePulleyJoint then
-    Exit(TCastlePulleyJoint(Joint).ConnectedWorldGroundAnchor);
-  {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
-  Result := TVector3.Zero;
 end;
 
 end.
