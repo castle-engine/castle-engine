@@ -379,6 +379,7 @@ transparent
 traverse
 triangle
 triangles
+trigger
 uniform
 uniforms
 unprepare
