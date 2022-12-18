@@ -54,6 +54,7 @@ click
 close
 closed
 collidable
+collider
 collision
 color
 colors
