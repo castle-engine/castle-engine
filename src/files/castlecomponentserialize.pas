@@ -224,7 +224,40 @@ begin
 end;
 
 procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+
+  function InsertSpacesBeforeUpperLetters(const S: String): String;
+  var
+    StrBuild: TStringBuilder;
+    I: Integer;
+  begin
+    StrBuild := TStringBuilder.Create;
+    try
+      for I := 1 to Length(S) do
+      begin
+        if (I > 1) and (S[I] in ['A'..'Z']) then
+          StrBuild.Append(' ');
+        StrBuild.Append(S[I]);
+      end;
+      Result := StrBuild.ToString;
+    finally FreeAndNil(StrBuild) end;
+  end;
+
+var
+  GuessedCaption: String;
 begin
+  if C.ComponentClass = nil then
+    raise Exception.Create('RegisterSerializableComponent: ComponentClass not assigned');
+
+  if (Length(C.Caption) = 0) or (C.Caption[0] = '') then
+  begin
+    GuessedCaption := InsertSpacesBeforeUpperLetters(
+      PrefixRemove('Castle', PrefixRemove('T', C.ComponentClass.ClassName, true), true));
+    C.Caption := [GuessedCaption];
+    WritelnWarning('RegisterSerializableComponent: component Caption at registration cannot be empty, setting a placeholder "%s"', [
+      GuessedCaption
+    ]);
+  end;
+
   RegisteredComponents.Add(C);
 end;
 
