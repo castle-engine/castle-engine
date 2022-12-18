@@ -127,7 +127,7 @@
               {
                 "$$ClassName" : "TCastleHingeJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "ChainElement3",
+                "Connected" : "ChainElement3",
                 "Name" : "HingeJoint1"
               }
             ]
@@ -182,7 +182,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "ConnectedTransform" : "Box1",
+                "Connected" : "Box1",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint1"
               }
@@ -238,7 +238,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "ConnectedTransform" : "ChainElement",
+                "Connected" : "ChainElement",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint2"
               }
@@ -290,7 +290,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "ConnectedTransform" : "ChainElement1",
+                "Connected" : "ChainElement1",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint3"
               }
@@ -346,7 +346,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "ConnectedTransform" : "ChainElement2",
+                "Connected" : "ChainElement2",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint4"
               }

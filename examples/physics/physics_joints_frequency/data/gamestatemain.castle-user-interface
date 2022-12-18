@@ -123,7 +123,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere1",
+                    "Connected" : "Sphere1",
                     "FrequencyHz" : 2.0000000298023224E-001,
                     "Name" : "DistanceJoint1"
                   }
@@ -222,7 +222,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere4",
+                    "Connected" : "Sphere4",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 2.0000000298023224E-001,
                     "Name" : "DistanceJoint4"
@@ -327,7 +327,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere7",
+                    "Connected" : "Sphere7",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 2.0000000298023224E-001,
                     "Name" : "DistanceJoint7"
@@ -427,7 +427,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere8",
+                    "Connected" : "Sphere8",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 5.0000000000000000E-001,
                     "Name" : "DistanceJoint8"
@@ -527,7 +527,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere9",
+                    "Connected" : "Sphere9",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 1.0000000000000000E+000,
                     "Name" : "DistanceJoint9"
@@ -627,7 +627,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere5",
+                    "Connected" : "Sphere5",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 5.0000000000000000E-001,
                     "Name" : "DistanceJoint5"
@@ -727,7 +727,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere6",
+                    "Connected" : "Sphere6",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 1.0000000000000000E+000,
                     "Name" : "DistanceJoint6"
@@ -827,7 +827,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere2",
+                    "Connected" : "Sphere2",
                     "FrequencyHz" : 5.0000000000000000E-001,
                     "Name" : "DistanceJoint2"
                   }
@@ -926,7 +926,7 @@
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
                     "Breakable" : false,
-                    "ConnectedTransform" : "Sphere3",
+                    "Connected" : "Sphere3",
                     "FrequencyHz" : 1.0000000000000000E+000,
                     "Name" : "DistanceJoint3"
                   }

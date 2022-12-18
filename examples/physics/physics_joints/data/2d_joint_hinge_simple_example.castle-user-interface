@@ -81,7 +81,7 @@
               {
                 "$$ClassName" : "TCastleHingeJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "Box1",
+                "Connected" : "Box1",
                 "EnableLimits" : false,
                 "Name" : "HingeJoint1"
               }

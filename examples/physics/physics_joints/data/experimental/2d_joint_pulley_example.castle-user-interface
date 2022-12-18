@@ -83,7 +83,7 @@
               {
                 "$$ClassName" : "TCastlePulleyJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "Box2",
+                "Connected" : "Box2",
                 "ConnectedWorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 5.0000000000000000E+001

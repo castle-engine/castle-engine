@@ -85,7 +85,7 @@
                       "$$ClassName" : "TCastleVector3Persistent",
                       "Y" : -1.5000000000000000E+000
                     },
-                    "ConnectedTransform" : "TransformBallRoot",
+                    "Connected" : "TransformBallRoot",
                     "Distance" : 5.0000000000000000E+000,
                     "Name" : "CastleRopeJoint1"
                   }
@@ -188,7 +188,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.5000000000000000E+000
                 },
-                "ConnectedTransform" : "TransformBallRoot1",
+                "Connected" : "TransformBallRoot1",
                 "Distance" : 5.0000000000000000E+000,
                 "Name" : "RopeJoint2"
               }

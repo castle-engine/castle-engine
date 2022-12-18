@@ -16,12 +16,12 @@
 
 { TCastle property editor. }
 
-{ TConnectedTransformPropertyEditor ------------------------------------------ }
+{ TConnectedPropertyEditor ------------------------------------------ }
 
 type
 
   { Removes behavior parent transform from list of transfroms that can be connected }
-  TConnectedTransformPropertyEditor = class(TPersistentPropertyEditor)
+  TConnectedPropertyEditor = class(TPersistentPropertyEditor)
   strict private
     FProc: TGetStrProc; // used by FilterValues
 
@@ -30,7 +30,7 @@ type
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
-procedure TConnectedTransformPropertyEditor.FilterValues(const S: String);
+procedure TConnectedPropertyEditor.FilterValues(const S: String);
 var
   Persistent: TPersistent;
   CastleTransform: TCastleTransform;
@@ -51,7 +51,7 @@ begin
   end;
 end;
 
-procedure TConnectedTransformPropertyEditor.GetValues(Proc: TGetStrProc);
+procedure TConnectedPropertyEditor.GetValues(Proc: TGetStrProc);
 begin
   FProc := Proc; // used by FilterValues
   Proc(oisNone); // add none value

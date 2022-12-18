@@ -94,7 +94,7 @@
                 "BreakThresholdForce" : 1.0000000149011612E-001,
                 "BreakThresholdTorque" : 1.0000000149011612E-001,
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxRopeEndPoint",
+                "Connected" : "BoxRopeEndPoint",
                 "Distance" : 3.0000000000000000E+002,
                 "Name" : "RopeJoint1"
               }
@@ -263,7 +263,7 @@
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : true,
-                "ConnectedTransform" : "BoxHingeBreakForce",
+                "Connected" : "BoxHingeBreakForce",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
@@ -419,7 +419,7 @@
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxHingeLimits",
+                "Connected" : "BoxHingeLimits",
                 "EnableLimits" : true,
                 "EnableMotor" : false,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
@@ -532,7 +532,7 @@
                 "BreakThresholdForce" : 1.0000000000000000E+004,
                 "BreakThresholdTorque" : 1.0000000000000000E+003,
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxHingeMotor",
+                "Connected" : "BoxHingeMotor",
                 "EnableLimits" : false,
                 "EnableMotor" : true,
                 "MaxMotorTorque" : -1.0000000000000000E+005,
@@ -643,7 +643,7 @@
               {
                 "$$ClassName" : "TFixedJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxFixed",
+                "Connected" : "BoxFixed",
                 "Name" : "FixedJoint1"
               }
             ]
@@ -786,7 +786,7 @@
               {
                 "$$ClassName" : "TBallJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxBall",
+                "Connected" : "BoxBall",
                 "Name" : "BallJoint1"
               }
             ]
@@ -838,7 +838,7 @@
               {
                 "$$ClassName" : "TDistanceJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxDistance",
+                "Connected" : "BoxDistance",
                 "DampingRatio" : 6.9999998807907104E-001,
                 "FrequencyHz" : 5.0000000000000000E+000,
                 "Name" : "DistanceJoint1"
@@ -1097,7 +1097,7 @@
               {
                 "$$ClassName" : "TPulleyJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxPulley2",
+                "Connected" : "BoxPulley2",
                 "ConnectedWorldAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003,

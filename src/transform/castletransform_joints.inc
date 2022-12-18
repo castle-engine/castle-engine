@@ -109,7 +109,7 @@
   private
     { TCastleAbstractTwoBodiesJoint means that joint connects two transforms so this is
       the second one transform pointer }
-    FConnectedTransform: TCastleTransform;
+    FConnected: TCastleTransform;
     { When connected transform is assigned we need found second rigid body and set
       callbacks for its initialize/deinitialize events. If this pointer is not nil
       that means that we done that }
@@ -117,19 +117,19 @@
     { Stores valu should connected rigid bodies collide or not }
     FConnectedCollide: Boolean;
     { We need observe second connected transform and remove it form
-      FConnectedTransform when second transform is freed }
+      FConnected when second transform is freed }
     FConnectedTransfromFreeObserver: TFreeNotificationObserver;
   protected
     procedure InitializeKraftJoint; override;
-    procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
+    procedure SetConnected(const AConnected: TCastleTransform); virtual;
     procedure SetConnectedCollide(const AValue: Boolean); virtual;
 
     function AllNeededKraftObjectsInitialized: Boolean; override;
 
-    procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); virtual;
+    procedure OnConnectedFree(const Sender: TFreeNotificationObserver); virtual;
 
     { Event callback when TCastleRigidBody is added to the connected transform. }
-    procedure OnConnectedTransformAddBehavior(const Component: TComponent); virtual;
+    procedure OnConnectedAddBehavior(const Component: TComponent); virtual;
 
     { Event callback when TCastleRigidBody is removed from the connected transform. }
     procedure OnConnectedTransfromRemoveBehavior(const Component: TComponent); virtual;
@@ -142,11 +142,11 @@
 
     { Sets connected transform add/remove behavior callbacks and free
       notification observer. }
-    procedure SetConnectedTransformEvents;
+    procedure SetConnectedEvents;
 
     { Removes connected transform add/remmove behavior callbacks and free
       notification observer. }
-    procedure RemoveConnectedTransformEvents;
+    procedure RemoveConnectedEvents;
 
     { Sets connected TCastleRigidBody behavior initialize/deinitialize callbacks. }
     procedure SetConnectedRigidBodyEvents;
@@ -163,15 +163,15 @@
   published
     { Second transform of the physics joint.
       Note that it can't be the Parent of this joint. }
-    property ConnectedTransform: TCastleTransform read FConnectedTransform
-      write SetConnectedTransform;
+    property Connected: TCastleTransform read FConnected
+      write SetConnected;
 
-    { Should connected transforms (ConnectedTransform and Parent) collide. }
+    { Should connected transforms (Connected and Parent) collide. }
     property ConnectedCollide: Boolean read FConnectedCollide
       write SetConnectedCollide default false;
   end;
 
-  EConnectedTransformTheSameAsParent = class (Exception);
+  EConnectedSameAsParent = class (Exception);
 
   { Hinge joint allows to rotate the transformation around a given axis,
     like a door attached using hinges to the frame.
@@ -208,7 +208,7 @@
 
     { Position of the hinge in the parent transformation coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
-    { Rotation axis around which the @link(ConnectedTransform) rotates. }
+    { Rotation axis around which the @link(Connected) rotates. }
     property Axis: TVector3 read FAxis write SetAxis;
   published
     { Turns on minimum and maximum rotation angle limit. }
@@ -247,7 +247,7 @@
     procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
 
-    procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); override;
+    procedure OnConnectedFree(const Sender: TFreeNotificationObserver); override;
   protected
     procedure SetName(const Value: TComponentName); override;
   public
@@ -262,7 +262,7 @@
     { First hook point that is located in parent transform local coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
 
-    { Second hook point that is located in ConnectedTransform local coordinates. }
+    { Second hook point that is located in Connected local coordinates. }
     property ConnectedAnchor: TVector3 read FConnectedAnchor
       write SetConnectedAnchor;
   published
@@ -456,17 +456,17 @@ begin
     (FConnectedRigidBody <> nil) and (FConnectedRigidBody.IsInitialized);
 end;
 
-procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransformFree(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedFree(
   const Sender: TFreeNotificationObserver);
 begin
   DeinitializeKraftJoint;
   RemoveConnectedRigidBodyEvents;
-  RemoveConnectedTransformEvents;
+  RemoveConnectedEvents;
   FConnectedRigidBody := nil;
-  FConnectedTransform := nil;
+  FConnected := nil;
 end;
 
-procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
+procedure TCastleAbstractTwoBodiesJoint.OnConnectedAddBehavior(
   const Component: TComponent);
 begin
   FConnectedRigidBody := Component as TCastleRigidBody;
@@ -493,35 +493,35 @@ begin
   DeinitializeKraftJoint;
 end;
 
-procedure TCastleAbstractTwoBodiesJoint.SetConnectedTransformEvents;
+procedure TCastleAbstractTwoBodiesJoint.SetConnectedEvents;
 begin
-  if FConnectedTransform = nil then
+  if FConnected = nil then
     Exit;
 
-  FConnectedTransform.AddNotificationOnBehaviorAdded(
-    {$ifdef FPC}@{$endif} OnConnectedTransformAddBehavior, TCastleRigidBody);
+  FConnected.AddNotificationOnBehaviorAdded(
+    {$ifdef FPC}@{$endif} OnConnectedAddBehavior, TCastleRigidBody);
 
-  FConnectedTransform.AddNotificationBeforeBehaviorRemove(
+  FConnected.AddNotificationBeforeBehaviorRemove(
     {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
 
   if FConnectedTransfromFreeObserver = nil then
   begin
     FConnectedTransfromFreeObserver := TFreeNotificationObserver.Create(Self);
-    FConnectedTransfromFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}OnConnectedTransformFree;
+    FConnectedTransfromFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}OnConnectedFree;
   end;
 
-  FConnectedTransfromFreeObserver.Observed := FConnectedTransform;
+  FConnectedTransfromFreeObserver.Observed := FConnected;
 end;
 
-procedure TCastleAbstractTwoBodiesJoint.RemoveConnectedTransformEvents;
+procedure TCastleAbstractTwoBodiesJoint.RemoveConnectedEvents;
 begin
-  if FConnectedTransform <> nil then
+  if FConnected <> nil then
   begin
     { Remove events from previous connected castle transform }
-    FConnectedTransform.AddNotificationOnBehaviorAdded(
-      {$ifdef FPC}@{$endif} OnConnectedTransformAddBehavior, TCastleRigidBody);
+    FConnected.AddNotificationOnBehaviorAdded(
+      {$ifdef FPC}@{$endif} OnConnectedAddBehavior, TCastleRigidBody);
 
-    FConnectedTransform.AddNotificationBeforeBehaviorRemove(
+    FConnected.AddNotificationBeforeBehaviorRemove(
       {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
   end;
 
@@ -552,7 +552,7 @@ function TCastleAbstractTwoBodiesJoint.PropertySections(const PropertyName: Stri
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'ConnectedTransform', 'ConnectedCollide'
+      'Connected', 'ConnectedCollide'
     ]) then
     Result := [psBasic]
   else
@@ -562,14 +562,14 @@ end;
 procedure TCastleAbstractTwoBodiesJoint.ParentAfterAttach;
 begin
   { Remove connected transform if new parent is the same transform }
-  if Parent = FConnectedTransform then
+  if Parent = FConnected then
   begin
     RemoveConnectedRigidBodyEvents;
     FConnectedRigidBody := nil;
-    RemoveConnectedTransformEvents;
-    FConnectedTransform := nil;
+    RemoveConnectedEvents;
+    FConnected := nil;
 
-    raise Exception.Create('ConnectedTransform is the same as Parent of TCastleAbstractTwoBodiesJoint, this is not allowed');
+    raise Exception.Create('Connected is the same as Parent of TCastleAbstractTwoBodiesJoint, this is not allowed');
     // WritelnWarning...
   end;
 end;
@@ -582,32 +582,32 @@ begin
   FConnectedRigidBody.WakeUp;
 end;
 
-procedure TCastleAbstractTwoBodiesJoint.SetConnectedTransform(
-  const AConnectedTransform: TCastleTransform);
+procedure TCastleAbstractTwoBodiesJoint.SetConnected(
+  const AConnected: TCastleTransform);
 begin
-  if (AConnectedTransform <> nil) and (AConnectedTransform = Parent) then
-    raise EConnectedTransformTheSameAsParent.Create(
-      'Can''t set ConnectedTransform to behavior Parent.');
+  if (AConnected <> nil) and (AConnected = Parent) then
+    raise EConnectedSameAsParent.Create(
+      'Can''t set Connected to behavior Parent.');
 
-  if FConnectedTransform <> AConnectedTransform then
+  if FConnected <> AConnected then
   begin
-    if FConnectedTransform <> nil then
+    if FConnected <> nil then
     begin
       { Remove events from previous connected castle transform }
-      RemoveConnectedTransformEvents;
+      RemoveConnectedEvents;
 
       { Remove events from Rigidbody of old connected transform }
       RemoveConnectedRigidBodyEvents;
     end;
 
-    FConnectedTransform := AConnectedTransform;
-    if FConnectedTransform <> nil then
+    FConnected := AConnected;
+    if FConnected <> nil then
     begin
-      { If FConnectedTransform is not nil set all events and try
+      { If FConnected is not nil set all events and try
         recreate joint }
-      SetConnectedTransformEvents;
+      SetConnectedEvents;
 
-      FConnectedRigidBody := FConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+      FConnectedRigidBody := FConnected.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
       if FConnectedRigidBody <> nil then
       begin
         SetConnectedRigidBodyEvents;
@@ -1125,13 +1125,13 @@ begin
   FreeAndNil(FKraftJointRope);
 end;
 
-procedure TCastleRopeJoint.OnConnectedTransformFree(const Sender: TFreeNotificationObserver);
+procedure TCastleRopeJoint.OnConnectedFree(const Sender: TFreeNotificationObserver);
 begin
   { Remove connected transform anchor visualisation because
     its parent is freed }
   FreeAndNil(FConnectedAnchorTransform);
 
-  inherited OnConnectedTransformFree(Sender);
+  inherited OnConnectedFree(Sender);
 end;
 
 procedure TCastleRopeJoint.SetName(const Value: TComponentName);

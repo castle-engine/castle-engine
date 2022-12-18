@@ -172,8 +172,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'ConnectedTransform',
-    TConnectedTransformPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
+    TConnectedPropertyEditor);
 
   { used by LockRotation, LockTranslation }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',

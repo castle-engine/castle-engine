@@ -89,7 +89,7 @@
               {
                 "$$ClassName" : "TCastleSliderJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "Box2",
+                "Connected" : "Box2",
                 "EnableLimits" : true,
                 "MaxTranslationLimit" : 1.0000000000000000E+002,
                 "MinTranslationLimit" : 5.0000000000000000E+001,

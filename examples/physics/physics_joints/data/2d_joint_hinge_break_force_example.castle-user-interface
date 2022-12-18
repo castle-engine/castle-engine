@@ -87,7 +87,7 @@
                 "BreakThresholdForce" : 1.0000000000000000E+003,
                 "BreakThresholdTorque" : 1.0000000000000000E+006,
                 "Breakable" : true,
-                "ConnectedTransform" : "Box1",
+                "Connected" : "Box1",
                 "EnableLimits" : false,
                 "Name" : "HingeJoint1"
               }

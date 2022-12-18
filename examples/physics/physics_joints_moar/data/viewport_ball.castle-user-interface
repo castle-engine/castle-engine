@@ -193,7 +193,7 @@
               "Y" : -5.7016652822494507E-001
             },
             "Breakable" : false,
-            "ConnectedTransform" : "Center",
+            "Connected" : "Center",
             "Name" : "BallJoint1"
           }
         ]
@@ -248,7 +248,7 @@
               "Y" : -5.7016652822494507E-001
             },
             "Breakable" : false,
-            "ConnectedTransform" : "Center",
+            "Connected" : "Center",
             "Name" : "BallJoint2"
           }
         ]
@@ -303,7 +303,7 @@
               "Y" : -5.7016652822494507E-001
             },
             "Breakable" : false,
-            "ConnectedTransform" : "Center",
+            "Connected" : "Center",
             "Name" : "BallJoint3"
           }
         ]

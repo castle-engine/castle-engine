@@ -107,7 +107,7 @@
                     },
                     "Breakable" : false,
                     "ConnectedCollide" : true,
-                    "ConnectedTransform" : "SceneDoor1",
+                    "Connected" : "SceneDoor1",
                     "EnableLimits" : false,
                     "Name" : "CastleHingeJoint",
                     "AxisPersistent" : {

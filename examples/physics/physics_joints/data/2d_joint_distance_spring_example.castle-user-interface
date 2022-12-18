@@ -127,7 +127,7 @@
               {
                 "$$ClassName" : "TCastleDistanceJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxTop",
+                "Connected" : "BoxTop",
                 "DampingRatio" : 5.0000000745058060E-002,
                 "FrequencyHz" : 2.0000000298023224E-001,
                 "Name" : "DistanceJoint1"

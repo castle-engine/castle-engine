@@ -81,7 +81,7 @@
               {
                 "$$ClassName" : "TCastleHingeJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "Box1",
+                "Connected" : "Box1",
                 "EnableLimits" : true,
                 "MaxAngleLimit" : 1.0000000000000000E+000,
                 "MinAngleLimit" : -1.0000000000000000E+000,

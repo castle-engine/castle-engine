@@ -125,7 +125,7 @@
               {
                 "$$ClassName" : "TCastleFixedJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "Box3",
+                "Connected" : "Box3",
                 "Name" : "FixedJoint1"
               }
             ]

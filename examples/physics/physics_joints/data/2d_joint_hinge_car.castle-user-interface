@@ -259,7 +259,7 @@
                   "Y" : -3.9649429321289062E+001
                 },
                 "Breakable" : false,
-                "ConnectedTransform" : "Wheel1",
+                "Connected" : "Wheel1",
                 "EnableLimits" : false,
                 "Name" : "HingeJointW1"
               },
@@ -271,7 +271,7 @@
                   "Y" : -4.1802215576171875E+001
                 },
                 "Breakable" : false,
-                "ConnectedTransform" : "Wheel2",
+                "Connected" : "Wheel2",
                 "EnableLimits" : false,
                 "Name" : "HingeJointW2"
               }

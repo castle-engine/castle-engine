@@ -151,7 +151,7 @@
           {
             "$$ClassName" : "TCastleRopeJoint",
             "Breakable" : false,
-            "ConnectedTransform" : "RopeBottom",
+            "Connected" : "RopeBottom",
             "Distance" : 4.0000000000000000E+000,
             "Name" : "RopeJoint1"
           }

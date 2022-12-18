@@ -120,7 +120,7 @@
             },
             "Breakable" : false,
             "ConnectedCollide" : true,
-            "ConnectedTransform" : "Wall",
+            "Connected" : "Wall",
             "EnableLimits" : false,
             "Name" : "HingeJoint1"
           }

@@ -162,7 +162,7 @@
               },
               {
                 "$$ClassName" : "TCastleDistanceJoint",
-                "ConnectedTransform" : "RopeBottom1",
+                "Connected" : "RopeBottom1",
                 "Name" : "DistanceJoint1"
               }
             ]
@@ -298,7 +298,7 @@
               },
               {
                 "$$ClassName" : "TCastleDistanceJoint",
-                "ConnectedTransform" : "RopeBottom2",
+                "Connected" : "RopeBottom2",
                 "DampingRatio" : 1.0000000149011612E-001,
                 "FrequencyHz" : 1.0000000000000000E+000,
                 "Name" : "DistanceJoint2"
@@ -438,7 +438,7 @@
               },
               {
                 "$$ClassName" : "TCastleDistanceJoint",
-                "ConnectedTransform" : "RopeBottom3",
+                "Connected" : "RopeBottom3",
                 "DampingRatio" : 9.9999997764825821E-003,
                 "FrequencyHz" : 5.0000000000000000E-001,
                 "Name" : "DistanceJoint3"

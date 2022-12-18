@@ -85,7 +85,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.7346038818359375E+001
                 },
-                "ConnectedTransform" : "Box1",
+                "Connected" : "Box1",
                 "Distance" : 5.0000000000000000E+001,
                 "Name" : "RopeJoint1"
               }

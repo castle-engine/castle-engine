@@ -99,7 +99,7 @@
               {
                 "$$ClassName" : "TCastleSliderJoint",
                 "Breakable" : false,
-                "ConnectedTransform" : "BoxB",
+                "Connected" : "BoxB",
                 "EnableLimits" : false,
                 "EnableMotor" : false,
                 "MaxTranslationLimit" : 1.0000000000000000E+002,
