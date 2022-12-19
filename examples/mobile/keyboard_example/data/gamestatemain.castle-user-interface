@@ -5,7 +5,7 @@
   "$NonVisualComponents" : [
     {
       "$$ClassName" : "TCastleFont",
-      "LoadCharacters" : "ąęćśźżĄĘ",
+      "LoadCharacters" : "ąęćśźżĄĘłŁĆŻŹ!@#$%^&*()_+='\"",
       "Name" : "Font1",
       "OptimalSize" : 80,
       "URL" : "castle-data:/DejaVuSans.ttf"
