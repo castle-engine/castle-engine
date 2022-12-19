@@ -34,6 +34,7 @@
         "Red" : 2.5000000000000000E-001
       },
       "Camera" : "Camera1",
+      "FullSize" : true,
       "Height" : 9.6000000000000000E+002,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
@@ -47,12 +48,13 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 7.0000000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
                 "Y" : 5.0000000000000000E-001
-              }
+              },
+              "Width" : 1.2000000000000000E+003
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
@@ -122,7 +124,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere1",
                     "FrequencyHz" : 2.0000000298023224E-001,
                     "Name" : "DistanceJoint1"
@@ -221,7 +222,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere4",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 2.0000000298023224E-001,
@@ -326,7 +326,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere7",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 2.0000000298023224E-001,
@@ -426,7 +425,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere8",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 5.0000000000000000E-001,
@@ -526,7 +524,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere9",
                     "DampingRatio" : 1.0000000000000000E+000,
                     "FrequencyHz" : 1.0000000000000000E+000,
@@ -626,7 +623,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere5",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 5.0000000000000000E-001,
@@ -726,7 +722,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere6",
                     "DampingRatio" : 5.0000000000000000E-001,
                     "FrequencyHz" : 1.0000000000000000E+000,
@@ -826,7 +821,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere2",
                     "FrequencyHz" : 5.0000000000000000E-001,
                     "Name" : "DistanceJoint2"
@@ -925,7 +919,6 @@
                   },
                   {
                     "$$ClassName" : "TCastleDistanceJoint",
-                    "Breakable" : false,
                     "Connected" : "Sphere3",
                     "FrequencyHz" : 1.0000000000000000E+000,
                     "Name" : "DistanceJoint3"
@@ -968,22 +961,144 @@
                 ]
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "This example shows how FrequencyHz and DampingRatio work. ",
+              "Run physics simulation in CGE editor or compile+run actual application to observe."
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.2800001525878906E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text3",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "FrequencyHz = 0.2"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.8018182373046875E+002,
+              "Y" : 1.5269676208496094E+002
+            },
+            "VerticalAlignment" : "vpMiddle"
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text4",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "FrequencyHz = 0.5"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.7933053588867188E+002,
+              "Y" : -2.9137413024902344E+001
+            },
+            "VerticalAlignment" : "vpMiddle"
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text5",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "FrequencyHz = 1"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.8528955078125000E+002,
+              "Y" : -2.4105738830566406E+002
+            },
+            "VerticalAlignment" : "vpMiddle"
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text6",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "Damping = 1"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.8815264892578125E+002,
+              "Y" : -3.2197128295898438E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text7",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "Damping = 0"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.7644708251953125E+002,
+              "Y" : -3.2197128295898438E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "Name" : "Text8",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 2.0000000000000000E+001,
+            "Text" : [
+              "Damping = 0.5"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.1028451538085938E+002,
+              "Y" : -3.2197128295898438E+002
+            }
           }
         ]
       },
       "Name" : "Viewport1",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.0000000000000000E+001,
+        "X" : 2.0000000000000000E+001,
         "Y" : 1.1000000000000000E+002
       },
-      "Width" : 1.5800000000000000E+003,
+      "Width" : 1.5700000000000000E+003,
       "InternalDesignCamera" : {
         "$$ClassName" : "TCastleCamera",
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.2000000000000000E+003,
+          "Height" : 1.0157780761718750E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -1000,6 +1115,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -5.5838180541992188E+001,
+          "Y" : -2.8041679382324219E+001,
           "Z" : 6.0000000000000000E+002
         }
       },
@@ -1017,168 +1134,6 @@
       "InternalDesignNavigations[dn2D]" : {
         "$$ClassName" : "TCastle2DNavigationDesign",
         "Name" : ""
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Desc",
-      "Text" : [
-        "This example shows how Frequency and DampingRatio work. Run physics simulation or compile to see."
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 2.8000000000000000E+002,
-        "Y" : 9.2000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Frequency",
-      "Text" : [
-        "Frequency"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.3000000000000000E+002,
-        "Y" : 7.9000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Frequency1",
-      "Text" : [
-        "0.2"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.4000000000000000E+002,
-        "Y" : 6.9000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Frequency2",
-      "Text" : [
-        "0.5"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.4000000000000000E+002,
-        "Y" : 5.4000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Frequency3",
-      "Text" : [
-        "1"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.5000000000000000E+002,
-        "Y" : 3.8000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Damping",
-      "Text" : [
-        "Damping"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.3400000000000000E+003,
-        "Y" : 2.4000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Damping1",
-      "Text" : [
-        "0"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 5.7000000000000000E+002,
-        "Y" : 2.4000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Damping2",
-      "Text" : [
-        "0.5"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 8.6999993896484375E+002,
-        "Y" : 2.4000000000000000E+002
-      }
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 9.4117647409439087E-001,
-        "Green" : 9.8431372642517090E-001,
-        "Red" : 1.0000000000000000E+000
-      },
-      "Name" : "Damping3",
-      "Text" : [
-        "1"
-      ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.1800000000000000E+003,
-        "Y" : 2.4000000000000000E+002
       }
     }
   ]
