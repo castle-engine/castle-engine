@@ -25,11 +25,30 @@ uses Classes,
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    DesignContent: TCastleDesign;
+    ButtonHingeSimple: TCastleButton;
+    ButtonHingeBreakable: TCastleButton;
+    ButtonHingeCar: TCastleButton;
+    ButtonHingeLimits: TCastleButton;
+    ButtonDistance: TCastleButton;
+    ButtonDistanceSpring: TCastleButton;
+    ButtonRope: TCastleButton;
+    ButtonRopeChain: TCastleButton;
+  private
+    procedure ClickHingeSimple(Sender: TObject);
+    procedure ClickHingeBreakable(Sender: TObject);
+    procedure ClickHingeCar(Sender: TObject);
+    procedure ClickHingeLimits(Sender: TObject);
+    procedure ClickDistance(Sender: TObject);
+    procedure ClickDistanceSpring(Sender: TObject);
+    procedure ClickRope(Sender: TObject);
+    procedure ClickRopeChain(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -44,63 +63,60 @@ uses SysUtils;
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/2d_joint_distance_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_distance_spring_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/2d_joint_fixed_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_grab_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_hinge_break_force_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_hinge_car.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_hinge_limits_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_hinge_simple_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/2d_joint_plane_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/2d_joint_pulley_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_rope_chain.castle-user-interface';
-//  DesignUrl := 'castle-data:/2d_joint_rope_simple.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/2d_joint_slide_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/3d_joint_fixed_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_hinge_door_break_force_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_hinge_door_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/3d_joint_pulley_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/3d_joint_rope_example.castle-user-interface';
-//  DesignUrl := 'castle-data:/experimental/3d_joint_slide_example.castle-user-interface';
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
 end;
 
 procedure TStateMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
+  ButtonHingeSimple.OnClick := {$ifdef FPC}@{$endif} ClickHingeSimple;
+  ButtonHingeBreakable.OnClick := {$ifdef FPC}@{$endif} ClickHingeBreakable;
+  ButtonHingeCar.OnClick := {$ifdef FPC}@{$endif} ClickHingeCar;
+  ButtonHingeLimits.OnClick := {$ifdef FPC}@{$endif} ClickHingeLimits;
+  ButtonDistance.OnClick := {$ifdef FPC}@{$endif} ClickDistance;
+  ButtonDistanceSpring.OnClick := {$ifdef FPC}@{$endif} ClickDistanceSpring;
+  ButtonRope.OnClick := {$ifdef FPC}@{$endif} ClickRope;
+  ButtonRopeChain.OnClick := {$ifdef FPC}@{$endif} ClickRopeChain;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TStateMain.ClickHingeSimple(Sender: TObject);
 begin
-  inherited;
-  { This virtual method is executed every frame.}
+  DesignContent.Url := 'castle-data:/2d_joint_hinge_simple_example.castle-user-interface';
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+procedure TStateMain.ClickHingeBreakable(Sender: TObject);
 begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
+  DesignContent.Url := 'castle-data:/2d_joint_hinge_break_force_example.castle-user-interface';
+end;
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
+procedure TStateMain.ClickHingeCar(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_hinge_car.castle-user-interface';
+end;
 
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
+procedure TStateMain.ClickHingeLimits(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_hinge_limits_example.castle-user-interface';
+end;
 
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
+procedure TStateMain.ClickDistance(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_distance_example.castle-user-interface';
+end;
+
+procedure TStateMain.ClickDistanceSpring(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_distance_spring_example.castle-user-interface';
+end;
+
+procedure TStateMain.ClickRope(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_rope_simple.castle-user-interface';
+end;
+
+procedure TStateMain.ClickRopeChain(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/2d_joint_rope_chain.castle-user-interface';
 end;
 
 end.
