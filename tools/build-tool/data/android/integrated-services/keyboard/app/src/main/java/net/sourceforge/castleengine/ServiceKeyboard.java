@@ -534,7 +534,7 @@ public class ServiceKeyboard extends ServiceAbstract
 {
 
     CastleKeyboardInputView keyboardInputView;
-    private final boolean debug = true; //false; // set to true for debug (more logs)
+    private final boolean debug = false; // set to true for debug (more logs - a lot more ;)
 
     /* Creates view that will be used to capture text */
     public ServiceKeyboard(MainActivity activity)
