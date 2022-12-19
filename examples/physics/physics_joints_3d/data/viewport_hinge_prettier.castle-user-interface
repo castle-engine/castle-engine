@@ -57,7 +57,8 @@
                   },
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider1"
+                    "Name" : "BoxCollider1",
+                    "SizeScale" : 8.0000001192092896E-001
                   }
                 ]
               },
@@ -66,6 +67,7 @@
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneRest",
+                "PreciseCollisions" : true,
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
@@ -76,6 +78,7 @@
                     "Name" : "HingeAnchorStatic",
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3784155845642090E+000,
                       "Y" : 2.7395107746124268E+000,
                       "Z" : -1.1247442960739136E+000
                     },
@@ -91,6 +94,10 @@
                       },
                       {
                         "$$ClassName" : "TCastleHingeJoint",
+                        "AnchorPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Z" : 5.0883054733276367E-001
+                        },
                         "BreakThresholdForce" : 1.0000000000000000E+003,
                         "BreakThresholdTorque" : 1.0000000000000000E+003,
                         "Connected" : "SceneDoor",
@@ -122,7 +129,7 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 5.6025762557983398E+000,
+                  "X" : 1.5116134643554688E+001,
                   "Y" : 1.2844938039779663E+000
                 },
                 "$Behaviors" : [
@@ -144,7 +151,6 @@
                 "$$ClassName" : "TCastlePointLight",
                 "Intensity" : 3.0000000000000000E+000,
                 "Name" : "PointLight1",
-                "Shadows" : true,
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 6.5547828674316406E+000,
@@ -203,7 +209,8 @@
                   },
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider4"
+                    "Name" : "BoxCollider4",
+                    "SizeScale" : 8.0000001192092896E-001
                   }
                 ]
               },
@@ -212,6 +219,7 @@
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneRest2",
+                "PreciseCollisions" : true,
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
@@ -222,8 +230,9 @@
                     "Name" : "HingeAnchorStatic1",
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3690214157104492E+000,
                       "Y" : 2.7395107746124268E+000,
-                      "Z" : -1.1247442960739136E+000
+                      "Z" : -6.1081337928771973E-001
                     },
                     "$Behaviors" : [
                       {
@@ -269,7 +278,7 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 5.6025762557983398E+000,
+                  "X" : 1.3669596672058105E+001,
                   "Y" : 1.2844938039779663E+000
                 },
                 "$Behaviors" : [
@@ -349,7 +358,8 @@
                   },
                   {
                     "$$ClassName" : "TCastleBoxCollider",
-                    "Name" : "BoxCollider3"
+                    "Name" : "BoxCollider3",
+                    "SizeScale" : 8.0000001192092896E-001
                   }
                 ]
               },
@@ -358,6 +368,7 @@
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneRest1",
+                "PreciseCollisions" : true,
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
@@ -378,8 +389,9 @@
                     "$$ClassName" : "TCastleHingeJoint",
                     "AnchorPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3758351802825928E+000,
                       "Y" : 2.7400000095367432E+000,
-                      "Z" : -1.1200000047683716E+000
+                      "Z" : -7.1633571386337280E-001
                     },
                     "Connected" : "SceneDoor1",
                     "Name" : "JointHinge2"
@@ -406,7 +418,7 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 5.6025762557983398E+000,
+                  "X" : 1.2956862449645996E+001,
                   "Y" : 1.2844938039779663E+000
                 },
                 "$Behaviors" : [
@@ -478,21 +490,21 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.0077488422393799E+000,
-          "X" : -2.5413075089454651E-001,
-          "Y" : 9.5868170261383057E-001,
-          "Z" : 1.2785616517066956E-001
+          "W" : 9.6987128257751465E-001,
+          "X" : -5.1980650424957275E-001,
+          "Y" : 8.2585114240646362E-001,
+          "Z" : 2.1856857836246490E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 4.6254653930664062E+001,
-          "Y" : 2.3277534484863281E+001,
-          "Z" : 3.7681510925292969E+001
+          "X" : 1.4836399078369141E+001,
+          "Y" : 1.1894927978515625E+001,
+          "Z" : 3.2366611480712891E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 1.9952623367309570E+001,
+        "MoveSpeed" : 2.5118865966796875E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {
