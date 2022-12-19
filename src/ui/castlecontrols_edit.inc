@@ -643,7 +643,7 @@ begin
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
   begin
     if Value then
-      ShowOnScreenKeyboard(Text, Self)
+      ShowOnScreenKeyboard(Self, Text)
     else
       HideOnScreenKeyboard(Self);
   end;
