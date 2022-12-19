@@ -4083,33 +4083,33 @@ procedure TCastleWindow.CheckRequestedBufferAttributes(
 
   procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
   begin
-   if ProvidedBits < RequestedBits then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
-      +' %d-bits sized but at least %d-bits sized is required',
-      [ ProviderName, Name, ProvidedBits, RequestedBits ]);
+    if ProvidedBits < RequestedBits then
+      raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
+        +' %d-bits sized but at least %d-bits sized is required',
+        [ ProviderName, Name, ProvidedBits, RequestedBits ]);
   end;
 
-begin
- CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
- CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
- CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
- CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
- CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
- CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
- CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
-
- { If MultiSampling <= 1, this means that multisampling not required,
-   so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
-   (as most backends report no multisampling as num samples = 0), it's all Ok. }
-
- if MultiSampling > 1 then
  begin
-   if ProvidedMultiSampling < MultiSampling then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
-      'samples for multisampling (<= 1 means that no multisampling was provided) ' +
-      'but at last %d samples for multisampling is required',
-      [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
- end;
+  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
+  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
+  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
+  CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
+  CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
+  CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
+  CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
+
+  { If MultiSampling <= 1, this means that multisampling not required,
+    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
+    (as most backends report no multisampling as num samples = 0), it's all Ok. }
+
+  if MultiSampling > 1 then
+  begin
+    if ProvidedMultiSampling < MultiSampling then
+     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
+       'samples for multisampling (<= 1 means that no multisampling was provided) ' +
+       'but at last %d samples for multisampling is required',
+       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
+  end;
 end;
 
 procedure TCastleWindow.MenuUpdateBegin;
