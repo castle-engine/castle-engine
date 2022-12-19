@@ -3822,7 +3822,6 @@ var
   procedure EnsureChildrenNodesCount(const Parent: TTreeNode; const ParentCount: Integer);
   var
     Valid: Boolean;
-    Item: {$ifdef FPC} TTreeNodeMap.TDictionaryPair {$else} TPair<TComponent, TTreeNode> {$endif};
   begin
     if Parent = nil then
     begin
@@ -3844,31 +3843,11 @@ var
       if Parent = nil then
       begin
         while ControlsTree.Items.TopLvlCount > ParentCount do
-        begin
-          for Item in TreeNodeMap do
-          begin
-            if Item.Value = ControlsTree.Items.TopLvlItems[ParentCount] then
-            begin
-              TreeNodeMap.Remove(Item.Key);
-              break;
-            end;
-          end;
           ControlsTree.Items.Delete(ControlsTree.Items.TopLvlItems[ParentCount]);
-        end;
       end else
       begin
         while Parent.Count > ParentCount do
-        begin
-          for Item in TreeNodeMap do
-          begin
-            if Item.Value = Parent.Items[ParentCount] then
-            begin
-              TreeNodeMap.Remove(Item.Key);
-              break;
-            end;
-          end;
           ControlsTree.Items.Delete(Parent.Items[ParentCount]);
-        end;
       end;
     end;
   end;
