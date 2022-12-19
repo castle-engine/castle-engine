@@ -216,10 +216,12 @@
     { Turns on minimum and maximum rotation angle limit. }
     property AngleLimits: Boolean read FAngleLimits write SetAngleLimits default false;
 
-    { Minimal angle, must be a value between -2pi + epsilon to 0. }
+    { Minimal angle, in radians, must be a value between -2pi + epsilon to 0.
+      Honored only if @link(AngleLimits). }
     property MinAngle: Single read FMinAngle write SetMinAngle {$ifdef FPC}default 0.0{$endif};
 
-    { Maximum angle, must be a value between 0 to 2pi - epsilon. }
+    { Maximum angle, in radians, must be a value between 0 to 2pi - epsilon.
+      Honored only if @link(AngleLimits). }
     property MaxAngle: Single read FMaxAngle write SetMaxAngle {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
