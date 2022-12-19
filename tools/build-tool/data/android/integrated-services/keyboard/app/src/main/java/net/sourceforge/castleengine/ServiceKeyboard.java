@@ -468,6 +468,7 @@ class CastleKeyboardInputView extends View
     CastleInputConnection inputConnection;
     ServiceKeyboard serviceKeyboard;
     String initText;
+    boolean passMode;
 
     public CastleKeyboardInputView(ServiceKeyboard service, Context context) 
     {
@@ -476,6 +477,7 @@ class CastleKeyboardInputView extends View
         setFocusable(true);
         setFocusableInTouchMode(true); // without this line we can't show keyboard by ServiceKeyboard.showKeyboard()
         initText = "";
+        passMode = false;
     }    
 
     /* See: https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view */
@@ -493,6 +495,13 @@ class CastleKeyboardInputView extends View
 
         // We use here EditorInfo.IME_ACTION_DONE that is used to close keyboard in CastleInputConnection.PerformAction() to close on screen keyboard
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE;
+
+        if (passMode)
+        {
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onCreateInputConnection - outAttrs - password mode");
+            outAttrs.imeOptions = outAttrs.imeOptions | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING; /* | EditorInfo.IME_FLAG_FORCE_ASCII; // perhaps too restrictive */
+            outAttrs.inputType = outAttrs.inputType | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+        }
         
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onCreateInputConnection - outAttrs.initialSelEnd/Start: " + Integer.toString(initText.length()));
         outAttrs.initialSelEnd = initText.length();
@@ -508,6 +517,11 @@ class CastleKeyboardInputView extends View
 
         if (inputConnection != null)
             inputConnection.setInitText(initText);
+    }
+
+    public void setPasswordMode(boolean passMode)
+    {
+        this.passMode = passMode;    
     }
 
     /* This callback is used when user uses navigation back button to hide keyboard.
@@ -557,7 +571,7 @@ public class ServiceKeyboard extends ServiceAbstract
        See:
        https://stackoverflow.com/questions/5105354/how-to-show-soft-keyboard-when-edittext-is-focused
     */
-    public void showKeyboard(String initText)
+    public void showKeyboard(String initText, boolean passMode)
     {
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); - not working
         //getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE); - not working
@@ -568,6 +582,7 @@ public class ServiceKeyboard extends ServiceAbstract
         // so we try close it here before open - restartInput() fixes that
         keyboardInputView.requestFocus(); // needed to show keyboard work properly
         keyboardInputView.setInitText(initText);
+        keyboardInputView.setPasswordMode(passMode);
         logInfoInDebugMode("keyboard", "restart input");
         imm.restartInput(keyboardInputView);
         logInfoInDebugMode("keyboard", "show");
@@ -594,11 +609,12 @@ public class ServiceKeyboard extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("castle-show-keyboard")) {
-            logInfoInDebugMode("keyboard", "show keyboard '" + parts[1] +"'");
-            showKeyboard(parts[1]);
+        if (parts.length == 3 && parts[0].equals("castle-show-keyboard")) {
+            logInfoInDebugMode("keyboard", "show keyboard '" + parts[1] +"' password mode: '" + parts[2] + "'");
+            showKeyboard(parts[1], parts[2].equals("true"));
             return true;
-        } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) {
+        } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) 
+        {
             hideKeyboard();
             return true;
         } else {

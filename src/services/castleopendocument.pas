@@ -99,7 +99,7 @@ procedure OnScreenNotification(const Message: string);
 { Displays the keyboard on Android. It requires the current text to be edited
   and the target user interface to which the events will be send. }
 procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
-  const CurrentText: String);
+  const CurrentText: String; PasswordMode: Boolean);
 
 { Hides keyboard on Android but only when KeyboardTarget and ForceCaptureInput
   is the same object. }
@@ -398,7 +398,8 @@ begin
   Messaging.Send(['on-screen-notification', Message]);
 end;
 
-procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface; const CurrentText: String);
+procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
+  const CurrentText: String; PasswordMode: Boolean);
 begin
   { Remove focus from another control }
   if (KeyboardTarget.Container.ForceCaptureInput <> nil) and
@@ -409,7 +410,8 @@ begin
   KeyboardTarget.Container.ForceCaptureInput := KeyboardTarget;
 
   { Send message to open keyboard. }
-  Messaging.Send(['castle-show-keyboard', CurrentText]);
+  Messaging.Send(['castle-show-keyboard', CurrentText,
+    Iff(PasswordMode, 'true', 'false')]);
 end;
 
 procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
