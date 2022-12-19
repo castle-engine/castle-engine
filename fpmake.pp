@@ -247,7 +247,6 @@ begin
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
     P.Targets.AddUnit('castlenurbs.pas');
-    P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');

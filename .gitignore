@@ -82,11 +82,6 @@ castle-game-engine-*.fpm
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
-/examples/deprecated_random_generator/globalrandom/globalrandom
-/examples/deprecated_random_generator/graphics_random_test/graphics_random_test
-/examples/deprecated_random_generator/random_speed_test/random_speed_test
-/examples/deprecated_random_generator/random_threads_test/random_threads_test
-/examples/deprecated_random_generator/testhash/testhash
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
