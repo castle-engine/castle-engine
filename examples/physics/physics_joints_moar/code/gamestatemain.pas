@@ -31,6 +31,7 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonHinge: TCastleButton;
+    ButtonHingePrettier: TCastleButton;
     ButtonBall: TCastleButton;
     ButtonGrab: TCastleButton;
     ButtonRope: TCastleButton;
@@ -42,6 +43,7 @@ type
     ViewportGrab: TCastleViewport;
 
     procedure ClickButtonHinge(Sender: TObject);
+    procedure ClickButtonHingePrettier(Sender: TObject);
     procedure ClickButtonBall(Sender: TObject);
     procedure ClickButtonGrab(Sender: TObject);
     procedure ClickButtonRope(Sender: TObject);
@@ -77,6 +79,7 @@ begin
   inherited;
 
   ButtonHinge.OnClick := {$ifdef FPC}@{$endif} ClickButtonHinge;
+  ButtonHingePrettier.OnClick := {$ifdef FPC}@{$endif} ClickButtonHingePrettier;
   ButtonBall.OnClick := {$ifdef FPC}@{$endif} ClickButtonBall;
   ButtonGrab.OnClick := {$ifdef FPC}@{$endif} ClickButtonGrab;
   ButtonRope.OnClick := {$ifdef FPC}@{$endif} ClickButtonRope;
@@ -117,6 +120,12 @@ begin
       and you can run the simulation of it.
   }
   DesignContent.Url := 'castle-data:/viewport_hinge.castle-user-interface';
+  DesignChanged;
+end;
+
+procedure TStateMain.ClickButtonHingePrettier(Sender: TObject);
+begin
+  DesignContent.Url := 'castle-data:/viewport_hinge_prettier.castle-user-interface';
   DesignChanged;
 end;
 
