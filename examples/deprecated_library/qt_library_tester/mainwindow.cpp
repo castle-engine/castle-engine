@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pConsoleWnd = NULL;
 
     CGE_LoadLibrary();
+    CGE_Initialize(QDir::currentPath().toUtf8());
     m_pGlWidget = new GLWidget(QGLFormat(QGL::SampleBuffers), this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
 
@@ -55,11 +56,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
     // Use this to load some default scene
-    //m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
+    //m_pGlWidget->OpenScene("../../../../demo-models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
 {
+    CGE_Finalize();
     delete ui;
 }
 

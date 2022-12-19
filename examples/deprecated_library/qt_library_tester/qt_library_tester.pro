@@ -28,7 +28,7 @@ FORMS    += mainwindow.ui
 
 
 mac {
-  APP_DYLIB_FILES.files = ../libcastleengine.dylib
+  APP_DYLIB_FILES.files = ../../../src/deprecated_library/libcastleengine.dylib
   APP_DYLIB_FILES.path = Contents/MacOS
   QMAKE_BUNDLE_DATA += APP_DYLIB_FILES
 }

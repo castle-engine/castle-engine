@@ -38,7 +38,7 @@ GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
 
 GLWidget::~GLWidget()
 {
-    CGE_Close();
+    CGE_Close(true);
     g_pThis = NULL;
 }
 
@@ -190,7 +190,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 #ifndef QT_NO_WHEELEVENT
 void GLWidget::wheelEvent(QWheelEvent *event)
 {
-    CGE_MouseWheel(event->delta(), event->orientation()==Qt::Vertical);
+    if (event->angleDelta().y() != 0)
+        CGE_MouseWheel(event->angleDelta().y(), true);
+    else
+        CGE_MouseWheel(event->angleDelta().x(), false);
 
     if (m_bNeedsDisplay)
     {
