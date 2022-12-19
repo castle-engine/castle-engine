@@ -2403,9 +2403,22 @@ begin
   if Parent = nil then
     raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
 
-  // TODO: This is wrong check for multiple usage
+  { We don't really need to access Parent.Parent, but
+
+    - We need WorldTransform (so unique Parent.Parent or Parent.Parent = nil)
+
+    - We do not sensibly work on Viewport.Items root --
+      such body movement would affect also all children.
+
+    So in practice we need Parent.Parent <> nil. }
   if Parent.Parent = nil then
-    raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
+    raise EMultipleReferencesInWorld.CreateFmt('Cannot use physics on %s. Reason is either:' + NL +
+      NL +
+      '1. It is the root transformation (Viewport.Items). You should instead: move the rigid body and collider behaviors to some child TCastleTransform.' + NL +
+      NL +
+      '2  It is inserted multiple times into the Viewport.Items. You should instead: Duplicate (clone) the instance. Or use TCastleTransformReference to refer to the TCastleTransform multiple times (and attach collider/rigid body to TCastleTransformReference).', [
+        Parent.Name
+      ]);
 
   FTransform := Parent;
   InitializeEngineRigidBody;
