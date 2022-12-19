@@ -62,7 +62,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 2.0000000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -122,12 +122,7 @@
               },
               {
                 "$$ClassName" : "TCastleGrabJoint",
-                "Breakable" : false,
-                "Name" : "GrabJoint1",
-                "WorldPointPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -2.5542148590087891E+001
-                }
+                "Name" : "GrabJoint1"
               }
             ]
           }
@@ -139,13 +134,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 3.6787942504882812E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 2.0189648866653442E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
