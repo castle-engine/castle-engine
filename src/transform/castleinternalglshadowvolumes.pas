@@ -115,7 +115,7 @@ type
 
       This calculates various things related to shadow volumes rendering
       of this scene.  1. checks whether you need to render shadow of the
-      object inside CasterBox, settting CasterShadowPossiblyVisible.
+      object inside CasterBox, setting CasterShadowPossiblyVisible.
       2. checks whether ZFail method is needed, setting ZFail.
 
       This assumes that Frustum and LightPosition values given

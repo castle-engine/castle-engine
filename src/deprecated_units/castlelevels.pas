@@ -1602,7 +1602,7 @@ begin
     raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
       [Element.TagName, DocumentBaseURL]);
 
-  { Required atttributes }
+  { Required attributes }
 
   if not Element.AttributeString('name', FName) then
     MissingRequiredAttribute('name');

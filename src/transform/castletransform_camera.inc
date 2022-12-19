@@ -146,7 +146,7 @@
     { Scales the projection size derived from @link(Width) and @link(Height).
 
       The effect of this scale is also affected by the @link(Origin).
-      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
+      When @link(Origin) is zero, this behaves like scaling around left-bottom corner
       of the viewport.
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
