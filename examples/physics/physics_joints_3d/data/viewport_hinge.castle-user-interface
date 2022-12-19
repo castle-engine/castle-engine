@@ -113,15 +113,8 @@
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 5.5375045537948608E-001
             },
-            "AxisPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 1.0000000000000000E+000,
-              "Z" : 0.0000000000000000E+000
-            },
-            "Breakable" : false,
-            "ConnectedCollide" : true,
             "Connected" : "Wall",
-            "EnableLimits" : false,
+            "ConnectedCollide" : true,
             "Name" : "HingeJoint1"
           }
         ]

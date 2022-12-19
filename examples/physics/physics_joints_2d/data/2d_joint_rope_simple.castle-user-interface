@@ -24,7 +24,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 3.0000000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -80,12 +80,11 @@
               },
               {
                 "$$ClassName" : "TCastleRopeJoint",
-                "Breakable" : false,
+                "Connected" : "Box1",
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.7346038818359375E+001
                 },
-                "Connected" : "Box1",
                 "Distance" : 5.0000000000000000E+001,
                 "Name" : "RopeJoint1"
               }
@@ -139,13 +138,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 3.6787942504882812E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 2.0189648866653442E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"

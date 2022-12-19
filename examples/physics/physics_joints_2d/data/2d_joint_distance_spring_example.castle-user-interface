@@ -126,7 +126,6 @@
               },
               {
                 "$$ClassName" : "TCastleDistanceJoint",
-                "Breakable" : false,
                 "Connected" : "BoxTop",
                 "DampingRatio" : 5.0000000745058060E-002,
                 "FrequencyHz" : 2.0000000298023224E-001,
@@ -179,14 +178,8 @@
               },
               {
                 "$$ClassName" : "TCastleGrabJoint",
-                "Breakable" : false,
                 "DampingRatio" : 1.0000000000000000E+000,
-                "Name" : "GrabJoint1",
-                "WorldPointPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -1.0173663330078125E+002,
-                  "Y" : -7.7826187133789062E+001
-                }
+                "Name" : "GrabJoint1"
               }
             ]
           },

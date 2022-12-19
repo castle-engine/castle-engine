@@ -258,9 +258,12 @@
                   "X" : -4.4599426269531250E+001,
                   "Y" : -3.9649429321289062E+001
                 },
-                "Breakable" : false,
+                "AxisPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 0.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                },
                 "Connected" : "Wheel1",
-                "EnableLimits" : false,
                 "Name" : "HingeJointW1"
               },
               {
@@ -270,9 +273,12 @@
                   "X" : 4.0084320068359375E+001,
                   "Y" : -4.1802215576171875E+001
                 },
-                "Breakable" : false,
+                "AxisPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 0.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                },
                 "Connected" : "Wheel2",
-                "EnableLimits" : false,
                 "Name" : "HingeJointW2"
               }
             ]
@@ -285,7 +291,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 4.0656970214843750E+002,
+          "Height" : 7.6592846679687500E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,

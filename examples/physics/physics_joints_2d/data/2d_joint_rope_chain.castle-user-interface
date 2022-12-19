@@ -24,7 +24,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 3.0000000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -126,7 +126,11 @@
               },
               {
                 "$$ClassName" : "TCastleHingeJoint",
-                "Breakable" : false,
+                "AxisPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 0.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                },
                 "Connected" : "ChainElement3",
                 "Name" : "HingeJoint1"
               }
@@ -177,12 +181,11 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
                 },
-                "Breakable" : false,
+                "Connected" : "Box1",
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "Connected" : "Box1",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint1"
               }
@@ -233,12 +236,11 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
                 },
-                "Breakable" : false,
+                "Connected" : "ChainElement",
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "Connected" : "ChainElement",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint2"
               }
@@ -285,12 +287,11 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
                 },
-                "Breakable" : false,
+                "Connected" : "ChainElement1",
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "Connected" : "ChainElement1",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint3"
               }
@@ -341,12 +342,11 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 6.3632545471191406E+000
                 },
-                "Breakable" : false,
+                "Connected" : "ChainElement2",
                 "ConnectedAnchorPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -1.6120246887207031E+001
                 },
-                "Connected" : "ChainElement2",
                 "Distance" : 1.0000000000000000E+001,
                 "Name" : "RopeJoint4"
               }
@@ -397,13 +397,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 3.7884066772460938E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 3.0119419097900391E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"

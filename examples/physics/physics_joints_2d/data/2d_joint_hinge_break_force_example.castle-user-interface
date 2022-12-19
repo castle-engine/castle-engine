@@ -24,7 +24,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 3.0000000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -84,11 +84,15 @@
               },
               {
                 "$$ClassName" : "TCastleHingeJoint",
+                "AxisPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 0.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                },
                 "BreakThresholdForce" : 1.0000000000000000E+003,
                 "BreakThresholdTorque" : 1.0000000000000000E+006,
                 "Breakable" : true,
                 "Connected" : "Box1",
-                "EnableLimits" : false,
                 "Name" : "HingeJoint1"
               }
             ]
@@ -183,7 +187,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 2.0189648437500000E+002,
+          "Height" : 7.6592834472656250E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
