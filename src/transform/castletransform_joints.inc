@@ -391,6 +391,8 @@
     procedure SetDampingRatio(const AValue: Single);
     procedure SetMaxForce(const AValue: Single);
     procedure InternalUpdateGizmosName;
+    { Returns MaxSingle when MaxForce is zero. }
+    function MaxForceNonZero: Single;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
@@ -430,8 +432,9 @@
       will not do even one oscillation. }
     property DampingRatio: Single read FDampingRatio write SetDampingRatio {$ifdef FPC}default DefaultDampingRatio{$endif};
 
-    { Maximal force that will be aplied to the body to move it. }
-    property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default MaxSingle{$endif};
+    { Maximal force that will be aplied to the body to move it.
+      Zero (default) means "unlimited". }
+    property MaxForce: Single read FMaxForce write SetMaxForce {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlegrabjoint_persistent_vectors.inc}
@@ -1445,7 +1448,7 @@ begin
   inherited Create(AOwner);
   ListenWorldChange := true;
   FTargetWorld := TVector3.Zero;
-  FMaxForce := MaxSingle;
+  FMaxForce := 0.0;
   FFrequencyHz := DefaultFrequencyHz;
   FDampingRatio := DefaultDampingRatio;
   {$define read_implementation_constructor}
@@ -1576,13 +1579,21 @@ begin
   end;
 end;
 
+function TCastleGrabJoint.MaxForceNonZero: Single;
+begin
+  if MaxForce = 0 then
+    Result := MaxSingle
+  else
+    Result := MaxForce;
+end;
+
 procedure TCastleGrabJoint.SetMaxForce(const AValue: Single);
 begin
   if FMaxForce <> AValue then
   begin
     FMaxForce := AValue;
     if FKraftJointGrab <> nil then
-      FKraftJointGrab.SetMaximalForce(AValue);
+      FKraftJointGrab.SetMaximalForce(MaxForceNonZero);
   end;
 end;
 
@@ -1641,7 +1652,7 @@ begin
     AnchorInWorldCoords,
     FFrequencyHz,
     FDampingRatio,
-    FMaxForce
+    MaxForceNonZero
   );
   FKraftJointGrab.SetWorldPoint(VectorToKraft(FTargetWorld));
 end;
