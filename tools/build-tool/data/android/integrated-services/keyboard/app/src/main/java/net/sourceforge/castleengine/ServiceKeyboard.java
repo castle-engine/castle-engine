@@ -397,6 +397,8 @@ class CastleInputConnection extends BaseInputConnection
     public boolean finishComposingText()
     {
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "finishComposingText() - '" + fullText + "'");
+        // microsoft swype keyboard needs to clear sentButNotCommited here (not neded by gboard)
+        sentButNotCommited = "";
         return true;
     }
     
