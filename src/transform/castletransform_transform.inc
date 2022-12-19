@@ -227,20 +227,20 @@
     // TODO: Do we need so much new API?
 
     { Ability to add a callback (object of procedure have to be TComponent)
-      to be informed when a behavior is added to this CastleTransform }
+      to be informed when a behavior is added to this CastleTransform. }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform with
-      object class filtering}
+      object class filtering. }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
-    { Calls all behavior add callbacks with ABehavior as parameter value }
+    { Calls all behavior add callbacks with ABehavior as parameter value. }
     procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
-      from "OnBehaviorAdded" list }
+      from "OnBehaviorAdded" list. }
     procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
     { Remove a callback (object of procedure have to be TComponent)
-      from "OnBehaviorAdded" calbacks list with object class filtering}
+      from "OnBehaviorAdded" calbacks list with object class filtering. }
     procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
 
@@ -249,16 +249,16 @@
     procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behevior is added to this CastleTransform with
-      object class filtering}
+      object class filtering. }
     procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
-          const ClassFilter: TComponentClass); overload;
-    { Calls all behavior remove callbacks with ABehavior as parameter value }
+      const ClassFilter: TComponentClass); overload;
+    { Calls all behavior remove callbacks with ABehavior as parameter value. }
     procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
-      from "BeforeBehaviorRemove" list }
+      from "BeforeBehaviorRemove" list. }
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
     { Remove a callback (object of procedure have to be TComponent)
-      from "BeforeBehaviorRemove" calbacks list with object class filtering}
+      from "BeforeBehaviorRemove" calbacks list with object class filtering. }
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
 

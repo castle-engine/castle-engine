@@ -314,17 +314,18 @@ begin
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castledynlib.pas');
+    P.Targets.AddUnit('castleinternalclassutils.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
+    P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprojection.pas');
+    P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlerenderoptions.pas');
-    P.Targets.AddUnit('castlequaternions.pas');
-    P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castlesystemlanguage.pas');
@@ -332,8 +333,8 @@ begin
     P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
     P.Targets.AddUnit('castlevectors.pas');
-    P.Targets.AddUnit('castlevectorsinternalsingle.pas');
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
+    P.Targets.AddUnit('castlevectorsinternalsingle.pas');
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
