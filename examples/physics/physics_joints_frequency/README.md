@@ -1,5 +1,7 @@
 # Joints Frequency Example
 
+Demonstrates the effect of `TCastleDistanceJoint.FrequencyHz` and `TCastleDistanceJoint.DampingRatio`.
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
