@@ -133,13 +133,16 @@ class CastleInputConnection extends BaseInputConnection
 
         if ((textToCommit.length() > 0) && (sentButNotCommited.equals(textToCommit.substring(0, textToCommit.length()-1))))
         {
+            // this fixes case when you tap dictionary hint then gboard adds extra space - no need to call updateText()
             if (textToCommit.charAt(textToCommit.length()-1) == 32)
-            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + textToCommit + "but space on end");
-            serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", " "});
-            serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", " "});
-            fullText = fullText + " ";
-            sentButNotCommited = "";
-            return true;
+            {
+                serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + textToCommit + "but space on end");
+                serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", " "});
+                serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", " "});
+                fullText = fullText + " ";
+                sentButNotCommited = "";
+                return true;
+            }
         }
 
         serviceKeyboard.logInfo("CastleInputConnection", "------- call updateText from commit - " + text.toString());
