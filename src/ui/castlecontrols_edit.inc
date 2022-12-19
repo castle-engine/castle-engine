@@ -643,15 +643,9 @@ begin
   if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
   begin
     if Value then
-    begin
-      Container.ForceCaptureInput := Self;
-      ShowOnScreenKeyboard(Text);
-    end else
-    if Container.ForceCaptureInput = Self then // do not hide keyboard if another TCastleEdit has displayed it
-    begin
-      HideOnScreenKeyboard;
-      Container.ForceCaptureInput := nil;
-    end;
+      ShowOnScreenKeyboard(Text, Self)
+    else
+      HideOnScreenKeyboard(Self);
   end;
 end;
 

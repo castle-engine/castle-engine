@@ -23,6 +23,8 @@ unit CastleOpenDocument;
 
 interface
 
+uses CastleUIControls;
+
 resourcestring
   SCannotOpenURL = 'Browser not found on your system.';
 
@@ -95,8 +97,10 @@ procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
 procedure ShowOnScreenKeyboard(const CurrentText: String);
+procedure ShowOnScreenKeyboard(const CurrentText: String; const KeyboardTarget: TCastleUserInterface);
 
 procedure HideOnScreenKeyboard;
+procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
 
 implementation
 
@@ -391,14 +395,28 @@ begin
   Messaging.Send(['on-screen-notification', Message]);
 end;
 
-procedure ShowOnScreenKeyboard(const CurrentText: String);
+procedure ShowOnScreenKeyboard(const CurrentText: String; const KeyboardTarget: TCastleUserInterface);
 begin
+  { Remove focus from another control }
+  if (KeyboardTarget.Container.ForceCaptureInput <> nil) and
+     (KeyboardTarget.Container.ForceCaptureInput <> KeyboardTarget) then
+    KeyboardTarget.Container.ForceCaptureInput.Focused := false;
+
+  { Set ForceCaptureInput to control that will show keyboard }
+  KeyboardTarget.Container.ForceCaptureInput := KeyboardTarget;
+
+  { Send message to open keyboard. }
   Messaging.Send(['castle-show-keyboard', CurrentText]);
 end;
 
-procedure HideOnScreenKeyboard;
+procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
 begin
-  Messaging.Send(['castle-hide-keyboard']);
+  { Don't hide keyboard if another TCastleEdit has displayed it }
+  if KeyboardTarget.Container.ForceCaptureInput = KeyboardTarget then
+  begin
+    Messaging.Send(['castle-hide-keyboard']);
+    KeyboardTarget.Container.ForceCaptureInput := nil;
+  end;
 end;
 
 end.
