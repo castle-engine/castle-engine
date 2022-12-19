@@ -47,7 +47,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 1.0000000000000000E+001,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -81,9 +81,9 @@
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 7.0000000000000000E+001,
-              "Y" : 7.0000000000000000E+001,
-              "Z" : 7.0000000000000000E+001
+              "X" : 1.0000000000000000E+000,
+              "Y" : 1.0000000000000000E+000,
+              "Z" : 1.0000000000000000E+000
             },
             "$Behaviors" : [
               {
@@ -104,8 +104,6 @@
               },
               {
                 "$$ClassName" : "TCastleGrabJoint",
-                "Breakable" : false,
-                "MaxForce" : 9.0000000000000000E+006,
                 "Name" : "GrabJoint"
               }
             ]
@@ -118,7 +116,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.2000000000000000E+003,
+          "Height" : 1.1426310539245605E+001,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -135,7 +133,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Z" : 6.0000000000000000E+002
+          "X" : 1.6053318977355957E-001,
+          "Y" : 9.4699382781982422E-002,
+          "Z" : 5.0000000000000000E+002
         }
       },
       "InternalDesignNavigationType" : 2,
