@@ -35,7 +35,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     CGE_LoadLibrary();
     CGE_Initialize(QDir::currentPath().toUtf8());
-    m_pGlWidget = new GLWidget(QGLFormat(QGL::SampleBuffers), this);    // init with multisampling
+
+    QSurfaceFormat aFormat;
+    aFormat.setSamples(4);
+
+    m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
 
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnFileOpenClick()));
@@ -173,8 +177,8 @@ void MainWindow::MenuAntiAliasingClick()
     delete m_pGlWidget;
     m_pGlWidget = NULL;
 
-    QGLFormat aFormat;
-    aFormat.setSampleBuffers(ui->actionMultiSampling->isChecked());
+    QSurfaceFormat aFormat;
+    aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);

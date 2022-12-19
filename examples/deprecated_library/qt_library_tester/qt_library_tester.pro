@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += opengl widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += opengl widgets openglwidgets
 
 TARGET = qt_library_tester
 TEMPLATE = app

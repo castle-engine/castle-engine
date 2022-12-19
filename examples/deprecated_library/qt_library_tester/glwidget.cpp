@@ -21,13 +21,14 @@
 
 GLWidget *g_pThis = NULL;
 
-GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
-    QGLWidget(format, parent)
+GLWidget::GLWidget(const QSurfaceFormat &format, QWidget *parent) :
+    QOpenGLWidget(parent)
 {
     g_pThis = this;
     m_bAfterInit = false;
     m_bLimitFPS = true;
     m_bNeedsDisplay = false;
+    setFormat(format);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
@@ -134,6 +135,13 @@ void GLWidget::OnUpdateTimer()
         m_bNeedsDisplay = false;
         updateGL();
     }
+}
+
+void GLWidget::updateGL()
+{
+    update(); // TODO: Qt6 really?
+
+    CGE_Render();
 }
 
 void GLWidget::paintGL()
