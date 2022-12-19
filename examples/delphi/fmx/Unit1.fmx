@@ -1,0 +1,41 @@
+object TestCgeControl: TTestCgeControl
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 508
+  ClientWidth = 828
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnPaint = FormPaint
+  DesignerMasterStyle = 0
+  object Button1: TButton
+    Position.X = 136.000000000000000000
+    Position.Y = 32.000000000000000000
+    TabOrder = 0
+    Text = 'Button1'
+    OnClick = Button1Click
+  end
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Position.X = 369.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 392.000000000000000000
+    Size.Height = 321.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 388.000000000000000000
+    Viewport.Height = 317.000000000000000000
+  end
+  object Panel1: TPanel
+    Position.X = 32.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 329.000000000000000000
+    Size.Height = 265.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    OnPainting = Panel1Painting
+    OnPaint = Panel1Paint
+  end
+end
