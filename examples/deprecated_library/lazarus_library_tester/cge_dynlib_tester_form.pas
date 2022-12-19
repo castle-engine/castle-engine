@@ -61,9 +61,17 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    BtnNavWalk: TToggleBox;
+    BtnNavFly: TToggleBox;
+    BtnNavExamine: TToggleBox;
+    BtnNavTurntable: TToggleBox;
     BtnScreenshot: TButton;
+    BtnOpen: TButton;
+    OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
+    procedure BtnOpenClick(Sender: TObject);
     procedure BtnScreenshotClick(Sender: TObject);
+    procedure BtnWalkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -83,6 +91,7 @@ type
     procedure IdleFunc(Sender: TObject; var Done: Boolean);
   private
     { private declarations }
+    procedure UpdateNavigationButtons;
   public
     { public declarations }
   end;
@@ -94,6 +103,9 @@ implementation
 
 uses
   LCLType, castlelib_dynloader, ctypes;
+
+var
+  bIgnoreNotifications: boolean;
 
 {$R *.lfm}
 
@@ -111,6 +123,7 @@ begin
           else Form1.OpenGLControl1.Cursor := crDefault;
         end;
       end;
+    ecgelibNavigationTypeChanged: Form1.UpdateNavigationButtons;
   end;
   Result := 0;
 end;
@@ -121,6 +134,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   sFile: String;
 begin
+  bIgnoreNotifications := false;
+
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
   CGE_Initialize(PCChar(PChar(GetAppConfigDir(false))));
@@ -132,6 +147,7 @@ begin
 
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+  UpdateNavigationButtons;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -211,6 +227,47 @@ begin
   sFile := ExtractFilePath(Application.ExeName) + 'cge_test_screenshot.png';
   StrPCopy(csFile, sFile);
   CGE_SaveScreenshotToFile(@csFile[0]);
+end;
+
+procedure TForm1.BtnOpenClick(Sender: TObject);
+var
+  csFile: array[0..260] of char;
+begin
+  if OpenDialog1.Execute then
+  begin
+    StrPCopy(csFile, OpenDialog1.Filename);
+
+    CGE_LoadSceneFromFile(@csFile[0]);
+
+    OpenGLControl1.Invalidate;
+    ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+    UpdateNavigationButtons;
+  end;
+end;
+
+procedure TForm1.BtnWalkClick(Sender: TObject);
+begin
+  if bIgnoreNotifications then exit;
+
+  CGE_SetNavigationType((Sender as TToggleBox).Tag);
+  UpdateNavigationButtons;
+end;
+
+procedure TForm1.UpdateNavigationButtons;
+var
+  iType: integer;
+  bOldIgnore: boolean;
+begin
+  bOldIgnore := bIgnoreNotifications;
+  bIgnoreNotifications := true;
+
+  iType := CGE_GetNavigationType();
+  BtnNavWalk.Checked := (iType = ecgenavWalk);
+  BtnNavFly.Checked := (iType = ecgenavFly);
+  BtnNavExamine.Checked := (iType = ecgenavExamine);
+  BtnNavTurntable.Checked := (iType = ecgenavTurntable);
+
+  bIgnoreNotifications := bOldIgnore;
 end;
 
 end.

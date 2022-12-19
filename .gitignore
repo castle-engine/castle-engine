@@ -106,6 +106,7 @@ castle-game-engine-*.fpm
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
 /examples/deprecated_library/build-*
+/examples/deprecated_library/lazarus_library_tester/*.app
 /examples/deprecated_to_upgrade/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/

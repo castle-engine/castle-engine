@@ -1,21 +1,20 @@
 object Form1: TForm1
-  Left = 359
-  Height = 399
-  Top = 227
-  Width = 646
+  Left = 285
+  Height = 274
+  Top = 133
+  Width = 524
   Caption = 'Form1'
-  ClientHeight = 399
-  ClientWidth = 646
-  DesignTimePPI = 140
+  ClientHeight = 274
+  ClientWidth = 524
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '2.2.4.0'
   object OpenGLControl1: TOpenGLControl
-    Left = 25
-    Height = 326
-    Top = 56
-    Width = 591
+    Left = 17
+    Height = 224
+    Top = 38
+    Width = 493
     OnKeyDown = OpenGLControl1KeyDown
     OnKeyUp = OpenGLControl1KeyUp
     OnMouseDown = OpenGLControl1MouseDown
@@ -25,14 +24,68 @@ object Form1: TForm1
     OnPaint = OpenGLControl1Paint
   end
   object BtnScreenshot: TButton
-    Left = 24
-    Height = 39
+    Left = 416
+    Height = 20
     Top = 8
-    Width = 114
+    Width = 91
     AutoSize = True
     Caption = 'Screenshot'
     Color = clNone
     OnClick = BtnScreenshotClick
     TabOrder = 1
+  end
+  object BtnNavWalk: TToggleBox
+    Left = 8
+    Height = 25
+    Top = 5
+    Width = 48
+    Caption = 'Walk'
+    OnClick = BtnWalkClick
+    TabOrder = 2
+  end
+  object BtnNavFly: TToggleBox
+    Tag = 1
+    Left = 56
+    Height = 25
+    Top = 5
+    Width = 48
+    Caption = 'Fly'
+    OnClick = BtnWalkClick
+    TabOrder = 3
+  end
+  object BtnNavExamine: TToggleBox
+    Tag = 2
+    Left = 104
+    Height = 25
+    Top = 5
+    Width = 72
+    Caption = 'Examine'
+    OnClick = BtnWalkClick
+    TabOrder = 4
+  end
+  object BtnNavTurntable: TToggleBox
+    Tag = 3
+    Left = 176
+    Height = 25
+    Top = 5
+    Width = 72
+    Caption = 'Turntable'
+    OnClick = BtnWalkClick
+    TabOrder = 5
+  end
+  object BtnOpen: TButton
+    Left = 320
+    Height = 20
+    Top = 8
+    Width = 91
+    Caption = 'Open file...'
+    OnClick = BtnOpenClick
+    TabOrder = 6
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = '3D scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.gltf;*.glb'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 344
+    Top = 32
   end
 end
