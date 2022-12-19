@@ -5,11 +5,11 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="physics_joints_grab"
-  standalone_source="physics_joints_grab_standalone.dpr"
+<project name="physics_joints_2d_grab"
+  standalone_source="physics_joints_2d_grab_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.physics.joints.grab"
-  caption="Grab joint Example"
+  qualified_name="io.castleengine.physics.joints.twod.grab"
+  caption="Grab Joint in 2D"
 >
   <compiler_options>
     <search_paths>

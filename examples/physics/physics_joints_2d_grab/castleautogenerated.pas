@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics_joints_grab';
-  ApplicationProperties.Caption := 'Grab joint Example';
+  ApplicationProperties.ApplicationName := 'physics_joints_2d_grab';
+  ApplicationProperties.Caption := 'Grab Joint in 2D';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
