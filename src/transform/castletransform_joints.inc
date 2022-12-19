@@ -182,15 +182,15 @@
     FAxis: TVector3;
     FAnchor: TVector3;
     FAnchorTransform: TCastleTransform;
-    FMinAngleLimit: Single;
-    FMaxAngleLimit: Single;
-    FEnableLimits: Boolean;
+    FMinAngle: Single;
+    FMaxAngle: Single;
+    FAngleLimits: Boolean;
     function GetAnchorForTool: TVector3;
     procedure SetAnchor(const AValue: TVector3);
     procedure SetAxis(const AValue: TVector3);
-    procedure SetEnableLimits(const AValue: Boolean);
-    procedure SetMinAngleLimit(const AValue: Single);
-    procedure SetMaxAngleLimit(const AValue: Single);
+    procedure SetAngleLimits(const AValue: Boolean);
+    procedure SetMinAngle(const AValue: Single);
+    procedure SetMaxAngle(const AValue: Single);
     procedure InternalUpdateGizmosName;
   protected
     function GetKraftJoint: TKraftConstraintJoint; override;
@@ -214,13 +214,13 @@
     property Axis: TVector3 read FAxis write SetAxis;
   published
     { Turns on minimum and maximum rotation angle limit. }
-    property EnableLimits: Boolean read FEnableLimits write SetEnableLimits default false;
+    property AngleLimits: Boolean read FAngleLimits write SetAngleLimits default false;
 
     { Minimal angle, must be a value between -2pi + epsilon to 0. }
-    property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit {$ifdef FPC}default 0.0{$endif};
+    property MinAngle: Single read FMinAngle write SetMinAngle {$ifdef FPC}default 0.0{$endif};
 
     { Maximum angle, must be a value between 0 to 2pi - epsilon. }
-    property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit {$ifdef FPC}default 0.0{$endif};
+    property MaxAngle: Single read FMaxAngle write SetMaxAngle {$ifdef FPC}default 0.0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlehingejoint_persistent_vectors.inc}
@@ -860,7 +860,7 @@ function TCastleHingeJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'AnchorPersistent', 'EnableLimits', 'MinAngleLimit', 'MaxAngleLimit',
+      'AnchorPersistent', 'AngleLimits', 'MinAngle', 'MaxAngle',
       'AxisPersistent'
     ]) then
     Result := [psBasic]
@@ -895,33 +895,33 @@ begin
   end;
 end;
 
-procedure TCastleHingeJoint.SetEnableLimits(const AValue: Boolean);
+procedure TCastleHingeJoint.SetAngleLimits(const AValue: Boolean);
 begin
-  if FEnableLimits <> AValue then
+  if FAngleLimits <> AValue then
   begin
-    FEnableLimits := AValue;
+    FAngleLimits := AValue;
     if FKraftJointHinge <> nil then
       FKraftJointHinge.EnableLimit(AValue);
   end;
 end;
 
-procedure TCastleHingeJoint.SetMinAngleLimit(const AValue: Single);
+procedure TCastleHingeJoint.SetMinAngle(const AValue: Single);
 begin
-  if FMinAngleLimit <> AValue then
+  if FMinAngle <> AValue then
   begin
-    FMinAngleLimit := AValue;
+    FMinAngle := AValue;
     if FKraftJointHinge <> nil then
-      FKraftJointHinge.SetMinimumAngleLimit(FMinAngleLimit);
+      FKraftJointHinge.SetMinimumAngleLimit(FMinAngle);
   end;
 end;
 
-procedure TCastleHingeJoint.SetMaxAngleLimit(const AValue: Single);
+procedure TCastleHingeJoint.SetMaxAngle(const AValue: Single);
 begin
-  if FMaxAngleLimit <> AValue then
+  if FMaxAngle <> AValue then
   begin
-    FMaxAngleLimit := AValue;
+    FMaxAngle := AValue;
     if FKraftJointHinge <> nil then
-      FKraftJointHinge.SetMaximumAngleLimit(FMaxAngleLimit);
+      FKraftJointHinge.SetMaximumAngleLimit(FMaxAngle);
   end;
 end;
 
@@ -947,10 +947,10 @@ begin
     FConnectedRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchor)),
     VectorToKraft(Parent.LocalToWorldDirection(FAxis)),
-    FEnableLimits,
+    FAngleLimits,
     false,
-    FMinAngleLimit,
-    FMaxAngleLimit,
+    FMinAngle,
+    FMaxAngle,
     0,
     0,
     ConnectedCollide

@@ -86,9 +86,9 @@
                   "Z" : 1.0000000000000000E+000
                 },
                 "Connected" : "Box1",
-                "EnableLimits" : true,
-                "MaxAngleLimit" : 1.0000000000000000E+000,
-                "MinAngleLimit" : -1.0000000000000000E+000,
+                "AngleLimits" : true,
+                "MaxAngle" : 1.0000000000000000E+000,
+                "MinAngle" : -1.0000000000000000E+000,
                 "Name" : "HingeJoint1"
               }
             ]
