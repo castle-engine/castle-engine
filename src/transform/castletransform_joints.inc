@@ -208,7 +208,9 @@
 
     { Position of the hinge in the parent transformation coordinates. }
     property Anchor: TVector3 read FAnchor write SetAnchor;
-    { Rotation axis around which the @link(Connected) rotates. }
+
+    { Rotation axis around which the @link(Connected) rotates.
+      By default +Y. }
     property Axis: TVector3 read FAxis write SetAxis;
   published
     { Turns on minimum and maximum rotation angle limit. }
@@ -805,7 +807,7 @@ constructor TCastleHingeJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ListenWorldChange := true;
-  FAxis:= CastleVectors.Vector3(0, 0, 1);
+  FAxis:= TVector3.One[1];
   FAnchor := TVector3.Zero;
 
   {$define read_implementation_constructor}
