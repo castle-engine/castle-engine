@@ -94,8 +94,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
 procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
-procedure ShowOnScreenKeyboard(const currentText: String);
-
+procedure ShowOnScreenKeyboard(const CurrentText: String);
 
 procedure HideOnScreenKeyboard;
 
@@ -392,9 +391,9 @@ begin
   Messaging.Send(['on-screen-notification', Message]);
 end;
 
-procedure ShowOnScreenKeyboard(const currentText: String);
+procedure ShowOnScreenKeyboard(const CurrentText: String);
 begin
-  Messaging.Send(['castle-show-keyboard', currentText]);
+  Messaging.Send(['castle-show-keyboard', CurrentText]);
 end;
 
 procedure HideOnScreenKeyboard;
