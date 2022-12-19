@@ -60,20 +60,20 @@ class CastleInputConnection extends BaseInputConnection
     public boolean sendKeyEvent(KeyEvent event) 
     {
         // it seems that this function is called only by the backspace key - and only when there is no composing text
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call sendKeyEvent()");
-        serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - code " + Integer.toString(event.getKeyCode()));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call sendKeyEvent()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - code " + Integer.toString(event.getKeyCode()));
 
         // use enter to hide keyboard - only works when EditorInfo.inputType = InputType.TYPE_NULL; 
         if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) 
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - hide kyeboard");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - hide kyeboard");
             serviceKeyboard.hideKeyboard();
             return true;
         }
 
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - KEYCODE_BACK");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - KEYCODE_BACK");
             return true;
         }
 
@@ -87,7 +87,7 @@ class CastleInputConnection extends BaseInputConnection
         {
             //String s = (new StringBuilder()).append(character).toString();
             keyString =  new String(Character.toChars(character));
-            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - char = " + keyString);
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - char = " + keyString);
         }
         else
         {
@@ -98,12 +98,12 @@ class CastleInputConnection extends BaseInputConnection
         // https://developer.android.com/reference/android/view/KeyEvent#getAction()
         if (event.getAction() == KeyEvent.ACTION_DOWN)
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - key down");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - key down");
             serviceKeyboard.messageSend(new String[]{"castle-key-down", keyCode, keyString});
         }
         else if (event.getAction() == KeyEvent.ACTION_UP)
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "sendKeyEvent - key up");
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - key up");
             serviceKeyboard.messageSend(new String[]{"castle-key-up", keyCode, keyString});
         }
         return true;
@@ -114,19 +114,19 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean commitText(CharSequence text, int newCursorPosition) 
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call commitText()");
-        serviceKeyboard.logInfo("CastleInputConnection", "commitText - " + text.toString());
-        serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call commitText()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "commitText - " + text.toString());
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
 
 
-        serviceKeyboard.logInfo("CastleInputConnection", "sent text: - " + sentButNotCommited);
-        serviceKeyboard.logInfo("CastleInputConnection", "text to commit: - " + text.toString());
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sent text: - " + sentButNotCommited);
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "text to commit: - " + text.toString());
         
         String textToCommit = text.toString();
 
         if (sentButNotCommited.equals(textToCommit))
         {
-            serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + text.toString());
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "the same text sent - " + text.toString());
             sentButNotCommited = "";
             return true;
         }    
@@ -136,7 +136,7 @@ class CastleInputConnection extends BaseInputConnection
             // this fixes case when you tap dictionary hint then gboard adds extra space - no need to call updateText()
             if (textToCommit.charAt(textToCommit.length()-1) == 32)
             {
-                serviceKeyboard.logInfo("CastleInputConnection", "the same text sent - " + textToCommit + "but space on end");
+                serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "the same text sent - " + textToCommit + "but space on end");
                 serviceKeyboard.messageSend(new String[]{"castle-key-down", "0", " "});
                 serviceKeyboard.messageSend(new String[]{"castle-key-up", "0", " "});
                 fullText = fullText + " ";
@@ -145,7 +145,7 @@ class CastleInputConnection extends BaseInputConnection
             }
         }
 
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call updateText from commit - " + text.toString());
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call updateText from commit - " + text.toString());
         updateText(text.toString());
 
         sentButNotCommited = "";
@@ -156,11 +156,11 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean setComposingText(CharSequence text, int newCursorPosition) 
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call setComposingText()");
-        serviceKeyboard.logInfo("CastleInputConnection", "composingText - " + text.toString());
-        serviceKeyboard.logInfo("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call setComposingText()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "composingText - " + text.toString());
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "cursor pos - " + Integer.toString(newCursorPosition));
 
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call updateText from composing - " + text.toString());
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call updateText from composing - " + text.toString());
         updateText(text.toString());
         return true;
     }
@@ -169,12 +169,12 @@ class CastleInputConnection extends BaseInputConnection
     @Override
     public boolean deleteSurroundingText (int beforeLength, int afterLength)
     {
-        serviceKeyboard.logInfo("CastleInputConnection", "------- call deleteSurroundingText()");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call deleteSurroundingText()");
         // seems this is only called when composing text is empty and user press backspace ?
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText beforeLength: " + Integer.toString(beforeLength));
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText afterLength: " + Integer.toString(afterLength));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingText beforeLength: " + Integer.toString(beforeLength));
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingText afterLength: " + Integer.toString(afterLength));
 
-        serviceKeyboard.logInfo("CastleInputConnection", "deleteSurroundingText fullText before: '" + fullText + "'");
+        serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "deleteSurroundingText fullText before: '" + fullText + "'");
 
         if (sentButNotCommited.length() > 0)
         {
