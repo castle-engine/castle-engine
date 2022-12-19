@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'physics_joints';
-  ApplicationProperties.Caption := 'Physics Joints';
+  ApplicationProperties.ApplicationName := 'physics_joints_2d';
+  ApplicationProperties.Caption := 'Physics Joints in 2D';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
