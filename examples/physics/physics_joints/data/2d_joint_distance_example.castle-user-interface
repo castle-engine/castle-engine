@@ -62,7 +62,7 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
+              "Height" : 3.3300000000000000E+002,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 5.0000000000000000E-001,
@@ -121,7 +121,6 @@
               },
               {
                 "$$ClassName" : "TCastleDistanceJoint",
-                "Breakable" : false,
                 "Connected" : "Sphere1",
                 "DampingRatio" : 6.9999998807907104E-001,
                 "FrequencyHz" : 2.0000000000000000E+000,
@@ -174,13 +173,7 @@
               },
               {
                 "$$ClassName" : "TCastleGrabJoint",
-                "Breakable" : false,
-                "Name" : "GrabJoint1",
-                "WorldPointPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -1.0173663330078125E+002,
-                  "Y" : -7.7826187133789062E+001
-                }
+                "Name" : "GrabJoint1"
               }
             ]
           }
@@ -192,13 +185,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0000000000000000E+003,
+          "Height" : 5.3081939697265625E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 3.3287101984024048E-001
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
