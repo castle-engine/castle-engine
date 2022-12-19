@@ -96,10 +96,12 @@ procedure Vibrate(const Miliseconds: Cardinal);
 procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
-procedure ShowOnScreenKeyboard(const CurrentText: String);
+{ Displays the keyboard on Android. It requires the current text to be edited
+  and the target user interface to which the events will be send. }
 procedure ShowOnScreenKeyboard(const CurrentText: String; const KeyboardTarget: TCastleUserInterface);
 
-procedure HideOnScreenKeyboard;
+{ Hides keyboard on Android but only when KeyboardTarget and ForceCaptureInput
+  is the same object. }
 procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
 
 implementation
