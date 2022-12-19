@@ -34,7 +34,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pConsoleWnd = NULL;
 
     CGE_LoadLibrary();
-    CGE_Initialize(QDir::currentPath().toUtf8());
 
     QSurfaceFormat aFormat;
     aFormat.setSamples(4);
@@ -255,6 +254,14 @@ void MainWindow::MenuOpenGLInfoClick()
     aDlg.exec();
 }
 
+void MainWindow::on_actionSave_Screenshot_triggered()
+{
+    QString sFile = QFileDialog::getSaveFileName(this, "Save as image", "CGE-Screenshot.jpg", "JPEG (*.jpg)");
+    if (sFile.isEmpty()) return;
+
+    CGE_SaveScreenshotToFile(sFile.toUtf8());  // TODO: this filename string conversion is not perfect: should be in filesystem representation, not utf8
+}
+
 NavKeeper::NavKeeper()
 {
     bToBeApplied = false;
@@ -277,3 +284,4 @@ bool NavKeeper::ApplyState()
     bToBeApplied = false;
     return true;
 }
+

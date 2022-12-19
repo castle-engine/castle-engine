@@ -140,8 +140,6 @@ void GLWidget::OnUpdateTimer()
 void GLWidget::updateGL()
 {
     update(); // TODO: Qt6 really?
-
-    CGE_Render();
 }
 
 void GLWidget::paintGL()
