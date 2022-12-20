@@ -24,22 +24,17 @@ uses
   FMX.Platform.Win,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
   FMX.Memo,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
+  CastleGLVersion, CastleGLUtils, CastleGLContextWGL, CastleFmxOpenGlControl;
 
 type
   TTestCgeControl = class(TForm)
-    Button1: TButton;
     Memo1: TMemo;
-    Panel1: TPanel;
-    procedure Button1Click(Sender: TObject);
-    procedure Panel1Paint(Sender: TObject; Canvas: TCanvas;
-      const ARect: TRectF);
-    procedure Panel1Painting(Sender: TObject; Canvas: TCanvas;
-      const ARect: TRectF);
-    procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
+    Timer1: TTimer;
+    procedure FormCreate(Sender: TObject);
+    procedure GlPaint(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
-    Requirements: TGLContextRequirements;
-    Context: TGLContextWGL;
+    CastleControl: TCastleFmxOpenGlControl;
   public
     { Public declarations }
   end;
@@ -51,81 +46,45 @@ implementation
 
 {$R *.fmx}
 
-uses Windows,
-  CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext;
+uses Windows, FMX.Presentation.Win,
+  CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
+  CastleApplicationProperties, CastleTimeUtils, CastleVectors,
+  CastleControls;
 
-procedure TTestCgeControl.Button1Click(Sender: TObject);
+procedure TTestCgeControl.FormCreate(Sender: TObject);
+var
+  TimeStart: TTimerResult;
 begin
-  Requirements := TGLContextRequirements.Create;
-  Requirements.DoubleBuffer := true;
-  Requirements.DepthBits := 24;
-  Requirements.StencilBits := DefaultStencilBits;
-  Requirements.MultiSampling := 1;
+  TimeStart := Timer;
 
-  Context := TGLContextWGL.Create;
-  // TODO: get it for a panel, not whole form?
-  Context.WndPtr := WindowHandleToPlatform(Handle).Wnd;
-  Context.h_Dc := GetWindowDC(Context.WndPtr); // TODO: get it internally?
-  Context.WindowCaption := 'TestCgeControl';
-  Context.WndClassName := 'Castle'; // TODO: invented
+  CastleControl := TCastleFmxOpenGlControl.Create(Self);
+  CastleControl.Parent := Self;
+  CastleControl.Position.X := 20;
+  CastleControl.Position.Y := 20;
+  CastleControl.Width := 400;
+  CastleControl.Height := 500;
 
-  Context.ContextCreate(Requirements);
+  CastleControl.GLContextOpen;
 
-  Memo1.Lines.Add('Got GL context, h_GLRc: ' + IntToStr(Context.h_GLRc));
-
-  Context.MakeCurrent;
-
-    // CGE needs this to be assigned, typically done by container
-  RenderContext := TRenderContext.Create;
-  RenderContext.Viewport := Rectangle(0, 0, Round(Panel1.Width), Round(Panel1.Height));
-
-  GLInformationInitialize;
+  Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [
+    TimeStart.ElapsedTime
+  ]));
   Memo1.Lines.Add(GLInformationString);
+
+  CastleControl.OnGlPaint := GlPaint;
+  Invalidate;
 end;
 
-procedure TTestCgeControl.FormPaint(Sender: TObject; Canvas: TCanvas;
-  const ARect: TRectF);
+procedure TTestCgeControl.GlPaint(Sender: TObject);
 begin
-  if Context <> nil then
-  begin
-    Memo1.Lines.Add('Form Paint');
-
-    Context.MakeCurrent;
-
-    // TODO: render at proper moment, in a loop
-    DrawRectangle(FloatRectangle(10, 10, 100, 200), Blue);
-    Context.SwapBuffers;
-  end;
+  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
+  DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
+  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
-procedure TTestCgeControl.Panel1Paint(Sender: TObject; Canvas: TCanvas;
-  const ARect: TRectF);
+procedure TTestCgeControl.Timer1Timer(Sender: TObject);
 begin
-  if Context <> nil then
-  begin
-    Memo1.Lines.Add('Panel Paint');
-
-    Context.MakeCurrent;
-
-    // TODO: render at proper moment, in a loop
-    DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
-    Context.SwapBuffers;
-  end;
-end;
-
-procedure TTestCgeControl.Panel1Painting(Sender: TObject; Canvas: TCanvas;
-  const ARect: TRectF);
-begin
-  if Context <> nil then
-  begin
-    Memo1.Lines.Add('Panel Painting');
-
-    Context.MakeCurrent;
-
-    // TODO: render at proper moment, in a loop
-    DrawRectangle(FloatRectangle(10, 10, 100, 200), Red);
-    Context.SwapBuffers;
-  end;
+  Invalidate;
 end;
 
 end.

@@ -62,7 +62,7 @@ begin
   CastleControl.Width := 400;
   CastleControl.Height := 500;
 
-  Requirements := TGLContextRequirements.Create;
+  Requirements := TGLContextRequirements.Create(nil);
   Requirements.DoubleBuffer := true;
   Requirements.DepthBits := 24;
   Requirements.StencilBits := DefaultStencilBits;
