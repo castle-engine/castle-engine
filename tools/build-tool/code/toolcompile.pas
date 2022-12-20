@@ -167,7 +167,8 @@ const
   );
 
   { Additional include/units paths, only for Delphi. }
-  EnginePathsDelphi: array [0..1] of String = (
+  EnginePathsDelphi: array [0..2] of String = (
+    'delphi',
     'compatibility/delphi-only',
     'compatibility/delphi-only/fcl-json'
   );
