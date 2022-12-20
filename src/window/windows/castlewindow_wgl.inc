@@ -41,7 +41,7 @@ procedure TCastleWindow.ContextCreateEnd(WndPtr: HWND);
 var
   Requirements: TGLContextRequirements;
 begin
-  Requirements := TGLContextRequirements.Create;
+  Requirements := TGLContextRequirements.Create(Self);
   Requirements.DoubleBuffer := DoubleBuffer;
   Requirements.ColorBits := ColorBits;
   Requirements.RedBits := RedBits;
