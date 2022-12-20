@@ -25,7 +25,10 @@ type
   EGLContextNotPossible = class(Exception);
 
   { Required OpenGL context capabilities.
-    See corresponding TCastleWindow properties for docs. }
+    See corresponding TCastleWindow properties for docs.
+    These context requirements are cross-platform,
+    i.e. they should make sense for all ways how one can create OpenGL context
+    (EGL, wgl, glX, etc.) }
   TGLContextRequirements = class
     DoubleBuffer: Boolean;
     ColorBits: Cardinal;
@@ -85,13 +88,16 @@ type
     // Created by ContextCreate, destroyed by ContextDestroy
     h_GLRc: HGLRC;
 
-    { Methods compatible with castlewindow_egl.inc.
-      @groupBegin }
+    { Create GL context. }
     procedure ContextCreate(const Requirements: TGLContextRequirements);
-    procedure ContextDestroy;
-    { @groupEnd }
 
+    { Destroy GL context. }
+    procedure ContextDestroy;
+
+    { Make the GL context current. }
     procedure MakeCurrent;
+
+    { Swap buffers. Call this after rendering, only when requirements had DoubleBuffer=@true. }
     procedure SwapBuffers;
   end;
 
@@ -409,7 +415,6 @@ begin
   h_GLRc := wglCreateContext(h_Dc);
   OSCheck(h_GLRc <> 0, 'wglCreateContext');
 
-  { All OpenGL contexts should be shared }
   if SharedContext <> nil then
     OSCheck(wglShareLists(SharedContext.h_GLRc, h_GLRc), 'wglShareLists');
 end;

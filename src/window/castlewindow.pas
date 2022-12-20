@@ -1399,7 +1399,6 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    {$ifdef FPC}
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1413,10 +1412,10 @@ type
 
       @deprecated
       This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. now LCL backend,
-      the default backend on macOS, doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
-    {$endif FPC}
+      buffer. It may not be supported by some backends (e.g. LCL backend
+      doesn't support it). }
+    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
+      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
 
     { Name of the icon for this window used by GTK 2 backend.
 
