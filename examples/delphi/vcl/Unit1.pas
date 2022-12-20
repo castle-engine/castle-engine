@@ -32,9 +32,8 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     CastleControl: TCastleVclOpenGlControl;
-    Requirements: TGLContextRequirements;
-    Context: TGLContextWGL;
     procedure GlPaint(Sender: TObject);
+    procedure GlOpen(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -50,26 +49,21 @@ uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
   CastleControls, CastleApplicationProperties, CastleVectors, CastleTimeUtils;
 
 procedure TForm1.FormCreate(Sender: TObject);
-var
-  TimeStart: TTimerResult;
 begin
-  TimeStart := Timer;
-
   CastleControl := TCastleVclOpenGlControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Left := 50;
   CastleControl.Top := 50;
   CastleControl.Width := 400;
   CastleControl.Height := 500;
-  CastleControl.GLContextOpen;
-
-  Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [
-    TimeStart.ElapsedTime
-  ]));
-  Memo1.Lines.Add(GLInformationString);
-
+  CastleControl.OnGlOpen := GlOpen;
   CastleControl.OnGlPaint := GlPaint;
   CastleControl.Invalidate;
+end;
+
+procedure TForm1.GlOpen(Sender: TObject);
+begin
+  Memo1.Lines.Add(GLInformationString);
 end;
 
 procedure TForm1.GlPaint(Sender: TObject);

@@ -31,10 +31,11 @@ type
     Memo1: TMemo;
     Timer1: TTimer;
     procedure FormCreate(Sender: TObject);
-    procedure GlPaint(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     CastleControl: TCastleFmxOpenGlControl;
+    procedure GlOpen(Sender: TObject);
+    procedure GlPaint(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -52,26 +53,21 @@ uses Windows, FMX.Presentation.Win,
   CastleControls;
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
-var
-  TimeStart: TTimerResult;
 begin
-  TimeStart := Timer;
-
   CastleControl := TCastleFmxOpenGlControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Position.X := 20;
   CastleControl.Position.Y := 20;
   CastleControl.Width := 300;
   CastleControl.Height := 400;
-  CastleControl.GLContextOpen;
-
-  Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [
-    TimeStart.ElapsedTime
-  ]));
-  Memo1.Lines.Add(GLInformationString);
-
+  CastleControl.OnGlOpen := GlOpen;
   CastleControl.OnGlPaint := GlPaint;
   Invalidate;
+end;
+
+procedure TTestCgeControl.GlOpen(Sender: TObject);
+begin
+  Memo1.Lines.Add(GLInformationString);
 end;
 
 procedure TTestCgeControl.GlPaint(Sender: TObject);

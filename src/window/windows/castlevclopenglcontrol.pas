@@ -30,12 +30,23 @@ type
     FRequirements: TGLContextRequirements;
     FContext: TGLContextWGL;
     FOnGlPaint: TNotifyEvent;
+    FOnGlOpen: TNotifyEvent;
+  protected
+    procedure CreateHandle; override;
+    procedure DestroyHandle; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Paint; override;
-    procedure GLContextOpen;
+
+    { Context required parameters. }
     property Requirements: TGLContextRequirements read FRequirements;
+
+    { Render callback. }
     property OnGlPaint: TNotifyEvent read FOnGlPaint write FOnGlPaint;
+
+    { When OpenGL context is initialized. }
+    property OnGlOpen: TNotifyEvent read FOnGlOpen write FOnGlOpen;
   end;
 
 procedure Register;
@@ -68,13 +79,23 @@ begin
   FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK
 end;
 
-procedure TCastleVclOpenGlControl.GLContextOpen;
+destructor TCastleVclOpenGlControl.Destroy;
 begin
-  // Handle not available before Parent is assigned
+  FreeAndNil(FContext);
+  inherited;
+end;
+
+procedure TCastleVclOpenGlControl.CreateHandle;
+begin
+  inherited;
+
+  // Handle is only available now, in CreateHandle
   FContext.WndPtr := Handle;
   FContext.h_Dc := GetWindowDC(FContext.WndPtr);
 
   FContext.ContextCreate(FRequirements);
+
+  // TODO: code below should be done by TCastleContainer
 
   // initialize CGE OpenGL resources
   FContext.MakeCurrent;
@@ -84,7 +105,16 @@ begin
 
   // CGE needs this to be assigned, typically done by container
   RenderContext := TRenderContext.Create;
-  RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+
+  if Assigned(OnGlOpen) then
+    OnGlOpen(Self);
+end;
+
+procedure TCastleVclOpenGlControl.DestroyHandle;
+begin
+  if FContext <> nil then
+    FContext.ContextDestroy;
+  inherited;
 end;
 
 procedure TCastleVclOpenGlControl.Paint;
@@ -93,6 +123,7 @@ begin
   if (FContext <> nil) and Assigned(OnGlPaint) then
   begin
     FContext.MakeCurrent;
+    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
     OnGlPaint(Self);
     FContext.SwapBuffers;
   end;
