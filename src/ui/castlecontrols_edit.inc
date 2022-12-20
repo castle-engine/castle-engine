@@ -158,7 +158,10 @@
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
     { Show given character (usually "*") instead of actual input characters.
-      Useful for password input fields. }
+      Useful for password input fields.
+
+      In the case of mobile systems, when PasswordChar is set the keyboard
+      doesn't save the entered text (keyboard starts in the password mode). }
     property PasswordChar: Char
       read FPasswordChar write SetPasswordChar default #0;
 
