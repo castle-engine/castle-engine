@@ -14,7 +14,7 @@
 }
 
 { Control with OpenGL context on a Delphi VCL form. }
-unit CastleVclOpenGlControl;
+unit Vcl.CastleControl;
 
 {$I castleconf.inc}
 
@@ -25,7 +25,7 @@ uses SysUtils, Classes, Vcl.Controls,
 
 type
   { Control rendering OpenGL on VCL form. }
-  TCastleVclOpenGlControl = class(TCustomControl)
+  TCastleControl = class(TCustomControl)
   private
     FRequirements: TGLContextRequirements;
     FContext: TGLContextWGL;
@@ -60,13 +60,13 @@ uses Windows,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    TCastleVclOpenGlControl
+    TCastleControl
   ]);
 end;
 
-{ TCastleVclOpenGlControl ---------------------------------------------------- }
+{ TCastleControl ---------------------------------------------------- }
 
-constructor TCastleVclOpenGlControl.Create(AOwner: TComponent);
+constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -79,13 +79,13 @@ begin
   FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK
 end;
 
-destructor TCastleVclOpenGlControl.Destroy;
+destructor TCastleControl.Destroy;
 begin
   FreeAndNil(FContext);
   inherited;
 end;
 
-procedure TCastleVclOpenGlControl.CreateHandle;
+procedure TCastleControl.CreateHandle;
 begin
   inherited;
 
@@ -110,14 +110,14 @@ begin
     OnGlOpen(Self);
 end;
 
-procedure TCastleVclOpenGlControl.DestroyHandle;
+procedure TCastleControl.DestroyHandle;
 begin
   if FContext <> nil then
     FContext.ContextDestroy;
   inherited;
 end;
 
-procedure TCastleVclOpenGlControl.Paint;
+procedure TCastleControl.Paint;
 begin
   inherited;
   if (FContext <> nil) and Assigned(OnGlPaint) then

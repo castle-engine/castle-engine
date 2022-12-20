@@ -21,7 +21,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
-  CastleVclOpenGlControl,
+  Vcl.CastleControl,
   CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
 
 type
@@ -31,7 +31,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    CastleControl: TCastleVclOpenGlControl;
+    CastleControl: TCastleControl;
     procedure GlPaint(Sender: TObject);
     procedure GlOpen(Sender: TObject);
   public
@@ -50,7 +50,7 @@ uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  CastleControl := TCastleVclOpenGlControl.Create(Self);
+  CastleControl := TCastleControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Left := 50;
   CastleControl.Top := 50;

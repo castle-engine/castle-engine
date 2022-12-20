@@ -24,7 +24,7 @@ uses
   FMX.Platform.Win,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
   FMX.Memo,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL, CastleFmxOpenGlControl;
+  CastleGLVersion, CastleGLUtils, CastleGLContextWGL, Fmx.CastleControl;
 
 type
   TTestCgeControl = class(TForm)
@@ -33,7 +33,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    CastleControl: TCastleFmxControl;
+    CastleControl: TCastleControl;
     procedure GlOpen(Sender: TObject);
     procedure GlPaint(Sender: TObject);
   public
@@ -54,7 +54,7 @@ uses Windows, FMX.Presentation.Win,
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
-  CastleControl := TCastleFmxControl.Create(Self);
+  CastleControl := TCastleControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Position.X := 20;
   CastleControl.Position.Y := 20;
