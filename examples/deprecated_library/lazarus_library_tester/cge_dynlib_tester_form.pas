@@ -67,11 +67,13 @@ type
     BtnNavTurntable: TToggleBox;
     BtnScreenshot: TButton;
     BtnOpen: TButton;
+    CbViewpoints: TComboBox;
     OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
     procedure BtnOpenClick(Sender: TObject);
     procedure BtnScreenshotClick(Sender: TObject);
     procedure BtnWalkClick(Sender: TObject);
+    procedure CbViewpointsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -91,7 +93,9 @@ type
     procedure IdleFunc(Sender: TObject; var Done: Boolean);
   private
     { private declarations }
+    procedure UpdateUIAfterOpen;
     procedure UpdateNavigationButtons;
+    procedure FillViewpoints;
   public
     { public declarations }
   end;
@@ -144,10 +148,7 @@ begin
   CGE_SetUserInterface(true);
   sFile := 'data/bridge_level/bridge_final.x3dv';
   CGE_LoadSceneFromFile(@sFile[1]);
-
-  OpenGLControl1.Invalidate;
-  ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
-  UpdateNavigationButtons;
+  UpdateUIAfterOpen;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -239,10 +240,16 @@ begin
 
     CGE_LoadSceneFromFile(@csFile[0]);
 
-    OpenGLControl1.Invalidate;
-    ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
-    UpdateNavigationButtons;
+    UpdateUIAfterOpen;
   end;
+end;
+
+procedure TForm1.UpdateUIAfterOpen;
+begin
+  OpenGLControl1.Invalidate;
+  FillViewpoints;
+  ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+  UpdateNavigationButtons;
 end;
 
 procedure TForm1.BtnWalkClick(Sender: TObject);
@@ -268,6 +275,33 @@ begin
   BtnNavTurntable.Checked := (iType = ecgenavTurntable);
 
   bIgnoreNotifications := bOldIgnore;
+end;
+
+procedure TForm1.FillViewpoints;
+var
+  i, nCount: integer;
+  csName: array[0..260] of char;
+  bOldIgnore: boolean;
+begin
+  bOldIgnore := bIgnoreNotifications;
+  bIgnoreNotifications := true;
+
+  CbViewpoints.Items.Clear;
+  nCount := CGE_GetViewpointsCount();
+  for i := 0 to nCount-1 do
+  begin
+    CGE_GetViewpointName(i, @csName[0], 260);
+    CbViewpoints.Items.Add(csName);
+  end;
+
+  bIgnoreNotifications := bOldIgnore;
+end;
+
+procedure TForm1.CbViewpointsChange(Sender: TObject);
+begin
+  if bIgnoreNotifications then exit;
+
+  CGE_MoveToViewpoint(CbViewpoints.ItemIndex, true);
 end;
 
 end.
