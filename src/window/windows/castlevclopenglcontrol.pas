@@ -24,17 +24,27 @@ uses SysUtils, Classes, Vcl.Controls,
   CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
 
 type
+  { Control rendering OpenGL on VCL form. }
   TCastleVclOpenGlControl = class(TCustomControl)
+  private
+    FRequirements: TGLContextRequirements;
+    FContext: TGLContextWGL;
+    FOnGlPaint: TNotifyEvent;
   public
-    // TODO: For now, create and assign Context from the outside before using
-    Context: TGLContextWGL;
-    OnGlPaint: TNotifyEvent;
+    constructor Create(AOwner: TComponent); override;
     procedure Paint; override;
+    procedure GLContextOpen;
+    property Requirements: TGLContextRequirements read FRequirements;
+    property OnGlPaint: TNotifyEvent read FOnGlPaint write FOnGlPaint;
   end;
 
 procedure Register;
 
 implementation
+
+uses Windows,
+  CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
+  CastleRectangles;
 
 procedure Register;
 begin
@@ -43,14 +53,48 @@ begin
   ]);
 end;
 
+{ TCastleVclOpenGlControl ---------------------------------------------------- }
+
+constructor TCastleVclOpenGlControl.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FRequirements := TGLContextRequirements.Create(Self);
+  FRequirements.Name := 'Requirements';
+  FRequirements.SetSubComponent(true);
+
+  FContext := TGLContextWGL.Create;
+  FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK
+  FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK
+end;
+
+procedure TCastleVclOpenGlControl.GLContextOpen;
+begin
+  // Handle not available before Parent is assigned
+  FContext.WndPtr := Handle;
+  FContext.h_Dc := GetWindowDC(FContext.WndPtr);
+
+  FContext.ContextCreate(FRequirements);
+
+  // initialize CGE OpenGL resources
+  FContext.MakeCurrent;
+  ApplicationProperties._GLContextEarlyOpen;
+  ApplicationProperties._GLContextOpen;
+  GLInformationInitialize;
+
+  // CGE needs this to be assigned, typically done by container
+  RenderContext := TRenderContext.Create;
+  RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+end;
+
 procedure TCastleVclOpenGlControl.Paint;
 begin
   inherited;
-  if (Context <> nil) and Assigned(OnGlPaint) then
+  if (FContext <> nil) and Assigned(OnGlPaint) then
   begin
-    Context.MakeCurrent;
+    FContext.MakeCurrent;
     OnGlPaint(Self);
-    Context.SwapBuffers;
+    FContext.SwapBuffers;
   end;
 end;
 

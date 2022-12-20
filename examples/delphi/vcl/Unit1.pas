@@ -61,41 +61,13 @@ begin
   CastleControl.Top := 50;
   CastleControl.Width := 400;
   CastleControl.Height := 500;
-
-  Requirements := TGLContextRequirements.Create(nil);
-  Requirements.DoubleBuffer := true;
-  Requirements.DepthBits := 24;
-  Requirements.StencilBits := DefaultStencilBits;
-  Requirements.MultiSampling := 1;
-
-  Context := TGLContextWGL.Create;
-  Context.WndPtr := CastleControl.Handle;
-  Context.h_Dc := GetWindowDC(Context.WndPtr); // TODO: get it internally?
-  Context.WindowCaption := 'TestCgeControl';
-  Context.WndClassName := 'Castle'; // TODO: invented
-
-  Context.ContextCreate(Requirements);
-
-  Memo1.Lines.Add('Got GL context, h_GLRc: ' + IntToStr(Context.h_GLRc));
-
-  Context.MakeCurrent;
-
-  ApplicationProperties._GLContextEarlyOpen;
-  ApplicationProperties._GLContextOpen;
-
-  GLInformationInitialize;
-
-  // CGE needs this to be assigned, typically done by container
-  RenderContext := TRenderContext.Create;
-  RenderContext.Viewport := Rectangle(0, 0, CastleControl.Width, CastleControl.Height);
-  // TODO: update viewport if panel size changes
+  CastleControl.GLContextOpen;
 
   Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [
     TimeStart.ElapsedTime
   ]));
   Memo1.Lines.Add(GLInformationString);
 
-  CastleControl.Context := Context;
   CastleControl.OnGlPaint := GlPaint;
   CastleControl.Invalidate;
 end;
@@ -109,8 +81,7 @@ end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
-  if CastleControl <> nil then
-    CastleControl.Invalidate;
+  CastleControl.Invalidate;
 end;
 
 end.

@@ -22,7 +22,7 @@ object Form1: TForm1
   object Timer1: TTimer
     Interval = 10
     OnTimer = Timer1Timer
-    Left = 336
-    Top = 96
+    Left = 580
+    Top = 24
   end
 end
