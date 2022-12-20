@@ -25,13 +25,15 @@ unit CastlePropEdits;
 
 interface
 
-uses PropEdits;
+uses PropEdits, CastleColors;
 
 { Some of the property editors are publicly exposed,
   to enable using them for your own properties in custom components too.
   See examples/advanced_editor/custom_component/code/gamecontrols.pas . }
 {$define read_interface}
+{$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_url.inc}
+{$I castlepropedits_color.inc}
 {$undef read_interface}
 
 procedure Register;
@@ -46,11 +48,12 @@ uses // FPC and LCL units
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
+  CastleVectors, CastleUtils, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
+  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation,
+  FormCastleColorPicker;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}

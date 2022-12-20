@@ -17,21 +17,24 @@
 { Color property editors. }
 
 { TCastleColorPropertyEditor ------------------------------------------------- }
-
+{$ifdef read_interface}
 type
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
-  strict private
-    procedure SetAllValues(const NewValue: TCastleColor);
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    procedure SetAllValues(const NewValue: TCastleColor);
     function GetDefaultValue: String; override;
     function ValueIsStreamed: boolean; override;
     function AllEqual: Boolean; override;
   end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
@@ -46,8 +49,9 @@ var
   ColorPersistent: TCastleColorPersistent;
   Color: TCastleColor;
   ColorByte: TVector3Byte;
+  ColorPicker: TCastleColorPickerForm;
 begin
-  Dialog := TColorDialog.Create(nil);
+  {Dialog := TColorDialog.Create(nil);
   try
     ColorPersistent := (GetObjectValue as TCastleColorPersistent);
     Color := ColorPersistent.Value;
@@ -65,7 +69,15 @@ begin
         Color.W := 1;
       SetAllValues(Color);
     end;
-  finally FreeAndNil(Dialog) end;
+  finally FreeAndNil(Dialog) end;}
+  ColorPicker := TCastleColorPickerForm.Create(nil);
+
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Color := ColorPersistent.Value;
+  ColorPicker.Init(Self, Color);
+  ColorPicker.Show;
+
+  // TODO: memory management
 end;
 
 function TCastleColorPropertyEditor.GetName: shortstring;
@@ -247,3 +259,5 @@ begin
 
   Result := true;
 end;
+
+{$endif read_implementation}
