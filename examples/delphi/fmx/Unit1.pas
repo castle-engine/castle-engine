@@ -61,9 +61,8 @@ begin
   CastleControl.Parent := Self;
   CastleControl.Position.X := 20;
   CastleControl.Position.Y := 20;
-  CastleControl.Width := 400;
-  CastleControl.Height := 500;
-
+  CastleControl.Width := 300;
+  CastleControl.Height := 400;
   CastleControl.GLContextOpen;
 
   Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [

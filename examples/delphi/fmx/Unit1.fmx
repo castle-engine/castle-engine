@@ -12,14 +12,14 @@ object TestCgeControl: TTestCgeControl
   object Memo1: TMemo
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
     DataDetectorTypes = []
-    Position.X = 369.000000000000000000
-    Position.Y = 96.000000000000000000
-    Size.Width = 392.000000000000000000
-    Size.Height = 321.000000000000000000
+    Position.X = 480.000000000000000000
+    Position.Y = 24.000000000000000000
+    Size.Width = 321.000000000000000000
+    Size.Height = 409.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 388.000000000000000000
-    Viewport.Height = 317.000000000000000000
+    Viewport.Width = 317.000000000000000000
+    Viewport.Height = 405.000000000000000000
   end
   object Timer1: TTimer
     Interval = 10

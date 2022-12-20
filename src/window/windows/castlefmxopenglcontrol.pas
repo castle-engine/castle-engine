@@ -37,20 +37,12 @@ type
     FRequirements: TGLContextRequirements;
     FContext: TGLContextWGL;
     FOnGlPaint: TNotifyEvent;
-    procedure SetOnGlPaint(const Value: TNotifyEvent);
   public
-    property OnGlPaint: TNotifyEvent read FOnGlPaint write SetOnGlPaint;
     constructor Create(AOwner: TComponent); override;
     procedure Paint; override;
-    property Requirements: TGLContextRequirements read FRequirements;
     procedure GLContextOpen;
-
-    // todo
-    //procedure AfterPaint; override;
-//    procedure Painting; virtual;
-//    procedure Paint; virtual;
-//    procedure DoPaint; virtual;
-//    procedure AfterPaint; virtual;
+    property Requirements: TGLContextRequirements read FRequirements;
+    property OnGlPaint: TNotifyEvent read FOnGlPaint write FOnGlPaint;
   end;
 
 procedure Register;
@@ -73,6 +65,8 @@ type
     For now we don't need anything beyond base TWinPresentation. }
   TWinNativeGLControl = class(TWinPresentation)
   end;
+
+{ TCastleFmxOpenGlControl ---------------------------------------------------- }
 
 constructor TCastleFmxOpenGlControl.Create(AOwner: TComponent);
 begin
@@ -117,17 +111,12 @@ end;
 procedure TCastleFmxOpenGlControl.Paint;
 begin
   inherited;
-  if Assigned(OnGlPaint) then
+  if (FContext <> nil) and Assigned(OnGlPaint) then
   begin
     FContext.MakeCurrent;
     OnGlPaint(Self);
     FContext.SwapBuffers;
   end;
-end;
-
-procedure TCastleFmxOpenGlControl.SetOnGlPaint(const Value: TNotifyEvent);
-begin
-  FOnGlPaint := Value;
 end;
 
 initialization
