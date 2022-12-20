@@ -485,8 +485,6 @@ begin
   begin
     // WritelnLog('key down - code ' + Received[1]);
     // WritelnLog('key down - ' + Received[2]);
-
-
     if TryStrToInt(Received[1], KeyCode) then
     begin
       KeyString := Received[2];

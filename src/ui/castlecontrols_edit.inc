@@ -611,8 +611,7 @@ begin
     if Container.ForceCaptureInput = nil then
     begin
       Focused := true;
-    end
-    else
+    end else
     if Container.ForceCaptureInput <> Self then
     begin
       { Only when other edit shows keyboard (or none), change it focus to false
@@ -621,7 +620,6 @@ begin
       Focused := true;
     end;
   end;
-
 end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
