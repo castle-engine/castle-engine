@@ -33,7 +33,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    CastleControl: TCastleFmxOpenGlControl;
+    CastleControl: TCastleFmxControl;
     procedure GlOpen(Sender: TObject);
     procedure GlPaint(Sender: TObject);
   public
@@ -54,7 +54,7 @@ uses Windows, FMX.Presentation.Win,
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
-  CastleControl := TCastleFmxOpenGlControl.Create(Self);
+  CastleControl := TCastleFmxControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Position.X := 20;
   CastleControl.Position.Y := 20;

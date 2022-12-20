@@ -25,8 +25,8 @@ uses SysUtils, Classes, Windows,
   CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
 
 type
-  { Control rendering OpenGL on FMX form. }
-  TCastleFmxOpenGlControl = class(TPresentedControl)
+  { Control rendering "Castle Game Engine" on FMX form. }
+  TCastleFmxControl = class(TPresentedControl)
   private
     FRequirements: TGLContextRequirements;
     FContext: TGLContextWGL;
@@ -66,26 +66,26 @@ uses FMX.Presentation.Factory,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    TCastleFmxOpenGlControl
+    TCastleFmxControl
   ]);
 end;
 
 { TWinNativeGLControl -------------------------------------------------------- }
 
 type
-  { Presentation for TCastleFmxOpenGlControl.
+  { Presentation for TCastleFmxControl.
     This class is necessary to manage WinAPI HWND associated with FMX control. }
   TWinNativeGLControl = class(TWinPresentation)
   protected
     procedure CreateHandle; override;
     procedure DestroyHandle; override;
   public
-    function CastleControl: TCastleFmxOpenGlControl;
+    function CastleControl: TCastleFmxControl;
   end;
 
-function TWinNativeGLControl.CastleControl: TCastleFmxOpenGlControl;
+function TWinNativeGLControl.CastleControl: TCastleFmxControl;
 begin
-  Result := Control as TCastleFmxOpenGlControl;
+  Result := Control as TCastleFmxControl;
 end;
 
 procedure TWinNativeGLControl.CreateHandle;
@@ -103,9 +103,9 @@ begin
   inherited;
 end;
 
-{ TCastleFmxOpenGlControl ---------------------------------------------------- }
+{ TCastleFmxControl ---------------------------------------------------- }
 
-constructor TCastleFmxOpenGlControl.Create(AOwner: TComponent);
+constructor TCastleFmxControl.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -122,13 +122,13 @@ begin
   ControlType := TControlType.Platform;
 end;
 
-destructor TCastleFmxOpenGlControl.Destroy;
+destructor TCastleFmxControl.Destroy;
 begin
   FreeAndNil(FContext);
   inherited;
 end;
 
-procedure TCastleFmxOpenGlControl.CreateHandle;
+procedure TCastleFmxControl.CreateHandle;
 begin
   { Thanks to TWinNativeGLControl, we have Windows HWND for this control.
     This is necessary to create OpenGL context that only renders to this control.
@@ -157,14 +157,14 @@ begin
     OnGlOpen(Self);
 end;
 
-procedure TCastleFmxOpenGlControl.DestroyHandle;
+procedure TCastleFmxControl.DestroyHandle;
 begin
   if FContext <> nil then
     FContext.ContextDestroy;
   inherited;
 end;
 
-procedure TCastleFmxOpenGlControl.Paint;
+procedure TCastleFmxControl.Paint;
 begin
   inherited;
   if (FContext <> nil) and Assigned(OnGlPaint) then
@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-procedure TCastleFmxOpenGlControl.SetOnGlOpen(const Value: TNotifyEvent);
+procedure TCastleFmxControl.SetOnGlOpen(const Value: TNotifyEvent);
 begin
   if not SameMethods(TMethod(FOnGlOpen), TMethod(Value)) then
   begin
@@ -190,8 +190,8 @@ end;
 
 initialization
   { Make TWinNativeGLControl used
-    for TCastleFmxOpenGlControl with ControlType = TControlType.Platform. }
-  TPresentationProxyFactory.Current.Register(TCastleFmxOpenGlControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
+    for TCastleFmxControl with ControlType = TControlType.Platform. }
+  TPresentationProxyFactory.Current.Register(TCastleFmxControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
 finalization
-  TPresentationProxyFactory.Current.Unregister(TCastleFmxOpenGlControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
+  TPresentationProxyFactory.Current.Unregister(TCastleFmxControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
 end.
