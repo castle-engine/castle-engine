@@ -17,8 +17,6 @@ object Form1: TForm1
     Top = 72
     Width = 377
     Height = 377
-    Lines.Strings = (
-      'Memo1')
     TabOrder = 0
   end
   object Timer1: TTimer

@@ -16,6 +16,8 @@
 { Initializes OpenGL context using Windows WGL. }
 unit CastleGLContextWGL;
 
+{$i castleconf.inc}
+
 interface
 
 uses Windows, SysUtils,

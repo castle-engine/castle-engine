@@ -16,6 +16,8 @@
 { Control with OpenGL context on a Delphi VCL form. }
 unit CastleVclOpenGlControl;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, Vcl.Controls,

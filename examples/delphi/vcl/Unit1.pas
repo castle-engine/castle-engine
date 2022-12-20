@@ -47,10 +47,14 @@ implementation
 {$R *.dfm}
 
 uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleControls, CastleApplicationProperties, CastleVectors;
+  CastleControls, CastleApplicationProperties, CastleVectors, CastleTimeUtils;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  TimeStart: TTimerResult;
 begin
+  TimeStart := Timer;
+
   CastleControl := TCastleVclOpenGlControl.Create(Self);
   CastleControl.Parent := Self;
   CastleControl.Left := 50;
@@ -72,7 +76,7 @@ begin
 
   Context.ContextCreate(Requirements);
 
-  //Memo1.Lines.Add('Got GL context, h_GLRc: ' + IntToStr(Context.h_GLRc));
+  Memo1.Lines.Add('Got GL context, h_GLRc: ' + IntToStr(Context.h_GLRc));
 
   Context.MakeCurrent;
 
@@ -80,12 +84,16 @@ begin
   ApplicationProperties._GLContextOpen;
 
   GLInformationInitialize;
-  Memo1.Lines.Text := GLInformationString;
 
   // CGE needs this to be assigned, typically done by container
   RenderContext := TRenderContext.Create;
   RenderContext.Viewport := Rectangle(0, 0, CastleControl.Width, CastleControl.Height);
   // TODO: update viewport if panel size changes
+
+  Memo1.Lines.Add(Format('Initialized OpenGL(ES) context in %f secs', [
+    TimeStart.ElapsedTime
+  ]));
+  Memo1.Lines.Add(GLInformationString);
 
   CastleControl.Context := Context;
   CastleControl.OnGlPaint := GlPaint;
