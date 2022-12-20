@@ -84,6 +84,24 @@ type
 
       Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
     function RequestedBufferAttributes: String;
+
+    { Required number of bits in color channels of accumulation buffer.
+      Color channel is 0..3: red, green, blue, alpha.
+      Zero means that given channel of accumulation buffer is not needed,
+      so when the vector is all zeros (default value) this means that
+      accumulation buffer is not needed at all.
+
+      Just like with other XxxBits property, we may get more
+      bits than we requested. But we will never get less --- if window system
+      will not be able to provide GL context with requested number of bits,
+      we will raise an error.
+
+      @deprecated
+      This property is deprecated, since modern OpenGL deprecated accumulation
+      buffer. It may not be supported by some backends (e.g. LCL backend
+      doesn't support it). }
+    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
+      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
   published
     { Should we request and use the double buffer.
       After every draw, we automatically swap buffers (if DoubleBuffer)
@@ -206,24 +224,6 @@ type
       Actually, we already initialize global CastleGLUtils.GLCurrentMultiSampling
       for you, you can use this. }
     property MultiSampling: Cardinal read FMultiSampling write FMultiSampling default 1;
-
-    { Required number of bits in color channels of accumulation buffer.
-      Color channel is 0..3: red, green, blue, alpha.
-      Zero means that given channel of accumulation buffer is not needed,
-      so when the vector is all zeros (default value) this means that
-      accumulation buffer is not needed at all.
-
-      Just like with other XxxBits property, we may get more
-      bits than we requested. But we will never get less --- if window system
-      will not be able to provide GL context with requested number of bits,
-      we will raise an error.
-
-      @deprecated
-      This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. LCL backend
-      doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
-      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
   end;
 
   { OpenGL context created using Windows-specific wgl library. }
