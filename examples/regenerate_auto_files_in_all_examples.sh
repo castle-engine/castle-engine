@@ -20,7 +20,7 @@ if which cygpath.exe > /dev/null; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
-"${FIND}" physics/ \
+"${FIND}" \
   '(' -iname CastleEngineManifest.xml ')' -and \
   '(' -not -iwholename '*/simplest_manifest_test/*' ')' -and \
   '(' -execdir bash -c 'if ls *.lfm > /dev/null 2>&1; then echo `pwd`": LCL project"; else castle-engine generate-program; fi' ';' ')'
