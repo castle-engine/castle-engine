@@ -677,7 +677,7 @@ begin
     raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
-  OutputList.AddLine('Stopping the process.', okError);
+  OutputList.AddLine('Stopping the process.', okInfo);
   RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
