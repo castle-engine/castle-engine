@@ -262,8 +262,15 @@ end;
 
 procedure TCastleControl.Paint;
 begin
-  //inherited; // inherited not needed, and possibly causes something unnecessary
-  FContainer.DoRender;
+  // TODO: at design-time, FMX TCastleControl is displayed at wrong position
+  if csDesigning in ComponentState then
+  begin
+    inherited;
+  end else
+  begin
+    // inherited not needed, and possibly causes something unnecessary
+    FContainer.DoRender;
+  end;
 end;
 
 class procedure TCastleControl.TContainer.UpdatingEnable;
