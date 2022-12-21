@@ -21,6 +21,7 @@ lib/
 *.~dsk
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
+*.local
 
 # Other backups
 *.blend1
