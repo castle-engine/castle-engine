@@ -79,8 +79,13 @@ uses SysUtils, Classes, Math, Generics.Collections,
   FPReadPNM, FPWritePNM,
   FPReadPNG, FPWritePNG,
   {$else}
-  { Delphi units }
-  Vcl.Imaging.PngImage,
+    { Delphi units }
+    {$ifndef USE_VAMPYRE_IMAGING}
+    { Vcl.Imaging.PngImage works fine, but disabled now:
+      CastleImages must be used with FMX too,
+      without depending on VCL units. }
+    Vcl.Imaging.PngImage,
+    {$endif}
   {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
