@@ -178,13 +178,27 @@ begin
 end;
 
 function TCastleControl.TContainer.Width: Integer;
+{ // Using LocalToScreen doesn't help to counteract the FMX scale
+var
+  P: TPointF;
 begin
-  Result := Round(Parent.Width);
+  P := Parent.LocalToScreen(TPointF.Create(Parent.Width, 0));
+  Result := Round(P.X);
+end;
+}
+var
+  Scale: Single;
+begin
+  Scale := (Parent.Presentation as TWinNativeGLControl).Scale;
+  Result := Round(Parent.Width * Scale);
 end;
 
 function TCastleControl.TContainer.Height: Integer;
+var
+  Scale: Single;
 begin
-  Result := Round(Parent.Height);
+  Scale := (Parent.Presentation as TWinNativeGLControl).Scale;
+  Result := Round(Parent.Height * Scale);
 end;
 
 procedure TCastleControl.TContainer.Invalidate;
