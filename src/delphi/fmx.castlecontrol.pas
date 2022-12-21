@@ -22,46 +22,60 @@ interface
 
 uses SysUtils, Classes, Windows,
   FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
+  CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
+  CastleInternalContextWgl, CastleInternalContainer;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
   TCastleControl = class(TPresentedControl)
+  strict private
+    type
+      { Non-abstract implementation of TCastleContainer that cooperates with
+        TCastleControl. }
+      TContainer = class(TCastleContainerEasy)
+      private
+        Parent: TCastleControl;
+      protected
+        function GetMousePosition: TVector2; override;
+        procedure SetMousePosition(const Value: TVector2); override;
+        procedure AdjustContext(const AContext: TGLContextWGL); override;
+      public
+        constructor Create(AParent: TCastleControl); reintroduce;
+        procedure Invalidate; override;
+        function Width: Integer; override;
+        function Height: Integer; override;
+        procedure SetInternalCursor(const Value: TMouseCursor); override;
+        function Dpi: Single; override;
+      end;
+
+    var
+      FContainer: TContainer;
   private
-    FRequirements: TGLContextRequirements;
-    FContext: TGLContextWGL;
-    FOnGlOpen, FOnGlPaint: TNotifyEvent;
     procedure CreateHandle;
     procedure DestroyHandle;
-    procedure SetOnGlOpen(const Value: TNotifyEvent);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
+
+    { Access Castle Game Engine container properties and events,
+      not specific for FMX. }
+    property Container: TContainer read FContainer;
 
     { This control must always have "native style", which means
       it has ControlType = Platform. See FMX docs about native controls:
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
       Native controls are always on top of non-native controls. }
     property ControlType default TControlType.Platform;
-
-    { Context required parameters. }
-    property Requirements: TGLContextRequirements read FRequirements;
-
-    { Render callback. }
-    property OnGlPaint: TNotifyEvent read FOnGlPaint write FOnGlPaint;
-
-    { When OpenGL context is initialized. }
-    property OnGlOpen: TNotifyEvent read FOnGlOpen write SetOnGlOpen;
   end;
 
 procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory,
+uses FMX.Presentation.Factory, Types,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles, CastleUtils;
+  CastleRectangles, CastleUtils, CastleUIControls;
 
 procedure Register;
 begin
@@ -103,89 +117,99 @@ begin
   inherited;
 end;
 
+{ TCastleControl.TContainer ---------------------------------------------------}
+
+constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
+begin
+  inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
+  Parent := AParent;
+end;
+
+procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+begin
+  inherited;
+  AContext.WndPtr := (Parent.Presentation as TWinNativeGLControl).Handle;
+  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
+end;
+
+function TCastleControl.TContainer.Dpi: Single;
+begin
+  Result := DefaultDpi;
+end;
+
+function TCastleControl.TContainer.GetMousePosition: TVector2;
+begin
+  // TODO
+  Result := TVector2.Zero;
+end;
+
+procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
+begin
+  // TODO
+end;
+
+function TCastleControl.TContainer.Width: Integer;
+begin
+  Result := Round(Parent.Width);
+end;
+
+function TCastleControl.TContainer.Height: Integer;
+begin
+  Result := Round(Parent.Height);
+end;
+
+procedure TCastleControl.TContainer.Invalidate;
+begin
+  Parent.InvalidateRect(TRectF.Create(0, 0, Width, Height));
+end;
+
+procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
+begin
+  // TODO
+end;
+
 { TCastleControl ---------------------------------------------------- }
 
 constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FRequirements := TGLContextRequirements.Create(Self);
-  FRequirements.Name := 'Requirements';
-  FRequirements.SetSubComponent(true);
-
-  FContext := TGLContextWGL.Create;
-  FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK
-  FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK
+  FContainer := TContainer.Create(Self);
 
   { Makes the Presentation be TWinNativeGLControl, which has HWND.
-    Do this after FContext is initialized, as it may call CreateHandle. }
+    Do this after FContainer is initialized, as it may call CreateHandle. }
   ControlType := TControlType.Platform;
 end;
 
 destructor TCastleControl.Destroy;
 begin
-  FreeAndNil(FContext);
   inherited;
 end;
 
 procedure TCastleControl.CreateHandle;
 begin
-  { Thanks to TWinNativeGLControl, we have Windows HWND for this control.
-    This is necessary to create OpenGL context that only renders to this control.
+  { Thanks to TWinNativeGLControl, we have Windows HWND for this control now in
+      (Presentation as TWinNativeGLControl).Handle
+    This is used in AdjustContext and
+    is necessary to create OpenGL context that only renders to this control.
 
     Note: The only other way in FMX to get HWND seems to be to get form HWND,
       WindowHandleToPlatform(Handle).Wnd
     but this is not useful for us (we don't want to always render to full window).
   }
-  FContext.WndPtr := (Presentation as TWinNativeGLControl).Handle;
-  FContext.h_Dc := GetWindowDC(FContext.WndPtr);
-
-  FContext.ContextCreate(FRequirements);
-
-  // TODO: below should be done by TCastleContainer
-
-  // initialize CGE OpenGL resources
-  FContext.MakeCurrent;
-  ApplicationProperties._GLContextEarlyOpen;
-  ApplicationProperties._GLContextOpen;
-  GLInformationInitialize;
-
-  // CGE needs this to be assigned, typically done by container
-  RenderContext := TRenderContext.Create;
-
-  if Assigned(OnGlOpen) then
-    OnGlOpen(Self);
+  FContainer.CreateContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  if FContext <> nil then
-    FContext.ContextDestroy;
+  FContainer.DestroyContext;
   inherited;
 end;
 
 procedure TCastleControl.Paint;
 begin
   inherited;
-  if (FContext <> nil) and Assigned(OnGlPaint) then
-  begin
-    FContext.MakeCurrent;
-    RenderContext.Viewport := Rectangle(0, 0, Round(Width), Round(Height));
-    OnGlPaint(Self);
-    FContext.SwapBuffers;
-  end;
-end;
-
-procedure TCastleControl.SetOnGlOpen(const Value: TNotifyEvent);
-begin
-  if not SameMethods(TMethod(FOnGlOpen), TMethod(Value)) then
-  begin
-    FOnGlOpen := Value;
-    { Call OnOpen, if context already initialized when it is set\ }
-    if FContext.h_GLRc <> 0 then
-      if Assigned(OnGlOpen) then
-        OnGlOpen(Self);
-  end;
+  FContainer.DoRender;
 end;
 
 initialization

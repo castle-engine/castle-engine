@@ -21,16 +21,34 @@ unit Vcl.CastleControl;
 interface
 
 uses SysUtils, Classes, Vcl.Controls,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
+  CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
+  CastleVectors, CastleKeysMouse;
 
 type
   { Control rendering OpenGL on VCL form. }
   TCastleControl = class(TCustomControl)
-  private
-    FRequirements: TGLContextRequirements;
-    FContext: TGLContextWGL;
-    FOnGlPaint: TNotifyEvent;
-    FOnGlOpen: TNotifyEvent;
+  strict private
+    type
+      { Non-abstract implementation of TCastleContainer that cooperates with
+        TCastleControl. }
+      TContainer = class(TCastleContainerEasy)
+      private
+        Parent: TCastleControl;
+      protected
+        function GetMousePosition: TVector2; override;
+        procedure SetMousePosition(const Value: TVector2); override;
+        procedure AdjustContext(const AContext: TGLContextWGL); override;
+      public
+        constructor Create(AParent: TCastleControl); reintroduce;
+        procedure Invalidate; override;
+        function Width: Integer; override;
+        function Height: Integer; override;
+        procedure SetInternalCursor(const Value: TMouseCursor); override;
+        function Dpi: Single; override;
+      end;
+
+    var
+      FContainer: TContainer;
   protected
     procedure CreateHandle; override;
     procedure DestroyHandle; override;
@@ -39,14 +57,9 @@ type
     destructor Destroy; override;
     procedure Paint; override;
 
-    { Context required parameters. }
-    property Requirements: TGLContextRequirements read FRequirements;
-
-    { Render callback. }
-    property OnGlPaint: TNotifyEvent read FOnGlPaint write FOnGlPaint;
-
-    { When OpenGL context is initialized. }
-    property OnGlOpen: TNotifyEvent read FOnGlOpen write FOnGlOpen;
+    { Access Castle Game Engine container properties and events,
+      not specific for FMX. }
+    property Container: TContainer read FContainer;
   end;
 
 procedure Register;
@@ -55,7 +68,7 @@ implementation
 
 uses Windows,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles;
+  CastleRectangles, CastleUIControls;
 
 procedure Register;
 begin
@@ -64,69 +77,88 @@ begin
   ]);
 end;
 
+{ TCastleControl.TContainer ---------------------------------------------------}
+
+constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
+begin
+  inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
+  Parent := AParent;
+end;
+
+procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+begin
+  inherited;
+  AContext.WndPtr := Parent.Handle;
+  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
+end;
+
+function TCastleControl.TContainer.Dpi: Single;
+begin
+  Result := DefaultDpi;
+end;
+
+function TCastleControl.TContainer.GetMousePosition: TVector2;
+begin
+  // TODO
+  Result := TVector2.Zero;
+end;
+
+procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
+begin
+  // TODO
+end;
+
+function TCastleControl.TContainer.Width: Integer;
+begin
+  Result := Parent.Width;
+end;
+
+function TCastleControl.TContainer.Height: Integer;
+begin
+  Result := Parent.Height;
+end;
+
+procedure TCastleControl.TContainer.Invalidate;
+begin
+  Parent.Invalidate;
+end;
+
+procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
+begin
+  // TODO
+end;
+
 { TCastleControl ---------------------------------------------------- }
 
 constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
-
-  FRequirements := TGLContextRequirements.Create(Self);
-  FRequirements.Name := 'Requirements';
-  FRequirements.SetSubComponent(true);
-
-  FContext := TGLContextWGL.Create;
-  FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK
-  FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK
+  FContainer := TContainer.Create(Self);
 end;
 
 destructor TCastleControl.Destroy;
 begin
-  FreeAndNil(FContext);
   inherited;
 end;
 
 procedure TCastleControl.CreateHandle;
 begin
   inherited;
-
-  // Handle is only available now, in CreateHandle
-  FContext.WndPtr := Handle;
-  FContext.h_Dc := GetWindowDC(FContext.WndPtr);
-
-  FContext.ContextCreate(FRequirements);
-
-  // TODO: code below should be done by TCastleContainer
-
-  // initialize CGE OpenGL resources
-  FContext.MakeCurrent;
-  ApplicationProperties._GLContextEarlyOpen;
-  ApplicationProperties._GLContextOpen;
-  GLInformationInitialize;
-
-  // CGE needs this to be assigned, typically done by container
-  RenderContext := TRenderContext.Create;
-
-  if Assigned(OnGlOpen) then
-    OnGlOpen(Self);
+  { Handle is only available now, in CreateHandle.
+    So only now call FContainer.CreateContext that does FContainer.AdjustContext. }
+  FContainer.CreateContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  if FContext <> nil then
-    FContext.ContextDestroy;
+  FContainer.DestroyContext;
   inherited;
 end;
 
 procedure TCastleControl.Paint;
 begin
   inherited;
-  if (FContext <> nil) and Assigned(OnGlPaint) then
-  begin
-    FContext.MakeCurrent;
-    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
-    OnGlPaint(Self);
-    FContext.SwapBuffers;
-  end;
+  FContainer.DoRender;
 end;
 
 end.

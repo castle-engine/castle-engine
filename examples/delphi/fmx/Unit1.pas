@@ -24,7 +24,7 @@ uses
   FMX.Platform.Win,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
   FMX.Memo,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL, Fmx.CastleControl;
+  CastleGLUtils, Fmx.CastleControl;
 
 type
   TTestCgeControl = class(TForm)
@@ -34,8 +34,6 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     CastleControl: TCastleControl;
-    procedure GlOpen(Sender: TObject);
-    procedure GlPaint(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -49,8 +47,13 @@ implementation
 
 uses Windows, FMX.Presentation.Win,
   CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleApplicationProperties, CastleTimeUtils, CastleVectors,
-  CastleControls;
+  CastleVectors, CastleControls, CastleUIControls;
+
+type
+  TMyUi = class(TCastleUserInterface)
+    procedure Render; override;
+    procedure GLContextOpen; override;
+  end;
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
@@ -60,26 +63,29 @@ begin
   CastleControl.Position.Y := 20;
   CastleControl.Width := 300;
   CastleControl.Height := 400;
-  CastleControl.OnGlOpen := GlOpen;
-  CastleControl.OnGlPaint := GlPaint;
-  Invalidate;
-end;
 
-procedure TTestCgeControl.GlOpen(Sender: TObject);
-begin
-  Memo1.Lines.Add(GLInformationString);
-end;
-
-procedure TTestCgeControl.GlPaint(Sender: TObject);
-begin
-  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
-  DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
-  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+  CastleControl.Container.Controls.InsertFront(TMyUi.Create(Self));
 end;
 
 procedure TTestCgeControl.Timer1Timer(Sender: TObject);
 begin
-  Invalidate;
+  Invalidate; // TODO: should not be needed
+end;
+
+{ TMyUi --------------------------------------------------------------------- }
+
+procedure TMyUi.GLContextOpen;
+begin
+  inherited;
+  TestCgeControl.Memo1.Lines.Add(GLInformationString);
+end;
+
+procedure TMyUi.Render;
+begin
+  inherited;
+  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
+  DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
+  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
 end.

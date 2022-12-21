@@ -835,6 +835,9 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
+  // TODO: what if ControlsList[0] was created but it not active?
+  // Does this maybe explain crash with docked editor?
+  // TODO: Or is it because we never remove from ControlsList?
   if ControlsList.Count <> 0 then
     SharedControl := ControlsList[0] as TCastleControl;
   ControlsList.Add(Self);

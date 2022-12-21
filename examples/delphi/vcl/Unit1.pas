@@ -22,7 +22,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
   Vcl.CastleControl,
-  CastleGLVersion, CastleGLUtils, CastleGLContextWGL;
+  CastleGLVersion, CastleGLUtils;
 
 type
   TForm1 = class(TForm)
@@ -32,8 +32,6 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     CastleControl: TCastleControl;
-    procedure GlPaint(Sender: TObject);
-    procedure GlOpen(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -46,7 +44,13 @@ implementation
 {$R *.dfm}
 
 uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleControls, CastleApplicationProperties, CastleVectors, CastleTimeUtils;
+  CastleControls, CastleApplicationProperties, CastleVectors, CastleUIControls;
+
+type
+  TMyUi = class(TCastleUserInterface)
+    procedure Render; override;
+    procedure GLContextOpen; override;
+  end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -56,26 +60,29 @@ begin
   CastleControl.Top := 50;
   CastleControl.Width := 400;
   CastleControl.Height := 500;
-  CastleControl.OnGlOpen := GlOpen;
-  CastleControl.OnGlPaint := GlPaint;
-  CastleControl.Invalidate;
-end;
 
-procedure TForm1.GlOpen(Sender: TObject);
-begin
-  Memo1.Lines.Add(GLInformationString);
-end;
-
-procedure TForm1.GlPaint(Sender: TObject);
-begin
-  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
-  DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
-  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+  CastleControl.Container.Controls.InsertFront(TMyUi.Create(Self));
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
-  CastleControl.Invalidate;
+  CastleControl.Invalidate; // TODO: should not be needed
+end;
+
+{ TMyUi --------------------------------------------------------------------- }
+
+procedure TMyUi.GLContextOpen;
+begin
+  inherited;
+  Form1.Memo1.Lines.Add(GLInformationString);
+end;
+
+procedure TMyUi.Render;
+begin
+  inherited;
+  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
+  DrawRectangle(FloatRectangle(10, 10, 100, 200), Blue);
+  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
 end.
