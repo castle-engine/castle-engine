@@ -27,15 +27,16 @@ uses
 type
   TForm1 = class(TForm)
     Memo1: TMemo;
-    Timer1: TTimer;
     Button3D: TButton;
     Button2D: TButton;
     ButtonUI: TButton;
+    LabelFps: TLabel;
+    Timer1: TTimer;
     procedure FormCreate(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
     procedure Button2DClick(Sender: TObject);
     procedure ButtonUIClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     DesignUi: TCastleDesign;
     CastleControl: TCastleControl;
@@ -71,7 +72,7 @@ procedure TMyRenderTest.Render;
 begin
   inherited;
   DrawRectangle(FloatRectangle(5, 5, 10, 10), Blue);
-  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+  FallbackFont.Print(30, 5, Yellow, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
 { TForm1 --------------------------------------------------------------------- }
@@ -113,7 +114,7 @@ end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
-  CastleControl.Invalidate; // TODO: should not be needed
+  LabelFps.Caption := 'FPS: ' + CastleControl.Container.Fps.ToString;
 end;
 
 end.

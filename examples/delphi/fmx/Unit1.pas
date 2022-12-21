@@ -35,6 +35,7 @@ type
     Button2D: TButton;
     ButtonUI: TButton;
     Button3D: TButton;
+    LabelFps: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
@@ -75,8 +76,8 @@ end;
 procedure TMyRenderTest.Render;
 begin
   inherited;
-  DrawRectangle(FloatRectangle(10, 10, 10, 20), Yellow);
-  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+  DrawRectangle(FloatRectangle(5, 5, 10, 10), Yellow);
+  FallbackFont.Print(30, 5, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
 { TTestCgeControl ------------------------------------------------------------ }
@@ -106,6 +107,9 @@ begin
   //  CastleControl.Height := 400;
   CastleControl.Align := TAlignLayout.Client;
 
+  // Call this to have UI scaling, same as in editor
+  CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
   // adding a design (made in CGE editor) using TCastleDesign
   DesignUi := TCastleDesign.Create(Self);
   DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
@@ -118,7 +122,7 @@ end;
 
 procedure TTestCgeControl.Timer1Timer(Sender: TObject);
 begin
-  Invalidate; // TODO: should not be needed
+  LabelFps.Text := 'FPS: ' + CastleControl.Container.Fps.ToString;
 end;
 
 end.

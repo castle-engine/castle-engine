@@ -20,7 +20,7 @@ unit Vcl.CastleControl;
 
 interface
 
-uses SysUtils, Classes, Vcl.Controls,
+uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls,
   CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
   CastleVectors, CastleKeysMouse;
 
@@ -34,10 +34,15 @@ type
       TContainer = class(TCastleContainerEasy)
       private
         Parent: TCastleControl;
+        class var
+          UpdatingTimer: TTimer;
+        class procedure UpdatingTimerEvent(Sender: TObject);
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
         procedure AdjustContext(const AContext: TGLContextWGL); override;
+        class procedure UpdatingEnable; override;
+        class procedure UpdatingDisable; override;
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
@@ -106,6 +111,25 @@ end;
 procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
 begin
   // TODO
+end;
+
+class procedure TCastleControl.TContainer.UpdatingEnable;
+begin
+  inherited;
+  UpdatingTimer := TTimer.Create(nil);
+  UpdatingTimer.Interval := 1;
+  UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+end;
+
+class procedure TCastleControl.TContainer.UpdatingDisable;
+begin
+  FreeAndNil(UpdatingTimer);
+  inherited;
+end;
+
+class procedure TCastleControl.TContainer.UpdatingTimerEvent(Sender: TObject);
+begin
+  DoUpdateEverything;
 end;
 
 function TCastleControl.TContainer.Width: Integer;

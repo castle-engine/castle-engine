@@ -16,19 +16,29 @@ object Form1: TForm1
     1025
     502)
   TextHeight = 15
+  object LabelFps: TLabel
+    Left = 640
+    Top = 432
+    Width = 46
+    Height = 15
+    Anchors = [akRight, akBottom]
+    Caption = 'LabelFps'
+  end
   object Memo1: TMemo
     AlignWithMargins = True
     Left = 638
     Top = 10
     Width = 377
-    Height = 442
+    Height = 412
     Margins.Left = 10
     Margins.Top = 10
     Margins.Right = 10
-    Margins.Bottom = 50
+    Margins.Bottom = 80
     Align = alRight
     ScrollBars = ssBoth
     TabOrder = 0
+    ExplicitLeft = 632
+    ExplicitHeight = 433
   end
   object Button3D: TButton
     Left = 726
@@ -39,6 +49,8 @@ object Form1: TForm1
     Caption = '3D'
     TabOrder = 1
     OnClick = Button3DClick
+    ExplicitLeft = 720
+    ExplicitTop = 460
   end
   object Button2D: TButton
     Left = 835
@@ -49,6 +61,8 @@ object Form1: TForm1
     Caption = '2D'
     TabOrder = 2
     OnClick = Button2DClick
+    ExplicitLeft = 829
+    ExplicitTop = 460
   end
   object ButtonUI: TButton
     Left = 940
@@ -59,11 +73,12 @@ object Form1: TForm1
     Caption = 'UI'
     TabOrder = 3
     OnClick = ButtonUIClick
+    ExplicitLeft = 934
+    ExplicitTop = 460
   end
   object Timer1: TTimer
-    Interval = 10
     OnTimer = Timer1Timer
-    Left = 892
-    Top = 112
+    Left = 920
+    Top = 336
   end
 end

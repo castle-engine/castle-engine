@@ -56,9 +56,12 @@ type
     FRequirements: TGLContextRequirements;
     FContext: TGLContextWGL;
     FGLInitialized: Boolean;
+    FAutoRedisplay: Boolean;
     { Copy of Requirements.DoubleBuffer when the context was created. }
     FEffectiveDoubleBuffer: Boolean;
     procedure MakeContextCurrent;
+    procedure SetAutoRedisplay(const Value: Boolean);
+    procedure DoUpdate;
   protected
     { Adjust context parameters right before usage. }
     procedure AdjustContext(const AContext: TGLContextWGL); virtual;
@@ -68,11 +71,36 @@ type
     procedure CreateContext;
     procedure DestroyContext;
     procedure DoRender;
+
+    class var
+      { "Updating" means that the mechanism to call DoUpdateEverything
+        continuosly is set up. }
+      UpdatingEnabled: Boolean;
+
+    class procedure DoUpdateEverything;
+    class procedure UpdatingEnable; virtual; abstract;
+    class procedure UpdatingDisable; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GLInitialized: boolean; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
+
+    { Should we automatically redraw the window all the time,
+      without the need for an @link(Invalidate) call.
+      If @true (the default), rendering and other processing will
+      be called constantly.
+
+      If your game may have a still screen (nothing animates),
+      then this approach is a little unoptimal, as we use CPU and GPU
+      for drawing, when it's not needed. In such case, you can set this
+      property to @false, and make sure that you call
+      @link(Invalidate) always when you need to redraw the screen.
+      Note that the engine components always call @link(Invalidate) when
+      necessary, so usually you should only call it yourself if you provide
+      a custom @link(OnRender) implementation. }
+    property AutoRedisplay: Boolean read FAutoRedisplay write SetAutoRedisplay
+      default true;
 
     { Context required parameters. }
     property Requirements: TGLContextRequirements read FRequirements;
@@ -84,7 +112,7 @@ implementation
 
 uses SysUtils,
   CastleRenderContext, CastleGLUtils, CastleApplicationProperties, CastleGLImages,
-  CastleGLVersion;
+  CastleGLVersion, CastleTimeUtils;
 
 var
   { All TCastleContainerEasy instances created.
@@ -98,6 +126,8 @@ var
   { Tracks how many containers on ContainersList have GL context initialized. }
   ContainersOpen: Cardinal;
 
+  LastLimitFPSTime: TTimerResult;
+
 constructor TCastleContainerEasy.Create(AOwner: TComponent);
 begin
   inherited;
@@ -109,6 +139,8 @@ begin
   FContext := TGLContextWGL.Create;
   FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
   FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
+
+  FAutoRedisplay := true;
 
   ContainersList.Add(Self);
 end;
@@ -168,6 +200,12 @@ begin
     EventOpen(ContainersOpen);
     EventResize;
     Invalidate;
+
+    if (not (csDesigning in ComponentState)) and (not UpdatingEnabled) then
+    begin
+      UpdatingEnabled := true;
+      UpdatingEnable;
+    end;
   end;
 end;
 
@@ -182,6 +220,12 @@ begin
     EventClose(ContainersOpen);
     Dec(ContainersOpen);
     FGLInitialized := false;
+
+    if UpdatingEnabled and (ContainersOpen = 0) then
+    begin
+      UpdatingEnabled := false;
+      UpdatingDisable;
+    end;
   end;
   inherited;
 end;
@@ -207,6 +251,95 @@ begin
     // it doesn't play OK with LCL or VCL.
     // if AutoRedisplay then Invalidate;
   finally Fps._RenderEnd end;
+end;
+
+procedure TCastleContainerEasy.DoUpdate;
+begin
+  if AutoRedisplay then
+    Invalidate;
+
+  { Update event also requires that proper OpenGL context is current.
+
+    This matters because OpenGL resources may be used durign update,
+    e.g. TCastleScene.Update will update auto-generated textures,
+    doing e.g. TGLGeneratedCubeMapTextureNode.Update.
+    This should run in proper OpenGL context.
+    Esp. as not all resources must be shared between contexts:
+    FBO are not shared in new OpenGL versions, see
+    https://stackoverflow.com/questions/4385655/is-it-possible-to-share-an-opengl-framebuffer-object-between-contexts-threads
+
+    Testcase: open examples/mobile/simple_3d_demo/ in editor,
+    open main design,
+    click on previews with GeneratedCubeMap like castle_with_lights_and_camera.wrl .
+    Without this fix, we'll have an OpenGL error.
+
+    Doing MakeCurrent here is consistent with TCastleWindow.DoUpdate . }
+  MakeContextCurrent;
+  EventUpdate;
+end;
+
+procedure TCastleContainerEasy.SetAutoRedisplay(const Value: boolean);
+begin
+  if FAutoRedisplay <> Value then
+  begin
+    FAutoRedisplay := value;
+    if Value then
+      Invalidate;
+  end;
+end;
+
+class procedure TCastleContainerEasy.DoUpdateEverything;
+
+  procedure DoLimitFPS;
+  var
+    NowTime: TTimerResult;
+    TimeRemainingFloat: Single;
+  begin
+    if ApplicationProperties.LimitFPS > 0 then
+    begin
+      NowTime := Timer;
+
+      { When this is run for the 1st time, LastLimitFPSTime is zero,
+        so NowTime - LastLimitFPSTime is huge, so we will not do any Sleep
+        and only update LastLimitFPSTime.
+
+        For the same reason, it is not a problem if you do not call DoLimitFPS
+        often enough (for example, you do a couple of ProcessMessage calls
+        without DoLimitFPS for some reason), or when user temporarily sets
+        LimitFPS to zero and then back to 100.0.
+        In every case, NowTime - LastLimitFPSTime will be large, and no sleep
+        will happen. IOW, in the worst case --- we will not limit FPS,
+        but we will *never* slow down the program when it's not really necessary. }
+
+      TimeRemainingFloat :=
+        { how long I should wait between _LimitFPS calls }
+        1 / ApplicationProperties.LimitFPS -
+        { how long I actually waited between _LimitFPS calls }
+        TimerSeconds(NowTime, LastLimitFPSTime);
+      { Don't do Sleep with too small values.
+        It's better to have larger FPS values than limit,
+        than to have them too small. }
+      if TimeRemainingFloat > 0.001 then
+      begin
+        Sleep(Round(1000 * TimeRemainingFloat));
+        LastLimitFPSTime := Timer;
+      end else
+        LastLimitFPSTime := NowTime;
+    end;
+  end;
+
+var
+  I: Integer;
+  C: TCastleContainerEasy;
+begin
+  for I := ContainersList.Count - 1 downto 0 do
+  begin
+    C := ContainersList[I];
+    if C.GLInitialized then
+      C.DoUpdate;
+  end;
+  ApplicationProperties._Update;
+  DoLimitFPS;
 end;
 
 initialization

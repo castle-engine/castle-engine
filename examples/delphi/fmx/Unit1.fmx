@@ -10,17 +10,16 @@ object TestCgeControl: TTestCgeControl
   OnCreate = FormCreate
   DesignerMasterStyle = 0
   object Timer1: TTimer
-    Interval = 10
     OnTimer = Timer1Timer
     Left = 408
     Top = 32
   end
   object Panel1: TPanel
     Align = Right
-    Margins.Bottom = 50.000000000000000000
+    Margins.Bottom = 80.000000000000000000
     Position.X = 488.000000000000000000
     Size.Width = 340.000000000000000000
-    Size.Height = 458.000000000000000000
+    Size.Height = 428.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object Memo1: TMemo
@@ -28,16 +27,16 @@ object TestCgeControl: TTestCgeControl
       DataDetectorTypes = []
       Align = Client
       Size.Width = 340.000000000000000000
-      Size.Height = 458.000000000000000000
+      Size.Height = 428.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       Viewport.Width = 336.000000000000000000
-      Viewport.Height = 454.000000000000000000
+      Viewport.Height = 424.000000000000000000
     end
     object Button2D: TButton
       Anchors = [akRight, akBottom]
       Position.X = 152.000000000000000000
-      Position.Y = 476.000000000000000000
+      Position.Y = 478.000000000000000000
       TabOrder = 3
       Text = '2D'
       OnClick = Button2DClick
@@ -45,7 +44,7 @@ object TestCgeControl: TTestCgeControl
     object ButtonUI: TButton
       Anchors = [akRight, akBottom]
       Position.X = 248.000000000000000000
-      Position.Y = 476.000000000000000000
+      Position.Y = 478.000000000000000000
       TabOrder = 1
       Text = 'UI'
       OnClick = ButtonUIClick
@@ -53,10 +52,20 @@ object TestCgeControl: TTestCgeControl
     object Button3D: TButton
       Anchors = [akRight, akBottom]
       Position.X = 56.000000000000000000
-      Position.Y = 476.000000000000000000
+      Position.Y = 478.000000000000000000
       TabOrder = 2
       Text = '3D'
       OnClick = Button3DClick
+    end
+    object LabelFps: TLabel
+      AutoSize = True
+      Position.X = 4.000000000000000000
+      Position.Y = 436.000000000000000000
+      Size.Width = 309.600006103515600000
+      Size.Height = 16.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'LabelFps'
+      TabOrder = 4
     end
   end
 end

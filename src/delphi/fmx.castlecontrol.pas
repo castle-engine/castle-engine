@@ -22,6 +22,7 @@ interface
 
 uses SysUtils, Classes, Windows,
   FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
+  FMX.Types,
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
   CastleInternalContextWgl, CastleInternalContainer;
 
@@ -35,10 +36,15 @@ type
       TContainer = class(TCastleContainerEasy)
       private
         Parent: TCastleControl;
+        class var
+          UpdatingTimer: TTimer;
+        class procedure UpdatingTimerEvent(Sender: TObject);
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
         procedure AdjustContext(const AContext: TGLContextWGL); override;
+        class procedure UpdatingEnable; override;
+        class procedure UpdatingDisable; override;
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
@@ -210,6 +216,25 @@ procedure TCastleControl.Paint;
 begin
   inherited;
   FContainer.DoRender;
+end;
+
+class procedure TCastleControl.TContainer.UpdatingEnable;
+begin
+  inherited;
+  UpdatingTimer := TTimer.Create(nil);
+  UpdatingTimer.Interval := 1;
+  UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+end;
+
+class procedure TCastleControl.TContainer.UpdatingDisable;
+begin
+  FreeAndNil(UpdatingTimer);
+  inherited;
+end;
+
+class procedure TCastleControl.TContainer.UpdatingTimerEvent(Sender: TObject);
+begin
+  DoUpdateEverything;
 end;
 
 initialization
