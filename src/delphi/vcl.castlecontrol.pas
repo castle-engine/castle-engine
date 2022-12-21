@@ -84,7 +84,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
-
+  published
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
@@ -180,6 +180,8 @@ constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
   FContainer := TContainer.Create(Self);
+  FContainer.SetSubComponent(true);
+  FContainer.Name := 'Container';
 end;
 
 destructor TCastleControl.Destroy;

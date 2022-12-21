@@ -88,15 +88,24 @@ type
     destructor Destroy; override;
     procedure Paint; override;
 
-    { Access Castle Game Engine container properties and events,
-      not specific for FMX. }
-    property Container: TContainer read FContainer;
-
     { This control must always have "native style", which means
       it has ControlType = Platform. See FMX docs about native controls:
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
       Native controls are always on top of non-native controls. }
     property ControlType default TControlType.Platform;
+  published
+    { Access Castle Game Engine container properties and events,
+      not specific for FMX. }
+    property Container: TContainer read FContainer;
+
+    property Align;
+    property Anchors;
+    property OnClick;
+    property OnDblClick;
+    property Height;
+    property Width;
+    property Size;
+    property Position;
   end;
 
 procedure Register;
@@ -218,6 +227,8 @@ begin
   inherited;
 
   FContainer := TContainer.Create(Self);
+  FContainer.SetSubComponent(true);
+  FContainer.Name := 'Container';
 
   { Makes the Presentation be TWinNativeGLControl, which has HWND.
     Do this after FContainer is initialized, as it may call CreateHandle. }
