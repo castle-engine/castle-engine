@@ -99,8 +99,12 @@ type
       MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
       #)
 
+      When the name is not found, raises exception (unless Required is @false,
+      then it returns @nil).
+
       @seealso DesignUrl }
-    function DesignedComponent(const ComponentName: String): TComponent;
+    function DesignedComponent(const ComponentName: String;
+      const Required: Boolean = true): TComponent;
   published
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
@@ -477,11 +481,19 @@ begin
   raise Exception.Create('TCastleControl.DesignedComponent can only be used if the desing was loaded, which means that TCastleControl.DesignUrl is not empty');
 end;
 
-function TCastleContainerEasy.DesignedComponent(const ComponentName: String): TComponent;
+function TCastleContainerEasy.DesignedComponent(const ComponentName: String;
+  const Required: Boolean = true): TComponent;
 begin
-  if FDesignLoaded = nil then
-    ErrorDesignLoaded;
-  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+  if FDesignLoaded <> nil then
+    Result := FDesignLoadedOwner.FindComponent(ComponentName)
+  else
+    Result := nil;
+
+  if Required and (Result = nil) then
+    raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
+      ComponentName,
+      URIDisplay(DesignUrl)
+    ]);
 end;
 
 initialization
