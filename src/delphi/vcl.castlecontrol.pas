@@ -96,7 +96,7 @@ implementation
 
 uses Windows,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles, CastleUIControls;
+  CastleRectangles, CastleUIControls, CastleInternalDelphiUtils;
 
 procedure Register;
 begin
