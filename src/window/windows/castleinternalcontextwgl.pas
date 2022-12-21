@@ -378,12 +378,24 @@ end;
 
 procedure TGLContextWGL.MakeCurrent;
 begin
+  if h_GLRc = 0 then
+  begin
+    WritelnWarning('MakeCurrent called but the OpenGL(ES) context is not open, ignoring');
+    Exit;
+  end;
+
   Assert(h_GLRc <> 0); // window not closed
   OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
 procedure TGLContextWGL.SwapBuffers;
 begin
+  if h_GLRc = 0 then
+  begin
+    WritelnWarning('SwapBuffers called but the OpenGL(ES) context is not open, ignoring');
+    Exit;
+  end;
+
   if HasDoubleBuffer then
     Windows.SwapBuffers(h_Dc)
   else
