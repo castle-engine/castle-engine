@@ -1798,7 +1798,8 @@ begin
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
-        if SVRenderer.CasterShadowPossiblyVisible then
+        if RenderOptions.WholeSceneManifold or
+           SVRenderer.CasterShadowPossiblyVisible then
         begin
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1809,7 +1810,8 @@ begin
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
-            ForceOpaque);
+            ForceOpaque,
+            RenderOptions.WholeSceneManifold);
         end;
       end;
     end;
