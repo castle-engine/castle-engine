@@ -59,9 +59,15 @@ type
     FAutoRedisplay: Boolean;
     { Copy of Requirements.DoubleBuffer when the context was created. }
     FEffectiveDoubleBuffer: Boolean;
+    FDesignUrl: String;
+    FDesignLoaded: TCastleUserInterface;
+    FDesignLoadedOwner: TComponent;
     procedure MakeContextCurrent;
     procedure SetAutoRedisplay(const Value: Boolean);
     procedure DoUpdate;
+    procedure SetDesignUrl(const Value: String);
+    procedure LoadDesign;
+    procedure UnLoadDesign;
   protected
     { Adjust context parameters right before usage. }
     procedure AdjustContext(const AContext: TGLContextWGL); virtual;
@@ -86,6 +92,16 @@ type
     function GLInitialized: boolean; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
 
+    { When the DesignUrl is set you can use this method to find
+      loaded components. Like this:
+
+      @longCode(#
+      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
+      #)
+
+      @seealso DesignUrl }
+    function DesignedComponent(const ComponentName: String): TComponent;
+  published
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
       If @true (the default), rendering and other processing will
@@ -104,6 +120,22 @@ type
 
     { Context required parameters. }
     property Requirements: TGLContextRequirements read FRequirements;
+
+    { Load and show the design (.castle-user-interface file).
+      You can reference the loaded components by name using @link(DesignedComponent).
+
+      If you have more complicated control flow,
+      we recommend to leave this property empty, and split your management
+      into a number of states (TUIState) instead.
+      In this case, load design using TUIState.DesignUrl.
+      This property makes it however easy to use .castle-user-interface
+      in simple cases, e.g. when TCastleControl just shows one UI.
+
+      The design loaded here is visible also at design-time,
+      when editing the form in Lazarus/Delphi.
+      Though we have to way to edit it now in Lazarus/Delphi (you have to use CGE editor
+      to edit the design), so it is just a preview in this case. }
+    property DesignUrl: String read FDesignUrl write SetDesignUrl;
   end;
 
   TCastleContainerEasyList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleContainerEasy>;
@@ -112,7 +144,8 @@ implementation
 
 uses SysUtils,
   CastleRenderContext, CastleGLUtils, CastleApplicationProperties, CastleGLImages,
-  CastleGLVersion, CastleTimeUtils;
+  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleURIUtils,
+  CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
   { All TCastleContainerEasy instances created.
@@ -147,6 +180,7 @@ end;
 
 destructor TCastleContainerEasy.Destroy;
 begin
+  UnLoadDesign;
   FreeAndNil(FContext);
   if ContainersList <> nil then
     ContainersList.Remove(Self);
@@ -201,7 +235,8 @@ begin
     EventResize;
     Invalidate;
 
-    if (not (csDesigning in ComponentState)) and (not UpdatingEnabled) then
+    // allow animating in Delphi IDE
+    if {(not (csDesigning in ComponentState)) and} (not UpdatingEnabled) then
     begin
       UpdatingEnabled := true;
       UpdatingEnable;
@@ -342,7 +377,121 @@ begin
   DoLimitFPS;
 end;
 
+procedure TCastleContainerEasy.LoadDesign;
+
+{ Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
+  methods in TUIState. Here they are much simplified, as we have no concept
+  of "started" / "stopped", so no DesignPreload too. }
+
+  procedure FixApplicationDataInIDE;
+  var
+    ProjectPath: String;
+  begin
+    if CastleDesignMode and
+       (csDesigning in ComponentState) and
+       Assigned(OnGetDesignTimeProjectPath) then
+    begin
+      ProjectPath := OnGetDesignTimeProjectPath();
+
+      { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
+      ApplicationDataOverride := FilenameToURISafe(
+        InclPathDelim(ProjectPath) + 'data' + PathDelim);
+    end;
+  end;
+
+var
+  OldCastleApplicationMode: TCastleApplicationMode;
+begin
+  WritelnLog('LoadDesign');
+
+  if DesignUrl <> '' then
+  begin
+    { Make sure InternalCastleApplicationMode is correct, to
+      - not e.g. do physics in Lazarus/Delphi form designer.
+      - not show design-time stuff in DesignUrl loaded in CGE editor "help->system information".
+
+      Note that we restore later InternalCastleApplicationMode.
+      This way we avoid changing InternalCastleApplicationMode for future loads,
+      when TCastleControl is used inside castle-editor.
+      Testcase:
+        in CGE editor:
+        - open tools/castle-editor project
+        - double click on demo design in data/demo_animation/
+        - open help->system information (this uses TCastleControl too, with DesignUrl assigned)
+        - close help->system information
+        - close design
+        - reopen design
+    }
+    OldCastleApplicationMode := InternalCastleApplicationMode;
+    try
+      if csDesigning in ComponentState then
+        InternalCastleApplicationMode := appDesign
+      else
+        InternalCastleApplicationMode := appRunning;
+      FixApplicationDataInIDE; // in case DesignUrl uses castle-data: protocol, which is most often the case
+
+      FDesignLoadedOwner := TComponent.Create(nil);
+      try
+        FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
+      except
+        { If loading design file failed, and we're inside form designer,
+          merely report a warning. This allows deserializing LFMs with broken URLs. }
+        on E: Exception do
+        begin
+          if CastleDesignMode then // looks at InternalCastleApplicationMode
+          begin
+            WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
+              URIDisplay(DesignUrl),
+              ExceptMessage(E)
+            ]);
+            Exit;
+          end else
+            raise;
+        end;
+      end;
+      Controls.InsertFront(FDesignLoaded);
+    finally
+      InternalCastleApplicationMode := OldCastleApplicationMode;
+    end;
+  end;
+end;
+
+procedure TCastleContainerEasy.UnLoadDesign;
+begin
+  FreeAndNil(FDesignLoadedOwner);
+  FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
+end;
+
+procedure TCastleContainerEasy.SetDesignUrl(const Value: String);
+begin
+  if FDesignUrl <> Value then
+  begin
+    UnLoadDesign;
+    FDesignUrl := Value;
+    LoadDesign;
+  end;
+end;
+
+procedure ErrorDesignLoaded;
+begin
+  raise Exception.Create('TCastleControl.DesignedComponent can only be used if the desing was loaded, which means that TCastleControl.DesignUrl is not empty');
+end;
+
+function TCastleContainerEasy.DesignedComponent(const ComponentName: String): TComponent;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+end;
+
 initialization
+  {
+  // This is some way to debug behavior at design-time when this code runs as part of Delphi IDE.
+  // Uncomment to just have WritelnLog / WritelnWarning be recorded in the indicated file.
+  LogFileName := 'c:/cygwin64/home/michalis/log2.txt';
+  InitializeLog;
+  }
+
   ContainersList := TCastleContainerEasyList.Create(false);
   //TODO: InitializeClipboard;
   //TODO: OnMainContainer := @TCastleControl(nil).GetMainContainer;

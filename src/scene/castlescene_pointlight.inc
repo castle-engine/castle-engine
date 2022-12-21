@@ -85,7 +85,8 @@ begin
   LightNode := FPointLight;
   FPunctualLight := FPointLight;
   if Gizmo <> nil then
-    Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_point.png');
+    if InternalCastleDesignData <> '' then
+      Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_point.png');
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlepointlight_persistent_vectors.inc}

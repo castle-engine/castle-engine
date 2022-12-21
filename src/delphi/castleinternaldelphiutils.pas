@@ -26,6 +26,12 @@ uses UITypes,
 function MouseButtonToCastle(const MouseButton: TMouseButton;
   out MyMouseButton: TCastleMouseButton): Boolean;
 
+type
+  TDesignTimeProjectPathEvent = function: String;
+
+var
+  OnGetDesignTimeProjectPath: TDesignTimeProjectPathEvent;
+
 implementation
 
 function MouseButtonToCastle(const MouseButton: TMouseButton;

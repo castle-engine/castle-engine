@@ -1384,7 +1384,8 @@ begin
     InsertControl(0, FInternalDesignNavigations[dn2D]);
 
     FGizmoGridAxis := TInternalCastleEditorGizmo.Create(Self);
-    FGizmoGridAxis.LoadVisualization(LoadNode(InternalCastleDesignData + 'gizmos/grid_axis/grid_axis.gltf'));
+    if InternalCastleDesignData <> '' then
+      FGizmoGridAxis.LoadVisualization(LoadNode(InternalCastleDesignData + 'gizmos/grid_axis/grid_axis.gltf'));
     FGizmoGridAxis.Exists := InternalGridAxis;
     { Note: This will not work (Gizmo state and our property InternalGridAxis
       will become desynchronized) if Items are shared across other viewports.

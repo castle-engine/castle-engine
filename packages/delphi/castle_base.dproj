@@ -76,6 +76,7 @@
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
         <DCC_IMPLICIT_IMPORT>false</DCC_IMPLICIT_IMPORT>
+        <DesignOnlyPackage>true</DesignOnlyPackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
@@ -133,6 +134,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
+        <DCCReference Include="designide.dcp"/>
         <DCCReference Include="..\..\src\delphi\castleinternalcontainer.pas"/>
         <DCCReference Include="..\..\src\delphi\castleinternaldelphiutils.pas"/>
         <DCCReference Include="..\..\src\base\castleapplicationproperties.pas"/>
@@ -215,6 +217,7 @@
         <DCCReference Include="..\..\src\scene\x3dtime.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dfields.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dnodes.pas"/>
+        <DCCReference Include="..\..\src\delphi\castleinternaldelphidesignutils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

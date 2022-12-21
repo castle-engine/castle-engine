@@ -26,12 +26,14 @@ package castle_base;
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Castle Game Engine - base for other packages'}
+{$DESIGNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
   vcl,
-  xmlrtl;
+  xmlrtl,
+  designide;
 
 contains
   castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
@@ -115,7 +117,8 @@ contains
   x3dcamerautils in '..\..\src\scene\x3dcamerautils.pas',
   x3dtime in '..\..\src\scene\x3dtime.pas',
   x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
-  x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas';
+  x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
+  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
 
 end.
 
