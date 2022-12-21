@@ -6,6 +6,8 @@ uses
 
 {$R *.res}
 
+{.$I request_dedicated_gpu.inc}
+
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
