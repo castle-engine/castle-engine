@@ -199,7 +199,12 @@ end;
 var
   Scale: Single;
 begin
-  Scale := (Parent.Presentation as TWinNativeGLControl).Scale;
+  // this may be called at units finalization, when Handle is no longer available
+  if Parent.Presentation <> nil then
+    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  else
+    Scale := 1;
+
   Result := Round(Parent.Width * Scale);
 end;
 
@@ -207,7 +212,12 @@ function TCastleControl.TContainer.Height: Integer;
 var
   Scale: Single;
 begin
-  Scale := (Parent.Presentation as TWinNativeGLControl).Scale;
+  // this may be called at units finalization, when Handle is no longer available
+  if Parent.Presentation <> nil then
+    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  else
+    Scale := 1;
+
   Result := Round(Parent.Height * Scale);
 end;
 
