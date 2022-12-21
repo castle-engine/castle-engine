@@ -1172,7 +1172,7 @@ begin
     // change FMousePosition *after* EventMotion, callbacks may depend on it
     FMousePosition := Vector2(NewX, Height - 1 - NewY);
 
-    UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+    UpdateShiftState(Shift);
     AggressiveUpdate;
   end;
 

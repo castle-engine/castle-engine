@@ -2,8 +2,9 @@ object TestCgeControl: TTestCgeControl
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 508
-  ClientWidth = 828
+  ClientHeight = 504
+  ClientWidth = 832
+  Position = Designed
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -17,9 +18,9 @@ object TestCgeControl: TTestCgeControl
   object Panel1: TPanel
     Align = Right
     Margins.Bottom = 80.000000000000000000
-    Position.X = 488.000000000000000000
+    Position.X = 492.000000000000000000
     Size.Width = 340.000000000000000000
-    Size.Height = 428.000000000000000000
+    Size.Height = 424.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object Memo1: TMemo
@@ -27,16 +28,16 @@ object TestCgeControl: TTestCgeControl
       DataDetectorTypes = []
       Align = Client
       Size.Width = 340.000000000000000000
-      Size.Height = 428.000000000000000000
+      Size.Height = 424.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       Viewport.Width = 336.000000000000000000
-      Viewport.Height = 424.000000000000000000
+      Viewport.Height = 420.000000000000000000
     end
     object Button2D: TButton
       Anchors = [akRight, akBottom]
       Position.X = 152.000000000000000000
-      Position.Y = 478.000000000000000000
+      Position.Y = 474.000000000000000000
       TabOrder = 3
       Text = '2D'
       OnClick = Button2DClick
@@ -44,7 +45,7 @@ object TestCgeControl: TTestCgeControl
     object ButtonUI: TButton
       Anchors = [akRight, akBottom]
       Position.X = 248.000000000000000000
-      Position.Y = 478.000000000000000000
+      Position.Y = 474.000000000000000000
       TabOrder = 1
       Text = 'UI'
       OnClick = ButtonUIClick
@@ -52,16 +53,17 @@ object TestCgeControl: TTestCgeControl
     object Button3D: TButton
       Anchors = [akRight, akBottom]
       Position.X = 56.000000000000000000
-      Position.Y = 478.000000000000000000
+      Position.Y = 474.000000000000000000
       TabOrder = 2
       Text = '3D'
       OnClick = Button3DClick
     end
     object LabelFps: TLabel
+      Anchors = [akRight, akBottom]
       AutoSize = True
       Position.X = 4.000000000000000000
       Position.Y = 436.000000000000000000
-      Size.Width = 309.600006103515600000
+      Size.Width = 310.399993896484400000
       Size.Height = 16.000000000000000000
       Size.PlatformDefault = False
       Text = 'LabelFps'

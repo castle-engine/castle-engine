@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Windows,
   FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
-  FMX.Types,
+  FMX.Types, UITypes,
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
   CastleInternalContextWgl, CastleInternalContainer;
 
@@ -56,9 +56,33 @@ type
 
     var
       FContainer: TContainer;
+      FMousePosition: TVector2;
+
+    { Call whenever you have new knowledge about new shift state.
+
+      Sometimes, releasing shift / alt / ctrl keys will not be reported
+      properly to KeyDown / KeyUp. Example: opening a menu
+      through Alt+F for "_File" will make keydown for Alt,
+      but not keyup for it, and DoExit will not be called,
+      so ReleaseAllKeysAndMouse will not be called.
+
+      To counteract this, call this method when Shift state is known,
+      to update Pressed when needed. }
+    procedure UpdateShiftState(const Shift: TShiftState);
   private
     procedure CreateHandle;
     procedure DestroyHandle;
+  protected
+    { // TODO
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure KeyPress(var Key: Char); override;
+    }
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
+      X, Y: Single); override;
+    procedure MouseMove(Shift: TShiftState; NewX, NewY: Single); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState;
+      X, Y: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -81,7 +105,7 @@ implementation
 
 uses FMX.Presentation.Factory, Types,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles, CastleUtils, CastleUIControls;
+  CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils;
 
 procedure Register;
 begin
@@ -145,8 +169,7 @@ end;
 
 function TCastleControl.TContainer.GetMousePosition: TVector2;
 begin
-  // TODO
-  Result := TVector2.Zero;
+  Result := Parent.FMousePosition;
 end;
 
 procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
@@ -214,7 +237,7 @@ end;
 
 procedure TCastleControl.Paint;
 begin
-  inherited;
+  //inherited; // inherited not needed, and possibly causes something unnecessary
   FContainer.DoRender;
 end;
 
@@ -235,6 +258,63 @@ end;
 class procedure TCastleControl.TContainer.UpdatingTimerEvent(Sender: TObject);
 begin
   DoUpdateEverything;
+end;
+
+procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
+begin
+  Container.Pressed.Keys[keyShift] := ssShift in Shift;
+  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
+  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+end;
+
+procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Single);
+var
+  MyButton: TCastleMouseButton;
+begin
+  inherited; { VCL OnMouseDown before our callbacks }
+
+  FMousePosition := Vector2(X, Height - 1 - Y);
+
+  if MouseButtonToCastle(Button, MyButton) then
+    Container.MousePressed := Container.MousePressed + [MyButton];
+
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+
+  if MouseButtonToCastle(Button, MyButton) then
+    Container.EventPress(InputMouseButton(FMousePosition, MyButton, 0,
+      ModifiersDown(Container.Pressed)));
+end;
+
+procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Single);
+begin
+  inherited;
+
+  Container.EventMotion(InputMotion(FMousePosition,
+    Vector2(NewX, Height - 1 - NewY), Container.MousePressed, 0));
+
+  // change FMousePosition *after* EventMotion, callbacks may depend on it
+  FMousePosition := Vector2(NewX, Height - 1 - NewY);
+
+  UpdateShiftState(Shift);
+end;
+
+procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Single);
+var
+  MyButton: TCastleMouseButton;
+begin
+  inherited; { VCL OnMouseUp before our callbacks }
+
+  FMousePosition := Vector2(X, Height - 1 - Y);
+
+  if MouseButtonToCastle(Button, MyButton) then
+    Container.MousePressed := Container.MousePressed - [MyButton];
+
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+
+  if MouseButtonToCastle(Button, MyButton) then
+    Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
 end;
 
 initialization
