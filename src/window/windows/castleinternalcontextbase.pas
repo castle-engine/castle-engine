@@ -33,7 +33,6 @@ type
   TGLContextRequirements = class(TComponent)
   strict private
     FDoubleBuffer: Boolean;
-    FColorBits: Cardinal;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
     FDepthBits: Cardinal;
     FAlphaBits: Cardinal;
