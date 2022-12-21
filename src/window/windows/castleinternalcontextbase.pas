@@ -285,9 +285,11 @@ begin
     Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
   if AlphaBits > 0 then
     Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
+  {$warnings off} // using AccumBits to keep them working for now
   if not AccumBits.IsZero then
     Result := Result + Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
      [AccumBits[0], AccumBits[1], AccumBits[2], AccumBits[3]]);
+  {$warnings on}
   if MultiSampling > 1 then
     Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
@@ -310,10 +312,12 @@ procedure TGLContextRequirements.CheckRequestedBufferAttributes(
   CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
   CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
   CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
+  {$warnings off} // using AccumBits to keep them working for now
   CheckRequestedBits('accumulation buffer''s red channel'  , AccumBits[0], ProvidedAccumRedBits);
   CheckRequestedBits('accumulation buffer''s green channel', AccumBits[1], ProvidedAccumGreenBits);
   CheckRequestedBits('accumulation buffer''s blue channel' , AccumBits[2], ProvidedAccumBlueBits);
   CheckRequestedBits('accumulation buffer''s alpha channel', AccumBits[3], ProvidedAccumAlphaBits);
+  {$warnings on}
 
   { If MultiSampling <= 1, this means that multisampling not required,
     so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0

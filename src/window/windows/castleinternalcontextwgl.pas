@@ -85,10 +85,12 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
       cStencilBits := Requirements.StencilBits;
       { Note: cAccumRed/Green/Blue/AlphaBits are ignored.
         We have to use (less functional) cAccumBits. }
+      {$warnings off} // using AccumBits to keep them working for now
       cAccumBits := RoundUpToMultiply(Requirements.AccumBits[0], 8) +
                     RoundUpToMultiply(Requirements.AccumBits[1], 8) +
                     RoundUpToMultiply(Requirements.AccumBits[2], 8) +
                     RoundUpToMultiply(Requirements.AccumBits[3], 8);
+      {$warnings on}
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
     PixelFormat := Windows.ChoosePixelFormat(h_Dc, {$ifndef FPC}@{$endif}pfd);
@@ -257,6 +259,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
             if Requirements.DoubleBuffer then
               VisualAttr.AddRange([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
+            {$warnings off} // using AccumBits to keep them working for now
             VisualAttr.AddRange([
               WGL_RED_BITS_ARB, Requirements.RedBits,
               WGL_GREEN_BITS_ARB, Requirements.GreenBits,
@@ -268,6 +271,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
               WGL_ACCUM_GREEN_BITS_ARB, Requirements.AccumBits[1],
               WGL_ACCUM_BLUE_BITS_ARB, Requirements.AccumBits[2],
               WGL_ACCUM_ALPHA_BITS_ARB, Requirements.AccumBits[3] ]);
+            {$warnings on}
 
             if Requirements.MultiSampling > 1 then
             begin

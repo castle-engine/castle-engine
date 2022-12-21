@@ -52,7 +52,9 @@ begin
   Requirements.AlphaBits := AlphaBits;
   Requirements.StencilBits := StencilBits;
   Requirements.MultiSampling := MultiSampling;
+  {$warnings off} // using AccumBits to keep them working for now
   Requirements.AccumBits := AccumBits;
+  {$warnings on}
 
   Context := TGLContextWGL.Create;
   Context.WndPtr := WndPtr;
