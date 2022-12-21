@@ -51,7 +51,8 @@ implementation
 {$R *.dfm}
 
 uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleApplicationProperties, CastleVectors, CastleUIControls;
+  CastleApplicationProperties, CastleVectors, CastleUIControls, CastleKeysMouse,
+  CastleCameras;
 
 { TMyRenderTest --------------------------------------------------------------------- }
 
@@ -59,6 +60,7 @@ type
   TMyRenderTest = class(TCastleUserInterface)
     procedure Render; override;
     procedure GLContextOpen; override;
+    //function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 procedure TMyRenderTest.GLContextOpen;
@@ -73,6 +75,26 @@ begin
   DrawRectangle(FloatRectangle(5, 5, 10, 10), Blue);
   FallbackFont.Print(30, 5, Yellow, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
+
+{
+function TMyRenderTest.Press(const Event: TInputPressRelease): Boolean;
+var
+  WalkNav: TCastleWalkNavigation;
+begin
+  Result := inherited;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    WalkNav := Form1.CastleControl.Container.DesignedComponent(
+      'WalkNavigation1', false) as TCastleWalkNavigation;
+    if WalkNav <> nil then
+    begin
+      WalkNav.MouseLook := not WalkNav.MouseLook;
+      Exit(true);
+    end;
+  end;
+end;
+}
 
 { TForm1 --------------------------------------------------------------------- }
 

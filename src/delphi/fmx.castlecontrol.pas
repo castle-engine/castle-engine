@@ -84,6 +84,8 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
     procedure MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean); override;
+    procedure KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
+    procedure KeyUp(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -245,6 +247,9 @@ begin
   { Makes the Presentation be TWinNativeGLControl, which has HWND.
     Do this after FContainer is initialized, as it may call CreateHandle. }
   ControlType := TControlType.Platform;
+
+  // TODO: is this necessary to receive keys?
+  TabStop := true;
 end;
 
 destructor TCastleControl.Destroy;
@@ -369,6 +374,67 @@ begin
       FMousePosition, WheelDelta / 120, true, ModifiersDown(Container.Pressed)));
 
   inherited;
+end;
+
+procedure TCastleControl.KeyDown(var Key: Word; var KeyChar: WideChar;
+  Shift: TShiftState);
+var
+  CastleKey: TKey;
+  CastleKeyString: String;
+  CastleEvent: TInputPressRelease;
+begin
+  inherited;
+  UpdateShiftState(Shift);
+
+  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  begin
+    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+      ModifiersDown(Container.Pressed));
+
+    if KeyChar <> #0 then
+      CastleEvent.KeyString := KeyChar;
+
+    // check this before updating Container.Pressed
+    CastleEvent.KeyRepeated :=
+      // Key already pressed
+      ((CastleEvent.Key = keyNone) or Container.Pressed.Keys[CastleEvent.Key]) and
+      // KeyString already pressed
+      ((CastleEvent.KeyString = '') or Container.Pressed.Strings[CastleEvent.KeyString]);
+
+    Container.Pressed.KeyDown(CastleEvent.Key, CastleEvent.KeyString);
+    if Container.EventPress(CastleEvent) then
+    begin
+      Key := 0;
+      KeyChar := #0;
+    end;
+  end;
+end;
+
+procedure TCastleControl.KeyUp(var Key: Word; var KeyChar: WideChar;
+  Shift: TShiftState);
+var
+  CastleKey: TKey;
+  CastleKeyString: String;
+  CastleEvent: TInputPressRelease;
+begin
+  inherited;
+  UpdateShiftState(Shift);
+
+  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  begin
+    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+      ModifiersDown(Container.Pressed));
+
+    if KeyChar <> #0 then
+      CastleEvent.KeyString := KeyChar;
+
+    Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);
+    if Container.EventRelease(CastleEvent) then
+    begin
+      Key := 0;
+      KeyChar := #0;
+    end;
+  end;
 end;
 
 initialization

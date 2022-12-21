@@ -82,6 +82,9 @@ type
       X, Y: Integer); override;
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
       MousePos: TPoint): Boolean; override;
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure KeyPress(var Key: Char); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -189,6 +192,8 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
+
+  TabStop := true;
 end;
 
 destructor TCastleControl.Destroy;
@@ -281,6 +286,59 @@ begin
   Container.Pressed.Keys[keyShift] := ssShift in Shift;
   Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
   Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+end;
+
+procedure TCastleControl.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  CastleKey: TKey;
+  CastleKeyString: String;
+  CastleEvent: TInputPressRelease;
+begin
+  inherited;
+  UpdateShiftState(Shift);
+
+  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  begin
+    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+      ModifiersDown(Container.Pressed));
+
+    // check this before updating Container.Pressed
+    CastleEvent.KeyRepeated :=
+      // Key already pressed
+      ((CastleEvent.Key = keyNone) or Container.Pressed.Keys[CastleEvent.Key]) and
+      // KeyString already pressed
+      ((CastleEvent.KeyString = '') or Container.Pressed.Strings[CastleEvent.KeyString]);
+
+    Container.Pressed.KeyDown(CastleEvent.Key, CastleEvent.KeyString);
+    if Container.EventPress(CastleEvent) then
+      Key := 0; // handled
+  end;
+end;
+
+procedure TCastleControl.KeyUp(var Key: Word; Shift: TShiftState);
+var
+  CastleKey: TKey;
+  CastleKeyString: String;
+  CastleEvent: TInputPressRelease;
+begin
+  inherited;
+  UpdateShiftState(Shift);
+
+  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  begin
+    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+      ModifiersDown(Container.Pressed));
+
+    Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);
+    if Container.EventRelease(CastleEvent) then
+      Key := 0; // handled
+  end;
+end;
+
+procedure TCastleControl.KeyPress(var Key: Char);
+begin
+  // TODO ignored now
+  inherited;
 end;
 
 end.
