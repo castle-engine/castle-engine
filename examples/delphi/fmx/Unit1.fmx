@@ -71,6 +71,7 @@ object TestCgeControl: TTestCgeControl
     end
   end
   object CastleControl: TCastleControl
+    Container.DesignUrl = 'castle-data:/test_ui.castle-user-interface'
     Align = Client
     Size.Width = 472.000000000000000000
     Size.Height = 484.000000000000000000

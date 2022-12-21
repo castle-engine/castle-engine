@@ -42,8 +42,6 @@ type
     procedure Button3DClick(Sender: TObject);
     procedure Button2DClick(Sender: TObject);
     procedure ButtonUIClick(Sender: TObject);
-  private
-    DesignUi: TCastleDesign;
   public
     { Public declarations }
   end;
@@ -84,17 +82,17 @@ end;
 
 procedure TTestCgeControl.Button2DClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_2d.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_2d.castle-user-interface';
 end;
 
 procedure TTestCgeControl.Button3DClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
 end;
 
 procedure TTestCgeControl.ButtonUIClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_ui.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
 end;
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
@@ -102,11 +100,7 @@ begin
   // Call this to have UI scaling, same as in editor
   CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  // adding a design (made in CGE editor) using TCastleDesign
-  DesignUi := TCastleDesign.Create(Self);
-  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
-  DesignUi.FullSize := true;
-  CastleControl.Container.Controls.InsertFront(DesignUi);
+  CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
 
   // adding a component created by code, doing manual rendering in TMyRenderTest.Render
   CastleControl.Container.Controls.InsertFront(TMyRenderTest.Create(Self));
