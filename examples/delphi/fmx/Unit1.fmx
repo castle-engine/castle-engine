@@ -9,22 +9,54 @@ object TestCgeControl: TTestCgeControl
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   DesignerMasterStyle = 0
-  object Memo1: TMemo
-    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
-    DataDetectorTypes = []
-    Position.X = 480.000000000000000000
-    Position.Y = 24.000000000000000000
-    Size.Width = 321.000000000000000000
-    Size.Height = 409.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 0
-    Viewport.Width = 317.000000000000000000
-    Viewport.Height = 405.000000000000000000
-  end
   object Timer1: TTimer
     Interval = 10
     OnTimer = Timer1Timer
     Left = 408
     Top = 32
+  end
+  object Panel1: TPanel
+    Align = Right
+    Margins.Bottom = 50.000000000000000000
+    Position.X = 488.000000000000000000
+    Size.Width = 340.000000000000000000
+    Size.Height = 458.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Client
+      Size.Width = 340.000000000000000000
+      Size.Height = 458.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 336.000000000000000000
+      Viewport.Height = 454.000000000000000000
+    end
+    object Button2D: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 152.000000000000000000
+      Position.Y = 476.000000000000000000
+      TabOrder = 3
+      Text = '2D'
+      OnClick = Button2DClick
+    end
+    object ButtonUI: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 248.000000000000000000
+      Position.Y = 476.000000000000000000
+      TabOrder = 1
+      Text = 'UI'
+      OnClick = ButtonUIClick
+    end
+    object Button3D: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 56.000000000000000000
+      Position.Y = 476.000000000000000000
+      TabOrder = 2
+      Text = '3D'
+      OnClick = Button3DClick
+    end
   end
 end

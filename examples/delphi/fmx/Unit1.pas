@@ -24,15 +24,24 @@ uses
   FMX.Platform.Win,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
   FMX.Memo,
-  CastleGLUtils, Fmx.CastleControl;
+  Fmx.CastleControl,
+  CastleGLUtils, CastleControls, CastleUIControls;
 
 type
   TTestCgeControl = class(TForm)
-    Memo1: TMemo;
     Timer1: TTimer;
+    Panel1: TPanel;
+    Memo1: TMemo;
+    Button2D: TButton;
+    ButtonUI: TButton;
+    Button3D: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure Button3DClick(Sender: TObject);
+    procedure Button2DClick(Sender: TObject);
+    procedure ButtonUIClick(Sender: TObject);
   private
+    DesignUi: TCastleDesign;
     CastleControl: TCastleControl;
   public
     { Public declarations }
@@ -47,45 +56,69 @@ implementation
 
 uses Windows, FMX.Presentation.Win,
   CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleVectors, CastleControls, CastleUIControls;
+  CastleVectors;
+
+{ TMyRenderTest -------------------------------------------------------------- }
 
 type
-  TMyUi = class(TCastleUserInterface)
+  TMyRenderTest = class(TCastleUserInterface)
     procedure Render; override;
     procedure GLContextOpen; override;
   end;
 
-procedure TTestCgeControl.FormCreate(Sender: TObject);
-begin
-  CastleControl := TCastleControl.Create(Self);
-  CastleControl.Parent := Self;
-  CastleControl.Position.X := 20;
-  CastleControl.Position.Y := 20;
-  CastleControl.Width := 300;
-  CastleControl.Height := 400;
-
-  CastleControl.Container.Controls.InsertFront(TMyUi.Create(Self));
-end;
-
-procedure TTestCgeControl.Timer1Timer(Sender: TObject);
-begin
-  Invalidate; // TODO: should not be needed
-end;
-
-{ TMyUi --------------------------------------------------------------------- }
-
-procedure TMyUi.GLContextOpen;
+procedure TMyRenderTest.GLContextOpen;
 begin
   inherited;
   TestCgeControl.Memo1.Lines.Add(GLInformationString);
 end;
 
-procedure TMyUi.Render;
+procedure TMyRenderTest.Render;
 begin
   inherited;
-  RenderContext.Clear([cbColor], Vector4(0.2, 0.2, 0.2, 1));
-  DrawRectangle(FloatRectangle(10, 10, 100, 200), Yellow);
+  DrawRectangle(FloatRectangle(10, 10, 10, 20), Yellow);
   FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+end;
+
+{ TTestCgeControl ------------------------------------------------------------ }
+
+procedure TTestCgeControl.Button2DClick(Sender: TObject);
+begin
+  DesignUi.Url := 'castle-data:/test_2d.castle-user-interface';
+end;
+
+procedure TTestCgeControl.Button3DClick(Sender: TObject);
+begin
+  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
+end;
+
+procedure TTestCgeControl.ButtonUIClick(Sender: TObject);
+begin
+  DesignUi.Url := 'castle-data:/test_ui.castle-user-interface';
+end;
+
+procedure TTestCgeControl.FormCreate(Sender: TObject);
+begin
+  CastleControl := TCastleControl.Create(Self);
+  CastleControl.Parent := Self;
+  //  CastleControl.Position.X := 20;
+  //  CastleControl.Position.Y := 20;
+  //  CastleControl.Width := 300;
+  //  CastleControl.Height := 400;
+  CastleControl.Align := TAlignLayout.Client;
+
+  // adding a design (made in CGE editor) using TCastleDesign
+  DesignUi := TCastleDesign.Create(Self);
+  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
+  DesignUi.FullSize := true;
+  CastleControl.Container.Controls.InsertFront(DesignUi);
+
+  // adding a component created by code, doing manual rendering in TMyRenderTest.Render
+  CastleControl.Container.Controls.InsertFront(TMyRenderTest.Create(Self));
+end;
+
+procedure TTestCgeControl.Timer1Timer(Sender: TObject);
+begin
+  Invalidate; // TODO: should not be needed
 end;
 
 end.

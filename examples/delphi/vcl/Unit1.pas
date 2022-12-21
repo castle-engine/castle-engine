@@ -53,11 +53,28 @@ implementation
 uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
   CastleApplicationProperties, CastleVectors, CastleUIControls;
 
+{ TMyRenderTest --------------------------------------------------------------------- }
+
 type
   TMyRenderTest = class(TCastleUserInterface)
     procedure Render; override;
     procedure GLContextOpen; override;
   end;
+
+procedure TMyRenderTest.GLContextOpen;
+begin
+  inherited;
+  Form1.Memo1.Lines.Add(GLInformationString);
+end;
+
+procedure TMyRenderTest.Render;
+begin
+  inherited;
+  DrawRectangle(FloatRectangle(5, 5, 10, 10), Blue);
+  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
+end;
+
+{ TForm1 --------------------------------------------------------------------- }
 
 procedure TForm1.Button2DClick(Sender: TObject);
 begin
@@ -66,7 +83,7 @@ end;
 
 procedure TForm1.Button3DClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/main.castle-user-interface';
+  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
 end;
 
 procedure TForm1.ButtonUIClick(Sender: TObject);
@@ -86,7 +103,7 @@ begin
 
   // adding a design (made in CGE editor) using TCastleDesign
   DesignUi := TCastleDesign.Create(Self);
-  DesignUi.Url := 'castle-data:/main.castle-user-interface';
+  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
   DesignUi.FullSize := true;
   CastleControl.Container.Controls.InsertFront(DesignUi);
 
@@ -97,21 +114,6 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   CastleControl.Invalidate; // TODO: should not be needed
-end;
-
-{ TMyUi --------------------------------------------------------------------- }
-
-procedure TMyRenderTest.GLContextOpen;
-begin
-  inherited;
-  Form1.Memo1.Lines.Add(GLInformationString);
-end;
-
-procedure TMyRenderTest.Render;
-begin
-  inherited;
-  DrawRectangle(FloatRectangle(5, 5, 10, 10), Blue);
-  FallbackFont.Print(30, 30, Green, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
 end.
