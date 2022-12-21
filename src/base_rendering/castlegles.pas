@@ -40,7 +40,12 @@
  **}
 
 unit CastleGLES;
+
 {$i castleconf.inc}
+
+{$ifndef FPC}
+  {$message fatal 'This unit is only for FPC, not Delphi.'}
+{$endif}
 
 {$ifdef linux}
   {$define EGL}

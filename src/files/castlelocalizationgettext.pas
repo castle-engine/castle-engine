@@ -16,6 +16,10 @@
 { Utilities for localizing CGE applications using GetText. }
 unit CastleLocalizationGetText;
 
+{$ifndef FPC}
+  {$message fatal 'This unit is only for now only for FPC, not Delphi. Porting our localization to Delphi is a TODO.'}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, GetText,
