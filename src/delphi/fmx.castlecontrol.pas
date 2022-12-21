@@ -259,21 +259,30 @@ end;
 
 procedure TCastleControl.CreateHandle;
 begin
-  { Thanks to TWinNativeGLControl, we have Windows HWND for this control now in
-      (Presentation as TWinNativeGLControl).Handle
-    This is used in AdjustContext and
-    is necessary to create OpenGL context that only renders to this control.
+  inherited;
 
-    Note: The only other way in FMX to get HWND seems to be to get form HWND,
-      WindowHandleToPlatform(Handle).Wnd
-    but this is not useful for us (we don't want to always render to full window).
+  { For now, FMX TCastleControl doesn't create a context at design-time, because
+    - painting doesn't work correctly at design-time, it is shifted
+    - there are weird errors (infinite range check error or wglMakeCurrent errors),
+      if you close a weird nameless non-modal window that appears when FMX project is open.
   }
-  FContainer.CreateContext;
+  if not (csDesigning in ComponentState) then
+    { Thanks to TWinNativeGLControl, we have Windows HWND for this control now in
+        (Presentation as TWinNativeGLControl).Handle
+      This is used in AdjustContext and
+      is necessary to create OpenGL context that only renders to this control.
+
+      Note: The only other way in FMX to get HWND seems to be to get form HWND,
+        WindowHandleToPlatform(Handle).Wnd
+      but this is not useful for us (we don't want to always render to full window).
+    }
+    FContainer.CreateContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  if not (csDesigning in ComponentState) then
+    FContainer.DestroyContext;
   inherited;
 end;
 
