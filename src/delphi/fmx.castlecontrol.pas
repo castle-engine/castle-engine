@@ -83,6 +83,7 @@ type
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Single); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
+    procedure MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -358,6 +359,16 @@ begin
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
+end;
+
+procedure TCastleControl.MouseWheel(Shift: TShiftState; WheelDelta: Integer;
+  var Handled: Boolean);
+begin
+  if not Handled then
+    Handled := Container.EventPress(InputMouseWheel(
+      FMousePosition, WheelDelta / 120, true, ModifiersDown(Container.Pressed)));
+
+  inherited;
 end;
 
 initialization

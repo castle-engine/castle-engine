@@ -20,7 +20,7 @@ unit Vcl.CastleControl;
 
 interface
 
-uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls,
+uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,
   CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
   CastleVectors, CastleKeysMouse;
 
@@ -80,6 +80,8 @@ type
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState;
       X, Y: Integer); override;
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+      MousePos: TPoint): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -206,6 +208,16 @@ procedure TCastleControl.DestroyHandle;
 begin
   FContainer.DestroyContext;
   inherited;
+end;
+
+function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+  MousePos: TPoint): Boolean;
+begin
+  Result := Container.EventPress(InputMouseWheel(
+    FMousePosition, WheelDelta / 120, true, ModifiersDown(Container.Pressed)));
+  if Result then Exit;
+
+  Result := inherited;
 end;
 
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
