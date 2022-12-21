@@ -12,8 +12,8 @@ object TestCgeControl: TTestCgeControl
   DesignerMasterStyle = 0
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 408
-    Top = 32
+    Left = 512
+    Top = 16
   end
   object Panel1: TPanel
     Align = Right
@@ -69,5 +69,15 @@ object TestCgeControl: TTestCgeControl
       Text = 'LabelFps'
       TabOrder = 4
     end
+  end
+  object CastleControl: TCastleControl
+    Align = Client
+    Size.Width = 472.000000000000000000
+    Size.Height = 484.000000000000000000
+    Size.PlatformDefault = False
+    Margins.Left = 10.000000000000000000
+    Margins.Top = 10.000000000000000000
+    Margins.Right = 10.000000000000000000
+    Margins.Bottom = 10.000000000000000000
   end
 end

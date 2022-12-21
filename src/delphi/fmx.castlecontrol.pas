@@ -106,6 +106,7 @@ type
     property Width;
     property Size;
     property Position;
+    property Margins;
   end;
 
 procedure Register;

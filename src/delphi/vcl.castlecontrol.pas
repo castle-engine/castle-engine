@@ -88,6 +88,11 @@ type
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
+
+    property Align;
+    property Anchors;
+    property OnClick;
+    property OnDblClick;
   end;
 
 procedure Register;

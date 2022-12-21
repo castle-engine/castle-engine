@@ -32,6 +32,7 @@ type
     ButtonUI: TButton;
     LabelFps: TLabel;
     Timer1: TTimer;
+    CastleControl: TCastleControl;
     procedure FormCreate(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
     procedure Button2DClick(Sender: TObject);
@@ -39,7 +40,6 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     DesignUi: TCastleDesign;
-    CastleControl: TCastleControl;
   public
     { Public declarations }
   end;
@@ -94,14 +94,6 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  CastleControl := TCastleControl.Create(Self);
-  CastleControl.Parent := Self;
-  //  CastleControl.Left := 50;
-  //  CastleControl.Top := 50;
-  //  CastleControl.Width := 400;
-  //  CastleControl.Height := 500;
-  CastleControl.Align := alClient;
-
   // adding a design (made in CGE editor) using TCastleDesign
   DesignUi := TCastleDesign.Create(Self);
   DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';

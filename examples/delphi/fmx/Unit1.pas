@@ -36,6 +36,7 @@ type
     ButtonUI: TButton;
     Button3D: TButton;
     LabelFps: TLabel;
+    CastleControl: TCastleControl;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
@@ -43,7 +44,6 @@ type
     procedure ButtonUIClick(Sender: TObject);
   private
     DesignUi: TCastleDesign;
-    CastleControl: TCastleControl;
   public
     { Public declarations }
   end;
@@ -99,14 +99,6 @@ end;
 
 procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
-  CastleControl := TCastleControl.Create(Self);
-  CastleControl.Parent := Self;
-  //  CastleControl.Position.X := 20;
-  //  CastleControl.Position.Y := 20;
-  //  CastleControl.Width := 300;
-  //  CastleControl.Height := 400;
-  CastleControl.Align := TAlignLayout.Client;
-
   // Call this to have UI scaling, same as in editor
   CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
