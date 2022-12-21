@@ -39,7 +39,6 @@ type
     procedure ButtonUIClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    DesignUi: TCastleDesign;
   public
     { Public declarations }
   end;
@@ -79,27 +78,21 @@ end;
 
 procedure TForm1.Button2DClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_2d.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_2d.castle-user-interface';
 end;
 
 procedure TForm1.Button3DClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
 end;
 
 procedure TForm1.ButtonUIClick(Sender: TObject);
 begin
-  DesignUi.Url := 'castle-data:/test_ui.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  // adding a design (made in CGE editor) using TCastleDesign
-  DesignUi := TCastleDesign.Create(Self);
-  DesignUi.Url := 'castle-data:/test_3d.castle-user-interface';
-  DesignUi.FullSize := true;
-  CastleControl.Container.Controls.InsertFront(DesignUi);
-
   // adding a component created by code, doing manual rendering in TMyRenderTest.Render
   CastleControl.Container.Controls.InsertFront(TMyRenderTest.Create(Self));
 end;

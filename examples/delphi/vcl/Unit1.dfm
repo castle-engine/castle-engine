@@ -37,7 +37,8 @@ object Form1: TForm1
     Align = alRight
     ScrollBars = ssBoth
     TabOrder = 0
-    ExplicitTop = 5
+    ExplicitLeft = 632
+    ExplicitHeight = 403
   end
   object Button3D: TButton
     Left = 726
@@ -87,8 +88,8 @@ object Form1: TForm1
     Margins.Bottom = 10
     Container.DesignUrl = 'castle-data:/test_2d.castle-user-interface'
     Align = alClient
-    ExplicitWidth = 551
-    ExplicitHeight = 477
+    ExplicitWidth = 602
+    ExplicitHeight = 473
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
