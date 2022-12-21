@@ -548,10 +548,13 @@ type
       shape may be not 2-manifold). This means that you guarantee that
       all border edges of all shapes match with each other, closing the skin
       of the model perfectly.
+      See https://castle-engine.io/x3d_extensions_shadow_volumes.php
+      about using shadow volumes and the requirement to be 2-manifold.
 
-      This means that, even if some shapes are not 2-manifold,
+      If this is @true then, even if some shapes are not 2-manifold,
       we will generate shadow (using shadow volumes) from them.
-      And we will never reject shadows from a particular shape.
+      And we will never reject shadows from a particular shape,
+      we will either reject whole scene shadow, or render whole scene shadow.
 
       It is the user responsibility to guarantee that whole scene is
       really 2-manifold. If it is not, then shadow volumes may exhibit
