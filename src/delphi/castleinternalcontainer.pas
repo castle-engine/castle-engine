@@ -490,11 +490,6 @@ begin
   end;
 end;
 
-procedure ErrorDesignLoaded;
-begin
-  raise Exception.Create('TCastleControl.DesignedComponent can only be used if the desing was loaded, which means that TCastleControl.DesignUrl is not empty');
-end;
-
 function TCastleContainerEasy.DesignedComponent(const ComponentName: String;
   const Required: Boolean = true): TComponent;
 begin
