@@ -1,6 +1,6 @@
-# Using Castle Game Engine on VCL form
+# Using Castle Game Engine on FMX (FireMonkey) form
 
-Demo of `TCastleControl` to add _Castle Game Engine_ rendering on VCL form.
+Demo of `TCastleControl` to add _Castle Game Engine_ rendering on FMX (FireMonkey) form.
 
 This is only useful with Delphi.
 
