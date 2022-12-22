@@ -122,7 +122,7 @@ pipeline {
         }
       }
     }
-    stage('Check Delphi AutoTests (Win32)') {
+    stage('Build Delphi-specific Examples (Win32)') {
       steps {
         dir ('examples/delphi/vcl') {
           sh 'castle-engine clean'
