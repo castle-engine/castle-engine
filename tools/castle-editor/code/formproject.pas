@@ -1907,6 +1907,10 @@ end;
 
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
+  { It is important to disable these actions, as e.g. calling
+    TUndoSystem.Undo when IsUndoPossible=false will result in an exception.
+    Testcase: right after loading the design, undo should not be possible,
+    Ctrl+Z should do nothing. }
   if Design <> nil then
   begin
     MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
