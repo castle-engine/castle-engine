@@ -311,6 +311,7 @@ examples:
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
+	  '(' -path ./examples/delphi -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
