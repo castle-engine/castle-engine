@@ -330,7 +330,10 @@ procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
 var
   MyButton: TCastleMouseButton;
 begin
-  inherited; { VCL OnMouseDown before our callbacks }
+  if not IsFocused then // TODO: doesn't seem to help with focus
+    SetFocus;
+
+  inherited; { FMX OnMouseDown before our callbacks }
 
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -362,7 +365,7 @@ procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
 var
   MyButton: TCastleMouseButton;
 begin
-  inherited; { VCL OnMouseUp before our callbacks }
+  inherited; { FMX OnMouseUp before our callbacks }
 
   FMousePosition := Vector2(X, Height - 1 - Y);
 
