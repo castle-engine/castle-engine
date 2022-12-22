@@ -227,6 +227,9 @@ type
   { OpenGL(ES) context. }
   TGLContext = class
   public
+    // Set this before using ContextCreate
+    SharedContext: TGLContext; //< leave nil to not share
+
     { Create GL context. }
     procedure ContextCreate(const Requirements: TGLContextRequirements); virtual; abstract;
 

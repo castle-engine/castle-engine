@@ -34,7 +34,6 @@ type
     h_Dc: HDC;
     WindowCaption: String;
     WndClassName: UnicodeString;
-    SharedContext: TGLContextWGL; //< leave nil to not share
 
     // Created by ContextCreate, destroyed by ContextDestroy
     h_GLRc: HGLRC;
@@ -361,7 +360,7 @@ begin
   OSCheck(h_GLRc <> 0, 'wglCreateContext');
 
   if SharedContext <> nil then
-    OSCheck(wglShareLists(SharedContext.h_GLRc, h_GLRc), 'wglShareLists');
+    OSCheck(wglShareLists((SharedContext as TGLContextWGL).h_GLRc, h_GLRc), 'wglShareLists');
 end;
 
 procedure TGLContextWGL.ContextDestroy;

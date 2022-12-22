@@ -216,10 +216,24 @@ begin
 end;
 
 procedure TCastleContainerEasy.CreateContext;
+
+  function AnyOtherOpenContext: TGLContext;
+  var
+    C: TCastleContainerEasy;
+  begin
+    for C in ContainersList do
+      if (C <> Self) and C.GLInitialized then
+        Exit(C.FContext);
+    Result := nil;
+  end;
+
 begin
   if not FGLInitialized then
   begin
     FGLInitialized := true;
+
+    // In CGE, all open contexts should share GL resources
+    FContext.SharedContext := AnyOtherOpenContext;
 
     AdjustContext(FContext);
 
