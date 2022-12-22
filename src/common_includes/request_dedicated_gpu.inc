@@ -3,11 +3,13 @@
 
   Force usage of dedicated GPU for OpenGL with Delphi and FreePascal/Lazarus
   on Multi-GPU systems such as Notebooks on Windows.
-  Insert that into your main source file, which is for example the .dpr (Delphi) or .lpr (Lazarus) file
+  Insert that into your main source file, which is for example
+  the .dpr (Delphi) or .lpr (Lazarus) file.
 
   TODO:
   - Is it possible on non-Windows?
   - How to nicely allow CGE applications to utilize this?
+    For now, our simple recommendation is: copy-paste this into your program.
 }
 
 // uncomment and recomment this line, for compile-time-switching between integrated GPU and dedicated GPU
