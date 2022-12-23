@@ -17,11 +17,6 @@ cd "${CASTLE_ENGINE_PATH}"/src/
 
 # Clean ppu/o files.
 make clean -C ../
-# Should not be needed, but just in case...
-find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or \
-                   -iname '*.o'   -or -iname '*.ppu' ')' \
-  -print \
-  | xargs rm -f
 
 # Calculate temp file location.
 # Work regardless if $HOME/tmp is created.
@@ -40,10 +35,12 @@ echo "All units list in ${TMP_PAS_LIST}"
 #   Also, some units inside may not compile without LCL.
 # - lcl, indy as they depend on LCL, Indy and compilation with just `castle-engine simple-compile ...` may fail
 # - deprecated_units, we don't track their dependencies
+# - delphi, as they only compile with Delphi, as this check uses FPC later
 find . \
   '(' -type d -iname android -prune ')' -or \
   '(' -type d -iname windows -prune ')' -or \
   '(' -type d -iname lcl -prune ')' -or \
+  '(' -type d -iname delphi -prune ')' -or \
   '(' -type d -iname indy -prune ')' -or \
   '(' -type d -iname nodes_specification -prune ')' -or \
   '(' -type d -iname compatibility -prune ')' -or \
