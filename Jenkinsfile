@@ -15,7 +15,7 @@ pipeline {
   agent none
 
   parameters {
-    booleanParam(name: 'jenkins_fast', defaultValue: false, description: 'Use at emergencies, to make pipeline build faster')
+    booleanParam(name: 'jenkins_fast', defaultValue: true, description: 'Use at emergencies, to make pipeline build faster')
   }
 
   stages {
