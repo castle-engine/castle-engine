@@ -3872,7 +3872,7 @@ begin
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
     if (ssDynamicCollisions in ParentScene.FSpatial) and
-       Shape.Collidable then
+      Shape.Collidable then
     begin
       Shape.InternalSpatial := [ssTriangles];
     end;
@@ -5752,17 +5752,9 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
             Shape.TriangleOctreeLimits :=
           Our own TriangleOctreeLimits properties may be *not* suitable
           for this (as our properties are for global octrees).
-
-          Just let programmer change per-shape properties if he wants,
-          or user to change this per-shape by
-          [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-        }
+          Just let programmer change per-shape properties if (s)he wants. }
 
         Shape.InternalSpatial := Value;
-        { prepare OctreeTriangles. Not really needed, but otherwise
-          shape's octrees would be updated (even on static scenes!)
-          when the model runs. }
-        Shape.InternalOctreeTriangles;
       end;
   end;
 

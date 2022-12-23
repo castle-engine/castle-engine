@@ -2100,17 +2100,40 @@ procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
-  if Value <> InternalSpatial then
+  if FSpatial <> Value then
   begin
-    { Handle OctreeTriangles }
-
     Old := ssTriangles in InternalSpatial;
     New := ssTriangles in Value;
 
+    FSpatial := Value;
+
+    { Handle OctreeTriangles }
+
     if Old and not New then
       FreeOctreeTriangles;
+    if New and not Old then
+      { We do not strictly need to create FOctreeTriangles now,
+        we could let it be created on-demand.
+        But experience shows that it is better to create it now.
+        Otherwise moving around the scene would create sudden stutters
+        as we load octrees, for each shape separately, when needed.
 
-    FSpatial := Value;
+        Note: we were loading not-on-demand before 2010, and switched
+        to only on-demand in
+        https://github.com/castle-engine/castle-engine/commit/d5030af3a3372fccaeb2472e9d0bd390190b5f2a .
+        But it was wrong.
+        "Lynch" demo https://github.com/michaliskambi/lynch
+        clearly shows that on-demand causes bad delays at playing.
+        Moreover, TCastleSceneCore.SetSpatial was actually workarounding
+        it (calling "Shape.InternalOctreeTriangles" right after setting
+        "Shape.InternalSpatial := Value") for some time,
+        but it just wasn't perfect,
+        because if we did "Scene.Spatial := [ssDynamicCollisions]"
+        but later "Scene.URL := ..." then didn't create octree for new shapes.
+
+        Note: InternalOctreeTriangles only does the job if FSpatial is already set to non-empty.
+      }
+      InternalOctreeTriangles;
   end;
 end;
 
