@@ -547,6 +547,7 @@ type
     procedure ViewportViewSelected;
     procedure ViewportSetup2D;
     procedure ViewportSort2D;
+    procedure ViewportSort3D;
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
@@ -5410,6 +5411,18 @@ begin
   if V = nil then Exit;
 
   V.Items.SortBackToFront2D;
+  UpdateDesign; // make the tree reflect new order
+  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
+end;
+
+procedure TDesignFrame.ViewportSort3D;
+var
+  V: TCastleViewport;
+begin
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  V.Items.SortBackToFront(bs3D, V.InternalCamera.WorldTranslation);
   UpdateDesign; // make the tree reflect new order
   ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
 end;

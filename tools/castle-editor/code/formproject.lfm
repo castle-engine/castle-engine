@@ -396,6 +396,9 @@ object ProjectForm: TProjectForm
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
       end
+      object MenuItem33: TMenuItem
+        Action = ActionViewportSort3D
+      end
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
@@ -1128,6 +1131,12 @@ object ProjectForm: TProjectForm
       ImageIndex = 7
       OnExecute = ActionSimulationPauseUnpauseExecute
       OnUpdate = ActionSimulationPauseUnpauseUpdate
+    end
+    object ActionViewportSort3D: TAction
+      Category = 'Viewport'
+      Caption = 'Sort Items For Correct 3D Blending (from current view)'
+      OnExecute = ActionViewportSort3DExecute
+      OnUpdate = ActionViewportUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

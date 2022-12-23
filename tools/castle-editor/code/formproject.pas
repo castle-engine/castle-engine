@@ -42,6 +42,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportSort3D: TAction;
     ActionShowColliders: TAction;
     ActionSimulationPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
@@ -100,6 +101,7 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItem33: TMenuItem;
     MenuItemSimulationPauseUnpause: TMenuItem;
     MenuItemSimulationPlayStop: TMenuItem;
     SeparatorBeforeShowColliders: TMenuItem;
@@ -315,6 +317,7 @@ type
     procedure ActionViewportRenderNormalExecute(Sender: TObject);
     procedure ActionViewportRenderSolidWireframeExecute(Sender: TObject);
     procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
+    procedure ActionViewportSort3DExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
@@ -832,6 +835,12 @@ procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject)
 begin
   InternalForceWireframe := weWireframeOnly;
   ActionViewportRenderWireframeOnly.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportSort3DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort3D;
 end;
 
 procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
