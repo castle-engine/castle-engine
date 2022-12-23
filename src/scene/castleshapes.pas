@@ -1043,7 +1043,7 @@ var
 implementation
 
 uses Generics.Defaults,
-  CastleSceneCore, CastleInternalNormals, CastleLog,
+  CastleSceneCore, CastleInternalNormals, CastleLog, CastleTimeUtils,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
 const
@@ -1575,13 +1575,21 @@ begin
 end;
 
 function TShape.InternalOctreeTriangles: TTriangleOctree;
+var
+  TimeStart: TCastleProfilerTime;
+  S: String;
 begin
   if (ssTriangles in InternalSpatial) and (FOctreeTriangles = nil) then
   begin
-    FOctreeTriangles := CreateTriangleOctree(FTriangleOctreeLimits);
+    S := 'Creating octree for shape ' + NiceName;
     if LogChanges then
-      WritelnLog('X3D changes (octree)', Format(
-        'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
+      WritelnLog('X3D changes (octree)', S);
+    TimeStart := Profiler.Start(S);
+    try
+      FOctreeTriangles := CreateTriangleOctree(FTriangleOctreeLimits);
+    finally
+      Profiler.Stop(TimeStart);
+    end;
   end;
 
   Result := FOctreeTriangles;
@@ -3013,8 +3021,15 @@ end;
 function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
-  if (Node <> nil) and (Node.X3DName <> '') then
-    Result := Node.X3DName + ':' + Result;
+
+  if FGeometryParentNode <> nil then
+    Result := FGeometryParentNode.X3DName + ':' + Result;
+
+  if FGeometryGrandParentNode <> nil then
+    Result := FGeometryGrandParentNode.X3DName + ':' + Result;
+
+  if FGeometryGrandGrandParentNode <> nil then
+    Result := FGeometryGrandGrandParentNode.X3DName + ':' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;

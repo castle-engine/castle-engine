@@ -4139,6 +4139,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
 var
   Traverser: TChangedAllTraverser;
+  TimeStart: TCastleProfilerTime;
 begin
   { Whether this is called by EndChangesSchedule, or from other places,
     we can always reset the ChangedAllScheduled flag.
@@ -4148,6 +4149,9 @@ begin
     So ChangedAllScheduled flag must be ready for this,
     so it should be reset early, at the very beginning of ChangedAll implementation. }
   ChangedAllScheduled := false;
+
+  TimeStart := Profiler.Start('ChangedAll for ' + Name + ' from ' + URIDisplay(URL));
+  try
 
   { We really need to use InternalDirty here, to forbid rendering during this.
 
@@ -4293,6 +4297,8 @@ begin
     WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(InternalDirty) end;
+
+  finally Profiler.Stop(TimeStart, true, true) end;
 end;
 
 type
@@ -5759,7 +5765,8 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
   end;
 
 var
-  Old, New: boolean;
+  Old, New: Boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   if Value <> FSpatial then
   begin
@@ -5792,10 +5799,15 @@ begin
     end else
     if New and not Old then
     begin
-      { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
-        since in CreateShapeOctree we iterate over OnlyActive shapes,
-        but SetShapeSpatial must iterate over all shapes. }
-      SetShapeSpatial([ssTriangles], true);
+      TimeStart := Profiler.Start('Creating octrees for all shapes from Scene.Spatial := [...]');
+      try
+        { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
+          since in CreateShapeOctree we iterate over OnlyActive shapes,
+          but SetShapeSpatial must iterate over all shapes. }
+        SetShapeSpatial([ssTriangles], true);
+      finally
+        Profiler.Stop(TimeStart, true, true);
+      end;
     end;
 
     { Handle OctreeVisibleTriangles }
