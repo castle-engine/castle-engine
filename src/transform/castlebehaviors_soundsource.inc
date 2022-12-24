@@ -84,12 +84,15 @@ type
     FSpatial: Boolean;
     FVolume: Single;
     FPitch: Single;
+    FSoundPlaying: Boolean;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
     procedure SetSpatial(const Value: Boolean);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
-    { Start playing current @link(Sound) (ignored if Sound = @nil).
+    procedure SetSoundPlaying(const Value: Boolean);
+    { Start playing current @link(Sound)
+      (ignored if Sound = @nil, ignored if SoundPlaying = @false).
       MainPlayingSound must be @nil when calling this, so the sound cannot be already playing. }
     procedure SoundStart;
     { Stop playing current @link(Sound), if currently playing. }
@@ -134,12 +137,17 @@ type
     procedure Play(const PlayingSound: TCastlePlayingSoundSource); overload;
   published
     { Sound to play, always looping.
+      Control playback of it using @link(SoundPlaying).
 
       Note that this is not the only sound possible to play using this
       @link(TCastleSoundSource). You can play any other @link(TCastleSound)
       or @link(TCastlePlayingSoundSource) instance (looping or not looping)
       by calling @link(Play) method. }
     property Sound: TCastleSound read FSound write SetSound;
+
+    { Is the @link(Sound) currently playing.
+      Setting it to @false and back to @true will restart playing sound from the beginning. }
+    property SoundPlaying: Boolean read FSoundPlaying write SetSoundPlaying default true;
 
     { Is the sound playback spatialized. Affects sounds played by assigning @link(Sound)
       or calling @link(Play) here.
@@ -257,6 +265,7 @@ begin
   FSpatial := true;
   FVolume := 1;
   FPitch := 1;
+  FSoundPlaying := true;
 end;
 
 destructor TCastleSoundSource.Destroy;
@@ -296,10 +305,9 @@ end;
 
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Sound') or
-     (PropertyName = 'Spatial') or
-     (PropertyName = 'Volume') or
-     (PropertyName = 'Pitch') then
+  if ArrayContainsString(PropertyName, [
+       'Sound', 'Spatial', 'Volume', 'Pitch', 'SoundPlaying'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -336,12 +344,12 @@ end;
 
 procedure TCastleSoundSource.Play(const ASound: TCastleSound);
 var
-  SoundPlaying: TCastlePlayingSoundSource;
+  Playing: TCastlePlayingSoundSource;
 begin
-  SoundPlaying := TCastlePlayingSoundSource.Create(nil);
-  SoundPlaying.Sound := ASound;
-  SoundPlaying.FreeOnStop := true;
-  Play(SoundPlaying);
+  Playing := TCastlePlayingSoundSource.Create(nil);
+  Playing.Sound := ASound;
+  Playing.FreeOnStop := true;
+  Play(Playing);
 end;
 
 procedure TCastleSoundSource.Play(const PlayingSound: TCastlePlayingSoundSource);
@@ -371,7 +379,7 @@ end;
 procedure TCastleSoundSource.SoundStart;
 begin
   Assert(MainPlayingSound = nil);
-  if (Sound <> nil) and (Parent <> nil) then
+  if (Sound <> nil) and SoundPlaying and (Parent <> nil) then
   begin
     MainPlayingSound := TCastlePlayingSoundSource.Create(nil);
     MainPlayingSound.Sound := Sound;
@@ -434,6 +442,18 @@ begin
       FSound.FreeNotification(Self);
       SoundStart;
     end;
+  end;
+end;
+
+procedure TCastleSoundSource.SetSoundPlaying(const Value: Boolean);
+begin
+  if FSoundPlaying <> Value then
+  begin
+    FSoundPlaying := Value;
+    if Value then
+      SoundStart
+    else
+      SoundStop;
   end;
 end;
 
