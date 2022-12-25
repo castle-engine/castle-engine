@@ -270,7 +270,7 @@ type
         then this value isn't useful.
 
         This means that in new applications, you probably have no need to set this value. }
-      MainControl: TCastleControl;
+      MainControl: TCastleControl deprecated 'this should no longer be useful, if you change views using MyControl.Container.View := .. or MyControl.Container.PushView(...)';
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1442,10 +1442,12 @@ end;
 
 class function TCastleControl.GetMainContainer: TCastleContainer;
 begin
+  {$warnings off} // using MainControl just to keep it working
   if MainControl <> nil then
     Result := MainControl.Container
   else
     Result := nil;
+  {$warnings on}
 end;
 
 function TCastleControl.GetDesignUrl: String;
