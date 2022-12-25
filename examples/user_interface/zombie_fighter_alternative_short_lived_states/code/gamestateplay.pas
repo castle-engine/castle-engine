@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,7 +63,11 @@ begin
   { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
 //  WalkNavigation.HeadBobbing := 0;
 
+  // see https://castle-engine.io/multiple_viewports_to_display_one_world
+  MapViewport.Items.Remove(MapViewport.Camera);
   MapViewport.Items := MainViewport.Items;
+  MapViewport.Items.Add(MapViewport.Camera);
+
   MapViewport.Camera.SetView(
     Vector3(5, 92.00, 0.99),
     Vector3(0, -1, 0),
