@@ -316,9 +316,23 @@ type
   POctreeLimits = ^TOctreeLimits;
 
   { Base abstract octree class.
-    Holds some settings common for the whole octree (like MaxDepth)
+
+    Like most 3D engines, Castle Game Engine uses a smart
+    tree structure to handle collision detection in arbitrary 3D worlds.
+    The structure used in our engine is the @italic(octree), with a couple
+    of special twists to handle dynamic scenes. See
+    @url(https://castle-engine.io/vrml_engine_doc/output/xsl/html/chapter.octree.html
+    documentation chapter "octrees" for more explanation).
+
+    This class holds some settings common for the whole octree (like @link(MaxDepth),
+    @link(LeafCapacity))
     and a reference to the root octree node (of @link(TOctreeNode) class)
-    in the protected property InternalTreeRoot. }
+    in the protected property InternalTreeRoot.
+
+    The @link(MaxDepth), @link(LeafCapacity) define limits that determine how fast the octree
+    is constructed,
+    how much memory does it use,
+    and how fast can it answer collision queries. }
   TOctree = class
   private
     FTreeRoot: TOctreeNode;
@@ -339,8 +353,10 @@ type
 
     { Maximum tree depth.
 
-      Set this to zero to force RootNode to be a leaf
-      (useful to test whether octree vs a flat list is actually useful).
+      For educational purposes, you can make an experiment and set
+      @link(MaxDepth) to 0. This forces a one-leaf tree, effectively
+      making octree searching work like a normal linear searching.
+      You should see a dramatic loss of game speed on non-trivial models then.
 
       Currently, you should not change MaxDepth and LeafCapacity after creating
       the octree, as they will not rebuild the octree to obey the given limits. }

@@ -11,9 +11,11 @@
 '  #ifndef castle_normal_map_defined' + LineEnding +
 '  #define castle_normal_map_defined' + LineEnding +
 '  uniform sampler2D castle_normal_map;' + LineEnding +
+'  uniform float castle_normalScale;' + LineEnding +
 '  #endif' + LineEnding +
 '#else' + LineEnding +
 '  uniform sampler2D castle_normal_map;' + LineEnding +
+'  uniform float castle_normalScale;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '// avoid redeclaring for GL_ES' + LineEnding +
@@ -27,6 +29,8 @@
 '  // Unpack normals, they are in texture in [0..1] range and we want in [-1..1].' + LineEnding +
 '  vec3 normal_tangent = texture2D(castle_normal_map,' + LineEnding +
 '    castle_TexCoord<NormalMapTextureCoordinatesId>.st).xyz * 2.0 - vec3(1.0);' + LineEnding +
+'' + LineEnding +
+'  normal_tangent *= vec3(castle_normalScale, castle_normalScale, 1.0);' + LineEnding +
 '' + LineEnding +
 '  /* We have to take two-sided lighting into account here, in tangent space.' + LineEnding +
 '     Simply negating whole normal in eye space (like we do without bump mapping)' + LineEnding +

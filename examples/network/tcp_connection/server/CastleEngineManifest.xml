@@ -11,8 +11,8 @@
   <compiler_options>
     <search_paths>
       <path value="code/" />
-      <path value="/your/path/to/Indy10/Core" />
-      <path value="/your/path/to/Indy10/System" />
+      <path value="your/path/to/Indy10/Core" />
+      <path value="your/path/to/Indy10/System" />
     </search_paths>
   </compiler_options>
   <android project_type="integrated">

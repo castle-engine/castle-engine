@@ -1,3 +1,4 @@
+{%MainUnit castlevectors.pas}
 {
   Copyright 2017-2022 Michalis Kamburelis.
 
@@ -264,7 +265,7 @@ type
       axes. Reverse the order of arguments to get negated result.
 
       If you use this to calculate a normal vector of a triangle
-      (P0, P1, P2): note that @code(VectorProduct(P1 - P0, P1 - P2))
+      (P0, P1, P2): note that @code(TVector3.CrossProduct(P1 - P0, P1 - P2))
       points out from CCW triangle side in right-handed coordinate system.
 
       When V1 and V2 are parallel (that is, when V1 = V2 multiplied by some scalar),

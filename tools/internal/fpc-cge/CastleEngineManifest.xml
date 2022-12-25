@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="fpc-cge" standalone_source="fpc-cge.lpr">
+  <compiler_options>
+    <defines>
+      <define>CASTLE_STRICT_CLI</define>
+    </defines>
+  </compiler_options>
+  <data exists="false" />
+</project>

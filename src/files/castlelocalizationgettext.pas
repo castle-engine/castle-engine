@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,10 @@
 
 { Utilities for localizing CGE applications using GetText. }
 unit CastleLocalizationGetText;
+
+{$ifndef FPC}
+  {$message fatal 'This unit is only for now only for FPC, not Delphi. Porting our localization to Delphi is a TODO.'}
+{$endif}
 
 interface
 
@@ -127,7 +131,7 @@ procedure AddTranslatedCharacters(const Mo: TCastleMOFile; const Characters: TUn
 
   Calling this routine again will override the effect of the previous call.
   That is, at a given time, only one MO file is "active" and automatically translates
-  all the loaded designs.
+  all the loaded designs. Pass GetTextMoUrl = '' to disable translating further UIs.
 
   @seealso TranslateDesign }
 procedure TranslateAllDesigns(const GetTextMoUrl: String);
@@ -312,8 +316,13 @@ end;
 procedure TranslateAllDesigns(const GetTextMoUrl: String);
 begin
   FreeAndNil(TranslateAllDesignsMo);
-  TranslateAllDesignsMo := TCastleMOFile.Create(GetTextMoUrl);
-  OnInternalTranslateDesign := @TranslateDesignCallback;
+  OnInternalTranslateDesign := nil;
+
+  if GetTextMoUrl <> '' then
+  begin
+    TranslateAllDesignsMo := TCastleMOFile.Create(GetTextMoUrl);
+    OnInternalTranslateDesign := @TranslateDesignCallback;
+  end;
 end;
 
 { TranslateDesign ------------------------------------------------------------ }

@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -86,9 +87,7 @@ type
       By default this is (0, 1, 0, 0) and often you will want to just
       change the 4th rotation component, angle, to rotate around the Y axis.
 
-      Note that this is a vector property, see https://castle-engine.io/coding_traps
-      how to change it. This is valid:
-
+      Set it like this:
       @longCode(#
       MyBackground.Rotation := Vector4(0, 1, 0, Pi / 4);
       #) }
@@ -190,7 +189,7 @@ end;
 
 procedure TCastleBackground.Loaded;
 begin
-  inherited; //< important, as inherited removes csLoading from ComponentState
+  inherited;
   if FPendingUpdateRenderer then
     UpdateRenderer;
 end;

@@ -91,11 +91,11 @@ begin
     'ShapeGreen.WasVisible = %s' + NL +
     'ShapeBlue.WasVisible = %s' + NL +
     'ShapeWhite.WasVisible = %s', [
-    BoolToStr(SceneTestBlocks.WasVisible,true),
-    BoolToStr(ShapeRed.WasVisible,true),
-    BoolToStr(ShapeGreen.WasVisible,true),
-    BoolToStr(ShapeBlue.WasVisible,true),
-    BoolToStr(ShapeWhite.WasVisible,true)
+    BoolToStr(SceneTestBlocks.WasVisible, true),
+    BoolToStr(ShapeRed.WasVisible, true),
+    BoolToStr(ShapeGreen.WasVisible, true),
+    BoolToStr(ShapeBlue.WasVisible, true),
+    BoolToStr(ShapeWhite.WasVisible, true)
   ]);
 end;
 

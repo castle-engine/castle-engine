@@ -1,6 +1,6 @@
 ## game_analytics
 
-Enable the http://www.gameanalytics.com/[Game Analytics] analytics of your apps. Use the https://castle-engine.io/apidoc-unstable/html/CastleAnalytics.TAnalytics.html[TAnalytics] class from the https://castle-engine.io/apidoc-unstable/html/CastleAnalytics.html[CastleAnalytics] unit to initialize and send data to the analytics from your Pascal code. Also, all the purchases done using `google_in_app_purchases` service are automatically send to analytics, with correct price and currency.
+Enable the http://www.gameanalytics.com/[Game Analytics] analytics of your apps. Use the https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html[TAnalytics] class from the https://castle-engine.io/apidoc/html/CastleAnalytics.html[CastleAnalytics] unit to initialize and send data to the analytics from your Pascal code. Also, all the purchases done using `google_in_app_purchases` service are automatically send to analytics, with correct price and currency.
 
 ## Usage
 

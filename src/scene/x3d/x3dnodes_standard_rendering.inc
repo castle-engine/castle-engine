@@ -38,10 +38,8 @@
     function CallProxyBoundingBox(
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
     function CallProxyTrianglesCount(
-      OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
     function CallProxyVerticesCount(
-      OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
     function GetSolid: boolean;
     procedure SetSolid(const Value: boolean);
@@ -152,7 +150,6 @@
 
       They require State of this node during VRML traverse state --- this
       is mainly for VRML 1.0 nodes, that depend on such state.
-      OverTriangulate has the same meaning as for TShape.Triangulate.
 
       Vertices count calculates number of different vertexes in this node.
       That is, it doesn't eliminate doubles in cases like Coordinate node
@@ -181,10 +178,10 @@
       or some faster approach is possible.
 
       @groupBegin }
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TX3DGraphTraverseState): Cardinal; virtual;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TX3DGraphTraverseState): Cardinal; virtual;
     { @groupEnd }
@@ -348,19 +345,10 @@
       You should @italic(not) just modify the fields
       of the provided State instance. (Reasoning: some proxy methods
       rely on getting the original State, e.g. with original MaterialBinding,
-      not the transformed state, to work correctly. And some proxy methods
-      need to modify the state differently, depending on OverTriangulate
-      value.)
+      not the transformed state, to work correctly.)
 
       You can modify State variable only when returning non-nil geometry. }
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; virtual;
-
-    { Does the @link(Proxy) method look at the OverTriangulate parameter
-      at all. Default implementation in TAbstractGeometryNode returns safer @true.
-      Descendants may override and return @false, to allow
-      e.g. more caching in TShape. }
-    function ProxyUsesOverTriangulate: boolean; virtual;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; virtual;
 
     { Returns color.point field, assuming that "color" field is set and
       specifies Color (or ColorRGBA) node. Otherwise returns @nil.
@@ -577,7 +565,7 @@
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
     function InternalCoord(State: TX3DGraphTraverseState;
@@ -604,7 +592,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
@@ -622,7 +610,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
@@ -640,7 +628,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
@@ -660,7 +648,7 @@
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
 
@@ -697,7 +685,7 @@
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
     function InternalCoord(State: TX3DGraphTraverseState;
@@ -723,7 +711,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
@@ -737,7 +725,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
@@ -755,7 +743,7 @@
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
@@ -991,15 +979,9 @@ begin
   end;
 end;
 
-function TAbstractGeometryNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TAbstractGeometryNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 begin
   Result := nil;
-end;
-
-function TAbstractGeometryNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := true;
 end;
 
 function TAbstractGeometryNode.InternalFogCoord: TMFFloat;

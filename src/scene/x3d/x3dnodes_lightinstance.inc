@@ -115,12 +115,6 @@ function TLightInstance.Contribution(
       beamWidth), so we use spot factor equation following OpenGL equations.)
 
     @item(
-      For VRML 1.0, we have to calculate ambientFactor in a little different way:
-      see [https://castle-engine.io/x3d_extensions.php#ext_light_attenuation],
-      when light's ambientIntensity is < 0 then we just return 0 and
-      otherwise we use material's ambientColor.)
-
-    @item(
       VRML 97 lighting equations suggest one-sided lighting, only where
       the normal points out. In my opinion, one-sided lighting is not useful,
       and also our OpenGL rendering uses two-sides lighting.
@@ -174,7 +168,7 @@ var
   var
     MaterialAmbientColor: TCastleColorRGB;
   begin
-    if (Node.FdAmbientIntensity.Value < 0) or not (M is TPhongMaterialInfo) then
+    if not (M is TPhongMaterialInfo) then
       Result := TVector3.Zero
     else
     begin

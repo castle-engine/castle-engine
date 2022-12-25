@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 
-  This is a MS Windows test project for our library in src/library/.
+  This is a MS Windows test project for our library in src/deprecated_library/.
   It uses library API (exposed in castleengine.h), and uses a compiled dynamic
   library with the engine.
 
@@ -22,7 +22,7 @@
   from other programming languages.
 
   HOW TO RUN THIS: prior to running this project, compile and copy the shared
-  library (in src/library/) to a place where it can be loaded, it means
+  library (in src/deprecated_library/) to a place where it can be loaded, it means
   copy castleengine.dll to this project folder, or anywhere on $PATH.
 
   You will also need other dynamic libraries (zlib1.dll, libpng.dll, ogg.dll,
@@ -40,7 +40,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "../../../src/library/castleengine.h"
+#include "../../../src/deprecated_library/castleengine.h"
 
 #if defined(_DEBUG)
 #include <crtdbg.h>

@@ -16,4 +16,4 @@ Request this service in https://castle-engine.io/project_manifest[CastleEngineMa
 </project>
 ----
 
-Then use https://castle-engine.io/apidoc-unstable/html/CastleOpenDocument.html#Vibrate[Vibrate] procedure from the https://castle-engine.io/apidoc-unstable/html/CastleOpenDocument.html[CastleOpenDocument] unit in your application.
+Then use https://castle-engine.io/apidoc/html/CastleOpenDocument.html#Vibrate[Vibrate] procedure from the https://castle-engine.io/apidoc/html/CastleOpenDocument.html[CastleOpenDocument] unit in your application.

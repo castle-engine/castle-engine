@@ -164,7 +164,6 @@ begin
   Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1]);
-    Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
 
     TimeStart := ProcessTimer;
@@ -195,7 +194,7 @@ begin
           smooth normals. Simple, and thanks to CastleInternalNormals
           this works for all VRML/X3D coord-based nodes (and only for
           those RadianceTransfer is defined). }
-        Normals := Shape.NormalsSmooth(true, true);
+        Normals := Shape.NormalsSmooth(true);
         ComputeTransfer(RadianceTransfer,
           Geometry.InternalCoordinates(State).Items,
           State.Transformation.Transform, MainColor(State));

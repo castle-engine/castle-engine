@@ -324,7 +324,7 @@ type
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
       Will not do anything (treat scene like not casting shadows,
-      like CastShadowVolumes = false) if the model is not perfect 2-manifold,
+      like CastShadows = false) if the model is not perfect 2-manifold,
       i.e. has some BorderEdges (although we could handle some BorderEdges
       for some points of view, this could leading to rendering artifacts).
 
@@ -376,9 +376,14 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+
+    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
+    function HasColliderMesh: Boolean; override;
+    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
       which is good when your transparent objects have proper order along the Z axis
@@ -606,7 +611,10 @@ const
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
+{$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
@@ -633,7 +641,10 @@ uses Math,
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
+{$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
+{$I castlescene_punctuallight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
@@ -714,6 +725,13 @@ end;
 procedure TCastleScene.TSceneRenderOptions.ReleaseCachedResources;
 begin
   inherited;
+
+  { Secure, in case this is called from TCastleRenderOptions constructor --
+    possible if you assign TCastleRenderOptions.OnCreate there that e.g. changes
+    PhongShading.
+    Testcase: castle-game. }
+  if OwnerScene = nil then
+    Exit;
 
   { We have to do at least Renderer.UnprepareAll.
     Actually, we have to do more: TCastleScene must also be disconnected
@@ -1274,7 +1292,7 @@ end;
 
 procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1320,7 +1338,7 @@ procedure TCastleScene.PrepareResources(
     { calculate OwnParams, GoodParams }
     if Params = nil then
     begin
-      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
       OwnParams := TPrepareParams.Create;
       GoodParams := OwnParams;
     end else
@@ -1497,8 +1515,20 @@ procedure TCastleScene.LocalRenderOutside(
   {$ifndef OpenGLES}
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
+  var
+    WireframeEffect: TWireframeEffect;
   begin
-    case RenderOptions.WireframeEffect of
+    WireframeEffect := RenderOptions.WireframeEffect;
+    if InternalForceWireframe <> weNormal then
+    begin
+      { Do not allow InternalForceWireframe to fill (make non-wireframe) polygons
+        that were supposed to be wireframe. This would look weird, e.g. some wireframe
+        gizmos would become filled. }
+      if not ( (WireframeEffect = weWireframeOnly) and
+               (InternalForceWireframe = weSolidWireframe) ) then
+        WireframeEffect := InternalForceWireframe;
+    end;
+    case WireframeEffect of
       weNormal:
         begin
           InternalScenePass := 0;
@@ -1644,7 +1674,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.InternalGlobalLights := Params.GlobalLights;
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
-    PrepareResources([prRenderSelf], false, FTempPrepareParams);
+    PrepareResources([prRenderSelf], FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;
@@ -1703,6 +1733,24 @@ begin
   inherited;
 end;
 
+function TCastleScene.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleScene.ColliderMesh(const TriangleEvent: TTriangleEvent);
+var
+  ShapesList: TShapeList;
+  I: Integer;
+begin
+  inherited ColliderMesh(TriangleEvent);
+
+  ShapesList := Shapes.TraverseList(true);
+    for I := 0 to ShapesList.Count - 1 do
+      if ShapesList[I].Collidable then
+        ShapesList[I].Triangulate(TriangleEvent);
+end;
+
 { Shadow volumes ------------------------------------------------------------- }
 
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
@@ -1715,7 +1763,12 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if CheckVisible and CastShadowVolumes then
+  if CheckVisible and
+     CastShadows and
+     { Do not render shadow volumes when rendering wireframe.
+       Shadow volumes assume that object is closed (2-manifold),
+       otherwise weird artifacts are visible. }
+     (RenderOptions.WireframeEffect <> weWireframeOnly) then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
@@ -1733,11 +1786,20 @@ begin
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
       for Shape in ShapeList do
       begin
+        { Do not render shadows for objects eliminated by DistanceCulling.
+          Otherwise: Not only shadows for invisible objects would look weird,
+          but they would actually show errors.
+          Shadow volumes *assume* that shadow caster is also rendered (shadow quads
+          are closed). }
+        if (DistanceCulling > 0) and not DistanceCullingCheck(Shape) then
+          Continue;
+
         ShapeBox := Shape.BoundingBox;
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
-        if SVRenderer.CasterShadowPossiblyVisible then
+        if RenderOptions.WholeSceneManifold or
+           SVRenderer.CasterShadowPossiblyVisible then
         begin
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1748,7 +1810,8 @@ begin
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
-            ForceOpaque);
+            ForceOpaque,
+            RenderOptions.WholeSceneManifold);
         end;
       end;
     end;
@@ -1961,9 +2024,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     if World.MainCamera <> nil then
     begin
-      CamPos := World.MainCamera.Position;
-      CamDir := World.MainCamera.Direction;
-      CamUp  := World.MainCamera.Up;
+      World.MainCamera.GetWorldView(CamPos, CamDir, CamUp);
     end else
     begin
       CamPos := TVector3.Zero;
@@ -2366,7 +2427,7 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Optimal Blending for 2D Models)';
+  R.Caption := ['Scene (Optimal Blending for 2D Models)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
@@ -2378,11 +2439,12 @@ initialization
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
-  RegisterSerializableComponent(TCastlePointLight, 'Point Light');
-  RegisterSerializableComponent(TCastleDirectionalLight, 'Directional Light');
-  RegisterSerializableComponent(TCastleSpotLight, 'Spot Light');
+  RegisterSerializableComponent(TCastleFog, 'Fog');
+  RegisterSerializableComponent(TCastlePointLight, ['Light', 'Point']);
+  RegisterSerializableComponent(TCastleDirectionalLight, ['Light', 'Directional']);
+  RegisterSerializableComponent(TCastleSpotLight, ['Light', 'Spot']);
   {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Environment Light (Experimental)');
+  RegisterSerializableComponent(TCastleEnvironmentLight, ['Light', 'Environment']);
   {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);

@@ -65,7 +65,7 @@ var
   Geometries: TColladaGeometryList;
 
 { Add Collada geometry instance (many X3D Shape nodes) to given X3D Group. }
-procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
+procedure AddGeometryInstance(Group: TAbstractGroupingNode;
   Geometry: TColladaGeometry; InstantiatingElement: TDOMElement);
 
   { For Collada material id, return the X3D Appearance (or @nil if not found). }
@@ -142,7 +142,7 @@ end;
 
 { Read <instance_geometry>, adding resulting X3D nodes into
   ParentGroup. Actually, this is also for reading <instance> in Collada 1.3.1. }
-procedure ReadInstanceGeometry(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadInstanceGeometry(ParentGroup: TAbstractGroupingNode;
   InstantiatingElement: TDOMElement);
 var
   GeometryId: string;

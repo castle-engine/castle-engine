@@ -1,9 +1,7 @@
 X3DEnvironmentTextureNode : X3DSingleTextureNode {
-  auto-generate-more: true
 }
 
 ComposedCubeMapTexture : X3DEnvironmentTextureNode {
-  auto-generate-more: true
 
   # TODO: runtime changes to nodes inside (like ImageTexture.url, for ImageTexture in back/front/etc.)
   # will not be properly applied.
@@ -34,7 +32,6 @@ ComposedCubeMapTexture : X3DEnvironmentTextureNode {
 }
 
 GeneratedCubeMapTexture : X3DEnvironmentTextureNode {
-  auto-generate-more: true
   SFString [in,out] update            "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
     enumerated-type: TTextureUpdate TextureUpdateNames upNone
@@ -65,7 +62,6 @@ GeneratedCubeMapTexture : X3DEnvironmentTextureNode {
 }
 
 ImageCubeMapTexture : X3DEnvironmentTextureNode, X3DUrlObject {
-  auto-generate-more: true
   MFString [in,out] url               []
     range: [URI]
     # The image loaded by LoadImage method isn't saved at ImageCubeMapTexture.

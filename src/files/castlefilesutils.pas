@@ -354,30 +354,48 @@ function HomePath: string;
   ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
 function ExpandHomePath(const FileName: string): string;
 
-{ Call SysUtils.DeleteFile and check result.
+{ Remove file.
+
+  Similar to standard DeleteFile, but this checks result and raises exception
+  or makes a warning (see Warn parameter) in case of trouble
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false);
 
-{ Call RemoveDir and check result.
+{ Remove empty directory.
+
+  Similar to standard RemoveDir, but this checks result and raises exception
+  or makes a warning (see Warn parameter) in case of trouble.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure CheckRemoveDir(const DirFileName: string; const Warn: Boolean = false);
 
-{ Make sure directory exists, eventually creating it, recursively, checking result. }
+{ Make sure directory exists, eventually creating it and all directories along the way.
+
+  Similar to standard ForceDirectories, but this checks result and raises exception
+  in case of trouble. }
 procedure CheckForceDirectories(const Dir: string);
 
+{ Copy file from Source to Dest.
+  The directory of Dest must already exist.
+  File is overwritten unconditionally. }
 procedure CheckCopyFile(const Source, Dest: string);
 
+{ Move file from Source to Dest.
+  The directory of Dest must already exist.
+  File is overwritten unconditionally. }
 procedure CheckRenameFile(const Source, Dest: string);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
   with all the files and subdirectories inside).
   DirName may but doesn't have to end with PathDelim.
+
+  In case of symlinks, removes the symlink (but does not descend inside,
+  i.e. will not remove files inside a symlink to a directory).
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
@@ -537,6 +555,9 @@ procedure StringToFile(const URL: String; const Contents: AnsiString);
   in the filesystem, without any permissions;
   and on some platforms they may have special API for this stuff). }
 function SaveScreenPath: String;
+
+{ Calculate size of all files in this dir. }
+function DirectorySize(const Dir: String): QWord;
 
 implementation
 
@@ -858,16 +879,18 @@ var
 begin
   Warn := PBoolean(Data)^;
 
-  if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName, Warn)
+  if FileInfo.Directory and not FileInfo.Symlink then
+    RemoveNonEmptyDir(FileInfo.AbsoluteName, Warn)
   else
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
 procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 begin
-  FindFiles(DirName, '*', true,
-    @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
+  { Note that we don't use ffRecursive,
+    as we don't want to descend into directory with symlink.
+    We will implement recursion in RemoveNonEmptyDir_Internal manually. }
+  FindFiles(DirName, '*', true, @RemoveNonEmptyDir_Internal, @Warn, []);
   CheckRemoveDir(Dirname, Warn);
 end;
 
@@ -1233,7 +1256,10 @@ begin
   begin
     bundle := CFBundleGetMainBundle();
     if bundle = nil then
-      BundlePathCache := '' else
+    begin
+      BundlePathCache := '';
+      WritelnLog('We cannot detect our macOS AppBundle. Probably the application was run directly (like a Unix application, without being wrapped in a directory like "xxx.app"). Some GUI features (like application menu) will not work without running through AppBundle.');
+    end else
     begin
       pathRef := CFBundleCopyBundleURL(bundle);
       pathCFStr := CFURLCopyFileSystemPath(pathRef, kCFURLPOSIXPathStyle);
@@ -1318,6 +1344,32 @@ begin
 
   CachedSaveScreenPath := Result;
   HasCachedSaveScreenPath := true;
+end;
+
+{ DirectorySize utility ------------------------------------------------------ }
+
+type
+  TDirectorySizeHelper = class
+  public
+    { Total size of all files in the directory. }
+    Size: QWord;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TDirectorySizeHelper.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+begin
+  Size := Size + FileInfo.Size;
+end;
+
+function DirectorySize(const Dir: String): QWord;
+var
+  Helper: TDirectorySizeHelper;
+begin
+  Helper := TDirectorySizeHelper.Create;
+  try
+    FindFiles(Dir, '*', false, {$ifdef FPC}@{$endif}Helper.FoundFile, [ffRecursive]);
+    Result := Helper.Size;
+  finally FreeAndNil(Helper) end;
 end;
 
 procedure InitializeExeName;

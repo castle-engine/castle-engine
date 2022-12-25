@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestFPImage" -*-
 {
-  Copyright 2011-2021 Michalis Kamburelis.
+  Copyright 2011-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,8 @@ type
 
 implementation
 
-uses Classes, FPImage, FPReadJPEG, SysUtils, CastleVectors, CastleImages;
+uses Classes, FPImage, FPReadJPEG, SysUtils,
+  CastleVectors, CastleImages, CastleURIUtils;
 
 procedure TTestFPImage.TestJPEG;
 
@@ -67,7 +68,7 @@ procedure TTestFPImage.TestJPEG;
 
 begin
   { Reading this image fails with FPImage under FPC <= 2.4.0 }
-  DoIt('data/images/f023ours.jpg', 512, 512);
+  DoIt(URIToFilenameSafe('castle-data:/images/f023ours.jpg'), 512, 512);
 end;
 
 initialization

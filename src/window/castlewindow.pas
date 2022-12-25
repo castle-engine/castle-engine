@@ -209,8 +209,9 @@ unit CastleWindow;
              {$define CASTLE_WINDOW_LIBRARY}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
-             {$define CASTLE_WINDOW_XLIB} // easiest to compile
-             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on macOS, but requires LCL
+             {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
+             { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
+             { $define CASTLE_WINDOW_LCL} // looks native (can use Cocoa through LCL), but requires LCL to compile
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -292,6 +293,11 @@ unit CastleWindow;
 {$ifdef CASTLE_WINDOW_GTK_ANY} {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}    {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
+{$ifdef CASTLE_WINDOW_COCOA}
+  {$modeswitch objectivec1}
+  {$modeswitch cblocks}
+{$endif}
+
 interface
 
 uses {$define read_interface_uses}
@@ -301,7 +307,7 @@ uses {$define read_interface_uses}
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleVectors, CastleRectangles, CastleColors,
+  CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls,
@@ -746,16 +752,14 @@ type
     { Should DoKeyDown be able to call DoMenuClick, that is should
       we handle menu key shortcuts ourselves.
 
-      This is implemented in backend-specific CastleWindow parts.
-      When in DoKeyDown we get some key event that specifies that
-      some menu item should be called -- if RedirectKeyDownToMenuClick,
-      DoKeyDown will do DoMenuClick. Else DoKeyDown will do nothing.
+      The implementation (usually just hardcoded true or false result)
+      is backend-specific.
 
-      This should be implemened as "Result := true" if we have to process
-      keypresses in CastleWindow to pass them as menu commands, e.g. when CastleWindow
-      works on top of Xlib.
-      When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
-      menu, this should be implemented as "Result := false". }
+      - If @true, and in DoKeyDown we get some key event that specifies menu item,
+        then DoKeyDown calls DoMenuClick (and not calls EventKeyDown).
+
+      - If @false, then DoKeyDown doesn't check whether key corresponds to menu item.
+        It just calls EventKeyDown. }
     function RedirectKeyDownToMenuClick: boolean;
 
     { DoXxx methods ------------------------------------------------------------
@@ -876,7 +880,7 @@ type
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
-        MakeCurent,
+        MakeCurrent,
         Item.DoClick,
         optional OnMenuClick or Container.EventKeyDown }
     procedure DoMenuClick(Item: TMenuItem);
@@ -1278,34 +1282,27 @@ type
       Note that we have a fallback mechanism in case @link(DepthBits)
       is too large: we fallback on @link(DepthBitsFallback) then.
 
-      @italic(Design notes:) One may ask why default value is not 0?
+      @italic(Design notes:) Why default value is not 0?
 
       @orderedList(
         @item(
-          Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Window.DepthBits := DefaultDepthBits).)
+          Most programs using OpenGL use 3D and so use depth testing.
+          So many programs
+          would have to call something like @code(Window.DepthBits := DefaultDepthBits).
+        )
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
           context with depth buffer @italic(even if you don't need depth buffer).
-          I don't say that it's bad. But it makes very easy to forget about
-          doing @code(DepthBits := something-non-zero;).
-          If you're writing 3d program and sitting on some
-          system that always gives you depth buffer (even if DepthBits = 0)
-          then it may happen that you forget to write in your program
-          @longCode(#  Window.DepthBits := DefaultDepthBits;#)
-
-          And while on your system everything will work, you will
-          receive errors on other systems because you forgot to request a
-          depth buffer.)
+          This makes it easy to forget about setting DepthBits to something
+          non-zero, because on @italic(your) system you may happen
+          to always get some depth buffer.
+        )
       )
 
       If you are writing a program that does not need depth buffer
-      you should set Window.DepthBits := 0. The only advantage of having
-      default DepthBits = DefaultDepthBits is that if you forget to set
-      Window.DepthBits := 0 your programs will still work (most graphic cards
-      will give you some depth buffer anyway).
-      They will just use more resources than they should.
+      you can set Window.DepthBits := 0, to inform OpenGL it doesn't need
+      to allocate any depth buffer.
     }
     property DepthBits: Cardinal
       read FDepthBits write FDepthBits default DefaultDepthBits;
@@ -1326,7 +1323,7 @@ type
       and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
       when window is open to query current (actual) buffer size. }
     property StencilBits: Cardinal
-      read FStencilBits write FStencilBits default 0;
+      read FStencilBits write FStencilBits default DefaultStencilBits;
 
     { How many samples are required for multi-sampling (anti-aliasing).
 
@@ -1388,14 +1385,10 @@ type
       Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error.
-
-      It's undefined how I'll treat this variable when indexed color mode
-      will be possible in TCastleWindow. }
+      @link(Open) will raise an error. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    {$ifdef FPC}
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1409,10 +1402,10 @@ type
 
       @deprecated
       This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. now LCL backend,
-      the default backend on macOS, doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
-    {$endif FPC}
+      buffer. It may not be supported by some backends (e.g. LCL backend
+      doesn't support it). }
+    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
+      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -1653,7 +1646,9 @@ type
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
-      Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
+
+      Note: this is currently supported only by LCL and Cocoa backends
+      of TCastleWindow, see https://castle-engine.io/castlewindow_backends . }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
     { Should we automatically redraw the window all the time,
@@ -2145,15 +2140,15 @@ type
       If user accepts, we return true and set Color accordingly, else
       we return false (and do not modify Color).
 
-      Some overloaded versions (the one with TCastleColor) specify a color with alpha,
-      but note that @italic(currently no implemetation allows
-      the user to adjust the color's alpha value).
-      Alpha always remains unchanged.
+      Overloaded version with TCastleColor specifies a color with alpha.
+      But note that only some backends actually allow user to adjust alpha
+      (others leave alpha unchanged).
+      Backends that allow alpha editing now are: Cocoa, Xlib.
 
       @groupBegin }
-    function ColorDialog(var Color: TCastleColor): boolean; overload;
-    function ColorDialog(var Color: TVector3): boolean; overload;
-    function ColorDialog(var Color: TVector3Byte): boolean; overload;
+    function ColorDialog(var Color: TCastleColor): Boolean; overload;
+    function ColorDialog(var Color: TCastleColorRGB): Boolean; overload;
+    function ColorDialog(var Color: TVector3Byte): Boolean; overload;
     { @groupEnd }
 
     { Show some information and just ask to press "OK",
@@ -2621,9 +2616,9 @@ type
     { Handle standard command-line parameters of Castle Game Engine programs.
       Handles:
       @unorderedList(
-        @item(@code(-h / --help))
-        @item(@code(-v / --version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
-        @item(@code(--log-file), setting @link(LogFileName))
+        @item(@code(-h / @--help))
+        @item(@code(-v / @--version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
+        @item(@code(@--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindow.ParseParameters),
           if @link(MainWindow) is set already.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
@@ -2807,6 +2802,7 @@ begin
   minWidth := 100;  maxWidth := 4000;
   minHeight := 100; maxHeight := 4000;
   DepthBits := DefaultDepthBits;
+  StencilBits := DefaultStencilBits;
   FCursor := mcDefault;
   FMultiSampling := 1;
   FVisible := true;
@@ -3134,11 +3130,11 @@ end;
 
 procedure TCastleWindow.ReleaseAllKeysAndMouse;
 var
-  k: TKey;
-  mb: TCastleMouseButton;
+  Key: TKey;
+  MouseButton: TCastleMouseButton;
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
-  mk: TModifierKey;
-  b: boolean;
+  ModKey: TModifierKey;
+  B: boolean;
   {$endif}
 begin
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
@@ -3148,18 +3144,19 @@ begin
     use SetPrivateModifiersDown(mkCtrl, ...).
     This is the only way to make values in PrivateModifiersDown[]
     and Pressed[] arrays consistent. }
-  for mk := Low(mk) to High(mk) do
-    for b := Low(b) to High(b) do
-      SetPrivateModifiersDown(mk, b, false);
+  for ModKey := Low(ModKey) to High(ModKey) do
+    for B := Low(B) to High(B) do
+      SetPrivateModifiersDown(ModKey, B, false);
   {$endif CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
 
-  { Since we do DoKeyUp, this should also take care of Characters. }
+  { Since we do DoKeyUp, this should also take care of releasing Characters. }
+  for Key := Low(Key) to High(Key) do
+    if Pressed[Key] then
+      DoKeyUp(Key);
 
-  for k := Low(k) to High(k) do
-    if Pressed[k] then DoKeyUp(k);
-
-  for mb := Low(mb) to High(mb) do if mb in MousePressed then
-    DoMouseUp(MousePosition, mb);
+  for MouseButton := Low(MouseButton) to High(MouseButton) do
+    if MouseButton in MousePressed then
+      DoMouseUp(MousePosition, MouseButton);
 
   Container.MouseLookIgnoreNextMotion;
 end;
@@ -3380,13 +3377,42 @@ begin
 
   Pressed.KeyDown(Key, KeyString);
 
-  MatchingMI := SeekMatchingMenuItem;
-  if (MainMenu <> nil) and
-     MainMenu.Enabled and
-     (MatchingMI <> nil) then
+  { This implementation guarantees that
+
+    A. we call some menu item
+    B. *or* we call Container.EventPress.
+
+    There is *no* situation possible in which we don't handle key
+    (because it matches menu item) but we also don't pass it to DoMenuClick.
+    This also avoids some inconsistencies between SeekMatchingMenuItem
+    and what GUI toolkit actually does, in case RedirectKeyDownToMenuClick = false
+    (like on GTK): e.g. we had situation when SeekMatchingMenuItem was finding a menu
+    item (for Key=keyNumPad7, KeyString='7') but for GTK it didn't match corresponding
+    menu item.
+
+    It also means it is undefined (backend-specific) whether Container.EventPress
+    *does* receive keys that triggered some menu items,
+    when RedirectKeyDownToMenuClick = false.
+    Some backends may hide such keys, some don't, and in case of
+    RedirectKeyDownToMenuClick = false we dont' control it at all.
+
+    Only when RedirectKeyDownToMenuClick = true we guarantee that only *one*
+    of A or B fires.
+
+    So:
+    - We always guarantee that A or B occurs.
+    - Only when RedirectKeyDownToMenuClick = true we guarantee that exactly one
+      of A or B occurs.
+  }
+
+  MatchingMI := nil;
+  if (RedirectKeyDownToMenuClick or (not MainMenuVisible)) and
+     (MainMenu <> nil) and
+     MainMenu.Enabled then
+    MatchingMI := SeekMatchingMenuItem;
+  if MatchingMI <> nil then
   begin
-    if (not MainMenuVisible) or RedirectKeyDownToMenuClick then
-      DoMenuClick(MatchingMI);
+    DoMenuClick(MatchingMI);
   end else
   begin
     MakeCurrent;
@@ -3394,7 +3420,8 @@ begin
     Container.EventPress(Event);
 
     if Event.IsKey(Close_KeyString) then
-      Close else
+      Close
+    else
     if Event.IsKey(SwapFullScreen_Key) then
       FullScreen := not FullScreen;
   end;
@@ -3664,26 +3691,27 @@ begin
   finally FreeAndNil(FFList) end;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColorRGB): boolean;
 var
-  Color3: TVector3;
+  Color4: TCastleColor;
 begin
-  Color3 := Color.XYZ;
-  Result := ColorDialog(Color3);
+  Color4 := Vector4(Color, 1);
+  Result := ColorDialog(Color4);
   if Result then
-    Color := Vector4(Color3, 1.0);
+    Color := Color4.RGB;
 end;
 
 function TCastleWindow.ColorDialog(var Color: TVector3Byte): boolean;
 var
-  ColorSingle: TVector3;
+  ColorSingle: TVector4;
 begin
   ColorSingle.X := Color.X / High(Byte);
   ColorSingle.Y := Color.Y / High(Byte);
   ColorSingle.Z := Color.Z / High(Byte);
+  ColorSingle.W := 1;
   Result := ColorDialog(ColorSingle);
   if Result then
-    Color := Vector3Byte(ColorSingle);
+    Color := Vector3Byte(ColorSingle.XYZ);
 end;
 
 { OpenAndRun ----------------------------------------------------------------- }
@@ -3931,7 +3959,7 @@ const
 var
   Data: TOptionProcData;
 
-  procedure HandleMacOsXProcessSerialNumber;
+  procedure RemoveMacOsProcessSerialNumber;
   {$ifdef DARWIN}
   var
     I: Integer;
@@ -3958,7 +3986,7 @@ begin
     if ParamKind in AllowedOptions then
     begin
       if ParamKind = poMacOsXProcessSerialNumber then
-        HandleMacOsXProcessSerialNumber
+        RemoveMacOsProcessSerialNumber
       else
         Parameters.Parse(OptionsForParam[ParamKind].pOptions,
           OptionsForParam[ParamKind].Count,
@@ -4044,33 +4072,33 @@ procedure TCastleWindow.CheckRequestedBufferAttributes(
 
   procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
   begin
-   if ProvidedBits < RequestedBits then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
-      +' %d-bits sized but at least %d-bits sized is required',
-      [ ProviderName, Name, ProvidedBits, RequestedBits ]);
+    if ProvidedBits < RequestedBits then
+      raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
+        +' %d-bits sized but at least %d-bits sized is required',
+        [ ProviderName, Name, ProvidedBits, RequestedBits ]);
   end;
 
-begin
- CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
- CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
- CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
- CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
- CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
- CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
- CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
-
- { If MultiSampling <= 1, this means that multisampling not required,
-   so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
-   (as most backends report no multisampling as num samples = 0), it's all Ok. }
-
- if MultiSampling > 1 then
  begin
-   if ProvidedMultiSampling < MultiSampling then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
-      'samples for multisampling (<= 1 means that no multisampling was provided) ' +
-      'but at last %d samples for multisampling is required',
-      [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
- end;
+  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
+  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
+  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
+  CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
+  CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
+  CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
+  CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
+
+  { If MultiSampling <= 1, this means that multisampling not required,
+    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
+    (as most backends report no multisampling as num samples = 0), it's all Ok. }
+
+  if MultiSampling > 1 then
+  begin
+    if ProvidedMultiSampling < MultiSampling then
+     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
+       'samples for multisampling (<= 1 means that no multisampling was provided) ' +
+       'but at last %d samples for multisampling is required',
+       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
+  end;
 end;
 
 procedure TCastleWindow.MenuUpdateBegin;

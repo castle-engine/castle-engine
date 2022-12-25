@@ -1,23 +1,17 @@
 X3DInterpolatorNode : X3DChildNode {
-  auto-generate-more: true
   SFFloat      [in]     set_fraction
     range: (-Inf,Inf)
   MFFloat      [in,out] key           []
     range: (-Inf,Inf)
     change: chNone
 
-  # TODO: Interpolation is now a regular Pascal class field,
-  # not X3D field, to conserve memory use.
-  # This matters greatly in case of e.g. https://github.com/castle-engine/castle-engine/issues/285 }
-  #
-  # SFString [in,out]     interpolation            "LINEAR"
-  #   range: ["LINEAR"|"STEP"]
-  #   enumerated-type: TInterpolation InterpolationNames inLinear
-  #   change: chNone
+  SFString [in,out]     interpolation            "LINEAR"
+    range: ["LINEAR"|"STEP"]
+    enumerated-type: TInterpolation InterpolationNames inLinear
+    change: chNone
 }
 
 ColorInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFColor [in,out] keyValue      []
     range: [0,1]
     change: chNone
@@ -26,14 +20,12 @@ ColorInterpolator : X3DInterpolatorNode {
 
 # See https://castle-engine.io/x3d_implementation_interpolation.php
 ColorSetInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFColor  [in,out]  keyValue           []
     change: chNone
   MFColor  [out]     value_changed
 }
 
 CoordinateInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -41,7 +33,6 @@ CoordinateInterpolator : X3DInterpolatorNode {
 }
 
 CoordinateInterpolator2D : X3DInterpolatorNode {
-  auto-generate-more: true
   MFVec2f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -51,7 +42,6 @@ CoordinateInterpolator2D : X3DInterpolatorNode {
 # Note: X3D spec doesn't say this descends from X3DChildNode,
 # but it is natural (where else would you put this node?)
 EaseInEaseOut : X3DChildNode {
-  auto-generate-more: true
   SFFloat [in]     set_fraction
     range: (-Inf,Inf)
   MFVec2f [in,out] easeInEaseOut            []
@@ -64,7 +54,6 @@ EaseInEaseOut : X3DChildNode {
 }
 
 NormalInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -72,7 +61,6 @@ NormalInterpolator : X3DInterpolatorNode {
 }
 
 OrientationInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFRotation [in,out] keyValue      []
     range: [-1,1] or (-Inf,Inf)
     change: chNone
@@ -80,7 +68,6 @@ OrientationInterpolator : X3DInterpolatorNode {
 }
 
 PositionInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -88,7 +75,6 @@ PositionInterpolator : X3DInterpolatorNode {
 }
 
 PositionInterpolator2D : X3DInterpolatorNode {
-  auto-generate-more: true
   MFVec2f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -96,7 +82,6 @@ PositionInterpolator2D : X3DInterpolatorNode {
 }
 
 ScalarInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFFloat [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
@@ -104,7 +89,6 @@ ScalarInterpolator : X3DInterpolatorNode {
 }
 
 SplinePositionInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   SFBool  [in,out] closed            FALSE
     change: chNone
   MFVec3f [in,out] keyValue          []
@@ -119,7 +103,6 @@ SplinePositionInterpolator : X3DInterpolatorNode {
 }
 
 SplinePositionInterpolator2D : X3DInterpolatorNode {
-  auto-generate-more: true
   SFBool  [in,out] closed            FALSE
     change: chNone
   MFVec2f [in,out] keyValue          []
@@ -134,7 +117,6 @@ SplinePositionInterpolator2D : X3DInterpolatorNode {
 }
 
 SplineScalarInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   SFBool  [in,out] closed            FALSE
     change: chNone
   MFFloat [in,out] keyValue          []
@@ -149,7 +131,6 @@ SplineScalarInterpolator : X3DInterpolatorNode {
 }
 
 SquadOrientationInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFRotation [in,out] keyValue          []
     range: (-Inf,Inf)
     change: chNone
@@ -159,7 +140,6 @@ SquadOrientationInterpolator : X3DInterpolatorNode {
 }
 
 VectorInterpolator : X3DInterpolatorNode {
-  auto-generate-more: true
   MFFloat  [in,out]  keyValue           []
     change: chNone
   MFFloat  [out]     value_changed

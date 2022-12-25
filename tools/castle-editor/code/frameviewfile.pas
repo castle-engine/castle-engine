@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,12 @@
 { Quick file viewer for various file types supported by CGE. }
 unit FrameViewFile;
 
+{$if defined(LCLGTK3) or defined(LCLQt) or defined(LCLQt5)}
+  {$error Do not use LCL Qt or GTK3 widgetsets to build CGE editor, as LCL TOpenGLControl doesn't support OpenGL context sharing in this case. Use LCL default widgetset instead, like GTK2.}
+  // Didn't fit in message above:
+  // For your own applications, if you only use one TCastleControl in the application, it's not a problem.
+{$endif}
+
 interface
 
 uses
@@ -30,7 +36,9 @@ type
     FURL, FSuccessMessage, FErrorMessage: String;
     LabelURL, LabelInformation: TCastleLabel;
     PreviewLayer: TCastleUserInterface;
-    Viewport: TCastleViewport;
+    {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+    Viewport: TCastleAutoNavigationViewport;
+    {$warnings on}
     Scene: TCastleScene;
     Image: TCastleImageControl;
     Sound: TCastleSound;
@@ -58,7 +66,7 @@ type
 implementation
 
 uses CastleColors, CastleUtils, CastleSoundBase, CastleVectors, CastleCameras,
-  CastleURIUtils,
+  CastleTransform, CastleURIUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -173,7 +181,9 @@ begin
   OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
-  Viewport := TCastleViewport.Create(Self);
+  {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
+  {$warnings on}
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
   Viewport.AutoNavigation := true;
@@ -189,15 +199,16 @@ begin
       'Vertexes: %d' + NL +
       'Triangles: %d' + NL +
       'Bounding Box: %s', [
-      Scene.VerticesCount(true),
-      Scene.TrianglesCount(true),
+      Scene.VerticesCount,
+      Scene.TrianglesCount,
       Scene.BoundingBox.ToString
     ]);
 
     CameraViewpointForWholeScene(Viewport.Items.BoundingBox,
       2, 1, false, true, Pos, Dir, Up, GravityUp);
     Viewport.NavigationType := ntExamine;
-    Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
+    Viewport.Camera.SetWorldView(Pos, Dir, Up);
+    Viewport.Camera.GravityUp := GravityUp;
   except
     on E: Exception do
     begin

@@ -1,0 +1,38 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "Scene1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "URL" : "castle-data:/bullet.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Mass" : 1.0000000000000000E+000,
+          "Name" : "BoxCollider1",
+          "ScalePersistent" : {
+            "$$ClassName" : "TCastleVector3Persistent",
+            "X" : 1.0000000000000000E+000,
+            "Y" : 1.0000000000000000E+000,
+            "Z" : 1.0000000000000000E+000
+          }
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "CollisionDetection" : "cdContinuous",
+          "LockRotation" : [
+          ],
+          "LockTranslation" : [
+          ],
+          "Name" : "BulletRigidBody"
+        }
+      ]
+    }
+  ]
+}

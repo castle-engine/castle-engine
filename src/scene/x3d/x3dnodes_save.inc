@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -155,216 +155,20 @@ type
   end;
 
 procedure TVRMLToX3DConverter.Convert(ParentNode: TX3DNode; var Node: TX3DNode);
-
-  function CoordinateNode(Coords: TMFVec3f): TCoordinateNode;
-  begin
-    Result := TCoordinateNode.Create('', Node.BaseUrl);
-    Result.FdPoint.AssignValue(Coords);
-  end;
-
-  function ConvertNurbsCurve(Node: TNurbsCurveNode_2): TNurbsCurveNode;
-  begin
-    Result := TNurbsCurveNode.Create(Node.X3DName, Node.BaseUrl);
-    Result.PositionInParent := Node.PositionInParent;
-
-    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
-    Result.Fdweight.Items.Assign(Node.FdWeight.Items); { converts float to double }
-    Result.Fdtessellation.AssignValue(Node.Fdtessellation);
-    Result.Fdknot.Items.Assign(Node.Fdknot.Items); { converts float to double }
-    Result.Fdorder.AssignValue(Node.Fdorder);
-    Result.FdClosed.Value := true; { true means "possibly closed" }
-  end;
-
-  function ConvertNurbsSurface(Node: TNurbsSurfaceNode): TNurbsPatchSurfaceNode;
-  begin
-    Result := TNurbsPatchSurfaceNode.Create(Node.X3DName, Node.BaseUrl);
-    Result.PositionInParent := Node.PositionInParent;
-
-    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
-    Result.FdtexCoord.AssignValue(Node.FdtexCoord);
-    Result.FduTessellation.AssignValue(Node.FduTessellation);
-    Result.FdvTessellation.AssignValue(Node.FdvTessellation);
-    Result.Fdweight.Items.Assign(Node.FdWeight.Items); { converts float to double }
-    Result.FdSolid.AssignValue(Node.FdSolid);
-
-    Result.FdUClosed.Value := true; { true means "possibly closed" }
-    Result.FdUDimension.AssignValue(Node.FdUDimension);
-    Result.FdUKnot.Items.Assign(Node.FdUknot.Items); { converts float to double }
-    Result.FdUOrder.AssignValue(Node.FdUorder);
-
-    Result.FdVClosed.Value := true; { true means "possibly closed" }
-    Result.FdVDimension.AssignValue(Node.FdVDimension);
-    Result.FdVKnot.Items.Assign(Node.FdVKnot.Items); { converts float to double }
-    Result.FdVOrder.AssignValue(Node.FdVOrder);
-  end;
-
-  function ConvertNurbsPositionInterpolator(Node: TNurbsPositionInterpolatorNode_2): TNurbsPositionInterpolatorNode;
-  begin
-    Result := TNurbsPositionInterpolatorNode.Create(Node.X3DName, Node.BaseUrl);
-    Result.PositionInParent := Node.PositionInParent;
-
-    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdKeyValue);
-    Result.Fdknot.Items.Assign(Node.Fdknot.Items); { converts float to double }
-    Result.Fdorder.AssignValue(Node.Fdorder);
-    Result.Fdweight.Items.Assign(Node.FdKeyWeight.Items); { converts float to double }
-  end;
-
 begin
   { The nodes needing to be converted from VRML 2.0 to X3D:
+
     - Some can be found by grepping for "Version.Major = 2".
       This will find which nodes have ForVRMLVersion method requiring
       only VRML 2.0. These are only:
-      TLODNode_2, TNurbsCurveNode_2, TNurbsPositionInterpolatorNode_2.
+      TLODNode_2.
+
     - TLODNode_2 doesn't actually need conversion. Only a field name
       changes, which should be taken care of NameForVersion mechanism.
-    - TNurbsSurfaceNode needs additionally to be changed in
-      TNurbsPatchSurfaceNode.
 
-    NURBS differences are summarized in
-    https://castle-engine.io/x3d_implementation_nurbs.php#section_vrml2_support
-
-    TODO: this simple replacement will not work for cases when:
-    - you have ROUTEs leading to old nodes (ROUTEs will become disconnected
-      when destroying old nodes)
-    - you rely of reUSEing old nodes (in new version, we will have new node
-      for each previous reference).
-    - If you declare your VRML 2 nurbs nodes by EXTERNPROTO
-      (like White Dune does) e.g. by "urn:web3d:vrml97:node:NurbsCurve"
-      we *will* convert your NurbsCurve,
-      but we will not remove (or modify) the EXTERNPROTO.
-      If you save to classic encoding, this will cause problems,
-      as when reading we will see EXTERNPROTO and try to read VRML 2 version
-      of the node.
-      If you save to XML encoding, this is avoided, as then we have
-      <NurbsCurve> instead of <ProtoInstance name="NurbsCurve">,
-      and the invalid externproto is not relevant.
+    - In the past this was a non-empty method, when it converted NURBS VRML 97
+      nodes to X3D. Now it is empty, and will likely be removed at some point.
   }
-  {$warnings off} // supporting deprecated nodes
-  if Node is TNurbsCurveNode_2 then
-    Node := ConvertNurbsCurve(TNurbsCurveNode_2(Node)) else
-  if Node is TNurbsSurfaceNode then
-    Node := ConvertNurbsSurface(TNurbsSurfaceNode(Node)) else
-  if Node is TNurbsPositionInterpolatorNode_2 then
-    Node := ConvertNurbsPositionInterpolator(TNurbsPositionInterpolatorNode_2(Node));
-  {$warnings on}
-end;
-
-{ TFixNamesHandler ----------------------------------------------------------- }
-
-type
-  TFixNamesHandler = class
-  strict private
-    Visited: TList;
-    Names: TCastleStringList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function HandleNode(ParentNode, Node: TX3DNode): Pointer;
-  end;
-
-constructor TFixNamesHandler.Create;
-begin
-  inherited;
-  Names := TCastleStringList.Create;
-  Names.CaseSensitive := true;
-  Visited := TList.Create;
-end;
-
-destructor TFixNamesHandler.Destroy;
-begin
-  FreeAndNil(Names);
-  FreeAndNil(Visited);
-  inherited;
-end;
-
-function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
-
-  { Change Node.X3DName to something not yet existing in Names.
-    This knows that Node.X3DName is <> '' and it exists in Names,
-    IOW on entry the Node is named, and the name is not unique. }
-  procedure RenameUniquely(const Node: TX3DNode);
-
-    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
-    begin
-      while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
-        Inc(NextNumber);
-      Node.X3DName := Prefix + IntToStr(NextNumber);
-    end;
-
-  var
-    I: Integer;
-    Number: Int64;
-  begin
-    I := BackPos('_', Node.X3DName);
-    if I <> 0 then
-    begin
-      Number := StrToIntDef(SEnding(Node.X3DName, I + 1), -1);
-      if Number >= 0 then
-        RenameUniquelyCore(Node, Copy(Node.X3DName, 1, I - 1), Number + 1)
-      else
-        RenameUniquelyCore(Node, Node.X3DName + '_', 2);
-    end else
-      RenameUniquelyCore(Node, Node.X3DName + '_', 2);
-  end;
-
-  { Assuming Node.X3DName <> '', make sure it is unique name. }
-  procedure MakeUniquelyNamed(const Node: TX3DNode);
-  var
-    I: Integer;
-  begin
-    I := Names.IndexOf(Node.X3DName);
-    if I = - 1 then
-    begin
-      // new name
-      Names.AddObject(Node.X3DName, Node);
-    end else
-    if Names.Objects[I] <> Node then
-    begin
-      // name already taken by a different node
-      RenameUniquely(Node);
-      Names.AddObject(Node.X3DName, Node);
-    end;
-  end;
-
-  { Make sure Node has a non-empty name, and unique name.
-    Given Node may be nil (it is ignored then). }
-  procedure MakeNamed(const Node: TX3DNode);
-  begin
-    if (Node <> nil) and (Node.X3DName = '') then
-    begin
-      Node.X3DName := Node.X3DType;
-      if Node.X3DName = '' then
-        Node.X3DName := 'Node';
-      MakeUniquelyNamed(Node);
-    end;
-  end;
-
-var
-  Route: TX3DRoute;
-  I: Integer;
-begin
-  Result := nil;
-
-  { early exit if this node was already visited,
-    to save time when traversing graph with DEF/USE. }
-  if Visited.IndexOf(Node) <> -1 then
-    Exit;
-  Visited.Add(Node);
-
-  { make sure node name is unique }
-  if Node.X3DName <> '' then
-    MakeUniquelyNamed(Node);
-
-  { make sure nodes used in ROUTEs and uniquely named }
-  for I := 0 to Node.RoutesCount - 1 do
-  begin
-    Route := Node.Routes[I];
-    MakeNamed(Route.SourceNode);
-    MakeNamed(Route.DestinationNode);
-  end;
-
-  { recursively check children }
-  Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.HandleNode);
 end;
 
 { global routines ------------------------------------------------------------ }
@@ -384,17 +188,6 @@ procedure Save3D(Node: TX3DNode;
   const ForceConvertingToX3D: boolean);
 var
   Writer: TX3DWriterNames;
-
-  procedure FixNames;
-  var
-    Handler: TFixNamesHandler;
-  begin
-    Handler := TFixNamesHandler.Create;
-    try
-      Handler.HandleNode(nil, Node);
-      Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Handler.HandleNode);
-    finally FreeAndNil(Handler) end;
-  end;
 
   procedure ConvertToX3D;
   begin
@@ -583,8 +376,6 @@ var
 begin
   if Save3DWillConvertToX3D(Version, Encoding, ForceConvertingToX3D) then
     ConvertToX3D;
-
-  FixNames;
 
   Writer := TX3DWriterNames.Create(Stream, Version, Encoding);
   try

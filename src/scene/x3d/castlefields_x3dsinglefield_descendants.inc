@@ -104,6 +104,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -111,17 +112,25 @@
     procedure Send(const AValue: boolean; const PartialSend: TPartialSend = nil); overload;
   end;
 
+  { Array of strings used with TSFStringEnum and TSFEnum.
+    Passing around them as just pointers to a constant array makes them fast
+    and avoids copying and wasting memory for each TSFStringEnum / TSFEnum
+    to keep the names list in some separate object. }
+  TConstantStringArray = array [0..MaxInt div SizeOf(Pointer) - 1] of String;
+  PConstantStringArray = ^TConstantStringArray;
+
   { VRML 1.0 (deprecated) field representing an enumerated value,
     which means that you choose one (named) value from a set of possible values.
     @deprecated This is deprecated, as VRML 1.0 is an ancient format now. }
   TSFEnum = class(TX3DSingleField)
   strict private
-    FEnumNames: TStringList;
+    FEnumNames: PConstantStringArray;
+    FEnumNamesCount: Cardinal;
     function GetEnumNames(i: integer): string;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    { Value between 0 .. EnumCount - 1. By default 0. }
+    { Value between 0 .. EnumNamesCount - 1. By default 0. }
     Value: integer;
 
     DefaultValue: integer;
@@ -129,15 +138,15 @@
 
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string;
-      const AEnumNames: array of string; const AValue: integer);
-    destructor Destroy; override;
+      const AEnumNames: PConstantStringArray; const AEnumNamesCount: Cardinal;
+      const AValue: integer);
 
     { Names of the enumerated values.
       Note that this cannot be initialized by CreateUndefined,
       so you always must initialize this field using the @link(Create)
       overload that takes AEnumNames parameter. }
     property EnumNames[i: integer]:string read GetEnumNames;
-    function EnumNamesCount: integer;
+    property EnumNamesCount: Cardinal read FEnumNamesCount;
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
@@ -146,6 +155,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
 
@@ -196,6 +206,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -236,6 +247,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -330,6 +342,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -377,6 +390,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -415,6 +429,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix3); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -454,6 +469,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix3Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -493,6 +509,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix4); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -532,6 +549,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix4Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -595,6 +613,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -630,6 +649,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -649,7 +669,8 @@
     which is an index to ValueNames array. }
   TSFStringEnum = class(TSFString)
   strict private
-    FEnumNames: TStringList;
+    FEnumNames: PConstantStringArray;
+    FEnumNamesCount: Cardinal;
     FEnumValue: Integer;
     FDefaultEnumValue: Integer;
     AllNamesUpperCase: Boolean;
@@ -663,8 +684,8 @@
   public
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string;
-      const AEnumNames: array of string; const AValue: Integer);
-    destructor Destroy; override;
+      const AEnumNames: PConstantStringArray; const AEnumNamesCount: Cardinal;
+      const AValue: Integer);
     property EnumValue: Integer
       read FEnumValue write SetEnumValue;
     property DefaultEnumValue: Integer
@@ -700,6 +721,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -735,6 +757,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector2); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -771,6 +794,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector3); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -816,6 +840,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector4); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -859,6 +884,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector2Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -895,6 +921,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector3Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -931,6 +958,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector4Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -1043,6 +1071,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFBool.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFBool.X3DType: string;
@@ -1178,6 +1211,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFFloat.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFFloat.X3DType: string;
 begin
   Result := 'SFFloat';
@@ -1281,6 +1319,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFDouble.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFDouble.X3DType: string;
@@ -1632,6 +1675,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFLong.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFLong.X3DType: string;
 begin
   Result := 'SFLong';
@@ -1785,6 +1833,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFGenericMatrix.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
@@ -1915,6 +1968,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix3f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2050,6 +2108,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFMatrix3d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFMatrix3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFMatrix3dEvent.Create(AParentNode, AName, AInEvent);
@@ -2180,6 +2243,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix4f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2313,6 +2381,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix4d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2492,6 +2565,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFRotation.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFRotation.X3DType: string;
 begin
   Result := 'SFRotation';
@@ -2588,6 +2666,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFString.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFString.X3DType: string;
 begin
   Result := 'SFString';
@@ -2648,28 +2731,25 @@ end;
 { TSFStringEnum -------------------------------------------------------------- }
 
 constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: boolean; const AName: string;
+  const AEnumNames: PConstantStringArray; const AEnumNamesCount: Cardinal;
+  const AValue: integer);
 var
   I: Integer;
 begin
-  FEnumNames := TStringListCaseSens.Create;
-  AddStrArrayToStrings(AEnumNames, FEnumNames);
+  FEnumNames := AEnumNames;
+  FEnumNamesCount := AEnumNamesCount;
+  Assert(AEnumNamesCount > 0); // this makes also "FEnumNamesCount - 1" in for loops a valid Cardinal
 
   AllNamesUpperCase := true;
-  for I := 0 to FEnumNames.Count - 1 do
-    if FEnumNames[I] <> UpperCase(FEnumNames[I]) then
+  for I := 0 to FEnumNamesCount - 1 do
+    if FEnumNames^[I] <> UpperCase(FEnumNames^[I]) then
       AllNamesUpperCase := false;
 
-  inherited Create(AParentNode, AExposed, AName, FEnumNames[AValue]);
+  inherited Create(AParentNode, AExposed, AName, FEnumNames^[AValue]);
   { inherited Create will assign Value, and in SetValue should cause setting
     our FEnumValue }
   Assert(AValue = FEnumValue);
-end;
-
-destructor TSFStringEnum.Destroy;
-begin
-  FreeAndNil(FEnumNames);
-  inherited;
 end;
 
 class function TSFStringEnum.ExposedEventsFieldClass: TX3DFieldClass;
@@ -2678,6 +2758,15 @@ begin
 end;
 
 function TSFStringEnum.StringToEnumValue(const NewValue: string): Integer;
+
+  function EnumNamesIndexOf(const S: String): Integer;
+  begin
+    for Result := 0 to FEnumNamesCount - 1 do
+      if FEnumNames^[Result] = S then
+        Exit;
+    Result := -1;
+  end;
+
 var
   NewValueFixedCase: string;
 begin
@@ -2690,7 +2779,7 @@ begin
   end else
     NewValueFixedCase := NewValue;
 
-  Result := FEnumNames.IndexOf(NewValueFixedCase);
+  Result := EnumNamesIndexOf(NewValueFixedCase);
   if Result = -1 then
   begin
     Result := DefaultEnumValue;
@@ -2708,13 +2797,13 @@ end;
 
 procedure TSFStringEnum.SetEnumValue(const NewEnumValue: Integer);
 begin
-  inherited SetValue(FEnumNames[NewEnumValue]);
+  inherited SetValue(FEnumNames^[NewEnumValue]);
   FEnumValue := NewEnumValue;
 end;
 
 procedure TSFStringEnum.SendEnumValue(const NewValue: Integer);
 begin
-  inherited Send(FEnumNames[NewValue]);
+  inherited Send(FEnumNames^[NewValue]);
 end;
 
 procedure TSFStringEnum.SetDefaultValue(const NewDefaultValue: string);
@@ -2725,7 +2814,7 @@ end;
 
 procedure TSFStringEnum.SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
 begin
-  inherited SetDefaultValue(FEnumNames[NewDefaultEnumValue]);
+  inherited SetDefaultValue(FEnumNames^[NewDefaultEnumValue]);
   FDefaultEnumValue := NewDefaultEnumValue;
 end;
 
@@ -2817,6 +2906,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFGenericVector.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2931,6 +3025,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFVec2f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFVec2f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -3054,6 +3153,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFVec3f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFVec3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -3183,6 +3287,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec4f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec4fEvent.Create(AParentNode, AName, AInEvent);
@@ -3310,6 +3419,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec2d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec2d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec2dEvent.Create(AParentNode, AName, AInEvent);
@@ -3425,6 +3539,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec3d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec3dEvent.Create(AParentNode, AName, AInEvent);
@@ -3531,6 +3650,11 @@ begin
     Value := TSFVec4d(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TSFVec4d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 procedure TSFVec4d.AssignDefaultValueFromValue;
@@ -3720,38 +3844,40 @@ end;
 { TSFEnum ----------------------------------------------------------------- }
 
 constructor TSFEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: boolean; const AName: string;
+  const AEnumNames: PConstantStringArray; const AEnumNamesCount: Cardinal;
+  const AValue: integer);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
-  FEnumNames := TStringListCaseSens.Create;
-  AddStrArrayToStrings(AEnumNames, FEnumNames);
+  FEnumNames := AEnumNames;
+  FEnumNamesCount := AEnumNamesCount;
+  Assert(AEnumNamesCount > 0); // this makes also "FEnumNamesCount - 1" in for loops a valid Cardinal
+
   Value := AValue;
   AssignDefaultValueFromValue;
 end;
 
-destructor TSFEnum.Destroy;
-begin
-  FreeAndNil(FEnumNames);
-  inherited;
-end;
-
 function TSFEnum.GetEnumNames(i: integer): string;
 begin
-  result := FEnumNames[i]
-end;
-
-function TSFEnum.EnumNamesCount: integer;
-begin
-  result := FEnumNames.Count
+  result := FEnumNames^[i];
 end;
 
 procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+
+  function EnumNamesIndexOf(const S: String): Integer;
+  begin
+    for Result := 0 to FEnumNamesCount - 1 do
+      if FEnumNames^[Result] = S then
+        Exit;
+    Result := -1;
+  end;
+
 var
   val: integer;
 begin
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
-  val := FEnumNames.IndexOf(Lexer.TokenName);
+  val := EnumNamesIndexOf(Lexer.TokenName);
   if val = -1 then
    raise EX3DParserError.Create(Lexer,
      'Expected enumerated type constant, got '+Lexer.DescribeToken);
@@ -3773,7 +3899,6 @@ function TSFEnum.Equals(SecondValue: TX3DField): boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFEnum) and
-    (TSFEnum(SecondValue).FEnumNames.Equals(FEnumNames)) and
     (TSFEnum(SecondValue).Value = Value);
 end;
 
@@ -3784,7 +3909,6 @@ begin
     DefaultValue       := TSFEnum(Source).DefaultValue;
     DefaultValueExists := TSFEnum(Source).DefaultValueExists;
     Value              := TSFEnum(Source).Value;
-    FEnumNames.Assign(TSFEnum(Source).FEnumNames);
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
@@ -3807,16 +3931,24 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFEnum.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFEnum.X3DType: string;
 begin
   Result := 'SFEnum';
 end;
 
+const
+  FakeEnumStrings: array [0..0] of String = ('');
+
 procedure TSFEnum.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFEnum.Create(ParentNode, false, X3DName, [], AValue);
+  FieldValue := TSFEnum.Create(ParentNode, false, X3DName, @FakeEnumStrings, High(FakeEnumStrings) + 1, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;

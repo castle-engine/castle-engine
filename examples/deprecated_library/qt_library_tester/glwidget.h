@@ -3,7 +3,7 @@
 
 #include <QtOpenGL/QGLWidget>
 
-#include "../../../src/library/castleengine.h"
+#include "../../../src/deprecated_library/castleengine.h"
 
 class GLWidget : public QGLWidget
 {

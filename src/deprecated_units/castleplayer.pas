@@ -23,7 +23,7 @@ interface
 
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
-  CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
+  CastleKeysMouse, CastleShapes, CastleInternalMaterialProperties, CastleSoundEngine,
   CastleTransformExtra, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform,
   CastleResources, CastleThirdPersonNavigation;
@@ -133,7 +133,6 @@ type
       FInventoryVisible: boolean;
       FSickProjectionSpeed: Single;
       FBlocked: boolean;
-      FRenderOnTop: boolean;
 
       FFlying: boolean;
       FFlyingTimeOut: TFloatTime;
@@ -183,6 +182,8 @@ type
     procedure SynchronizeToCamera;
     procedure SynchronizeFromCamera;
     procedure SetUseThirdPerson(const AValue: Boolean);
+    function GetRenderOnTop: Boolean;
+    procedure SetRenderOnTop(const Value: Boolean);
   protected
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -192,7 +193,6 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: Boolean): Boolean; override;
-    procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -205,7 +205,6 @@ type
     const
       DefaultLife = 100;
       DefaultSickProjectionSpeed = 2.0;
-      DefaultRenderOnTop = true;
       DefaultPlayerKnockBackSpeed = 20.0;
       DefaultSwimBreath = 30.0;
       DefaultDrownPause = 5.0;
@@ -369,8 +368,7 @@ type
     property Blocked: boolean read FBlocked write FBlocked;
 
     { Render 3D children (like EquippedWeapon) on top of everything else. }
-    property RenderOnTop: boolean read FRenderOnTop write FRenderOnTop
-      default DefaultRenderOnTop;
+    property RenderOnTop: boolean read GetRenderOnTop write SetRenderOnTop;
 
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound
@@ -532,7 +530,7 @@ uses Math, SysUtils,
   CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
   CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleRenderContext;
+  CastleGLImages, CastleConfig, CastleRenderContext, CastleRenderOptions;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -563,9 +561,11 @@ end;
 procedure TPlayer.TBox.UpdateBox;
 var
   B: TBox3D;
-  Navigation: TCastleNavigation;
+  Navigation: TCastleWalkNavigation;
 begin
-  Navigation := TPlayer(Owner).Navigation;
+  Assert(not TPlayer(Owner).UseThirdPerson, 'TPlayer.TBox should be used only for 1st person navigation');
+
+  Navigation := TPlayer(Owner).WalkNavigation;
 
   B.Data[0].X := -Navigation.Radius;
   B.Data[0].Y := -Navigation.Radius;
@@ -596,7 +596,7 @@ begin
   DefaultMoveHorizontalSpeed := 1.0;
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;
-  RenderOnTop := DefaultRenderOnTop;
+  RenderLayer := rlFront; // to make RenderOnTop = true
   FFallMinHeightToSound := DefaultFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
@@ -617,7 +617,7 @@ begin
   FThirdPersonNavigation := TCastleThirdPersonNavigation.Create(nil);
   FThirdPersonNavigation.AvatarHierarchy := Self;
   FThirdPersonNavigation.Avatar := TCastleScene.Create(Self);
-  FThirdPersonNavigation.Avatar.Spatial := [ssRendering, ssDynamicCollisions];
+  FThirdPersonNavigation.Avatar.PreciseCollisions := true;
   Add(FThirdPersonNavigation.Avatar);
 
   FInventoryCurrentItem := -1;
@@ -1070,6 +1070,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
   var
     NewIsToxic: boolean;
   begin
+    {$warnings off} // using deprecated material props in deprecated CastlePlayer
     NewIsToxic := (GroundProperty <> nil) and GroundProperty.Toxic;
     if NewIsToxic then
     begin
@@ -1079,15 +1080,14 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
-          {$warnings off} // just to keep deprecated working
           SoundEngine.Play(stPlayerToxicPain);
-          {$warnings on}
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
             Random * GroundProperty.ToxicDamageRandom), Green);
         end;
       end;
     end;
     IsToxic := NewIsToxic;
+    {$warnings on}
   end;
 
   { Update FootstepsSound and related variables.
@@ -1124,13 +1124,13 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
       { Since WalkNavigation.IsWalkingOnTheGroundm then for sure
         WalkNavigation.IsOnTheGround, so UpdateIsOnTheGround updated
         GroundProperty field. }
+      {$warnings off} // just to keep deprecated working
       if (GroundProperty <> nil) and
          (GroundProperty.FootstepsSound <> nil) then
         NewFootstepsSound := GroundProperty.FootstepsSound
       else
-        {$warnings off} // just to keep deprecated working
         NewFootstepsSound := stPlayerFootstepsDefault;
-        {$warnings on}
+      {$warnings on}
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSound then
@@ -1480,38 +1480,6 @@ begin
   inherited;
 end;
 
-procedure TPlayer.LocalRender(const Params: TRenderParams);
-begin
-  { TODO: This implementation is a quick hack, that depends on the fact
-    that TPlayer.Render is the *only* thing in the whole engine currently
-    changing DepthRange (except shadow maps that require normal DepthRange,
-    and manually push/pop the DepthRange state).
-
-    - The first frame with TPlayer could be incorrect, as 3D objects drawn before
-      will have 0..1 DepthRange that may overlap with our weapon.
-      It works now only because default player positions are when
-      the weapon doesn't overlap with level in 3D.
-    - We never fix the DepthRange back to 0..1.
-
-    The idea of using DepthRange for layers seems quite good, it's
-    quite a nice solution,
-    - you don't have to split rendering layers in passes, you can render
-      all objects in one pass, just switching DepthRange as necessary.
-    - you can set DepthRange for 3D objects inside TCastleTransform,
-      like here TPlayer will just affect every child underneath.
-
-    But it has to be implemented in more extensible manner in the future.
-    It should also enable X3D layers. }
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drNear;
-
-  inherited;
-
-  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
-    RenderContext.DepthRange := drFar;
-end;
-
 function TPlayer.Middle: TVector3;
 begin
   if UseThirdPerson then
@@ -1545,6 +1513,19 @@ begin
     raise Exception.Create('TODO: For now you cannot change TPlayer.UseThirdPerson once the TLevel (that refers to this TPlayer) has been Loaded');
   FUseThirdPerson := AValue;
   FBox.Exists := not UseThirdPerson;
+end;
+
+function TPlayer.GetRenderOnTop: Boolean;
+begin
+  Result := RenderLayer = rlFront;
+end;
+
+procedure TPlayer.SetRenderOnTop(const Value: Boolean);
+begin
+  if Value then
+    RenderLayer := rlFront
+  else
+    RenderLayer := rlParent;
 end;
 
 initialization

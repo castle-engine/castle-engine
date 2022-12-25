@@ -1,3 +1,5 @@
+{%MainUnit castlewindow.pas}
+
 {$ifdef read_implementation_uses}
 CastleMessages,
 {$endif}
@@ -9,14 +11,15 @@ begin
   Result := MessageInputQuery(Self, Title, FileName);
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
 var
-  NewColor: TVector3;
+  NewColor: TCastleColor;
 begin
   Result := false;
   if not MessageInputQuery(Self, 'Input Red value:'  , NewColor.X) then Exit;
   if not MessageInputQuery(Self, 'Input Green value:', NewColor.Y) then Exit;
   if not MessageInputQuery(Self, 'Input Blue value:' , NewColor.Z) then Exit;
+  if not MessageInputQuery(Self, 'Input Alpha value:', NewColor.W) then Exit;
 
   Result := true;
   Color := NewColor;

@@ -1,6 +1,4 @@
 X3DTimeDependentNode : X3DChildNode {
-  auto-generate-more: true
-
   SFBool  [in,out] loop         FALSE
   SFTime  [in,out] pauseTime    0
     range: (-Inf,Inf)
@@ -20,8 +18,6 @@ X3DTimeDependentNode : X3DChildNode {
 }
 
 TimeSensor : X3DTimeDependentNode, X3DSensorNode {
-  auto-generate-more: true
-
   SFTime  [in,out] cycleInterval    1
     range: (0,Inf)
   SFTime  [out]    cycleTime

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -146,11 +146,11 @@ begin
   if Dragging then
   begin
     if MouseLook then
-      Delta := Container.MouseLookDelta(Event)
+      Delta := Container.MouseLookDelta(Event, RenderRect)
     else
       Delta := Event.Position - Event.OldPosition;
-    DraggedRect.AnchorDelta := DraggedRect.AnchorDelta + Delta / UIScale;
-    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.AnchorDelta.ToString]);
+    DraggedRect.Translation := DraggedRect.Translation + Delta / UIScale;
+    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.Translation.ToString]);
     Exit(ExclusiveEvents);
   end;
 end;

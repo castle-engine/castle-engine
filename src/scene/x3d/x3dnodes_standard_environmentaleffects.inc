@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,8 +51,8 @@
   {$I auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc}
   end;
 
-  TFogTypeOrNone = (ftLinear, ftExp, ftNone);
-  TFogType = ftLinear..ftExp;
+  TFogTypeOrNone = (ftLinear, ftExponential, ftNone);
+  TFogType = ftLinear..ftExponential;
 
   { Functionality of node that describes a fog (blend objects with a fog color).
     Used by various X3D fog nodes, like TLocalFogNode, TFogNode. }
@@ -340,9 +340,9 @@ var
     F: Single;
   begin
     case AFogType of
-      ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
-      ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
-      ftNone  : F := 1;
+      ftLinear     : F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
+      ftExponential: F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+      ftNone       : F := 1;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('AFogType?');
       {$endif}

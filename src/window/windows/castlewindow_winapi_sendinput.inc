@@ -1,3 +1,5 @@
+{%MainUnit ../castlewindow.pas}
+
 { WinAPI SendInput and related structures definition,
   missing from stable FPC,
   copied from FPC bugreport https://bugs.freepascal.org/view.php?id=35064

@@ -1,0 +1,93 @@
+{
+  "$ClassName" : "TTestComponent1",
+  "Name" : "TestComponent1",
+
+  "SomeSingle" : 3333,
+  "InternalSingle" : 123.456,
+  "InternalString" : "something something",
+  "InternalBoolean" : true,
+  "InternalInteger" : 123,
+  "InternalColor" : {
+    "Red" : 1,
+    "Green" : 2,
+    "Blue" : 3,
+    "Alpha" : 4,
+    "$ClassName" : "TCastleColorPersistent"
+  },
+  "InternalColorRGB" : {
+    "Red" : 5,
+    "Green" : 6,
+    "Blue" : 7,
+    "$ClassName" : "TCastleColorRGBPersistent"
+  },
+  "InternalVec2" : {
+    "X" : 10,
+    "Y" : 11,
+    "$ClassName" : "TCastleVector2Persistent"
+  },
+  "InternalVec3" : {
+    "X" : 20,
+    "Y" : 21,
+    "Z" : 22,
+    "$ClassName" : "TCastleVector3Persistent"
+  },
+  "InternalVec4" : {
+    "X" : 30,
+    "Y" : 31,
+    "Z" : 32,
+    "W" : 33,
+    "$ClassName" : "TCastleVector4Persistent"
+  },
+ "InternalVecOnly2ComponentsPresent" : {
+    "Y" : 60031,
+    "Z" : 60032,
+    "$ClassName" : "TCastleVector4Persistent"
+  },
+
+  "InternalSubComponent" : {
+    "$ClassName" : "TTestComponent2",
+    "Name" : "TestComponent2",
+
+    "SomeSingle" : 4444,
+    "InternalSingle" : 789.123,
+    "InternalString" : "something else something",
+    "InternalBoolean" : true,
+    "InternalInteger" : 789,
+    "InternalColor" : {
+      "Red" : 4001,
+      "Green" : 4002,
+      "Blue" : 4003,
+      "Alpha" : 4004,
+      "$ClassName" : "TCastleColorPersistent"
+    },
+    "InternalColorRGB" : {
+      "Red" : 4005,
+      "Green" : 4006,
+      "Blue" : 4007,
+      "$ClassName" : "TCastleColorRGBPersistent"
+    },
+    "InternalVec2" : {
+      "X" : 40010,
+      "Y" : 40011,
+      "$ClassName" : "TCastleVector2Persistent"
+    },
+    "InternalVec3" : {
+      "X" : 40020,
+      "Y" : 40021,
+      "Z" : 40022,
+      "$ClassName" : "TCastleVector3Persistent"
+    },
+    "InternalVec4" : {
+      "X" : 40030,
+      "Y" : 40031,
+      "Z" : 40032,
+      "W" : 40033,
+      "$ClassName" : "TCastleVector4Persistent"
+    },
+    "InternalVecOnly2ComponentsPresent" : {
+      "Y" : 4060031,
+      "Z" : 4060032,
+      "$ClassName" : "TCastleVector4Persistent"
+    }
+  }
+}

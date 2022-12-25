@@ -33,7 +33,7 @@ type
 implementation
 
 uses CastleCameras, CastleSceneManager, CastleScene, CastleSceneCore,
-  CastleFilesUtils, CastleVectors;
+  CastleFilesUtils, CastleVectors, CastleViewport;
 
 procedure TTestCastleSceneManager.TestNavigationCreating;
 var
@@ -114,10 +114,16 @@ begin
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
 
+    { Note that this depends on hack within RequiredNavigation:
+      We depend that RequiredNavigation calls EnsureCameraDetected,
+      thus Camera position/dir/up are correct after RequiredNavigation
+      (even though it's not guaranteed in docs). }
+
     AssertTrue(SceneManager.NavigationType = ntNone);
     SceneManager.RequiredNavigation;
     AssertTrue(SceneManager.NavigationType = ntExamine);
-    SceneManager.Navigation.GetView(Pos, Dir, Up);
+    SceneManager.Navigation.Camera.GetWorldView(Pos, Dir, Up);
+    AssertVectorEquals(Vector3(3.249692, 2.000000, -5.416155), Pos);
   finally FreeAndNil(SceneManager) end;
 
   SceneManager := TCastleSceneManager.Create(nil);
@@ -129,12 +135,18 @@ begin
 
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
+
+    { Note that this depends on hack within RequiredNavigation:
+      We depend that RequiredNavigation calls EnsureCameraDetected,
+      thus Camera position/dir/up are correct after RequiredNavigation
+      (even though it's not guaranteed in docs). }
+
     // changes Examine into Walk, preserving the camera view
     SceneManager.NavigationType := ntWalk;
     SceneManager.WalkNavigation.MoveSpeed := 10;
-    SceneManager.Navigation.GetView(Pos2, Dir2, Up2);
+    SceneManager.Navigation.Camera.GetWorldView(Pos2, Dir2, Up2);
     AssertVectorEquals(Pos, Pos2);
-    AssertVectorEquals(Pos, Vector3(3.249692, 2.000000, -5.416155));
+    AssertVectorEquals(Vector3(3.249692, 2.000000, -5.416155), Pos);
     AssertVectorEquals(Dir, Dir2);
     AssertVectorEquals(Up, Up2);
     AssertTrue(SceneManager.NavigationType = ntWalk);

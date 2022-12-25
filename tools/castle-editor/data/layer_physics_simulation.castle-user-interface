@@ -1,0 +1,71 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "Border" : {
+    "$$ClassName" : "TBorder",
+    "AllSides" : 2.0000000000000000E+000
+  },
+  "BorderColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Alpha" : 7.5000000000000000E-001,
+    "Green" : 5.0196081399917603E-001
+  },
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 7.5000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 5.0196081399917603E-001,
+        "Red" : 0.0000000000000000E+000
+      },
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "RectangleControl1",
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 5.0000000000000000E+000
+          },
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "FontSize" : 1.5000000000000000E+001,
+          "Name" : "LabelRunning",
+          "Text" : [
+            "Physics Simulation"
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 5.0000000000000000E+000
+          },
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Exists" : false,
+          "FontSize" : 1.5000000000000000E+001,
+          "Name" : "LabelPaused",
+          "Text" : [
+            "Physics Simulation (Paused)"
+          ]
+        }
+      ]
+    }
+  ]
+}

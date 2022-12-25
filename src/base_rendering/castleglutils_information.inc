@@ -35,15 +35,37 @@ function GLInformationStringSummary: String;
 
 function GLInformationString: string;
 const
-  GLSupportNamesFBO: array [TGLSupport] of string =
+  GLSupportNamesFBO: array [TGLSupport] of String =
   ( 'None', 'Extension', 'Standard (or ARB "core extension")' );
 
-  function GetInteger(param: TGLenum): string;
+  function GetInteger(const Param: TGLenum): String;
   begin
-    Result := IntToStr(glGetInteger(param));
+    Result := IntToStr(glGetInteger(Param));
   end;
 
-  function GetBoolean(param: TGLenum): string;
+  { Unused for now:
+  function GetInteger2(const Param: TGLenum; const Available: Boolean): String;
+  var
+    V: packed array [0..1] of TGLInt;
+  begin
+    if not Available then
+      Exit('Not Available');
+    glGetIntegerv(Param, @V);
+    Result := Format('%d %d', [V[0], V[1]]);
+  end;
+  }
+
+  function GetFloat2(const Param: TGLenum; const Available: Boolean): String;
+  var
+    V: packed array [0..1] of TGLFloat;
+  begin
+    if not Available then
+      Exit('Not Available');
+    glGetFloatv(Param, @V);
+    Result := Format('%f %f', [V[0], V[1]]);
+  end;
+
+  function GetBoolean(const Param: TGLenum): String;
   begin
     Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
   end;
@@ -284,10 +306,8 @@ begin
     '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
     '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
       GetQueryCounterBits + NL +
-    '  Max renderbuffer size: ' + GetMaxRenderbufferSize
-    {$ifdef OpenGLES} + NL +
-    '  Max line width: ' + GetInteger(GL_ALIASED_LINE_WIDTH_RANGE)
-    {$endif} + NL +
+    '  Max renderbuffer size: ' + GetMaxRenderbufferSize + NL +
+    '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
     NL +
     '-------' + NL +
     'Memory (in Kb):' + NL +

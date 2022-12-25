@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -27,7 +28,7 @@ type
 
     See @url(https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#DirectionalLight
     X3D DirectionalLight specification) for various details. }
-  TCastleDirectionalLight = class(TCastleAbstractLight)
+  TCastleDirectionalLight = class(TCastlePunctualLight)
   strict private
     { Same thing as FLightNode, but with proper type. }
     FDirectionalLight: TDirectionalLightNode;
@@ -59,39 +60,13 @@ type
 
 constructor TCastleDirectionalLight.Create(AOwner: TComponent);
 
-  function BuildNode: TX3DRootNode;
-  const
-    { Length of gizmo line along Z }
-    D = 10.0;
-  var
-    Coord: TCoordinateNode;
-    LineSet: TLineSetNode;
-    Material: TUnlitMaterialNode;
-    Appearance: TAppearanceNode;
-    Shape: TShapeNode;
+  function BuildGizmo: TX3DRootNode;
   begin
-    Coord := TCoordinateNode.Create;
-    Coord.SetPoint([
-      Vector3(0, 0, 0),
-      FDirectionalLight.Direction * D
-    ]);
-
-    LineSet := TLineSetNode.Create;
-    LineSet.Coord := Coord;
-    LineSet.SetVertexCount([2]);
-
-    Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := HexToColorRGB('FC9C2D');
-
-    Appearance := TAppearanceNode.Create;
-    Appearance.Material := Material;
-
-    Shape := TShapeNode.Create;
-    Shape.Geometry := LineSet;
-    Shape.Appearance := Appearance;
-
     Result := TX3DRootNode.Create;
-    Result.AddChildren(Shape);
+    Result.AddChildren(Gizmo.LinesShape([
+      CastleVectors.Vector3(0, 0, 0),
+      DefaultCameraDirection * 10
+    ]));
   end;
 
 begin
@@ -104,11 +79,13 @@ begin
   FDirectionalLight := TDirectionalLightNode.Create;
   FDirectionalLight.Global := true;
   LightNode := FDirectionalLight;
+  FPunctualLight := FDirectionalLight;
 
-  if Gizmo then
+  if Gizmo <> nil then
   begin
-    GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_directional.png';
-    GizmoScene.Load(BuildNode, true);
+    if InternalCastleDesignData <> '' then
+      Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_directional.png');
+    Gizmo.LoadVisualization(BuildGizmo);
   end;
 
   {$define read_implementation_constructor}

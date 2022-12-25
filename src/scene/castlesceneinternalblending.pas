@@ -64,159 +64,6 @@ uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
 
-{ Given blending name (as defined by X3D BlendMode node spec,
-  http://www.instantreality.org/documentation/nodetype/BlendMode/),
-  returns @true and corresponding Factor.
-
-  Returns @false if S doesn't match any known name, or it's "none",
-  or it's not supported by the current OpenGL implementation (some factors
-  may require newer OpenGL versions), or it's not for this kind
-  (which means it's not for source factor if Source = true,
-  or it's not for dest factor is Source = false).
-
-  If returns @true, then also updates NeedsConstXxx.
-  "Updates" means that always does something like
-    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
-  so can only change from false to true.
-}
-function BlendingFactorNameToStr(S: string;
-  out Factor: TBlendingSourceFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean; overload;
-const
-  FactorNames: array [TBlendingSourceFactor] of string =
-  (
-    'src_alpha',
-    'one_minus_src_alpha',
-    'zero',
-    'one',
-
-    'dst_color',
-    'src_color',
-    'dst_alpha',
-
-    'one_minus_dst_color',
-    'one_minus_src_color',
-    'one_minus_dst_alpha',
-
-    'src_alpha_saturate',
-
-    'constant_color',
-    'one_minus_constant_color',
-    'constant_alpha',
-    'one_minus_constant_alpha'
-  );
-  ConstColor = [bsConstantColor, bsOneMinusConstantColor];
-  ConstAlpha = [bsConstantAlpha, bsOneMinusConstantAlpha];
-var
-  I: TBlendingSourceFactor;
-begin
-  Result := false;
-
-  S := LowerCase(S);
-  if S = 'none' then Exit(false);
-
-  for I := Low(I) to High(I) do
-    if FactorNames[I] = S then
-    begin
-      Factor := I;
-
-      { check is GL version enough, or some GL extensions available
-        for more exotic factors. }
-
-      if ((I in ConstColor) or (I in ConstAlpha)) and
-         (not GLFeatures.BlendConstant) then
-      begin
-        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
-        Exit(false);
-      end;
-
-      {$ifndef OpenGLES}
-      if (not GLFeatures.Version_1_4) and
-         (Factor in [bsSrcColor, bsOneMinusSrcColor]) then
-      begin
-        WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
-        Exit(false);
-      end;
-      {$endif}
-
-      NeedsConstColor := NeedsConstColor or (I in ConstColor);
-      NeedsConstAlpha := NeedsConstAlpha or (I in ConstAlpha);
-
-      Exit(true);
-    end;
-
-  WritelnWarning('VRML/X3D', Format('Unknown blending source factor name "%s"', [S]));
-end;
-
-function BlendingFactorNameToStr(S: string;
-  out Factor: TBlendingDestinationFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean; overload;
-const
-  FactorNames: array [TBlendingDestinationFactor] of string =
-  (
-    'src_alpha',
-    'one_minus_src_alpha',
-    'zero',
-    'one',
-
-    'dst_color',
-    'src_color',
-    'dst_alpha',
-
-    'one_minus_dst_color',
-    'one_minus_src_color',
-    'one_minus_dst_alpha',
-
-    // 'src_alpha_saturate', // not supported as destination factor
-
-    'constant_color',
-    'one_minus_constant_color',
-    'constant_alpha',
-    'one_minus_constant_alpha'
-  );
-  ConstColor = [bdConstantColor, bdOneMinusConstantColor];
-  ConstAlpha = [bdConstantAlpha, bdOneMinusConstantAlpha];
-var
-  I: TBlendingDestinationFactor;
-begin
-  Result := false;
-
-  S := LowerCase(S);
-  if S = 'none' then Exit(false);
-
-  for I := Low(I) to High(I) do
-    if FactorNames[I] = S then
-    begin
-      Factor := I;
-
-      { check is GL version enough, or some GL extensions available
-        for more exotic factors. }
-
-      if ((I in ConstColor) or (I in ConstAlpha)) and
-         (not GLFeatures.BlendConstant) then
-      begin
-        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
-        Exit(false);
-      end;
-
-      {$ifndef OpenGLES}
-      if (not GLFeatures.Version_1_4) and
-         (Factor in [bdDstColor, bdOneMinusDstColor]) then
-      begin
-        WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
-        Exit(false);
-      end;
-      {$endif}
-
-      NeedsConstColor := NeedsConstColor or (I in ConstColor);
-      NeedsConstAlpha := NeedsConstAlpha or (I in ConstAlpha);
-
-      Exit(true);
-    end;
-
-  WritelnWarning('VRML/X3D', Format('Unknown blending destination factor name "%s"', [S]));
-end;
-
 { TBlendingRenderer ---------------------------------------------------------- }
 
 constructor TBlendingRenderer.Create(const AScene: TCastleSceneCore);
@@ -261,34 +108,38 @@ end;
 
 procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
 
-{ Looks at Scene.RenderOptions.BlendingXxx and Appearance.blendMode of X3D node.
+{ Looks at Scene.RenderOptions.BlendingXxx and Appearance.BlendMode of X3D node.
   If different than currently set, then changes BlendingXxxFactorSet and updates
   by glBlendFunc. This way, we avoid calling glBlendFunc too often
   (which is potentially costly, since it changes GL state). }
 
+const
+  SrcConstColor = [bsConstantColor, bsOneMinusConstantColor];
+  SrcConstAlpha = [bsConstantAlpha, bsOneMinusConstantAlpha];
+  DestConstColor = [bdConstantColor, bdOneMinusConstantColor];
+  DestConstAlpha = [bdConstantAlpha, bdOneMinusConstantAlpha];
 var
   B: TBlendModeNode;
   NewSrc: TBlendingSourceFactor;
   NewDest: TBlendingDestinationFactor;
-  NeedsConstColor, NeedsConstAlpha: boolean;
+  NeedsConstColor, NeedsConstAlpha: Boolean;
 begin
   if not (Active and Shape.UseBlending) then
     Exit;
 
-  NeedsConstColor := false;
-  NeedsConstAlpha := false;
-
   B := Shape.State.BlendMode;
   if B <> nil then
   begin
-    if not BlendingFactorNameToStr(B.FdSrcFactor.Value, NewSrc, NeedsConstColor, NeedsConstAlpha) then
-      NewSrc := DefaultSourceFactor;
-    if not BlendingFactorNameToStr(B.FdDestFactor.Value, NewDest, NeedsConstColor, NeedsConstAlpha) then
-      NewDest := DefaultDestinationFactor;
+    NewSrc := B.SrcFactor;
+    NewDest := B.DestFactor;
+    NeedsConstColor := (NewSrc in SrcConstColor) or (NewDest in DestConstColor);
+    NeedsConstAlpha := (NewSrc in SrcConstAlpha) or (NewDest in DestConstAlpha);
   end else
   begin
     NewSrc := DefaultSourceFactor;
     NewDest := DefaultDestinationFactor;
+    NeedsConstColor := false;
+    NeedsConstAlpha := false;
   end;
 
   if (SourceFactorSet <> NewSrc) or

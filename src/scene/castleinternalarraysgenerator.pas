@@ -46,10 +46,6 @@ type
       const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean);
   protected
-    { How Geometry and State are generated from Shape.
-      We have to record it, to use with Shape.Normals* later. }
-    OverTriangulate: boolean;
-
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TGeometryIndexList;
 
@@ -243,7 +239,7 @@ type
     FacesNeeded: boolean;
     { @groupEnd }
 
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); virtual;
+    constructor Create(AShape: TShape); virtual;
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
@@ -471,7 +467,7 @@ type
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -526,7 +522,7 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
@@ -702,7 +698,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   TX3DVertexAttributeNodes = {$ifdef FPC}specialize{$endif} TObjectList<TAbstractVertexAttributeNode>;
@@ -723,7 +719,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape); override;
   end;
 
   { Handle bump mapping.
@@ -761,14 +757,13 @@ type
 
 { TArraysGenerator ------------------------------------------------------ }
 
-constructor TArraysGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TArraysGenerator.Create(AShape: TShape);
 begin
   inherited Create;
 
   FShape := AShape;
-  OverTriangulate := AOverTriangulate;
-  FGeometry := FShape.Geometry(OverTriangulate);
-  FState := FShape.State(OverTriangulate);
+  FGeometry := FShape.Geometry;
+  FState := FShape.State;
 
   Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
@@ -1003,7 +998,7 @@ end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape);
 begin
   inherited;
   if not Geometry.InternalTexCoord(State, TexCoord) then
@@ -1664,7 +1659,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractMaterial1Generator.Create(AShape: TShape);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -2033,7 +2028,7 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractFogGenerator.Create(AShape: TShape);
 begin
   inherited;
 
@@ -2162,7 +2157,7 @@ end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractShaderAttribGenerator.Create(AShape: TShape);
 var
   A: TMFNode;
   I: Integer;

@@ -506,7 +506,7 @@ const
       DetectClass: nil;
     ),
     ( FormatName: 'PNM image';
-      MimeTypesCount: 6;
+      MimeTypesCount: 7;
       MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm', 'image/x-portable-pixmap');
       ExtsCount: 4; Exts: ('pnm', 'pgm', 'pbm', 'ppm');
       Load: {$ifdef FPC}@{$endif}LoadPNM;

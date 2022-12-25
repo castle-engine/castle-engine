@@ -86,11 +86,11 @@ type
 
     class function Empty: TRectangle; static; inline;
 
-    function IsEmpty: boolean;
+    function IsEmpty: Boolean;
 
-    function Contains(const X, Y: Integer): boolean; overload;
-    function Contains(const Point: TVector2): boolean; overload;
-    function Contains(const Point: TVector2Integer): boolean; overload;
+    function Contains(const X, Y: Integer): Boolean; overload;
+    function Contains(const Point: TVector2): Boolean; overload;
+    function Contains(const Point: TVector2Integer): Boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -237,7 +237,7 @@ type
     function Translate(const V: TVector2Integer): TRectangle;
 
     { Does it have any common part with another rectangle. }
-    function Collides(const R: TRectangle): boolean;
+    function Collides(const R: TRectangle): Boolean;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
@@ -246,7 +246,7 @@ type
     { Common part of the two rectangles. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
 
-    function Equals(const R: TRectangle): boolean;
+    function Equals(const R: TRectangle): Boolean;
   end;
 
   { 2D rectangle with @bold(float) coordinates.
@@ -280,11 +280,11 @@ type
 
     class function Empty: TFloatRectangle; static; inline;
 
-    function IsEmpty: boolean;
+    function IsEmpty: Boolean;
 
-    function Contains(const X, Y: Single): boolean; overload;
-    function Contains(const Point: TVector2): boolean; overload;
-    function Contains(const R: TFloatRectangle): boolean; overload;
+    function Contains(const X, Y: Single): Boolean; overload;
+    function Contains(const Point: TVector2): Boolean; overload;
+    function Contains(const R: TFloatRectangle): Boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -386,9 +386,9 @@ type
     function Translate(const V: TVector2): TFloatRectangle;
 
     { Does it have any common part with another rectangle. }
-    function Collides(const R: TFloatRectangle): boolean;
+    function Collides(const R: TFloatRectangle): Boolean;
 
-    function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): boolean;
+    function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): Boolean;
 
     function ScaleToWidth(const NewWidth: Single): TFloatRectangle;
     function ScaleToHeight(const NewHeight: Single): TFloatRectangle;
@@ -432,6 +432,9 @@ type
     { Is another rectangle equal to this one.
       Floating-point values are compared with an epsilon tolerance. }
     function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean; overload;
+
+    { Compare using exact comparison (without any epsilon to tolerate small float differences). }
+    function PerfectlyEquals(const R: TFloatRectangle): Boolean;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
@@ -504,24 +507,24 @@ begin
   FillChar(Result, SizeOf(Result), 0);
 end;
 
-function TRectangle.IsEmpty: boolean;
+function TRectangle.IsEmpty: Boolean;
 begin
   Result := (Width <= 0) or (Height <= 0);
 end;
 
-function TRectangle.Contains(const X, Y: Integer): boolean;
+function TRectangle.Contains(const X, Y: Integer): Boolean;
 begin
   Result := (X >= Left  ) and (X < Left   + Integer(Width)) and
             (Y >= Bottom) and (Y < Bottom + Integer(Height));
 end;
 
-function TRectangle.Contains(const Point: TVector2): boolean;
+function TRectangle.Contains(const Point: TVector2): Boolean;
 begin
   Result := (Point.X >= Left  ) and (Point.X < Left   + Integer(Width)) and
             (Point.Y >= Bottom) and (Point.Y < Bottom + Integer(Height));
 end;
 
-function TRectangle.Contains(const Point: TVector2Integer): boolean;
+function TRectangle.Contains(const Point: TVector2Integer): Boolean;
 begin
   Result := (Point.X >= Left  ) and (Point.X < Left   + Integer(Width)) and
             (Point.Y >= Bottom) and (Point.Y < Bottom + Integer(Height));
@@ -909,7 +912,7 @@ begin
   Result.Height := Height;
 end;
 
-function TRectangle.Collides(const R: TRectangle): boolean;
+function TRectangle.Collides(const R: TRectangle): Boolean;
 begin
   Result :=
     (not IsEmpty) and
@@ -958,7 +961,7 @@ begin
   end;
 end;
 
-function TRectangle.Equals(const R: TRectangle): boolean;
+function TRectangle.Equals(const R: TRectangle): Boolean;
 begin
   if IsEmpty then
     Result := R.IsEmpty
@@ -1007,24 +1010,24 @@ begin
   Result.Height := -1;
 end;
 
-function TFloatRectangle.IsEmpty: boolean;
+function TFloatRectangle.IsEmpty: Boolean;
 begin
   Result := (Width < 0) or (Height < 0);
 end;
 
-function TFloatRectangle.Contains(const X, Y: Single): boolean;
+function TFloatRectangle.Contains(const X, Y: Single): Boolean;
 begin
   Result := (X >= Left  ) and (X <= Left   + Width) and
             (Y >= Bottom) and (Y <= Bottom + Height);
 end;
 
-function TFloatRectangle.Contains(const Point: TVector2): boolean;
+function TFloatRectangle.Contains(const Point: TVector2): Boolean;
 begin
   Result := (Point.X >= Left  ) and (Point.X <= Left   + Width) and
             (Point.Y >= Bottom) and (Point.Y <= Bottom + Height);
 end;
 
-function TFloatRectangle.Contains(const R: TFloatRectangle): boolean;
+function TFloatRectangle.Contains(const R: TFloatRectangle): Boolean;
 begin
   if R.IsEmpty then
     Result := true
@@ -1293,7 +1296,7 @@ begin
   Result.Height := Height;
 end;
 
-function TFloatRectangle.Collides(const R: TFloatRectangle): boolean;
+function TFloatRectangle.Collides(const R: TFloatRectangle): Boolean;
 begin
   Result :=
     (not IsEmpty) and
@@ -1305,10 +1308,10 @@ begin
 end;
 
 function TFloatRectangle.CollidesDisc(const DiscCenter: TVector2;
-  const Radius: Single): boolean;
+  const Radius: Single): Boolean;
 var
   ARight, ATop, ClosestCornerX, ClosestCornerY: Single;
-  InsideX, InsideY: boolean;
+  InsideX, InsideY: Boolean;
 begin
   if IsEmpty then
     Exit(false);
@@ -1547,6 +1550,19 @@ begin
       (SameValue(Bottom, R.Bottom, Epsilon)) and
       (SameValue(Width , R.Width , Epsilon)) and
       (SameValue(Height, R.Height, Epsilon));
+end;
+
+function TFloatRectangle.PerfectlyEquals(const R: TFloatRectangle): Boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (Left   = R.Left  ) and
+      (Bottom = R.Bottom) and
+      (Width  = R.Width ) and
+      (Height = R.Height);
 end;
 
 class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;

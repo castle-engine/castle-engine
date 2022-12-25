@@ -1,3 +1,4 @@
+{%MainUnit ../castlewindow.pas}
 {
   Copyright 2001-2022 Michalis Kamburelis.
 
@@ -419,7 +420,7 @@ end;
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
- Result := true;
+  Result := true;
 end;
 
 procedure TCastleWindow.BackendMenuInitialize;

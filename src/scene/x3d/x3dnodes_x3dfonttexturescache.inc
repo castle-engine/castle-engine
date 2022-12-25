@@ -110,9 +110,9 @@ begin
   Result.FdImage.Value := TGrayscaleAlphaImage.Create;
   Result.FdImage.Value.Assign(Font.Image);
   if Blending then
-    Result.AlphaChannelField := acBlending
+    Result.AlphaChannel := acBlending
   else
-    Result.AlphaChannelField := acTest;
+    Result.AlphaChannel := acTest;
 
   C := TCachedFontTexture.Create;
   CachedFontTextures.Add(C);

@@ -1,0 +1,19 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "ColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent",
+          "Green" : 0.0000000000000000E+000,
+          "Red" : 0.0000000000000000E+000
+        }
+      },
+      "Name" : "ImageControl1"
+    }
+  ]
+}

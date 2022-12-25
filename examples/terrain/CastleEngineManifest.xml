@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="terrain"
-  standalone_source="terrain.dpr"
+  standalone_source="terrain_standalone.dpr"
   game_units="GameInitialize"
-  screen_orientation="landscape"
   qualified_name="io.castleengine.terrain"
+  caption="Terrain"
 >
-  <package>
-    <include path="sample_height_images/*" />
-  </package>
   <compiler_options>
     <search_paths>
       <path value="code/" />

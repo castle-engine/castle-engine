@@ -38,7 +38,7 @@ type
   private
     { Available only during Test1 }
     Window: TCastleWindow;
-    Viewport: TCastleViewport;
+    Viewport: TCastleAutoNavigationViewport;
     Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
 
@@ -63,8 +63,8 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties;
-
+  CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties,
+  CastleTransform;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -74,7 +74,9 @@ begin
 
     FreeAndNil(Scene);
     AssertTrue(Viewport.Items.MainScene = nil);
-    AssertTrue(Viewport.Items.Count = 0);
+    { the only remaining things should be TCastleCamera }
+    AssertEquals(1, Viewport.Items.Count);
+    AssertTrue(Viewport.Items[0] is TCastleCamera);
 
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
@@ -97,7 +99,7 @@ begin
   AssertTrue(Viewport.Navigation = nil);
   Viewport.RequiredNavigation;
 
-  Viewport.ClearCameras;
+  Viewport.Navigation := nil;
   AssertTrue(Viewport.Navigation = nil);
 
   { Force preparing and using OpenGL resources for the scene.
@@ -161,7 +163,7 @@ begin
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    Viewport := TCastleViewport.Create(Window);
+    Viewport := TCastleAutoNavigationViewport.Create(Window);
     Viewport.Items.Add(Scene);
     Viewport.Items.MainScene := Scene;
 

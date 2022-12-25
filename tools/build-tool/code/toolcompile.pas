@@ -54,6 +54,8 @@ type
     { Extra compiler options, directly passed to fpc/dcc on command-line.
       For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
     ExtraOptions: TCastleStringList;
+    { Allow using cache. @true by default. }
+    AllowCache: Boolean;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -165,7 +167,8 @@ const
   );
 
   { Additional include/units paths, only for Delphi. }
-  EnginePathsDelphi: array [0..1] of String = (
+  EnginePathsDelphi: array [0..2] of String = (
+    'delphi',
     'compatibility/delphi-only',
     'compatibility/delphi-only/fcl-json'
   );
@@ -175,6 +178,12 @@ const
   EngineLibraryPaths: array [0..1] of String = (
     'vampyre_imaginglib/src/Extensions/J2KObjects',
     'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
+  );
+
+  CompilationModeToStr: array [TCompilationMode] of string = (
+    'release',
+    'valgrind',
+    'debug'
   );
 
 implementation
@@ -192,6 +201,7 @@ begin
   SearchPaths := TCastleStringList.Create;
   LibraryPaths := TCastleStringList.Create;
   ExtraOptions := TCastleStringList.Create;
+  AllowCache := true;
 end;
 
 destructor TCompilerOptions.Destroy;
@@ -309,6 +319,45 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
+{ CopyCacheContents ---------------------------------------------------------- }
+
+type
+  TCopyFromCacheHelper = class
+    DestPath: String;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TCopyFromCacheHelper.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+var
+  DestFile: String;
+begin
+  DestFile := DestPath + FileInfo.Name;
+
+  { We copy from cache *without* overwriting. This way, in case the cache contained
+    outdated / invalid outputs, on first run new compilation (FPC) should overwrite it,
+    and we should not overwrite it back with cache. }
+
+  if FileExists(DestFile) then
+  begin
+    WritelnVerbose(Format('Not copying from cache "%s", already exists', [FileInfo.Name]));
+  end else
+  begin
+    WritelnVerbose(Format('Copying from cache "%s"', [FileInfo.Name]));
+    CheckCopyFile(FileInfo.AbsoluteName, DestFile);
+  end;
+end;
+
+procedure CopyCacheContents(const SourcePath, DestPath: String);
+var
+  Helper: TCopyFromCacheHelper;
+begin
+  Helper := TCopyFromCacheHelper.Create;
+  try
+    Helper.DestPath := InclPathDelim(DestPath);
+    FindFiles(SourcePath, '*', false, {$ifdef FPC}@{$endif}Helper.FoundFile, []);
+  finally FreeAndNil(Helper) end;
+end;
+
 { Other routines ------------------------------------------------------------- }
 
 { Writeln a message that FPC/Lazarus crashed and we will retry,
@@ -341,7 +390,11 @@ begin
   LineLower := LowerCase(Line);
   Result := not (
     IsPrefix('generics.collections.pas(', LineLower, false) or
-    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+    IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
+    IsSuffix('note: change section name to "__data"', LineLower, false) or
+    (Line = '.section __DATA, __datacoal_nt, coalesced') or
+    (Line = '         ^      ~~~~~~~~~~~~~~')
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
@@ -507,6 +560,19 @@ var
     end;
   end;
 
+  procedure AddMacOSOptions;
+  begin
+    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    begin
+      // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
+      FpcOptions.Add('-k-framework');
+      FpcOptions.Add('-kCocoa');
+      // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
+      // FpcOptions.Add('-gw2');
+      // FpcOptions.Add('-godwarfsets');
+    end;
+  end;
+
   procedure AddDefines;
   var
     S: String;
@@ -515,11 +581,30 @@ var
       FpcOptions.Add('-d' + S);
   end;
 
+  procedure CopyFromCache(const CompilationOutputPathFinal: String);
+  var
+    CachePathFull: String;
+  begin
+    CachePathFull := CachePath +
+      CPUToString(Options.CPU) + '-' + OSToString(Options.OS) + PathDelim +
+      CompilationModeToStr[Options.Mode] + PathDelim;
+    if DirectoryExists(CachePathFull) then
+    begin
+      WritelnVerbose(Format('Using cache "%s" to speed up compilation', [CachePathFull]));
+      CopyCacheContents(CachePathFull, CompilationOutputPathFinal);
+    end;
+  end;
+
 var
-  FpcOutput, FpcExe: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: string;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
+
+  CompilationOutputPathFinal := CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory);
+
+  if Options.AllowCache then
+    CopyFromCache(CompilationOutputPathFinal);
 
   FpcOptions := TCastleStringList.Create;
   try
@@ -722,14 +807,28 @@ begin
     end;
 
     AddIOSOptions;
+    AddMacOSOptions;
     AddDefines;
     FpcOptions.AddRange(Options.ExtraOptions);
 
     FpcOptions.Add(CompileFile);
-    FpcOptions.Add('-FU' + CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory));
+    FpcOptions.Add('-FU' + CompilationOutputPathFinal);
 
     Writeln('FPC executing...');
-    FpcExe := FindExeFpcCompiler;
+    FpcExe := FindExeFpcCompiler(true, FpcStandardUnitsPath);
+
+    if FpcStandardUnitsPath <> '' then
+    begin
+      FpcOptions.Add('-Fu' + FpcStandardUnitsPath);
+
+      { Do not read system-wide FPC config, to allow this bundled FPC to coexist
+        with your system-wide FPC installation without any relation. }
+      FpcOptions.Add('-n');
+
+      { As the bundled FPC has no config, by default it is rather silent.
+        Add options to display info (and Warnings and Notes) during compilation to see progress. }
+      FpcOptions.Add('-viwn');
+    end;
 
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then

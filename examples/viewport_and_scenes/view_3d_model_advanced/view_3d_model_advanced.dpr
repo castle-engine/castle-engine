@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,9 +21,10 @@ program view_3d_model_advanced;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, Classes,
-  CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
+  CastleUtils, CastleWindow, CastleUIControls,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
-  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport;
+  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport,
+  CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -49,7 +50,6 @@ begin
     { Move camera to most suitable place for the *new* scene (ignoring previous camera
       position). }
     Viewport.AssignDefaultCamera;
-    Viewport.AssignDefaultNavigation;
   end;
 end;
 
@@ -68,49 +68,24 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
-  { Enable rendering models using shadow volumes. This requires some special
-    code, as OpenGL must be prepared in a special way to enable it,
-    and some GPUs (really ancient ones) may simply not support it.
-    See https://castle-engine.io/x3d_extensions.php#section_ext_shadows
-    for documentation how to prepare your model to have shadow volumes,
-    and for links to demo models using shadow volumes.
-
-    Note that for (really really old) GPUs that don't support stencil buffer,
-    our Window.Open call will automatically turn StencilBits to 0 and fallback
-    to OpenGL context without shadow volumes. }
-  // Window.ShadowVolumes := true; // not necessary, this is true by default
-  Window.StencilBits := 8;
   Window.Open;
-
-  { Show progress bar in our window }
-  Application.MainWindow := Window;
-  Progress.UserInterface := WindowProgressInterface;
 
   { load a Scene and add it to Viewport, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
   Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
-  { set titles for progress bars, otherwise progress bars are not used.
-    This should be done before setting Scene.Spatial, since setting it may
-    already do some progress bars. }
-  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeOctreeProgressTitle := 'Building shape octree';
-
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.PreciseCollisions := true;
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
 
-  Viewport.AssignDefaultCamera;
-  Viewport.AssignDefaultNavigation;
-
   { Output some information about the loaded scene }
   WritelnLog('Scene vertexes: %d, triangles: %d, bounding box: %s', [
-    Scene.VerticesCount(true),
-    Scene.TrianglesCount(true),
+    Scene.VerticesCount,
+    Scene.TrianglesCount,
     Scene.BoundingBox.ToString
   ]);
 
@@ -120,8 +95,8 @@ begin
   OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open Scene';
   OpenButton.OnClick := {$ifdef FPC}@{$endif} EventHandler.OpenButtonClick;
-  OpenButton.Left := 10;
-  OpenButton.Bottom := 10;
+  OpenButton.Anchor(hpLeft, 10);
+  OpenButton.Anchor(vpBottom, 10);
   OpenButton.AutoSize := false;
   OpenButton.Width := 250;
   OpenButton.Height := 75;

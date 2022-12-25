@@ -15,12 +15,12 @@ bricks2.jpg
 sky_red_*
 
   have been rendered in Terragen by Michalis.
-  License: same as CGE examples, see castle-engine/COPYING.md
+  License: same as CGE examples, see https://castle-engine.io/license
 
 crown.gif, texture_alpha.png
 
   silly demo images done in GIMP by Michalis.
-  License: same as CGE examples, see castle-engine/COPYING.md
+  License: same as CGE examples, see https://castle-engine.io/license
 
 orient-up.ktx
 rgb-reference.ktx

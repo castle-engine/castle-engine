@@ -20,8 +20,12 @@
   { Private stuff for TX3DNode.DeepCopy and friends implementation. }
   TX3DNodeDeepCopyState = class
   private
-    { These two lists must always have exactly the same length. }
-    Original, New: TX3DNodeList;
+    type
+      TNodeNodeMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DNode, TX3DNode>;
+      TExportExportMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DExport, TX3DExport>;
+    var
+      NodeOriginalToCopy: TNodeNodeMap;
+      ExportOriginalToCopy: TExportExportMap;
   public
     constructor Create;
     destructor Destroy; override;
@@ -33,7 +37,7 @@
       first time with OriginalNode, it actually creates a duplicate
       (by OriginalNode.DeepCopy). Next time, it will just return
       this copy. }
-    function DeepCopy(OriginalNode: TX3DNode): TX3DNode;
+    function DeepCopy(const OriginalNode: TX3DNode): TX3DNode;
   end;
 
   { Simple component system inside TX3DNode.
@@ -49,6 +53,9 @@
   TNodeFunctionalityList = {$ifdef FPC}specialize{$endif} TObjectList<TNodeFunctionality>;
 
   TNodeFunctionalityClass = class of TNodeFunctionality;
+
+  TFindNodeOption = (fnNilOnMissing, fnOnlyActive);
+  TFindNodeOptions = set of TFindNodeOption;
 
   { X3D node. Every X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem)
@@ -93,8 +100,8 @@
     procedure SetVRML1Child(const I: Integer; const Value: TX3DNode);
     function GetParentFieldsItem(Index: Integer): TX3DField;
     function GetParentFieldsNodeItem(Index: Integer): TX3DNode;
-    procedure RemoveParentField(Field: TX3DField);
-    procedure AddParentField(Field: TX3DField);
+    procedure RemoveParentField(const Field: TX3DField);
+    procedure AddParentField(const Field: TX3DField);
     procedure SetHasInterfaceDeclarations(const Value: TX3DAccessTypes);
     { Internal save to stream utility.
       When CurrentContainerField is not empty, it means we know our containing field
@@ -715,22 +722,38 @@
       @groupBegin }
     function TryFindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode;
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode;
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function TryFindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode;
+      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; overload;
+      OnlyActive: boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     { @groupEnd }
 
-    { Find a node by name, in this node and children (recursively).
-      Searches both active and inactive graph parts.
-      This is a simpler way to call FindNodeByName,
-      and it is consistent with @link(TCastleSceneCore.Node) method.
-      @raises EX3DNotFound When node is not found. }
-    function FindNode(const FindName: string): TX3DNode; overload;
+    { Find a node by name and class, in this node and children (recursively).
+
+      By default it searches both active and inactive graph parts.
+      Add fnOnlyActive to search only in active parts.
+
+      @raises(EX3DNotFound When node is not found.
+        Unless fnNilOnMissing in Options, then it returns @nil on missing node,
+        and EX3DNotFound is never raised.)
+    }
+    function FindNode(const NodeClass: TX3DNodeClass; const FindName: String;
+      const Options: TFindNodeOptions = []): TX3DNode; overload;
+
+    function FindNode(const FindName: string): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+
+    {$ifdef GENERIC_METHODS}
+
+    { Find a node of given type and given name, in this node and children (recursively).
+      See FindNode for description of Options. }
+    {$ifdef FPC}generic{$endif} function Find<T: TX3DNode>(const FindName: string;
+      const Options: TFindNodeOptions = []): T;
+
+    {$endif}
 
     { Find the first node with given class (NodeClass),
       return it's state or just transformation.
@@ -742,12 +765,12 @@
     function TryFindNodeState(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
-      out State: TX3DGraphTraverseState): boolean;
+      out State: TX3DGraphTraverseState): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their TX3DGraphTraverseState';
     function TryFindNodeTransform(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
       out Transform: TMatrix4;
-      out TransformScale: Single): boolean;
+      out TransformScale: Single): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their transformations';
     { @groupEnd }
 
     { Seeks Self and parent nodes (from VRML1Parents and ParentFields,
@@ -1149,31 +1172,24 @@
 constructor TX3DNodeDeepCopyState.Create;
 begin
   inherited;
-  Original := TX3DNodeList.Create(false);
-  New := TX3DNodeList.Create(false);
+  NodeOriginalToCopy := TNodeNodeMap.Create;
+  ExportOriginalToCopy := TExportExportMap.Create;
 end;
 
 destructor TX3DNodeDeepCopyState.Destroy;
 begin
-  FreeAndNil(Original);
-  FreeAndNil(New);
+  FreeAndNil(NodeOriginalToCopy);
+  FreeAndNil(ExportOriginalToCopy);
   inherited;
 end;
 
-function TX3DNodeDeepCopyState.DeepCopy(OriginalNode: TX3DNode): TX3DNode;
-var
-  I: Integer;
+function TX3DNodeDeepCopyState.DeepCopy(const OriginalNode: TX3DNode): TX3DNode;
 begin
-  Assert(New.Count = Original.Count);
-
-  I := Original.IndexOf(OriginalNode);
-  if I = -1 then
+  if not NodeOriginalToCopy.TryGetValue(OriginalNode, Result) then
   begin
-    { DeepCopyCore will expand (Original, New) lists by (OriginalNode, Result).
-      This is needed, see DeepCopyCore comments. }
+    { DeepCopyCore will expand NodeOriginalToCopy at the beginning. }
     Result := OriginalNode.DeepCopyCore(Self);
-  end else
-    Result := New[I];
+  end;
 end;
 
 { TNodeFunctionality --------------------------------------------------------- }
@@ -2359,7 +2375,9 @@ end;
 
 function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
 begin
+  {$warnings off} // usind deprecated in deprecated
   result := TryFindNode(FindClass, OnlyActive);
+  {$warnings on}
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Node class "%s" not found', [FindClass.ClassName]);
 end;
@@ -2395,15 +2413,50 @@ function TX3DNode.FindNodeByName(
   FindClass: TX3DNodeClass; const FindName: string;
   OnlyActive: boolean): TX3DNode;
 begin
+  {$warnings off} // usind deprecated in deprecated
   Result := TryFindNodeByName(FindClass, FindName, OnlyActive);
+  {$warnings on}
   if Result = nil then
-    raise EX3DNotFound.CreateFmt('Node name "%s" not found', [FindName]);
+    raise EX3DNotFound.CreateFmt('Node name "%s" of class "%s" not found', [
+      FindName,
+      FindClass.ClassName
+    ]);
 end;
 
 function TX3DNode.FindNode(const FindName: string): TX3DNode;
 begin
-  Result := FindNodeByName(TX3DNode, FindName, false);
+  Result := FindNode(TX3DNode, FindName);
 end;
+
+function TX3DNode.FindNode(const NodeClass: TX3DNodeClass; const FindName: string;
+  const Options: TFindNodeOptions): TX3DNode;
+begin
+  {$warnings off} // usind deprecated, but in the long run this all should be collapses into non-deprecated method
+  Result := TryFindNodeByName(NodeClass, FindName, fnOnlyActive in Options);
+  {$warnings on}
+  if (Result = nil) and (not (fnNilOnMissing in Options)) then
+    raise EX3DNotFound.CreateFmt('Node name "%s" of class "%s" not found', [
+      FindName,
+      NodeClass.ClassName
+    ]);
+end;
+
+{$ifdef GENERIC_METHODS}
+
+{$ifdef FPC}generic{$endif} function TX3DNode.Find<T>(const FindName: string;
+  const Options: TFindNodeOptions): T;
+begin
+  {$warnings off} // usind deprecated, but in the long run this all should be collapses into non-deprecated method
+  Result := TryFindNodeByName(T, FindName, fnOnlyActive in Options) as T;
+  {$warnings on}
+  if (Result = nil) and (not (fnNilOnMissing in Options)) then
+    raise EX3DNotFound.CreateFmt('Node name "%s" of class "%s" not found', [
+      FindName,
+      T.ClassName
+    ]);
+end;
+
+{$endif}
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
 
@@ -2609,9 +2662,24 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       if HasInterfaceDeclarations <> [] then
       begin
         for I := 0 to InterfaceDeclarations.Count - 1 do
-          Result.Add(InterfaceDeclarations[I]);
-      end;
+        begin
+          { Saving interface declaration within X3D node (like custom Effect or ComposedShader field)
+            should always save the value, as there's no intrinsic "default".
 
+            Testcase: terrain demo saving fields, they have defaults often equal to current value,
+            and could result in incorrect X3D XML like:
+
+            <field accessType="inputOutput" type="SFFloat" name="h0">5</field>
+
+            instead of
+
+            <field accessType="inputOutput" type="SFFloat" name="h0" value="5" />
+          }
+          if InterfaceDeclarations[I].Field <> nil then
+            InterfaceDeclarations[I].Field.UnassignDefaultValue;
+          Result.Add(InterfaceDeclarations[I]);
+        end;
+      end;
       for I := 0 to PrototypesCount - 1 do
         Result.Add(Prototypes[I]);
 
@@ -2917,13 +2985,17 @@ begin
   Result := true;
 end;
 
-procedure TX3DNode.RemoveParentField(Field: TX3DField);
+procedure TX3DNode.RemoveParentField(const Field: TX3DField);
 begin
-  Check(FParentFields.Remove(Field) <> -1, 'RemoveParentField: parent not found');
+  if FParentFields.Remove(Field) = -1 then
+    raise EInternalError.CreateFmt('RemoveParentField cannot find indicated parent, node %s, parent field %s', [
+      NiceName,
+      Field.NiceName
+    ]);
   FreeIfUnused;
 end;
 
-procedure TX3DNode.AddParentField(Field: TX3DField);
+procedure TX3DNode.AddParentField(const Field: TX3DField);
 begin
   FParentFields.Add(Field);
 end;
@@ -3125,39 +3197,6 @@ begin
   end;
 end;
 
-{ I couldn't implement this as TX3DField method, as X3DFields
-  cannot declare TX3DNode in the interface, so also
-  cannot declare TX3DNodeDeepCopyState. }
-procedure FieldDeepCopyContents(Destination, Source: TX3DField;
-  CopyState: TX3DNodeDeepCopyState);
-var
-  J: Integer;
-  SF: TSFNode;
-  MF: TMFNode;
-begin
-  { First make "shallow copy" of the field by simple Assign }
-  Destination.Assign(Source);
-
-  if Destination is TSFNode then
-  begin
-    SF := TSFNode(Destination);
-    if SF.Value <> nil then
-      SF.Value := CopyState.DeepCopy(SF.Value);
-  end else
-  if Destination is TMFNode then
-  begin
-    MF := TMFNode(Destination);
-    for J := 0 to MF.Count - 1 do
-      MF.Replace(J, CopyState.DeepCopy(MF.InternalItems[J]));
-  end;
-end;
-
-procedure EventDeepCopyContents(Destination, Source: TX3DEvent);
-begin
-  { For events, simple Assign does all copy we need --- at least for now. }
-  Destination.Assign(Source);
-end;
-
 function TX3DNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
   Result := TX3DNodeClass(ClassType).Create(X3DName, BaseUrl);
@@ -3172,7 +3211,7 @@ begin
 
   try
 
-    { We expand CopyState arrays now, right after DeepCopyCreate.
+    { We expand CopyState.NodeOriginalToCopy now, right after DeepCopyCreate.
       This is needed, as later during DeepCopyCore we may need this node
       in case of loops within hierarchy.
 
@@ -3185,8 +3224,7 @@ begin
       Also, in the future we will have to allow loops in Script nodes
       (USE within Script node may refer to the same node). So again loop
       will be created. }
-    CopyState.Original.Add(Self);
-    CopyState.New.Add(Result);
+    CopyState.NodeOriginalToCopy.Add(Self, Result);
 
     for I := 0 to VRML1ChildrenCount - 1 do
       Result.VRML1ChildAdd(CopyState.DeepCopy(VRML1Children[I]));
@@ -3222,19 +3260,19 @@ begin
       { Copying InterfaceDeclarations field/event already handled. }
       if Fields[I].ParentInterfaceDeclaration = nil then
       begin
-        FieldDeepCopyContents(Result.Fields[I], Fields[I], CopyState);
+        Result.Fields[I].InternalAssignDeepCopy(Fields[I], CopyState);
 
         if Result.Fields[I].Exposed then
         begin
-          EventDeepCopyContents(Result.Fields[I].EventIn , Fields[I].EventIn );
-          EventDeepCopyContents(Result.Fields[I].EventOut, Fields[I].EventOut);
+          Result.Fields[I].EventIn .InternalAssignDeepCopy(Fields[I].EventIn , CopyState);
+          Result.Fields[I].EventOut.InternalAssignDeepCopy(Fields[I].EventOut, CopyState);
         end;
       end;
 
     for I := 0 to EventsCount - 1 do
       { Copying InterfaceDeclarations field/event already handled. }
       if Events[I].ParentInterfaceDeclaration = nil then
-        EventDeepCopyContents(Result.Events[I], Events[I]);
+        Result.Events[I].InternalAssignDeepCopy(Events[I], CopyState);
 
     for I := 0 to RoutesCount - 1 do
       Result.AddRoute(Routes[I].DeepCopy(CopyState));

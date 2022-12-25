@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,7 +30,7 @@ uses SysUtils, Classes, DOM,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
-  CastleApplicationProperties, CastleViewport,
+  CastleApplicationProperties, CastleViewport, CastleCameras,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -174,7 +174,7 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);

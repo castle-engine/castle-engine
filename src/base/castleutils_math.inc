@@ -1,5 +1,6 @@
+{%MainUnit castleutils.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -275,6 +276,8 @@ function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, Des
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
 { @groupEnd }
 
+function MapRangeTo01(const SourceVal, SourceBegin, SourceEnd: Single): Single;
+
 { Random Float value in the given range,
   result is between RangeBegin and RangeEnd.
   Always pass arguments such that RangeBegin < RangeEnd. }
@@ -364,8 +367,7 @@ function FloatModulo(const A, B: Double): Double;
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
-{ Our version of CoTan, to workaround
-  http://www.freepascal.org/mantis/view.php?id=9944. }
+{ Our version of CoTan, to workaround @url(http://www.freepascal.org/mantis/view.php?id=9944 old FPC bug). }
 function CastleCoTan(const Value: Float): Float;
 
 { Floor from Sqrt(Value). }
@@ -861,6 +863,11 @@ begin
     Result := Clamped(Result, DestEnd, DestBegin)
   else
     Result := Clamped(Result, DestBegin, DestEnd);
+end;
+
+function MapRangeTo01(const SourceVal, SourceBegin, SourceEnd: Single): Single;
+begin
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;

@@ -18,6 +18,7 @@
   https://docwiki.embarcadero.com/Libraries/Sydney/en/Vcl.Imaging }
 
 {$ifndef FPC}
+{$ifndef USE_VAMPYRE_IMAGING}
 
 function LoadPNG_PngImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -109,5 +110,6 @@ begin
   finally FreeAndNil(PngImage) end;
 end;
 
+{$endif}
 {$endif}
 

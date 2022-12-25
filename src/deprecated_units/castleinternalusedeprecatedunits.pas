@@ -32,7 +32,8 @@ uses
   CastleSceneManager, Castle3D, Castle2DSceneManager,
   CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
   CastleSoundAllocator, CastleOnScreenMenu, CastleProgress, CastleProgressConsole,
-  CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources;
+  CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources,
+  CastleMaterialProperties;
 
 implementation
 

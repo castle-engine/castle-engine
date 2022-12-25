@@ -160,9 +160,9 @@ type
   TSkinToInitialize = class
     Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node that are TShapeNode should have skinning applied. }
-    Shapes: TAbstractX3DGroupingNode;
+    Shapes: TAbstractGroupingNode;
     { Immediate parent of the Shapes node (it always has only one parent). }
-    ShapesParent: TAbstractX3DGroupingNode;
+    ShapesParent: TAbstractGroupingNode;
   end;
 
   TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
@@ -427,6 +427,7 @@ type
   TTexture = record
     Index: TPasGLTFSizeInt;
     TexCoord: TPasGLTFSizeInt;
+    TextureTransform: TPasJSONItem;
     procedure Init;
     function Empty: Boolean;
   end;
@@ -435,6 +436,7 @@ procedure TTexture.Init;
 begin
   Index := -1;
   TexCoord := 0;
+  TextureTransform := nil;
 end;
 
 function TTexture.Empty: Boolean;
@@ -521,7 +523,7 @@ const
         for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
-      RoughnessFactor := Max(RoughnessFactor, 0.5);
+      RoughnessFactor := Max(RoughnessFactor, 0.05);
     end;
 
     (*
@@ -538,16 +540,17 @@ const
 
   procedure ReadSpecularGlossiness(const JsonSpecGloss: TPasJSONItemObject);
   var
-    JSONItem: TPasJSONItem;
+    JSONItem, Exts: TPasJSONItem;
     DiffuseFactor: TVector4;
     SpecularFactor: TVector3;
     GlossinessFactor: Single;
     DiffuseTexture, SpecularGlossinessTexture: TTexture;
+    DiffuseJson, SpecularGlossinessJson: TPasJSONItemObject;
   begin
     { Read PBR specular-glossiness subset.
       As we only read subset, we use it only when
       Material.PBRMetallicRoughness is empty, despite
-      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+      https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness
       advising to use specular-glossiness if you can.
 
       Code below, to read specular-glossiness from JSON, is based on PasGLTF UnitGLTFOpenGL. }
@@ -569,9 +572,12 @@ const
     if Assigned(JSONItem) and
        (JSONItem is TPasJSONItemObject) then
     begin
-      DiffuseTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
-      DiffuseTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
-      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions'], DiffuseTexture);
+      DiffuseJson := TPasJSONItemObject(JSONItem);
+      DiffuseTexture.Index := TPasJSON.GetInt64(DiffuseJson.Properties['index'], -1);
+      DiffuseTexture.TexCoord := TPasJSON.GetInt64(DiffuseJson.Properties['texCoord'], 0);
+      Exts := DiffuseJson.Properties['extensions'];
+      if Exts is TPasJSONItemObject then // also checks Exts <> nil
+        DiffuseTexture.TextureTransform := TPasJSONItemObject(Exts).Properties['KHR_texture_transform'];
     end;
 
     GlossinessFactor := TPasJSON.GetNumber(JsonSpecGloss.Properties['glossinessFactor'], 1);
@@ -592,9 +598,12 @@ const
     if Assigned(JSONItem) and
       (JSONItem is TPasJSONItemObject) then
     begin
-      SpecularGlossinessTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
-      SpecularGlossinessTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
-      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions'], SpecularGlossinessTexture);
+      SpecularGlossinessJson := TPasJSONItemObject(JSONItem);
+      SpecularGlossinessTexture.Index := TPasJSON.GetInt64(SpecularGlossinessJson.Properties['index'], -1);
+      SpecularGlossinessTexture.TexCoord := TPasJSON.GetInt64(SpecularGlossinessJson.Properties['texCoord'], 0);
+      Exts := SpecularGlossinessJson.Properties['extensions'];
+      if Exts is TPasJSONItemObject then // also checks Exts <> nil
+        SpecularGlossinessTexture.TextureTransform := TPasJSONItemObject(Exts).Properties['KHR_texture_transform'];
     end;
 
     // convert to metallic-roughness
@@ -608,16 +617,20 @@ const
 var
   JsonSpecGlossItem: TPasJSONItem;
 begin
-  BaseColorTexture.Init;
-  MetallicRoughnessTexture.Init;
-
   BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+
+  BaseColorTexture.Init;
   BaseColorTexture.Index := Material.PBRMetallicRoughness.BaseColorTexture.Index;
   BaseColorTexture.TexCoord := Material.PBRMetallicRoughness.BaseColorTexture.TexCoord;
+  BaseColorTexture.TextureTransform := Material.PBRMetallicRoughness.BaseColorTexture.Extensions.Properties['KHR_texture_transform'];
+
   MetallicFactor := Material.PBRMetallicRoughness.MetallicFactor;
   RoughnessFactor := Material.PBRMetallicRoughness.RoughnessFactor;
+
+  MetallicRoughnessTexture.Init;
   MetallicRoughnessTexture.Index := Material.PBRMetallicRoughness.MetallicRoughnessTexture.Index;
   MetallicRoughnessTexture.TexCoord := Material.PBRMetallicRoughness.MetallicRoughnessTexture.TexCoord;
+  MetallicRoughnessTexture.TextureTransform := Material.PBRMetallicRoughness.MetallicRoughnessTexture.Extensions.Properties['KHR_texture_transform'];
 
   { Read PBR specular-glossiness }
 
@@ -821,6 +834,54 @@ begin
   end;
 end;
 
+{ TTextureTransforms --------------------------------------------------------- }
+
+type
+  { To connect glTF idea of texture transformations (each textureInfo can
+    have texture transformation) with X3D 4 (each mapping can have texture transformation),
+    this collects current texture transformation requirements.
+
+    TODO: We could support more even without extending X3D:
+    different tex coords could have different transformations. }
+  TTextureTransforms = class
+  strict private
+    HasAny: Boolean;
+  public
+    SingleTextureTransform: TTextureTransformNode;
+
+    { Mark that given TexCoords have to be transformed with given TTextureTransformNode
+      (which may be @nil).
+
+      Ignored when TexCoords = '' (this means we don't have a texture, ReadTexture returns
+      mapping = '' then).
+
+      When TextureTransform = nil means that these tex coords should not be transformed.
+      (This is still valuable information that you should pass for each texture.) }
+    procedure TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+  end;
+
+procedure TTextureTransforms.TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+begin
+  if HasAny then
+  begin
+    if SingleTextureTransform <> TextureTransform then
+    begin
+      if (SingleTextureTransform <> nil) and
+         (TextureTransform <> nil) and
+         TVector2.PerfectlyEquals(SingleTextureTransform.FdTranslation.Value, TextureTransform.FdTranslation.Value) and
+         TVector2.PerfectlyEquals(SingleTextureTransform.FdScale.Value, TextureTransform.FdScale.Value) and
+         (SingleTextureTransform.FdRotation.Value = TextureTransform.FdRotation.Value) then
+        { Ignore the difference, contents of TTextureTransformNode are equal. }
+        Exit;
+      WritelnWarning('TODO: Textures within material have different texture transformation, not supported now');
+      FreeIfUnusedAndNil(SingleTextureTransform);
+    end;
+  end;
+
+  HasAny := true;
+  SingleTextureTransform := TextureTransform;
+end;
+
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
@@ -832,6 +893,11 @@ var
   { List of TTransformNode nodes, ordered just list glTF nodes.
     Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
   Nodes: TX3DNodeList;
+  { List of X3D nodes to be EXPORTed from the glTF scene,
+    so that outer X3D can IMPORT them and use.
+    Nodes with X3DName = '' on this list are ignored.
+    Everything on Appearances, Nodes, Animations is already EXPORTed too. }
+  ExportNodes: TX3DNodeList;
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
@@ -840,6 +906,15 @@ var
   Lights: TPunctualLights;
 
   procedure ReadHeader;
+  const
+    SupportedExtensions: array [0..3] of String = (
+      'KHR_materials_pbrSpecularGlossiness',
+      'KHR_texture_transform',
+      'KHR_lights_punctual',
+      'KHR_materials_unlit'
+    );
+  var
+    ExtRequired: String;
   begin
     // too verbose to be done by default
     (*
@@ -889,8 +964,9 @@ var
       ])
     );
     *)
-    if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
-      WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+    for ExtRequired in Document.ExtensionsRequired do
+      if ArrayPosStr(ExtRequired, SupportedExtensions) = -1 then
+        WritelnWarning('Required extension "%s" not supported by glTF reader', [ExtRequired]);
   end;
 
   { Read glTF "extras" item, with given key and value (JSON array), into X3D "metadata" information. }
@@ -1086,16 +1162,59 @@ var
     end;
   end;
 
+  { Read glTF texture transform from KHR_texture_transform JSON item following
+    https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_transform .
+    Input GltfTextureTransform may be @nil or not even TPasJSONItemObject.
+    May return @nil if no texture transformation.
+
+    Note: glTF texture V coordinates go down, not up, as in CGE and X3D.
+    But we don't need to do anything about it here, because we are flipping the textures,
+    so there's no need to e.g. flip offset.y in KHR_texture_transform .
+  }
+  function ReadTextureTransform(const GltfTextureTransform: TPasJSONItem): TTextureTransformNode;
+  var
+    TextureTransformJson: TPasJSONItemObject;
+    Offset, Scale: TPasJSONItem;
+  begin
+    Result := nil;
+    if GltfTextureTransform is TPasJSONItemObject then
+    begin
+      TextureTransformJson := TPasJSONItemObject(GltfTextureTransform);
+      Result := TTextureTransformNode.Create;
+
+      Offset := TextureTransformJson.Properties['offset'];
+      if (Offset is TPasJSONItemArray) and (TPasJSONItemArray(Offset).Count = 2) then
+        Result.FdTranslation.Value := Vector2(
+          TPasJSON.GetNumber(TPasJSONItemArray(Offset).Items[0], 0.0),
+          TPasJSON.GetNumber(TPasJSONItemArray(Offset).Items[1], 0.0)
+        );
+
+      Result.FdRotation.Value := -TPasJSON.GetNumber(TextureTransformJson.Properties['rotation'], 0);
+
+      Scale := TextureTransformJson.Properties['scale'];
+      if (Scale is TPasJSONItemArray) and (TPasJSONItemArray(Scale).Count = 2) then
+        Result.FdScale.Value := Vector2(
+          TPasJSON.GetNumber(TPasJSONItemArray(Scale).Items[0], 1.0),
+          TPasJSON.GetNumber(TPasJSONItemArray(Scale).Items[1], 1.0)
+        );
+    end;
+  end;
+
   procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String); overload;
+    out Texture: TAbstractTexture2DNode; out TexMapping: String;
+    const TextureTransforms: TTextureTransforms); overload;
   var
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
     GltfSampler: TPasGLTF.TSampler;
     TextureProperties: TTexturePropertiesNode;
     Stream: TMemoryStream;
+    TexCoord, OverrideTexCoord: TPasGLTFSizeInt;
+    TextureTransform: TTextureTransformNode;
   begin
     Texture := nil;
+    TextureTransform := nil;
+    GltfImage := nil;
     TexMapping := ''; // for no texture, use empty mapping, to keep output X3D simple
 
     if not GltfTextureAtMaterial.Empty then
@@ -1176,7 +1295,22 @@ var
 
         if Texture <> nil then // above clause succeded in reading Texture
         begin
-          TexMapping := 'TEXCOORD_' + IntToStr(GltfTextureAtMaterial.TexCoord);
+          { Use glTF name for X3D node name. }
+          if GltfImage <> nil then
+            Texture.X3DName := GltfImage.Name;
+
+          TexCoord := GltfTextureAtMaterial.TexCoord;
+
+          { Allow KHR_texture_transform to override texture coordinates,
+            if it specifies texCoord. }
+          if GltfTextureAtMaterial.TextureTransform is TPasJSONItemObject then
+          begin
+            OverrideTexCoord := TPasJSON.GetInt64(TPasJSONItemObject(GltfTextureAtMaterial.TextureTransform).Properties['texCoord'], -1);
+            if OverrideTexCoord <> -1 then
+              TexCoord := OverrideTexCoord;
+          end;
+
+          TexMapping := 'TEXCOORD_' + IntToStr(TexCoord);
 
           // read wrap and filtering options
           if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
@@ -1196,26 +1330,32 @@ var
               Texture.TextureProperties := TextureProperties;
             end;
           end;
+
+          TextureTransform := ReadTextureTransform(GltfTextureAtMaterial.TextureTransform);
+          TextureTransforms.TransformCoords(TexMapping, TextureTransform);
         end;
       end;
     end;
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String); overload;
+    out Texture: TAbstractTexture2DNode; out TexMapping: String;
+    const TextureTransforms: TTextureTransforms); overload;
   var
     TextureRec: TTexture;
   begin
     TextureRec.Init;
     TextureRec.Index := GltfTextureAtMaterial.Index;
     TextureRec.TexCoord := GltfTextureAtMaterial.TexCoord;
-    ReadTexture(TextureRec, Texture, TexMapping);
+    TextureRec.TextureTransform := GltfTextureAtMaterial.Extensions.Properties['KHR_texture_transform'];
+    ReadTexture(TextureRec, Texture, TexMapping, TextureTransforms);
   end;
 
-  function ReadPhongMaterial(const Material: TPasGLTF.TMaterial): TMaterialNode;
+  function ReadPhongMaterial(const Material: TPasGLTF.TMaterial;
+    const TexTransforms: TTextureTransforms): TMaterialNode;
   var
     PbrMetallicRoughness: TPbrMetallicRoughness;
-    BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
+    BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractTexture2DNode;
     BaseColorTextureMapping, NormalTextureMapping, EmissiveTextureMapping: String;
     // MetallicFactor, RoughnessFactor: Single;
   begin
@@ -1239,25 +1379,29 @@ var
     Result.Shininess := 1 - RoughnessFactor;
     *)
 
-    ReadTexture(PbrMetallicRoughness.BaseColorTexture, BaseColorTexture, BaseColorTextureMapping);
+    ReadTexture(PbrMetallicRoughness.BaseColorTexture, BaseColorTexture, BaseColorTextureMapping, TexTransforms);
     Result.DiffuseTexture := BaseColorTexture;
     Result.DiffuseTextureMapping := BaseColorTextureMapping;
 
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureMapping);
+      NormalTexture, NormalTextureMapping, TexTransforms);
     Result.NormalTexture := NormalTexture;
     Result.NormalTextureMapping := NormalTextureMapping;
 
+    if not Material.NormalTexture.Empty then
+      Result.NormalScale := Material.NormalTexture.Scale;
+
     ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureMapping);
+      EmissiveTexture, EmissiveTextureMapping, TexTransforms);
     Result.EmissiveTexture := EmissiveTexture;
     Result.EmissiveTextureMapping := EmissiveTextureMapping;
   end;
 
-  function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
+  function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial;
+    const TexTransforms: TTextureTransforms): TPhysicalMaterialNode;
   var
     PbrMetallicRoughness: TPbrMetallicRoughness;
-    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture, OcclusionTexture: TAbstractX3DTexture2DNode;
+    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture, OcclusionTexture: TAbstractTexture2DNode;
     BaseColorTextureMapping, NormalTextureMapping, EmissiveTextureMapping, MetallicRoughnessTextureMapping, OcclusionTextureMapping: String;
   begin
     PbrMetallicRoughness.Read(Material);
@@ -1270,27 +1414,27 @@ var
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
     ReadTexture(PbrMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureMapping);
+      BaseColorTexture, BaseColorTextureMapping, TexTransforms);
     Result.BaseTexture := BaseColorTexture;
     Result.BaseTextureMapping := BaseColorTextureMapping;
 
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureMapping);
+      NormalTexture, NormalTextureMapping, TexTransforms);
     Result.NormalTexture := NormalTexture;
     Result.NormalTextureMapping := NormalTextureMapping;
 
     ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureMapping);
+      EmissiveTexture, EmissiveTextureMapping, TexTransforms);
     Result.EmissiveTexture := EmissiveTexture;
     Result.EmissiveTextureMapping := EmissiveTextureMapping;
 
     ReadTexture(PbrMetallicRoughness.MetallicRoughnessTexture,
-      MetallicRoughnessTexture, MetallicRoughnessTextureMapping);
+      MetallicRoughnessTexture, MetallicRoughnessTextureMapping, TexTransforms);
     Result.MetallicRoughnessTexture := MetallicRoughnessTexture;
     Result.MetallicRoughnessTextureMapping := MetallicRoughnessTextureMapping;
 
     ReadTexture(Material.OcclusionTexture,
-      OcclusionTexture, OcclusionTextureMapping);
+      OcclusionTexture, OcclusionTextureMapping, TexTransforms);
     Result.OcclusionTexture := OcclusionTexture;
     Result.OcclusionTextureMapping := OcclusionTextureMapping;
     Result.OcclusionStrength := Material.OcclusionTexture.Strength;
@@ -1299,10 +1443,11 @@ var
   { Read glTF unlit material, see
     https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit .
     Note that baseColor/Texture is converted to X3D emissiveColor/Texture. }
-  function ReadUnlitMaterial(const Material: TPasGLTF.TMaterial): TUnlitMaterialNode;
+  function ReadUnlitMaterial(const Material: TPasGLTF.TMaterial;
+    const TexTransforms: TTextureTransforms): TUnlitMaterialNode;
   var
     BaseColorFactor: TVector4;
-    BaseColorTexture, NormalTexture: TAbstractX3DTexture2DNode;
+    BaseColorTexture, NormalTexture: TAbstractTexture2DNode;
     BaseColorTextureMapping, NormalTextureMapping: String;
   begin
     BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
@@ -1312,7 +1457,7 @@ var
     Result.Transparency := 1 - BaseColorFactor.W;
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureMapping);
+      BaseColorTexture, BaseColorTextureMapping, TexTransforms);
     Result.EmissiveTexture := BaseColorTexture;
     Result.EmissiveTextureMapping := BaseColorTextureMapping;
 
@@ -1321,7 +1466,7 @@ var
       that depends on normal info.
       And both glTF and X3Dv4 allow normal texture even in case of unlit materials. }
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureMapping);
+      NormalTexture, NormalTextureMapping, TexTransforms);
     Result.NormalTexture := NormalTexture;
     Result.NormalTextureMapping := NormalTextureMapping;
   end;
@@ -1329,32 +1474,38 @@ var
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
     AlphaMode: TAlphaMode;
+    TexTransforms: TTextureTransforms;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
-    if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
-      Result.Material := ReadUnlitMaterial(Material)
-    else
-    if GltfForcePhongMaterials then
-      Result.Material := ReadPhongMaterial(Material)
-    else
-      Result.Material := ReadPhysicalMaterial(Material);
-    ReadMetadata(Material.Extras, Result.Material);
+    TexTransforms := TTextureTransforms.Create;
+    try
+      if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
+        Result.Material := ReadUnlitMaterial(Material, TexTransforms)
+      else
+      if GltfForcePhongMaterials then
+        Result.Material := ReadPhongMaterial(Material, TexTransforms)
+      else
+        Result.Material := ReadPhysicalMaterial(Material, TexTransforms);
+      ReadMetadata(Material.Extras, Result.Material);
 
-    // read common material properties, that make sense in case of all material type
-    Result.DoubleSided := Material.DoubleSided;
+      // read common material properties, that make sense in case of all material type
+      Result.DoubleSided := Material.DoubleSided;
 
-    // read alpha channel treatment
-    case Material.AlphaMode of
-      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
-      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
-      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
-      {$endif}
-    end;
-    Result.AlphaMode := AlphaMode;
-    Result.AlphaCutOff := Material.AlphaCutOff;
+      // read alpha channel treatment
+      case Material.AlphaMode of
+        TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
+        TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
+        TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
+        {$endif}
+      end;
+      Result.AlphaMode := AlphaMode;
+      Result.AlphaCutOff := Material.AlphaCutOff;
+
+      Result.TextureTransform := TexTransforms.SingleTextureTransform;
+    finally FreeAndNil(TexTransforms) end;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -1737,7 +1888,7 @@ var
   end;
 
   procedure ReadMesh(const Mesh: TPasGLTF.TMesh;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
@@ -1745,6 +1896,7 @@ var
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
     ParentGroup.AddChildren(Group);
+    ExportNodes.Add(Group);
 
     ReadMetadata(Mesh.Extras, Group);
 
@@ -1753,7 +1905,7 @@ var
   end;
 
   procedure ReadMesh(const MeshIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   begin
     if Between(MeshIndex, 0, Document.Meshes.Count - 1) then
       ReadMesh(Document.Meshes[MeshIndex], ParentGroup)
@@ -1762,7 +1914,7 @@ var
   end;
 
   procedure ReadCamera(const Camera: TPasGLTF.TCamera;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   var
     OrthoViewpoint: TOrthoViewpointNode;
     Viewpoint: TViewpointNode;
@@ -1777,6 +1929,8 @@ var
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
+
+      ExportNodes.Add(OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
@@ -1789,11 +1943,13 @@ var
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
+
+      ExportNodes.Add(Viewpoint);
     end;
   end;
 
   procedure ReadCamera(const CameraIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode); overload;
+    const ParentGroup: TAbstractGroupingNode); overload;
   begin
     if Between(CameraIndex, 0, Document.Cameras.Count - 1) then
       ReadCamera(Document.Cameras[CameraIndex], ParentGroup)
@@ -1801,7 +1957,7 @@ var
       WritelnWarning('glTF', 'Camera index invalid: %d', [CameraIndex]);
   end;
 
-  procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
     Transform: TTransformNode;
 
@@ -1810,14 +1966,14 @@ var
     procedure ApplySkin(const Skin: TPasGLTF.TSkin);
     var
       SkinToInitialize: TSkinToInitialize;
-      Shapes: TAbstractX3DGroupingNode;
+      Shapes: TAbstractGroupingNode;
       I: Integer;
       ShapeNode: TShapeNode;
     begin
       SkinToInitialize := TSkinToInitialize.Create;
       SkinsToInitialize.Add(SkinToInitialize);
       // Shapes is the group created inside ReadMesh
-      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
+      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
       SkinToInitialize.Shapes := Shapes;
       SkinToInitialize.ShapesParent := Transform;
       SkinToInitialize.Skin := Skin;
@@ -1898,7 +2054,7 @@ var
       WritelnWarning('glTF', 'Node index invalid: %d', [NodeIndex]);
   end;
 
-  procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
     Scene: TPasGLTF.TScene;
     NodeIndex: Integer;
@@ -1917,7 +2073,7 @@ var
     const Node: TTransformNode;
     const Path: TGltfSamplerPath;
     const TimeSensor: TTimeSensorNode;
-    const ParentGroup: TAbstractX3DGroupingNode;
+    const ParentGroup: TAbstractGroupingNode;
     out Duration: TFloatTime): TAbstractInterpolatorNode;
   var
     InterpolatePosition: TPositionInterpolatorNode;
@@ -1957,7 +2113,11 @@ var
       {$endif}
     end;
 
-    Interpolator.X3DName := 'Animate_' + TargetField.X3DName + '_' + TimeSensor.X3DName;
+    { Put both Node.X3DName and TargetField.X3DName into Interpolator.X3DName.
+      We create new interpolator for each target node (Transform) and field
+      (like translation, rotation...) so we want to generate unique names for them
+      (if animation names in glTF were unique). }
+    Interpolator.X3DName := 'Animate_' + TimeSensor.X3DName + '_' + Node.X3DName + '_' + TargetField.X3DName;
 
     AccessorToFloat(Sampler.Input, Interpolator.FdKey, false);
     if Interpolator.FdKey.Count <> 0 then
@@ -2028,7 +2188,7 @@ var
     end;
   end;
 
-  procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractGroupingNode);
   var
     TimeSensor: TTimeSensorNode;
     Channel: TPasGLTF.TAnimation.TChannel;
@@ -2228,7 +2388,7 @@ var
   { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
   procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
     const Shape: TShapeNode; const BBox: TBox3D;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const ParentGroup: TAbstractGroupingNode);
   var
     ValueTrigger: TValueTriggerNode;
     Center, Size: TVector3;
@@ -2257,8 +2417,8 @@ var
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
-    const SkeletonRoot: TAbstractX3DGroupingNode; const SkeletonRootIndex: Integer;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const SkeletonRoot: TAbstractGroupingNode; const SkeletonRootIndex: Integer;
+    const ParentGroup: TAbstractGroupingNode);
   var
     CoordField: TSFNode;
     Coord: TCoordinateNode;
@@ -2449,15 +2609,15 @@ var
 
   { Apply Skin to deform shapes list. }
   procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
-    const ParentGroup: TAbstractX3DGroupingNode);
+    const ParentGroup: TAbstractGroupingNode);
   var
     SkeletonRootIndex: Integer;
-    SkeletonRoot: TAbstractX3DGroupingNode;
+    SkeletonRoot: TAbstractGroupingNode;
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
     Skin: TPasGLTF.TSkin;
-    Shapes: TAbstractX3DGroupingNode;
+    Shapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
   begin
     Skin := SkinToInitialize.Skin;
@@ -2476,7 +2636,7 @@ var
         ]);
         Exit;
       end;
-      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractX3DGroupingNode;
+      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
     end;
 
     // first nil local variables, to reliably do try..finally that includes them all
@@ -2546,7 +2706,7 @@ var
   { Read glTF skins, which result in CoordinateInterpolator nodes
     attached to shapes.
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
-  procedure ReadSkins(const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadSkins(const ParentGroup: TAbstractGroupingNode);
   var
     SkinToInitialize: TSkinToInitialize;
   begin
@@ -2558,14 +2718,31 @@ var
       ReadSkin(SkinToInitialize, ParentGroup);
   end;
 
-  { EXPORT animations, so that using glTF animations in X3D is possible, like on
+  { EXPORT nodes, so that using glTF animations in X3D is possible, like on
     demo-models/blender/skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
-  procedure ExportAnimations;
+  procedure DoExportNodes;
   var
+    N: TX3DNode;
     Anim: TAnimation;
   begin
+    for N in ExportNodes do
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+
+    for N in Appearances do
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+
+    for N in Nodes do
+      if (N <> nil) and (N.X3DName <> '') then
+        Result.ExportNode(N);
+
     for Anim in Animations do
-      Result.ExportNode(Anim.TimeSensor);
+    begin
+      N := Anim.TimeSensor;
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+    end;
   end;
 
 var
@@ -2579,6 +2756,7 @@ begin
     DefaultAppearance := nil;
     Appearances := nil;
     Nodes := nil;
+    ExportNodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
     AnimationSampler := nil;
@@ -2591,6 +2769,7 @@ begin
       AnimationSampler := TAnimationSampler.Create;
       JointMatrix := TMatrix4List.Create;
       Lights := TPunctualLights.Create;
+      ExportNodes := TX3DNodeList.Create(false);
 
       ReadHeader;
       Lights.ReadHeader(Document);
@@ -2621,7 +2800,7 @@ begin
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
       ReadSkins(Result);
-      ExportAnimations;
+      DoExportNodes;
     finally
       FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
@@ -2640,6 +2819,7 @@ begin
         Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
         Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
+      FreeAndNil(ExportNodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);
     end;
@@ -2651,4 +2831,3 @@ end;
 {$endif}
 
 end.
-

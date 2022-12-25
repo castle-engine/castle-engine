@@ -82,42 +82,23 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   out LazKey: Word; out Shift: TShiftState);
 { @groupEnd }
 
-{ Convert Lazarus Controls.TMouseButton value to Castle Game Engine
-  CastleKeysMouse.TCastleMouseButton.
-
-  (By coincidence, my type name and values are the same as used by LCL;
-  but beware --- the order of values in my type is different (buttonMiddle
-  is in the middle in my type)). }
+{ Convert Lazarus TMouseButton value to Castle Game Engine
+  TCastleMouseButton. }
 function MouseButtonLCLToCastle(
-  const MouseButton: Controls.TMouseButton;
+  const MouseButton: TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
-const
-  CursorCastleToLCL: array [TMouseCursor] of TCursor =
-  ( crDefault, // mcDefault
-    crNone,    // mcNone
-    crNone,    // mcForceNone
+{ Convert CGE to LCL cursor type. }
+function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
 
-    crArrow,       // mcStandard
-    crHourGlass,   // mcWait
-    crIBeam,       // mcText
-    crHandPoint,   // mcHand
-    crSizeNS,      // mcResizeVertical
-    crSizeWE,      // mcResizeHorizontal
-    crSizeNW,      // mcResizeTopLeft
-    crSizeN,       // mcResizeTop
-    crSizeNE,      // mcResizeTopRight
-    crSizeW,       // mcResizeLeft
-    crSizeE,       // mcResizeRight
-    crSizeSW,      // mcResizeBottomLeft
-    crSizeS,       // mcResizeBottom
-    crSizeSE       // mcResizeBottomRight
-  );
-
+{ Not necessary.
+  Converts between Lazarus String encoding for filenames (which is UTF-8)
+  and CGE encoding for filenames (which is also UTF-8).
+  So this in practice does nothing. }
 function FilenameToURISafeUTF8(const FileName: string): string;
 function URIToFilenameSafeUTF8(const URL: string): string;
 
-{ Convert LCL color values to our colors (vectors). }
+{ Convert LCL color values to CGE colors (vectors). }
 function ColorToVector3(const Color: TColor): TVector3;
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 
@@ -478,6 +459,32 @@ begin
     else Result := false;
     {$endif}
   end;
+end;
+
+function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+const
+  Map: array [TMouseCursor] of TCursor =
+  ( crDefault, //< mcDefault
+    crNone,    //< mcNone
+    crNone,    //< mcForceNone
+
+    crArrow,       //< mcStandard
+    crHourGlass,   //< mcWait
+    crIBeam,       //< mcText
+    crHandPoint,   //< mcHand
+    crSizeNS,      //< mcResizeVertical
+    crSizeWE,      //< mcResizeHorizontal
+    crSizeNW,      //< mcResizeTopLeft
+    crSizeN,       //< mcResizeTop
+    crSizeNE,      //< mcResizeTopRight
+    crSizeW,       //< mcResizeLeft
+    crSizeE,       //< mcResizeRight
+    crSizeSW,      //< mcResizeBottomLeft
+    crSizeS,       //< mcResizeBottom
+    crSizeSE       //< mcResizeBottomRight
+  );
+begin
+  Result := Map[Cursor];
 end;
 
 function FilenameToURISafeUTF8(const FileName: string): string;

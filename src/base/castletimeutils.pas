@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2019 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,6 +48,10 @@ uses
 implementation
 
 uses Generics.Defaults, DateUtils,
+  {$ifdef FPC}
+    {$ifdef LINUX} Linux, {$endif} // for clock_gettime
+    {$ifdef FREEBSD} FreeBSD, {$endif} // for clock_gettime
+  {$endif}
   CastleLog;
 
 {$define read_implementation}

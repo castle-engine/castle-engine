@@ -14,7 +14,22 @@
 '}' + LineEnding +
 '' + LineEnding +
 '// Declare functions defined in tone_mapping.fs' + LineEnding +
+'' + LineEnding +
+'/* sRGB to linear conversion.' + LineEnding +
+'   Leaves alpha unmodified.' + LineEnding +
+'' + LineEnding +
+'   Input is returned unchanged if CASTLE_GAMMA_CORRECTION not defined.' + LineEnding +
+'*/' + LineEnding +
 'vec4 castle_texture_color_to_linear(const in vec4 srgbIn);' + LineEnding +
+'' + LineEnding +
+'/* sRGB to linear conversion.' + LineEnding +
+'   Input is returned unchanged if CASTLE_GAMMA_CORRECTION not defined.' + LineEnding +
+'*/' + LineEnding +
 'vec3 castle_texture_color_to_linear(const in vec3 srgbIn);' + LineEnding +
+'' + LineEnding +
+'/* Linear to sRGB conversion and applying tone mapping.' + LineEnding +
+'   Input is returned unchanged if' + LineEnding +
+'   neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING are defined.' + LineEnding +
+'*/' + LineEnding +
 'vec3 castle_linear_to_screen(const in vec3 color);' + LineEnding +
 ''

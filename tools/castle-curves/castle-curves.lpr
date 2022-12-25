@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleWindow, CastleImages, CastleGLUtils, CastleLog,
+  CastleWindow, CastleImages, CastleGLUtils, CastleLog, CastleRenderOptions,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
@@ -71,6 +71,8 @@ var
 const
   CurvesToolURL = 'https://castle-engine.io/curves_tool';
   DonateURL = 'https://castle-engine.io/donate.php';
+
+  PointSize = 10;
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
   Curves[SelectedCurve] changes. It is always called from
@@ -198,6 +200,16 @@ procedure TCurvesDisplay.Render;
     Result := TransformPoint(V.XY);
   end;
 
+  procedure MyDrawPrimitive2D(const Mode: TPrimitiveMode;
+    const Points: array of TVector2;
+    const Color: TCastleColor);
+  begin
+    DrawPrimitive2D(Mode, Points, Color,
+      bsSrcAlpha, bdOneMinusSrcAlpha, false, // defaults
+      LineWidth, PointSize // specify custom line width and point size
+    );
+  end;
+
   { Render curve by dividing it into a given number of line segments. }
   procedure RenderCurve(const Curve: TCurve; const Segments: Cardinal;
     const Color: TCastleColor; const LineWidth: Single);
@@ -208,7 +220,7 @@ procedure TCurvesDisplay.Render;
     SetLength(Points, Segments + 1);
     for I := 0 to Segments do
       Points[I] := TransformPoint(Curve.PointOfSegment(I, Segments));
-    DrawPrimitive2D(pmLineStrip, Points, Color);
+    MyDrawPrimitive2D(pmLineStrip, Points, Color);
   end;
 
   procedure RenderControlPoints(const Curve: TControlPointsCurve;
@@ -220,7 +232,7 @@ procedure TCurvesDisplay.Render;
     SetLength(Points, Curve.ControlPoints.Count);
     for I := 0 to Curve.ControlPoints.Count - 1 do
       Points[I] := TransformPoint(Curve.ControlPoints.L[I]);
-    DrawPrimitive2D(pmPoints, Points, ControlPointsColor);
+    MyDrawPrimitive2D(pmPoints, Points, ControlPointsColor);
   end;
 
   { Render convex hull polygon, using ConvexHullColor.
@@ -237,7 +249,7 @@ procedure TCurvesDisplay.Render;
       SetLength(Points, ConvexHull.Count);
       for I := 0 to ConvexHull.Count - 1 do
         Points[I] := TransformPoint(ConvexHull.L[I]);
-      DrawPrimitive2D(pmTriangleFan, Points, ConvexHullColor);
+      MyDrawPrimitive2D(pmTriangleFan, Points, ConvexHullColor);
     finally FreeAndNil(ConvexHull) end;
   end;
 
@@ -271,7 +283,7 @@ begin
   if SelectedPoint <> -1 then
   begin
     SelectedPointXY := TransformPoint(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
-    DrawPrimitive2D(pmPoints, [SelectedPointXY], ColorPointSelected);
+    MyDrawPrimitive2D(pmPoints, [SelectedPointXY], ColorPointSelected);
   end;
 end;
 
@@ -771,8 +783,8 @@ begin
 
   StatusText := TStatusText.Create(Window);
   StatusText.Padding := 5;
-  StatusText.Left := 5;
-  StatusText.Bottom := 5;
+  StatusText.Anchor(hpLeft, 5);
+  StatusText.Anchor(vpBottom, 5);
   StatusText.Frame := true;
   StatusText.Color := Yellow;
   Window.Controls.InsertFront(StatusText);
@@ -789,8 +801,6 @@ begin
   Window.OnMotion := @Motion;
   Window.OnUpdate := @Update;
   Window.OnMenuClick := @MenuClick;
-
-  RenderContext.PointSize := 10;
 end;
 
 { main ------------------------------------------------------------ }

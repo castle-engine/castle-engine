@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="observer.png">
+  <SubTexture x="0" y="969" fps="8" name="spawn_1" width="72" height="55"/>
+  <SubTexture x="72" y="969" name="spawn_2" width="72" height="55"/>
+  <SubTexture x="144" y="969" name="spawn_3" width="72" height="55"/>
+  <SubTexture x="216" y="969" name="spawn_4" width="72" height="55"/>
+  <SubTexture x="288" y="969" name="spawn_5" width="72" height="55"/>
+  <SubTexture x="360" y="969" name="spawn_6" width="72" height="55"/>
+  <SubTexture x="432" y="969" name="spawn_7" width="72" height="55"/>
+  <SubTexture x="504" y="969" name="spawn_8" width="72" height="55"/>
+  <SubTexture x="576" y="969" name="spawn_9" width="72" height="55"/>
+  <SubTexture x="648" y="969" name="spawn_10" width="72" height="55"/>
+</TextureAtlas>

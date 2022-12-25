@@ -149,11 +149,12 @@ type
       TInternalScene = class(TCastleScene)
         Container: TDebugTransformBox;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+        procedure LocalRender(const Params: TRenderParams); override;
       end;
     var
       FBox: TDebugBox;
       FTransform: TMatrixTransformNode;
-      FParentSpace: TAbstractX3DGroupingNode;
+      FParentSpace: TAbstractGroupingNode;
       FParent: TCastleTransform;
       FScene: TInternalScene;
       FExists: boolean;
@@ -186,7 +187,7 @@ type
     { Add to this additional things that are expressed in parent coordinate-space.
       Be sure to call @link(ChangedScene) afterwards, unless you do it in InitializeNodes
       (then @link(ChangedScene) is not necessary). }
-    property ParentSpace: TAbstractX3DGroupingNode read FParentSpace;
+    property ParentSpace: TAbstractGroupingNode read FParentSpace;
     property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
   end;
@@ -462,6 +463,29 @@ begin
   Container.UpdateSafe;
 end;
 
+procedure TDebugTransformBox.TInternalScene.LocalRender(const Params: TRenderParams);
+const
+  DistanceToHide = 1;
+var
+  DistanceToCameraSqr: Single;
+  GizmoVisible: Boolean;
+begin
+  { Do not render cameras debug, when their center is equal or very close
+    to the rendering camera.
+    This avoids weird debug display of camera on top of itself. }
+  if Exists and (Parent is TCastleCamera) then
+  begin
+    DistanceToCameraSqr := PointsDistanceSqr(
+      Params.Transform^.MultPoint(TVector3.Zero),
+      Params.RenderingCamera.Position
+    );
+    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
+    if not GizmoVisible then
+      Exit;
+  end;
+  inherited;
+end;
+
 { TDebugTransformBox ---------------------------------------------------- }
 
 constructor TDebugTransformBox.Create(AOwner: TComponent);
@@ -506,7 +530,7 @@ begin
   FScene.Load(Root, true);
   FScene.Collides := false;
   FScene.Pickable := false;
-  FScene.CastShadowVolumes := false;
+  FScene.CastShadows := false;
   FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;

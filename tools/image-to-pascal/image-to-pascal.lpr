@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,15 +152,11 @@ begin
     try
       if AlphaStrip and Image.HasAlpha then
       begin
-        if Image is TRGBAlphaImage then
-        begin
-          TempImage := TRGBAlphaImage(Image).ToRGBImage;
-          FreeAndNil(Image);
-          Image := TempImage;
-          TempImage := nil; {< for safety }
-        end else
-          raise Exception.CreateFmt('Cannot strip alpha channel information from image %s (class %s)',
-            [ImageURL, Image.ClassName]);
+        TempImage := TRGBImage.Create;
+        TempImage.Assign(Image);
+        FreeAndNil(Image);
+        Image := TempImage;
+        TempImage := nil; {< for safety }
       end;
       Image.SaveToPascalCode(ImageName, ShowProgress,
         CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization);

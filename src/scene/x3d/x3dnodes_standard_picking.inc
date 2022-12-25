@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,7 +34,7 @@
   {$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
   end;
 
-  TPickableGroupNode = class(TAbstractX3DGroupingNode)
+  TPickableGroupNode = class(TAbstractGroupingNode)
   {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
   end;
 

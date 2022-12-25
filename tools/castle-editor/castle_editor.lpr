@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,11 +41,30 @@ uses
   //castle_editor_automatic_package,
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
-  FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools,
-  CastleShellCtrls;
+  FormPreferences, DesignVisualizeTransform, FormSpriteSheetEditor,
+  DataModuleIcons, FormImportAtlas, FormImportStarling, FormNewUnit,
+  EditorCodeTools, CastleShellCtrls, FormSystemInformation,
+  CastleComponentEditorDesigner, DesignCameraPreview, DesignObjectInspector,
+  DesignUndoSystem;
+
+{$I request_dedicated_gpu.inc}
 
 {$R *.res}
+
+{ Do not auto-create below forms that use TCastleControl, and would initialize OpenGL
+  right when the CGE editor opens.
+
+  Reason: In case someone has broken OpenGL library installation
+  we don't want to have CGE editor just crash at start, it's better if it will crash
+  later -- allowing us to recognize this case (e.g. because it crashes when you open any
+  design or "System Information").
+
+  If there's a single variable to hold single form instance, you can initialize it on-demand, like
+
+    if SystemInformationForm = nil then
+      SystemInformationForm := TSystemInformationForm.Create(Application);
+    SystemInformationForm.Show;
+}
 
 begin
   RequireDerivedFormResource := True;

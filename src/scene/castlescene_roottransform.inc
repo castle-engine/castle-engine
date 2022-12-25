@@ -80,6 +80,7 @@ type
   protected
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; override;
+    procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -124,7 +125,7 @@ type
 
       @unorderedList(
         @item(Determines initial @link(TCastleViewport.Camera) (if @link(TCastleViewport.AutoCamera))
-          and @link(TCastleViewport.Navigation) (if @link(TCastleViewport.AutoNavigation)) properties.
+          and @link(TCastleViewport.Navigation) (if @link(TCastleAutoNavigationViewport.AutoNavigation)) properties.
           This includes camera position, orientation, projection.
           This includes navigation type (examine, walk, fly), move speed.
           These follow the X3D Viewpoint, OrthoViewpoint
@@ -135,8 +136,19 @@ type
           For example in X3D you can animate the Viewpoint position,
           and it will actually animate our @link(TCastleViewport.Camera) position.
 
-          If both @link(TCastleViewport.AutoCamera) and @link(TCastleViewport.AutoNavigation) are @false,
+          If both @link(TCastleViewport.AutoCamera) and
+          @link(TCastleAutoNavigationViewport.AutoNavigation) are @false,
           none of these things are applied.
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to leave
+          @link(TCastleViewport.AutoCamera) and
+          @link(TCastleAutoNavigationViewport.AutoNavigation) as @false,
+          and set proper camera and navigation at design-time.
+          If you want to animate the camera usin animation designed in glTF or X3D,
+          then make TCastleCamera a parent of animated transformation exposed using
+          @link(TCastleSceneCore.ExposeTransforms).
+          )
         )
 
         @item(Determines what background is rendered.
@@ -154,6 +166,9 @@ type
           Note that when @link(TCastleViewport.Transparent) is @true,
           we never render any background (neither from MainScene,
           nor from @link(TCastleViewport.BackgroundColor)).
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to set @link(TCastleViewport.Background).)
         )
 
         @item(Determines whether headlight is used if @link(UseHeadlight)
@@ -162,7 +177,11 @@ type
           then determines the headlight.
           The initial
           @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
-          value depends on the X3D NavigationInfo node inside MainScene.)
+          value depends on the X3D NavigationInfo node inside MainScene.
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to add light instance (like TCastleDirectionalLight) as TCastleCamera child.)
+        )
 
         @item(Determines the main light casting shadow volumes.)
 
@@ -170,12 +189,22 @@ type
           as this scene has by default @link(TCastleScene.CastGlobalLights)
           when you set it as MainScene.
           This can also be achieved on any other scene too,
-          by setting @link(TCastleScene.CastGlobalLights).)
+          by setting @link(TCastleScene.CastGlobalLights).
+
+          @bold(Instead of relying on MainScene for lights,
+          we advise to setup light instances (TCastleDirectionalLight, TCastlePointLight,
+          TCastleSpotLight) in viewport items and/or set @link(TCastleScene.CastGlobalLights)
+          on some scenes.)
+        )
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
         @item(The screen effects defined inside MainScene (TScreenEffectNode)
-          are automatically used.)
+          are automatically used.
+
+          @bold(Instead of relying on MainScene for this,
+          add screen effects using @link(TCastleScreenEffects.AddScreenEffect).)
+        )
 
         @item(Main scene is informed about pointing device move,
           even when the pointing device is @italic(not) over this scene,
@@ -186,10 +215,12 @@ type
 
       Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
+      {$ifdef FPC} deprecated 'leave MainScene unset; almost all useful MainScene features can be now achieved without setting MainScene'; {$endif}
 
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
       read FUseHeadlight write FUseHeadlight default hlMainScene;
+      {$ifdef FPC} deprecated 'create TCastleDirectionalLight and add it as TCastleCamera child, for a more flexible headlight'; {$endif}
   end;
 
 {$endif read_interface}
@@ -211,7 +242,9 @@ begin
   { unregister self from MainScene callbacs,
     make MainScene.RemoveFreeNotification(Self)... this is all
     done by SetMainScene(nil) already. }
+  {$warnings off} // using deprecated to keep it working
   MainScene := nil;
+  {$warnings on}
 
   FreeIfUnusedAndNil(FHeadlightNode);
   FreeAndNil(FInternalScenesCastGlobalLights);
@@ -258,7 +291,9 @@ end;
 procedure TCastleRootTransform.MainSceneFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
+  {$warnings off} // using deprecated to keep it working
   MainScene := nil;
+  {$warnings on}
 end;
 
 procedure TCastleRootTransform.MainScene_BoundViewpointChanged(Sender: TObject);
@@ -307,6 +342,7 @@ function TCastleRootTransform.InternalHeadlight: TAbstractLightNode;
 begin
   Result := nil;
 
+  {$warnings off} // using deprecated to keep it working
   case UseHeadlight of
     hlOn : Result := HeadlightNode;
     hlOff: Result := nil;
@@ -322,15 +358,18 @@ begin
     else raise EInternalError.Create(2018081902);
     {$endif}
   end;
+  {$warnings on}
 end;
 
 function TCastleRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'MainScene') or
-     (PropertyName = 'UseHeadlight') then
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
+  // These are deprecated now
+  // if (PropertyName = 'MainScene') or
+  //    (PropertyName = 'UseHeadlight') then
+  //     Result := [psBasic]
+  //   else
+
+  Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleRootTransform.IgnoreTransparentItem(
@@ -362,6 +401,25 @@ begin
   end;
 
   FInternalScenesCastGlobalLights.Delete(I);
+end;
+
+procedure TCastleRootTransform.Loaded;
+begin
+  inherited;
+  {$warnings off} // using deprecated just to make a warning
+  if UseHeadlight = hlOn then
+    WritelnWarning('UseHeadlight is deprecated (on TCastleViewport.Items). Instead: Add light component as a child of TCastleCamera');
+  if MainScene <> nil then
+    WritelnWarning('MainScene is deprecated (on TCastleViewport.Items). Instead: Almost all features are available without the need to set MainScene');
+  {$warnings on}
+  if not (
+      TVector3.Equals(Translation, TVector3.Zero) and
+      (Rotation.W = 0) and
+      TVector3.Equals(Scale, NoScale)
+    ) then
+    WritelnWarning('Viewport.Items (TCastleRootTransform) has some transformation (non-zero translation, rotation or non-identity scale). ' +
+      'While allowed, this is known to cause a bit weird behavior at design-time (as the root transformation affects all, even internal, cameras). ' +
+      'We advise to leave the TCastleRootTransform untransformed in most cases.');
 end;
 
 {$endif read_implementation}

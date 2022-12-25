@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
 {$ifdef read_interface_type}
-// type - don't add type delphi can't parse it correctly when some types are forward declared
+// type (continue type section from previous include file)
   { Video as a sequence of OpenGL textures that can be easily played.
     Use TGLVideo3D to have a list of normal OpenGL textures,
     e.g. for rendering video as texture on free 3D objects.

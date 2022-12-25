@@ -1,0 +1,32 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF AA Group { }
+DEF AA Group { }
+DEF AA Group { }
+DEF AA Group { }
+DEF AA Group { }
+
+DEF BB_1 Group { }
+DEF BB_1 Group { }
+DEF BB_1 Group { }
+DEF BB_1 Group { }
+DEF BB_1 Group { }
+
+DEF CC_1a1 Group { }
+DEF CC_1a1 Group { }
+DEF CC_1a1 Group { }
+DEF CC_1a1 Group { }
+DEF CC_1a1 Group { }
+
+DEF DD_3 Group { }
+DEF DD_3 Group { }
+DEF DD_3 Group { }
+DEF DD_3 Group { }
+DEF DD_3 Group { }
+
+DEF EE_3 Group { }
+DEF EE_3 Group { }
+DEF EE_4 Group { }
+DEF EE_4 Group { }
+DEF EE_5 Group { }

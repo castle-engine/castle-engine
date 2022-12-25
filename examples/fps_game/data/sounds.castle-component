@@ -1,0 +1,13 @@
+{
+  "$$ClassName" : "TCastleComponent",
+  "Name" : "Component1",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "MusicSound",
+      "Stream" : true,
+      "URL" : "castle-data:/sounds/beating_that_thing-22000Hz-16bit-stereo.ogg",
+      "Volume" : 5.0000000000000000E-001
+    }
+  ]
+}

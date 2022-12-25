@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -96,9 +96,10 @@
         @item(Scroll bar is located on the right side of the ScrollView.)
         @itemLabel(@true)
         @item(Scroll bar is located on the left side of the ScrollView.
-          Pay attention, that additional space is not made for the scroll bar,
-          you have to specify ScrollArea.HorizontalAnchorDelta manually,
-          e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;)
+          Pay attention, that additional space is not reserved for the scroll bar automatically,
+          you have to specify ScrollArea.Translation.X manually,
+          e.g. @code(ScrollArea.Translation := Vector2(ScrollBarWidth + Gap, ScrollArea.Translation.Y)).
+        )
       ) }
     property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
@@ -133,10 +134,11 @@
   { @exclude Internal class to represent @link(TCastleScrollView.ScrollArea). }
   TInternalCastleScrollArea = class(TCastleUserInterface)
     { Do not store VerticalAnchorXxx properties, they should be only controlled
-      using @link(TCastleScrollViewCustom.Scroll). }
+      using @link(TCastleScrollViewCustom.Scroll).
+      Note: we cannot prevent storing (duplicated in this case)
+      Translation.Y value. }
     property VerticalAnchorSelf stored false;
     property VerticalAnchorParent stored false;
-    property VerticalAnchorDelta stored false;
   end;
 
   { Container for a user interface children that can be scrolled vertically.

@@ -544,23 +544,9 @@ procedure TSoundEngine.ContextOpenCore;
     // check LoadedBuffers.Count, because we don't want to do progress with no LoadedBuffers
     if LoadedBuffers.Count <> 0 then
     begin
-      if Progress.Active then
-      begin
-        { call ContextOpen on all buffers }
-        for Buffer in LoadedBuffers do
-          Buffer.ContextOpen(false);
-      end else
-      begin
-        { same as above, but with added Progress.Init / Step / Fini }
-        Progress.Init(LoadedBuffers.Count, 'Loading sounds');
-        try
-          for Buffer in LoadedBuffers do
-          begin
-            Buffer.ContextOpen(false);
-            Progress.Step;
-          end;
-        finally Progress.Fini end;
-      end;
+      { call ContextOpen on all buffers }
+      for Buffer in LoadedBuffers do
+        Buffer.ContextOpen(false);
     end;
   end;
 

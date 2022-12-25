@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,7 +54,7 @@ begin
       for Shape in ShapeList do
         { Try also LocalTriangulate instead of Triangulate,
           to have Position in local shape coordinates. }
-        Shape.Triangulate(true, {$ifdef FPC}@{$endif} Handler.HandleTriangle);
+        Shape.Triangulate({$ifdef FPC}@{$endif} Handler.HandleTriangle);
     finally FreeAndNil(Handler) end;
 
     { An alternative method: use Scene.InternalOctreeVisibleTriangles.Triangles.

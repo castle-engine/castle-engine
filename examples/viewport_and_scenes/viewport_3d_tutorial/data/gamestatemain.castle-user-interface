@@ -5,45 +5,14 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",
-      "Camera" : {
-        "$$ClassName" : "TCastleCamera",
-        "InitialDirectionPersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 5.1960802078247070E-001,
-          "Y" : 9.9777217599239520E-009,
-          "Z" : -8.5440480709075928E-001
-        },
-        "InitialPositionPersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -3.2378509521484375E+001,
-          "Y" : 7.8191194534301758E+000,
-          "Z" : 3.4164638519287109E+001
-        },
-        "InitialUpPersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 2.9802318834981634E-008,
-          "Z" : 2.9802322387695312E-008
-        },
-        "Name" : "Camera",
-        "Orthographic" : {
-          "$$ClassName" : "TCastleOrthographic",
-          "Name" : "Orthographic"
-        },
-        "Perspective" : {
-          "$$ClassName" : "TCastlePerspective",
-          "Name" : "Perspective"
-        }
-      },
+      "Background" : "Background1",
+      "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
-        "MainScene" : "SceneRoad",
-        "Name" : "Items",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties",
-          "Name" : "PhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties"
         },
-        "UseHeadlight" : "hlOn",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
@@ -53,8 +22,7 @@
             "Name" : "SceneCar",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -75,8 +43,7 @@
             "Name" : "SceneCar1",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -96,8 +63,7 @@
             "Name" : "SceneCar2",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -117,8 +83,7 @@
             "Name" : "SceneCar3",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -139,8 +104,7 @@
             "Name" : "SceneCar4",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -160,8 +124,7 @@
             "Name" : "SceneCar5",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -177,8 +140,7 @@
             "Name" : "SceneCar6",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -196,14 +158,13 @@
             ],
             "Name" : "SceneRoad",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
             ],
-            "URL" : "castle-data:/road_with_lights.gltf"
+            "URL" : "castle-data:/road.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -211,8 +172,7 @@
             ],
             "Name" : "SceneRoad2",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -230,8 +190,7 @@
             ],
             "Name" : "SceneRoad3",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -249,8 +208,7 @@
             ],
             "Name" : "SceneRoad4",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "Spatial" : [
               "ssRendering",
@@ -261,11 +219,54 @@
               "X" : -2.4470634460449219E+001
             },
             "URL" : "castle-data:/road.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
+              "W" : 5.4639190435409546E-001,
+              "X" : 1.9202404999418832E-008,
+              "Y" : -1.0000002384185791E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -3.2378509521484375E+001,
+              "Y" : 7.8191194534301758E+000,
+              "Z" : 3.4164638519287109E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "Intensity" : 5.0000000000000000E+000,
+                "Name" : "SpotLight1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 1.0000000000000000E+001,
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.2161195755004883E+001
+            }
           }
         ]
       },
       "Name" : "Viewport1",
-      "Navigation" : "WalkNavigation1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
       "$Children" : [
         {
           "$$ClassName" : "TCastleWalkNavigation",
@@ -273,7 +274,43 @@
           "Name" : "WalkNavigation1",
           "PreferredHeight" : 4.0000000000000000E+000
         }
-      ]
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 5.4639190435409546E-001,
+          "X" : 1.9202399670348314E-008,
+          "Y" : -1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -3.2378509521484375E+001,
+          "Y" : 7.8191194534301758E+000,
+          "Z" : 3.4164638519287109E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
     },
     {
       "$$ClassName" : "TCastleLabel",

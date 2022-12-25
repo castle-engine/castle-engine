@@ -129,7 +129,7 @@ begin
     More optimized version (just revert translation directly,
     instead of as a matrix): }
 
-    DirectionToCamera := Parent.Parent.WorldToLocal(Camera.Position)
+    DirectionToCamera := Parent.Parent.WorldToLocal(Camera.WorldTranslation)
       - Parent.Translation;
 
     Parent.Center := TVector3.Zero; // no other value makes sense for billboard implementation

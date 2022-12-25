@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,9 +51,7 @@ begin
   //   Vector3(0.00, 1.00, 0.00) // gravity up
   // );
 
-  Viewport.AutoNavigation := true;
-  // Instead of using AutoNavigation:=true, you could initialize navigation explicitly:
-  // Viewport.Navigation := TCastleExamineNavigation.Create(Application);
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
 
   Window.Controls.InsertFront(Viewport);
 
@@ -82,7 +80,7 @@ begin
 
   { Setting the scene as MainScene allows the engine to initialize some central
     things based on this scene:
-    - Viewport.AutoCamera and Viewport.AutoNavigation
+    - Viewport.AutoCamera
       will look for camera/navigation information in the MainScene.
     - The headlight will, by default, follow configuration from the MainScene
       (though you can explicitly enable/disable it by Viewport.Items.Headlight too).

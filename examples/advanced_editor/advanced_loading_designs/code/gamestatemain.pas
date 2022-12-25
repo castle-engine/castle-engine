@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -115,8 +115,8 @@ begin
   ViewportForSoldiers := DesignedComponent('ViewportForSoldiers') as TCastleViewport;
 
   { Find the components inside TCastleDesigns -- need another FindRequiredComponent call }
-  DesignedButton1Button := DesignedButton1.FindRequiredComponent('RootButton') as TCastleButton;
-  DesignedButton2Button := DesignedButton2.FindRequiredComponent('RootButton') as TCastleButton;
+  DesignedButton1Button := DesignedButton1.DesignedComponent('RootButton') as TCastleButton;
+  DesignedButton2Button := DesignedButton2.DesignedComponent('RootButton') as TCastleButton;
 
   { Attach events }
   DesignedButton1Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton1;

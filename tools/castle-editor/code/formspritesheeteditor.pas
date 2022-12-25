@@ -839,7 +839,27 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
+
+  {$ifdef LCLCocoa}
+  procedure FixCocoa;
+  var
+    FirstCol: TListColumn;
+  begin
+    // on Cocoa, image list crashes TListView usage
+    ListViewFrames.LargeImages := nil;
+
+    // on Cocoa, list always behaves like ViewStyle = vsReport and shows nothing when no columns
+    FirstCol := ListViewFrames.Columns.Add;
+    FirstCol.Caption := 'Frame name';
+    FirstCol.Width := 200;
+  end;
+  {$endif}
+
+
 begin
+  {$ifdef LCLCocoa}
+  FixCocoa;
+  {$endif}
   FSelectNewAnimation := true;
   FSpriteSheet := nil;
   FWindowTitle := Caption;
@@ -1298,9 +1318,10 @@ begin
   begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
-    FViewport := TCastleViewport.Create(Self);
+    FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
-    FViewport.Navigation := FNavigation;
+    FViewport.InsertFront(FNavigation);
     FViewport.Setup2D;
     FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
@@ -1308,7 +1329,7 @@ begin
     FPreviewScene := TCastleScene.Create(Self);
 
     FViewport.Items.Add(FPreviewScene);
-    FViewport.Items.MainScene := FPreviewScene;
+    FViewport.Items.MainScene := FPreviewScene; // TODO: removing MainScene assignment makes camera not OK, testcase: tentacles
   end;
 end;
 
@@ -1344,9 +1365,9 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     end else
     begin
       FPreviewScene.Exists := true;
-      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth +
-        PreviewMargin * 2;
-      FViewport.AssignDefaultCamera; // reset camera
+      FViewport.AssignDefaultCamera;
+      // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
+      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth + PreviewMargin * 2;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1385,8 +1406,9 @@ begin
 
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
+    FViewport.AssignDefaultCamera;
+    // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
     FViewport.Camera.Orthographic.Width := DefaultFrameIconSize + PreviewMargin * 2;
-    FViewport.AssignDefaultCamera; // reset camera
   except
     on E: Exception do
     begin
@@ -1402,6 +1424,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
+    TexProperties: TTexturePropertiesNode;
     HalfFrameWidth: Single;
     HalfFrameHeight: Single;
     ShapeCoord: TCoordinateNode;
@@ -1414,9 +1437,21 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
+    { No point in adjusting RepeatS/T: TextureProperties override it.
     Tex.RepeatS := false;
     Tex.RepeatT := false;
+    }
     Shape.Texture := Tex;
+
+    TexProperties := TTexturePropertiesNode.Create;
+    TexProperties.BoundaryModeS := bmClampToEdge;
+    TexProperties.BoundaryModeT := bmClampToEdge;
+    { Do not force "power of 2" size, which may prevent mipmaps.
+      This seems like a better default (otherwise the resizing underneath
+      may cause longer loading time, and loss of quality, if not expected).
+      Consistent with X3DLoadInternalImage and sprite sheet loaders. }
+    TexProperties.GuiTexture := true;
+    Tex.TextureProperties := TexProperties;
 
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
@@ -1455,10 +1490,11 @@ begin
   FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
   FPreviewScene.Load(Generate3XDWithImage, true);
 
+  FViewport.AssignDefaultCamera;
   { Always set to the width of the first frame because we want to see the
     size difference }
+  // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
   FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth;
-  FViewport.AssignDefaultCamera; // reset camera
 end;
 
 procedure TSpriteSheetEditorForm.LockUpdatePreview;

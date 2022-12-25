@@ -13,9 +13,21 @@ type
     ToolbarStroke1_5: TImageList;
     MenuStroke1_5: TImageList;
   private
-
   public
-
+    type
+      TIconIndexes = (
+        iiNewFile,
+        iiOpenFile,
+        iiSaveFile,
+        iiMinus,
+        iiPlus,
+        iiPlay,
+        iiStop,
+        iiPause,
+        iiSimulationPlay,
+        iiSimulationStop,
+        iiSimulationPause
+      );
   end;
 
 var

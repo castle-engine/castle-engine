@@ -29,7 +29,8 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
+  ToolCache;
 
 var
   Target: TTarget;
@@ -171,6 +172,18 @@ begin
             NL+
             'editor-run [--wait-for-process-exit PROCESS-ID]' +NL+
             '    Internal. 2nd part of "editor" command.' + NL +
+            NL+
+            'output' +NL+
+            '    Output some project information (from the manifest).' + NL +
+            '    Next parameter determines the information:' + NL +
+            '      version' + NL +
+            '      version-code' + NL +
+            NL+
+            'cache' +NL+
+            '    Create cache to speed up future compilations.' + NL +
+            NL+
+            'cache-clean' +NL+
+            '    Remove the cache directory.' + NL +
             NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
@@ -341,8 +354,18 @@ begin
       end;
     finally FreeAndNil(SimpleCompileOptions) end;
   end else
+  if Command = 'cache' then
   begin
-    if Command <> 'run' then
+    Parameters.CheckHigh(1);
+    CacheCreate(OverrideCompiler, Target, OS, CPU);
+  end else
+  if Command = 'cache-clean' then
+  begin
+    Parameters.CheckHigh(1);
+    CacheClean;
+  end else
+  begin
+    if (Command <> 'run') and (Command <> 'output') then
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
@@ -401,6 +424,11 @@ begin
       if Command = 'editor-run' then
         Project.DoEditorRun(WaitForProcessId)
       else
+      if Command = 'output' then
+      begin
+        Parameters.CheckHigh(2);
+        Project.DoOutput(Parameters[2]);
+      end else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

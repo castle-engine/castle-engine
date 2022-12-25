@@ -19,15 +19,13 @@
   public
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-    function CalculateDivisions: Cardinal;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
@@ -46,13 +44,12 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
@@ -72,13 +69,12 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
@@ -108,15 +104,13 @@
     function SolidField: TSFBool; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
@@ -155,15 +149,13 @@
       field is non-empty and it's first and last points are equal. }
     function CrossSectionClosed: boolean;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
@@ -197,7 +189,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
@@ -214,14 +206,13 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
@@ -248,15 +239,6 @@ end;
 function TBoxNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
-end;
-
-function TBoxNode.CalculateDivisions: Cardinal;
-begin
-  // use default in case of -1 or invalid value
-  if FdDivisions.Value < MinTriangulationDivisions then
-    Result := DefaultTriangulationDivisions
-  else
-    Result := FdDivisions.Value;
 end;
 
 { TConeNode ------------------------------------------------------------------ }
@@ -350,11 +332,24 @@ end;
 
 function TCylinderNode.CalculateStacks: Cardinal;
 begin
+  Result := 1;
+
+  { As we use Phong shading now by default,
+    there's no point in using stacks for Cylinders -- they do not
+    improve geometry, they do not improve shading.
+
+    (Note that we still use stacks for Cone, where they improve the
+    shading on sides.)
+  }
+
+(*
+
   // use default in case of -1 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
     Result := FdStacks.Value;
+*)
 end;
 
 { TElevationGridNode --------------------------------------------------------- }
@@ -459,8 +454,7 @@ begin
                              CrossSectionPoints[0]);
 end;
 
-function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 
 { Some of the things that are non-optimal when you will render
   Extrusion using this Proxy instead of directly rendering node:
@@ -722,11 +716,6 @@ begin
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
     IFS.FdConvex.Value := FdConvex.Value;
   except FreeAndNil(Result); raise end;
-end;
-
-function TExtrusionNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TExtrusionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

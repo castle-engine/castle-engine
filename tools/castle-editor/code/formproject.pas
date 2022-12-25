@@ -42,11 +42,116 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportSort3D: TAction;
+    ActionShowColliders: TAction;
+    ActionSimulationPlayStop: TAction;
+    ActionSimulationPauseUnpause: TAction;
+    ActionViewportRenderNext: TAction;
+    ActionViewportRenderSolidWireframe: TAction;
+    ActionPhysicsHideAllJointsTools: TAction;
+    ActionPhysicsShowAllJointsTools: TAction;
+    ActionModeSelect: TAction;
+    ActionModeTranslate: TAction;
+    ActionModeRotate: TAction;
+    ActionModeScale: TAction;
+    ActionModeInteract: TAction;
+    ActionFocusDesign: TAction;
+    ActionWarningsCopyAll: TAction;
+    ActionWarningsCopySelected: TAction;
+    ActionWarningsClean: TAction;
+    ActionViewportGridAxis: TAction;
+    ActionViewportRenderWireframeOnly: TAction;
+    ActionViewportRenderNormal: TAction;
+    ActionComponentDuplicate: TAction;
+    ActionComponentSaveSelected: TAction;
+    ActionComponentDelete: TAction;
+    ActionComponentCut: TAction;
+    ActionComponentPaste: TAction;
+    ActionComponentCopy: TAction;
+    ActionViewportToggleProjection: TAction;
+    ActionViewportSetup2D: TAction;
+    ActionViewportSort2D: TAction;
+    ActionViewportAlignCameraToView: TAction;
+    ActionViewportTop: TAction;
+    ActionNavigationToggle2D: TAction;
+    ActionViewportAlignViewToCamera: TAction;
+    ActionViewportBottom: TAction;
+    ActionViewportFront: TAction;
+    ActionViewportBack: TAction;
+    ActionViewportRight: TAction;
+    ActionViewportLeft: TAction;
+    ActionNavigationFly: TAction;
+    ActionNavigationExamine: TAction;
+    ActionNavigation2D: TAction;
+    ActionViewportViewSelected: TAction;
+    ActionViewportViewAll: TAction;
+    ActionSystemInformation: TAction;
     ActionOutputCopyAll: TAction;
     ActionOutputCopySelected: TAction;
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem2888888: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItemSimulationPauseUnpause: TMenuItem;
+    MenuItemSimulationPlayStop: TMenuItem;
+    SeparatorBeforeShowColliders: TMenuItem;
+    MenuItemShowColliders: TMenuItem;
+    MenuItemPhysics: TMenuItem;
+    MenuItemCacheClean: TMenuItem;
+    MenuItemCache: TMenuItem;
+    SeparatorBeforeCache: TMenuItem;
+    MenuItemWireframe: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    MenuItem36: TMenuItem;
+    MenuItem37: TMenuItem;
+    Separator10: TMenuItem;
+    MenuShowJointTools28: TMenuItem;
+    MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
+    MenuItem32: TMenuItem;
+    Separator8: TMenuItem;
+    Separator7: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    Separator888888: TMenuItem;
+    WarningsPopup: TPopupMenu;
+    Separator6: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuSeparator6123: TMenuItem;
+    MenuSeparator6: TMenuItem;
+    Separator5: TMenuItem;
+    MenuItem20: TMenuItem;
+    Separator4: TMenuItem;
+    MenuItem18: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem2: TMenuItem;
+    Separator2: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
+    Separator3: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    Separator1: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItemViewportViewAll: TMenuItem;
+    MenuItemViewportViewSelected: TMenuItem;
+    MenuItemViewport: TMenuItem;
+    MenuItemSystemInformation: TMenuItem;
     MenuItemEdit: TMenuItem;
     MenuItemOutputCopyAll: TMenuItem;
     MenuItemOutputCopySelected: TMenuItem;
@@ -88,7 +193,6 @@ type
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
-    ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
     MenuItemRegenerateProject: TMenuItem;
     MenuItemSeparator123123345: TMenuItem;
@@ -157,7 +261,7 @@ type
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
     MenuItemSeparator101: TMenuItem;
-    MenuItemBreakProcess: TMenuItem;
+    MenuItemStopProcess: TMenuItem;
     MenuItemSeprator100: TMenuItem;
     MenuItemAutoGenerateClean: TMenuItem;
     MenuItemAutoGenerateTextures: TMenuItem;
@@ -190,6 +294,36 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+    procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+    procedure ActionFocusDesignExecute(Sender: TObject);
+    procedure ActionModeInteractExecute(Sender: TObject);
+    procedure ActionModeRotateExecute(Sender: TObject);
+    procedure ActionModeScaleExecute(Sender: TObject);
+    procedure ActionModeSelectExecute(Sender: TObject);
+    procedure ActionModeTranslateExecute(Sender: TObject);
+    procedure ActionShowCollidersExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
+    procedure ActionViewportGridAxisExecute(Sender: TObject);
+    procedure ActionComponentCutExecute(Sender: TObject);
+    procedure ActionComponentSaveSelectedExecute(Sender: TObject);
+    procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
+    procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
+    procedure ActionViewportGridAxisUpdate(Sender: TObject);
+    procedure ActionViewportRenderNextExecute(Sender: TObject);
+    procedure ActionViewportRenderNormalExecute(Sender: TObject);
+    procedure ActionViewportRenderSolidWireframeExecute(Sender: TObject);
+    procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
+    procedure ActionViewportSort3DExecute(Sender: TObject);
+    procedure ActionViewportToggleProjectionExecute(Sender: TObject);
+    procedure ActionNavigation2DExecute(Sender: TObject);
+    procedure ActionNavigationExamineExecute(Sender: TObject);
+    procedure ActionNavigationFlyExecute(Sender: TObject);
+    procedure ActionNavigationToggle2DExecute(Sender: TObject);
+    procedure ActionSystemInformationExecute(Sender: TObject);
     procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
@@ -205,16 +339,34 @@ type
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
     procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
+    procedure ActionViewportBackExecute(Sender: TObject);
+    procedure ActionViewportBottomExecute(Sender: TObject);
+    procedure ActionViewportFrontExecute(Sender: TObject);
+    procedure ActionViewportLeftExecute(Sender: TObject);
+    procedure ActionViewportRightExecute(Sender: TObject);
+    procedure ActionViewportSetup2DExecute(Sender: TObject);
+    procedure ActionViewportSort2DExecute(Sender: TObject);
+    procedure ActionViewportTopExecute(Sender: TObject);
+    procedure ActionViewportViewAllExecute(Sender: TObject);
+    procedure ActionViewportViewSelectedExecute(Sender: TObject);
+    procedure ActionViewportUpdate(Sender: TObject);
+    procedure ActionWarningsCleanExecute(Sender: TObject);
+    procedure ActionWarningsCopyAllExecute(Sender: TObject);
+    procedure ActionWarningsCopySelectedExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
+    procedure ApplicationProperties1Deactivate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
-    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure ListOutputDblClick(Sender: TObject);
+    procedure MenuItemCacheCleanClick(Sender: TObject);
+    procedure MenuItemCacheClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
     procedure MenuItemEnableDisableDockingClick(Sender: TObject);
     procedure MenuItemInstallClick(Sender: TObject);
@@ -240,15 +392,15 @@ type
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
-    procedure MenuItemBreakProcessClick(Sender: TObject);
+    procedure MenuItemStopProcessClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
-    procedure MenuItemCopyComponentClick(Sender: TObject);
+    procedure ActionCopyComponentExecute(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
-    procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
-    procedure MenuItemDuplicateComponentClick(Sender: TObject);
+    procedure ActionDeleteComponentExecute(Sender: TObject);
+    procedure ActionDuplicateComponentExecute(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
     procedure MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
@@ -257,7 +409,7 @@ type
     procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
     procedure MenuItemPackageSourceClick(Sender: TObject);
-    procedure MenuItemPasteComponentClick(Sender: TObject);
+    procedure ActionPasteComponentExecute(Sender: TObject);
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
@@ -318,17 +470,27 @@ type
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure MenuItemPackageFormatChangeClick(Sender: TObject);
-    procedure OpenPascal(const FileName: String);
+    { Open Pascal file in preferred code editor.
+      Line = -1 means to not use any particular line.
+      Column = -1 means to not use any particular column. }
+    procedure OpenPascal(const FileName: String;
+      Line: Integer = -1;
+      Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
       or CodeEditorCommandProject).
-      PascalFileName will be used as ${PAS} macro value. *)
+      PascalFileName will be used as ${PAS} macro value.
+      Line and Column, if not -1, will be passed as ${LINE} ${COLUMN macros. *)
     procedure RunCustomCodeEditor(const CustomCodeEditorCommand: String;
-      const PascalFileName: String);
-    procedure SetEnabledCommandRun(const AEnabled: Boolean);
+      const PascalFileName: String;
+      const Line: Integer = -1;
+      const Column: Integer = -1);
+    procedure IsRunningChanged;
     procedure FreeProcess;
+    procedure RunningToggle(Sender: TObject);
+    function IsRunning: Boolean;
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -338,6 +500,9 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveDesign: Boolean;
+    { Propose saving the current design (if any) and then (unless user said "cancel")
+      open the given design URL. }
+    procedure ProposeOpenDesign(const DesignUrl: String);
     { Call always when Design<>nil value changed. }
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
@@ -359,6 +524,10 @@ type
     procedure SaveDockLayout;
     procedure MenuItemPlatformChangeClick(Sender: TObject);
     procedure RestartEditor(Sender: TObject);
+    procedure CurrentViewportChanged(Sender: TObject);
+    { Question about saving during physics simulation. }
+    function SaveDuringPhysicsSimulation: Boolean;
+    function IsCreatingNewDesignAvailable: Boolean;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -371,19 +540,27 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo, LCLType,
+uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils,
+  CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait, ToolFpcVersion;
+  FormSystemInformation,
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
+  ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close editor.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
     Application.Terminate;
 end;
@@ -421,35 +598,43 @@ end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
+  if not SaveDuringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
-
-  if Design.DesignRoot is TCastleUserInterface then
-  begin
-    SaveDesignDialog.DefaultExt := 'castle-user-interface';
-    SaveDesignDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
-  end else
-  if Design.DesignRoot is TCastleTransform then
-  begin
-    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
-      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
-      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
-      and instead GTK applies first filter. }
-    SaveDesignDialog.DefaultExt := 'castle-transform';
-    SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
-  end else
-  begin
-    SaveDesignDialog.DefaultExt := 'castle-component';
-    SaveDesignDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
-  end;
-
+  PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+  { On GTK, this happens when we open a dialog box, like open/save.
+    It's important to stop treating keys/mouse as pressed then.
+
+    Testcase:
+    - Make new design,
+    - add 3D viewport,
+    - press right mouse button and S (to move back),
+    - press Ctrl (invokes Save dialog),
+    - release all keys, press "Cancel",
+    -> without this line, TCastleControl would think "S" key is still down.
+
+    Note:
+    - TCastleControl.DoExit is not called in this case.
+    - Form OnDeactive is also not called (matches docs on
+      https://wiki.lazarus.freepascal.org/Event_order#Form.OnDeactivate ).
+    - ApplicationProperties1Deactivate is not effective workaround for this
+      (workarounds "open" but not "save" testcase for some reason,
+      maybe because of "S" and Ctrl+S interaction).
+  }
+  Design.ReleaseAllKeysAndMouse;
 end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
+  if not SaveDuringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
 
   if Design.DesignUrl = '' then
@@ -489,18 +674,26 @@ begin
   BuildToolCall(['auto-generate-textures']);
 end;
 
-procedure TProjectForm.MenuItemBreakProcessClick(Sender: TObject);
+procedure TProjectForm.MenuItemStopProcessClick(Sender: TObject);
 begin
   if RunningProcess = nil then
-    raise EInternalError.Create('It should not be possible to call this when RunningProcess = nil');
+    raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
-  OutputList.AddLine('Forcefully killing the process.', okError);
+  OutputList.AddLine('Stopping the process.', okInfo);
+  RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to turn off the editor.');
+    CanClose := false;
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     { Close sprite sheet editor window if visible }
@@ -518,13 +711,7 @@ begin
     CanClose := false;
 end;
 
-procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
-begin
-  ClearAllWarnings;
-end;
-
-procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
+procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
 end;
@@ -543,11 +730,253 @@ begin
   ListOutput.Clear;
 end;
 
+procedure TProjectForm.ActionSystemInformationExecute(Sender: TObject);
+begin
+  if SystemInformationForm = nil then
+    SystemInformationForm := TSystemInformationForm.Create(Application);
+  SystemInformationForm.Show;
+end;
+
+procedure TProjectForm.ActionNavigationToggle2DExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    { This comparison also determines what happens if current navigation
+      is neither 2D, nor Fly.
+      In this case we want to switch to 2D, because all other navigations
+      are more 3D. }
+    if Design.CurrentViewport.InternalDesignNavigationType = dn2D then
+    begin
+      Design.CurrentViewport.InternalDesignNavigationType := dnFly;
+      ActionNavigationFly.Checked := true;
+    end else
+    begin
+      Design.CurrentViewport.InternalDesignNavigationType := dn2D;
+      ActionNavigation2D.Checked := true;
+    end;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigationFlyExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dnFly;
+    ActionNavigationFly.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigation2DExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dn2D;
+    ActionNavigation2D.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dnExamine;
+    ActionNavigationExamine.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionViewportToggleProjectionExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportToggleProjection;
+end;
+
+procedure TProjectForm.ActionViewportAlignViewToCameraExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignViewToCamera;
+end;
+
+procedure TProjectForm.ActionViewportGridAxisUpdate(Sender: TObject);
+begin
+  ActionViewportGridAxis.Checked :=
+    (Design <> nil) and
+    (Design.CurrentViewport <> nil) and
+    Design.CurrentViewport.InternalGridAxis;
+  ActionViewportUpdate(Sender);
+end;
+
+procedure TProjectForm.ActionViewportRenderNextExecute(Sender: TObject);
+begin
+  case InternalForceWireframe of
+    weNormal        : ActionViewportRenderWireframeOnlyExecute(nil);
+    weWireframeOnly : ActionViewportRenderSolidWireframeExecute(nil);
+    weSolidWireframe: ActionViewportRenderNormalExecute(nil);
+    else
+      begin
+        WritelnWarning('Unexpected InternalForceWireframe value');
+        ActionViewportRenderWireframeOnlyExecute(nil);
+      end;
+  end;
+end;
+
+procedure TProjectForm.ActionViewportRenderNormalExecute(Sender: TObject);
+begin
+  InternalForceWireframe := weNormal;
+  ActionViewportRenderNormal.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportRenderSolidWireframeExecute(Sender: TObject);
+begin
+  InternalForceWireframe := weSolidWireframe;
+  ActionViewportRenderSolidWireframe.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
+begin
+  InternalForceWireframe := weWireframeOnly;
+  ActionViewportRenderWireframeOnly.Checked := true;
+end;
+
+procedure TProjectForm.ActionViewportSort3DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort3D;
+end;
+
+procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignCameraToView;
+end;
+
+procedure TProjectForm.ActionComponentCutExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.CutComponent;
+end;
+
+procedure TProjectForm.ActionViewportGridAxisExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+    Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
+end;
+
+procedure TProjectForm.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ShowAllJointsTools;
+end;
+
+procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.HideAllJointsTools;
+end;
+
+procedure TProjectForm.ActionFocusDesignExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FocusDesign;
+end;
+
+procedure TProjectForm.ActionModeInteractExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moInteract);
+end;
+
+procedure TProjectForm.ActionModeRotateExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moRotate);
+end;
+
+procedure TProjectForm.ActionModeScaleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moScale);
+end;
+
+procedure TProjectForm.ActionModeSelectExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moSelect);
+end;
+
+procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ChangeMode(moTranslate);
+end;
+
+procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ShowColliders := not Design.ShowColliders;
+  ActionShowColliders.Checked := Design.ShowColliders;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPauseUnpause;
+end;
+
+procedure TProjectForm.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+  ActionSimulationPauseUnpause.Enabled := (Design <> nil) and
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
+  ActionSimulationPauseUnpause.Checked := (Design <> nil) and
+    (CastleApplicationMode = appSimulationPaused);
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SimulationPlayStop;
+end;
+
+procedure TProjectForm.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  ActionSimulationPlayStop.Enabled := Design <> nil;
+  ActionSimulationPlayStop.Checked := (Design <> nil) and
+    (CastleApplicationMode in [appSimulation, appSimulationPaused]);
+end;
+
+procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.SaveSelected;
+end;
+
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.ApplicationProperties1Deactivate(Sender: TObject);
+begin
+  { On GTK, this happens when we open a dialog box, like open/save.
+    It's important to stop treating keys/mouse as pressed then.
+
+    Testcase:
+    - Make new design,
+    - add 3D viewport,
+    - press right mouse button and W (to move forward),
+    - release mouse,
+    - press Ctrl+O (invokes Open dialog),
+    - release all keys, press "Cancel",
+    -> without this line, TCastleControl would think "W" key is still down.
+
+    Note: TCastleControl.DoExit is not called in this case.
+    Form OnDeactive is also not called (matches docs on
+    https://wiki.lazarus.freepascal.org/Event_order#Form.OnDeactivate ).
+  }
+
+  if Design <> nil then
+    Design.ReleaseAllKeysAndMouse;
 end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
@@ -643,22 +1072,108 @@ end;
 
 procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
 begin
-  { Although ActionOutputCopySelectedUpdate should secure from it too,
-    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
-  if ListOutput.ItemIndex <> -1 then
-  begin
-    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
-  end;
+  Clipboard.AsText := ListOutput.GetSelectedText;
 end;
 
 procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
+  (Sender as TAction).Enabled := ListOutput.SelCount <> 0;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
 begin
   BuildToolCall(['generate-program']);
+end;
+
+procedure TProjectForm.ActionViewportBackExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 0, 1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportBottomExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 1, 0), Vector3(0, 0, -1));
+end;
+
+procedure TProjectForm.ActionViewportFrontExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 0, -1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportLeftExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportRightExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(-1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportSetup2DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSetup2D;
+end;
+
+procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort2D;
+end;
+
+procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    { up -Z better than up +Z: makes more natural rotation when using 1/3/7 }
+    Design.ViewportViewAxis(Vector3(0, -1, 0), Vector3(0, 0, -1));
+end;
+
+procedure TProjectForm.ActionViewportViewAllExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAll;
+end;
+
+procedure TProjectForm.ActionViewportViewSelectedExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewSelected;
+end;
+
+procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
+var
+  ViewportActionsAllowed: Boolean;
+begin
+  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
+  (Sender as TAction).Enabled := ViewportActionsAllowed;
+  // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
+end;
+
+procedure TProjectForm.ActionWarningsCleanExecute(Sender: TObject);
+begin
+  ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionWarningsCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListWarnings.Items.Text;
+end;
+
+procedure TProjectForm.ActionWarningsCopySelectedExecute(Sender: TObject);
+//var
+//  S: String;
+begin
+  Clipboard.AsText := ListWarnings.GetSelectedText;
+  //S := '';
+  //for I := 0 to ListWarnings.SelCount - 1 do
+  //  S := SAppendPart(S, NL, ListWarnings.Selected[I]);
+  //Clipboard.AsText := S;
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
@@ -960,7 +1475,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
     AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
     AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
@@ -981,7 +1496,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'iOS Archive -> Development',
       'iOS Archive -> ad-hoc',
       'iOS Archive -> AppStore',
-      'Nintendo Switch Project'
+      'Nintendo Switch Project',
+      'macOS App Bundle (APP)',
+      'macOS App Bundle (APP) zip'
     );
   var
     Mi: TMenuItem;
@@ -1009,14 +1526,12 @@ begin
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
-    nil,
     MenuItemDesignNewUserInterfaceCustomRoot,
     MenuItemDesignNewTransformCustomRoot,
     nil,
     MenuItemDesignNewNonVisualCustomRoot,
     @MenuItemDesignNewCustomRootClick);
   BuildComponentsMenu(
-    nil,
     MenuItemDesignAddUserInterface,
     MenuItemDesignAddTransform,
     MenuItemDesignAddBehavior,
@@ -1149,6 +1664,13 @@ begin
   end;
 end;
 
+procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  { See CastleLclEditHack for an expanation of this hack. }
+  ProcessKeyToPerformEdit(ActiveControl, Key, Shift);
+end;
+
 procedure TProjectForm.FormShow(Sender: TObject);
 
   function StrToWindowState(const AWindowStateStr: String): TWindowState;
@@ -1209,11 +1731,93 @@ end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
-  // TODO: jump to source code line in case of error message here
+end;
+
+procedure TProjectForm.ListOutputDblClick(Sender: TObject);
+
+  { For a filename in output, return absolute filename or raise exception. }
+  function FilenameFromOutput(const S: String): String;
+  var
+    Test: String;
+    CgeFileInfo: TFileInfo;
+  begin
+    // absolute filename
+    if IsPathAbsolute(S) then
+      Exit(S);
+
+    // filename relative to project root
+    Test := CombinePaths(ProjectPath, S);
+    if FileExists(Test) then
+      Exit(Test);
+
+    // filename that has to be found on search paths
+    if CharsPos(AllowDirectorySeparators, S) = 0 then
+    begin
+      Test := Manifest.SearchPascalFile(S);
+      if Test <> '' then
+         Exit(Test);
+    end;
+
+    // filename in CGE sources
+    if (CastleEnginePath <> '') and
+       FindFirstFile(CastleEnginePath, S, false, [ffRecursive], CgeFileInfo) then
+      Exit(CgeFileInfo.AbsoluteName);
+
+    raise Exception.CreateFmt('Cannot find Pascal filename "%s"', [S]);
+  end;
+
+var
+  R: TRegExpr;
+  Line: String;
+begin
+  // jump to source code line in case of error message here
+
+  if ListOutput.ItemIndex = -1 then
+    Exit;
+  Line := ListOutput.Items[ListOutput.ItemIndex];
+
+  R := TRegExpr.Create;
+  try
+    R.Expression := '^([^() ]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]), StrToInt(R.Match[3]));
+      Exit;
+    end;
+
+    R.Expression := '^([^() ]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]));
+      Exit;
+    end;
+
+    R.Expression := '^Compiling ([^() ]+)';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]));
+      Exit;
+    end;
+  finally
+    FreeAndNil(R);
+  end;
+end;
+
+procedure TProjectForm.MenuItemCacheCleanClick(Sender: TObject);
+begin
+  BuildToolCall(['cache-clean']);
+end;
+
+procedure TProjectForm.MenuItemCacheClick(Sender: TObject);
+begin
+  BuildToolCall(['cache']);
 end;
 
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleComponent, nil);
 end;
@@ -1312,6 +1916,10 @@ end;
 
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
+  { It is important to disable these actions, as e.g. calling
+    TUndoSystem.Undo when IsUndoPossible=false will result in an exception.
+    Testcase: right after loading the design, undo should not be possible,
+    Ctrl+Z should do nothing. }
   if Design <> nil then
   begin
     MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
@@ -1405,7 +2013,7 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
+procedure TProjectForm.ActionCopyComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CopyComponent;
@@ -1414,6 +2022,12 @@ end;
 procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
+
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close design.');
+    Exit;
+  end;
 
   if ProposeSaveDesign then
   begin
@@ -1426,13 +2040,13 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemDesignDeleteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDeleteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DeleteComponent;
 end;
 
-procedure TProjectForm.MenuItemDuplicateComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDuplicateComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DuplicateComponent;
@@ -1460,11 +2074,28 @@ begin
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignAddBehavior.Enabled := Design <> nil;
   MenuItemDesignAddNonVisual.Enabled := Design <> nil;
-  MenuItemDesignDeleteComponent.Enabled := Design <> nil;
-  MenuItemCopyComponent.Enabled := Design <> nil;
-  MenuItemPasteComponent.Enabled := Design <> nil;
-  MenuItemDuplicateComponent.Enabled := Design <> nil;
+  ActionComponentDelete.Enabled := Design <> nil;
+  ActionComponentCopy.Enabled := Design <> nil;
+  ActionComponentPaste.Enabled := Design <> nil;
+  ActionComponentCut.Enabled := Design <> nil;
+  ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
+  ActionFocusDesign.Enabled := Design <> nil;
+  ActionModeInteract.Enabled := Design <> nil;
+  ActionModeSelect.Enabled := Design <> nil;
+  ActionModeTranslate.Enabled := Design <> nil;
+  ActionModeRotate.Enabled := Design <> nil;
+  ActionModeScale.Enabled := Design <> nil;
+
+  { Options that toggle InternalForceWireframe could actually work with Design=nil,
+    with current implementation.
+    But their effect would be invisible, so better disable. }
+  ActionViewportRenderNormal.Enabled := Design <> nil;
+  ActionViewportRenderWireframeOnly.Enabled := Design <> nil;
+  ActionViewportRenderSolidWireframe.Enabled := Design <> nil;
+  ActionViewportRenderNext.Enabled := Design <> nil;
+  MenuItemWireframe.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
@@ -1487,6 +2118,18 @@ begin
   LabelNoDesign.Visible := Design = nil;
 end;
 
+procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
+begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
+  if ProposeSaveDesign then
+    OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.NeedsDesignFrame;
 begin
   if Design = nil then
@@ -1497,6 +2140,14 @@ begin
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
+    Design.OnCurrentViewportChanged := @CurrentViewportChanged;
+    Design.OnProposeOpenDesign := @ProposeOpenDesign;
+    Design.OnIsRunning  := @IsRunning;
+    Design.OnRunningToggle  := @RunningToggle;
+
+    // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
+
     DesignExistenceChanged;
     if Docking then
     begin
@@ -1511,6 +2162,50 @@ begin
       Design.SplitterLeft.Visible := False;
       Design.SplitterRight.Visible := False;
     end;
+  end;
+end;
+
+procedure TProjectForm.CurrentViewportChanged(Sender: TObject);
+
+  procedure UnselectAll;
+  begin
+    ActionNavigation2D.Checked := false;
+    ActionNavigationFly.Checked := false;
+    ActionNavigationExamine.Checked := false;
+  end;
+
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    { update menu state from Design.CurrentViewport.InternalDesignNavigationType }
+    case Design.CurrentViewport.InternalDesignNavigationType of
+      dn2D     : ActionNavigation2D.Checked := true;
+      dnFly    : ActionNavigationFly.Checked := true;
+      dnExamine: ActionNavigationExamine.Checked := true;
+      else UnselectAll;
+    end;
+  end else
+    UnselectAll;
+end;
+
+function TProjectForm.SaveDuringPhysicsSimulation: Boolean;
+begin
+  Result := true;
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    Result := YesNoBox('The editor is during of physics simulation.'+ NL +
+      'Saving the design will save the current state, not the state ' + NL +
+      'before the start of the simulation. Do you want to continue?');
+  end;
+end;
+
+function TProjectForm.IsCreatingNewDesignAvailable: Boolean;
+begin
+  Result := true;
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to create new design.');
+    Result := false;
   end;
 end;
 
@@ -1557,12 +2252,18 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleTransform, nil);
 end;
@@ -1579,6 +2280,12 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     if Design <> nil then
@@ -1600,7 +2307,7 @@ begin
   BuildToolCall(['package-source']);
 end;
 
-procedure TProjectForm.MenuItemPasteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionPasteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.PasteComponent;
@@ -1608,6 +2315,12 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
+  if CastleApplicationMode in [appSimulation, appSimulationPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to switch project.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     { Close sprite sheet editor window if visible }
@@ -1642,8 +2355,8 @@ end;
 procedure TProjectForm.FreeProcess;
 begin
   FreeAndNil(RunningProcess);
-  SetEnabledCommandRun(true);
   ProcessUpdateTimer.Enabled := false;
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
@@ -1719,8 +2432,8 @@ begin
 end;
 
 procedure TProjectForm.RunCustomCodeEditor(
-  const CustomCodeEditorCommand: String;
-  const PascalFileName: String);
+  const CustomCodeEditorCommand: String; const PascalFileName: String;
+  const Line: Integer; const Column: Integer);
 
   { Copied from FPC packages/fcl-process/src/processbody.inc
     (licence "LGPL with static linking exception", so compatible with us). }
@@ -1787,6 +2500,7 @@ var
   Exe: String;
   Parameters: TCastleStringList;
   I: Integer;
+  Macros: TStringStringMap;
 begin
   Parameters := TCastleStringList.Create;
   try
@@ -1795,18 +2509,39 @@ begin
       raise Exception.CreateFmt('Code editor command was split into zero items: "%s"', [CustomCodeEditorCommand]);
     Exe := Parameters[0];
     Parameters.Delete(0);
-    for I := 0 to Parameters.Count - 1 do
-      Parameters[I] := SReplacePatterns(Parameters[I],
-        ['${PAS}', '${STANDALONE_SOURCE}', '${PROJECT_DIR}'],
-        [PascalFileName, ProjectStandaloneSource, ProjectPath],
-        true);
+    Macros := TStringStringMap.Create;
+    try
+      Macros.Add('${PAS}', PascalFileName);
+      Macros.Add('${STANDALONE_SOURCE}', ProjectStandaloneSource);
+      Macros.Add('${PROJECT_DIR}', ProjectPath);
+      if Line <> -1 then
+        Macros.Add('${LINE}', IntToStr(Line));
+      if Column <> -1 then
+        Macros.Add('${COLUMN}', IntToStr(Column));
+      for I := 0 to Parameters.Count - 1 do
+        Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
+    finally FreeAndNil(Macros) end;
     RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
-procedure TProjectForm.OpenPascal(const FileName: String);
+function TProjectForm.IsRunning: Boolean;
+begin
+  Result := RunningProcess <> nil;
+end;
+
+procedure TProjectForm.RunningToggle(Sender: TObject);
+begin
+  if RunningProcess = nil then
+    MenuItemCompileRunClick(MenuItemCompileRun)
+  else
+    MenuItemStopProcessClick(MenuItemStopProcess);
+end;
+
+procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
+  Column: Integer);
 var
-  Exe, DelphiExe: String;
+  Exe, DelphiExe, VsCodeFileArgument: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1817,7 +2552,14 @@ begin
   case Ce of
     ceCustom:
       begin
-        RunCustomCodeEditor(CodeEditorCommand, FileName);
+        if (Line <> -1) and
+           (CodeEditorCommandLineColumn <> '') then
+        begin
+          if Column = -1 then
+            Column := 1; // we don't have a command to open only at line, so use column = 1
+          RunCustomCodeEditor(CodeEditorCommandLineColumn, FileName, Line, Column);
+        end else
+          RunCustomCodeEditor(CodeEditorCommand, FileName);
       end;
     ceLazarus:
       begin
@@ -1906,32 +2648,47 @@ begin
     ceVSCode:
       begin
         Exe := FindExeVSCode(true);
-        RunCommandNoWait(ProjectPath, Exe, [
-          { --add would add project to workspace in current window.
-            It avoids opening new window ever,
-            but it seems more confusing than helpful in our case
-            -- it creates multi-root workspace which may be surprising to users.
 
-            Instead we just pass project dir, as ".", to make sure this is
-            opened as a workspace.
-            See https://code.visualstudio.com/docs/editor/command-line ,
-            https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows }
-          //'--add',
+        { Explanation of ExtractRelativePath:
 
-          { We pass relative filenames, not absolute, to avoid
-            VS Code on Windows inability to deal with spaces in filenames.
-            Other solutions tried:
+          We pass relative filenames, not absolute, to avoid
+          VS Code on Windows inability to deal with spaces in filenames.
+          Other solutions tried:
 
-            - calling code.exe without intermediate code.cmd
-            - using vscode:// URL with spaces encoded using %20.
+          - calling code.exe without intermediate code.cmd
+          - using vscode:// URL with spaces encoded using %20.
 
-            See EditorUtils -- nothing helped.
+          See EditorUtils -- nothing helped.
 
-            Using relative paths is a workaround, as long as you don't
-            place Pascal code in subdirectory with spaces. }
-          '.',
-          ExtractRelativePath(ProjectPath, FileName)
-        ], [rcNoConsole]);
+          Using relative paths is a workaround, as long as you don't
+          place Pascal code in subdirectory with spaces. }
+        VsCodeFileArgument := ExtractRelativePath(ProjectPath, FileName);
+
+        { Explanation of '.':
+
+          How to open a project?
+          -add would add project to workspace in current window.
+          It avoids opening new window ever,
+          but it seems more confusing than helpful in our case
+          -- it creates multi-root workspace which may be surprising to users.
+
+          Instead we just pass project dir, as ".", to make sure this is
+          opened as a workspace.
+          See https://code.visualstudio.com/docs/editor/command-line ,
+          https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows
+          //'--add'
+        }
+
+        if Line <> -1 then
+        begin
+          VsCodeFileArgument += ':' + IntToStr(Line);
+          if Column <> -1 then
+            VsCodeFileArgument += ':' + IntToStr(Column);
+          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [rcNoConsole]);
+        end else
+          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1967,6 +2724,35 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 var
   SelectedFileName, Ext, SelectedURL: String;
 begin
+  { Forcefully stop dragging.
+
+    This workarounds LCL error with GTK 2 backend:
+    1. if you open another design (xxx.castle-transform
+       or xxx.castle-user-interface) by double-clicking (*not* by menu item "open...")
+    2. and it causes a dialog box "save this design" (you can answer yes or no,
+       doesn't matter)
+    3. .. then the dragging remains "true" (even though you're no longer pressing
+       down the mouse button).
+
+    This causes weird behavior if you then do some mouse-down + move + mouse-up
+    in newly opened design.
+    - e.g. mouse look by right-click on any viewport in newly opened design.
+    - or left click (mouse down and up) anywhere on UI.
+    ... They will all try to drag-and-drop the design you have just opened onto
+    itself.
+
+    TODO: There remains a problem in the above case, even after this fix:
+    First mouse down after such "forceful break of dragging" is not passed to TCastleControl.
+    So you need to click again to actually start e.g. mouse look on a viewport.
+  }
+  if DragManager.IsDragging then
+  begin
+    DragManager.DragStop(false);
+    WritelnLog('Forcefully breaking drag-and-drop on double-click to workaround LCL bug, afterwards IsDragging: %s', [
+      BoolToStr(DragManager.IsDragging, true)
+    ]);
+  end;
+
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
@@ -2007,8 +2793,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') or
        AnsiSameText(Ext, '.castle-component') then
     begin
-      if ProposeSaveDesign then
-        OpenDesign(SelectedURL);
+      ProposeOpenDesign(SelectedURL);
       Exit;
     end;
 
@@ -2092,7 +2877,6 @@ begin
     Exit;
   end;
 
-  SetEnabledCommandRun(false);
   OutputList.Clear;
   PageControlBottom.ActivePage := TabOutput;
   ProcessUpdateTimer.Enabled := true;
@@ -2115,7 +2899,8 @@ begin
         (Command = 'generate-program') or
         (Command = 'editor') or
         (Command = 'editor-rebuild-if-needed') or
-        (Command = 'editor-run')
+        (Command = 'editor-run') or
+        (Command = 'cache')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -2126,7 +2911,8 @@ begin
     if (Command = 'compile') or
        (Command = 'run') or
        (Command = 'package') or
-       (Command = 'install') then
+       (Command = 'install') or
+       (Command = 'cache') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
     // add --package-format
     if (Command = 'package') or
@@ -2143,6 +2929,8 @@ begin
   RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+
+  IsRunningChanged;
 end;
 
 procedure TProjectForm.RestartEditor(Sender: TObject);
@@ -2195,6 +2983,9 @@ procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
 var
   R: TRegisteredComponent;
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
@@ -2202,19 +2993,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);
+procedure TProjectForm.IsRunningChanged;
+var
+  EnableRun: Boolean;
 begin
-  MenuItemCompile.Enabled := AEnabled;
-  MenuItemCompileRun.Enabled := AEnabled;
-  MenuItemOnlyRun.Enabled := AEnabled;
-  MenuItemClean.Enabled := AEnabled;
-  MenuItemPackage.Enabled := AEnabled;
-  MenuItemPackageSource.Enabled := AEnabled;
-  MenuItemInstall.Enabled := AEnabled;
-  MenuItemAutoGenerateTextures.Enabled := AEnabled;
-  MenuItemAutoGenerateClean.Enabled := AEnabled;
-  MenuItemRestartRebuildEditor.Enabled := AEnabled;
-  MenuItemBreakProcess.Enabled := not AEnabled;
+  EnableRun := not IsRunning;
+
+  MenuItemCompile.Enabled := EnableRun;
+  MenuItemCompileRun.Enabled := EnableRun;
+  MenuItemOnlyRun.Enabled := EnableRun;
+  MenuItemClean.Enabled := EnableRun;
+  MenuItemPackage.Enabled := EnableRun;
+  MenuItemPackageSource.Enabled := EnableRun;
+  MenuItemInstall.Enabled := EnableRun;
+  MenuItemAutoGenerateTextures.Enabled := EnableRun;
+  MenuItemAutoGenerateClean.Enabled := EnableRun;
+  MenuItemRestartRebuildEditor.Enabled := EnableRun;
+  MenuItemCache.Enabled := EnableRun;
+  MenuItemCacheClean.Enabled := EnableRun;
+
+  MenuItemStopProcess.Enabled := not EnableRun;
+
+  // Looks like we need to call this manually
+  // (to update because of ActionPlayStopExecute or when process starts/stops independently)
+  if Design <> nil then
+    Design.ActionPlayStopUpdate(Design.ActionPlayStop);
 end;
 
 procedure TProjectForm.UpdateFormCaption(Sender: TObject);
@@ -2300,7 +3103,7 @@ begin
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;
-  SetEnabledCommandRun(true);
+  IsRunningChanged;
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;

@@ -45,11 +45,18 @@ type
   EExecutableNotFound = class(EShortErrorMessage);
 
 { Find the executable of FPC compiler.
+
   It uses FindExeFpc, searching for 'fpc.sh' (script set by fpcupdeluxe
   that should be used to run FPC)
   or just 'fpc' (normal way to run FPC).
+  It can also find and return a "bundled" FPC version with CGE.
+
+  The FpcStandardUnitsPath, if returned non-empty, indicates that you should
+  pass "-Fu<FpcStandardUnitsPath>" to FPC call.
+  This is right now used to make "bundled" FPC version work.
 
   @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean; out FpcStandardUnitsPath: String): String;
 function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean = true): String;
 
 { Find the main executable of Lazarus IDE.
@@ -77,7 +84,7 @@ implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleLog,
   {$ifdef MSWINDOWS} Registry, {$endif}
-  ToolArchitectures;
+  ToolArchitectures, ToolCommonUtils;
 
 function FindExeFpc(const ExeName: String): String;
 begin
@@ -139,14 +146,37 @@ begin
     Result := PathAppend(Result, LazarusCustomPath);
 end;
 
-function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean): String;
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean; out FpcStandardUnitsPath: String): String;
+var
+  BundledFpcPath, BundledFpcExe: String;
 begin
+  FpcStandardUnitsPath := '';
+
   Result := FindExeFpc('fpc.sh');
   if Result = '' then
     Result := FindExeFpc('fpc');
+  if (Result = '') and (CastleEnginePath <> '') then
+  begin
+    BundledFpcPath := CastleEnginePath + 'tools' + PathDelim +
+      'contrib' + PathDelim +
+      'fpc' + PathDelim;
+    BundledFpcExe := BundledFpcPath + 'bin' + PathDelim + 'fpc' + ExeExtension;
+    if FileExists(BundledFpcExe) then
+    begin
+      FpcStandardUnitsPath := BundledFpcPath + 'units' + PathDelim + '$fpctarget' + PathDelim + '*';
+      Result := BundledFpcExe;
+    end;
+  end;
 
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find "fpc" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set FPC location in "Preferences".');
+end;
+
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean): String;
+var
+  FpcStandardUnitsPath: String;
+begin
+  Result := FindExeFpcCompiler(ExceptionWhenMissing, FpcStandardUnitsPath);
 end;
 
 function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean): String;

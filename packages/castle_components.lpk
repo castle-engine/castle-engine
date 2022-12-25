@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <Name Value="castle_components"/>
     <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
@@ -47,8 +47,8 @@ This package, castle_components.lpk, contains the Lazarus visual components that
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
-    <Version Major="6" Minor="5"/>
-    <Files Count="16">
+    <Version Major="6" Minor="92"/>
+    <Files Count="28">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -81,7 +81,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_meshcolliderscene.inc"/>
         <Type Value="Include"/>
       </Item8>
       <Item9>
@@ -93,13 +93,17 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/lcl/castlepropedits_float.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_number.inc"/>
         <Type Value="Include"/>
       </Item11>
       <Item12>
         <Filename Value="../src/lcl/castlepropedits_image.inc"/>
         <Type Value="Include"/>
       </Item12>
+      <Item13>
+        <Filename Value="../src/lcl/icons/castleicons.lrs"/>
+        <Type Value="LRS"/>
+      </Item13>
       <Item14>
         <Filename Value="../src/lcl/castlepropedits_url.inc"/>
         <Type Value="Include"/>
@@ -109,14 +113,60 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item15>
       <Item16>
-        <Filename Value="../src/lcl/castlepropedits_viewport_navigation.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/lcl/castleinternallcldesign.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastleInternalLclDesign"/>
       </Item16>
-      <Item13>
-        <Filename Value="../src/lcl/icons/castleicons.lrs"/>
-        <Type Value="LRS"/>
-      </Item13>
+      <Item17>
+        <Filename Value="../src/lcl/castlepropedits_component_joints.inc"/>
+        <Type Value="Include"/>
+      </Item17>
+      <Item18>
+        <Filename Value="../src/lcl/castlepropedits_component_imagecontrol.inc"/>
+        <Type Value="Include"/>
+      </Item18>
+      <Item19>
+        <Filename Value="../src/lcl/castlepropedits_component_imagetransform.inc"/>
+        <Type Value="Include"/>
+      </Item19>
+      <Item20>
+        <Filename Value="../src/lcl/castlepropedits_component_scene.inc"/>
+        <Type Value="Include"/>
+      </Item20>
+      <Item21>
+        <Filename Value="../src/lcl/castleeditoraccess.pas"/>
+        <UnitName Value="CastleEditorAccess"/>
+      </Item21>
+      <Item22>
+        <Filename Value="../src/lcl/castlepropedits_component_transformdesign.inc"/>
+        <Type Value="Include"/>
+      </Item22>
+      <Item23>
+        <Filename Value="../src/lcl/castlepropedits_component_design.inc"/>
+        <Type Value="Include"/>
+      </Item23>
+      <Item24>
+        <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
+        <Type Value="Include"/>
+      </Item24>
+      <Item25>
+        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Type Value="Include"/>
+      </Item25>
+      <Item26>
+        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
+        <Type Value="Include"/>
+      </Item26>
+      <Item27>
+        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
+        <Type Value="Include"/>
+      </Item27>
+      <Item28>
+        <Filename Value="../src/lcl/castlepropedits_protectedsides.inc"/>
+        <Type Value="Include"/>
+      </Item28>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">
       <Item1>
         <PackageName Value="IDEIntf"/>

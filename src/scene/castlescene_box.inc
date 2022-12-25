@@ -1,5 +1,6 @@
+{%MainUnit castlescene.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,7 +38,7 @@ type
   published
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
-  
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlebox_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -89,6 +90,7 @@ begin
   begin
     FSize := Value;
     BoxNode.Size := FSize;
+    UpdateCollider;
   end;
 end;
 

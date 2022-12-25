@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis.
 
@@ -23,7 +24,7 @@ type
 
     See @url(https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#SpotLight
     X3D SpotLight specification) for various details. }
-  TCastleSpotLight = class(TCastleAbstractLight)
+  TCastleSpotLight = class(TCastlePunctualLight)
   strict private
     { Same thing as FLightNode, but with proper type. }
     FSpotLight: TSpotLightNode;
@@ -100,34 +101,11 @@ type
 
 constructor TCastleSpotLight.Create(AOwner: TComponent);
 
-  function BuildNode: TX3DRootNode;
-  var
-    Coord: TCoordinateNode;
-    LineSet: TLineSetNode;
-    Material: TUnlitMaterialNode;
-    Appearance: TAppearanceNode;
-    Shape: TShapeNode;
+  function BuildGizmo: TX3DRootNode;
   begin
-    Coord := TCoordinateNode.Create;
-    FGizmoCoord := Coord;
-    UpdateGizmoCoord;
-
-    LineSet := TLineSetNode.Create;
-    LineSet.Coord := Coord;
-    LineSet.SetVertexCount([2, 2, 2, 2]);
-
-    Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := HexToColorRGB('FC9C2D');
-
-    Appearance := TAppearanceNode.Create;
-    Appearance.Material := Material;
-
-    Shape := TShapeNode.Create;
-    Shape.Geometry := LineSet;
-    Shape.Appearance := Appearance;
-
     Result := TX3DRootNode.Create;
-    Result.AddChildren(Shape);
+    Result.AddChildren(Gizmo.LinesShape(FGizmoCoord, [2, 2, 2, 2]));
+    UpdateGizmoCoord;
   end;
 
 begin
@@ -143,11 +121,13 @@ begin
   { internal stuff create }
   FSpotLight := TSpotLightNode.Create;
   LightNode := FSpotLight;
+  FPunctualLight := FSpotLight;
 
-  if Gizmo then
+  if Gizmo <> nil then
   begin
-    GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_spot.png';
-    GizmoScene.Load(BuildNode, true);
+    if InternalCastleDesignData <> '' then
+      Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_spot.png');
+    Gizmo.LoadVisualization(BuildGizmo);
   end;
 
   {$define read_implementation_constructor}
@@ -227,7 +207,7 @@ begin
   begin
     FCutOffAngle := Value;
     FSpotLight.CutOffAngle := Value;
-    if Gizmo then
+    if Gizmo <> nil then
       UpdateGizmoCoord;
   end;
 end;

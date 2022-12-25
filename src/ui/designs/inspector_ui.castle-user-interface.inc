@@ -735,7 +735,7 @@
 '          },' + LineEnding +
 '          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
-'          "Name" : "ScrollView4",' + LineEnding +
+'          "Name" : "ScrollProperties",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
 '            "$$ClassName" : "TInternalCastleScrollArea",' + LineEnding +
 '            "AutoSizeToChildren" : true,' + LineEnding +

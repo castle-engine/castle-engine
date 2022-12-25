@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleControls" -*-
 {
-  Copyright 2012-2021 Michalis Kamburelis.
+  Copyright 2012-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,11 +28,13 @@ type
   published
     procedure TestFloatSliderRoundAndClamp;
     procedure TestAssigningImageURL;
+    procedure TestRecursiveDesign;
   end;
 
 implementation
 
-uses CastleVectors, CastleControls, CastleImages;
+uses CastleVectors, CastleControls, CastleImages, CastleStringUtils,
+  CastleUIControls;
 
 procedure TTestCastleControls.TestFloatSliderRoundAndClamp;
 const
@@ -113,6 +115,24 @@ begin
       C.Image := C.Image;
     finally FreeAndNil(C2) end;
   finally FreeAndNil(C) end;
+end;
+
+procedure TTestCastleControls.TestRecursiveDesign;
+var
+  Owner: TComponent;
+begin
+  try
+    Owner := TComponent.Create(nil);
+    try
+      UserInterfaceLoad('castle-data:/designs/test_recursive_ui.castle-user-interface', Owner);
+      Fail('Loading test_recursive_ui.castle-user-interface should have raised an exception');
+    except
+      on E: Exception do
+        { We expect Exception with message "Exceeded maximum depth..." }
+        if not IsPrefix('Exceeded maximum depth', E.Message) then
+          raise;
+    end;
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization

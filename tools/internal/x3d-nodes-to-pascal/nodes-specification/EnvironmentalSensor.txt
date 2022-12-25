@@ -1,5 +1,4 @@
 X3DEnvironmentalSensorNode : X3DSensorNode {
-  auto-generate-more: true
   SFVec3f [in,out] center    0 0 0
     range: (-Inf,Inf)
     change: chEnvironmentalSensorBounds
@@ -11,14 +10,12 @@ X3DEnvironmentalSensorNode : X3DSensorNode {
 }
 
 ProximitySensor : X3DEnvironmentalSensorNode {
-  auto-generate-more: true
   SFVec3f    [out]    centerOfRotation_changed
   SFRotation [out]    orientation_changed
   SFVec3f    [out]    position_changed
 }
 
 TransformSensor : X3DEnvironmentalSensorNode {
-  auto-generate-more: true
   SFNode     [in,out] targetObject        NULL
     range: X3DGroupingNode|X3DShapeNode
   SFRotation [out]    orientation_changed
@@ -26,5 +23,4 @@ TransformSensor : X3DEnvironmentalSensorNode {
 }
 
 VisibilitySensor : X3DEnvironmentalSensorNode {
-  auto-generate-more: true
 }

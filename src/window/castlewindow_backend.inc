@@ -1,3 +1,5 @@
+{%MainUnit castlewindow.pas}
+
 { Include files appropriate for current CastleWindow implementation. }
 
 { In various include files here, we dereference memory allocated
@@ -42,6 +44,10 @@
 
 {$ifdef CASTLE_WINDOW_TEMPLATE}
   {$I castlewindow_backend_template.inc}
+{$endif}
+
+{$ifdef CASTLE_WINDOW_COCOA}
+  {$I castlewindow_cocoa.inc}
 {$endif}
 
 {$ifdef KAMBI_CHECK_POINTER}

@@ -818,7 +818,7 @@ begin
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
   {$warnings on}
-  Result.CastShadowVolumes := Resource.CastShadowVolumes;
+  Result.CastShadows := Resource.CastShadowVolumes;
 
   ALevel.ItemsRoot.Add(Result);
 end;

@@ -23,7 +23,7 @@
     {$I auto_generated_node_helpers/x3dnodes_layout.inc}
   end;
 
-  TLayoutGroupNode = class(TAbstractX3DGroupingNode)
+  TLayoutGroupNode = class(TAbstractGroupingNode)
     {$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
   end;
 
@@ -35,7 +35,7 @@
     {$I auto_generated_node_helpers/x3dnodes_screenfontstyle.inc}
   end;
 
-  TScreenGroupNode = class(TAbstractX3DGroupingNode)
+  TScreenGroupNode = class(TAbstractGroupingNode)
     {$I auto_generated_node_helpers/x3dnodes_screengroup.inc}
   end;
 

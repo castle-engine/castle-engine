@@ -120,9 +120,7 @@
     destructor Destroy; override;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -134,6 +132,11 @@
     { Force recalculating the shape and font texture.
       Call this when TFontStyleNode.CustomFont, TFontStyleNode.OnFont returns something different. }
     procedure FontChanged;
+
+    {  }
+    procedure SetString(const Value: array of string); overload; deprecated 'use SetText';
+    {  }
+    procedure SetString(const Value: TCastleStringList); overload; deprecated 'use SetText';
 
     {$I auto_generated_node_helpers/x3dnodes_text.inc}
   end;
@@ -517,8 +520,7 @@ begin
   finally FreeAndNil(TextWidths) end;
 end;
 
-function TTextNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TTextNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
@@ -852,11 +854,6 @@ begin
   Result := FdSolid;
 end;
 
-function TTextNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
-end;
-
 function TTextNode.Font: TTextureFontData;
 var
   TemporaryFontStyle: TFontStyleNode;
@@ -886,6 +883,16 @@ begin
     FFontTextureNode := X3DCache.LoadFontTexture(Font, Blending);
   end;
   Result := FFontTextureNode;
+end;
+
+procedure TTextNode.SetString(const Value: array of string);
+begin
+  SetText(Value);
+end;
+
+procedure TTextNode.SetString(const Value: TCastleStringList);
+begin
+  SetText(Value);
 end;
 
 { registration --------------------------------------------------------------- }

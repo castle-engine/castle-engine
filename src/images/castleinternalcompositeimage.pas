@@ -1,4 +1,3 @@
-{%MainUnit castleinternalcompositeimage.pas}
 {
   Copyright 2009-2022 Michalis Kamburelis.
 

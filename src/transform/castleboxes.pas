@@ -143,6 +143,16 @@ type
     function AverageSize(const AllowZero: boolean;
       const EmptyBoxSize: Single): Single; overload;
 
+    { Average size of TBox3D, or EmptyBoxSize if box is empty.
+      2D box projection is obtained by rejecting the IgnoreIndex coordinate
+      (must be 0, 1 or 2).
+
+      @param(AllowZero Decides what to do when box is not empty but the result
+        would be zero, which means that the box is infinitely thin in all axes.
+        If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
+    function AverageSize2D(const AllowZero: boolean;
+      const EmptyBoxSize: Single; const IgnoreIndex: T3DAxis): Single; overload;
+
     { Largest size of TBox3D, or EmptyBoxSize if box is empty.
       @param(AllowZero Decides what to do when box is not empty but the result
         would be zero, which means that the box is infinitely thin in all axes.
@@ -479,6 +489,14 @@ type
       const Point, Dir: TVector3;
       out MinDistance, MaxDistance: Single);
 
+    (* MaxDistanceAlongDirection not used, so not defined for now.
+    { Maximum distance from Point to one of box corners, along the given direction.
+
+      Like DirectionDistances, but only returns MaxDistance,
+      and is faster. }
+    function MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
+    *)
+
     { Shortest distance between the box and a point.
       Always zero when the point is inside the box.
 
@@ -645,6 +663,9 @@ function IsCenteredBox3DPlaneCollision(
 function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
 
+type
+  TBox3DEvent = function: TBox3D of object;
+
 implementation
 
 uses Math;
@@ -766,6 +787,28 @@ begin
     Result := ((Data[1].X - Data[0].X) +
                (Data[1].Y - Data[0].Y) +
                (Data[1].Z - Data[0].Z)) / 3;
+    if (not AllowZero) and (Result = 0) then
+      Result := EmptyBoxSize;
+  end;
+end;
+
+function TBox3D.AverageSize2D(const AllowZero: boolean;
+  const EmptyBoxSize: Single; const IgnoreIndex: T3DAxis): Single;
+begin
+  if IsEmpty then
+    Result := EmptyBoxSize else
+  begin
+    case IgnoreIndex of
+      0: Result := ((Data[1].Y - Data[0].Y) +
+                    (Data[1].Z - Data[0].Z)) / 2;
+      1: Result := ((Data[1].X - Data[0].X) +
+                    (Data[1].Z - Data[0].Z)) / 2;
+      2: Result := ((Data[1].X - Data[0].X) +
+                    (Data[1].Y - Data[0].Y)) / 2;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create(20221209);
+      {$endif}
+    end;
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxSize;
   end;
@@ -1542,7 +1585,7 @@ function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
 
 { Implementation based on
   [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
-  by Tomas Akenine-Möller, described
+  by Tomas Akenine-MÃ¶ller, described
   in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
   "Fast 3D Triangle-Box Overlap Testing", downloadable from
   [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
@@ -2002,6 +2045,9 @@ begin
   if Contains(P) then
     MinDistance := 0;
 
+  MinDistance := Sqrt(MinDistance);
+  MaxDistance := Sqrt(MaxDistance);
+
   { Because of floating point inaccuracy, MinDistance may be larger
     by epsilon than MaxDistance? Fix it to be sure. }
   { For now: just assert it: }
@@ -2057,6 +2103,44 @@ begin
   { For now: just assert it: }
   Assert(MinDistance <= MaxDistance);
 end;
+
+(* MaxDistanceAlongDirection not used, so not defined for now.
+function TBox3D.MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
+var
+  B: TBox3DBool absolute Data;
+  XMin, YMin, ZMin: boolean;
+  MaxPoint: TVector3;
+  Coord: Integer;
+begin
+  CheckNonEmpty;
+
+  XMin := Dir.X < 0;
+  YMin := Dir.Y < 0;
+  ZMin := Dir.Z < 0;
+
+  MaxPoint := PointOnLineClosestToPoint(Point, Dir,
+    Vector3(B[not XMin].X, B[not YMin].Y, B[not ZMin].Z));
+
+  Result := PointsDistance(Point, MaxPoint);
+
+  { choose one of the 3 coordinates where Dir is largest, for best
+    numerical stability. We need to compare now and see which
+    distances should be negated. }
+  Coord := MaxAbsVectorCoord(Dir);
+
+  if Dir[Coord] > 0 then
+  begin
+    { So the distances to points that are *larger* on Coord are positive.
+      Others should be negative. }
+    if MaxPoint[Coord] < Point[Coord] then
+      Result := -Result;
+  end else
+  begin
+    if MaxPoint[Coord] > Point[Coord] then
+      Result := -Result;
+  end;
+end;
+*)
 
 function TBox3D.PointDistance(const Point: TVector3): Single;
 begin

@@ -1,4 +1,4 @@
-camera
-  original name: video-solid.svg
-  https://fontawesome.com/
-  free OSI license - https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt
+camera:
+  by Aybige
+  from https://thenounproject.com/icon/camera-1560248/
+  license CCBY

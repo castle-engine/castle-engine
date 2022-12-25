@@ -605,7 +605,7 @@ begin
   if DoProgress then Progress.Step;
 
   if Scene <> nil then
-    Scene.PrepareResources(ScenePrepareResources, false, PrepareParams);
+    Scene.PrepareResources(ScenePrepareResources, PrepareParams);
   if DoProgress then Progress.Step;
 end;
 
@@ -934,7 +934,7 @@ function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleSc
 begin
   Result := ModelState.Scene.Clone(nil);
   Result.DefaultAnimationTransition := DefaultAnimationTransition;
-  Result.PrepareResources(ScenePrepareResources, false, Params);
+  Result.PrepareResources(ScenePrepareResources, Params);
 end;
 
 procedure T3DResource.PrepareCore(const Params: TPrepareParams;

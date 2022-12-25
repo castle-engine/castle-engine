@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,11 +16,14 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
+{$modeswitch advancedrecords}
+
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
+  Dialogs,
   CastleStringUtils,
-  ToolArchitectures, ToolManifest;
+  ToolArchitectures, ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -58,7 +61,7 @@ type
       Avoids adding empty lines at the very end (since they would
       make the look uglier; instead,
       we make nice separators with AddSeparator). }
-    procedure SplitAddLines(const S: String; const Kind: TOutputKind);
+    //procedure SplitAddLines(const S: String; const Kind: TOutputKind);
     procedure AddSeparator;
     procedure Clear;
   end;
@@ -73,6 +76,8 @@ type
     FRunning: Boolean;
     FExitStatus: Integer;
     Environment: TStringList;
+    { Additional process id to kill, when killing Process. }
+    ChildProcessId: TProcessId;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -89,6 +94,11 @@ type
 
     { Defined only after callling Start, once Running turned false. }
     property ExitStatus: Integer read FExitStatus;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   { Call asynchronous processes, one after another, until the end
@@ -123,6 +133,11 @@ type
     procedure Start;
     procedure Update;
     function Running: Boolean;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   TPlatformInfo = class
@@ -142,7 +157,7 @@ function YesNoBox(const Caption, Message: String): Boolean;
 procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
-  ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
+  ApiReferenceUrl = 'https://castle-engine.io/apidoc/html/';
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
 
@@ -164,7 +179,7 @@ function ApiReference(const PropertyObject: TObject;
 
   All created menu items have OnClick set to OnClickEvent. }
 procedure BuildComponentsMenu(
-  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
 type
@@ -189,6 +204,8 @@ var
   CodeEditor: TCodeEditor;
   { Code editor used to open Pascal files, when CodeEditor = ceCustom. }
   CodeEditorCommand: String;
+  { Code editor used to open Pascal files with line and number, when CodeEditor = ceCustom. }
+  CodeEditorCommandLineColumn: String;
   { Code editor used to open project, when CodeEditor = ceCustom. }
   CodeEditorCommandProject: String;
 
@@ -224,12 +241,41 @@ function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
   @eaises Exception if cannot autodetect, no IDE available. }
 function AutodetectCodeEditor: TCodeEditor;
 
+{ Consider this path as candidate for CastleEngineOverridePath,
+  check (without setting anything) whether it would make sense. }
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+function CgePathStatus(const CgePath: String): Boolean;
+
+{ Set SaveDialog.DefaultExt / Filter, based on ComponentToSave class. }
+procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog;
+  const ComponentToSave: TComponent);
+
+{ Should we use colors and icons for dark theme. Based on luminance. }
+function UseIconsAndColorsForDarkTheme: Boolean;
+
+type
+  { Saved selection state,
+    that can be restored even after loading a new version of design from file.
+    We save component by a Name (String) to avoid worrying about references
+    to freed component, and to be able to restore it even on new design file. }
+  TSavedSelection = record
+    SelectedComponent: String;
+    CurrentViewport: String;
+    { Index of the value selected/edited in the Object Inspector. }
+    ItemIndex: Integer;
+    { Index of the tab of Object Inspector. }
+    TabIndex: Integer;
+    class function Equals(const A, B: TSavedSelection): Boolean; static;
+  end;
+
 implementation
 
-uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
+uses
+  SysUtils, Graphics, TypInfo, Generics.Defaults, Math,
+  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
-  ToolCompilerInfo;
+  CastleColors,
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
@@ -335,6 +381,12 @@ begin
   Result := (FQueuePosition >= 0) and (FQueuePosition < Queue.Count);
 end;
 
+procedure TAsynchronousProcessQueue.TerminateChildrenHarder;
+begin
+  if (AsyncProcess <> nil) and AsyncProcess.Running then
+    AsyncProcess.TerminateChildrenHarder;
+end;
+
 { TAsynchronousProcess ------------------------------------------------------- }
 
 constructor TAsynchronousProcess.Create;
@@ -358,12 +410,9 @@ end;
 procedure TAsynchronousProcess.Start;
 var
   S, LogLine: String;
-  I: Integer;
 begin
   { copy environment }
-  Environment := TStringList.Create;
-  for I := 1 to GetEnvironmentVariableCount do
-    Environment.Add(GetEnvironmentString(I));
+  Environment := EnvironmentStrings;
 
   { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
     in the build tool.
@@ -373,6 +422,17 @@ begin
     It seems more reliable to just add them to PATH. }
   Environment.Values['PATH'] := PathExtendForFpcLazarus(Environment.Values['PATH']);
   WritelnLog('Calling process with extended PATH: ' + Environment.Values['PATH']);
+
+  { Pass CASTLE_ENGINE_PATH to build tool, to use the same CGE as detected by editor.
+    This means that e.g. editor that autodetects CGE (based on GetCastleEnginePathFromExeName,
+    because editor exe is in <cge>/tools/castle-editor/castle-editor)
+    invokes build tool in local bin (like ~/bin)
+    and the build tool uses the same <cge> as detected by editor. }
+  if CastleEnginePath <> '' then
+  begin
+    Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
+    WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
+  end;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
@@ -406,6 +466,22 @@ begin
 end;
 
 procedure TAsynchronousProcess.Update;
+
+  function LineProcessInternalInfo(const Line: String): Boolean;
+  const
+    Prefix = 'Castle Game Engine Internal: ProcessID: ';
+  var
+    ParsedProcessId: TProcessId;
+  begin
+    Result := false;
+    if IsPrefix(Prefix, Line, false) and
+       TryStrToInt64(PrefixRemove(Prefix, Line, false), ParsedProcessId) then
+    begin
+      ChildProcessId := ParsedProcessId;
+      Result := true;
+    end;
+  end;
+
 const
   ReadMaxSize = 65536;
 var
@@ -438,7 +514,8 @@ begin
       dump the remaining PendingLines as last line. }
     if (not Process.Running) and (Length(PendingLines) <> 0) then
     begin
-      OutputList.AddLine(PendingLines, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(PendingLines, okInfo);
       PendingLines := '';
     end;
     Exit;
@@ -473,7 +550,8 @@ begin
       if SCharIs(PendingLines, NewLinePos - 1, #13) then
         Dec(NewLinePos);
       Line := Copy(PendingLines, 1, NewLinePos - 1);
-      OutputList.AddLine(Line, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(Line, okInfo);
 
       PendingLines := SEnding(PendingLines, ProcessedLength + 1);
     end else
@@ -483,6 +561,15 @@ begin
   // if we get a lot of output, maybe more than ReadMaxSize, then keep reading!
   if ReadMaxSize = ReadBytes then
     Update;
+end;
+
+procedure TAsynchronousProcess.TerminateChildrenHarder;
+begin
+  if ChildProcessId <> 0 then
+  begin
+    OutputList.AddLine(Format('Stopping child process (id: %d)', [ChildProcessId]), okInfo);
+    StopProcess(ChildProcessId);
+  end;
 end;
 
 { TOutputList --------------------------------------------------------------- }
@@ -646,6 +733,8 @@ begin
     List.TopIndex := List.Items.Count - 1;
 end;
 
+(* Unused:
+
 procedure TOutputList.SplitAddLines(const S: String; const Kind: TOutputKind);
 var
   SL: TStringList;
@@ -661,6 +750,7 @@ begin
       AddLine(Line, Kind);
   finally FreeAndNil(SL) end;
 end;
+*)
 
 procedure TOutputList.AddSeparator;
 begin
@@ -799,29 +889,56 @@ begin
 end;
 
 function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+var
+  I: Integer;
 begin
-  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+  for I := 0 to Min(Length(Left.Caption), Length(Right.Caption)) - 1 do
+  begin
+    Result := AnsiCompareStr(Left.Caption[I], Right.Caption[I]);
+    if Result <> 0 then Exit;
+  end;
+
+  { When all common parts are the same, let the shorter one be considered smaller.
+    So < 0 when Length(Left.Caption) < Length(Right.Caption). }
+  Result := Length(Left.Caption) - Length(Right.Caption);
 end;
 
 procedure BuildComponentsMenu(
-  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
-    const R: TRegisteredComponent): TMenuItem;
+    const R: TRegisteredComponent; const CaptionPart: Integer = 0): TMenuItem;
   var
     S: String;
   begin
     if OwnerAndParent = nil then
       Exit; // exit if relevant ParentXxx is nil
-    Result := TMenuItem.Create(OwnerAndParent);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-    Result.OnClick := OnClickEvent;
-    OwnerAndParent.Add(Result);
+
+    if CaptionPart = Length(R.Caption) - 1 then
+    begin
+      { create last part, to actually invoke OnClickEvent }
+      Result := TMenuItem.Create(OwnerAndParent);
+      S := R.Caption[CaptionPart] + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+      Result.OnClick := OnClickEvent;
+      OwnerAndParent.Add(Result);
+    end else
+    begin
+      { create intermediate submenu part }
+      Result := OwnerAndParent.Find(R.Caption[CaptionPart]);
+      if Result = nil then
+      begin
+        Result := TMenuItem.Create(OwnerAndParent);
+        Result.Caption := R.Caption[CaptionPart];
+        OwnerAndParent.Add(Result);
+      end;
+      { recursive call to create deeper menu level }
+      CreateMenuItemForComponent(Result, R, CaptionPart + 1);
+    end;
   end;
 
 type
@@ -839,9 +956,6 @@ begin
   for R in RegisteredComponents do
     if not R.IsDeprecated then
     begin
-      if R.ComponentClass.InheritsFrom(TCastleNavigation) then
-        CreateMenuItemForComponent(ParentNavigation, R)
-      else
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
         CreateMenuItemForComponent(ParentUserInterface, R)
       else
@@ -944,6 +1058,128 @@ begin
     Result := ceVSCode
   else
     raise Exception.Create('Cannot auto-detect IDE. Install one of the supported IDEs: Lazarus, Delphi or Visual Studio Code.');
+end;
+
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+
+  function RemoveCommitHash(const Ver: String): String;
+  var
+    I: Integer;
+  begin
+    I := Pos(' (commit ', Ver);
+    if I <> 0 then
+      Result := Copy(Ver, 1, I - 1)
+    else
+      Result := Ver;
+  end;
+
+var
+  VersionFile, VersionLine, Version, EditorVersion: String;
+  VersionContentsList: TStringList;
+begin
+  if CgePath = '' then
+  begin
+    StatusText := 'Status: Cannot auto-detect engine location, set it manually above';
+    Exit(false);
+  end;
+
+  VersionFile := InclPathDelim(CgePath) + 'src' + PathDelim +
+    'base' + PathDelim + 'castleversion.inc';
+  if not FileExists(VersionFile) then
+  begin
+    StatusText := Format('Status: Invalid, cannot find file "%s"', [VersionFile]);
+    Exit(false);
+  end;
+
+  VersionContentsList := TStringList.Create;
+  try
+    try
+      VersionContentsList.LoadFromFile(VersionFile);
+    except
+      StatusText := Format('Status: Invalid, cannot read file "%s"', [VersionFile]);
+      Result := true;
+    end;
+
+    if VersionContentsList.Count = 0 then
+    begin
+      StatusText := Format('Status: Invalid, empty file "%s"', [VersionFile]);
+      Exit(false);
+    end;
+
+    VersionLine := VersionContentsList[0];
+    if (not SCharIs(VersionLine, 1, '''')) or
+       (not SCharIs(VersionLine, Length(VersionLine), '''')) then
+    begin
+      StatusText := Format('Status: Invalid, first line is not a String: "%s"', [VersionFile]);
+      Exit(false);
+    end;
+  finally FreeAndNil(VersionContentsList) end;
+
+  Version := Copy(VersionLine, 2, Length(VersionLine) - 2);
+
+  { Due to the way pack_release.sh works, actually Version will never have a hash.
+    Only CastleEngineVersion can have it,
+    and it would cause mismatches, to remove it. }
+  Version := RemoveCommitHash(Version);
+  EditorVersion := RemoveCommitHash(CastleEngineVersion);
+
+  if Version <> EditorVersion then
+  begin
+    StatusText := Format('Status: Valid engine, but version mismatch with editor: "%s" vs editor "%s"', [
+      Version,
+      EditorVersion
+    ]);
+    Exit(False);
+  end;
+
+  StatusText := 'Status: OK (engine found, version matches editor)';
+  Result := true;
+end;
+
+function CgePathStatus(const CgePath: String): Boolean;
+var
+  IgnoreStatusText: String;
+begin
+  Result := CgePathStatus(CgePath, IgnoreStatusText);
+end;
+
+procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog; const ComponentToSave: TComponent);
+begin
+  if ComponentToSave is TCastleUserInterface then
+  begin
+    SaveDialog.DefaultExt := 'castle-user-interface';
+    SaveDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+  end else
+  if ComponentToSave is TCastleTransform then
+  begin
+    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
+      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
+      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
+      and instead GTK applies first filter. }
+    SaveDialog.DefaultExt := 'castle-transform';
+    SaveDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+  end else
+  begin
+    SaveDialog.DefaultExt := 'castle-component';
+    SaveDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
+  end;
+end;
+
+function UseIconsAndColorsForDarkTheme: Boolean;
+var
+  Luminance: Single;
+begin
+  Luminance := GrayscaleValue(ColorToVector3(clForm));
+  Result := Luminance < 180 / 255;
+end;
+
+class function TSavedSelection.Equals(const A, B: TSavedSelection): Boolean; static;
+begin
+  Result :=
+    (A.SelectedComponent = B.SelectedComponent) and
+    (A.CurrentViewport = B.CurrentViewport) and
+    (A.ItemIndex = B.ItemIndex) and
+    (A.TabIndex = B.TabIndex);
 end;
 
 end.

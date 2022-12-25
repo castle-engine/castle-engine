@@ -65,7 +65,9 @@ type
     FBaseUrl: string;
   public
     property BaseUrl: string read FBaseUrl write FBaseUrl;
-    { Find image with given extension, or '' if not found. }
+    { Find image with given extension, or '' if not found.
+      Note that the returned image filename is relative to project path,
+      usually you should process it like @code(IconPath := CombinePaths(Project.Path, IconPath)). }
     function FindExtension(const Extensions: array of string): string;
     { Find and read an image format that we can process with our CastleImages.
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
@@ -98,6 +100,7 @@ type
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
+      DefaultMacAppBundle = true;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -149,6 +152,7 @@ type
       FFreeDesktopCategories: String;
       FFreeDesktopComment: String;
       FDetectMemoryLeaks: Boolean;
+      FMacAppBundle: Boolean;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -292,14 +296,22 @@ type
 
     property DetectMemoryLeaks: Boolean read FDetectMemoryLeaks;
 
+    property MacAppBundle: Boolean read FMacAppBundle;
+
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
       Returns absolute filename, or '' if not found. }
     // unused: function SearchFile(const BaseName: String): String;
 
     { Find a unit with given name among SearchPaths of this project.
-      Returns absolute filename, or '' if not found. }
+      Returns absolute filename, or '' if not found.
+      AUnitName is a Pascal unit name (not a filename, without any extension). }
     function SearchPascalUnit(const AUnitName: String): String;
+
+    { Find a Pascal source file with given name among SearchPaths of this project.
+      Returns absolute filename, or '' if not found.
+      ABaseFileName is a filename (without any path separators) to search for. }
+    function SearchPascalFile(const ABaseFileName: String): String;
 
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
@@ -436,6 +448,7 @@ begin
   FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
   FFullscreenImmersive := DefaultFullscreenImmersive;
   FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
+  FMacAppBundle := DefaultMacAppBundle;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToURISafe(FPath);
@@ -506,6 +519,8 @@ begin
       Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
     FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
     FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
+    FMacAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_app_bundle',
+      DefaultMacAppBundle);
 
     FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
     // create default FVersion value, if necessary
@@ -1001,6 +1016,21 @@ begin
       Exit(FileNameAbsolute);
 
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pp');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+  end;
+  Result := '';
+end;
+
+function TCastleManifest.SearchPascalFile(const ABaseFileName: String): String;
+var
+  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
+begin
+  for SearchPath in SearchPaths do
+  begin
+    SearchPathAbsolute := CombinePaths(Path, SearchPath);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, ABaseFileName);
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
   end;

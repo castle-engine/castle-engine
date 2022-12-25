@@ -8,7 +8,7 @@ IFS=$'\n\t'
 # https://itch.io/docs/itch/installing/linux/ubuntu-and-debian.html
 
 castle-engine compile
-VERSION=`../platformer --version | sed -e "s/^platformer //" `
+VERSION=`castle-engine output version`
 
 # Package for platform expressed as OS/CPU combination (using default --target=custom)
 # for CGE build tool

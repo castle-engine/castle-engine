@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,7 +69,7 @@ begin
   inherited;
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  PlayerPosition := ImagePlayer.AnchorDelta;
+  PlayerPosition := ImagePlayer.Translation;
 
   if Container.Pressed[keyArrowLeft] then
     PlayerPosition := PlayerPosition + Vector2(-MoveSpeed * SecondsPassed, 0);
@@ -82,7 +82,7 @@ begin
 
   { update player position to fall down }
   PlayerPosition.Y := Max(PlayerPosition.Y - SecondsPassed * 400, 0);
-  ImagePlayer.AnchorDelta := PlayerPosition;
+  ImagePlayer.Translation := PlayerPosition;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -108,7 +108,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    ImagePlayer.AnchorDelta := ImagePlayer.Parent.ContainerToLocalPosition(Event.Position);
+    ImagePlayer.Translation := ImagePlayer.Parent.ContainerToLocalPosition(Event.Position);
     Exit(true); // event was handled
   end;
 end;

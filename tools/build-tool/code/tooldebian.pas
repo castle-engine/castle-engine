@@ -43,32 +43,6 @@ uses
   CastleStringUtils,
   ToolCommonUtils, ToolUtils;
 
-{ DirectorySize utility ------------------------------------------------------ }
-
-type
-  TDirectorySizeHelper = class
-  public
-    { Total size of all files in the directory. }
-    Size: Int64;
-    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-  end;
-
-procedure TDirectorySizeHelper.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-begin
-  Size += FileInfo.Size;
-end;
-
-function DirectorySize(const Dir: String): Int64;
-var
-  Helper: TDirectorySizeHelper;
-begin
-  Helper := TDirectorySizeHelper.Create;
-  try
-    FindFiles(Dir, '*', false, {$ifdef FPC}@{$endif}Helper.FoundFile, [ffRecursive]);
-    Result := Helper.Size;
-  finally FreeAndNil(Helper) end;
-end;
-
 { FindFileCheck ----------------------------------------------------- }
 
 { Various checks on files/dirs in package main directory. }

@@ -25,6 +25,10 @@ unit CastleSoundEngine;
   {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
 {$endif}
 
+{$ifdef CASTLE_STRICT_CLI}
+  {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
@@ -49,14 +53,12 @@ type
 
 implementation
 
-{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses XMLRead, StrUtils, Generics.Defaults,
-  CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
+  CastleUtils, CastleLog, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
   , CastleComponentSerialize;
-{$warnings on}
 
 {$define read_implementation}
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals

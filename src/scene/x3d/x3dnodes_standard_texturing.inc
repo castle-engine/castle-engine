@@ -16,17 +16,12 @@
 {$ifdef read_interface}
   { Base for all nodes which specify texture coordinates. }
   TAbstractTextureCoordinateNode = class(TAbstractGeometricPropertyNode)
-  public
-    procedure CreateNode; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
   end;
 
   { Base for all nodes which specify a texture coordinate, but not MultiTextureCoordinate. }
   TAbstractSingleTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
   end;
 
   { Base for all nodes which specify a texture, possibly multi-texture. }
@@ -39,8 +34,6 @@
       descendant). }
     function AlphaChannelData: TAlphaChannel; virtual;
   public
-    procedure CreateNode; override;
-
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
       "none" if it's not defined at all.
@@ -58,37 +51,18 @@
       (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ).
       In case of MultiTexture node, looks at children. }
     function AlphaChannelFinal: TAlphaChannel; virtual;
+  {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
   end;
 
   { Base for all nodes which specify a texture, but not multi-texture. }
   TAbstractSingleTextureNode = class(TAbstractTextureNode)
-  strict private
-    function GetAlphaChannelField: TAutoAlphaChannel;
-    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
   public
-    procedure CreateNode; override;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdCrossOrigin: TSFString;
-    public property FdCrossOrigin: TSFString read FFdCrossOrigin;
-    {$endif}
-
-    strict private FFdAlphaChannel: TSFStringEnum;
-    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
-    property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
-
     function AlphaChannelFinal: TAlphaChannel; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
   end;
 
-  { VRML/X3D texture that is 2D and can be loaded (from file or some other stream).
-
-    For X3D, this descends from X3DTextureNode and is an ancestor
-    for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
+  { 2D texture. }
   TAbstractTexture2DNode = class(TAbstractSingleTextureNode)
   private
     { Together we call FTextureImage, FTextureComposite,
@@ -159,14 +133,9 @@
       simple crashes). }
     procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
 
-    function GetRepeatS: boolean; virtual; abstract;
-    function GetRepeatT: boolean; virtual; abstract;
-    procedure SetRepeatS(const Value: boolean); virtual; abstract;
-    procedure SetRepeatT(const Value: boolean); virtual; abstract;
-
     function AlphaChannelData: TAlphaChannel; override;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
 
     { TextureImage, TextureComposite and TextureVideo contain actual texture data.
@@ -229,15 +198,6 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    { Whether the texture repeats or clamps in given direction.
-      Getting or setting this is the most comfortable way to change underlying
-      node fields, setting this automatically does all necessary (sends events
-      etc., see TVRMLField.Send).
-      @groupBegin }
-    property RepeatS: boolean read GetRepeatS write SetRepeatS;
-    property RepeatT: boolean read GetRepeatT write SetRepeatT;
-    { @groupEnd }
-
     { Once the texture data (image or video) is loaded,
       this is set to the URL that was used to load,
       or '' if no URL was used. "No URL was used" may mean that
@@ -250,60 +210,31 @@
       user), it's cutted. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
 
-    strict private FFdTextureProperties: TSFNode;
-    public property FdTextureProperties: TSFNode read FFdTextureProperties;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
-  { X3D texture that is 2D and can be loaded (from file or some other stream). }
-  TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
-  strict protected
-    function GetRepeatS: boolean; override;
-    function GetRepeatT: boolean; override;
-    procedure SetRepeatS(const Value: boolean); override;
-    procedure SetRepeatT(const Value: boolean); override;
-  public
-    procedure CreateNode; override;
-
-    strict private FFdRepeatS: TSFBool;
-    public property FdRepeatS: TSFBool read FFdRepeatS;
-
-    strict private FFdRepeatT: TSFBool;
-    public property FdRepeatT: TSFBool read FFdRepeatT;
-  end;
+  TAbstractX3DTexture2DNode = TAbstractTexture2DNode deprecated 'use TAbstractTexture2DNode';
 
   { Base for all nodes which specify a transformation of texture coordinates. }
   TAbstractTextureTransformNode = class(TAbstractAppearanceChildNode)
   public
-    procedure CreateNode; override;
     function TransformMatrix: TMatrix4; virtual; abstract;
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
   end;
 
   { Base for all nodes which specify a texture coordinate transform, but not MultiTextureTransform. }
   TAbstractSingleTextureTransformNode = class(TAbstractTextureTransformNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
   end;
 
   { Texture image loaded from a file. }
-  TImageTextureNode = class(TAbstractX3DTexture2DNode)
+  TImageTextureNode = class(TAbstractTexture2DNode)
   strict private
     function LoadOptions: TLoadImageOptions;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
-
-    strict private FFdFlipVertically: TSFBool;
-    public property FdFlipVertically: TSFBool read FFdFlipVertically;
 
     function TextureDescription: string; override;
 
@@ -341,7 +272,7 @@
   end;
 
   { Movie file, that can be played and displayed as a texture. }
-  TMovieTextureNode = class(TAbstractX3DTexture2DNode)
+  TMovieTextureNode = class(TAbstractTexture2DNode)
   strict private
     FDuration: TFloatTime;
     FTimeFunctionality: TTimeDependentFunctionality;
@@ -383,33 +314,19 @@
   TMultiTextureNode = class(TAbstractTextureNode)
   public
     function AlphaChannelData: TAlphaChannel; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
+  {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
   end;
 
   { Multiple texture coordinates per vertex,
     to be used with multi-texturing by @link(TMultiTextureNode). }
   TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTexCoord: TMFNode;
-    public property FdTexCoord: TMFNode read FFdTexCoord;
-
-    {$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
   end;
 
   { Multiple texture transforms,
     to be used with multi-texturing by @link(TMultiTextureNode). }
   TMultiTextureTransformNode = class(TAbstractTextureTransformNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTextureTransform: TMFNode;
-    public property FdTextureTransform: TMFNode read FFdTextureTransform;
-
     { For MultiTextureTransform, this always raises an internal error.
       Reason: you cannot get single texture transform matrix from
       MultiTextureTransform.
@@ -418,7 +335,7 @@
         for MultiTextureTransform.) }
     function TransformMatrix: TMatrix4; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
+  {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
   end;
 
   { Texture specified as an explicit array of pixel values (see @link(FdImage) field).
@@ -440,49 +357,22 @@
     The image contents stay compressed this way (although expressed in base64),
     so it may be more compact than PixelTexture.
   }
-  TPixelTextureNode = class(TAbstractX3DTexture2DNode)
+  TPixelTextureNode = class(TAbstractTexture2DNode)
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdImage: TSFImage;
-    public property FdImage: TSFImage read FFdImage;
-
     function TextureDescription: string; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
+  {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
   { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec2f;
-    public property FdPoint: TMFVec2f read FFdPoint;
-
-    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
   end;
 
   { Automatic generation of texture coordinates. }
   TTextureCoordinateGeneratorNode = class(TAbstractSingleTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdMode: TSFString;
-    public property FdMode: TSFString read FFdMode;
-
-    strict private FFdParameter: TMFFloat;
-    public property FdParameter: TMFFloat read FFdParameter;
-
-    strict private FFdProjectedLight: TSFNode;
-    public property FdProjectedLight: TSFNode read FFdProjectedLight;
-
-    {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
   { Boundary modes for texture coordinates.
@@ -518,56 +408,15 @@
     @link(TTextureCoordinateNode). }
   TTextureTransformNode = class(TAbstractSingleTextureTransformNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdCenter: TSFVec2f;
-    public property FdCenter: TSFVec2f read FFdCenter;
-
-    strict private FFdRotation: TSFFloat;
-    public property FdRotation: TSFFloat read FFdRotation;
-
-    strict private FFdScale: TSFVec2f;
-    public property FdScale: TSFVec2f read FFdScale;
-
-    strict private FFdTranslation: TSFVec2f;
-    public property FdTranslation: TSFVec2f read FFdTranslation;
-
     function TransformMatrix: TMatrix4; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TAbstractSingleTextureCoordinateNode --------------------------------------- }
-
-constructor TAbstractSingleTextureCoordinateNode.Create(const AX3DName: string; const ABaseUrl: string);
-begin
-  inherited;
-  FdMapping.ChangeAlways := chTextureCoordinate;
-end;
-
-{ TAbstractTextureCoordinateNode ---------------------------------------------- }
-
-procedure TAbstractTextureCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  { X3D XML spec doesn't specify containerField for abstract X3D classes.
-    texCoord seems most sensible for this case. }
-  DefaultContainerField := 'texCoord';
-end;
-
 { TAbstractTextureNode ------------------------------------------------------- }
-
-procedure TAbstractTextureNode.CreateNode;
-begin
-  inherited;
-  DefaultContainerField := 'texture';
-end;
 
 function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
 begin
@@ -586,57 +435,24 @@ end;
 
 { TAbstractSingleTextureNode -------------------------------------------------------- }
 
-procedure TAbstractSingleTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chEverything;
-  AddField(FFdEffects);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdCrossOrigin := TSFString.Create(Self, false, 'crossOrigin', '');
-   FdCrossOrigin.ChangeAlways := chNone;
-  AddField(FFdCrossOrigin);
-  {$endif}
-
-  FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
-   FdAlphaChannel.ChangeAlways := chVisibleVRML1State;
-  AddField(FFdAlphaChannel);
-end;
-
-function TAbstractSingleTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
-begin
-  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
-end;
-
-procedure TAbstractSingleTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
-begin
-  FdAlphaChannel.SendEnumValue(Ord(Value));
-end;
-
 function TAbstractSingleTextureNode.AlphaChannelFinal: TAlphaChannel;
 var
   Res: TAutoAlphaChannel;
 begin
-  Res := AlphaChannelField;
+  Res := AlphaChannel;
   if Res = acAuto then
-    Result := AlphaChannelData else
+    Result := AlphaChannelData
+  else
     Result := Res;
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
 
-procedure TAbstractTexture2DNode.CreateNode;
+constructor TAbstractTexture2DNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
   UsedCache := nil;
   FIsTextureLoaded := false;
-
-  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdTextureProperties);
 end;
 
 destructor TAbstractTexture2DNode.Destroy;
@@ -751,80 +567,12 @@ begin
   Result := FAlphaChannelData;
 end;
 
-{ TAbstractX3DTexture2DNode ------------------------------------------------------ }
-
-procedure TAbstractX3DTexture2DNode.CreateNode;
-begin
-  inherited;
-
-  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', true);
-   FdRepeatS.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatS);
-
-  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', true);
-   FdRepeatT.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatT);
-end;
-
-function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
-begin
-  Result := FdRepeatS.Value;
-end;
-
-function TAbstractX3DTexture2DNode.GetRepeatT: boolean;
-begin
-  Result := FdRepeatT.Value;
-end;
-
-procedure TAbstractX3DTexture2DNode.SetRepeatS(const Value: boolean);
-begin
-  FdRepeatS.Send(Value);
-end;
-
-procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: boolean);
-begin
-  FdRepeatT.Send(Value);
-end;
-
-procedure TAbstractTextureTransformNode.CreateNode;
-begin
-  inherited;
-
-  DefaultContainerField := 'textureTransform';
-end;
-
-{ TAbstractSingleTextureTransformNode --------------------------------------- }
-
-constructor TAbstractSingleTextureTransformNode.Create(const AX3DName: string; const ABaseUrl: string);
-begin
-  inherited;
-  FdMapping.ChangeAlways := chTextureTransform; // TODO is this enough? chTextureTransform will not free proxy?
-end;
-
 { TImageTextureNode ---------------------------------------------------------- }
 
 constructor TImageTextureNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
-end;
-
-procedure TImageTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangeAlways := chTextureImage;
-  AddField(FFdUrl);
-  { X3D specification comment: [URI] }
-
-  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
-  AddField(FFdFlipVertically);
-end;
-
-class function TImageTextureNode.ClassX3DType: string;
-begin
-  Result := 'ImageTexture';
 end;
 
 function TImageTextureNode.LoadOptions: TLoadImageOptions;
@@ -932,6 +680,8 @@ begin
   if Scene <> nil then
     Scene.InternalChangedField(FdUrl);
 end;
+
+{ TMovieTextureNode ---------------------------------------------------------- }
 
 constructor TMovieTextureNode.Create(const AX3DName, ABaseUrl: String);
 begin
@@ -1044,54 +794,13 @@ begin
   end;
 end;
 
-procedure TMultiTextureCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  FFdTexCoord := TMFNode.Create(Self, true, 'texCoord', [TAbstractSingleTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chTextureCoordinate;
-  AddField(FFdTexCoord);
-end;
-
-class function TMultiTextureCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'MultiTextureCoordinate';
-end;
-
-procedure TMultiTextureTransformNode.CreateNode;
-begin
-  inherited;
-
-  FFdTextureTransform := TMFNode.Create(Self, true, 'textureTransform', [TAbstractSingleTextureTransformNode]);
-   FdTextureTransform.ChangeAlways := chEverything;
-  AddField(FFdTextureTransform);
-end;
-
-class function TMultiTextureTransformNode.ClassX3DType: string;
-begin
-  Result := 'MultiTextureTransform';
-end;
-
 function TMultiTextureTransformNode.TransformMatrix: TMatrix4;
 begin
   raise EInternalError.Create('You cannot get single TransformMatrix from MultiTextureTransform node');
   Result := TMatrix4.Identity; { avoid warnings that result not set }
 end;
 
-procedure TPixelTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdImage := TSFImage.Create(Self, true, 'image', nil);
-   FdImage.ChangeAlways := chTextureImage;
-  AddField(FFdImage);
-  { X3D specification comment: 0 0 }
-  end;
-
-class function TPixelTextureNode.ClassX3DType: string;
-begin
-  Result := 'PixelTexture';
-end;
+{ TPixelTextureNode ---------------------------------------------------------- }
 
 procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 begin
@@ -1112,52 +821,6 @@ begin
         FdImage.Value.Height,
         BoolToStr(FdImage.Value.HasAlpha, true) ]) else
     result := 'none';
-end;
-
-procedure TTextureCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec2f.Create(Self, true, 'point', []);
-   FdPoint.ChangeAlways := chTextureCoordinate;
-  AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'TextureCoordinate';
-end;
-
-procedure TTextureCoordinateGeneratorNode.CreateNode;
-begin
-  inherited;
-
-  FFdMode := TSFString.Create(Self, true, 'mode', 'SPHERE');
-   FdMode.ChangeAlways := chTextureCoordinate;
-  AddField(FFdMode);
-  { X3D specification comment: [see Table 18.6] }
-
-  FFdParameter := TMFFloat.Create(Self, true, 'parameter', []);
-   FdParameter.ChangeAlways := chTextureCoordinate;
-  AddField(FFdParameter);
-  { X3D specification comment: [see Table 18.6] }
-
-  { Note that projectedLight node is not enumerated as an active node
-    for traversing (in DirectEnumerateActive), because the light doesn't
-    shine here. We don't want
-    to override it's transform with transformation of this
-    TextureCoordinateGenerator. }
-  FFdProjectedLight := TSFNode.Create(Self, true, 'projectedLight',
-    [TSpotLightNode_1, TDirectionalLightNode_1,
-     TSpotLightNode  , TDirectionalLightNode  ]);
-   FdProjectedLight.ChangeAlways := chTextureCoordinate;
-  AddField(FFdProjectedLight);
-end;
-
-class function TTextureCoordinateGeneratorNode.ClassX3DType: string;
-begin
-  Result := 'TextureCoordinateGenerator';
 end;
 
 const
@@ -1265,36 +928,7 @@ begin
   FdMagnificationFilter.Send(Names[Value]);
 end;
 
-procedure TTextureTransformNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec2f.Create(Self, true, 'center', Vector2(0, 0));
-   FdCenter.ChangeAlways := chTextureTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdRotation := TSFFloat.Create(Self, true, 'rotation', 0);
-   FFdrotation.Angle := true;
-   FFdrotation.ChangeAlways := chTextureTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdScale := TSFVec2f.Create(Self, true, 'scale', Vector2(1, 1));
-   FdScale.ChangeAlways := chTextureTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdTranslation := TSFVec2f.Create(Self, true, 'translation', Vector2(0, 0));
-   FdTranslation.ChangeAlways := chTextureTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureTransformNode.ClassX3DType: string;
-begin
-  Result := 'TextureTransform';
-end;
+{ TTextureTransformNode ------------------------------------------------------ }
 
 function TTextureTransformNode.TransformMatrix: TMatrix4;
 begin

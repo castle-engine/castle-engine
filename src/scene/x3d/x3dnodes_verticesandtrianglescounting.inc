@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,14 +17,13 @@
   potomkow TAbstractGeometryNode }
 
 function TAbstractGeometryNode.CallProxyVerticesCount(
-  OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := ProxyGeometry.VerticesCount(ProxyState, OverTriangulate, nil, nil);
+  Result := ProxyGeometry.VerticesCount(ProxyState, nil, nil);
 end;
 
 function TAbstractGeometryNode.VerticesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   C: TMFVec3f;
@@ -37,113 +36,99 @@ begin
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := CallProxyVerticesCount(OverTriangulate, ProxyGeometry, ProxyState) else
+      Result := CallProxyVerticesCount(ProxyGeometry, ProxyState) else
       raise EInternalError.CreateFmt('%s: TAbstractGeometryNode.VerticesCount not overridden, and node not coordinate-based and without a Proxy', [ClassName]);
   end;
 end;
 
 function TAbstractGeometryNode.CallProxyTrianglesCount(
-  OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := ProxyGeometry.TrianglesCount(ProxyState, OverTriangulate, nil, nil);
+  Result := ProxyGeometry.TrianglesCount(ProxyState, nil, nil);
 end;
 
 function TAbstractGeometryNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if ProxyGeometry <> nil then
-    Result := CallProxyTrianglesCount(OverTriangulate, ProxyGeometry, ProxyState) else
+    Result := CallProxyTrianglesCount(ProxyGeometry, ProxyState) else
     raise EInternalError.CreateFmt('%s: TAbstractGeometryNode.TrianglesCount not overridden, and node without a Proxy', [ClassName]);
 end;
 
-function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function Cone_TrianglesCount(State: TX3DGraphTraverseState;
   const Sides, Bottom: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
-  result := 0;
+  Result := 0;
   if Sides then
-  begin
-    if OverTriangulate then
-      result := result + (Slices * ((Stacks - 1) * 2 + 1))
-    else
-      result := result + Slices;
-  end;
+    Result := Result + (Slices * ((Stacks - 1) * 2 + 1));
   if Bottom then
-    result := result + Slices;
+    Result := Result + Slices;
 end;
 
-function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Cone_TrianglesCount(State, OverTriangulate,
+  Result := Cone_TrianglesCount(State,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM],
     DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
 
-function TConeNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TConeNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Cone_TrianglesCount(State, OverTriangulate,
+  Result := Cone_TrianglesCount(State,
     FdSide.Value, FdBottom.Value, CalculateSlices, CalculateStacks);
 end;
 
-function Box_TrianglesCount(State: TX3DGraphTraverseState;
-  OverTriangulate: boolean; const Divisions: Cardinal): Cardinal;
+function Box_TrianglesCount(State: TX3DGraphTraverseState): Cardinal;
 begin
-  if OverTriangulate then
-    result := Sqr(Divisions + 1) * 2 * 6 else
-    result := 6 * 2;
+  result := 6 * 2;
 end;
 
-function TCubeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TCubeNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Box_TrianglesCount(State, OverTriangulate,
-    DefaultTriangulationDivisions);
+  Result := Box_TrianglesCount(State);
 end;
 
-function TBoxNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TBoxNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Box_TrianglesCount(State, OverTriangulate,
-    CalculateDivisions);
+  Result := Box_TrianglesCount(State);
 end;
 
-function Cylinder_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function Cylinder_TrianglesCount(State: TX3DGraphTraverseState;
   const Bottom, Side, Top: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
-  result := 0;
+  Result := 0;
   if Side then
-  begin
-    if OverTriangulate then
-      result := result + (2 * Slices * Stacks)
-    else
-      result := result + (2 * Slices);
-  end;
-  if Top then result := result + Slices;
-  if Bottom then result := result + Slices;
+    Result := Result + (2 * Slices * Stacks);
+  if Top then
+    Result := Result + Slices;
+  if Bottom then
+    Result := Result + Slices;
 end;
 
-function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Cylinder_TrianglesCount(State, OverTriangulate,
+  Result := Cylinder_TrianglesCount(State,
     FdParts.Flags[CYLINDER_PARTS_BOTTOM],
     FdParts.Flags[CYLINDER_PARTS_SIDES],
     FdParts.Flags[CYLINDER_PARTS_TOP],
-    DefaultTriangulationSlices, DefaultTriangulationStacks);
+    DefaultTriangulationSlices, 1 { no stacks used for cylinder });
 end;
 
-function TCylinderNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TCylinderNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Cylinder_TrianglesCount(State, OverTriangulate,
+  Result := Cylinder_TrianglesCount(State,
     FdBottom.Value, FdSide.Value, FdTop.Value, CalculateSlices, CalculateStacks);
 end;
 
 function IndexedPolygons_TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   CoordIndex: TMFLong; Coord: TMFVec3f): Cardinal;
 var
   BeginIndex, EndIndex: integer;
@@ -165,74 +150,74 @@ begin
   end;
 end;
 
-function TIndexedFacesOrTrianglesNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TIndexedFacesOrTrianglesNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+  Result := IndexedPolygons_TrianglesCount(State,
     FdCoordIndex, InternalCoordinates(State));
 end;
 
-function TIndexedFaceSetNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TIndexedFaceSetNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+  Result := IndexedPolygons_TrianglesCount(State,
     FdCoordIndex, InternalCoordinates(State));
 end;
 
-function TIndexedLineSetNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TIndexedLineSetNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   result := 0;
 end;
 
-function TIndexedLineSetNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TIndexedLineSetNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   result := 0;
 end;
 
-function TLineSetNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TLineSetNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   result := 0;
 end;
 
-function TPointSetNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPointSetNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   result := 0;
 end;
 
-function TPointSetNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPointSetNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   result := 0;
 end;
 
 function Sphere_TrianglesCount(State: TX3DGraphTraverseState;
-  OverTriangulate: boolean; const Slices, Stacks: Cardinal): Cardinal;
+  const Slices, Stacks: Cardinal): Cardinal;
 begin
   result := Slices * ((Stacks - 2) * 2 + 2);
 end;
 
-function TSphereNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TSphereNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Sphere_TrianglesCount(State, OverTriangulate,
+  Result := Sphere_TrianglesCount(State,
     DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
 
-function TSphereNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TSphereNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Sphere_TrianglesCount(State, OverTriangulate,
+  Result := Sphere_TrianglesCount(State,
     CalculateSlices, CalculateStacks);
 end;
 
 { TElevationGridNode --------------------------------------------------------- }
 
 function TElevationGridNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if IsNotEmpty then
@@ -241,7 +226,7 @@ begin
 end;
 
 function TElevationGridNode.VerticesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if IsNotEmpty then
@@ -252,7 +237,7 @@ end;
 { TExtrusionNode ------------------------------------------------------------- }
 
 function TExtrusionNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   E: TVRMLExtrusion;
@@ -274,7 +259,7 @@ end;
 { X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
 
 function TIndexedTriangleSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if InternalCoordinates(State) <> nil then
@@ -286,7 +271,7 @@ begin
 end;
 
 function TTriangleSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   ACoord: TMFVec3f;
@@ -298,15 +283,15 @@ begin
 end;
 
 function TIndexedTriangleFanSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+  Result := IndexedPolygons_TrianglesCount(State,
     FdIndex, InternalCoordinates(State));
 end;
 
 function TTriangleFanSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if InternalCoordinates(State) <> nil then
@@ -316,15 +301,15 @@ begin
 end;
 
 function TIndexedTriangleStripSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+  Result := IndexedPolygons_TrianglesCount(State,
     FdIndex, InternalCoordinates(State));
 end;
 
 function TTriangleStripSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if InternalCoordinates(State) <> nil then
@@ -334,7 +319,7 @@ begin
 end;
 
 function TIndexedQuadSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if InternalCoordinates(State) <> nil then
@@ -346,7 +331,7 @@ begin
 end;
 
 function TQuadSetNode.TrianglesCount(
-  State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   ACoord: TMFVec3f;

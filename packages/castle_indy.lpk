@@ -29,7 +29,7 @@ This package, castle_indy.lpk, contains the units that depend on Indy. You can i
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
-    <Version Major="6" Minor="5"/>
+    <Version Major="6" Minor="92"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../src/files/indy/castleclientserver.pas"/>

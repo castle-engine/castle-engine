@@ -30,11 +30,6 @@ interface
 
 uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 
-{$ifndef FPC}
-Resourcestring
-  SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
-{$endif}
-
 type
   EInvalidComponentFile = class(Exception);
 
@@ -55,6 +50,25 @@ function ComponentToString(const C: TComponent): String;
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 
 type
+  { Additional loading configuration for InternalStringToComponent.
+    @exclude }
+  TInternalComponentLoadInfo = class
+    { Allows viewports to preserve design-time camera/navigation across CGE editor undo. }
+    PreserveDataAcrossUndo: TComponent;
+    { If ChangeClassName is non-empty, at loading we change class of given component to this. }
+    ChangeClassName: String;
+    ChangeClassClass: TComponentClass;
+  end;
+
+{ Like StringToComponent but takes additional TInternalComponentLoadInfo
+  that adds some possibilities. LoadInfo may be @nil (making this equivalent
+  to just StringToComponent).
+  @exclude }
+function InternalStringToComponent(const Contents: String;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
+
+type
   { Describes a component registered using @link(RegisterSerializableComponent),
     enumerated using @link(RegisteredComponents) list. }
   TRegisteredComponent = class
@@ -62,7 +76,7 @@ type
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
     { Nice caption to show user in the editor. }
-    Caption: String;
+    Caption: array of String;
     { Called by the editor always after creating this component. }
     OnCreate: TNotifyEvent;
     { Should correspond to whether class is declared as "deprecated" in Pascal
@@ -77,7 +91,9 @@ type
   the TRegisteredComponent instance becomes internally owned in this unit
   (do not free it yourself). }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String); overload;
+  const Caption: array of String); overload;
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String); overload;
 procedure RegisterSerializableComponent(const C: TRegisteredComponent); overload;
 
 { Read-only list of currently registered
@@ -102,6 +118,9 @@ type
   strict private
     FUrl, FTranslationGroupName: String;
     JsonObject: TJsonObject;
+  private
+    function InternalComponentLoad(const Owner: TComponent;
+      const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     constructor Create(const AUrl: String);
     constructor CreateFromString(const Contents: String);
@@ -129,11 +148,43 @@ var
     @exclude }
   InternalCustomComponentsForProject: String;
 
+  { Are we inside ComponentLoad.
+    Prefer to instead look at component property TCastleComponent.IsLoading,
+    this variable is really only a hack for exceptional situations.
+    @exclude }
+  InternalLoadingComponent: Cardinal;
+
+{ Copy the properties of Source to Destination using the serialization to JSON.
+  This has a nice advantage that you don't need to implement field-by-field
+  assignment manually (e.g. overriding TPersistent.Assign).
+
+  It has however problems:
+
+  - It works correctly only when Destination is in completely default state
+    (right after constructor).
+    Or, at least, the properties of Source that are in default state
+    are also already in default state in Destination.
+    That's because these properties are not serialized, and thus will not be modified
+    in Destination.
+
+  - It's inefficient, doing serializing + deserializing.
+    While this doesn't actually serialize JSON to string,
+    it only uses in-memory JSON  classes,
+    still there's a lot of unnecessary creation of temporary structures and copying
+    compared to traditional approach of overriding TPersistent.Assign.
+
+  For these 2 reasons, this remains an internal "hack",
+  and not something we advise you to use.
+  @exclude
+}
+procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
+
 implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors;
+  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
+  CastleRenderOptions;
 
 { component registration ----------------------------------------------------- }
 
@@ -148,18 +199,65 @@ begin
 end;
 
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
+  const Caption: array of String);
+var
+  R: TRegisteredComponent;
+  I: Integer;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  SetLength(R.Caption, High(Caption) + 1);
+  for I := 0 to High(Caption) do
+    R.Caption[I] := Caption[I];
+  RegisteredComponents.Add(R);
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String);
 var
   R: TRegisteredComponent;
 begin
   R := TRegisteredComponent.Create;
   R.ComponentClass := ComponentClass;
-  R.Caption := Caption;
+  R.Caption := [CaptionOnePart];
   RegisteredComponents.Add(R);
 end;
 
 procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+
+  function InsertSpacesBeforeUpperLetters(const S: String): String;
+  var
+    StrBuild: TStringBuilder;
+    I: Integer;
+  begin
+    StrBuild := TStringBuilder.Create;
+    try
+      for I := 1 to Length(S) do
+      begin
+        if (I > 1) and (S[I] in ['A'..'Z']) then
+          StrBuild.Append(' ');
+        StrBuild.Append(S[I]);
+      end;
+      Result := StrBuild.ToString;
+    finally FreeAndNil(StrBuild) end;
+  end;
+
+var
+  GuessedCaption: String;
 begin
+  if C.ComponentClass = nil then
+    raise Exception.Create('RegisterSerializableComponent: ComponentClass not assigned');
+
+  if (Length(C.Caption) = 0) or (C.Caption[0] = '') then
+  begin
+    GuessedCaption := InsertSpacesBeforeUpperLetters(
+      PrefixRemove('Castle', PrefixRemove('T', C.ComponentClass.ClassName, true), true));
+    C.Caption := [GuessedCaption];
+    WritelnWarning('RegisterSerializableComponent: component Caption at registration cannot be empty, setting a placeholder "%s"', [
+      GuessedCaption
+    ]);
+  end;
+
   RegisteredComponents.Add(C);
 end;
 
@@ -201,7 +299,17 @@ type
       public
         Reader: TCastleJsonReader;
         CurrentlyReading: TJsonObject;
-        procedure ReadWrite(const Key: String;
+        procedure ReadWriteInteger(const Key: String; var Value: Integer; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteBoolean(const Key: String; var Value: Boolean; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteString(const Key: String; var Value: String; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSubComponent(const Key: String; const Value: TComponent;
+          const IsStored: Boolean); override;
+        procedure ReadWriteList(const Key: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
@@ -218,12 +326,28 @@ type
     procedure AfterReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
   private
+    LoadInfo: TInternalComponentLoadInfo;
     FOwner: TComponent;
-    { Call immediately after using DeStreamer to deserialize JSON.
-      Some object references may be unresolved, if the object is defined
-      in JSON after it was referred to by name.
-      In this case this method will finalize this resolution. }
-    procedure FinishResolvingObjectProperties;
+    (*Resolve hanging references, when JSON referred to some component name
+      before this component was actually defined.
+      Like when Viewport references a camera in Viewport.Camera,
+      but the camera is only defined later while reading Viewport.Items,
+      like
+
+        "Camera": "Camera1",
+        "Items" {
+          ...
+          {
+            Name: "Camera1",
+          }
+        }
+    *)
+    procedure FinishResolvingComponentProperties;
+
+    { Like FinishResolvingComponentProperties, but only resolves references to C,
+      so it is much faster, and doesn't warn about other references remaining
+      unsolved. }
+    procedure ResolveComponentReferences(const C: TComponent);
   public
     constructor Create;
     destructor Destroy; override;
@@ -235,7 +359,8 @@ type
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJsonObject;
-  const Owner: TComponent): TComponent;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   ResultClassName: String;
   ResultClass: TComponentClass;
@@ -243,21 +368,30 @@ begin
   if Owner = nil then
     raise Exception.Create('You must provide non-nil Owner when deserializing a component. Without an Owner, it is not possible to free the component hierarchy easily, and you will most likely have memory leaks.');
 
-  if JsonObject.Find('$$ClassName') <> nil then
-    ResultClassName := JsonObject.Strings['$$ClassName']
-  else
-  if JsonObject.Find('$ClassName') <> nil then
-    ResultClassName := JsonObject.Strings['$ClassName'] // handle older format
-  else
-    ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
+  if (LoadInfo <> nil) and
+     (LoadInfo.ChangeClassName <> '') and // early exit in the usual case
+     (LoadInfo.ChangeClassName = JsonObject.Strings['Name']) then
+  begin
+    ResultClass := LoadInfo.ChangeClassClass;
+  end else
+  begin
+    if JsonObject.Find('$$ClassName') <> nil then
+      ResultClassName := JsonObject.Strings['$$ClassName']
+    else
+    if JsonObject.Find('$ClassName') <> nil then
+      ResultClassName := JsonObject.Strings['$ClassName'] // handle older format
+    else
+      ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
 
-  { Initially we did here
-      JsonObject.Delete('_ClassName');
-    to not confuse TJsonDeStreamer with extra _ClassName property.
-    But later: it is better to leave JSON structure unmodified
-    (allows to read it multiple times, if needed). }
+    { Initially we did here
+        JsonObject.Delete('_ClassName');
+      to not confuse TJsonDeStreamer with extra _ClassName property.
+      But later: it is better to leave JSON structure unmodified
+      (allows to read it multiple times, if needed). }
 
-  ResultClass := FindComponentClass(ResultClassName);
+    ResultClass := FindComponentClass(ResultClassName);
+  end;
+
   if ResultClass = nil then
     raise EInvalidComponentFile.CreateFmt('Component JSON file references an unrecognized class "%s".' + NL + NL +
       Iff(CastleDesignMode,
@@ -267,7 +401,58 @@ begin
   Result := ResultClass.Create(Owner);
 end;
 
-procedure TCastleJsonReader.TSerializationProcessReader.ReadWrite(const Key: String;
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteInteger(
+  const Key: String; var Value: Integer; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsInteger;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteBoolean(
+  const Key: String; var Value: Boolean; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsBoolean;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteString(
+  const Key: String; var Value: String; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsString;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteSingle(
+  const Key: String; var Value: Single; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsFloat;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteSubComponent(
+  const Key: String; const Value: TComponent; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  Assert(Value <> nil);
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if (JsonData <> nil) and (JsonData.JsonType = jtObject) then
+    Reader.FDeStreamer.JsonToObject(JsonData as TJsonObject, Value);
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteList(const Key: String;
   const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
   const ListClear: TSerializationProcess.TListClearEvent);
 var
@@ -290,7 +475,7 @@ begin
       JsonChild := JsonChildren.Objects[I];
       if JsonChild = nil then
         raise EInvalidComponentFile.Create('$' + Key + ' must be an array of JSON objects');
-      Child := CreateComponentFromJson(JsonChild, Reader.Owner);
+      Child := CreateComponentFromJson(JsonChild, Reader.Owner, Reader.LoadInfo);
       Reader.DeStreamer.JsonToObject(JsonChild, Child);
       ListAdd(Child);
     end;
@@ -305,7 +490,7 @@ begin
   if AObject is TCastleComponent then
   begin
     C := TCastleComponent(AObject);
-    C.InternalLoading; // add csLoading flag to ComponentState
+    C.InternalLoading; // set C.IsLoading := true, (FPC only) add csLoading flag to ComponentState
   end;
 end;
 
@@ -328,6 +513,10 @@ procedure TCastleJsonReader.AfterReadObject(
   begin
     SerializationProcess.CurrentlyReading := Json;
     SerializationProcess.Reader := Self;
+    if LoadInfo <> nil then
+      SerializationProcess.InternalPreserveDataAcrossUndo := LoadInfo.PreserveDataAcrossUndo
+    else
+      SerializationProcess.InternalPreserveDataAcrossUndo := nil;
     C.CustomSerialization(SerializationProcess);
   end;
 
@@ -362,8 +551,18 @@ begin
     C := TCastleComponent(AObject);
     SynchronizeNameWithInternalText(C);
     CustomSerialization(C);
-    C.InternalLoaded; // remove csLoading flag from ComponentState
+    C.InternalLoaded; // set IsLoading = false, (FPC only) remove csLoading flag from ComponentState, calls Loaded virtual method
   end;
+
+  if AObject is TComponent then
+    { Resolve references to this object, as soon as this object is read
+      (without waiting for final FinishResolvingComponentProperties).
+
+      This is necessary for TCastleViewport.Loaded to function correctly,
+      it assumes that Camera inside has the same owner as Viewport,
+      which means that it is not a "dummy" instance created by FpRttiJson
+      when property was nil. }
+    ResolveComponentReferences(TComponent(AObject));
 end;
 
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
@@ -411,10 +610,27 @@ begin
      (Info^.Name = 'Name') then
   begin
     { We handle setting Name ourselves, this way we can change the Name
-      to avoid conflicts. This is the only way to make Copy+Paste in CGE editor,
-      it is also a useful feature in general (makes it easier to instantiate
-      designs, when you don't have to worry that owner may have this name
-      already reserved). }
+      to avoid conflicts. This way we can safely add new components into
+      existing hierarchy (with some names already reserved in Owner).
+      This way:
+
+      - We can make Copy+Paste in CGE editor, by just pasting the components
+        into existing owner.
+
+      - In general, code can safely instantiate designs,
+        without worrying that owner may have some names already reserved
+        (which would otherwise cause exception when trying to add new children
+        with the same name).
+
+      - Even invalid old designs can be read: in old designs, you could have
+        multiple camera components named 'Camera'. This was not a problem,
+        as camera was a subcomponent owned by each viewport.
+        In new designs, these cameras are all owned by a single DesignOwner,
+        Thanks to this mechanism, these cameras will be renamed as necessary,
+        to not conflict. (While TCastleViewport.Loaded also does renaming,
+        but only in CastleDesignMode; if you load old design at runtime,
+        then the mechanism below kicks-in.)
+    }
     NewName := AValue.AsString;
     if Owner.FindComponent(NewName) <> nil then
     begin
@@ -431,31 +647,84 @@ procedure TCastleJsonReader.GetObject(AObject: TObject; Info: PPropInfo;
   AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
 var
   R: TResolveObjectProperty;
+  ValueClass: TClass;
 begin
-  { OnGetObject may also be called with other parameters,
-    looking at FpJsonRtti code. Ignore them. }
-  if (DataName = '') or (Info = nil) then
-    Exit;
-
-  AValue := Owner.FindComponent(DataName);
-
-  { In this case TJsonDeStreamer.GetObject will create a new instance.
-    Allow it (we have no choise), but also rememeber to finalize this property later. }
-  if AValue = nil then
+  if (DataName = '') and (Info <> nil) then
   begin
-    R := TResolveObjectProperty.Create;
-    R.Instance := AObject;
-    R.InstanceProperty := Info;
-    R.PropertyValue := DataName;
-    ResolveObjectProperties.Add(R);
-    // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
-    // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
-    //   DataName
-    // ]);
+    (*This happens when JSON wants to set object property that is currently nil,
+      but it has some content in JSON.
+      In theory it should not happen -- such properties should be a non-nil
+      subcomponent. But in practice it is possible for backward-compatibility.
+      This is possible in old designs:
+
+        "Camera": { Name: "Camera1", ... }
+
+      The default implementation in TJSONDeStreamer.GetObject
+      does *almost* what we want... except the owner is then wrong
+      (it creates new object, with owner from containing object).
+    *)
+
+    ValueClass := GetTypeData(Info^.PropType {$ifndef FPC}^{$endif})^.ClassType;
+    if ValueClass.InheritsFrom(TComponent) then
+      AValue := TComponentClass(ValueClass).Create(Owner);
+  end;
+
+  if (DataName <> '') and (Info <> nil) then
+  begin
+    { This happens when JSON wants to set object property using a name
+      of some existing instance. Like
+        "Camera": "Camera1"
+    }
+    AValue := Owner.FindComponent(DataName);
+
+    if AValue = nil then
+    begin
+      { In this case TJsonDeStreamer.GetObject will create a new instance,
+        that is useless (we will want to throw it away later),
+        but we cannot avoid this creation in TJsonDeStreamer.GetObject.
+
+        But at least rememeber to finalize this property later. }
+
+      R := TResolveObjectProperty.Create;
+      R.Instance := AObject;
+      R.InstanceProperty := Info;
+      R.PropertyValue := DataName;
+      ResolveObjectProperties.Add(R);
+      // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
+      // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
+      //   DataName
+      // ]);
+    end;
   end;
 end;
 
-procedure TCastleJsonReader.FinishResolvingObjectProperties;
+procedure TCastleJsonReader.ResolveComponentReferences(const C: TComponent);
+var
+  R: TResolveObjectProperty;
+  OldPropertyValue: TObject;
+  I: Integer;
+begin
+  if C.Name = '' then Exit; // nothing to resolve for unnamed component
+
+  for I := ResolveObjectProperties.Count - 1 downto 0 do
+  begin
+    R := ResolveObjectProperties[I];
+    if R.PropertyValue = C.Name then
+    begin
+      // free previous property value, in the safest way possible
+      OldPropertyValue := GetObjectProp(R.Instance, R.InstanceProperty);
+      SetObjectProp(R.Instance, R.InstanceProperty, nil);
+      FreeAndNil(OldPropertyValue);
+
+      // set new property value
+      SetObjectProp(R.Instance, R.InstanceProperty, C);
+
+      ResolveObjectProperties.Delete(I);
+    end;
+  end;
+end;
+
+procedure TCastleJsonReader.FinishResolvingComponentProperties;
 var
   R: TResolveObjectProperty;
   PropertyValueAsObject, OldPropertyValue: TObject;
@@ -465,10 +734,32 @@ begin
     PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
-      WritelnWarning('Cannot resolve component name "%s", it will be a new empty instance', [
+      { In case we cannot resolve the component name, it is better to set
+        the property to nil than to leave the empty (unnamed) placeholder
+        instance created by FpJson.
+        That is because having an unnamed component would cause further troubles:
+        - If you save it again, we will save a component with name='' and a reference
+          to it using empty name.
+        - Opening it, we could not resolve the empty name (because empty name never
+          matches in FindComponent) and we would create a new empty component...
+
+        This is actually possible:
+        - Save with "Save Selected" a subset of hierarchy that doesn't include
+          some referenced component.
+          For example, make TCastleViewport.Camera reference a TCastleCamera instance
+          defined *outside of this TCastleViewport* (on another viewport) called
+          'CameraOutside'.
+        - Saving it with "Save Selected" for now just makes a design with broken link.
+          The Camera="CameraOutside" reference in viewport cannot be resolved.
+          If we convert it to nil on load, that's just a warning and we can continue OK.
+        - If we leave the TCastleCamera placeholder instance, next save of this will save
+          to JSON TCastleCamera with Name='', and Camera="" reference in viewport.
+        - On load, we will fail to resolve Camera="".
+          Saving and loading will create more and more unnamed TCastleCamera instances...
+      }
+      WritelnWarning('Cannot resolve component name "%s", it will be set to nil', [
         R.PropertyValue
       ]);
-      Continue;
     end;
 
     // free previous property value, in the safest way possible
@@ -479,6 +770,7 @@ begin
     // set new property value
     SetObjectProp(R.Instance, R.InstanceProperty, PropertyValueAsObject);
   end;
+
   ResolveObjectProperties.Clear;
 end;
 
@@ -497,6 +789,10 @@ constructor TCastleJsonReader.Create;
 begin
   inherited;
 
+  { Do this early, so that destructor can just rely that it was for sure done,
+    even if there's exception from constructor. }
+  Inc(InternalLoadingComponent);
+
   FDeStreamer := TMyJsonDeStreamer.Create(nil);
   FDeStreamer.Reader := Self;
   FDeStreamer.BeforeReadObject := {$ifdef FPC}@{$endif}BeforeReadObject;
@@ -514,6 +810,7 @@ begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
   FreeAndNil(SerializationProcessPool);
+  Dec(InternalLoadingComponent);
   inherited;
 end;
 
@@ -550,20 +847,27 @@ begin
 end;
 
 function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
+begin
+  Result := InternalComponentLoad(Owner, nil);
+end;
+
+function TSerializedComponent.InternalComponentLoad(const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   Reader: TCastleJsonReader;
 begin
   Reader := TCastleJsonReader.Create;
   try
     Reader.FOwner := Owner;
+    Reader.LoadInfo := LoadInfo;
 
     { create Result with appropriate class }
-    Result := CreateComponentFromJson(JsonObject, Owner);
+    Result := CreateComponentFromJson(JsonObject, Owner, LoadInfo);
 
     { read Result contents from JSON }
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
 
-    Reader.FinishResolvingObjectProperties;
+    Reader.FinishResolvingComponentProperties;
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
@@ -573,12 +877,19 @@ begin
 end;
 
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+begin
+  Result := InternalStringToComponent(Contents, Owner, nil);
+end;
+
+function InternalStringToComponent(const Contents: String;
+  const Owner: TComponent;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   SerializedComponent: TSerializedComponent;
 begin
   SerializedComponent := TSerializedComponent.CreateFromString(Contents);
   try
-    Result := SerializedComponent.ComponentLoad(Owner);
+    Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
   finally FreeAndNil(SerializedComponent) end;
 end;
 
@@ -616,7 +927,17 @@ type
       public
         Writer: TCastleJsonWriter;
         CurrentlyWriting: TJsonObject;
-        procedure ReadWrite(const AKey: String;
+        procedure ReadWriteInteger(const AKey: String; var Value: Integer; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteBoolean(const AKey: String; var Value: Boolean; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteString(const AKey: String; var Value: String; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSingle(const AKey: String; var Value: Single; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSubComponent(const AKey: String; const Value: TComponent;
+          const IsStored: Boolean); override;
+        procedure ReadWriteList(const AKey: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
@@ -626,12 +947,9 @@ type
     var
       FStreamer: TJsonStreamer;
       { Using just one TSerializationProcessWriter instance is not enough,
-        as C.CustomSerialiazion calls may happen recursively. }
+        as C.CustomSerialization calls may happen recursively. }
       SerializationProcessPool: TSerializationProcessWriterList;
       SerializationProcessPoolUsed: Integer;
-
-    { Does the property have default value. }
-    class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; static;
 
     procedure BeforeStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure AfterStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
@@ -654,7 +972,52 @@ begin
   CurrentlyWritingArray.Add(Writer.Streamer.ObjectToJson(C));
 end;
 
-procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(const AKey: String;
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteInteger(
+  const AKey: String; var Value: Integer; const IsStored: Boolean);
+begin
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonIntegerNumber.Create(Value));
+  end;
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteBoolean(
+  const AKey: String; var Value: Boolean; const IsStored: Boolean);
+begin
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonBoolean.Create(Value));
+  end;
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteString(
+  const AKey: String; var Value: String; const IsStored: Boolean);
+begin
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonString.Create(Value));
+  end;
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSingle(
+  const AKey: String; var Value: Single; const IsStored: Boolean);
+begin
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonFloatNumber.Create(Value));
+  end;
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSubComponent(
+  const AKey: String; const Value: TComponent; const IsStored: Boolean);
+begin
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, Writer.Streamer.ObjectToJson(Value));
+  end;
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteList(const AKey: String;
   const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
   const ListAdd: TSerializationProcess.TListAddEvent;
   const ListClear: TSerializationProcess.TListClearEvent);
@@ -752,10 +1115,30 @@ end;
 
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
+var
+  ValueOfSet: {$ifdef FPC} Integer {$else} Byte {$endif};
+  Coord: T3DCoord;
 begin
-  // always save it
   if Info^.Name = 'Name' then
+  begin
+    if (AObject is TComponent) and
+       (csSubComponent in TComponent(AObject).ComponentStyle) then
+    begin
+      { Do not stream names of subcomponents, like
+        - TCastlePerspective (their names are internal, not really supposed to be edited by user -- no point)
+        - TCastleVector3Persistent (their names are internal, not really supposed to be edited by user -- no point, and always empty)
+
+        This is consistent with TDesignFrame.InspectorFilter that hides such names.
+        Although here we cannot detect them by "Owner is different than DesignOwner",
+        because when serializing we don't know the DesignOwner. }
+      //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it is a subcomponent name');
+      FreeAndNil(Res);
+    end;
+
+    { Otherwise (for not subcomponents) serialize 'Name' always,
+      ignore the rest of the checks (they would reject serializing Name). }
     Exit;
+  end;
 
   // do not stream null values, as reader makes errors on them
   if Res is TJsonNull then
@@ -773,129 +1156,35 @@ begin
   end;
 
   // do not store properties with default values
-  if HasDefaultValue(AObject as TPersistent, Info) then
+  if PropertyHasDefaultValue(AObject, Info) then
   begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
     Exit;
   end;
-end;
 
-class function TCastleJsonWriter.HasDefaultValue(
-  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; {$ifdef FPC}static;{$endif}
+  { Custom support for T3DCoords serialization.
 
-{ Implemented looking closely at what standard FPC writer does,
-  3.0.4/fpcsrc/rtl/objpas/classes/writer.inc ,
-  and simplified a lot for CGE purposes. }
+    By default FpJsonRtti has a bug in this case:
+    It tries to do "GetEnumName" on integers 0..2, and serializes weird thing
 
-var
-  PropType: PTypeInfo;
-  Value, DefValue: LongInt;
-{$ifndef FPUNONE}
-  FloatValue, DefFloatValue: Extended;
-{$endif}
-  MethodValue, DefMethodValue: TMethod;
-  VarValue, DefVarValue: tvardata;
-  BoolValue, DefBoolValue, DefValueUse: Boolean;
-  C: TObject;
-begin
-  Result := false; // for unknown types, assume false
+      "LockRotation" : [
+        "\u0000",
+        ""
+      ]
 
-  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
-  DefValue := PropInfo^.Default;
-  { $80000000 means that there's no default value (in case of Single or String,
-    you need to specify it by "nodefault") }
-  DefValueUse := DefValue <> LongInt($80000000);
-  case PropType^.Kind of
-    tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
-      begin
-        Value := GetOrdProp(Instance, PropInfo);
-        Result := (Value = DefValue) and DefValueUse;
-      end;
-{$ifndef FPUNONE}
-    tkFloat:
-      begin
-        FloatValue := GetFloatProp(Instance, PropInfo);
-        DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and DefValueUse;
-      end;
-{$endif}
-    tkMethod:
-      begin
-        MethodValue := GetMethodProp(Instance, PropInfo);
-        DefMethodValue.Data := nil;
-        DefMethodValue.Code := nil;
-        Result := SameMethods(MethodValue, DefMethodValue);
-      end;
-{$ifdef FPC}
-    tkSString, tkLString, tkAString:
-      begin
-        Result := (GetStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-{$else}
-    tkString, tkLString:
-      begin
-        Result := (GetAnsiStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-{$endif}
-    tkWString:
-      begin
-        Result := (GetWideStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-    tkUString:
-      begin
-        Result := (GetUnicodeStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-    tkVariant:
-      begin
-        { Ensure that a Variant manager is installed }
-        if not Assigned(VarClearProc) then
-          raise EWriteError.Create(SErrNoVariantSupport);
-        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
-        FillChar(DefVarValue,sizeof(DefVarValue),0);
-        {$ifdef FPC}
-        Result := CompareByte(VarValue,DefVarValue,sizeof(VarValue)) = 0;
-        {$else}
-        Result := CompareMem(@VarValue, @DefVarValue, sizeof(VarValue));
-        {$endif}
-      end;
-    tkClass:
-      begin
-        C := GetObjectProp(Instance, PropInfo);
-        Result :=
-          (C = nil) or
-          (
-            { Avoid saving common subcomponents with all values left as default.
-              This makes .castle-user-interface files smaller, which makes also their
-              diffs easier to read (useful when commiting them, reviewing etc.)
-
-              The TCastleVector*Persistent and TBorder do not descend from TComponent
-              so we cannot actually check are they subcomponents:
-
-                (C is TComponent) and
-                (csSubComponent * TComponent(C).ComponentState) and
-            }
-            ((C.ClassType = TCastleVector2Persistent) and TCastleVector2Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector3Persistent) and TCastleVector3Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector4Persistent) and TCastleVector4Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorRGBPersistent) and TCastleColorRGBPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorPersistent) and TCastleColorPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)
-          );
-      end;
-    tkInt64{$ifdef FPC}, tkQWord{$endif}:
-      begin
-        Result := GetInt64Prop(Instance, PropInfo) = 0;
-      end;
-{$ifdef FPC}
-    tkBool:
-      begin
-        BoolValue := GetOrdProp(Instance, PropInfo)<>0;
-        DefBoolValue := DefValue <> 0;
-        Result := (BoolValue = DefBoolValue) and DefValueUse;
-      end;
-{$endif}
-    else ;
+    .. that it cannot deserialize back.
+    The code below does serialization as if "jsoSetEnumeratedAsInteger in Options"
+    but only for this type. We don't want to change serialization of sets of enums.
+  }
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
+  begin
+    ValueOfSet := GetOrdProp(AObject, Info);
+    FreeAndNil(Res);
+    Res := TJSONArray.Create;
+    for Coord := Low(T3DCoord) to High(T3DCoord) do
+      if (Coord in T3DCoords(ValueOfSet)) then
+        TJSONArray(Res).Add(Coord);
   end;
 end;
 
@@ -916,6 +1205,38 @@ end;
 procedure ComponentSave(const C: TComponent; const Url: String);
 begin
   StringToFile(Url, ComponentToString(C));
+end;
+
+procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
+var
+  Json: TJsonObject;
+  Reader: TCastleJsonReader;
+  Writer: TCastleJsonWriter;
+begin
+  { We check proper inheritance here,
+    this way we don't need to later care about whether Json has proper
+      Json.Strings['$$ClassName']
+    recorded. }
+  if not Destination.InheritsFrom(Source.ClassType) then
+    raise Exception.CreateFmt('Cannot assign instance of %s (source) to %s (destination). Destination class should be equal or inherit from Source class.', [
+      Source.ClassName,
+      Destination.ClassName
+    ]);
+
+  Writer := TCastleJsonWriter.Create;
+  try
+    Json := Writer.Streamer.ObjectToJson(Source);
+    try
+      Reader := TCastleJsonReader.Create;
+      try
+        Reader.FOwner := Destination;
+
+        { read Result contents from JSON }
+        Reader.DeStreamer.JsonToObject(Json, Destination);
+        Reader.FinishResolvingComponentProperties;
+      finally FreeAndNil(Reader) end;
+    finally FreeAndNil(Json) end;
+  finally FreeAndNil(Writer) end;
 end;
 
 { TComponentHelper ----------------------------------------------------------- }

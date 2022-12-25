@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-  See https://castle-engine.io/manual_castle_settings.php
-  for documentation of this file format.
+Specify runtime settings of this project, like UI scaling and default font.
+See https://castle-engine.io/manual_castle_settings.php for documentation of this file.
 -->
 
 <castle_settings>

@@ -1,0 +1,64 @@
+#X3D V4.0 utf8
+
+PROFILE Interchange
+
+PROTO PaletteModel [
+  initializeOnly SFVec3f translation 0 0 0
+  initializeOnly MFString palette ""
+  initializeOnly MFString texture ""
+] {
+  Transform {
+    translation IS translation
+    children Shape {
+      appearance Appearance {
+        material UnlitMaterial {
+        }
+        shaders ComposedShader {
+          initializeOnly SFNode tex ImageTexture {
+            url IS texture
+            textureProperties TextureProperties {
+              magnificationFilter "NEAREST_PIXEL"
+              minificationFilter "NEAREST_PIXEL"
+            }
+          }
+          initializeOnly SFNode palette ImageTexture {
+            url IS palette
+            textureProperties TextureProperties {
+              magnificationFilter "NEAREST_PIXEL"
+              minificationFilter "NEAREST_PIXEL"
+            }
+          }
+          language "GLSL"
+          parts [
+            ShaderPart {
+              type "VERTEX"
+              url "shader.vert"
+            }
+            ShaderPart {
+              type "FRAGMENT"
+              url "shader.frag"
+            }
+          ]
+        }
+      }
+      geometry IndexedFaceSet {
+        solid FALSE
+        coord Coordinate { point [ -0.5 -0.5 0, 0.5 -0.5 0, 0.5 0.5 0, -0.5 0.5 0 ] }
+        texCoord TextureCoordinate { point [ 0 0, 1 0, 1 1, 0 1 ] }
+        coordIndex [ 0 1 2 3 ]
+      }
+    }
+  }
+}
+
+PaletteModel {
+  translation -1 0 0
+  palette "palette1.png"
+  texture "texture.png"
+}
+
+PaletteModel {
+  translation 1 0 0
+  palette "palette2.png"
+  texture "texture.png"
+}

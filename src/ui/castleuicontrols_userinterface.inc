@@ -41,9 +41,15 @@
     Every control also has a position and size and takes some rectangular space
     on the container.
 
-    The position is controlled using the @link(Anchor) methods
-    or anchor properties, like @link(HorizontalAnchorSelf),
-    @link(HorizontalAnchorParent), @link(HorizontalAnchorDelta).
+    The position is controlled using a @link(Translation) that works relative
+    to the currently set anchors. You can change the position, adjusting
+    also anchor, using an utility method @link(Anchor): one overloaded version
+    of @link(Anchor) changes the horizontal position and anchors
+    (@link(HorizontalAnchorSelf), @link(HorizontalAnchorParent), @link(Translation Translation.X)),
+    the other overloaded version changes vertical position and anchors
+    (@link(VerticalAnchorSelf), @link(VerticalAnchorParent), @link(Translation Translation.Y)).
+    You can also change each individual property mentioned above.
+
     The size is controlled using the @link(Width), @link(WidthFraction),
     @link(Height), @link(HeightFraction), @link(FullSize), or @link(AutoSizeToChildren)
     properties.
@@ -100,9 +106,8 @@
       FLeft: Single;
       FBottom: Single;
       FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
-      FHorizontalAnchorDelta: Single;
+      FTranslation: TVector2;
       FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
-      FVerticalAnchorDelta: Single;
       FEnableUIScaling: boolean;
       FKeepInFront, FCapturesEvents: boolean;
       FWidth, FHeight: Single;
@@ -123,6 +128,8 @@
       FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
       FCustomTheme: TCastleTheme;
       FCustomThemeObserver: TFreeNotificationObserver;
+      FTooltipControl: TCastleUserInterface;
+      FTooltipControlObserver: TFreeNotificationObserver;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -148,18 +155,20 @@
     procedure WriteLeft(Writer: TWriter);
     procedure WriteTop(Writer: TWriter);
 
+    { Support for deprecated properties }
     procedure SetLeft(const Value: Single);
     procedure SetBottom(const Value: Single);
+    function GetHorizontalAnchorDelta: Single;
+    function GetVerticalAnchorDelta: Single;
+    procedure SetHorizontalAnchorDelta(const Value: Single);
+    procedure SetVerticalAnchorDelta(const Value: Single);
 
     procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorParent(const Value: THorizontalPosition);
-    procedure SetHorizontalAnchorDelta(const Value: Single);
     procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
-    procedure SetVerticalAnchorDelta(const Value: Single);
-    function GetAnchorDelta: TVector2;
-    procedure SetAnchorDelta(const AValue: TVector2);
     procedure SetEnableUIScaling(const Value: boolean);
+    procedure SetTranslation(const Value: TVector2);
 
     procedure SetFullSize(const Value: boolean);
     procedure SetBorderColor(const Value: TCastleColor);
@@ -171,6 +180,8 @@
     procedure SetHeight(const Value: Single);
     procedure SetCustomTheme(const Value: TCastleTheme);
     procedure CustomThemeFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetTooltipControl(const Value: TCastleUserInterface);
+    procedure TooltipControlFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Position and size of this control, assuming it exists,
       in the local coordinates (relative to the parent 2D control,
@@ -238,6 +249,8 @@
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
+    procedure Loaded; override;
+
     { Container sizes.
       @groupBegin }
     function ContainerWidth: Cardinal; virtual;
@@ -565,13 +578,37 @@
       if possible. }
     procedure InsertControl(const Index: Integer; const NewItem: TCastleUserInterface);
 
-    { Remove control added by @link(InsertFront) or @link(InsertBack). }
+    { Remove control added by @link(InsertFront) or @link(InsertBack).
+
+      Note that this method @italic(does not) free the Item instance.
+      This method merely removes Item from our controls,
+      so that Item is no longer rendered as part of this parent.
+      It is still the caller's responsibility to make sure the Item is freed
+      at some point.
+
+      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      for description how to free instances in Pascal.
+      As TCastleUserInterface descends from TComponent, a simple and proper solution
+      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      that will take care of freeing it. }
     procedure RemoveControl(const Item: TCastleUserInterface);
 
     { Index of child control, or -1 if not present. }
     function IndexOfControl(const Item: TCastleUserInterface): Integer;
 
-    { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
+    { Remove all child controls added by @link(InsertFront) or @link(InsertBack).
+
+      Note that, just like @link(RemoveControl), this method @italic(does not) free
+      the children controls. This method merely removes children controls,
+      so they are no longer rendered as part of the parent.
+      It is still the caller's responsibility to make sure the children controls
+      are freed at some point.
+
+      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      for description how to free instances in Pascal.
+      As TCastleUserInterface descends from TComponent, a simple and proper solution
+      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      that will take care of freeing it. }
     procedure ClearControls;
 
     {$ifdef FPC}
@@ -661,8 +698,8 @@
       and overrides these two methods as necessary.
 
       @groupBegin }
-    function TooltipExists: Boolean; virtual;
-    procedure TooltipRender(const TooltipPosition: TVector2); virtual;
+    function TooltipExists: Boolean; virtual; deprecated 'use TooltipControl to customize tooltip look';
+    procedure TooltipRender(const TooltipPosition: TVector2); virtual; deprecated 'use TooltipControl to customize tooltip look';
     { @groupEnd }
 
     { Initialize your OpenGL resources.
@@ -743,9 +780,6 @@
       Parent may be @nil, which means that the @link(Container)
       (if set) is our direct parent. }
     property Parent: TCastleUserInterface read FParent;
-
-    function Rect: TFloatRectangle; virtual;
-      deprecated 'instead of using this, use EffectiveRect or RenderRect depending on the situation; instead of overriding this, override PreferredSize';
 
     { Control position and size.
       Use this to base other controls size/position on this control's
@@ -943,35 +977,59 @@
       This is already scaled by UI scaling. }
     function ParentRect: TFloatRectangle;
 
-    { Quick way to enable horizontal anchor, to automatically keep this
-      control aligned to parent. Sets
-      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
-      @link(HorizontalAnchorDelta). }
-    procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
-      const AHorizontalAnchorDelta: Single = 0); overload;
+    { Adjust position to align us with the parent horizontally.
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
+      will immediately reflect the new position.
 
-    { Quick way to enable horizontal anchor, to automatically keep this
-      control aligned to parent. Sets
-      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
-      @link(HorizontalAnchorDelta). }
+      Note that position set here (anchors, @link(Translation))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
+
+      This utility method sets @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(Translation Translation.X). }
+    procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
+      const TranslationX: Single = 0); overload;
+
+    { Adjust position to align us with the parent horizontally.
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
+      will immediately reflect the new position.
+
+      Note that position set here (anchors, @link(Translation))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
+
+      This utility method sets @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(Translation Translation.X). }
     procedure Anchor(
       const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
-      const AHorizontalAnchorDelta: Single = 0); overload;
+      const TranslationX: Single = 0); overload;
 
-    { Quick way to enable vertical anchor, to automatically keep this
-      control aligned to parent. Sets
-      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
-      @link(VerticalAnchorDelta). }
+    { Adjust position to align us to the parent vertically.
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
+      will immediately reflect the new position.
+
+      Note that position set here (anchors, @link(Translation))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
+
+      This utility method sets @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(Translation Translation.Y). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
-      const AVerticalAnchorDelta: Single = 0); overload;
+      const TranslationY: Single = 0); overload;
 
-    { Quick way to enable vertical anchor, to automatically keep this
-      control aligned to parent. Sets
-      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
-      @link(VerticalAnchorDelta). }
+    { Adjust position to align us to the parent vertically.
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
+      will immediately reflect the new position.
+
+      Note that position set here (anchors, @link(Translation))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
+
+      This utility method sets @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(Translation Translation.Y). }
     procedure Anchor(
       const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
-      const AVerticalAnchorDelta: Single = 0); overload;
+      const TranslationY: Single = 0); overload;
 
     {$warnings off} // using deprecated TPositionRelative in deprecated
 
@@ -1045,8 +1103,14 @@
       deprecated 'use Height';
     {$endif}
 
-    { A simple shortcut to modify HorizontalAnchorDelta/VerticalAnchorDelta as TVector2 }
-    property AnchorDelta: TVector2 read GetAnchorDelta write SetAnchorDelta;
+    { Position of the control, relative to the anchor at parent
+      (by default, relative to left-bottom corner of the parent). }
+    property AnchorDelta: TVector2 read FTranslation write SetTranslation;
+      {$ifdef FPC}deprecated 'use Translation';{$endif}
+
+    { Position of the control, relative to the anchor at parent
+      (by default, relative to left-bottom corner of the parent). }
+    property Translation: TVector2 read FTranslation write SetTranslation;
 
     { Keep the control in front of other controls (with KeepInFront=@false)
       when inserting.
@@ -1067,6 +1131,17 @@
       read FHasVerticalAnchor write FHasVerticalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
     {$endif}
+
+    { Delta between our border and parent.
+      @seealso Anchor }
+    property HorizontalAnchorDelta: Single
+      read GetHorizontalAnchorDelta write SetHorizontalAnchorDelta {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use Translation.X';{$endif}
+    { Delta between our border and parent.
+      @seealso Anchor }
+    property VerticalAnchorDelta: Single
+      read GetVerticalAnchorDelta write SetVerticalAnchorDelta {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use Translation.Y';{$endif}
 
     { Is the control possibly visible.
       This is always @true when @link(Culling) is @false (the default). }
@@ -1160,22 +1235,26 @@
       It's usually better to use anchors instead of this property.
       For example, instead of setting @code(Control.Left := 10),
       you can call @code(Control.Anchor(hpLeft, 10)),
-      or just change @link(HorizontalAnchorDelta).
+      or just change @link(Translation Translation.X).
 
-      Note that the effects of this property and @link(HorizontalAnchorDelta)
-      are summed, if you set both. }
+      Note that the effects of this property and @link(Translation Translation.X)
+      are summed, if you set both.
+      We advise to leave @link(Left) as zero and just use anchors in new code. }
     property Left: Single read FLeft write SetLeft stored false {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use Translation.X';{$endif}
 
     { Position from the bottom side of the parent control.
 
       It's usually better to use anchors instead of this property.
       For example, instead of setting @code(Control.Bottom := 10),
       you can call @code(Control.Anchor(vpBottom, 10)),
-      or just change @link(VerticalAnchorDelta).
+      or just change @link(Translation Translation.Y).
 
-      Note that the effects of this property and @link(VerticalAnchorDelta)
-      are summed, if you set both. }
+      Note that the effects of this property and @link(Translation Translation.Y)
+      are summed, if you set both.
+      We advise to leave @link(Bottom) as zero and just use anchors in new code. }
     property Bottom: Single read FBottom write SetBottom {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use Translation.Y';{$endif}
 
     { When @name, the control will always fill the whole parent area.
       @seealso TCastleUserInterface.EffectiveRect
@@ -1223,55 +1302,23 @@
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop {$ifdef FPC}default 0{$endif};
 
-    { Adjust position to align us to the parent horizontally.
-      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
-      will immediately reflect the new position.
-
-      Note that @link(HorizontalAnchorDelta) is summed with @link(Left).
-      It's usually most natural to leave @link(Left) as zero when
-      using anchors.
-
-      Note that anchors (as well as @link(Left) and @link(Bottom))
-      are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly.
-
-      @italic(Anchor distance is automatically affected by @link(TCastleContainer.UIScaling).)
-
-      Which @bold(our) border to align (it's aligned
-      to parent @link(HorizontalAnchorParent) border). }
+    { Which @bold(our) border to align with parent.
+      @seealso Anchor }
     property HorizontalAnchorSelf: THorizontalPosition
       read FHorizontalAnchorSelf write SetHorizontalAnchorSelf default hpLeft;
-    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border. }
+    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border.
+      @seealso Anchor }
     property HorizontalAnchorParent: THorizontalPosition
       read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
-    { Delta between our border and parent. }
-    property HorizontalAnchorDelta: Single
-      read FHorizontalAnchorDelta write SetHorizontalAnchorDelta {$ifdef FPC}default 0{$endif};
 
-    { Adjust position to align us to the parent vertically.
-      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
-      will immediately reflect the new position.
-
-      Note that @link(VerticalAnchorDelta) is summed with @link(Bottom).
-      It's usually most natural to leave @link(Bottom) as zero when
-      using anchors.
-
-      Note that anchors (as well as @link(Left) and @link(Bottom))
-      are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly.
-
-      @italic(Anchor distance is automatically affected by @link(TCastleContainer.UIScaling).)
-
-      Which @bold(our) border to align (it's aligned
-      to parent @link(VerticalAnchorParent) border). }
+    { Which @bold(our) border to align with parent.
+      @seealso Anchor }
     property VerticalAnchorSelf: TVerticalPosition
       read FVerticalAnchorSelf write SetVerticalAnchorSelf default vpBottom;
-    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border. }
+    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border.
+      @seealso Anchor }
     property VerticalAnchorParent: TVerticalPosition
       read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
-    { Delta between our border and parent. }
-    property VerticalAnchorDelta: Single
-      read FVerticalAnchorDelta write SetVerticalAnchorDelta {$ifdef FPC}default 0{$endif};
 
     { Optimize rendering and event processing
       by checking whether the control can be visible.
@@ -1327,6 +1374,22 @@
     { Use a custom instance of TCastleTheme to determine the look of this control. }
     property CustomTheme: TCastleTheme read FCustomTheme write SetCustomTheme;
 
+    { If set, the indicated control will act as a tooltip:
+      we will make it existing when we should show the tooltip for this control,
+      we will make it no longer existing when the tooltip for this should be hidden.
+      Initially the TooltipControl should usually have @link(Exists)=false,
+      because you usually do not want to show it until we start showing it as a tooltip.
+
+      If TooltipControl is assigned then TCastleUserInterfaceFont
+      no longer does tooltip rendering.
+      The @link(TCastleUserInterfaceFont.Tooltip) text is ignored.
+
+      The visual parent of TooltipControl can be whatever is comfortable.
+      That is, it is OK to make TooltipControl parent of this control,
+      and it is OK not to: you can as well place TooltipControl as e.g. parent of container
+      or design root. }
+    property TooltipControl: TCastleUserInterface read FTooltipControl write SetTooltipControl;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1377,6 +1440,9 @@ begin
 
   FCustomThemeObserver := TFreeNotificationObserver.Create(Self);
   FCustomThemeObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CustomThemeFreeNotification;
+
+  FTooltipControlObserver := TFreeNotificationObserver.Create(Self);
+  FTooltipControlObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TooltipControlFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -1463,7 +1529,7 @@ begin
     OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
   if Parent <> nil then
     Parent.VisibleChange(Changes, true);
-  if [chRectangle, chChildren] * Changes <> [] then
+  if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
     FSizeFromChildrenValid := false;
 end;
 
@@ -1561,12 +1627,36 @@ begin
 end;
 
 procedure TCastleUserInterface.CustomSerialization(const SerializationProcess: TSerializationProcess);
+var
+  OldDelta: Single;
 begin
   inherited;
-  SerializationProcess.ReadWrite('Children',
+  SerializationProcess.ReadWriteList('Children',
     {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
     {$ifdef FPC}@{$endif}SerializeChildrenAdd,
     {$ifdef FPC}@{$endif}SerializeChildrenClear);
+
+  OldDelta := 0;
+  SerializationProcess.ReadWriteSingle('HorizontalAnchorDelta', OldDelta, false);
+  if OldDelta <> 0 then
+  begin
+    Translation := Vector2(OldDelta, Translation.Y);
+    // too verbose for now, we have lots of designs with old names
+    // WritelnWarning('Upgrading deprecated HorizontalAnchorDelta to Translation.X on component "%s"', [
+    //   Name
+    // ]);
+  end;
+
+  OldDelta := 0;
+  SerializationProcess.ReadWriteSingle('VerticalAnchorDelta', OldDelta, false);
+  if OldDelta <> 0 then
+  begin
+    Translation := Vector2(Translation.X, OldDelta);
+    // too verbose for now, we have lots of designs with old names
+    // WritelnWarning('Upgrading deprecated VerticalAnchorDelta to Translation.Y on component "%s"', [
+    //   Name
+    // ]);
+  end;
 end;
 
 procedure TCastleUserInterface.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -1744,7 +1834,7 @@ end;
 
 function TCastleUserInterface.TooltipExists: boolean;
 begin
-  Result := false;
+  Result := TooltipControl <> nil;
 end;
 
 function TCastleUserInterface.UIScale: Single;
@@ -2094,14 +2184,13 @@ begin
           (PropertyName = 'AutoSizeToChildren') or
           (PropertyName = 'AutoSizeToChildrenPaddingTop') or
           (PropertyName = 'AutoSizeToChildrenPaddingRight') or
+          (PropertyName = 'TranslationPersistent') or
           (PropertyName = 'HorizontalAnchorSelf') or
-          (PropertyName = 'HorizontalAnchorDelta') or
           (PropertyName = 'HorizontalAnchorParent') or
           (PropertyName = 'VerticalAnchorSelf') or
-          (PropertyName = 'VerticalAnchorDelta') or
           (PropertyName = 'VerticalAnchorParent') or
-          (PropertyName = 'Left') or
-          (PropertyName = 'Bottom') or
+          // (PropertyName = 'Left') or // deprecated
+          // (PropertyName = 'Bottom') or // deprecated
           (PropertyName = 'Border') or
           (PropertyName = 'BorderColorPersistent') then
     Result := [psLayout]
@@ -2127,6 +2216,8 @@ begin
   end;
 end;
 
+{$warnings off} // using deprecated in deprecated
+
 procedure TCastleUserInterface.Align(
   const ControlPosition: THorizontalPosition;
   const ContainerPosition: THorizontalPosition;
@@ -2142,8 +2233,6 @@ procedure TCastleUserInterface.Align(
 begin
   Bottom := FastRectWithoutAnchors.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
-
-{$warnings off} // using deprecated in deprecated
 
 procedure TCastleUserInterface.AlignHorizontal(
   const ControlPosition: TPositionRelative;
@@ -2173,29 +2262,13 @@ end;
 
 {$warnings on}
 
-function TCastleUserInterface.Rect: TFloatRectangle;
-begin
-  Result := TFloatRectangle.Empty;
-end;
-
 procedure TCastleUserInterface.BeforeSizing;
 begin
 end;
 
 procedure TCastleUserInterface.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-var
-  R: TFloatRectangle;
 begin
-  { Keep the old code, written when Rect was not deprecated
-    and PreferredSize was not available, working. }
-  {$warnings off}
-  R := Rect;
-  {$warnings on}
-  if (not R.IsEmpty) then // this means that Rect was overridden
-  begin
-    PreferredWidth := R.Width;
-    PreferredHeight := R.Height;
-  end;
+  // nothing to be done here
 end;
 
 function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
@@ -2232,8 +2305,8 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
         C.HorizontalAnchorSelf = C.HorizontalAnchorParent = hpRight.
       }
 
-      MaxVar(FSizeFromChildrenWidth , ChildRect.Left   + ChildRect.Width  + Abs(C.HorizontalAnchorDelta) + FBorder.TotalWidth);
-      MaxVar(FSizeFromChildrenHeight, ChildRect.Bottom + ChildRect.Height + Abs(C.VerticalAnchorDelta)   + FBorder.TotalHeight);
+      MaxVar(FSizeFromChildrenWidth , ChildRect.Left   + ChildRect.Width  + Abs(C.Translation.X) + FBorder.TotalWidth);
+      MaxVar(FSizeFromChildrenHeight, ChildRect.Bottom + ChildRect.Height + Abs(C.Translation.Y) + FBorder.TotalHeight);
     end;
 
     FSizeFromChildrenWidth  := FSizeFromChildrenWidth + AutoSizeToChildrenPaddingRight;
@@ -2260,8 +2333,10 @@ begin
        (FSizeFromChildrenHeight <= 0) then
       Result := TFloatRectangle.Empty
     else
+      {$warnings off} // using deprecated Left, Bottom to keep them working
       Result := FloatRectangle(Left, Bottom, FSizeFromChildrenWidth, FSizeFromChildrenHeight).
         ScaleAround0(UIScale);
+      {$warnings on}
   end else
   if FullSize then
   begin
@@ -2293,7 +2368,9 @@ begin
 
     if (W > 0) and (H > 0) then
     begin
+      {$warnings off} // using deprecated Left, Bottom to keep them working
       Result := FloatRectangle(Left * UIScale, Bottom * UIScale, W, H);
+      {$warnings on}
       //Result.Left := Result.Left - FBorder.TotalLeft * UIScale; // no need to
       //Result.Bottom := Result.Bottom - FBorder.TotalBottom * UIScale; // no need to
     end else
@@ -2386,10 +2463,10 @@ begin
     PR := ParentRect;
     Result.Left := Result.Left +
       Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
-        UIScale * HorizontalAnchorDelta);
+        UIScale * Translation.X);
     Result.Bottom := Result.Bottom +
       Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
-        UIScale * VerticalAnchorDelta);
+        UIScale * Translation.Y);
   end;
 end;
 
@@ -2505,13 +2582,33 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.SetHorizontalAnchorDelta(const Value: Single);
+procedure TCastleUserInterface.SetTranslation(const Value: TVector2);
 begin
-  if FHorizontalAnchorDelta <> Value then
+  if not TVector2.PerfectlyEquals(FTranslation, Value) then
   begin
-    FHorizontalAnchorDelta := Value;
+    FTranslation := Value;
     VisibleChange([chRectangle]);
   end;
+end;
+
+function TCastleUserInterface.GetHorizontalAnchorDelta: Single;
+begin
+  Result := Translation.X;
+end;
+
+function TCastleUserInterface.GetVerticalAnchorDelta: Single;
+begin
+  Result := Translation.Y;
+end;
+
+procedure TCastleUserInterface.SetHorizontalAnchorDelta(const Value: Single);
+begin
+  Translation := Vector2(Value, Translation.Y);
+end;
+
+procedure TCastleUserInterface.SetVerticalAnchorDelta(const Value: Single);
+begin
+  Translation := Vector2(Translation.X, Value);
 end;
 
 procedure TCastleUserInterface.SetVerticalAnchorSelf(const Value: TVerticalPosition);
@@ -2532,59 +2629,38 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.SetVerticalAnchorDelta(const Value: Single);
-begin
-  if FVerticalAnchorDelta <> Value then
-  begin
-    FVerticalAnchorDelta := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-function TCastleUserInterface.GetAnchorDelta: TVector2;
-begin
-  Result.X := HorizontalAnchorDelta;
-  Result.Y := VerticalAnchorDelta;
-end;
-
-procedure TCastleUserInterface.SetAnchorDelta(const AValue: TVector2);
-begin
-  HorizontalAnchorDelta := AValue.X;
-  VerticalAnchorDelta := AValue.Y;
-end;
-
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;
-  const AHorizontalAnchorDelta: Single);
+  const TranslationX: Single);
 begin
   HorizontalAnchorSelf := AHorizontalAnchor;
   HorizontalAnchorParent := AHorizontalAnchor;
-  HorizontalAnchorDelta := AHorizontalAnchorDelta;
+  Translation := Vector2(TranslationX, Translation.Y);
 end;
 
 procedure TCastleUserInterface.Anchor(
   const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
-  const AHorizontalAnchorDelta: Single);
+  const TranslationX: Single);
 begin
   HorizontalAnchorSelf := AHorizontalAnchorSelf;
   HorizontalAnchorParent := AHorizontalAnchorParent;
-  HorizontalAnchorDelta := AHorizontalAnchorDelta;
+  Translation := Vector2(TranslationX, Translation.Y);
 end;
 
 procedure TCastleUserInterface.Anchor(const AVerticalAnchor: TVerticalPosition;
-  const AVerticalAnchorDelta: Single);
+  const TranslationY: Single);
 begin
   VerticalAnchorSelf := AVerticalAnchor;
   VerticalAnchorParent := AVerticalAnchor;
-  VerticalAnchorDelta := AVerticalAnchorDelta;
+  Translation := Vector2(Translation.X, TranslationY);
 end;
 
 procedure TCastleUserInterface.Anchor(
   const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
-  const AVerticalAnchorDelta: Single);
+  const TranslationY: Single);
 begin
   VerticalAnchorSelf := AVerticalAnchorSelf;
   VerticalAnchorParent := AVerticalAnchorParent;
-  VerticalAnchorDelta := AVerticalAnchorDelta;
+  Translation := Vector2(Translation.X, TranslationY);
 end;
 
 procedure TCastleUserInterface.SetWidth(const Value: Single);
@@ -2703,6 +2779,22 @@ begin
     Result := CastleUIControls.Theme;
 end;
 
+procedure TCastleUserInterface.SetTooltipControl(const Value: TCastleUserInterface);
+begin
+  if FTooltipControl <> Value then
+  begin
+    FTooltipControlObserver.Observed := Value;
+    FTooltipControl := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.TooltipControlFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  TooltipControl := nil;
+end;
+
 procedure TCastleUserInterface.SetClipChildren(const Value: Boolean);
 begin
   if FClipChildren <> Value then
@@ -2759,6 +2851,22 @@ end;
 function TCastleUserInterface.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(FControls);
+end;
+
+procedure TCastleUserInterface.Loaded;
+begin
+  inherited;
+
+  {$warnings off} // using deprecated to warn about it
+  if Left <> 0 then
+    WritelnWarning('Left is deprecated (on TCastleUserInterface "%s"). Instead: Add it to Translation.X', [
+      Name
+    ]);
+  if Bottom <> 0 then
+    WritelnWarning('Bottom is deprecated (on TCastleUserInterface "%s"). Instead: Add it to Translation.Y', [
+      Name
+    ]);
+  {$warnings on}
 end;
 
 {$define read_implementation_methods}

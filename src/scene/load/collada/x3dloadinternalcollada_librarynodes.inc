@@ -41,7 +41,7 @@ var
   LibraryNodesSwitch: TSwitchNode;
 
 { Read <instance_node>, adding resulting X3D node into ParentGroup. }
-procedure ReadInstanceNode(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadInstanceNode(ParentGroup: TAbstractGroupingNode;
   InstantiatingElement: TDOMElement);
 var
   Id: string;

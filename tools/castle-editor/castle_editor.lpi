@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="27">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -107,9 +107,9 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="code/visualizetransform.pas"/>
+        <Filename Value="code/designvisualizetransform.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="VisualizeTransform"/>
+        <UnitName Value="DesignVisualizeTransform"/>
       </Unit10>
       <Unit11>
         <Filename Value="code/formspritesheeteditor.pas"/>
@@ -173,6 +173,39 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleShellCtrls"/>
       </Unit20>
+      <Unit21>
+        <Filename Value="code/formsysteminformation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SystemInformationForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSystemInformation"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="code/castlelcledithack.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleLclEditHack"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="code/castlecomponenteditordesigner.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleComponentEditorDesigner"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="code/designcamerapreview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignCameraPreview"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="code/designobjectinspector.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignObjectInspector"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="code/designundosystem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignUndoSystem"/>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

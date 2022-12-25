@@ -32,7 +32,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleVectors, X3DCameraUtils, Math, CastleCameras, CastleQuaternions;
+uses CastleUtils, CastleVectors, X3DCameraUtils, Math, CastleCameras, CastleQuaternions,
+  CastleTransform;
 
 procedure TTestCameras.TestToOrientationAndBack;
 
@@ -75,7 +76,7 @@ begin
   CamOrientToDirUp(TestOrients[i], Dir, Up);
   NewOrient := OrientationFromDirectionUp(Dir, Up);
   if not ( (IsZero(NewOrient[3]) and IsZero(TestOrients[i][3])) or
-	   TVector4.Equals(NewOrient, TestOrients[i], EqEpsilon) ) then
+           TVector4.Equals(NewOrient, TestOrients[i], EqEpsilon) ) then
   begin
    Writeln(Format(
      'failed z TestOrients[%d] = %s' +nl+
@@ -164,15 +165,6 @@ procedure TTestCameras.TestInput;
     const IgnoreAllInputs, MouseNavigation: boolean);
   begin
     AssertTrue(C.Input = Input);
-    {$ifdef FPC}
-    {$warnings off}
-    { Consciously using here deprecated IgnoreAllInputs
-      and MouseNavigation (to test it's still Ok) }
-    AssertTrue(C.IgnoreAllInputs = IgnoreAllInputs);
-    if C is TExamineCamera then
-      AssertTrue(TExamineCamera(C).MouseNavigation = MouseNavigation);
-    {$warnings on}
-    {$endif}
   end;
 
 var

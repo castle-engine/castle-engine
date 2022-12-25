@@ -1,5 +1,6 @@
+// -*- compile-command: "castle-engine compile && castle-engine run" -*-
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,13 +23,13 @@ uses SysUtils, Generics.Collections, StrUtils,
 type
   TAutoGenerateProperty = class
     PropertyName, PropertyType: String;
-    NoStore: Boolean;
+    NoStore, Rotation: Boolean;
+    StoreCheckFunction: String;
     function PersistentPropertyClass: String;
+    procedure ProcessToken(const Token: String);
   end;
 
   TAutoGeneratePropertyList = class(specialize TObjectList<TAutoGenerateProperty>)
-    procedure Add(const PropertyName, PropertyType: String;
-      const NoStore: Boolean); reintroduce;
   end;
 
   TAutoGenerateClass = class
@@ -40,8 +41,8 @@ type
   end;
 
   TAutoGenerateClasses = class(specialize TObjectDictionary<String, TAutoGenerateClass>)
-    procedure Add(const Path, OutputClassName, PropertyName, PropertyType: String;
-      const NoStore: Boolean);
+    procedure Add(const Path, OutputClassName: String;
+      const Prop: TAutoGenerateProperty);
     procedure GenerateAll;
   end;
 
@@ -50,21 +51,24 @@ type
 function TAutoGenerateProperty.PersistentPropertyClass: String;
 begin
   Result := StringReplace(PropertyType, 'TVector', 'TCastleVector', [rfReplaceAll]);
-  Result += 'Persistent';
+  if Rotation then
+    Result += 'RotationPersistent'
+  else
+    Result += 'Persistent';
 end;
 
-{ TAutoGeneratePropertyList --------------------------------------------------}
-
-procedure TAutoGeneratePropertyList.Add(
-  const PropertyName, PropertyType: String; const NoStore: Boolean);
-var
-  P: TAutoGenerateProperty;
+procedure TAutoGenerateProperty.ProcessToken(const Token: String);
 begin
-  P := TAutoGenerateProperty.Create;
-  inherited Add(P);
-  P.PropertyName := PropertyName;
-  P.PropertyType := PropertyType;
-  P.NoStore := NoStore;
+  if Token = 'no-store' then
+    NoStore := true
+  else
+  if IsPrefix('store=', Token, false) then
+    StoreCheckFunction := PrefixRemove('store=', Token, false)
+  else
+  if Token = 'rotation' then
+    Rotation := true
+  else
+    raise Exception.CreateFmt('Invalid token "%s" at property "%s"', [Token, PropertyName]);
 end;
 
 { TAutoGenerateClass --------------------------------------------------------- }
@@ -102,7 +106,10 @@ begin
       Macros.Add('${CLASS_NAME}', OutputClassName);
       Macros.Add('${PROPERTY_NAME}', P.PropertyName);
       Macros.Add('${PROPERTY_TYPE}', P.PropertyType);
-      Macros.Add('${PROPERTY_STORED}', IfThen(P.NoStore, 'stored false', ''));
+      if P.StoreCheckFunction <> '' then
+        Macros.Add('${PROPERTY_STORED}', 'stored ' + P.StoreCheckFunction)
+      else
+        Macros.Add('${PROPERTY_STORED}', IfThen(P.NoStore, 'stored false', ''));
       Macros.Add('${PERSISTENT_PROPERTY_CLASS}', P.PersistentPropertyClass);
       OutputCode := OutputCode + SReplacePatterns(InputTemplate, Macros, false) + NL;
     finally FreeAndNil(Macros) end;
@@ -115,8 +122,8 @@ end;
 { TAutoGenerateClasses ------------------------------------------------------- }
 
 procedure TAutoGenerateClasses.Add(
-  const Path, OutputClassName, PropertyName, PropertyType: String;
-  const NoStore: Boolean);
+  const Path, OutputClassName: String;
+  const Prop: TAutoGenerateProperty);
 var
   C: TAutoGenerateClass;
 begin
@@ -128,7 +135,7 @@ begin
     inherited Add(Path + OutputClassName, C);
   end;
 
-  C.Properties.Add(PropertyName, PropertyType, NoStore);
+  C.Properties.Add(Prop);
 end;
 
 procedure TAutoGenerateClasses.GenerateAll;
@@ -144,9 +151,10 @@ end;
 var
   AutoGenerateClasses: TAutoGenerateClasses;
   InputFile: TTextReader;
-  Line, Path, OutputClassName, PropertyName, PropertyType: String;
-  NoStore: Boolean;
+  Line, Path, OutputClassName: String;
   LineSplit: TCastleStringList;
+  Prop: TAutoGenerateProperty;
+  I: Integer;
 begin
   AutoGenerateClasses := TAutoGenerateClasses.Create([doOwnsValues]);
   try
@@ -160,20 +168,20 @@ begin
 
         LineSplit := CreateTokens(Line);
         try
-          NoStore := (LineSplit.Count = 5) and (LineSplit[4] = 'no-store');
-          if NoStore then
-            LineSplit.Delete(4);
+          if LineSplit.Count < 4 then
+            raise Exception.CreateFmt('Expected at least 4 tokens at line "%s"', [Line]);
 
-          if LineSplit.Count <> 4 then
-            raise Exception.CreateFmt('Expected 4 tokens at line "%s"', [Line]);
           Path := InclPathDelim(LineSplit[0]);
           OutputClassName := LineSplit[1];
-          PropertyName := LineSplit[2];
-          PropertyType := LineSplit[3];
-        finally FreeAndNil(LineSplit) end;
 
-        AutoGenerateClasses.Add(Path, OutputClassName,
-          PropertyName, PropertyType, NoStore);
+          Prop := TAutoGenerateProperty.Create;
+          Prop.PropertyName := LineSplit[2];
+          Prop.PropertyType := LineSplit[3];
+          for I := 4 to LineSplit.Count - 1 do
+            Prop.ProcessToken(LineSplit[I]);
+
+          AutoGenerateClasses.Add(Path, OutputClassName, Prop);
+        finally FreeAndNil(LineSplit) end;
       end;
     finally FreeAndNil(InputFile) end;
 

@@ -1,18 +1,12 @@
 X3DNetworkSensorNode : X3DSensorNode {
-  auto-generate-more: true
-
 }
 
 X3DUrlObject {
-  auto-generate-more: true
-
   MFString [in,out] url []
     range: [urn]
 }
 
 Anchor : X3DGroupingNode {
-  auto-generate-more: true
-
   SFString [in,out] description    ""
   MFString [in,out] parameter      []
   MFString [in,out] url            []
@@ -20,8 +14,6 @@ Anchor : X3DGroupingNode {
 }
 
 Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
-  auto-generate-more: true
-
   SFBool   [in,out] load       TRUE
   MFString [in,out] url        []
     range: [url or urn]
@@ -32,14 +24,10 @@ Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
 }
 
 InlineLoadControl : Inline {
-  auto-generate-more: true
-
   MFNode  [out]  children
 }
 
 LoadSensor : X3DNetworkSensorNode {
-  auto-generate-more: true
-
   SFTime  [in,out] timeOut   0
   MFNode  [in,out] watchList []
     range: X3DUrlObject

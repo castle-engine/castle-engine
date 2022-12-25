@@ -22,12 +22,16 @@ unit CastleLevels
 
 interface
 
+{$warnings off} // using deprecated in deprecated unit
+
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastleInputs,
   CastleSoundEngine, CastleTransform, CastleShapes, CastleXMLConfig, CastleImages,
   CastleTimeUtils, CastleViewport, CastleFindFiles, CastleKeysMouse;
+
+{$warnings on}
 
 type
   TLevelLogic = class;
@@ -892,8 +896,7 @@ end;
 
 function TLevel.UnloadCore: T3DResourceList;
 begin
-  { clear Items, removing everything from previous level }
-  Items.Clear;
+  Items.ClearExceptCameras;
 
   { free stuff like creatures, items, level logic.
     Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,
@@ -963,10 +966,12 @@ var
   var
     I: Integer;
   begin
+    {$warnings off} // using deprecated in deprecated unit
     Items.MainScene.BeforeNodesFree;
     for I := 0 to ItemsToRemove.Count - 1 do
       ItemsToRemove.Items[I].FreeRemovingFromAllParents;
     Items.MainScene.ChangedAll;
+    {$warnings on}
   end;
 
   { After placeholders are processed, finish some stuff. }
@@ -977,7 +982,9 @@ var
     if Items.MoveLimit.IsEmpty then
     begin
       { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
+      {$warnings off} // using deprecated in deprecated unit
       NewMoveLimit := Items.MainScene.BoundingBox;
+      {$warnings on}
       NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] :=
       NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] +
         4 * (NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] -
@@ -1009,6 +1016,7 @@ begin
       Otherwise, it would be updated by Items.MainScene loading binding new
       NavigationInfo (with it's speed) and Viewpoint.
       We prefer to do it ourselves in InitializeCamera. }
+    {$warnings off} // using deprecated in deprecated unit
     Viewport.Navigation := nil;
 
     Items.MainScene := TCastleScene.Create(Self);
@@ -1018,6 +1026,7 @@ begin
     { Scene must be the first one on Items, this way Items.MoveCollision will
       use Scene for wall-sliding (see TCastleTransform.LocalMoveCollision implementation). }
     Items.Insert(0, Items.MainScene);
+    {$warnings on}
 
     InitializeCamera;
 
@@ -1086,7 +1095,9 @@ begin
     Items.Add(FItemsRoot);
 
     { add FLogic (new Info.LogicClass instance) }
+    {$warnings off} // using deprecated in deprecated unit
     FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);
+    {$warnings on}
     Items.AddBehavior(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
@@ -1100,7 +1111,9 @@ begin
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
+      {$warnings off} // using deprecated in deprecated unit
       ShapeList := Items.MainScene.Shapes.TraverseList({ OnlyActive } true);
+      {$warnings on}
       for Shape in ShapeList do
         TraverseForPlaceholders(Shape);
       RemoveItemsToRemove;
@@ -1113,21 +1126,21 @@ begin
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
+    {$warnings off} // using deprecated in deprecated unit
     Items.MainScene.PrepareResources(Options, false, Viewport.PrepareParams);
 
     Items.MainScene.FreeResources([frTextureDataInNodes]);
+    {$warnings on}
 
     Progress.Step;
   finally
     Progress.Fini;
   end;
 
-  { Loading octree have their own Progress, so we load them outside our
-    progress. }
-  Items.MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
-  Items.MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
-  Items.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Items.MainScene.PrepareResources([prSpatial], false, Viewport.PrepareParams);
+  {$warnings off} // using deprecated in deprecated unit
+  Items.MainScene.PreciseCollisions := true;
+  Items.MainScene.PrepareResources([prSpatial], Viewport.PrepareParams);
+  {$warnings on}
 
   if (Player <> nil) then
     Player.LevelChanged;
@@ -1135,9 +1148,11 @@ begin
   SoundEngine.LoopingChannel[0].Sound := Info.MusicSound;
   SoundEngine.PrepareResources;
 
+  {$warnings off} // using deprecated in deprecated unit
   Items.MainScene.ProcessEvents := true;
 
   Dec(Items.MainScene.InternalDirty);
+  {$warnings on}
 end;
 
 procedure TLevel.Load(const AInfo: TLevelInfo);
@@ -1180,9 +1195,9 @@ procedure TLevel.Update(const SecondsPassed: Single);
     if Water.Contains(Player.Translation) then
       FPlayerSwimming := psUnderWater
     else
-    { Check Player.Navigation, not Navigation, in case Navigation=nil
-      but Player is <> nil. Then Player.Navigation is guaranteed non-nil. }
-    if Water.Contains(Player.Translation - Viewport.Camera.GravityUp * Player.Navigation.PreferredHeight) then
+    { TODO: swimming on water surface is not ready for 3rd-person navigation. }
+    if (not Player.UseThirdPerson) and
+       Water.Contains(Player.Translation - Viewport.Camera.GravityUp * Player.WalkNavigation.PreferredHeight) then
       FPlayerSwimming := psAboveWater
     else
       FPlayerSwimming := psNo;
@@ -1262,9 +1277,11 @@ var
   WalkNavigation: TCastleWalkNavigation;
   ThirdPersonNavigation: TCastleThirdPersonNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated unit
   if Items.MainScene.ViewpointStack.Top <> nil then
     Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
       InitialDirection, InitialUp, GravityUp) else
+  {$warnings on}
   begin
     InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
     InitialDirection := DefaultX3DCameraDirection;
@@ -1272,7 +1289,9 @@ begin
     GravityUp := DefaultX3DGravityUp;
   end;
 
+  {$warnings off} // using deprecated in deprecated unit
   NavigationNode := Items.MainScene.NavigationInfoStack.Top;
+  {$warnings on}
 
   // calculate Radius
   Radius := 0;
@@ -1280,8 +1299,10 @@ begin
      (NavigationNode.FdAvatarSize.Count >= 1) then
     Radius := NavigationNode.FdAvatarSize.Items[0];
   // If radius not specified, or invalid (<0), calculate it
+  {$warnings off} // using deprecated in deprecated unit
   if Radius <= 0 then
-    Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+    Radius := DefaultCameraRadius;
+  {$warnings on}
   Assert(Radius > 0, 'Navigation Radius must be > 0');
 
   // calculate ProjectionNear
@@ -1332,7 +1353,9 @@ begin
 
 
   // will be overridden by ThirdPersonNavigation.Init, possibly
+  {$warnings off} // using deprecated in deprecated unit
   Viewport.Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
+  {$warnings on}
 
   if WalkNavigation <> nil then
   begin
@@ -1341,10 +1364,14 @@ begin
     WalkNavigation.CorrectPreferredHeight;
     WalkNavigation.CancelFalling;
 
+    {$warnings off} // using deprecated in deprecated unit
     Viewport.Navigation := WalkNavigation;
+    {$warnings on}
   end else
   begin
+    {$warnings off} // using deprecated in deprecated unit
     Viewport.Navigation := ThirdPersonNavigation;
+    {$warnings on}
 
     { Use InitialXxx vectors to position avatar, camera will be derived from it.
       Also add the avatar to Items (avatar needs to be part of hierarchy when
@@ -1479,10 +1506,10 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, FLevel.PrepareParams);
+  Result.PrepareResources(Options, FLevel.PrepareParams);
 
   if PrepareForCollisions then
-    Result.Spatial := [ssDynamicCollisions];
+    Result.PreciseCollisions := true;
 
   Result.FreeResources([frTextureDataInNodes]);
 
@@ -1575,7 +1602,7 @@ begin
     raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
       [Element.TagName, DocumentBaseURL]);
 
-  { Required atttributes }
+  { Required attributes }
 
   if not Element.AttributeString('name', FName) then
     MissingRequiredAttribute('name');

@@ -21,7 +21,7 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
   end;
 
-  TAbstractViewportNode = class(TAbstractX3DGroupingNode)
+  TAbstractViewportNode = class(TAbstractGroupingNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
   end;
 
@@ -33,7 +33,7 @@
     {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
   end;
 
-  TViewportNode = class(TAbstractX3DGroupingNode)
+  TViewportNode = class(TAbstractGroupingNode)
     {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
   end;
 

@@ -1,5 +1,4 @@
 X3DLightNode : X3DChildNode {
-  auto-generate-more: true
   SFFloat [in,out] ambientIntensity 0
     range: [0,1]
   SFColor [in,out] color            1 1 1
@@ -19,7 +18,6 @@ X3DLightNode : X3DChildNode {
 }
 
 X3DPunctualLightNode : X3DLightNode {
-  auto-generate-more: true
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            shadows               FALSE
     change: chShadowMaps
@@ -57,7 +55,6 @@ X3DPunctualLightNode : X3DLightNode {
 # We add abstract X3DDirectionalLight, not present in X3D spec.
 # This is an ancestor for X3D DirectionalLight and VRML 1.0 DirectionalLight.
 X3DDirectionalLightNode : X3DPunctualLightNode {
-  auto-generate-more: true
   SFVec3f [in,out] direction        0 0 -1
     range: (-Inf,Inf)
     change: chLightLocationDirection
@@ -82,8 +79,6 @@ X3DDirectionalLightNode : X3DPunctualLightNode {
 # This is an ancestor for at least X3D PointLight, X3D SpotLight,
 # VRML 1.0 PointLight, VRML 1.0 SpotLight.
 X3DPositionalLightNode : X3DPunctualLightNode {
-  auto-generate-more: true
-
   # NOTE: global by default is TRUE
 
   SFVec3f [in,out] attenuation      1 0 0
@@ -98,19 +93,15 @@ X3DPositionalLightNode : X3DPunctualLightNode {
 }
 
 X3DPointLightNode : X3DPositionalLightNode {
-  auto-generate-more: true
 }
 
 DirectionalLight : X3DDirectionalLightNode {
-  auto-generate-more: true
 }
 
 PointLight : X3DPointLightNode {
-  auto-generate-more: true
 }
 
 SpotLight : X3DPositionalLightNode {
-  auto-generate-more: true
   SFFloat [in,out] beamWidth        Pi*3/16
     range: (0,Pi/2]
   SFFloat [in,out] cutOffAngle      Pi/4
@@ -129,8 +120,6 @@ SpotLight : X3DPositionalLightNode {
 }
 
 EnvironmentLight : X3DLightNode {
-  auto-generate-more: true
-
   SFNode  [in,out]  diffuseTexture   NULL
     range: X3DEnvironmentTextureNode
   SFNode  [in,out]  specularTexture  NULL

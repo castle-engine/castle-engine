@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="disciple.png">
+  <SubTexture x="0" y="973" fps="8" name="idle_1" width="45" height="51"/>
+  <SubTexture x="45" y="973" name="idle_2" width="45" height="51"/>
+  <SubTexture x="90" y="973" name="idle_3" width="45" height="51"/>
+  <SubTexture x="135" y="973" name="idle_4" width="45" height="51"/>
+  <SubTexture x="180" y="973" name="idle_5" width="45" height="51"/>
+  <SubTexture x="225" y="973" fps="8" name="die_1" width="45" height="51"/>
+  <SubTexture x="270" y="973" name="die_2" width="45" height="51"/>
+  <SubTexture x="315" y="973" name="die_3" width="45" height="51"/>
+  <SubTexture x="360" y="973" name="die_4" width="45" height="51"/>
+  <SubTexture x="405" y="973" name="die_5" width="45" height="51"/>
+  <SubTexture x="450" y="973" name="die_6" width="45" height="51"/>
+  <SubTexture x="495" y="973" name="die_7" width="45" height="51"/>
+</TextureAtlas>

@@ -21,6 +21,7 @@ lib/
 *.~dsk
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
+*.local
 
 # Other backups
 *.blend1
@@ -61,6 +62,7 @@ castle-game-engine-*.fpm
 /doc/reference/
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
+/examples/animations/animate_bones_by_code/animate_bones_by_code
 /examples/animations/animate_transform_by_code/animate_transform_by_code
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/deprecated_resource_animations/resource_animations
@@ -81,12 +83,7 @@ castle-game-engine-*.fpm
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
-/examples/deprecated_random_generator/globalrandom/globalrandom
-/examples/deprecated_random_generator/graphics_random_test/graphics_random_test
-/examples/deprecated_random_generator/random_speed_test/random_speed_test
-/examples/deprecated_random_generator/random_threads_test/random_threads_test
-/examples/deprecated_random_generator/testhash/testhash
-/examples/fixed_camera_game/rift
+/examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text
@@ -94,7 +91,7 @@ castle-game-engine-*.fpm
 /examples/fonts/text_tests/text_tests
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
-/examples/headlight_test/headlight_test
+/examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/images_videos/background_tiling/background_tiling
 /examples/images_videos/dds_decompose/dds_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
@@ -108,7 +105,9 @@ castle-game-engine-*.fpm
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
-/examples/joystick/joystick_demo
+/examples/isometric_game_3d/isometric_game_3d
+/examples/deprecated_to_upgrade/isometric_game/isometric_game
+/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
@@ -123,16 +122,29 @@ castle-game-engine-*.fpm
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/simple_3d_demo/simple_3d_demo
-/examples/mobile/test_bump_mapping/test_bump_mapping
+/examples/viewport_and_scenes/shadows/shadows
+/examples/viewport_and_scenes/bump_mapping/bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server
+/examples/physics/physics_asteroids/physics_asteroids
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 /examples/physics/physics_3d_demo/physics_3d_demo
+/examples/physics/physics_3d_shooter/physics_3d_shooter
+/examples/physics/physics_joints_2d/physics_joints_2d
+/examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
+/examples/physics/physics_joints_3d/physics_joints_3d
+/examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_forces/physics_forces
+/examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
+/examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
+/examples/physics/physics_test_changing_transformation/physics_test_changing_transformation
+/examples/physics/physics_test_scale_colliders/physics_test_scale_colliders
+/examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
 /examples/platformer/platformer
 /examples/plugin/cge_3d_viewer/cge_3d_viewer
 /examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
@@ -179,6 +191,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/deprecated_x3d_call_pascal_code/x3d_call_pascal_code
 /examples/viewport_and_scenes/detect_scene_hit/detect_scene_hit
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
+/examples/viewport_and_scenes/headlight/headlight
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
 /examples/viewport_and_scenes/position_from_world/position_from_world
@@ -226,6 +239,7 @@ castle-game-engine-*.fpm
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/check_lazarus_packages/check_lazarus_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
+/tools/internal/fpc-cge/fpc-cge
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal

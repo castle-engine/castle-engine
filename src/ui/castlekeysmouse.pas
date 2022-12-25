@@ -378,16 +378,6 @@ type
   TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
 
-  TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
-  TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
-
-const
-  mbLeft   = buttonLeft deprecated 'Use buttonLeft';
-  mbMiddle = buttonMiddle deprecated 'Use buttonMiddle';
-  mbRight = buttonRight deprecated 'Use buttonRight';
-  mbExtra1 = buttonExtra1 deprecated 'Use buttonExtra1';
-  mbExtra2 = buttonExtra2 deprecated 'Use buttonExtra2';
-
 type
   { Look of the mouse cursor.
     Used for various properties:

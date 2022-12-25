@@ -1,6 +1,4 @@
 X3DSequencerNode : X3DChildNode {
-  auto-generate-more: true
-
   SFBool       [in]     next
   SFBool       [in]     previous
   SFFloat      [in]     set_fraction
@@ -8,14 +6,13 @@ X3DSequencerNode : X3DChildNode {
   MFFloat      [in,out] key           []
     range: (-Inf,Inf)
   SFBool       [in,out] forceContinuousValue_changed  FALSE
+    doc: Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_forceContinuousValue_Changed .
 }
 
 X3DTriggerNode : X3DChildNode  {
-  auto-generate-more: true
 }
 
 BooleanFilter : X3DChildNode {
-  auto-generate-more: true
   SFBool [in]     set_boolean
   SFBool [out]    inputFalse
   SFBool [out]    inputNegate
@@ -23,32 +20,27 @@ BooleanFilter : X3DChildNode {
 }
 
 BooleanSequencer : X3DSequencerNode {
-  auto-generate-more: true
   MFBool  [in,out] keyValue      []
   SFBool  [out]    value_changed
 }
 
 BooleanToggle : X3DChildNode {
-  auto-generate-more: true
   SFBool [in]     set_boolean
   SFBool [in,out] toggle      FALSE
 }
 
 BooleanTrigger : X3DTriggerNode {
-  auto-generate-more: true
   SFTime [in]     set_triggerTime
   SFBool [out]    triggerTrue
 }
 
 IntegerSequencer : X3DSequencerNode {
-  auto-generate-more: true
   MFInt32 [in,out] keyValue      []
     range: (-Inf,Inf)
   SFInt32 [out]    value_changed
 }
 
 IntegerTrigger : X3DTriggerNode {
-  auto-generate-more: true
   SFBool  [in]     set_boolean
   SFInt32 [in,out] integerKey     -1
     range: (-Inf,Inf)
@@ -56,14 +48,12 @@ IntegerTrigger : X3DTriggerNode {
 }
 
 TimeTrigger : X3DTriggerNode {
-  auto-generate-more: true
   SFBool [in]     set_boolean
   SFTime [out]    triggerTime
 }
 
 # InstantReality extension http://doc.instantreality.org/documentation/nodetype/ValueTrigger/
 ValueTrigger : X3DTriggerNode {
-  auto-generate-more: true
   SFBool  [in,out]  enabled  TRUE
   SFBool  [in]      trigger
 }

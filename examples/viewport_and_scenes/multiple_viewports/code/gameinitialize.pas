@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,9 +59,6 @@ initialization
   Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
-
-  { Initialize stencil buffer, for shadow volumes }
-  Window.StencilBits := 8;
 
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.

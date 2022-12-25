@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestGame" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,7 +30,7 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
+  CastleInternalMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
   CastleURIUtils;
 
 procedure TTestGame.TestGameData;
@@ -64,9 +64,9 @@ var
   C: TWalkAttackCreatureResource;
   MatProp: TMaterialProperty;
 begin
-  SoundEngine.RepositoryURL := 'data/game/sounds.xml';
+  SoundEngine.RepositoryURL := 'castle-data:/game/sounds.xml';
 
-  Resources.LoadFromFiles('data/game/');
+  Resources.LoadFromFiles('castle-data:/game/');
 
   AssertTrue(Resources.Count = 1);
   AssertTrue(Resources[0].Name = 'TestCreature');
@@ -133,7 +133,7 @@ begin
   AssertFloat(C.RunAwayDistance, 3.4);
   AssertFloat(C.VisibilityAngle, 5.6);
 
-  Levels.LoadFromFiles('data/game/');
+  Levels.LoadFromFiles('castle-data:/game/');
 
   AssertTrue(Levels[0].Name = 'my_level');
   AssertTrue(Levels[0].LogicClass = TLevelLogic);
@@ -151,7 +151,7 @@ begin
   AssertVector(Levels[0].PlaceholderReferenceDirection, 1, 2, 3);
   AssertSound(Levels[0].MusicSound, 'test_sound_2');
 
-  MaterialProperties.URL := 'data/game/material_properties.xml';
+  MaterialProperties.URL := 'castle-data:/game/material_properties.xml';
 
   // not exposed anymore
   //AssertTrue(MaterialProperties.Count = 2);
@@ -175,7 +175,7 @@ begin
 
   Player := TPlayer.Create(nil);
   try
-    Player.LoadFromFile('data/game/player.xml');
+    Player.LoadFromFile('castle-data:/game/player.xml');
 
     AssertFloat(Player.KnockBackSpeed, 1.2);
     AssertFloat(Player.WalkNavigation.HeadBobbingTime, 9.1);
@@ -203,6 +203,13 @@ begin
     AssertFloat(Player.WalkNavigation.HeadBobbing, 2.3);
 
   finally FreeAndNil(Player) end;
+
+  { clear global stuff, so that other tests (or this one test, run 2nd time)
+    go without errors }
+  SoundEngine.RepositoryURL := '';
+  MaterialProperties.URL := '';
+  Resources.Clear;
+  Levels.Clear;
 end;
 
 initialization

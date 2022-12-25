@@ -30,6 +30,20 @@ const
   GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = $83F2;
   GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = $83F3;
 
+  { Copied from /usr/include/GL/glcorearb.h, under GL_VERSION_4_3 1. }
+  { Unused for now:
+  GL_COMPRESSED_RGB8_ETC2                      = $9274;
+  GL_COMPRESSED_SRGB8_ETC2                     = $9275;
+  GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2  = $9276;
+  GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = $9277;
+  GL_COMPRESSED_RGBA8_ETC2_EAC                 = $9278;
+  GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          = $9279;
+  GL_COMPRESSED_R11_EAC                        = $9270;
+  GL_COMPRESSED_SIGNED_R11_EAC                 = $9271;
+  GL_COMPRESSED_RG11_EAC                       = $9272;
+  GL_COMPRESSED_SIGNED_RG11_EAC                = $9273;
+  }
+
   { https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt }
   GL_COMPRESSED_RGBA_ASTC_4x4_KHR           = $93B0;
   GL_COMPRESSED_RGBA_ASTC_5x4_KHR           = $93B1;

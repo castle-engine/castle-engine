@@ -5,7 +5,7 @@
   @Version 0.2.0
 -------------------------------------------------------------------------------}
 // *****************************************************************************
-// Copyright: © 2007 Patrick M. Kolla. All rights reserved.
+// Copyright: Â© 2007 Patrick M. Kolla. All rights reserved.
 // File:      pk3DConnexion.pas
 // License:   LGPL 2.1
 // Compiler:  Delphi 2006

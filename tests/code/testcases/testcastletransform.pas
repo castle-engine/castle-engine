@@ -19,13 +19,15 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  Classes, SysUtils, CastleBoxes,
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
   CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleTransform = class(TCastleTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
+    function ReturnEmptyBox: TBox3D;
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -57,13 +59,25 @@ type
     procedure TestRemoveDelayed_Destructor;
     procedure TestRemoveDelayed_EarlyFree;
     procedure TestExistsInRoot;
+    procedure TestGetSetWorldView;
+    procedure TestCameraDefaults;
+    procedure TestExcludeBoundingVolume;
+    procedure TestProjectionEmptyBox;
+    procedure TestRecursiveTransformDesign;
+    procedure TestPhysicsBoxAutoSize;
+    procedure TestPhysicsSphereAutoSize;
+    procedure TestPhysicsPlaneAutoSize;
+    procedure TestPhysicsMeshResolving;
+    procedure TestPhysicsDefaultAutoSize;
+    procedure TestReparentBehavior;
   end;
 
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
+  CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
+  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1695,6 +1709,648 @@ begin
   FreeAndNil(T1);
   FreeAndNil(T2);
   FreeAndNil(T3);
+end;
+
+procedure TTestCastleTransform.TestGetSetWorldView;
+var
+  TChild: TCastleTransform;
+  TParent: TCastleRootTransform;
+  CamChild: TCastleCamera;
+  P, D, U: TVector3;
+begin
+  CamChild := TCastleCamera.Create(nil);
+  TChild := TCastleTransform.Create(nil);
+  TParent := TCastleRootTransform.Create(nil);
+  try
+    AssertVectorEquals(TVector3.Zero, TChild.Translation);
+    AssertVectorEquals(TVector4.Zero, TChild.Rotation);
+    AssertVectorEquals(TVector3.Zero, CamChild.Translation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
+
+    TParent.Add(CamChild);
+    TParent.Add(TChild);
+
+    AssertVectorEquals(TVector3.Zero, TChild.WorldTranslation);
+    AssertVectorEquals(TVector3.Zero, CamChild.WorldTranslation);
+
+    TChild.GetView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, TChild.Translation); // no change
+    AssertVectorEquals(TVector4.Zero, TChild.Rotation); // no change
+    AssertVectorEquals(TVector3.Zero, P);
+    // for non-camera transformations, the default Orientation=otUpYDirectionZ
+    AssertVectorEquals(Vector3(0, 0, 1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    TChild.GetWorldView(P, D, U);
+
+    // GetWorldView and GetView should give the same answers, as TParent has no transformation yet
+    AssertVectorEquals(TVector3.Zero, TChild.Translation); // no change
+    AssertVectorEquals(TVector4.Zero, TChild.Rotation); // no change
+    AssertVectorEquals(TVector3.Zero, P);
+    // for non-camera transformations, the default Orientation=otUpYDirectionZ
+    AssertVectorEquals(Vector3(0, 0, 1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    CamChild.GetView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, CamChild.Translation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
+    AssertVectorEquals(TVector3.Zero, P);
+    // for camera transformations, the default Orientation=otUpYDirectionMinusZ
+    AssertVectorEquals(Vector3(0, 0, -1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    CamChild.GetWorldView(P, D, U);
+
+    // GetWorldView and GetView should give the same answers, as TParent has no transformation yet
+    AssertVectorEquals(TVector3.Zero, CamChild.Translation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
+    AssertVectorEquals(TVector3.Zero, P);
+    // for camera transformations, the default Orientation=otUpYDirectionMinusZ
+    AssertVectorEquals(Vector3(0, 0, -1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    // now apply transformations on everything
+    TParent.Translation := Vector3(1, 2, 3);
+    TChild.Translation := Vector3(100, 200, 300);
+    CamChild.Translation := Vector3(100, 200, 300);
+
+    TChild.GetView(P, D, U);
+
+    AssertVectorEquals(Vector3(100, 200, 300), TChild.Translation);
+    AssertVectorEquals(TVector4.Zero, TChild.Rotation); // no change
+    AssertVectorEquals(Vector3(100, 200, 300), P);
+    // for non-camera transformations, the default Orientation=otUpYDirectionZ
+    AssertVectorEquals(Vector3(0, 0, 1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    TChild.GetWorldView(P, D, U);
+
+    AssertVectorEquals(Vector3(100, 200, 300), TChild.Translation);
+    AssertVectorEquals(TVector4.Zero, TChild.Rotation); // no change
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), TChild.WorldTranslation);
+    // for non-camera transformations, the default Orientation=otUpYDirectionZ
+    AssertVectorEquals(Vector3(0, 0, 1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    CamChild.GetView(P, D, U);
+
+    AssertVectorEquals(Vector3(100, 200, 300), CamChild.Translation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
+    AssertVectorEquals(Vector3(100, 200, 300), P);
+    // for camera transformations, the default Orientation=otUpYDirectionMinusZ
+    AssertVectorEquals(Vector3(0, 0, -1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    CamChild.GetWorldView(P, D, U);
+
+    AssertVectorEquals(Vector3(100, 200, 300), CamChild.Translation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), CamChild.WorldTranslation);
+    // for camera transformations, the default Orientation=otUpYDirectionMinusZ
+    AssertVectorEquals(Vector3(0, 0, -1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    TChild.SetWorldView(Vector3(400, 500, 600) + Vector3(1, 2, 3),
+      Vector3(0, 0, 1),
+      Vector3(0, 1, 0));
+    TChild.GetWorldView(P, D, U);
+
+    AssertVectorEquals(Vector3(400, 500, 600), TChild.Translation);
+    AssertVectorEquals(Vector4(0, 0, 1, 0), TChild.Rotation);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), TChild.WorldTranslation);
+    // for non-camera transformations, the default Orientation=otUpYDirectionZ
+    AssertVectorEquals(Vector3(0, 0, 1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+
+    CamChild.SetWorldView(Vector3(400, 500, 600) + Vector3(1, 2, 3),
+      Vector3(0, 0, -1),
+      Vector3(0, 1, 0));
+    CamChild.GetWorldView(P, D, U);
+
+    AssertVectorEquals(Vector3(400, 500, 600), CamChild.Translation);
+    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), CamChild.WorldTranslation);
+    // for camera transformations, the default Orientation=otUpYDirectionMinusZ
+    AssertVectorEquals(Vector3(0, 0, -1), D);
+    AssertVectorEquals(Vector3(0, 1, 0), U);
+  finally
+    FreeAndNil(CamChild);
+    FreeAndNil(TChild);
+    FreeAndNil(TParent);
+  end;
+end;
+
+procedure TTestCastleTransform.TestCameraDefaults;
+var
+  Parent: TCastleRootTransform;
+  C: TCastleCamera;
+  P, D, U: TVector3;
+begin
+  Parent := TCastleRootTransform.Create(nil);
+  C := TCastleCamera.Create(nil);
+  try
+    AssertVectorEquals(TVector3.Zero, C.Position);
+    AssertVectorEquals(TVector3.Zero, C.Translation);
+    AssertVectorEquals(DefaultCameraDirection, C.Direction);
+    AssertVectorEquals(DefaultCameraUp, C.Up);
+    // even zero axis; keeping this default is important, otherwise reading design files would be broken, if we change defaults
+    AssertVectorEquals(TVector4.Zero, C.Rotation);
+
+    Parent.Add(C);
+
+    AssertVectorEquals(TVector3.Zero, C.Position);
+    AssertVectorEquals(TVector3.Zero, C.Translation);
+    AssertVectorEquals(DefaultCameraDirection, C.Direction);
+    AssertVectorEquals(DefaultCameraUp, C.Up);
+    AssertVectorEquals(TVector4.Zero, C.Rotation);
+
+    C.GetView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, P);
+    AssertVectorEquals(DefaultCameraDirection, D);
+    AssertVectorEquals(DefaultCameraUp, U);
+
+    C.GetWorldView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, P);
+    AssertVectorEquals(DefaultCameraDirection, D);
+    AssertVectorEquals(DefaultCameraUp, U);
+  finally
+    FreeAndNil(C);
+    FreeAndNil(Parent);
+  end;
+end;
+
+procedure TTestCastleTransform.TestExcludeBoundingVolume;
+var
+  T, Box: TCastleTransform;
+begin
+  T := nil;
+  Box := nil;
+  try
+    T := TCastleTransform.Create(nil);
+    Box := TCastleBox.Create(nil);
+
+    AssertTrue(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+
+    T.Add(Box);
+
+    AssertFalse(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+
+    Box.InternalExcludeFromParentBoundingVolume := true;
+
+    AssertTrue(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+  finally
+    FreeAndNil(T);
+    FreeAndNil(Box);
+  end;
+end;
+
+procedure TTestCastleTransform.TestProjectionEmptyBox;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    C := V.Camera;
+    C.ProjectionType := ptOrthographic;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.ProjectionType := ptPerspective;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+  finally FreeAndNil(V) end;
+end;
+
+function TTestCastleTransform.ReturnEmptyBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
+end;
+
+procedure TTestCastleTransform.TestRecursiveTransformDesign;
+var
+  Owner: TComponent;
+  //T: TCastleTransform;
+begin
+  try
+    Owner := TComponent.Create(nil);
+    try
+      {T := }TransformLoad('castle-data:/designs/test_recursive_transform.castle-transform', Owner);
+      Fail('Loading test_recursive_transform.castle-transform should have raised an exception');
+    except
+      on E: Exception do
+        { We expect Exception with message "Exceeded maximum depth..." }
+        if not IsPrefix('Exceeded maximum depth', E.Message) then
+          raise;
+    end;
+  finally FreeAndNil(Owner) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsBoxAutoSize;
+var
+  Own: TComponent;
+  Col: TCastleBoxCollider;
+  B: TCastleBox;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastleBoxCollider.Create(Own);
+    Col.AutoSize := false;
+
+    B := TCastleBox.Create(Own);
+    B.Size := Vector3(100, 200, 300);
+    B.AddBehavior(Col);
+
+    AssertVectorEquals(Vector3(2, 2, 2), Col.Size);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(1.0, Col.SizeScale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.SizeScale := 8;
+    Col.Size := Vector3(11, 12, 13);
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertVectorEquals(Vector3(11, 12, 13), Col.Size);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    B.Size := Vector3(400, 500, 600);
+    // this didn't change collider size, since AutoSize = false
+    AssertVectorEquals(Vector3(100, 200, 300), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertVectorEquals(Vector3(400, 500, 600), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+
+    B.Size := Vector3(700, 800, 900);
+    AssertVectorEquals(Vector3(700, 800, 900), Col.Size);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsSphereAutoSize;
+var
+  Own: TComponent;
+  Col: TCastleSphereCollider;
+  S: TCastleSphere;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastleSphereCollider.Create(Own);
+    Col.AutoSize := false;
+
+    S := TCastleSphere.Create(Own);
+    S.Radius := 100;
+    S.AddBehavior(Col);
+
+    AssertSameValue(1, Col.Radius);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(1, Col.SizeScale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.SizeScale := 8;
+    Col.Radius := 11;
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertSameValue(11, Col.Radius);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    S.Radius := 400;
+    // this didn't change collider size, since AutoSize = false
+    AssertSameValue(100, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertSameValue(400, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+
+    S.Radius := 700;
+    AssertSameValue(700, Col.Radius);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsPlaneAutoSize;
+var
+  Own: TComponent;
+  Col: TCastlePlaneCollider;
+  P: TCastlePlane;
+begin
+  Own := TComponent.Create(nil);
+  try
+    Col := TCastlePlaneCollider.Create(Own);
+    Col.AutoSize := false;
+
+    P := TCastlePlane.Create(Own);
+    P.Axis := 0;
+    P.AddBehavior(Col);
+
+    AssertVectorEquals(TVector3.One[1], Col.Normal);
+
+    AssertFalse(Col.AutoSize);
+
+    Col.CalculateSize; // test that CalculateSize works and doesn't change AutoSize
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(1, Col.SizeScale);
+    AssertFalse(Col.AutoSize);
+
+    Col.Translation := Vector3(3, 4, 5);
+    Col.Rotation := Vector4(5, 6, 7, 8);
+    Col.SizeScale := 8;
+    Col.Normal := Vector3(11, 12, 13);
+    AssertVectorEquals(Vector3(3, 4, 5), Col.Translation);
+    AssertVectorEquals(Vector4(5, 6, 7, 8), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertVectorEquals(Vector3(11, 12, 13), Col.Normal);
+
+    Col.CalculateSize; // test that CalculateSize works and updates all size values
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    P.Axis := 2;
+    // this didn't change collider size, since AutoSize = false
+    AssertVectorEquals(TVector3.One[0], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertFalse(Col.AutoSize);
+
+    Col.AutoSize := true;
+    // this changed collider size
+    AssertVectorEquals(TVector3.One[2], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+
+    P.Axis := 1;
+    AssertVectorEquals(TVector3.One[1], Col.Normal);
+    AssertVectorEquals(Vector3(0, 0, 0), Col.Translation);
+    AssertVectorEquals(Vector4(0, 0, 0, 0), Col.Rotation);
+    AssertEquals(8, Col.SizeScale); // SizeScale untouched by CalculateSize
+    AssertTrue(Col.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsMeshResolving;
+var
+  UiOwner: TComponent;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    UiOwner := TComponent.Create(nil);
+    try
+      UserInterfaceLoad('castle-data:/designs/test_mesh_collider_ref.castle-user-interface', UiOwner);
+    finally FreeAndNil(UiOwner) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsDefaultAutoSize;
+var
+  Own: TComponent;
+  ColP: TCastlePlaneCollider;
+  ColS: TCastleSphereCollider;
+  ColC: TCastleCapsuleCollider;
+  ColM: TCastleMeshCollider;
+  ColB: TCastleBoxCollider;
+  B: TCastleBox;
+begin
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColP := TCastlePlaneCollider.Create(Own);
+    AssertTrue(ColP.AutoSize);
+
+    B.AddBehavior(ColP);
+    AssertTrue(ColP.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColS := TCastleSphereCollider.Create(Own);
+    AssertTrue(ColS.AutoSize);
+
+    B.AddBehavior(ColS);
+    AssertTrue(ColS.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColC := TCastleCapsuleCollider.Create(Own);
+    AssertTrue(ColC.AutoSize);
+
+    B.AddBehavior(ColC);
+    AssertTrue(ColC.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColM := TCastleMeshCollider.Create(Own);
+    AssertTrue(ColM.AutoSize);
+
+    B.AddBehavior(ColM);
+    AssertTrue(ColM.AutoSize);
+  finally FreeAndNil(Own) end;
+
+  Own := TComponent.Create(nil);
+  try
+    B := TCastleBox.Create(Own);
+
+    ColB := TCastleBoxCollider.Create(Own);
+    AssertTrue(ColB.AutoSize);
+
+    B.AddBehavior(ColB);
+    AssertTrue(ColB.AutoSize);
+  finally FreeAndNil(Own) end;
+end;
+
+type
+  TLoggingBehavior = class(TCastleBehavior)
+    Log: TStringList;
+    procedure ParentAfterAttach; override;
+    procedure ParentBeforeDetach; override;
+    procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
+  end;
+
+  procedure TLoggingBehavior.ParentAfterAttach;
+  begin
+    inherited;
+    Log.Add('Behavior attached to ' + Parent.Name);
+  end;
+
+  procedure TLoggingBehavior.ParentBeforeDetach;
+  begin
+    Log.Add('Behavior detached from ' + Parent.Name);
+    inherited;
+  end;
+
+  procedure TLoggingBehavior.WorldAfterAttach;
+  begin
+    inherited;
+    { Although World.Name is always boring 'Items', using it makes sure World is valid now }
+    Log.Add('Behavior attached to world ' + World.Name);
+  end;
+
+  procedure TLoggingBehavior.WorldBeforeDetach;
+  begin
+    { Although World.Name is always boring 'Items', using it makes sure World is valid now }
+    Log.Add('Behavior detached from world ' + World.Name);
+    inherited;
+  end;
+
+procedure TTestCastleTransform.TestReparentBehavior;
+var
+  Log: TStringList;
+  B: TLoggingBehavior;
+  Parent1, Parent2: TCastleTransform;
+  Viewport: TCastleViewport;
+begin
+  B := nil;
+  Log := nil;
+  try
+    Log := TStringList.Create;
+
+    B := TLoggingBehavior.Create(nil);
+    B.Log := Log;
+
+    Parent1 := TCastleTransform.Create(nil);
+    Parent1.Name := 'Parent1';
+
+    Parent2 := TCastleTransform.Create(nil);
+    Parent2.Name := 'Parent2';
+
+    Viewport := TCastleViewport.Create(nil);
+
+    // make sure we have clean log now, as we didn't yet do anything
+    AssertEquals('', Trim(Log.Text));
+
+    Parent1.AddBehavior(B);
+    Parent1.RemoveBehavior(B);
+    Parent2.AddBehavior(B);
+    Parent2.RemoveBehavior(B);
+
+    AssertEquals(
+      'Behavior attached to Parent1' + NL +
+      'Behavior detached from Parent1' + NL +
+      'Behavior attached to Parent2' + NL +
+      'Behavior detached from Parent2', Trim(Log.Text));
+    Log.Clear;
+
+    Parent1.AddBehavior(B);
+    Parent2.AddBehavior(B); // should detach automatically from Parent1, check it causes ParentBeforeDetach
+    Parent2.RemoveBehavior(B);
+
+    AssertEquals(
+      'Behavior attached to Parent1' + NL +
+      'Behavior detached from Parent1' + NL +
+      'Behavior attached to Parent2' + NL +
+      'Behavior detached from Parent2', Trim(Log.Text));
+    Log.Clear;
+
+    { check that addign transform to world causes WorldAfterAttach }
+
+    Parent2.AddBehavior(B);
+    Log.Clear;
+
+    B.ListenWorldChange := true;
+    Viewport.Items.Add(Parent1);
+    AssertEquals('', Trim(Log.Text));
+    Viewport.Items.Add(Parent2);
+    AssertEquals('Behavior attached to world Items', Trim(Log.Text));
+    Log.Clear;
+
+    { now reparent, and watch that notifications about parent and world are all correct }
+
+    Parent1.AddBehavior(B);
+
+    AssertEquals(
+      'Behavior detached from world Items' + NL +
+      'Behavior detached from Parent2' + NL +
+      'Behavior attached to Parent1' + NL +
+      'Behavior attached to world Items', Trim(Log.Text));
+
+  finally
+    FreeAndNil(B);
+    FreeAndNil(Log); // note: make sure to keep Log existing as long as B exists
+    FreeAndNil(Parent1);
+    FreeAndNil(Parent2);
+    FreeAndNil(Viewport);
+  end;
 end;
 
 initialization

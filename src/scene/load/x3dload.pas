@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2019 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -238,7 +238,7 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload;
+  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -469,6 +469,10 @@ begin
     Result := LoadCocos2d(Stream, BaseUrl)
   else
 
+  if MimeType = 'application/x-tiled-map' then
+    Result := LoadTiledMap2d(Stream, BaseUrl)
+  else
+
   { Support for simple graphics images like PNG }
   if IsImageMimeType(MimeType, true, false) then
     Result := LoadImageAsNode(Stream, BaseUrl, MimeType)
@@ -479,6 +483,16 @@ begin
   else
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
       [MimeType, URIDisplay(BaseUrl)]);
+
+  if Result <> nil then
+  begin
+    { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
+      to have non-unique names for accessing everything,
+      e.g. EXPORT statements should use correct (non-unique) names
+      to be IMPORTed.
+      Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
+    Result.InternalFixNodeNames;
+  end;
 end;
 
 function LoadScene_FileFilters: String;
@@ -488,7 +502,7 @@ begin
   ImageExtensions := LoadImage_FileFilters.AllExtensions;
 
   Result :=   'All Files|*|' +
-    '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.castle-sprite-sheet;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
+    '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.castle-sprite-sheet;*.starling-xml;*.cocos2d-plist;*.plist;*.tmx;' + ImageExtensions + '|' +
     'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
     { TODO:
       and X3D binary (*.x3db;*.x3db.gz)
@@ -508,6 +522,7 @@ begin
     'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|' +
     'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
     'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
+    'Tiled Map (*.tmx)|*.tmx|' +
     { Uncomment to see version with extensions - but filter combo is very long then }
     //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
     'Images |' + ImageExtensions;

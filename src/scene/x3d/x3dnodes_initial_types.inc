@@ -74,6 +74,7 @@
   TTransformFunctionality = class;
   TTimeDependentFunctionality = class;
   TGeneratedTextureFunctionality = class;
+  TX3DExportList = class;
 
   TX3DNodeClass = class of TX3DNode;
 

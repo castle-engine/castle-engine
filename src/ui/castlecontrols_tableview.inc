@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis and Jan Adamec.
+  Copyright 2017-2022 Michalis Kamburelis and Jan Adamec.
 
   This file is part of "Castle Game Engine".
 
@@ -319,7 +319,6 @@ begin
     else
       Cell.TextLabel.Caption := Format('Cell %d', [I+1]);
 
-    Cell.Left := 0;
     Cell.Width := CellWidth;
     Cell.Height := CellHeight;
     Cell.Anchor(vpTop, -I * (CellHeight + SeparatorHeight));

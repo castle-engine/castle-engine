@@ -418,7 +418,7 @@ var
   procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
     SigningPropertiesFile = 'AndroidSigningProperties.txt';
-    WWW = 'https://castle-engine.io/android_faq#_signing_a_release_apk';
+    WWW = 'https://castle-engine.io/android_faq#_signing_a_release_apk_aab';
     MissingSigningSuffix =
       '  See ' + WWW + ' for documentation how to create and use keys to sign release Android APK / AAB.' + NL +
       '  Falling back to creating debug apk.';

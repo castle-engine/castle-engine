@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2018 Michalis Kamburelis and Lazarus developers.
+  Copyright 2012-2022 Michalis Kamburelis and Lazarus developers.
 
   This file is part of "Castle Game Engine".
 
@@ -260,7 +260,7 @@ begin
   end;
 end;
 
-  {$if defined(darwin) and not defined(CASTLE_IOS) and not defined(CPUX86_64)}
+  {$if defined(darwin) and not defined(CASTLE_IOS)}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 

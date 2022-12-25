@@ -25,12 +25,13 @@ type
   TEnemy = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     MoveDirection: Integer; //< Always 1 or -1
     Dead: Boolean;
     DontFallDown: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure HitPlayer;
     procedure TakeDamageFromBullet(const Bullet: TCastleTransform);
@@ -55,12 +56,15 @@ begin
   DontFallDown := true;
 end;
 
-procedure TEnemy.ParentChanged;
+procedure TEnemy.ParentAfterAttach;
 begin
   inherited;
+
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
-  Scene.RigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   { In editor you can change scale to -1 1 1 to change enemy inital direction }
   if Scene.Scale.X < 0 then
     MoveDirection := 1;
@@ -85,10 +89,12 @@ begin
     Exit;
   end;
 
-  RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
+  if RBody = nil then
+    Exit;
 
-  EnemyOnGround := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-    Vector3(0, -1, 0), RayMaxDistance) <> nil;
+  RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
+  EnemyOnGround := RBody.PhysicsRayCast(Scene.Translation,
+    Vector3(0, -1, 0), RayMaxDistance).Hit;
 
   if not EnemyOnGround then
   begin
@@ -102,17 +108,17 @@ begin
 
   if DontFallDown then
   begin
-    NeedTurn := Scene.RigidBody.PhysicsRayCast(Scene.Translation
+    NeedTurn := not RBody.PhysicsRayCast(Scene.Translation
       + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
-      Vector3(0, -1, 0), RayMaxDistance) = nil;
+      Vector3(0, -1, 0), RayMaxDistance).Hit;
   end else
     NeedTurn := false;
 
   { Check enemy must turn because he go wall. }
   if not NeedTurn then
   begin
-    ObstacleAhead := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5);
+    ObstacleAhead := RBody.PhysicsRayCast(Scene.Translation,
+      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5).Transform;
 
     if ObstacleAhead <> nil then
     begin
@@ -127,31 +133,29 @@ begin
   if NeedTurn then
     MoveDirection := - MoveDirection;
 
-  Vel := Scene.RigidBody.LinearVelocity;
+  Vel := RBody.LinearVelocity;
 
   Vel.X := MoveDirection * MovingSpeed;
 
   Scene.Scale := Vector3(-MoveDirection, 1, 1);
 
-  Scene.RigidBody.LinearVelocity := Vel;
+  RBody.LinearVelocity := Vel;
 end;
 
 procedure TEnemy.HitPlayer;
 begin
   StatePlay.HitPlayer;
   Dead := true;
-  Parent.RigidBody.Exists := false;
+  RBody.Exists := false;
 end;
 
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
   SoundEngine.Play(SoundEngine.SoundFromName('hit_enemy'));
   Bullet.Exists := false;
-  //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-  Bullet.RigidBody.Exists := false;
 
   Dead := true;
-  Parent.RigidBody.Exists := false;
+  RBody.Exists := false;
 end;
 
 procedure TEnemy.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -167,4 +171,3 @@ begin
 end;
 
 end.
-

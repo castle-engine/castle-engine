@@ -1,3 +1,4 @@
+{%MainUnit castlewindow.pas}
 {
   Copyright 2004-2022 Michalis Kamburelis.
 
@@ -33,7 +34,7 @@ CastleJoysticks,
 
 {$ifdef read_window_interface}
 public
-  { Only the library in src/library/castleengine.lpr uses this,
+  { Only the library in src/deprecated_library/castleengine.lpr uses this,
     to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 {$endif read_window_interface}
@@ -247,7 +248,7 @@ begin
   { TODO } Result := false;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 begin
   { TODO } Result := false;
 end;

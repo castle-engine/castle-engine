@@ -1,8 +1,8 @@
 { Simple "menu" user interface, that allows to run the game or quit.
 
   Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This template code is in public domain, unlike most other CGE code which
+  is covered by BSD or LGPL (see https://castle-engine.io/license). }
 unit GameStateMenu;
 
 interface
@@ -13,9 +13,11 @@ uses Classes,
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TStateMenu = class(TUIState)
-  private
-    { Components designed using CGE editor, loaded from gamestatemenu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonPlay, ButtonQuit: TCastleButton;
+  private
     procedure ClickPlay(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
@@ -42,11 +44,6 @@ end;
 procedure TStateMenu.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button

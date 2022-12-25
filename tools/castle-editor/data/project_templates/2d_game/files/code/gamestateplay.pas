@@ -1,8 +1,8 @@
 { Main "playing game" state, where most of the game logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This template code is in public domain, unlike most other CGE code which
+  is covered by BSD or LGPL (see https://castle-engine.io/license). }
 unit GameStatePlay;
 
 interface
@@ -14,17 +14,18 @@ uses Classes,
 type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    MainViewport: TCastleViewport;
+    SceneDragon: TCastleScene;
+    CheckboxCameraFollow: TCastleCheckbox;
   private
     { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
       animation and it's movement. }
     DragonFlying: Boolean;
     DragonFlyingTarget: TVector2;
-
-    { Components designed using CGE editor, loaded from gamestateplay.castle-user-interface. }
-    LabelFps: TCastleLabel;
-    MainViewport: TCastleViewport;
-    SceneDragon: TCastleScene;
-    CheckboxCameraFollow: TCastleCheckbox;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -51,12 +52,6 @@ end;
 procedure TStatePlay.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  SceneDragon := DesignedComponent('SceneDragon') as TCastleScene;
-  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -69,6 +64,7 @@ begin
   inherited;
   { This virtual method is executed every frame.}
 
+  Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   if DragonFlying then
@@ -106,9 +102,9 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := SceneDragon.Translation.X;
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 end;
 

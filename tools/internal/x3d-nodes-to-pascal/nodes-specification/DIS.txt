@@ -1,6 +1,4 @@
 DISEntityManager : X3DChildNode {
-  auto-generate-more: true
-
   SFString [in,out] address         "localhost"
   SFInt32  [in,out] applicationID   1
     range: [0,65535]
@@ -15,8 +13,6 @@ DISEntityManager : X3DChildNode {
 }
 
 DISEntityTypeMapping : X3DInfoNode {
-  auto-generate-more: true
-
   MFString [in,out] url         []
     range: [URI]
   SFInt32  []       category    0
@@ -36,8 +32,6 @@ DISEntityTypeMapping : X3DInfoNode {
 }
 
 EspduTransform : X3DGroupingNode, X3DSensorNode {
-  auto-generate-more: true
-
   SFFloat    [in]     set_articulationParameterValue0
     range: (-Inf,Inf)
   SFFloat    [in]     set_articulationParameterValue1
@@ -192,8 +186,6 @@ EspduTransform : X3DGroupingNode, X3DSensorNode {
 }
 
 ReceiverPdu : X3DSensorNode, X3DBoundedObject {
-  auto-generate-more: true
-
   SFString [in,out] address                  "localhost"
   SFInt32  [in,out] applicationID            1
     range: [0,65535]
@@ -241,8 +233,6 @@ ReceiverPdu : X3DSensorNode, X3DBoundedObject {
 }
 
 SignalPdu : X3DSensorNode, X3DBoundedObject {
-  auto-generate-more: true
-
   SFString [in,out] address            "localhost"
   SFInt32  [in,out] applicationID      1
     range: [0,65535]
@@ -290,8 +280,6 @@ SignalPdu : X3DSensorNode, X3DBoundedObject {
 }
 
 TransmitterPdu : X3DSensorNode, X3DBoundedObject {
-  auto-generate-more: true
-
   SFString [in,out] address                            "localhost"
   SFVec3f  [in,out] antennaLocation                    0 0 0
     range: (-Inf,Inf)

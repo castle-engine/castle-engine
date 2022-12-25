@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,13 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ NurbsCurve2D is shared with VRML 97 NURBS definition.
-  The rest is, for now, completely separate from VRML 97 NURBS definition
-  in x3dnodes_97_nurbs.inc. }
-
 {$ifdef read_interface}
-  TNurbsSurfaceNode = class;
-
   { Base type for nodes that provide control curve information in 2D space. }
   TAbstractNurbsControlCurveNode = class(TAbstractNode)
   {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
@@ -36,14 +30,12 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -99,14 +91,12 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -207,9 +197,9 @@
     function SolidField: TSFBool; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
   {$I auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc}
@@ -225,9 +215,9 @@
     function SolidField: TSFBool; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbsswungsurface.inc}
@@ -249,8 +239,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
   {$I auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc}
   end;
 
@@ -348,8 +337,7 @@ begin
   FreeAndNil(Knot);
 end;
 
-function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   ControlPointList: TVector3List;
 begin
@@ -364,11 +352,6 @@ begin
     NurbsCurveProxy(TLineSetNode(Result), ControlPointList, FdTessellation.Value,
       FdOrder.Value, FdKnot.Items, FdWeight.Items);
   except FreeAndNil(Result); raise end;
-end;
-
-function TNurbsCurveNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TNurbsCurveNode.CoordField: TSFNode;
@@ -412,7 +395,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function TNurbsCurveNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsCurveNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := 0;
@@ -752,8 +735,7 @@ begin
   FreeAndNil(VKnot);
 end;
 
-function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   ControlPointList: TVector3List;
 begin
@@ -784,11 +766,6 @@ begin
     { Note: In case of null / invalid / unhandled ControlPoint,
       we still return valid (just empty) IndexedQuadSet node. }
   except FreeAndNil(Result); raise end;
-end;
-
-function TAbstractNurbsSurfaceGeometryNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.CoordField: TSFNode;
@@ -832,7 +809,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function TAbstractNurbsSurfaceGeometryNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TAbstractNurbsSurfaceGeometryNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
@@ -1076,14 +1053,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TNurbsSweptSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsSweptSurfaceNode.VerticesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TNurbsSweptSurfaceNode not implemented. }
   Result := 0;
 end;
 
-function TNurbsSweptSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsSweptSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TNurbsSweptSurfaceNode not implemented. }
@@ -1111,14 +1088,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TNurbsSwungSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsSwungSurfaceNode.VerticesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TNurbsSwungSurfaceNode not implemented. }
   Result := 0;
 end;
 
-function TNurbsSwungSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsSwungSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TNurbsSwungSurfaceNode not implemented. }
@@ -1136,8 +1113,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 begin
   Result := inherited;
   if FdTrimmingContour.Count <> 0 then

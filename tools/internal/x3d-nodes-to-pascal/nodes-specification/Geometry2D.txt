@@ -1,6 +1,4 @@
 Arc2D : X3DGeometryNode {
-  auto-generate-more: true
-
   SFFloat []       endAngle   Pi/2
     range: [-2Pi,2Pi]
   SFFloat []       radius     1
@@ -10,8 +8,6 @@ Arc2D : X3DGeometryNode {
 }
 
 ArcClose2D : X3DGeometryNode {
-  auto-generate-more: true
-
   SFString []       closureType "PIE"
     range: ["PIE"|"CHORD"]
     enumerated-type: TArcClosureType ArcClosureTypeNames acPie
@@ -25,8 +21,6 @@ ArcClose2D : X3DGeometryNode {
 }
 
 Circle2D : X3DGeometryNode {
-  auto-generate-more: true
-
   SFFloat []       radius   1
     range: (0,Inf)
 
@@ -36,8 +30,6 @@ Circle2D : X3DGeometryNode {
 }
 
 Disk2D : X3DGeometryNode {
-  auto-generate-more: true
-
   SFFloat []       innerRadius 0
     range: [0,Inf)
   SFFloat []       outerRadius 1
@@ -46,30 +38,22 @@ Disk2D : X3DGeometryNode {
 }
 
 Polyline2D : X3DGeometryNode {
-  auto-generate-more: true
-
   MFVec2f []       lineSegments []
     range: (-Inf,Inf)
 }
 
 Polypoint2D : X3DGeometryNode {
-  auto-generate-more: true
-
   MFVec2f [in,out] point    []
     range: (-Inf,Inf)
 }
 
 Rectangle2D : X3DGeometryNode {
-  auto-generate-more: true
-
   SFVec2f []       size     2 2
     range: (0,Inf)
   SFBool  []       solid    FALSE
 }
 
 TriangleSet2D : X3DGeometryNode {
-  auto-generate-more: true
-
   MFVec2f [in,out] vertices []
     range: (-Inf,Inf)
   SFBool  []       solid    FALSE

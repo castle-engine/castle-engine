@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{C81292BA-BD8C-4DCA-94DD-2F5DFA0698C9}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="castle_base.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="castle_fmx.dproj">
+            <Dependencies>castle_base.dproj</Dependencies>
+        </Projects>
+        <Projects Include="castle_vcl.dproj">
+            <Dependencies>castle_base.dproj</Dependencies>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="castle_base">
+        <MSBuild Projects="castle_base.dproj"/>
+    </Target>
+    <Target Name="castle_base:Clean">
+        <MSBuild Projects="castle_base.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_base:Make">
+        <MSBuild Projects="castle_base.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="castle_fmx" DependsOnTargets="castle_base">
+        <MSBuild Projects="castle_fmx.dproj"/>
+    </Target>
+    <Target Name="castle_fmx:Clean" DependsOnTargets="castle_base:Clean">
+        <MSBuild Projects="castle_fmx.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_fmx:Make" DependsOnTargets="castle_base:Make">
+        <MSBuild Projects="castle_fmx.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="castle_vcl" DependsOnTargets="castle_base">
+        <MSBuild Projects="castle_vcl.dproj"/>
+    </Target>
+    <Target Name="castle_vcl:Clean" DependsOnTargets="castle_base:Clean">
+        <MSBuild Projects="castle_vcl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_vcl:Make" DependsOnTargets="castle_base:Make">
+        <MSBuild Projects="castle_vcl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="castle_base;castle_fmx;castle_vcl"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="castle_base:Clean;castle_fmx:Clean;castle_vcl:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="castle_base:Make;castle_fmx:Make;castle_vcl:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

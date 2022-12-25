@@ -63,7 +63,7 @@ procedure TForm1.FormCreate(Sender: TObject);
   var
     MainButton: TCastleButton;
   begin
-    MainButton := Browser.DesignedComponent('MainButton') as TCastleButton;
+    MainButton := Browser.Container.DesignedComponent('MainButton') as TCastleButton;
     MainButton.OnClick := @MainButtonClick;
   end;
 

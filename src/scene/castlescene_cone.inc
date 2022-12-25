@@ -1,5 +1,6 @@
+{%MainUnit castlescene.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -92,6 +93,7 @@ begin
   begin
     FBottomRadius := Value;
     ConeNode.BottomRadius := FBottomRadius;
+    UpdateCollider;
   end;
 end;
 
@@ -101,6 +103,7 @@ begin
   begin
     FHeight := Value;
     ConeNode.Height := FHeight;
+    UpdateCollider;
   end;
 end;
 

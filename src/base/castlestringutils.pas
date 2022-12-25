@@ -984,6 +984,7 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 { Remove one newline from the end of the string, if any. }
 function TrimEndingNewline(const S: String): String;
 
+{ Format size of file, in bytes / megabytes / and so on, whatever looks nice. }
 function SizeToStr(const Value: Int64): String;
 
 { Convert String to UTF-16 (UnicodeString).
@@ -2275,7 +2276,7 @@ begin
 end;
 
 type
-  TRegExprString = {$if defined(FPC) and (FPC_FULLVERSION >= 30300)} UnicodeString {$else} String {$endif};
+  TRegExprString = {$if defined(FPC) and (FPC_FULLVERSION >= 30300)} RegExprString {$else} String {$endif};
 
   TRegExprCounter = class
   private

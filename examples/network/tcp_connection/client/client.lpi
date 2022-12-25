@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="client"/>
@@ -43,8 +44,8 @@
       <Filename Value="client"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;/your/path/to/Indy10/Core;/your/path/to/Indy10/System"/>
-      <OtherUnitFiles Value="code/;/your/path/to/Indy10/Core;/your/path/to/Indy10/System"/>
+      <IncludeFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
+      <OtherUnitFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
     </SearchPaths>
@@ -60,11 +61,17 @@
         <OverflowChecks Value="True"/>
       </Checks>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf2Set"/>
+      </Debugging>
+    </Linking>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CustomOptions Value=""/>
+      <CustomOptions Value="
+"/>
     </Other>
   </CompilerOptions>
   <Debugging>

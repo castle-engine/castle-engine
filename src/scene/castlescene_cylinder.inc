@@ -1,5 +1,6 @@
+{%MainUnit castlescene.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -100,6 +101,7 @@ begin
   begin
     FRadius := Value;
     CylinderNode.Radius := FRadius;
+    UpdateCollider;
   end;
 end;
 
@@ -109,6 +111,7 @@ begin
   begin
     FHeight := Value;
     CylinderNode.Height := FHeight;
+    UpdateCollider;
   end;
 end;
 

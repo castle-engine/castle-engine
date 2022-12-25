@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,9 +63,9 @@ begin
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   MainScene := DesignedComponent('MainScene') as TCastleScene;
 
-  TransformBox2 := MainScene.Node('Box2Transform') as TTransformNode;
-  TransformBox3 := MainScene.Node('Box3Transform') as TTransformNode;
-  TransformBox4 := MainScene.Node('Box4Transform') as TTransformNode;
+  TransformBox2 := MainScene.Node(TTransformNode, 'Box2Transform') as TTransformNode;
+  TransformBox3 := MainScene.Node(TTransformNode, 'Box3Transform') as TTransformNode;
+  TransformBox4 := MainScene.Node(TTransformNode, 'Box4Transform') as TTransformNode;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

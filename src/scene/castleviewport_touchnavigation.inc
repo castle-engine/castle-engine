@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,9 +54,7 @@ type
     and has @link(FullSize) = @true, this way it just fills the TCastleViewport.
 
     The @link(Viewport) determines the viewport where navigation is affected
-    by this control. In case of @link(AutoTouchInterface), we also look
-    at @link(Viewport) value of @link(TCastleViewport.NavigationType)
-    to determine the best navigation automatically.
+    by this control.
     Typically the @link(Viewport) is also our visual parent, but it doesn't have to be.
   }
   TCastleTouchNavigation = class(TCastleUserInterface)
@@ -95,9 +93,6 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Viewport where navigation is affected by this control.
-      In case of @link(AutoTouchInterface), we also look
-      at @link(Viewport) value of @link(TCastleViewport.NavigationType)
-      to determine the best navigation automatically.
 
       You must set this property to something non-nil,
       otherwise this UI control doesn't do much, it will not affect anything. }
@@ -118,8 +113,7 @@ type
       default tiNone;
 
     { Automatically adjust @link(TouchInterface) (showing / hiding proper
-      touch controls) based on the current @link(Viewport)
-      navigation type in @link(TCastleViewport.NavigationType). }
+      touch controls) based on the detected current @link(Viewport) navigation type. }
     property AutoTouchInterface: boolean
       read FAutoTouchInterface write SetAutoTouchInterface
       default false;
@@ -187,17 +181,19 @@ begin
         FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
       end;
 
+    {$warnings off} // ignore using deprecated Navigation, TODO: we should fix the way we pass 3D mouse events
     if (Viewport <> nil) and
        (Viewport.Navigation <> nil) then
     begin
       Viewport.Navigation.SensorTranslation(Tx, Ty, Tz, TLength, SecondsPassed);
       Viewport.Navigation.SensorRotation(Rx, Ry, Rz, RAngle, SecondsPassed);
     end;
+    {$warnings on}
   end;
 
   {$warnings off} // ignore using deprecated NavigationType
   if (Viewport <> nil) and
-     (FLastSeenNavigationType <> Viewport.NavigationType) then
+     (FLastSeenNavigationType <> TCastleAutoNavigationViewport.InternalGetNavigationType(Viewport)) then
   begin
     UpdateAutoTouchInterface; // will update FLastSeenNavigationType
   end;
@@ -254,10 +250,12 @@ procedure TCastleTouchNavigation.UpdateTouchInterface;
   begin
     UpdateTouchController(false, LeftVisible , LeftMode);
     UpdateTouchController(true , RightVisible, RightMode);
+    {$warnings off} // TODO: using deprecated for now - this needs to know a "central" navigation
     if ControlMouseDragMode and
-      (Viewport <> nil) and
-      (Viewport.Navigation is TCastleWalkNavigation) then
+       (Viewport <> nil) and
+       (Viewport.Navigation is TCastleWalkNavigation) then
       (Viewport.Navigation as TCastleWalkNavigation).MouseDragMode := MouseDragMode;
+    {$warnings on}
   end;
 
 begin
@@ -288,7 +286,7 @@ begin
   if (Viewport <> nil) and AutoTouchInterface then
   begin
     {$warnings off} // ignore using deprecated NavigationType
-    FLastSeenNavigationType := Viewport.NavigationType;
+    FLastSeenNavigationType := TCastleAutoNavigationViewport.InternalGetNavigationType(Viewport);
     {$warnings on}
     case FLastSeenNavigationType of
       ntNone:      TouchInterface := tiNone;

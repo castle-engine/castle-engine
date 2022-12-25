@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -100,6 +100,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses TSingleField.Parse method. }
@@ -510,6 +511,17 @@ begin
        end;
     else DefaultValuesCount := -1;
   end;
+end;
+
+procedure TX3DSimpleMultField{$ifndef FPC} <
+    TItem;
+    TSingleField;
+    TItemList
+  > {$endif} .
+  UnassignDefaultValue;
+begin
+  inherited;
+  DefaultValuesCount := -1;
 end;
 
 function TX3DSimpleMultField{$ifndef FPC} <

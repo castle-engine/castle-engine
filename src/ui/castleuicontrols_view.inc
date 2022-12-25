@@ -74,21 +74,30 @@
     override in your view descendants to capture various events. }
   TCastleView = class(TCastleUserInterface)
   private
-    FStartContainer: TCastleContainer;
-    FStartContainerObserver: TFreeNotificationObserver;
-    FInterceptInput, FFreeWhenStopped: boolean;
-    FFreeAtStop: TComponent;
-    FWaitingForRender: TNotifyEventList;
-    FCallBeforeUpdate: TNotifyEventList;
+    type
+      TDesignOwner = class(TComponent)
+      protected
+        ParentState: TCastleView;
+        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+        procedure ValidateRename(AComponent: TComponent; const CurName, NewName: String); override;
+      end;
 
-    { Design* private fields }
-    FDesignUrl: String;
-    FDesignLoaded: TCastleUserInterface;
-    FDesignLoadedOwner: TComponent;
-    FDesignPreload: Boolean;
-    FDesignPreloadedSerialized: TSerializedComponent;
-    FDesignPreloaded: TCastleUserInterface;
-    FDesignPreloadedOwner: TComponent;
+    var
+      FStartContainer: TCastleContainer;
+      FStartContainerObserver: TFreeNotificationObserver;
+      FInterceptInput, FFreeWhenStopped: boolean;
+      FFreeAtStop: TComponent;
+      FWaitingForRender: TNotifyEventList;
+      FCallBeforeUpdate: TNotifyEventList;
+
+      { Design* private fields }
+      FDesignUrl: String;
+      FDesignLoaded: TCastleUserInterface;
+      FDesignLoadedOwner: TDesignOwner;
+      FDesignPreload: Boolean;
+      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloaded: TCastleUserInterface;
+      FDesignPreloadedOwner: TComponent;
 
     procedure InternalStart(const AContainer: TCastleContainer);
     procedure InternalStop;
@@ -103,6 +112,11 @@
     procedure UnLoadDesign;
     procedure PreloadDesign;
     procedure UnPreloadDesign;
+
+    { Set the published field corresponding to ReferenceName (usually equal to AComponent.Name).
+      If Enable=true: set it to AComponent.
+      If Enable=false: set it to nil. }
+    procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
 
     class function GetCurrent: TCastleView; static;
     class procedure SetCurrent(const Value: TCastleView); static;
@@ -134,15 +148,21 @@
     function ContainerRect: TRectangle; override;
     function ContainerSizeKnown: boolean; override;
 
-    function StateContainer: TCastleContainer; deprecated 'use StartContainer to get the container in which we are already started, use GetMainContainer to get global central container';
+    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use GetMainContainer to get global central container';
 
-    { Container in which view is started (if view is started)
-      or nil (if view is not started yet).
+    { The container in which the view works.
 
       This is just like @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) but it is
-      already assigned even during @link(Start) and @link(Stop). }
-    property StartContainer: TCastleContainer read FStartContainer;
+      already assigned even during @link(Start) and @link(Stop).
+
+      This method @italic(deliberately hides the ancestor @link(TCastleUserInterface.Container)
+      method).
+      This way it will work always, in particular also during @link(Start) method.
+      This allows you to do code like this in overridden @link(Start) method:
+
+      @longCode(# Container.OverrideCursor := mcNone; #) }
+    function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,
       to make them freed during nearest @link(Stop). }
@@ -377,15 +397,14 @@
         DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
         // DesignPreload := true; // to make future "Container.View := ViewPlay" faster
       end;
-
-      procedure TViewPlay.Start;
-      begin
-        inherited;
-        MyButton := DesignedComponent('MyButton') as TCastleButton;
-      end;
       #)
 
-      You can also modify this property when the view has already started
+      The published fields of this class,
+      if they have equal name to any component in the design,
+      are automatically initialized to the instance of this component.
+      (And they will be set to @nil when the design is destroyed, typically at @link(Stop).)
+
+      You can also modify this property when the state has already started
       (after @link(Start) and before @link(Stop)) in which case
       the previous design will be freed and new one will be loaded immediately.
 
@@ -395,11 +414,10 @@
       A more general approach is to use @link(UserInterfaceLoad),
       and call @link(InsertFront) to add it to the view UI.
       Using this property just adds some comfortable automatic behavior
-      (view is freed at stop, and you can use comfortable
-      @link(DesignedComponent) or @link(DesignPreload)).
+      (design is freed at stop, published fields of view are set,
+      you can use comfortable @link(DesignPreload)).
 
       @seealso DesignPreload
-      @seealso DesignedComponent
     }
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
 
@@ -431,10 +449,15 @@
       MyButton := DesignedComponent('MyButton') as TCastleButton;
       #)
 
-      See @link(DesignUrl) for full usage example.
+      This method is seldom useful now.
+      The published fields of the state are automatically initialized when
+      loading / unloading design using @link(DesignUrl).
+      There's no need to use DesignedComponent for them.
 
       @seealso DesignUrl }
     function DesignedComponent(const ComponentName: String): TComponent;
+      //deprecated 'published state fields are automatically initialized now, no need to use this method';
+      // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
@@ -494,6 +517,31 @@ type
 function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
+end;
+
+{ TCastleView.TDesignOwner --------------------------------------------------------------- }
+
+procedure TCastleView.TDesignOwner.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  { TComponent.InsertComponent and TComponent.RemoveComponent are called on FDesignLoadedOwner
+    and they do Notification.
+    Rely on it to set field name.
+
+    Note that opInsert in practice doesn't do anything, as the component will have no name
+    at creation. It will be fixed by ValidateRename. }
+  case Operation of
+    opInsert: ParentState.SetNameReference(AComponent, AComponent.Name, true);
+    opRemove: ParentState.SetNameReference(AComponent, AComponent.Name, false);
+    else ;
+  end;
+  inherited;
+end;
+
+procedure TCastleView.TDesignOwner.ValidateRename(AComponent: TComponent; const CurName, NewName: String);
+begin
+  inherited;
+  ParentState.SetNameReference(AComponent, CurName, false);
+  ParentState.SetNameReference(AComponent, NewName, true);
 end;
 
 { TCastleView --------------------------------------------------------------------- }
@@ -567,6 +615,11 @@ begin
 
   { Through InternalStop, above always sets FStartContainer to nil }
   Assert(FStartContainer = nil);
+end;
+
+function TCastleView.Container: TCastleContainer;
+begin
+  Result := PredictedContainer;
 end;
 
 function TCastleView.StateContainer: TCastleContainer;
@@ -752,7 +805,8 @@ procedure TCastleView.LoadDesign;
 begin
   if DesignUrl <> '' then
   begin
-    FDesignLoadedOwner := TComponent.Create(nil);
+    FDesignLoadedOwner := TDesignOwner.Create(nil);
+    FDesignLoadedOwner.ParentState := Self;
     if FDesignPreloadedSerialized <> nil then
       FDesignLoaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignLoadedOwner)
     else
@@ -916,6 +970,22 @@ end;
 class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
 begin
   Result := RequireMainContainer.ViewStack[Index];
+end;
+
+procedure TCastleView.SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
+var
+  FieldAddr: ^TComponent;
+begin
+  if ReferenceName = '' then
+    Exit;
+  FieldAddr := FieldAddress(ReferenceName);
+  if FieldAddr <> nil then
+  begin
+    if Enable then
+      FieldAddr^ := AComponent
+    else
+      FieldAddr^ := nil;
+  end;
 end;
 
 {$endif read_implementation}

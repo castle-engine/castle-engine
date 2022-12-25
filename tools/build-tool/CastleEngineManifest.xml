@@ -4,12 +4,15 @@
   <icons>
     <icon path="icon.ico"/>
   </icons>
-  <version value="7.0-alpha.snapshot" code="14" />
+  <version value="7.0-alpha.snapshot" code="16" />
   <compiler_options>
     <search_paths>
       <path value="code/" />
       <path value="../common-code/" />
       <path value="embedded_images/" />
     </search_paths>
+    <defines>
+      <define>CASTLE_STRICT_CLI</define>
+    </defines>
   </compiler_options>
 </project>

@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,6 +74,18 @@ type
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ Useful by many dialogs here ------------------------------------------------ }
+
+function PropertyEditorsAdviceDataDirectory: Boolean;
+begin
+  { There's no reason to leave it false, in practice. }
+  Result := true;
+
+  if Result then
+    { By the way, do FixApplicationDataInIDE to have good ApplicationDataOverride. }
+    FixApplicationDataInIDE;
+end;
 
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 

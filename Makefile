@@ -59,6 +59,7 @@
 #       QtCreator (*.pro.user)...
 #     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
+#     - FPC from cge-fpc
 #     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
@@ -86,7 +87,7 @@ else
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
 
-  # On macOS, use gsed and ginstall (e.g. from Homebrew).
+  # On macOS, use gsed and ginstall (e.g. from Homebrew, use "brew install gnu-sed coreutils").
   # See https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
   # http://www.legendu.net/en/blog/install-gnu-utils-using-homebrew/
   ifeq ($(UNAME_S),Darwin)
@@ -117,12 +118,12 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
 .PHONY: default
 default: tools
-	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-	lazbuild --add-package-link packages/castle_base.lpk
-	lazbuild --add-package-link packages/castle_window.lpk
-	lazbuild --add-package-link packages/castle_components.lpk
-	lazbuild tools/castle-editor/castle_editor.lpi
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) bin/
@@ -173,7 +174,7 @@ install:
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	$(INSTALL) -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
-	  $(FIND) . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  "$(FIND)" . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
@@ -205,13 +206,25 @@ strip-precompiled-libraries:
 
 # compiling examples -----------------------------------------------------------
 
+# For GitHub Actions, we need to conserve disk space in some cases, as it is limited to ~15 GB.
+#
+# When CASTLE_CONSERVE_DISK_SPACE is
+# - true -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command execute.
+# - anything else -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command not execute.
+#
+ifeq ($(CASTLE_CONSERVE_DISK_SPACE),true)
+DO_IF_CONSERVE_DISK_SPACE:=
+else
+DO_IF_CONSERVE_DISK_SPACE:=true
+endif
+
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
 # "find ... -iname CastleEngineManifest.xml ..." .
 
 EXAMPLES_BASE_NAMES :=
 
-# Note that src/library/castleengine must be compiled before
+# Note that src/deprecated_library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
   src/deprecated_library/castleengine \
@@ -275,9 +288,6 @@ examples:
 
 # Compile all examples and tools with CastleEngineManifest.xml inside.
 #
-# We clean output afterwards, to avoid using a lot of disk space (would be a problem
-# with GitHub Actions).
-#
 # We want this to fail if some application failed to compile.
 # Unfortunately find seems to ignore -exec result.
 # (see e.g. https://unix.stackexchange.com/questions/392970/how-to-get-the-exit-code-of-commands-started-by-find )
@@ -296,11 +306,12 @@ examples:
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
 #   - on Windows, we'd have to make a copy of castle-engine, as you cannot replace own exe.
-	$(FIND) . \
+	"$(FIND)" . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
+	  '(' -path ./examples/delphi -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
@@ -308,7 +319,7 @@ examples:
 	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
 	  echo 'Compiling project '$${MANIFEST}; \
 	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
-	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
 	done
 
 # Compile editor templates
@@ -320,7 +331,7 @@ examples:
 # - only searches examples/ subdir
 .PHONY: examples-delphi
 examples-delphi:
-	$(FIND) ./examples/ \
+	"$(FIND)" ./examples/ \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
@@ -346,15 +357,15 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
-	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-	lazbuild packages/castle_base.lpk
-	lazbuild packages/castle_window.lpk
-	lazbuild packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
-	$(FIND) . \
+	"$(FIND)" . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
@@ -367,6 +378,7 @@ examples-laz:
 	set -e && for PROJECT_LPI in `cat /tmp/cge-laz-projects.txt`; do \
 	  echo 'Compiling project '$${PROJECT_LPI}; \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) git clean --force -d -x "`dirname $${PROJECT_LPI}`"; \
 	done
 
 # cleaning ------------------------------------------------------------
@@ -374,14 +386,17 @@ examples-laz:
 .PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
-	$(FIND) . -type f '(' -iname '*.ow'  -or \
+	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
 	                   -iname '*.ppw' -or \
 			   -iname '*.aw' -or \
 	                   -iname '*.o'   -or \
 			   -iname '*.or'  -or \
 			   -iname '*.ppu' -or \
 			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
-			   '(' -iname '*.res' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+			   '(' -iname '*.res' -and \
+			       -not -iwholename '*/vampyre_imaginglib/*' -and \
+			       -not -iwholename '*/examples/delphi/*' ')' \
+			       -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.lps' -or \
@@ -396,11 +411,12 @@ clean: cleanexamples
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
-# Note: *.app directory is a macOS bundle
-	$(FIND) . -type d '(' -name 'lib' -or \
+# Note: *.app directory is a macOS bundle,
+# we *do not* remove it here anymore as it would break pack_release.
+	"$(FIND)" . -type d '(' -name 'lib' -or \
+	                      -name 'backup' -or \
 	                      -name 'castle-engine-output' -or \
-			      -name '__recovery' -or \
-			      -name '*.app' ')' \
+			      -name '__recovery' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \
@@ -418,7 +434,7 @@ clean: cleanexamples
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
 # lazarus produces lib/ subdirectories during compilation
-	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 	rm -Rf src/deprecated_library/ios-output/\
 	       src/deprecated_library/libcastleengine.dylib \
 	       src/deprecated_library/castleengine.dll \
@@ -433,20 +449,20 @@ clean: cleanexamples
 # (will never be compiled).
 #
 # Note: This may cause errors if build tool doesn't exist anymore, ignore them.
-	$(FIND) . \
+	"$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir $(BUILD_TOOL) clean ';' ')'
 
 cleanmore: clean
-	$(FIND) . -type f '(' -iname '*~' -or \
+	"$(FIND)" . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
 	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
-	$(FIND) . -type d '(' -iname 'backup' \
+	"$(FIND)" . -type d '(' -iname 'backup' \
 			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
 	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
@@ -456,6 +472,7 @@ cleanmore: clean
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
+	rm -Rf fpc-*.zip tools/contrib/fpc/
 
 cleanall: cleanmore
 
@@ -482,6 +499,10 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+# Run tests in tools/build-tool/tests
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ run -- --all
 
 # fpmake ---------------------------------------------------------------------
 

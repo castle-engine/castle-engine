@@ -79,8 +79,13 @@ uses SysUtils, Classes, Math, Generics.Collections,
   FPReadPNM, FPWritePNM,
   FPReadPNG, FPWritePNG,
   {$else}
-  { Delphi units }
-  Vcl.Imaging.PngImage,
+    { Delphi units }
+    {$ifndef USE_VAMPYRE_IMAGING}
+    { Vcl.Imaging.PngImage works fine, but disabled now:
+      CastleImages must be used with FMX too,
+      without depending on VCL units. }
+    Vcl.Imaging.PngImage,
+    {$endif}
   {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
@@ -967,6 +972,7 @@ type
       Available on almost all Android OpenGLES 2.0 devices,
       unfortunately it doesn't support alpha channel. }
     tcETC1,
+
     { ASTC compression with alpha - should be available on all modern mobile GPU.
       See https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt}
     tcASTC_4x4_RGBA,
@@ -1888,34 +1894,34 @@ const
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
     (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.ktx'),
 
-    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
-    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc')
+    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
+    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif})
   );
 
 { Convert TTextureCompression enum to string. }
@@ -1942,20 +1948,16 @@ var
     the renderer (like OpenGL context). }
   SupportedTextureCompression: TTextureCompressions;
 
-{ All image URLs are processed by this event before loading.
+(*All image URLs are processed by this event before loading.
   This allows to globally modify / observe your images paths,
   e.g. to use GPU compressed alternative versions.
 
-  The URL processing is automatically used by
-  @link(LoadImage), @link(LoadEncodedImage),
-  @link(TCompositeImage.LoadFromFile).
+  The URL processing is automatically used by all image loaders.
+  This includes @link(LoadImage), @link(LoadEncodedImage)
+  and (internal) @code(TCompositeImage.LoadFromFile).
 
-  The URL processing is automatically registered by
-  @link(TMaterialProperties MaterialProperties)
-  to automatically use GPU compressed textures.
-  See https://castle-engine.io/creating_data_material_properties.php .
-  You can also use it yourself, instead or in addition
-  to @link(TMaterialProperties MaterialProperties) processing.
+  The URL processing is automatically used to automatically use GPU compressed textures.
+  See https://castle-engine.io/creating_data_auto_generated_textures.php .
 
   @italic(An example:) To work on any GPU, you want to have various
   versions of your textures (uncompressed, and also compressed with
@@ -1985,12 +1987,12 @@ var
     end;
 
     initialization
-      AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+      AddLoadImageListener({$ifdef FPC}@{$endif} MyTextureUtils.GPUTextureAlternative);
     finalization
-      RemoveLoadImageListener(@GPUTextureAlternative);
+      RemoveLoadImageListener({$ifdef FPC}@{$endif} MyTextureUtils.GPUTextureAlternative);
     end.
   #)
-}
+*)
 procedure AddLoadImageListener(const Event: TLoadImageEvent);
 
 { Remove listener added by @link(AddLoadImageListener). }

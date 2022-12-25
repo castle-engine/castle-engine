@@ -1,9 +1,45 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
+# ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
+#
+# Call with:
+#
+# - 2 arguments, OS and CPU (names matching CGE build tool and FPC),
+#   to pack for the given platform. Example:
+#
+#     ./pack_release.sh linux x86_64
+#     ./pack_release.sh win64 x86_64
+#     ./pack_release.sh darwin x86_64
+#     ./pack_release.sh freebsd x86_64
+#
+# - no arguments, to pack for "default" platforms.
+#   "Default" are desktop target platforms possible thanks to Docker image
+#   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
+#   -- right now this means Linux and Windows.
+#
+# Define CGE_PACK_BUNDLE=yes for a special behavior:
+# - The generated archive will be named -bundle
+# - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
+#
+# Requires a few Unix utilities, like
+# - make, sed
+# - and fpc, lazbuild on $PATH
+#
+# Works on
+# - Linux,
+# - Windows (with Cygwin),
+#   Note: It assumes that Cygwin tools, like cp, are first on $PATH, before equivalent from MinGW in FPC.
+#   A simple solution to make sure it's true is to execute
+#     export PATH="/bin:$PATH"
+#   in Cygwin shell right before this script.
+# - FreeBSD (install GNU make and sed),
+# - macOS (install GNU sed from Homebrew).
+# ----------------------------------------------------------------------------
 
 OUTPUT_DIRECTORY=`pwd`
 VERBOSE=false
@@ -32,10 +68,20 @@ detect_platform ()
 
   MAKE='make'
   FIND='find'
+  SED='sed'
 
   if which cygpath.exe > /dev/null; then
     MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
     FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+  fi
+
+  if [ "`uname -s`" '=' 'FreeBSD' ]; then
+    MAKE='gmake'
+    SED='gsed'
+  fi
+
+  if [ "`uname -s`" '=' 'Darwin' ]; then
+    SED='gsed'
   fi
 }
 
@@ -61,7 +107,7 @@ prepare_build_tool ()
   fi
   FOUND_CGE_BUILD_TOOL="`which castle-engine${HOST_EXE_EXTENSION}`"
   # remove double slashes, may happen in which output because the $PATH component we added ends with slash
-  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | sed -e 's|//|/|' -`"
+  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | $SED -e 's|//|/|' -`"
   EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}castle-engine${HOST_EXE_EXTENSION}"
   if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
@@ -122,15 +168,34 @@ add_external_tool ()
   download https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master "${GITHUB_NAME}".zip
   unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}"-master
-  castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
-  mv "${EXE_NAME}" "${OUTPUT_BIN}"
+
+  # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
+  if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
+    download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
+    unzip jsonstream.zip
+    rm -Rf server/deps/jsonstream # zip contains empty dir with it
+    mv jsonstream-master server/deps/jsonstream
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
+  fi
+
+  if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
+    # on macOS, build app bundle, and move it to output path
+    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    mv "${EXE_NAME}".app "${OUTPUT_BIN}"
+  else
+    castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+    mv "${EXE_NAME}" "${OUTPUT_BIN}"
+  fi
 }
 
 do_pack_platform ()
 {
-  local OS="$1"
-  local CPU="$2"
+  OS="$1"
+  CPU="$2"
   shift 2
+
+  # comparisons in this script assume lowercase OS name, like darwin or win32
+  OS=`echo -n $OS | tr '[:upper:]' '[:lower:]'`
 
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
@@ -202,19 +267,36 @@ do_pack_platform ()
   # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
   rm -Rf src/vampyre_imaginglib/src/Demos/
 
-  # Compile most tools with FPC, and castle-editor with lazbuild
+  # Compile tools (except editor) with just FPC
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
-  # Place tools binaries in bin/ subdirectory
+  # Compile fpc-cge internal tool
+  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
+
+  # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
   cp tools/build-tool/castle-engine"${EXE_EXTENSION}" \
      tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
-     tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
+
+  # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
+  # place it in bin-to-keep subdirectory
+  if [ "$OS" '=' 'darwin' ]; then
+    cd tools/castle-editor/
+    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    cd ../../
+    cp -R tools/castle-editor/castle-editor.app \
+       "${TEMP_PATH_CGE}"bin-to-keep
+  else
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
+    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+       "${TEMP_PATH_CGE}"bin-to-keep
+  fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)
@@ -237,8 +319,21 @@ do_pack_platform ()
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
-  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
+  # Add bundled tools (FPC)
+  local ARCHIVE_NAME_BUNDLE=''
+  if [ "${CGE_PACK_BUNDLE:-}" == 'yes' ]; then
+    cd "${TEMP_PATH_CGE}"tools/contrib/
+    unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
+    ARCHIVE_NAME_BUNDLE='-bundle'
+    mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+  else
+    # remove useless fpc-cge in this case
+    rm -f "${TEMP_PATH_CGE}"tools/contrib/fpc/bin/fpc-cge"${EXE_EXTENSION}"
+  fi
+
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
   cd "${TEMP_PATH}"
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/

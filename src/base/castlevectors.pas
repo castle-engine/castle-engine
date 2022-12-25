@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,7 +152,7 @@ unit CastleVectors;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
+  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble, CastleClassUtils;
 
 {$define read_interface}
 
@@ -170,12 +170,14 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
 {$I castlevectors_border.inc}
+{$I castlevectors_matrix_decompose.inc}
 
 {$undef read_interface}
 
 implementation
 
-uses Math, CastleStringUtils, CastleColors, CastleLog;
+uses Math,
+  CastleStringUtils, CastleColors, CastleLog, CastleQuaternions;
 
 {$define read_implementation}
 
@@ -193,5 +195,6 @@ uses Math, CastleStringUtils, CastleColors, CastleLog;
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
 {$I castlevectors_border.inc}
+{$I castlevectors_matrix_decompose.inc}
 
 end.

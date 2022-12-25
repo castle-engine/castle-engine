@@ -29,8 +29,9 @@ type
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     LabelInfo: TCastleLabel;
-    MainScene: TCastleScene;
+    SceneMain: TCastleScene;
     MainViewport: TCastleViewport;
+    Fog1: TCastleFog;
 
     FFogCulling: Boolean;
     procedure SetFogCulling(const Value: Boolean);
@@ -59,23 +60,19 @@ begin
 end;
 
 procedure TStateMain.SetFogCulling(const Value: Boolean);
-var
-  FogNode: TFogNode;
 begin
   if FFogCulling <> Value then
   begin
     FFogCulling := Value;
 
-    FogNode := MainScene.FogStack.Top;
     if FogCulling then
     begin
-      FogNode.VisibilityRange := 30;
-      MainScene.DistanceCulling := FogNode.VisibilityRange * FogNode.TransformScale;
+      MainViewport.Fog := Fog1;
+      SceneMain.DistanceCulling := Fog1.VisibilityRange;
     end else
     begin
-      // setting VisibilityRange to 0 turns off fog display
-      FogNode.VisibilityRange := 0;
-      MainScene.DistanceCulling := 0;
+      MainViewport.Fog := nil;
+      SceneMain.DistanceCulling := 0;
     end;
   end;
 end;
@@ -87,8 +84,9 @@ begin
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   LabelInfo := DesignedComponent('LabelInfo') as TCastleLabel;
-  MainScene := DesignedComponent('MainScene') as TCastleScene;
+  SceneMain := DesignedComponent('SceneMain') as TCastleScene;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  Fog1 := DesignedComponent('Fog1') as TCastleFog;
 
   FogCulling := true;
 end;
@@ -106,7 +104,7 @@ begin
     MainViewport.Statistics.ShapesRendered,
     MainViewport.Statistics.ShapesVisible,
     BoolToStr(FogCulling, true),
-    BoolToStr(MainScene.ShapeFrustumCulling, true)
+    BoolToStr(SceneMain.ShapeFrustumCulling, true)
   ]);
 end;
 
@@ -119,7 +117,7 @@ begin
     FogCulling := not FogCulling;
 
   if Event.IsKey(CtrlC) then
-    MainScene.ShapeFrustumCulling := not MainScene.ShapeFrustumCulling;
+    SceneMain.ShapeFrustumCulling := not SceneMain.ShapeFrustumCulling;
 end;
 
 end.

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface_nested}
 
-procedure ReadNodeElement(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadNodeElement(ParentGroup: TAbstractGroupingNode;
   NodeElement: TDOMElement); forward;
 
 {$endif read_interface_nested}
@@ -23,11 +23,11 @@ procedure ReadNodeElement(ParentGroup: TAbstractX3DGroupingNode;
 {$ifdef read_implementation_nested}
 
 { Read <node> element, add it to ParentGroup. }
-procedure ReadNodeElement(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadNodeElement(ParentGroup: TAbstractGroupingNode;
   NodeElement: TDOMElement);
 var
   { This is either TTransformNode or TMatrixTransformNode. }
-  NodeTransform: TAbstractX3DGroupingNode;
+  NodeTransform: TAbstractGroupingNode;
 
   { Create new Transform node, place it as a child of current Transform node
     and switch current Transform node to the new one.
@@ -156,7 +156,7 @@ end;
   adding nodes to Group.
   This is used to handle <visual_scene> for Collada 1.4.x
   and <scene> for Collada 1.3.x. }
-procedure ReadNodesSequence(Group: TAbstractX3DGroupingNode;
+procedure ReadNodesSequence(Group: TAbstractGroupingNode;
   SceneElement: TDOMElement);
 var
   I: TXMLElementIterator;

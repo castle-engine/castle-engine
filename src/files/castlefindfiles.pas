@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections, DOM,
   CastleUtils;
 
 type
-  { }
+  { Information about a single file or directory collected by FindFiles. }
   TFileInfo = record
     { Filename, without any directory path. }
     Name: string;
@@ -35,8 +35,24 @@ type
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
-    Directory: boolean;
-    Size: Int64; //< This may be 0 in case of non-local file
+    Directory: Boolean;
+
+    { Whether this is a symbolic link.
+      Note that this is independent from Directory:
+      symlinks may have Directory=false (when the symlink is to file)
+      or Directory=true (when the symlink is to directory,
+      and thus can be browsed like directory). }
+    Symlink: Boolean;
+
+    { File size in bytes.
+
+      Undefined in case of @link(Directory), we do not sum the directory size
+      (all files inside) here, as it is a costly operation for large directories.
+      Use @link(DirectorySize) if you want to calculate directory size.
+
+      This may be 0 in case of URL pointing to non-local file, e.g. http
+      (though we cannot search in such URLs anyway). }
+    Size: QWord;
   end;
 
   TFileInfoList = {$ifdef FPC}specialize{$endif} TStructList<TFileInfo>;
@@ -252,10 +268,14 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           AbsoluteName := LocalPath + FileRec.Name;
           Inc(Result);
 
+          FileInfo := Default(TFileInfo);
           FileInfo.AbsoluteName := AbsoluteName;
           FileInfo.Name := FileRec.Name;
           FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
           FileInfo.Size := FileRec.Size;
+          {$warnings off} // we know faSymLink is platform-specific, this is OK
+          FileInfo.Symlink := (FileRec.Attr and faSymLink) <> 0;
+          {$warnings on}
           FileInfo.URL := FilenameToURISafe(AbsoluteName);
           if Assigned(FileProc) then
             FileProc(FileInfo, FileProcData, StopSearch);
@@ -287,6 +307,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           if IsWild(D.Name, Mask, false) then
           begin
             Inc(Result);
+            FileInfo := Default(TFileInfo); // clear information like FileInfo.Size to zero
             FileInfo.Name := D.Name;
             FileInfo.Directory := true;
             FileInfo.URL := URIIncludeSlash(Path) + D.Name;
@@ -302,10 +323,12 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           if IsWild(F.Name, Mask, false) then
           begin
             Inc(Result);
+            FileInfo := Default(TFileInfo);
             FileInfo.Name := F.Name;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
             FileInfo.URL := URIIncludeSlash(Path) + F.Name;
+            FileInfo.Symlink := false; // packaged data cannot contain symlinks, as they are not portable to all platforms
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);

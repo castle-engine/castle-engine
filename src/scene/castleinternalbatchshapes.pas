@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,12 +47,22 @@ type
     type
       { Shapes from different pipelines cannot be merged with each other,
         and the pool shapes (in FPool) may be prepared differently for each
-        TMergePipeline.
-        E.g. pool shapes for mpTexCoord has TexCoord assigned,
-        for mpNoTexCoord they have TexCoord=nil. }
-      TMergePipeline = (mpNoTexCoord, mpTexCoord);
+        TMergePipeline. }
+      TMergePipeline = (
+        { TIndexedFaceSetNode with TexCoord=nil }
+        mpFacesNoTexCoord,
+        { TIndexedFaceSetNode with TexCoord<>nil }
+        mpFacesTexCoord,
+        { TIndexedTriangleSetNode with TexCoord=nil }
+        mpTrianglesNoTexCoord,
+        { TIndexedTriangleSetNode with TexCoord<>nil }
+        mpTrianglesTexCoord
+      );
       TMergeSlot = 0 .. MergeSlots - 1;
       TMergingShapes = array [TMergePipeline, TMergeSlot] of TGLShape;
+    const
+      MergePipelinesWithTexCoord = [mpFacesTexCoord, mpTrianglesTexCoord];
+      MergePipelinesWithFaces = [mpFacesNoTexCoord, mpFacesTexCoord];
     var
       FCollected: TShapeList;
       FPool: TMergingShapes;
@@ -153,20 +163,23 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
   procedure InitializePool;
   var
     ShapeNode: TShapeNode;
-    Geometry: TIndexedFaceSetNode;
+    Geometry: TAbstractComposedGeometryNode;
     State: TX3DGraphTraverseState;
     ParentInfo: TTraversingInfo;
     Shape: TGLShape;
     P: TMergePipeline;
     Slot: TMergeSlot;
   begin
-    for P := Low(TMergePipeline) to High(TMergePipeline)  do
+    for P := Low(TMergePipeline) to High(TMergePipeline) do
       for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       begin
         // initialize Geometry and ShapeNode
-        Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode);
+        if P in MergePipelinesWithFaces then
+          Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode)
+        else
+          Geometry := TIndexedTriangleSetNode.CreateWithShape(ShapeNode);
         Geometry.Coord := TCoordinateNode.Create;
-        if P = mpTexCoord then
+        if P in MergePipelinesWithTexCoord then
           Geometry.TexCoord := TTextureCoordinateNode.Create;
         FPoolGeometries.AddChildren(ShapeNode);
 
@@ -235,7 +248,9 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   var
     Geometry: TAbstractGeometryNode;
     TexCoord: TAbstractTextureCoordinateNode;
-    FaceSet: TIndexedFaceSetNode;
+    GeometryComposed: TAbstractComposedGeometryNode;
+    Faces: TIndexedFaceSetNode;
+    // Triangles: TIndexedTriangleSetNode; // not needed for now
   begin
     Result := false;
 
@@ -243,41 +258,63 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     if Shape.Node = nil then
       Exit;
 
-    // We can only Merge TIndexedFaceSetNode for now
-    Geometry := Shape.Geometry(true);
-    if not (Geometry is TIndexedFaceSetNode) then
+    // We can only merge TAbstractComposedGeometryNode for now
+    Geometry := Shape.Geometry;
+    if not (Geometry is TAbstractComposedGeometryNode) then
       Exit;
+    GeometryComposed := TAbstractComposedGeometryNode(Geometry);
 
-    FaceSet := TIndexedFaceSetNode(Geometry);
-
-    if (FaceSet.FdTexCoordIndex.Count <> 0) or // for now we don't handle texCoordIndex
-       (FaceSet.FdColorIndex.Count <> 0) or
-       (FaceSet.FdNormalIndex.Count <> 0) or
-       {$ifndef CASTLE_SLIM_NODES}
-       (FaceSet.FdAttrib.Count <> 0) or
-       (FaceSet.FdFogCoord.Value <> nil) or
+    if {$ifndef CASTLE_SLIM_NODES}
+       (GeometryComposed.FdAttrib.Count <> 0) or
+       (GeometryComposed.FdFogCoord.Value <> nil) or
        {$endif}
-       (FaceSet.FdColor.Value <> nil) or
-       (FaceSet.FdNormal.Value <> nil) or
+       (GeometryComposed.FdColor.Value <> nil) or
+       (GeometryComposed.FdNormal.Value <> nil) or
        ( { If the shape needs automatic texture coordinate generation,
            batching is not possible, as the tex coordinate generation looks at shape's bounding box.
            See https://github.com/castle-engine/castle-engine/issues/179 . }
-         (FaceSet.FdTexCoord.Value = nil) and
+         (GeometryComposed.FdTexCoord.Value = nil) and
          (Shape.Node <> nil) and
          (Shape.Node.Appearance <> nil) and
          (Shape.Node.Appearance.Texture <> nil) ) then
       Exit;
 
-    TexCoord := FaceSet.TexCoord;
-    if TexCoord = nil then
+    TexCoord := GeometryComposed.TexCoord;
+
+    if GeometryComposed is TIndexedFaceSetNode then
     begin
-      P := mpNoTexCoord;
-      Result := true;
+      // conditions specific to TIndexedFaceSetNode
+      Faces := TIndexedFaceSetNode(GeometryComposed);
+      if (Faces.FdTexCoordIndex.Count <> 0) or // for now we don't handle texCoordIndex
+         (Faces.FdColorIndex.Count <> 0) or
+         (Faces.FdNormalIndex.Count <> 0) then
+        Exit;
+
+      if TexCoord = nil then
+      begin
+        P := mpFacesNoTexCoord;
+        Result := true;
+      end else
+      if TexCoord is TTextureCoordinateNode then
+      begin
+        Result := true;
+        P := mpFacesTexCoord;
+      end;
     end else
-    if TexCoord is TTextureCoordinateNode then
+    if GeometryComposed is TIndexedTriangleSetNode then
     begin
-      Result := true;
-      P := mpTexCoord;
+      // conditions specific to TIndexedTriangleSetNode
+
+      if TexCoord = nil then
+      begin
+        P := mpTrianglesNoTexCoord;
+        Result := true;
+      end else
+      if TexCoord is TTextureCoordinateNode then
+      begin
+        Result := true;
+        P := mpTrianglesTexCoord;
+      end;
     end;
   end;
 
@@ -287,16 +324,41 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   function Mergeable(const Shape1, Shape2: TGLShape;
     const P: TMergePipeline): Boolean;
 
-    function IndexedFaceSetMatch(const I1, I2: TIndexedFaceSetNode): Boolean;
+    function IndexedFaceSetContentsMatch(const I1, I2: TIndexedFaceSetNode): Boolean;
     begin
       Result :=
-        (I1 = I2) or
         (
           (I1.FdNormalPerVertex.Value = I2.FdNormalPerVertex.Value) and
           (I1.FdSolid          .Value = I2.FdSolid          .Value) and
           (I1.FdConvex         .Value = I2.FdConvex         .Value) and
           (I1.FdCcw            .Value = I2.FdCcw            .Value) and
           (I1.FdCreaseAngle    .Value = I2.FdCreaseAngle    .Value)
+        );
+    end;
+
+    function IndexedTriangleSetContentsMatch(const I1, I2: TIndexedTriangleSetNode): Boolean;
+    begin
+      Result :=
+        (
+          (I1.FdNormalPerVertex.Value = I2.FdNormalPerVertex.Value) and
+          (I1.FdSolid          .Value = I2.FdSolid          .Value) and
+          (I1.FdCcw            .Value = I2.FdCcw            .Value)
+        );
+    end;
+
+    function AbstractGeometriesMatch(const G1, G2: TAbstractGeometryNode): Boolean;
+    begin
+      Result :=
+        (G1 = G2) or
+        (
+          (G1 is TIndexedFaceSetNode) and
+          (G2 is TIndexedFaceSetNode) and
+          IndexedFaceSetContentsMatch(TIndexedFaceSetNode(G1), TIndexedFaceSetNode(G2))
+        ) or
+        (
+          (G1 is TIndexedTriangleSetNode) and
+          (G2 is TIndexedTriangleSetNode) and
+          IndexedTriangleSetContentsMatch(TIndexedTriangleSetNode(G1), TIndexedTriangleSetNode(G2))
         );
     end;
 
@@ -404,20 +466,20 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     end;
 
   var
-    Mesh1, Mesh2: TIndexedFaceSetNode;
+    Geometry1, Geometry2: TAbstractGeometryNode;
     State1, State2: TX3DGraphTraverseState;
   begin
-    Mesh1 := TIndexedFaceSetNode(Shape1.Geometry(true));
-    Mesh2 := TIndexedFaceSetNode(Shape2.Geometry(true));
-    State1 := Shape1.State(true);
-    State2 := Shape2.State(true);
+    Geometry1 := Shape1.Geometry;
+    Geometry2 := Shape2.Geometry;
+    State1 := Shape1.State;
+    State2 := Shape2.State;
     Result :=
       { Checks begin from the ones most likely to be different (exit early).
         Note that everything compared here must be also assigned in Merge
         (when FirstMerge), to make sure all merged instances keep the same values
         for this stuff. }
       AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance) and
-      IndexedFaceSetMatch(Mesh1, Mesh2) and
+      AbstractGeometriesMatch(Geometry1, Geometry2) and
       (State1.LocalFog = State2.LocalFog) and
       (Shape1.Node.Shading = Shape2.Node.Shading) and
       LightsMatch(State1.Lights, State2.Lights) and
@@ -670,7 +732,7 @@ begin
       if FMergeTarget[P, Slot] <> nil then
       begin
         { Mark changes from
-          - TIndexedFaceSetNode.FdCoordIndex,
+          - TIndexedFaceSetNode.FdCoordIndex, TIndexedTriangleSetNode.FdIndex
           - TCoordinateNode.FdPoint
           - TTextureCoordinateNode.FdPoint
         }
@@ -704,16 +766,16 @@ procedure TBatchShapes.Merge(const Target, Source: TGLShape;
   const P: TMergePipeline; const FirstMerge: Boolean);
 var
   StateTarget, StateSource: TX3DGraphTraverseState;
-  MeshTarget, MeshSource: TIndexedFaceSetNode;
+  MeshTarget, MeshSource: TAbstractComposedGeometryNode;
   CoordTarget, CoordSource: TMFVec3f;
   TexCoordTarget, TexCoordSource: TMFVec2f;
   IndexTarget, IndexSource: TLongIntList;
   OldCoordCount, I: Integer;
 begin
-  StateTarget := Target.State(true);
-  StateSource := Source.State(true);
-  MeshTarget := Target.Geometry(true) as TIndexedFaceSetNode;
-  MeshSource := Source.Geometry(true) as TIndexedFaceSetNode;
+  StateTarget := Target.State;
+  StateSource := Source.State;
+  MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
+  MeshSource := Source.Geometry as TAbstractComposedGeometryNode;
 
   // no vertexes in source mesh, ignore it
   if MeshSource.Coord = nil then
@@ -730,8 +792,11 @@ begin
     Target.Node.FdAppearance.Value := Source.Node.Appearance;
     MeshTarget.FdNormalPerVertex.Value := MeshSource.FdNormalPerVertex.Value;
     MeshTarget.FdSolid          .Value := MeshSource.FdSolid          .Value;
-    MeshTarget.FdConvex         .Value := MeshSource.FdConvex         .Value;
-    MeshTarget.FdCreaseAngle    .Value := MeshSource.FdCreaseAngle    .Value;
+    if MeshTarget is TIndexedFaceSetNode then
+    begin
+      TIndexedFaceSetNode(MeshTarget).FdConvex         .Value := TIndexedFaceSetNode(MeshSource).FdConvex         .Value;
+      TIndexedFaceSetNode(MeshTarget).FdCreaseAngle    .Value := TIndexedFaceSetNode(MeshSource).FdCreaseAngle    .Value;
+    end;
   end;
 
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
@@ -739,7 +804,7 @@ begin
   OldCoordCount := CoordTarget.Count;
   CoordTarget.Items.AddRangeTransformed(CoordSource.Items, StateSource.Transformation.Transform);
 
-  if P = mpTexCoord then
+  if P in MergePipelinesWithTexCoord then
   begin
     TexCoordTarget := TexCoordinates(MeshTarget, StateTarget);
     TexCoordSource := TexCoordinates(MeshSource, StateSource);
@@ -747,9 +812,10 @@ begin
     Check(CoordTarget.Count = TexCoordTarget.Count); // TODO: secure from it
   end;
 
-  IndexTarget := MeshTarget.FdCoordIndex.Items;
-  IndexSource := MeshSource.FdCoordIndex.Items;
-  if (IndexTarget.Count <> 0) and
+  IndexTarget := MeshTarget.CoordIndexField.Items;
+  IndexSource := MeshSource.CoordIndexField.Items;
+  if (P in MergePipelinesWithFaces) and
+     (IndexTarget.Count <> 0) and
      (IndexTarget.Last >= 0) then
     IndexTarget.Add(-1); // separate from next polygons
   for I := 0 to IndexSource.Count - 1 do
@@ -765,18 +831,18 @@ procedure TBatchShapes.ClearMerge(const Target: TGLShape;
   const P: TMergePipeline);
 var
   StateTarget: TX3DGraphTraverseState;
-  MeshTarget: TIndexedFaceSetNode;
+  MeshTarget: TAbstractComposedGeometryNode;
   CoordTarget: TMFVec3f;
   TexCoordTarget: TMFVec2f;
   IndexTarget: TLongIntList;
 begin
-  StateTarget := Target.State(true);
-  MeshTarget := Target.Geometry(true) as TIndexedFaceSetNode;
+  StateTarget := Target.State;
+  MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordTarget.Items.Clear;
-  IndexTarget := MeshTarget.FdCoordIndex.Items;
+  IndexTarget := MeshTarget.CoordIndexField.Items;
   IndexTarget.Clear;
-  if P = mpTexCoord then
+  if P in MergePipelinesWithTexCoord then
   begin
     TexCoordTarget := TexCoordinates(MeshTarget, StateTarget);
     TexCoordTarget.Items.Clear;

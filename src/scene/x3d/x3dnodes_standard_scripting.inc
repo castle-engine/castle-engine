@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,10 @@
 
       CompiledScriptContents: TStringList;
 
+      {$ifdef CASTLE_SCRIPT}
       CastleScriptProgram: TCasScriptProgram;
       CastleScriptVariables: TCasScriptX3DValueList;
+      {$endif}
 
     procedure SetInitialized(const Value: boolean);
     procedure EventUrlReceive(
@@ -106,8 +108,10 @@ begin
 
   FreeAndNil(CompiledScriptContents);
 
+  {$ifdef CASTLE_SCRIPT}
   FreeAndNil(CastleScriptProgram);
   FreeAndNil(CastleScriptVariables);
+  {$endif}
 
   inherited;
 end;
@@ -124,7 +128,9 @@ procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
+  {$ifdef CASTLE_SCRIPT}
   ParameterValue, ParameterTime: TCasScriptValue;
+  {$endif}
 begin
   if Initialized and (Scene <> nil) then
   begin
@@ -146,6 +152,7 @@ begin
         end;
       stCastleScript:
         begin
+          {$ifdef CASTLE_SCRIPT}
           { ReceivedValue may be nil for initialize/shutdown calls. }
           if ReceivedValue <> nil then
           begin
@@ -185,6 +192,7 @@ begin
             FreeAndNil(ParameterValue);
             FreeAndNil(ParameterTime)
           end;
+          {$endif}
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unknown script type initialized');
@@ -198,6 +206,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
   { @raises(ECasScriptSyntaxError in case of program parsing error
       (we just let through ECasScriptSyntaxError from ParseProgram).) }
   procedure CastleScriptInitialize(const ProgramContent: string);
+  {$ifdef CASTLE_SCRIPT}
   var
     I: Integer;
   begin
@@ -221,6 +230,11 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     CastleScriptProgram := ParseProgram(ProgramContent, CastleScriptVariables);
     CastleScriptProgram.Environment.BaseUrl := BaseUrl;
   end;
+  {$else}
+  begin
+    WritelnWarning('TODO: CastleScript not supported under Delphi');
+  end;
+  {$endif}
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
   var
@@ -327,8 +341,10 @@ end;
 
 procedure TAbstractScriptNode.ResetLastEventTimes;
 begin
+  {$ifdef CASTLE_SCRIPT}
   if Initialized and (FInitializedScriptType = stCastleScript) then
     CastleScriptVariables.ResetLastEventTimes;
+  {$endif}
 end;
 
 { TScriptNode ---------------------------------------------------------------- }

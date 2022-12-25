@@ -1,0 +1,21 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF MyTransform Transform {
+  children Script {
+    # TSFNode.AutomaticWeakLink allows to handle such references
+    inputOutput SFNode container1 USE MyTransform
+    initializeOnly SFNode container2 USE MyTransform
+
+    # just make sure we don't make error/memory leak on this
+    inputOutput SFNode container3 DEF T3 Transform { translation 1 0 0 }
+    initializeOnly SFNode container4 DEF T4 Transform { translation 1 0 0 }
+    inputOutput SFNode container5 USE T3
+    initializeOnly SFNode container6 USE T4
+
+    # url "castlescript:
+    # function initialize(timestamp)
+    #   writeln('Script initialized at ' + string(timestamp))
+    # "
+  }
+}

@@ -37,7 +37,7 @@ uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleApplicationProperties,
-  CastleWindow, CastleViewport, CastleScene;
+  CastleWindow, CastleViewport, CastleScene, CastleTransform;
 
 type
   TCrosshairManager = class(TObject)
@@ -54,7 +54,7 @@ type
 
 var
   Window: TCastleWindow;
-  Viewport: TCastleViewport;
+  Viewport: TCastleAutoNavigationViewport;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
@@ -89,7 +89,6 @@ begin
     begin
       DefaultTriangulationSlices := 16;
       DefaultTriangulationStacks := 16;
-      DefaultTriangulationDivisions := 0;
     end;
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;
@@ -97,7 +96,7 @@ begin
     Window := TCastleWindow.Create(nil);
     Application.MainWindow := Window;
 
-    Viewport := TCastleViewport.Create(Window);
+    Viewport := TCastleAutoNavigationViewport.Create(Window);
     Viewport.FullSize := true;
     Window.Controls.InsertFront(Viewport);
 
@@ -368,7 +367,8 @@ begin
   try
     if not CGE_VerifyWindow('CGE_GetViewCoords') then exit;
 
-    Viewport.Camera.GetView(Pos, Dir, Up, GravityUp);
+    Viewport.Camera.GetWorldView(Pos, Dir, Up);
+    GravityUp := Viewport.Camera.GravityUp;
     pfPosX^ := Pos.X; pfPosY^ := Pos.Y; pfPosZ^ := Pos.Z;
     pfDirX^ := Dir.X; pfDirY^ := Dir.Y; pfDirZ^ := Dir.Z;
     pfUpX^ := Up.X; pfUpY^ := Up.Y; pfUpZ^ := Up.Z;
@@ -394,7 +394,8 @@ begin
     if bAnimated then
       Viewport.Camera.AnimateTo(Pos, Dir, Up, 0.5)
     else
-      Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
+      Viewport.Camera.SetWorldView(Pos, Dir, Up);
+    Viewport.Camera.GravityUp := GravityUp;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -485,10 +486,13 @@ begin
 end;
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
+var
+  DummyRemoveType: TRemoveType;
 begin
   try
     Viewport.Items.MainScene.IncreaseTime(fTimeS);
-    Viewport.Camera.Update(fTimeS);
+    DummyRemoveType := rtNone;
+    Viewport.Camera.Update(fTimeS, DummyRemoveType);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;

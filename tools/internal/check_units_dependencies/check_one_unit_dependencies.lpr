@@ -88,9 +88,21 @@ var
   end;
 
 const
-  AllowedExceptions: array [0..5] of String = (
+  AllowedExceptions: array [0..8] of String = (
+    // Because TCurve.GeometryNode uses X3D nodes. Possible to overcome (just move it somewhere else) but weird (it is natural to have this in TCurve).
     'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes',
+
+    // Because TCastleXxxNavigation access InternalViewport and some it's TCastleViewport-specific props.
     'Category transform uses scene. Unit ./transform/castlecameras.pas uses CastleViewport',
+
+    // Because TCastleCamera displays it's own visualization at design-time. Possible to overcome, but would complicate code.
+    'Category transform uses scene. Unit ./transform/castletransform.pas uses CastleScene',
+    'Category transform uses scene. Unit ./transform/castletransform.pas uses X3DNodes',
+
+    // Because TCastleJointTool uses CastleScene
+    'Category transform uses scene. Unit ./transform/castleinternalphysicsvisualization.pas uses CastleScene',
+
+    // Because TCastleInspector accesses some key engine classes for some functionality.
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
     'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleScene',
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleTransform',

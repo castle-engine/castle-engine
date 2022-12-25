@@ -600,7 +600,7 @@
       https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.vs
       https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.fs .
 
-      See also example examples/images_videos/image_render_custom_shader.lpr .
+      See also example: examples/images_videos/image_render_custom_shader/ .
 
       Note that some uniforms/attributes are only used in some cases.
       For example, when TDrawableImage.Color is White (1, 1, 1, 1), then we don't pass "color" uniform.
@@ -1639,10 +1639,19 @@ var
 begin
   if FURL <> Value then
   begin
-    NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
-    FURL := Value;
-    Load(NewImage);
-    FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
+    if Value = '' then
+    begin
+      // following CGE conventions, we allow to set URL to '' to clear loaded contentds
+      Load(nil);
+      FURL := Value;
+      FOwnsImage := true;
+    end else
+    begin
+      NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
+      FURL := Value;
+      Load(NewImage);
+      FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
+    end;
   end;
 end;
 

@@ -186,7 +186,7 @@ end;
 
 procedure TCastleText.TextChange(Sender: TObject);
 begin
-  TextNode.SetString(FText as TCastleStringList);
+  TextNode.SetText(FText as TCastleStringList);
 end;
 
 procedure TCastleText.SetText(const Value: TStrings);

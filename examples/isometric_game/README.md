@@ -1,99 +1,47 @@
-# Overview
+# Isometric Game
 
-Demo of an isometric game, using static images, using Castle Game Engine.
+Simple example of arranging images in a viewport to show an isometric map layout.
 
-Everything is just drawn as 2D, using our TDrawableImage.
+- From code, it creates a random map.
 
-This could be made much more impressive by:
+    It creates a number of `TCastleImageTransform` instances and arranges them to show a ground with some trees.
 
-- Using TCastleViewport for a game world,
-  and using inside TCastleScene with (possibly animated) models.
-- And by providing more impressive game assets :)
-- And by designing some interesting map (the current map is just a test).
+- It includes a pre-designed `TCastleScene` with a sprite sheet and `TCastleImageTransform` with a penguin, just to show that we can also place stuff using the editor in `gamestatemain.castle-user-interface`.
 
-Contributions are most welcome:)
+- The design contains `TCastle2DNavigation` component so user can easily move (drag with left mouse button) and zoom the map (mouse wheel).
 
-# Keybindings
+TODO:
 
-* 12346789:
-  Move your character. These are comfortable to use on numpad when NumLock is ON.
+- Utilize cross-scene batching when drawing. This *can* be drawn ultra-fast.
 
-* up/down/right/left:
-  Move your character, if "view follows the player" mode is ON.
-  Otherwise, only move the view.
+    Currently this example is *not* an efficient way to render a big map, but we absolutely want to work on it and make it fast. This is just a set of static images, they could even be "baked" to one big image, and drawing this should be zero effort for GPU.
 
-* f:
-  Toggle "view follows the player" mode. Initially it's ON.
+    The deprecated example `deprecated_to_upgrade/isometric_game/` shows much faster (for now) drawing using `TDrawableImage` albeit with much less flexibility. Animations, sprite sheets, physics, out-of-the-box 2D navigation: this works in the approach presented here.
 
-* Escape:
-  Exit.
+- Turn this into a real isometric game :)
 
-* e:
-  Edit base tile.
+    - Add a player character moving.
 
-* E:
-  Edit bonus tile.
+    - Implement "view follows the player" mode, toggable in this demo.
 
-* s:
-  Save current map to the file. Together with "e" and "E" keys,
-  this allows you to design new levels completely inside the game.
+    - Collisions. Player should not be able to move everywhere.
 
-* i:
-  Field info.
+    - Some enemies you can fight with, some NPCs you can talk with, trade with, some items you can pick up...
 
-# Map file format
+- Make sure the memory footprint is small. All `TCastleImageTransform` should share the resources, on GPU and CPU. Without the need to wrap them in `TCastleTransformReference`. We have plans to improve the memory footprint of X3D nodes already.
 
-Design considerations:
-- This was reused as a programming exercise (PGK exercise on ii.uni.wroc.pl,
-  where Michalis was a lecturer), so I wanted some simple text format.
-  Simple to read by code.
-  And simple to design even when you don't have a visual editor.
-- Tile filenames and counts must be specified inside the file,
-  to make it flexible.
+- Add snapping to CGE editor, or even full tile editor inside CGE, to make it easy to design such map in CGE editor.
 
-The map file looks like this:
+NOTE: You can also design isometric map using [Tiled](https://www.mapeditor.org/) and load it in CGE using `TCastleTiledMapControl`. For examples of using Tiled, see CGE `examples/tiled/` subdirectory. Tiled supports isometric map layout fully.
 
-```
-Width Height
-PlayerStartX PlayerStartY
-BaseTilesCount BonusTilesCount
-# Now BaseTilesCount lines follow, describing the tiles used on this map.
-# The idea is that each tile corresponds to a different image filename.
-# Each tile also has a one-char name, that will be used to indicate this
-# tile later on the map. This one-char is any non-whitespace character
-# besides the "_".
-BaseChar1 BaseTileFileName1
-...
-BonusChar1 BonusTileFileName1
-....
-# Now Height map lines follow. Each line has exactly 2*Width
-# characters. First char of each pair indicates the base tile,
-# second char indicates the bonus tile (or _ if no bonus tile).
-# Lines are specified from highest to lowest (so the resulting game
-# screen looks roughly like your text file).
-...
-```
+Using [Castle Game Engine](https://castle-engine.io/).
 
-# TODO
+## Building
 
-Well, obviously, this is not a real game :)
+Compile by:
 
-There's nothing besides the player and the *absolutely static* level.
-A whole lot of things should be done to turn this into a real game:
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
 
-- Collisions. Right now you can move freely everywhere,
-  pass through walls etc.
-- Player's sprite should animate (making steps) when moving.
-  Maybe using TSprite, maybe using TCastleScene inside TCastleViewport.
-- Creatures (probably sharing most of the current TPlayer class code,
-  to make them move smoothly, be shown from various directions,
-  show animations of moving). Fighting and/or talking and/or trading
-  with the player, at least. Talking choices and/or free talk a'la Wizardry
-  and/or giving quests.
-- Items (pick, drop, show inv, use,
-  equip (change player's sprite), show equip, unequip).
-- Changing levels (maps) --- at least things disappearing/appearing on the map
-  when player does something (open door).
+- Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-Michalis Kamburelis
-https://castle-engine.io/
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `isometric_game_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).

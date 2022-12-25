@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2021-2022 Michalis Kamburelis.
 
@@ -58,10 +59,17 @@ type
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
+
+    { Update collider, notifying it that we changed.
+      This updates TCastleCollider with TCastleCollider.AutoSize.
+      This also updates TCastleMeshCollider mesh, if it referred to us. }
+    procedure UpdateCollider;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function HasColliderMesh: Boolean; override;
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { Color of the text. Opaque white by default.
 
@@ -296,15 +304,28 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleAbstractPrimitive.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleAbstractPrimitive.ColliderMesh(
+  const TriangleEvent: TTriangleEvent);
+begin
+  FScene.ColliderMesh(TriangleEvent);
+end;
+
 procedure TCastleAbstractPrimitive.SetPreciseCollisions(const Value: Boolean);
 begin
   if FPreciseCollisions <> Value then
   begin
     FPreciseCollisions := Value;
+    {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
     if Value then
       FScene.Spatial := [ssDynamicCollisions]
     else
       FScene.Spatial := [];
+    {$warnings on}
     { Note that we don't add ssRendering,
       would be largely useless as primitives are usually just 1 shape in an internal scene. }
   end;
@@ -313,6 +334,15 @@ end;
 function TCastleAbstractPrimitive.GetRenderOptions: TCastleRenderOptions;
 begin
   Result := FScene.RenderOptions;
+end;
+
+procedure TCastleAbstractPrimitive.UpdateCollider;
+var
+  C: TCastleCollider;
+begin
+  C := FindBehavior(TCastleCollider) as TCastleCollider;
+  if C <> nil then
+    C.InternalTransformChanged(Self);
 end;
 
 {$define read_implementation_methods}

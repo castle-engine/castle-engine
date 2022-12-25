@@ -1,3 +1,4 @@
+{%MainUnit castlewindow.pas}
 {
   Copyright 2013-2022 Michalis Kamburelis.
 
@@ -448,7 +449,7 @@ begin
   Form.Width := Width;
   Form.Height := Height;
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
-  Form.Cursor := CursorCastleToLCL[InternalCursor]; // SetCursor may also change it later
+  Form.Cursor := CursorCastleToLCL(InternalCursor); // SetCursor may also change it later
 
   UpdateFullScreenForm;
 
@@ -616,7 +617,7 @@ begin
     if not Closed then
       { Do not use Form.Cursor for this, e.g. hiding the cursor would not work
         then on Carbon. }
-      OpenGLControl.Cursor := CursorCastleToLCL[Value];
+      OpenGLControl.Cursor := CursorCastleToLCL(Value);
   end;
 end;
 
@@ -800,21 +801,21 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
 begin
   Dialog := TColorDialog.Create(nil);
   try
-    ColorByte := Vector3Byte(Color);
+    ColorByte := Vector3Byte(Color.RGB);
     Dialog.Color := RGBToColor(ColorByte.X, ColorByte.Y, ColorByte.Z);
     ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
     begin
       RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      Color := Vector3(ColorByte);
+      Color := Vector4(Vector3(ColorByte), Color.W);
     end;
   finally FreeAndNil(Dialog) end;
 end;

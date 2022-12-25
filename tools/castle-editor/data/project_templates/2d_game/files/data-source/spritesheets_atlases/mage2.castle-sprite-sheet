@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="mage2.png">
+  <SubTexture x="0" y="914" fps="8" name="idle_1" width="122" height="110"/>
+  <SubTexture x="122" y="914" name="idle_2" width="122" height="110"/>
+  <SubTexture x="244" y="914" name="idle_3" width="122" height="110"/>
+  <SubTexture x="366" y="914" name="idle_4" width="122" height="110"/>
+  <SubTexture x="488" y="914" name="idle_5" width="122" height="110"/>
+  <SubTexture x="610" y="914" name="idle_6" width="122" height="110"/>
+  <SubTexture x="732" y="914" name="idle_7" width="122" height="110"/>
+  <SubTexture x="854" y="914" name="idle_8" width="122" height="110"/>
+</TextureAtlas>

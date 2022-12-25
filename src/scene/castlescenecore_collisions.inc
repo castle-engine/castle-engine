@@ -37,7 +37,7 @@ begin
         NewAboveHeight, NewAboveGround, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      { collide with LocalBoundingBox }
+      { collide with LocalBoundingBoxNoChildren }
       { Using TryRayEntrance here would also be sensible, but sometimes too eager:
         In case creature walks over an item, it would cause the item to go upward
         (because the creature is collidable (item is not), so item's gravity
@@ -45,7 +45,7 @@ begin
         climb on top of each other.
         It may be changed in the future back into TryRayEntrance? Item problems
         could be solved by using GrowSpeed = 0 for items. }
-      NewResult := LocalBoundingBox.TryRayClosestIntersection(BoxIntersection, NewAboveHeight, APosition, -GravityUp);
+      NewResult := LocalBoundingBoxNoChildren.TryRayClosestIntersection(BoxIntersection, NewAboveHeight, APosition, -GravityUp);
       NewAboveGround := nil;
     end;
 
@@ -100,7 +100,7 @@ begin
 
   Result := true;
 
-  MyBox := LocalBoundingBox;
+  MyBox := LocalBoundingBoxNoChildren;
 
   if IsRadius then
   begin
@@ -120,7 +120,7 @@ begin
 
       There is a weakness in collision checking with dynamic objects,
       like creatures, because when LifeTime changes then effectively
-      LocalBoundingBox changes, and there is no way how I can prevent collisions
+      LocalBoundingBoxNoChildren changes, and there is no way how I can prevent collisions
       from occuring (we cannot stop/reverse an arbitrary animation,
       this would look bad and require AI preparations, see @link(Sphere) comments).
 
@@ -141,12 +141,12 @@ begin
     Exit(false);
 
 { Simpler implementation that doesn't allow others to become "unstuck".
-  It's also slightly less optimal, as internally LocalBoundingBox and CheckCollides
+  It's also slightly less optimal, as internally LocalBoundingBoxNoChildren and CheckCollides
   will be calculated many times (although they should be lighting-fast,
   still their time matters, as this is the basis of our AI and may be called
   many times per frame).
   OTOH, this simpler version is a little cleaner: it delegates work
-  to other methods, they may use LocalBoundingBox or something else.
+  to other methods, they may use LocalBoundingBoxNoChildren or something else.
 
   if IsRadius then
     Result := not ( CheckCollides and
@@ -228,7 +228,7 @@ begin
         Pos1, Pos2, nil, false, TrianglesToIgnoreFunc)
     end else
     begin
-      Result := LocalBoundingBox.SegmentCollision(Pos1, Pos2);
+      Result := LocalBoundingBoxNoChildren.SegmentCollision(Pos1, Pos2);
     end;
     if Result then Exit;
 
@@ -250,7 +250,7 @@ begin
         Pos, Radius, nil, TrianglesToIgnoreFunc)
     end else
     begin
-      Result := LocalBoundingBox.SphereCollision(Pos, Radius);
+      Result := LocalBoundingBoxNoChildren.SphereCollision(Pos, Radius);
     end;
     if Result then Exit;
 
@@ -273,7 +273,7 @@ begin
         Pos, Radius, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := LocalBoundingBox.SphereCollision2D(Pos, Radius);
+      Result := LocalBoundingBoxNoChildren.SphereCollision2D(Pos, Radius);
     end;
 
     if Result then
@@ -303,7 +303,7 @@ begin
         Point, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := LocalBoundingBox.Contains2D(Point);
+      Result := LocalBoundingBoxNoChildren.Contains2D(Point);
     end;
     if Result then Exit;
 
@@ -324,7 +324,7 @@ begin
         Box,  nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := LocalBoundingBox.Collision(Box);
+      Result := LocalBoundingBoxNoChildren.Collision(Box);
     end;
     if Result then Exit;
 
@@ -365,7 +365,7 @@ begin
       end;
     end else
     begin
-      if LocalBoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
+      if LocalBoundingBoxNoChildren.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
       begin
         Result := TRayCollision.Create;
         Result.Distance := IntersectionDistance;

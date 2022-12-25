@@ -1,10 +1,8 @@
 X3DFontStyleNode : X3DNode {
-  auto-generate-more: true
   default-container-field: fontStyle
 }
 
 FontStyle : X3DFontStyleNode {
-  auto-generate-more: true
   MFString []       family      ["SERIF"]
     range: ["SERIF"|"SANS"|"TYPEWRITER"]
     # enumerated-type: TX3DFontFamily FontFamilyNames ffSerif
@@ -40,7 +38,6 @@ FontStyle : X3DFontStyleNode {
 }
 
 Text : X3DGeometryNode {
-  auto-generate-more: true
   SFNode   [in,out] fontStyle  NULL
     range: X3DFontStyleNode
     change: chGeometryFontChanged

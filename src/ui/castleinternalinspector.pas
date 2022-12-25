@@ -69,6 +69,7 @@ type
       HierarchyRowParent: TCastleUserInterface;
       PropertyRowParent: TCastleUserInterface;
       ScrollLogs: TCastleScrollView;
+      ScrollProperties: TCastleScrollView;
       LogsVerticalGroup: TCastleVerticalGroup;
       LabelEarlierLogsRemoved: TCastleLabel;
       LabelLogHeader: TCastleLabel;
@@ -141,6 +142,8 @@ type
     procedure ClickAutoSelectNothing(Sender: TObject);
     procedure ClickAutoSelectUi(Sender: TObject);
     procedure ClickAutoSelectTransform(Sender: TObject);
+    class procedure AdjustColorsBasedOnPropertyDefault(
+      const Edit: TCastleEdit; const IsDefault: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -180,7 +183,7 @@ implementation
 
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleUtils, CastleLog, CastleInternalInspectorUtils,
+  CastleUtils, CastleLog, CastleInternalRttiUtils,
   CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
 
 { TODO:
@@ -252,6 +255,7 @@ begin
   HierarchyRowParent := UiOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
   PropertyRowParent := UiOwner.FindRequiredComponent('PropertyRowParent') as TCastleUserInterface;
   ScrollLogs := UiOwner.FindRequiredComponent('ScrollLogs') as TCastleScrollView;
+  ScrollProperties := UiOwner.FindRequiredComponent('ScrollProperties') as TCastleScrollView;
   LogsVerticalGroup := UiOwner.FindRequiredComponent('LogsVerticalGroup') as TCastleVerticalGroup;
   LabelEarlierLogsRemoved := UiOwner.FindRequiredComponent('LabelEarlierLogsRemoved') as TCastleLabel;
   LabelLogHeader := UiOwner.FindRequiredComponent('LabelLogHeader') as TCastleLabel;
@@ -341,6 +345,9 @@ begin
   FrameProfiler.Enabled := false;
 
   FreeAndNil(Properties);
+
+  FreeAndNil(SerializedHierarchyRowTemplate);
+  FreeAndNil(SerializedPropertyRowTemplate);
 
   inherited;
 end;
@@ -810,6 +817,8 @@ begin
     else
       LabelPropertiesHeader.Caption := 'Properties';
 
+    ScrollProperties.Scroll := ScrollProperties.ScrollMin;
+
     UpdateProperties;
   end;
 end;
@@ -825,7 +834,7 @@ end;
 procedure TCastleInspector.UpdateProperties;
 
   procedure AddPropertyRow(const PropObject: TObject; const PropInfo: PPropInfo;
-    const PropName, PropValue: String);
+    const PropName, PropValue: String; const IsDefault: Boolean);
   var
     PropertyOwner: TPropertyOwner;
   begin
@@ -846,6 +855,24 @@ procedure TCastleInspector.UpdateProperties;
     PropertyOwner.LabelName.Caption := PropName;
     // TODO: editing PropValue has no effect now
     PropertyOwner.EditValue.Text := PropValue;
+    AdjustColorsBasedOnPropertyDefault(PropertyOwner.EditValue, IsDefault);
+  end;
+
+  function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo): Boolean;
+  var
+    PropName: String;
+  begin
+    PropName := PropInfo^.Name;
+    if (PropName = 'Name') and
+       (csSubComponent in PropObject.ComponentStyle) then
+    begin
+      { Do not show names of subcomponents, they are not useful (to view or edit).
+        CastleComponentSerialize also doesn't save them (see TCastleJsonWriter.StreamProperty),
+        CGE editor also doesn't show them (see TDesignFrame.InspectorFilter). }
+      Exit(false);
+    end;
+
+    Result := true;
   end;
 
 var
@@ -861,8 +888,10 @@ begin
     PropInfos := TPropInfoList.Create(FSelectedComponent, tkProperties);
     try
       for I := 0 to PropInfos.Count - 1 do
-        if PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
-          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue);
+        if PropertyShow(FSelectedComponent, PropInfos.Items[I]) and
+           PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
+          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue,
+            PropertyHasDefaultValue(FSelectedComponent, PropInfos.Items[I], true));
     finally FreeAndNil(PropInfos) end;
   end;
 end;
@@ -877,6 +906,8 @@ begin
     if PropertyGet(Po.PropObject, Po.PropInfo, PropName, PropValue) then
     begin
       Po.EditValue.Text := PropValue;
+      AdjustColorsBasedOnPropertyDefault(Po.EditValue,
+        PropertyHasDefaultValue(Po.PropObject, Po.PropInfo, true));
     end else
       WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
   end;
@@ -1088,6 +1119,21 @@ procedure TCastleInspector.ClickAutoSelectTransform(Sender: TObject);
 begin
   AutoSelect := asTransform;
   SynchronizeButtonsAutoSelect;
+end;
+
+class procedure TCastleInspector.AdjustColorsBasedOnPropertyDefault(
+  const Edit: TCastleEdit; const IsDefault: Boolean);
+begin
+  if IsDefault then
+  begin
+    // TCastleEdit defaults
+    Edit.FocusedColor := Black;
+    Edit.UnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
+  end else
+  begin
+    Edit.FocusedColor := Blue;
+    Edit.UnfocusedColor := Vector4(0.25, 0.25, 1, 1);
+  end;
 end;
 
 initialization

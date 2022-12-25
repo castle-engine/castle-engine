@@ -17,6 +17,17 @@
 {$ifdef read_interface}
 
 //type
+  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+    @link(TCastleRigidBody.PhysicsRayCast). }
+  TPhysicsRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+    Transform: TCastleTransform;
+    { Distance from ray origin to the hit point. }
+    Distance: Single;
+    Point, Normal: TVector3;
+  end;
+
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
@@ -35,6 +46,9 @@
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
+      is physics running. }
+    function IsPhysicsRunning: Boolean;
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -79,6 +93,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -238,6 +253,30 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
+    { Cast a ray using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given RayOrigin, RayDirection, Distance are in the world coordinate system.
+
+      It returns TPhysicsRayCastResult, with information there
+      also in the world coordinate system.
+
+      This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role will be filled by layers. }
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single = MaxSingle;
+      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
@@ -250,16 +289,7 @@
       where player and creatures go.
       Player is honoring this if it uses @link(WorldMoveAllowed),
       in particular our @link(TCastleWalkNavigation) navigation honors it.
-      Creatures honor it if they use @link(WorldMoveAllowed)
-      for their decision,
-      in particular all creatures in @link(CastleCreatures) use it.
-
-      Note that the @link(TLevel.Load) always
-      assigns this property to be non-empty.
-      It either determines it by CasMoveLimit placeholder
-      in the level 3D model, or by calculating
-      to include level bounding box + some space for flying.
-    }
+      Creatures honor it if they use @link(WorldMoveAllowed) for their decision. }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
     { Central camera, that controls the features that require
@@ -268,19 +298,38 @@
 
       This camera controls:
 
-      - the X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.
-      - an audio listener (controlling the spatial sound).
-      - the headlight position/direction.
-      - when X3D nodes change Viewport/NavigationInfo,
-        they apply these changes to this camera.
+      @unorderedList(
+        @item(Nodes that "sense" camera like TProximitySensorNode, TBillboardNode, TLODNode.)
 
-      Note that it means that "headlight" is assigned to one camera
+        @item(TCastleBillboard.)
+
+        @item(Audio listener (controlling the spatial sound).)
+
+        @item(Headlight position/direction, if you enable headlight by @link(TCastleRootTransform.UseHeadlight).)
+
+        @item(When X3D nodes change Viewpoint/NavigationInfo (possible if TCastleViewport.AutoCamera),
+          they apply changes to this camera.)
+
+        @item(Rendering of TRenderedTextureNode contents (which camera this texture shows).)
+
+        @item(At design-time: gizmo size is determined with respect to this camera.)
+      )
+
+      Note that it means that "headlight" done by
+      @link(TCastleRootTransform.UseHeadlight) is assigned to one camera
       in case of multiple viewports looking at the same world.
       You cannot have a different "headlight" in each viewport,
       this would cause subtle problems since it's not how it would work in reality
       (where every light is visible in all viewports),
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
+
+      Note that we no longer advise using @link(TCastleRootTransform.UseHeadlight)
+      for headlight. It's easier to just place light as child of whatever camera
+      you want, like adding TCastleDirectionalLight as child of TCastleCamera.
+      See examples/viewport_and_scenes/headlight/ .
+      In this case MainCamera doesn't matter, instead you explicitly make headlight
+      by placing light as child of chosen camera.
 
       Note that features like LOD or Billboard or ProximitySensor
       need to transform this camera to scene local space.
@@ -292,18 +341,21 @@
 
       By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
-      So in simple cases (when you just create one @link(TCastleViewport)
+      And if something changes the @link(TCastleViewport.Camera) of that viewport,
+      then this @name is also updated.
+      So in simple cases (when you just have one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
       you don't have to do anything, it just works.
-      In general, you can change this to any camera of any associated @link(TCastleViewport),
+      In general, you can change this to any camera (currently used by some
+      associated @link(TCastleViewport) or not),
       or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
 
-    function CameraPosition: TVector3; deprecated 'use MainCamera.Position if MainCamera <> nil';
-    function CameraDirection: TVector3; deprecated 'use MainCamera.Direction if MainCamera <> nil';
-    function CameraUp: TVector3; deprecated 'use MainCamera.Up if MainCamera <> nil';
-    function CameraGravityUp: TVector3; deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
-    function CameraKnown: Boolean; deprecated 'use MainCamera <> nil';
+    { Remove all items except TCastleCamera instances.
+      This only avoids removing TCastleCamera instances that are direct children
+      of this TCastleAbstractRootTransform, the TCastleCamera instances that are deeper
+      (e.g. TCastleCamera inside some TCastleTransform) will still be removed. }
+    procedure ClearExceptCameras;
   published
     { Adjust physics properties. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -416,6 +468,14 @@ begin
   Result := PointCollision2D(Point, nil);
 end;
 
+function TCastleAbstractRootTransform.IsPhysicsRunning: Boolean;
+begin
+  Result :=
+    EnablePhysics and
+    (FKraftEngine <> nil) and
+    (CastleApplicationMode in [appRunning, appSimulation]);
+end;
+
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
@@ -512,38 +572,6 @@ begin
   MainCamera := nil;
 end;
 
-function TCastleAbstractRootTransform.CameraPosition: TVector3;
-begin
-  if MainCamera = nil then
-    Result := TVector3.Zero
-  else
-    Result := MainCamera.Position;
-end;
-
-function TCastleAbstractRootTransform.CameraDirection: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraDirection
-  else
-    Result := MainCamera.Direction;
-end;
-
-function TCastleAbstractRootTransform.CameraUp: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraUp
-  else
-    Result := MainCamera.Up;
-end;
-
-function TCastleAbstractRootTransform.CameraGravityUp: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraUp
-  else
-    Result := MainCamera.GravityUp;
-end;
-
 function TCastleAbstractRootTransform.GravityUp: TVector3;
 begin
   if MainCamera = nil then
@@ -552,11 +580,6 @@ begin
     Result := DefaultCameraUp
   else
     Result := MainCamera.GravityUp;
-end;
-
-function TCastleAbstractRootTransform.CameraKnown: Boolean;
-begin
-  Result := MainCamera <> nil;
 end;
 
 procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);
@@ -582,6 +605,24 @@ begin
   end;
 
   FInternalPressReleaseListeners.Delete(I);
+end;
+
+procedure TCastleAbstractRootTransform.ClearExceptCameras;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if not (Items[I] is TCastleCamera) then
+      Delete(I);
+end;
+
+function TCastleAbstractRootTransform.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'TimeScale') or
+     (PropertyName = 'Paused') then
+      Result := [psBasic]
+    else
+      Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

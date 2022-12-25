@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 {$ifdef read_interface_type}
-// type - don't add type delphi can't parse it correctly
+// type (continue type section from previous include file)
   { Image that can be easily loaded from URL (possibly reusing a cache),
     drawn, and serialized to/from file.
 

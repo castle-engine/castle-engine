@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,11 @@ uses Classes,
 
 type
   TStateInstructions = class(TUIState)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonClose: TCastleButton;
+  strict private
     procedure ClickClose(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -50,7 +53,6 @@ procedure TStateInstructions.Start;
 begin
   inherited;
 
-  ButtonClose := DesignedComponent('ButtonClose') as TCastleButton;
   ButtonClose.OnClick := {$ifdef FPC}@{$endif}ClickClose;
 
   { do not pass clicks to state underneath }

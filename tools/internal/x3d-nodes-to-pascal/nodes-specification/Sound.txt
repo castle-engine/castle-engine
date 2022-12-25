@@ -1,10 +1,8 @@
 X3DSoundNode : X3DChildNode {
-  auto-generate-more: true
   default-container-field: children
 }
 
 X3DSoundSourceNode : X3DTimeDependentNode {
-  auto-generate-more: true
   default-container-field: children
 
   SFString [in,out] description      ""
@@ -14,8 +12,6 @@ X3DSoundSourceNode : X3DTimeDependentNode {
 }
 
 AudioClip : X3DSoundSourceNode, X3DUrlObject {
-  auto-generate-more: true
-
   # Although X3D XML encoding spec says that "children" is default
   # containerField, common sense says it should be "source".
   # Sound.source field is where AudioClip should be placed, always.
@@ -27,8 +23,6 @@ AudioClip : X3DSoundSourceNode, X3DUrlObject {
 }
 
 Sound : X3DSoundNode {
-  auto-generate-more: true
-
   SFVec3f [in,out] direction  0 0 1
     range: (-Inf,Inf)
   SFFloat [in,out] intensity  1

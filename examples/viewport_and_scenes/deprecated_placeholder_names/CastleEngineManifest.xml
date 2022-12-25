@@ -2,4 +2,5 @@
 <project name="placeholder_names"
   standalone_source="placeholder_names.dpr"
 >
+  <data exists="false" />
 </project>

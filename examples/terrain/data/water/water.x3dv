@@ -1,0 +1,90 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Plane with water.
+# - Uses RenderedTexture, ViewpointMirror and MIRROR-PLANE texture mapping
+#   for reflections.
+#   See https://castle-engine.io/x3d_extensions_mirror_plane.php
+# - Uses shaders for a procedurally-generated seamless bump map.
+#
+# Based on Castle Game Engine demo water model in
+# demo-models/water/simple/water_final_using_noise_from_baked_textures.x3dv ,
+# see https://github.com/castle-engine/demo-models .
+
+# ----------------------------------------------------------------------------
+# Water surface
+
+Collision {
+  enabled TRUE # for now, keep collisions on water enabled
+  children DEF WaterTransform Transform {
+    children Shape {
+      shading "PHONG"
+      appearance Appearance {
+        material PhysicalMaterial {
+          transparency 0.3
+          baseColor 0.5 0.5 1
+          baseTexture RenderedTexture {
+            dimensions [ 2048 2048 3 ]
+            viewpoint ViewpointMirror { }
+            repeatS FALSE
+            repeatT FALSE
+            update "ALWAYS"
+          }
+        }
+
+        # Calculate animated normal vectors using GLSL
+        effects DEF EffectAnimatedNormals Effect {
+          # enabled FALSE
+          language "GLSL"
+          inputOnly SFTime time
+          parts [
+            EffectPart {
+              type "VERTEX"
+              url "shaders/animate_normals.vs"
+            }
+            EffectPart {
+              type "FRAGMENT"
+              url "shaders/animate_normals.fs"
+            }
+            EffectPart {
+              type "FRAGMENT"
+              url "shaders/noise3Dgrad.glsl"
+            }
+          ]
+        }
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [ -1 0 -1, -1 0 1, 1 0 1, 1 0 -1, ]
+        }
+        coordIndex [ 0 1 2 3 ]
+        texCoord MultiGeneratedTextureCoordinate {
+          texCoord [
+            # generate texture coordinates
+            # that match the texture produced by RenderedTexture and ViewpointMirror
+            # (in diffuseTexture)
+            TextureCoordinateGenerator {
+              mode "MIRROR-PLANE"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+# MyTimeSensor provides values for GLSL "time" uniform.
+DEF MyTimeSensor TimeSensor {
+  loop TRUE
+}
+ROUTE MyTimeSensor.elapsedTime TO EffectAnimatedNormals.time
+
+# Without MyProximitySensor, MyTimeSensor.elapsedTime output
+# values would be huge, as TimeSensor "starts" at Unix epoch.
+# Such huge floats would make GLSL shader computations useless (the results
+# of the shaders would look still).
+# So we we use MyProximitySensor to activate MyTimeSensor on scene enter.
+DEF MyProximitySensor ProximitySensor {
+  size 10000000 10000000 10000000 # huge size, to always be activated
+}
+ROUTE MyProximitySensor.enterTime TO MyTimeSensor.startTime

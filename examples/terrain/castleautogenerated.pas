@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'terrain';
-  ApplicationProperties.Caption := 'terrain';
+  ApplicationProperties.Caption := 'Terrain';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

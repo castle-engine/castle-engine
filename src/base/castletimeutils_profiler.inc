@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,7 +34,7 @@ type
       Note: using Summary on a stopped TCastleProfilerTime is not allowed,
       may fail with Access Violation.
       For this reason, this method was removed, as it was a trap.
-      Using LogSummary for Stop instead of both easier, and safe. }
+      Using LogSummary for Stop instead is both easier, and safe. }
     //function Summary(const Indent: String = ''): string;
   public
     { Elapsed time in seconds since calling @link(TCastleProfiler.Start)
@@ -192,8 +192,14 @@ type
       TCastleProfilerTime to the profiler tree, but also in immediately viewing the
       times in this TCastleProfilerTime subtree.
 
+      If LogSummary and LogSummaryOnlyIfNonTrivial, then the summary will be output
+      only if it's larger than some ignorable amount of time (right now: 1 milisecond).
+      This is useful to output only things that take non-trivial amount of time.
+
       @seealso Start }
-    procedure Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean = false);
+    procedure Stop(const TimeStart: TCastleProfilerTime;
+      const LogSummary: Boolean = false;
+      const LogSummaryOnlyIfNonTrivial: Boolean = false);
   end;
 
 { Single instance of TCastleProfiler that you can use for all profiling.
@@ -334,7 +340,8 @@ begin
   Result.FProcessTimeStart := ProcessTimer;
 end;
 
-procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean);
+procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime;
+  const LogSummary, LogSummaryOnlyIfNonTrivial: Boolean);
 var
   T: TTime;
   IndexInStack: Integer;
@@ -353,7 +360,8 @@ begin
   T.ProcessTime := TimeStart.FProcessTimeStart.ElapsedTime;
 
   // Call this before CurrentStack.Delete, which may free the T instance
-  if LogSummary then
+  if LogSummary and
+     ( (not LogSummaryOnlyIfNonTrivial) or (T.Time > 0.01) ) then
     WritelnLogMultiline(T.Description, T.Summary(''));
 
   if (CurrentStack.Count <> 0) and

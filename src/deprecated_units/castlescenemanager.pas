@@ -44,7 +44,9 @@ const
 
 function GetInput_Interact: TInputShortcut;
 procedure SetInput_Interact(const Value: TInputShortcut);
+{$ifdef FPC}
 property Input_Interact: TInputShortcut read GetInput_Interact write SetInput_Interact;
+{$endif}
 
 implementation
 

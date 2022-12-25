@@ -224,8 +224,14 @@ procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4); overload; deprecated 'use DrawRectangle';
 
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
+{ Call OpenGL @url(https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml glBlendFunc).
+  Accepts parameters as enumerated types TBlendingSourceFactor, TBlendingDestinationFactor.
+  Secures from using source or destination factor unsupported on current OpenGL version:
+  makes a warnings and falls back on a sensible default (so it will always call
+  glBlendFunc anyway). }
+procedure GLBlendFunction(
+  SourceFactor: TBlendingSourceFactor;
+  DestinationFactor: TBlendingDestinationFactor);
 
 {$endif read_interface}
 
@@ -562,13 +568,13 @@ begin
       SinCos(2 * Pi * I / CircleSlices, NextSin, NextCos);
     CirclePoint[(I - 1) * 3    ] := Vector2(
       Middle.X,
-      Middle[1]);
+      Middle.Y);
     CirclePoint[(I - 1) * 3 + 1] := Vector2(
       Middle.X + PreviousSin * HorizontalRadius,
-      Middle[1] + PreviousCos * VerticalRadius);
+      Middle.Y + PreviousCos * VerticalRadius);
     CirclePoint[(I - 1) * 3 + 2] := Vector2(
       Middle.X + NextSin     * HorizontalRadius,
-      Middle[1] + NextCos     * VerticalRadius);
+      Middle.Y + NextCos     * VerticalRadius);
     PreviousSin := NextSin;
     PreviousCos := NextCos;
   end;
@@ -609,7 +615,7 @@ begin
     SinCos(2 * Pi * I / (CircleSlices - 1), S, C);
     CirclePoint[I] := Vector2(
       Middle.X + S * HorizontalRadius,
-      Middle[1] + C * VerticalRadius);
+      Middle.Y + C * VerticalRadius);
   end;
 
   DrawPrimitive2D(pmLineLoop, CirclePoint,
@@ -715,9 +721,31 @@ end;
 
 { GLBlendFunction ------------------------------------------------------------ }
 
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
+procedure GLBlendFunction(
+  SourceFactor: TBlendingSourceFactor;
+  DestinationFactor: TBlendingDestinationFactor);
 begin
+  {$ifndef OpenGLES}
+  if not GLFeatures.Version_1_4 then
+  begin
+    if SourceFactor in [bsSrcColor, bsOneMinusSrcColor] then
+    begin
+      WritelnWarning('Blending', 'Blending factor "%s" as "source" requires OpenGL 1.4', [
+        BlendingSourceFactorNames[SourceFactor]
+      ]);
+      SourceFactor := bsSrcAlpha;
+    end;
+
+    if DestinationFactor in [bdDstColor, bdOneMinusDstColor] then
+    begin
+      WritelnWarning('Blending', 'Blending factor "%s" as "destination" requires OpenGL 1.4', [
+        BlendingDestinationFactorNames[DestinationFactor]
+      ]);
+      DestinationFactor := bdOneMinusSrcAlpha;
+    end;
+ end;
+ {$endif}
+
   glBlendFunc(
     BlendingSourceFactorToGL[SourceFactor],
     BlendingDestinationFactorToGL[DestinationFactor]);

@@ -1,0 +1,37 @@
+{
+  "$$ClassName" : "TCastleSphere",
+  "CollisionSphereRadius" : 1.0000000000000000E+000,
+  "ColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Blue" : 0.0000000000000000E+000,
+    "Green" : 0.0000000000000000E+000
+  },
+  "Material" : "pmUnlit",
+  "Name" : "Missile",
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+  },
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "LinearVelocityPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : 1.0000000000000000E+002
+      },
+      "LockRotation" : [
+        0,
+        1
+      ],
+      "LockTranslation" : [
+        2
+      ],
+      "Name" : "RigidBody4"
+    },
+    {
+      "$$ClassName" : "TCastleSphereCollider",
+      "Mass" : 1.0000000000000000E+001,
+      "Mode2D" : true,
+      "Name" : "SphereCollider1"
+    }
+  ]
+}

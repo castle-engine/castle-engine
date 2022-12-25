@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,14 +122,9 @@ end;
 procedure TStateMain.CameraNavigationReinitialize;
 begin
   ViewportNormal.AssignDefaultCamera;
-  ViewportNormal.AssignDefaultNavigation;
   ViewportTransparent.AssignDefaultCamera;
-  ViewportTransparent.AssignDefaultNavigation;
   ViewportScreenEffect.AssignDefaultCamera;
-  ViewportScreenEffect.AssignDefaultNavigation;
   ViewportExamine.AssignDefaultCamera;
-  // leave the ViewportExamine navigation unchanged, so it remains TCastleExamineNavigation instance
-  // ViewportExamine.AssignDefaultNavigation;
 end;
 
 procedure TStateMain.ClickOpen(Sender: TObject);

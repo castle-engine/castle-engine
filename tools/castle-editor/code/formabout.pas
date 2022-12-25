@@ -36,9 +36,6 @@ uses CastleOpenDocument, CastleUtils;
 
 {$R *.lfm}
 
-// TODO: Show current (runtime) CGE, FPC version
-// TODO: Show CGE, FPC version when compiling editor
-
 procedure TAboutForm.LabelWebsiteClick(Sender: TObject);
 begin
   OpenURL('https://castle-engine.io/');

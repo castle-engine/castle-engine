@@ -1,0 +1,1017 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Background",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2114706039428711E+000,
+              "Y" : 1.2114706039428711E+000,
+              "Z" : 1.2114706039428711E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 8.0785595703125000E+002,
+              "Y" : 6.0951458740234375E+002,
+              "Z" : -2.0000000000000000E+002
+            },
+            "Url" : "castle-data:/graphics/background/bg5.jpg"
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Borders",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 1.9607843831181526E-002,
+                  "Green" : 1.8823529779911041E-001,
+                  "Red" : 1.9607843831181526E-002
+                },
+                "Material" : "pmUnlit",
+                "Name" : "Box1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+003,
+                  "Y" : 5.0000000000000000E+002,
+                  "Z" : 3.0000000000000000E+002
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 7.9033190917968750E+002,
+                  "Y" : -1.1571197509765625E+001
+                },
+                "Visible" : false,
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Mode2D" : true,
+                    "Name" : "BoxCollider2"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody9"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 1.9607843831181526E-002,
+                  "Green" : 1.8823529779911041E-001,
+                  "Red" : 1.9607843831181526E-002
+                },
+                "Material" : "pmUnlit",
+                "Name" : "Box2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+003,
+                  "Y" : 5.0000000000000000E+002,
+                  "Z" : 3.0000000000000000E+002
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 7.9033190917968750E+002,
+                  "Y" : 1.3041418457031250E+003
+                },
+                "Visible" : false,
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Mode2D" : true,
+                    "Name" : "BoxCollider3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody10"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 1.9607843831181526E-002,
+                  "Green" : 1.8823529779911041E-001,
+                  "Red" : 1.9607843831181526E-002
+                },
+                "Material" : "pmUnlit",
+                "Name" : "Box3",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5707963705062866E+000,
+                  "Z" : -1.0000008344650269E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+003,
+                  "Y" : 5.0000000000000000E+002,
+                  "Z" : 3.0000000000000000E+002
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.7253082275390625E+002,
+                  "Y" : 6.3731457519531250E+002
+                },
+                "Visible" : false,
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Mode2D" : true,
+                    "Name" : "BoxCollider4"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody11"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 1.9607843831181526E-002,
+                  "Green" : 1.8823529779911041E-001,
+                  "Red" : 1.9607843831181526E-002
+                },
+                "Material" : "pmUnlit",
+                "Name" : "Box4",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5707963705062866E+000,
+                  "Z" : -1.0000008344650269E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+003,
+                  "Y" : 5.0000000000000000E+002,
+                  "Z" : 3.0000000000000000E+002
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.8159898681640625E+003,
+                  "Y" : 6.3731457519531250E+002
+                },
+                "Visible" : false,
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Mode2D" : true,
+                    "Name" : "BoxCollider5"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody12"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Asteroids",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid5",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2267972412109375E+003,
+                  "Y" : 5.0754013061523438E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider6"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody6"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid4",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.8619329833984375E+002,
+                  "Y" : 9.3018707275390625E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider5"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody5"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid7",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.8230645751953125E+002,
+                  "Y" : 6.9138214111328125E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider8"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody8"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid6",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.0207955932617188E+002,
+                  "Y" : 3.1544616699218750E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider7"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody7"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid3",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.5873626708984375E+002,
+                  "Y" : 7.0694219970703125E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider4"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody4"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.5000000000000000E-001,
+                  "Y" : 2.5000000000000000E-001,
+                  "Z" : 2.5000000000000000E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0371752929687500E+003,
+                  "Y" : 3.6294851684570312E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody1"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 3.0000001192092896E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider1"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid2",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.1271443176269531E+002,
+                  "Y" : 4.0226199340820312E+002
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Asteroid1",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.3767089843750000E+002,
+                  "Y" : 1.0211984863281250E+003
+                },
+                "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mass" : 5.0000000000000000E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider2"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Ship",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.0000000000000000E-001,
+              "Y" : 5.0000000000000000E-001,
+              "Z" : 5.0000000000000000E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.8114550781250000E+002,
+              "Y" : 4.1770669555664062E+002
+            },
+            "Url" : "castle-data:/graphics/ship/spiked_ship_%203.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 3.0000000000000000E+000,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 5.0000000000000000E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "ShipRigidBody"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "AutoSize" : false,
+                "Friction" : 5.0000000745058060E-002,
+                "Mass" : 1.0000000000000000E+000,
+                "Mode2D" : true,
+                "Name" : "BoxCollider1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.4800000000000000E+002,
+                  "Y" : 2.7900000000000000E+002
+                },
+                "SizeScale" : 9.4999998807907104E-001
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "Height" : 9.0000000000000000E+002,
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              },
+              "Width" : 1.6000000000000000E+003
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionType" : "ptOrthographic",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 8.2041241455078125E+002,
+              "Y" : 6.3426843261718750E+002,
+              "Z" : 5.0000000000000000E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Rocks",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 2.0000000000000000E+002
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 2.5908070802688599E-001,
+                  "Z" : 1.0000030994415283E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.9417218017578125E+002,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock10",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.0672388076782227E+000,
+                  "Z" : -9.9999964237213135E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.4605601501464844E+002,
+                  "Y" : 2.5539788818359375E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock11",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 8.5418128967285156E-001,
+                  "Z" : -9.9999910593032837E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.7280247497558594E+002,
+                  "Y" : 5.1435217285156250E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock12",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.6718839406967163E+000,
+                  "Z" : -9.9999988079071045E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.5091899108886719E+002,
+                  "Y" : 7.4655981445312500E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock13",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.6718839406967163E+000,
+                  "Z" : -9.9999988079071045E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.5456625366210938E+002,
+                  "Y" : 1.0310447998046875E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock14",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.0183978080749512E+000,
+                  "Z" : -9.9999964237213135E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.6370167541503906E+002,
+                  "Y" : 1.2832110595703125E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock15",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.4185476303100586E+000,
+                  "Z" : -9.9999976158142090E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.3790179443359375E+002,
+                  "Y" : 1.2905557861328125E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock16",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 2.4325566291809082E+000,
+                  "Z" : -9.9999928474426270E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.7048223876953125E+002,
+                  "Y" : 1.2856593017578125E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock17",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.3229701519012451E+000,
+                  "Z" : -9.9999952316284180E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.2999310302734375E+002,
+                  "Y" : 1.2881075439453125E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock18",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.4109711647033691E+000,
+                  "Z" : -9.9999922513961792E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2066413574218750E+003,
+                  "Y" : 1.2807628173828125E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock19",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.0183978080749512E+000,
+                  "Z" : -9.9999964237213135E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.4979790039062500E+003,
+                  "Y" : 1.2856594238281250E+003,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock20",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.3855328559875488E+000,
+                  "Z" : -9.9999862909317017E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.7918417968750000E+003,
+                  "Y" : 9.6571154785156250E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock21",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.3855328559875488E+000,
+                  "Z" : -9.9999862909317017E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.7878328857421875E+003,
+                  "Y" : 7.0313134765625000E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock22",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.3855328559875488E+000,
+                  "Z" : -9.9999862909317017E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.7898372802734375E+003,
+                  "Y" : 4.1649798583984375E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock24",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.7824645042419434E+000,
+                  "Z" : -9.9999773502349854E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.7938459472656250E+003,
+                  "Y" : 2.5614361572265625E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock23",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.3855328559875488E+000,
+                  "Z" : -9.9999862909317017E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.7898372802734375E+003,
+                  "Y" : 4.1649798583984375E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.3104639649391174E-001,
+                  "Z" : 9.9999928474426270E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.7650457763671875E+002,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock3",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.9099726825952530E-002,
+                  "Z" : 1.0000896453857422E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 7.6958483886718750E+002,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock5",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0063801269531250E+003,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock6",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.9839970469474792E-001,
+                  "Z" : 9.9999797344207764E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.1934484863281250E+003,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock7",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.3828847656250000E+003,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock8",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.5675850830078125E+003,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock9",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.5675850830078125E+003,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              },
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "Rock4",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.7304467773437500E+002,
+                  "Y" : 7.1038513183593750E+000,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "Url" : "castle-data:/graphics/background/rock.png"
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastle2DNavigation",
+          "Name" : "Navigation2D1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E-001,
+            "Y" : 5.0000000000000000E-001
+          },
+          "Width" : 2.4678242187500000E+003
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionType" : "ptOrthographic",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "Z" : 1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 8.4412908935546875E+002,
+          "Y" : 6.1332403564453125E+002,
+          "Z" : 1.6000000000000000E+003
+        }
+      },
+      "InternalDesignNavigationType" : 2,
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}

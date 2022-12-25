@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -103,7 +103,7 @@ begin
 end;
 
 { Read <instance_*>, adding resulting X3D nodes into ParentGroup. }
-procedure ReadInstance(ParentGroup: TAbstractX3DGroupingNode;
+procedure ReadInstance(ParentGroup: TAbstractGroupingNode;
   InstantiatingElement: TDOMElement; List: TX3DChildrenList);
 var
   Id: string;

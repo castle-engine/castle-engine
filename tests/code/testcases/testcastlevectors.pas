@@ -53,6 +53,7 @@ type
     procedure TestPlaneMoveRandom;
     procedure TestTryInverseHarder;
     procedure TestMaxAbsVectorCoord;
+    procedure TestMinAbsVectorCoord;
     procedure TestPointOnLineClosestToLine;
     procedure TestRotatePointAroundAxis;
     procedure TestMakeVectorOrthogonal;
@@ -935,6 +936,21 @@ begin
 
   AssertEquals(3, MaxAbsVectorCoord(Vector4(1, 2, 3, 10)));
   AssertEquals(3, MaxAbsVectorCoord(Vector4(-1, -2, -3, -10)));
+end;
+
+procedure TTestCastleVectors.TestMinAbsVectorCoord;
+begin
+  AssertEquals(0, MinAbsVectorCoord(Vector2(1, -10)));
+  AssertEquals(0, MinAbsVectorCoord(Vector2(1,  10)));
+  AssertEquals(1, MinAbsVectorCoord(Vector2(-10, -1)));
+  AssertEquals(1, MinAbsVectorCoord(Vector2( 10,  1)));
+
+  AssertEquals(0, MinAbsVectorCoord(Vector3(1, 2, 3)));
+  AssertEquals(1, MinAbsVectorCoord(Vector3(33, 2, 3)));
+  AssertEquals(2, MinAbsVectorCoord(Vector3(3, 2, 1)));
+
+  AssertEquals(0, MinAbsVectorCoord(Vector4(1, 2, 3, 10)));
+  AssertEquals(0, MinAbsVectorCoord(Vector4(-1, -2, -3, -10)));
 end;
 
 procedure TTestCastleVectors.TestPointOnLineClosestToLine;

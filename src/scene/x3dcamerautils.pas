@@ -75,7 +75,7 @@ function MakeCameraNavNode(const Version: TX3DCameraVersion;
 
 implementation
 
-uses SysUtils, CastleCameras;
+uses SysUtils, CastleTransform;
 
 function MakeCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;

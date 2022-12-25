@@ -18,7 +18,7 @@ function cgeChangeLocation(url, fallbackUrl)
     });
 }
 
-/* Append a form to switch API docs between stable/unstable engine versions. */
+/* Append a form to switch API docs between various engine versions. */
 jQuery(document).ready(function() {
     var versionsForm = jQuery(`<form class="cge-version-form form-inline">
         <div class="form-group">

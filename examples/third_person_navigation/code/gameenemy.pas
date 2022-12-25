@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,7 +57,7 @@ type
     Dead: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Hurt;
   end;
@@ -74,7 +74,7 @@ begin
   MoveDirection := -1;
 end;
 
-procedure TEnemy.ParentChanged;
+procedure TEnemy.ParentAfterAttach;
 begin
   inherited;
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
@@ -104,11 +104,20 @@ begin
 end;
 
 procedure TEnemy.Hurt;
+var
+  RBody: TCastleRigidBody;
 begin
   Scene.PlayAnimation('die', false);
+
   // dead corpse no longer collides
+  // old physics:
   Scene.Pickable := false;
   Scene.Collides := false;
+  // new physics:
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+    RBody.Exists := false;
+
   Dead := true;
 end;
 

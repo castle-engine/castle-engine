@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,7 +91,7 @@ var
     Scene.Translation := Center;
     Inc(StarsCount);
 
-    Material := (Scene.Node('MatMain') as TAppearanceNode).
+    Material := (Scene.Node(TAppearanceNode, 'MatMain') as TAppearanceNode).
       Material as TUnlitMaterialNode;
     Material.EmissiveColor := Vector3(
       RecursionLevel / MaxRecursionLevel,

@@ -1,6 +1,7 @@
 ../../../src/base/ TCastleRenderOptions WireframeColor TCastleColorRGB
 
 ../../../src/ui/ TCastleUserInterface BorderColor TCastleColor
+../../../src/ui/ TCastleUserInterface Translation TVector2
 
 ../../../src/ui/ TCastleRectangleControl Color TCastleColor
 ../../../src/ui/ TStateDialog BackgroundColor TCastleColor
@@ -51,20 +52,52 @@
 
 ../../../src/ui/ TCastleTiledMapControl Origin TVector2
 
+../../../src/ui/ TCastleCrosshair Color TCastleColor
+
 ../../../src/transform/ TCastleTransform Center TVector3
-../../../src/transform/ TCastleTransform Rotation TVector4
+../../../src/transform/ TCastleTransform Rotation TVector4 rotation
 ../../../src/transform/ TCastleTransform Scale TVector3
 ../../../src/transform/ TCastleTransform ScaleOrientation TVector4
 ../../../src/transform/ TCastleTransform Translation TVector3
+../../../src/transform/ TCastleTransform Direction TVector3 no-store
+../../../src/transform/ TCastleTransform Up TVector3 no-store
 
-../../../src/transform/ TCastleCamera InitialPosition TVector3
-../../../src/transform/ TCastleCamera InitialDirection TVector3
-../../../src/transform/ TCastleCamera InitialUp TVector3
+../../../src/transform/ TCastleCollider Translation TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleCollider Rotation TVector4 store=StoredWithAutoSize rotation
+
+../../../src/transform/ TCastlePlaneCollider Normal TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleBoxCollider Size TVector3 store=StoredWithAutoSize
+
+../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
+../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
+
+../../../src/transform/ TCastleHingeJoint Anchor TVector3
+../../../src/transform/ TCastleHingeJoint Axis TVector3
+../../../src/transform/ TCastleRopeJoint Anchor TVector3
+../../../src/transform/ TCastleRopeJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleFixedJoint Anchor TVector3
+../../../src/transform/ TCastleBallJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleGrabJoint Anchor TVector3
+../../../src/transform/ TCastleGrabJoint TargetWorld TVector3
+
+../../../src/transform/ TCastlePulleyJoint WorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint WorldGroundAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldGroundAnchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint PlaneNormal TVector3
+../../../src/transform/ TCastleSliderJoint WorldAnchor TVector3
+../../../src/transform/ TCastleSliderJoint WorldSliderAxis TVector3
+
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
 
 ../../../src/transform/ TCastleBillboard AxisOfRotation TVector3
+
+../../../src/transform/ TCastleStickToSurface Direction TVector3
 
 ../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
 ../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
@@ -82,7 +115,9 @@
 ../../../src/scene/ TCastleBackground SkyEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
-../../../src/scene/ TCastleBackground Rotation TVector4
+../../../src/scene/ TCastleBackground Rotation TVector4 rotation
+
+../../../src/scene/ TCastleFog Color TCastleColorRGB
 
 ../../../src/scene/ TCastlePointLight Color TCastleColorRGB
 ../../../src/scene/ TCastlePointLight Attenuation TVector3
@@ -91,3 +126,8 @@
 
 ../../../src/scene/ TCastleSpotLight Color TCastleColorRGB
 ../../../src/scene/ TCastleSpotLight Attenuation TVector3
+
+../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
+
+../../../src/scene/ TCastleTerrain Size TVector2
+../../../src/scene/ TCastleTerrain Subdivisions TVector2
