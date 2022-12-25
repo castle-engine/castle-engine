@@ -18,7 +18,7 @@
 //type
 
   { "View" represents the current state of your application user interface.
-    See also https://castle-engine.io/states
+    See also https://castle-engine.io/views
     for an overview of using TCastleView.
 
     In a given container (like a window), in the simple case only one TCastleView is @italic(current) at a given time,
@@ -77,7 +77,7 @@
     type
       TDesignOwner = class(TComponent)
       protected
-        ParentState: TCastleView;
+        ParentView: TCastleView;
         procedure Notification(AComponent: TComponent; Operation: TOperation); override;
         procedure ValidateRename(AComponent: TComponent; const CurName, NewName: String); override;
       end;
@@ -190,7 +190,7 @@
         Container.View := ViewMain;
       #)
 
-      See https://castle-engine.io/states and numerous engine examples.
+      See https://castle-engine.io/views and numerous engine examples.
     }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -308,7 +308,7 @@
       You should just ignore the ancestor result, like this:
 
       @longCode(#
-      function TMyState.Press(const Event: TInputPressRelease): Boolean;
+      function TMyView.Press(const Event: TInputPressRelease): Boolean;
       begin
         Result := inherited;
         // ignore the ancestor result, as we use InterceptInput, so ancestor always returns true
@@ -404,7 +404,7 @@
       are automatically initialized to the instance of this component.
       (And they will be set to @nil when the design is destroyed, typically at @link(Stop).)
 
-      You can also modify this property when the state has already started
+      You can also modify this property when the view has already started
       (after @link(Start) and before @link(Stop)) in which case
       the previous design will be freed and new one will be loaded immediately.
 
@@ -450,13 +450,13 @@
       #)
 
       This method is seldom useful now.
-      The published fields of the state are automatically initialized when
+      The published fields of the view are automatically initialized when
       loading / unloading design using @link(DesignUrl).
       There's no need to use DesignedComponent for them.
 
       @seealso DesignUrl }
     function DesignedComponent(const ComponentName: String): TComponent;
-      //deprecated 'published state fields are automatically initialized now, no need to use this method';
+      //deprecated 'published view fields are automatically initialized now, no need to use this method';
       // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
@@ -530,8 +530,8 @@ begin
     Note that opInsert in practice doesn't do anything, as the component will have no name
     at creation. It will be fixed by ValidateRename. }
   case Operation of
-    opInsert: ParentState.SetNameReference(AComponent, AComponent.Name, true);
-    opRemove: ParentState.SetNameReference(AComponent, AComponent.Name, false);
+    opInsert: ParentView.SetNameReference(AComponent, AComponent.Name, true);
+    opRemove: ParentView.SetNameReference(AComponent, AComponent.Name, false);
     else ;
   end;
   inherited;
@@ -540,8 +540,8 @@ end;
 procedure TCastleView.TDesignOwner.ValidateRename(AComponent: TComponent; const CurName, NewName: String);
 begin
   inherited;
-  ParentState.SetNameReference(AComponent, CurName, false);
-  ParentState.SetNameReference(AComponent, NewName, true);
+  ParentView.SetNameReference(AComponent, CurName, false);
+  ParentView.SetNameReference(AComponent, NewName, true);
 end;
 
 { TCastleView --------------------------------------------------------------------- }
@@ -806,7 +806,7 @@ begin
   if DesignUrl <> '' then
   begin
     FDesignLoadedOwner := TDesignOwner.Create(nil);
-    FDesignLoadedOwner.ParentState := Self;
+    FDesignLoadedOwner.ParentView := Self;
     if FDesignPreloadedSerialized <> nil then
       FDesignLoaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignLoadedOwner)
     else
