@@ -52,6 +52,11 @@ if [ -n "$KAMBI_IS_CYGWIN" ]; then
   OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
 fi
 
+FIND='find'
+if [ -n "$KAMBI_IS_CYGWIN" ]; then
+  FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+fi
+
 # calculate PASDOC_CACHE (os-native path)
 # I use --cache-dir with pasdoc, as this greatly speeds up generation
 # of these docs.
@@ -106,7 +111,7 @@ if (( $# == 0 )); then
   #   Although these units are not supposed to be used directly,
   #   but they document API of TVector3 and TVector3Double.
 
-  find .  \
+  "${FIND}" .  \
     '(' -type f -iname '*.pas' \
             -not '(' \
               '(' -iwholename '*/base/android/*.pas' ')' -or \
