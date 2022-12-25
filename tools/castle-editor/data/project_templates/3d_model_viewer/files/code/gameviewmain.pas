@@ -1,19 +1,19 @@
-{ Main state, where most of the application logic takes place.
+{ Main view, where most of the application logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   This template code is in public domain, unlike most other CGE code which
   is covered by BSD or LGPL (see https://castle-engine.io/license). }
-unit GameState${MAIN_STATE};
+unit GameView${MAIN_VIEW};
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize, CastleUIControls,
+  CastleVectors, CastleComponentSerialize, CastleUIControls,
   CastleControls, CastleKeysMouse, CastleViewport, CastleScene;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TState${MAIN_STATE} = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TView${MAIN_VIEW} = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -41,22 +41,22 @@ type
   end;
 
 var
-  State${MAIN_STATE}: TState${MAIN_STATE};
+  View${MAIN_VIEW}: TView${MAIN_VIEW};
 
 implementation
 
 uses SysUtils,
   CastleWindow, X3DLoad;
 
-{ TState${MAIN_STATE} ----------------------------------------------------------------- }
+{ TView${MAIN_VIEW} ----------------------------------------------------------------- }
 
-constructor TState${MAIN_STATE}.Create(AOwner: TComponent);
+constructor TView${MAIN_VIEW}.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface';
+  DesignUrl := 'castle-data:/gameview${MAIN_VIEW_LOWERCASE}.castle-user-interface';
 end;
 
-procedure TState${MAIN_STATE}.Start;
+procedure TView${MAIN_VIEW}.Start;
 begin
   inherited;
 
@@ -73,14 +73,14 @@ begin
   Load('castle-data:/knight/knight.gltf');
 end;
 
-procedure TState${MAIN_STATE}.Load(const Url: String);
+procedure TView${MAIN_VIEW}.Load(const Url: String);
 begin
   SceneMain.Load(Url);
   LabelLoadedUrl.Caption := 'Loaded: ' + Url;
   Viewport.AssignDefaultCamera;
 end;
 
-procedure TState${MAIN_STATE}.ClickLoadKnight(Sender: TObject);
+procedure TView${MAIN_VIEW}.ClickLoadKnight(Sender: TObject);
 begin
   { Note that you load here any filename or URL (file://, http:// etc.).
     - See https://castle-engine.io/manual_network.php about CGE supported URLs.
@@ -89,12 +89,12 @@ begin
   Load('castle-data:/knight/knight.gltf');
 end;
 
-procedure TState${MAIN_STATE}.ClickLoadCar(Sender: TObject);
+procedure TView${MAIN_VIEW}.ClickLoadCar(Sender: TObject);
 begin
   Load('castle-data:/car/car.x3d');
 end;
 
-procedure TState${MAIN_STATE}.ClickLoadCustom(Sender: TObject);
+procedure TView${MAIN_VIEW}.ClickLoadCustom(Sender: TObject);
 var
   Url: String;
 begin
@@ -103,7 +103,7 @@ begin
     Load(Url);
 end;
 
-procedure TState${MAIN_STATE}.ClickPlayAnimation(Sender: TObject);
+procedure TView${MAIN_VIEW}.ClickPlayAnimation(Sender: TObject);
 begin
   { Play the 1st animation in the scene.
     In an actual game, you usually hardcode the animation name to play.
@@ -113,12 +113,12 @@ begin
     SceneMain.PlayAnimation(SceneMain.AnimationsList[0], true);
 end;
 
-procedure TState${MAIN_STATE}.ClickStopAnimation(Sender: TObject);
+procedure TView${MAIN_VIEW}.ClickStopAnimation(Sender: TObject);
 begin
   SceneMain.StopAnimation;
 end;
 
-procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TView${MAIN_VIEW}.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -126,7 +126,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TState${MAIN_STATE}.Press(const Event: TInputPressRelease): Boolean;
+function TView${MAIN_VIEW}.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -137,7 +137,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TState${MAIN_STATE}.Press method should be used to handle keys
+    The TView${MAIN_VIEW}.Press method should be used to handle keys
     not handled in children controls.
   }
 

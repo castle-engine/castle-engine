@@ -1,19 +1,19 @@
-{ Main state, where most of the application logic takes place.
+{ Main view, where most of the application logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   This template code is in public domain, unlike most other CGE code which
   is covered by BSD or LGPL (see https://castle-engine.io/license). }
-unit GameState${MAIN_STATE};
+unit GameView${MAIN_VIEW};
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TState${MAIN_STATE} = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TView${MAIN_VIEW} = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -26,26 +26,26 @@ type
   end;
 
 var
-  State${MAIN_STATE}: TState${MAIN_STATE};
+  View${MAIN_VIEW}: TView${MAIN_VIEW};
 
 implementation
 
 uses SysUtils;
 
-{ TState${MAIN_STATE} ----------------------------------------------------------------- }
+{ TView${MAIN_VIEW} ----------------------------------------------------------------- }
 
-constructor TState${MAIN_STATE}.Create(AOwner: TComponent);
+constructor TView${MAIN_VIEW}.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface';
+  DesignUrl := 'castle-data:/gameview${MAIN_VIEW_LOWERCASE}.castle-user-interface';
 end;
 
-procedure TState${MAIN_STATE}.Start;
+procedure TView${MAIN_VIEW}.Start;
 begin
   inherited;
 end;
 
-procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TView${MAIN_VIEW}.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -53,7 +53,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TState${MAIN_STATE}.Press(const Event: TInputPressRelease): Boolean;
+function TView${MAIN_VIEW}.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -64,7 +64,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TState${MAIN_STATE}.Press method should be used to handle keys
+    The TView${MAIN_VIEW}.Press method should be used to handle keys
     not handled in children controls.
   }
 

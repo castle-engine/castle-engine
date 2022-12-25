@@ -3,16 +3,16 @@
   Feel free to use this code as a starting point for your own projects.
   This template code is in public domain, unlike most other CGE code which
   is covered by BSD or LGPL (see https://castle-engine.io/license). }
-unit GameStateMenu;
+unit GameViewMenu;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls;
+  CastleComponentSerialize, CastleUIControls, CastleControls;
 
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
-  TStateMenu = class(TUIState)
+  TViewMenu = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -26,22 +26,22 @@ type
   end;
 
 var
-  StateMenu: TStateMenu;
+  ViewMenu: TViewMenu;
 
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameStatePlay;
+  GameViewPlay;
 
-{ TStateMenu ----------------------------------------------------------------- }
+{ TViewMenu ----------------------------------------------------------------- }
 
-constructor TStateMenu.Create(AOwner: TComponent);
+constructor TViewMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmenu.castle-user-interface';
 end;
 
-procedure TStateMenu.Start;
+procedure TViewMenu.Start;
 begin
   inherited;
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
@@ -50,12 +50,12 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
-procedure TStateMenu.ClickPlay(Sender: TObject);
+procedure TViewMenu.ClickPlay(Sender: TObject);
 begin
-  TUIState.Current := StatePlay;
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMenu.ClickQuit(Sender: TObject);
+procedure TViewMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;

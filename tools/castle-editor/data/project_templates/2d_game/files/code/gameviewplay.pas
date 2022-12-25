@@ -1,19 +1,19 @@
-{ Main "playing game" state, where most of the game logic takes place.
+{ Main "playing game" view, where most of the game logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   This template code is in public domain, unlike most other CGE code which
   is covered by BSD or LGPL (see https://castle-engine.io/license). }
-unit GameStatePlay;
+unit GameViewPlay;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors;
 
 type
-  { Main "playing game" state, where most of the game logic takes place. }
-  TStatePlay = class(TUIState)
+  { Main "playing game" view, where most of the game logic takes place. }
+  TViewPlay = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -34,27 +34,27 @@ type
   end;
 
 var
-  StatePlay: TStatePlay;
+  ViewPlay: TViewPlay;
 
 implementation
 
 uses SysUtils, Math,
-  GameStateMenu;
+  GameViewMenu;
 
-{ TStatePlay ----------------------------------------------------------------- }
+{ TViewPlay ----------------------------------------------------------------- }
 
-constructor TStatePlay.Create(AOwner: TComponent);
+constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-procedure TStatePlay.Start;
+procedure TViewPlay.Start;
 begin
   inherited;
 end;
 
-procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 const
   DragonSpeed: TVector2 = (X: 3000; Y: 1500);
 var
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
+function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -119,7 +119,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TStatePlay.Press method should be used to handle keys
+    The TViewPlay.Press method should be used to handle keys
     not handled in children controls.
   }
 
@@ -143,7 +143,7 @@ begin
 
   if Event.IsKey(keyEscape) then
   begin
-    TUIState.Current := StateMenu;
+    Container.View := ViewMenu;
     Exit(true);
   end;
 end;

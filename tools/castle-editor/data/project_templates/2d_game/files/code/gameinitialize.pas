@@ -12,11 +12,11 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState
+  CastleWindow, CastleLog, CastleUIControls
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMenu
-  , GameStatePlay
+  , GameViewMenu
+  , GameViewPlay
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -28,14 +28,14 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StatePlay := TStatePlay.Create(Application);
-  StateMenu := TStateMenu.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewPlay := TViewPlay.Create(Application);
+  ViewMenu := TViewMenu.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  TUIState.Current := StateMenu;
+  Window.Container.View := ViewMenu;
 end;
 
 initialization
