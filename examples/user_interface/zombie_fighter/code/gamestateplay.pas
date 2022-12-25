@@ -87,12 +87,12 @@ begin
     When StateAskDialog is active, we do *not* want to forcefully capture input
     (it would allow user to move by mouse dragging when StateAskDialog is open).
     So we set this in Resume, and turn off in Pause. }
-  StartContainer.ForceCaptureInput := MainViewport.Navigation;
+  Container.ForceCaptureInput := MainViewport.Navigation;
 end;
 
 procedure TStatePlay.Pause;
 begin
-  StartContainer.ForceCaptureInput := nil;
+  Container.ForceCaptureInput := nil;
   inherited;
 end;
 

@@ -416,7 +416,7 @@ begin
         BackgroundImage.Image := FUnusedSaveScreen;
         FUnusedSaveScreen := nil;
       end else
-        BackgroundImage.Image := StartContainer.SaveScreen;
+        BackgroundImage.Image := Container.SaveScreen;
       InsertFront(BackgroundImage);
     end;
 
