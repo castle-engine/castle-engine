@@ -102,7 +102,7 @@ var
 begin
   OldApplicationDataOverride := ApplicationDataOverride;
   UseEditorApplicationData;
-  CastleControl1.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
+  CastleControl1.Container.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
   ApplicationDataOverride := OldApplicationDataOverride;
 
   { Info[itRendering] will be initialized in CastleControl1Open.
@@ -134,7 +134,7 @@ end;
 
 procedure TSystemInformationForm.FormHide(Sender: TObject);
 begin
-  CastleControl1.DesignUrl := ''; // unload to stop sound
+  CastleControl1.Container.DesignUrl := ''; // unload to stop sound
 
   SoundEngine.OnOpenClose.Remove(@SoundEngineOpenClose);
 end;
