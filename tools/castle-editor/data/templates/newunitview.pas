@@ -6,7 +6,7 @@ uses Classes,
   CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  ${VIEW_CLASS_NAME} = class(TUIState)
+  ${VIEW_CLASS_NAME} = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
