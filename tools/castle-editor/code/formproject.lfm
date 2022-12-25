@@ -449,8 +449,8 @@ object ProjectForm: TProjectForm
         object MenuItemNewUnitClass: TMenuItem
           Action = ActionNewUnitClass
         end
-        object MenuItemNewUnitState: TMenuItem
-          Action = ActionNewUnitState
+        object MenuItemNewUnitView: TMenuItem
+          Action = ActionNewUnitView
         end
       end
       object MenuItemSeparator123123345: TMenuItem
@@ -716,8 +716,8 @@ object ProjectForm: TProjectForm
       object MenuItemPopupNewUnitClass: TMenuItem
         Action = ActionNewUnitHereClass
       end
-      object MenuItemPopupNewUnitState: TMenuItem
-        Action = ActionNewUnitHereState
+      object MenuItemPopupNewUnitView: TMenuItem
+        Action = ActionNewUnitHereView
       end
     end
   end
@@ -784,10 +784,10 @@ object ProjectForm: TProjectForm
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitClassExecute
     end
-    object ActionNewUnitState: TAction
+    object ActionNewUnitView: TAction
       Category = 'Code'
-      Caption = 'Unit With State...'
-      OnExecute = ActionNewUnitStateExecute
+      Caption = 'Unit With View...'
+      OnExecute = ActionNewUnitViewExecute
     end
     object ActionNewUnitHereEmpty: TAction
       Category = 'PopupFiles'
@@ -799,10 +799,10 @@ object ProjectForm: TProjectForm
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitHereClassExecute
     end
-    object ActionNewUnitHereState: TAction
+    object ActionNewUnitHereView: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With State...'
-      OnExecute = ActionNewUnitHereStateExecute
+      Caption = 'Unit With View...'
+      OnExecute = ActionNewUnitHereViewExecute
     end
     object ActionEditAssociatedUnit: TAction
       Category = 'Code'

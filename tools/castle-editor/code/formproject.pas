@@ -185,10 +185,10 @@ type
     ActionRegenerateProject: TAction;
     ActionEditAssociatedUnit: TAction;
     ActionNewUnitHereClass: TAction;
-    ActionNewUnitHereState: TAction;
+    ActionNewUnitHereView: TAction;
     ActionNewUnitHereEmpty: TAction;
     ActionNewUnitClass: TAction;
-    ActionNewUnitState: TAction;
+    ActionNewUnitView: TAction;
     ActionNewUnitEmpty: TAction;
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
@@ -199,10 +199,10 @@ type
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
-    MenuItemPopupNewUnitState: TMenuItem;
+    MenuItemPopupNewUnitView: TMenuItem;
     MenuItemPopupNewUnit: TMenuItem;
     N3: TMenuItem;
-    MenuItemNewUnitState: TMenuItem;
+    MenuItemNewUnitView: TMenuItem;
     MenuItemNewUnitClass: TMenuItem;
     MenuItemNewUnitEmpty: TMenuItem;
     MenuItemNewUnit: TMenuItem;
@@ -332,8 +332,8 @@ type
     procedure ActionNewUnitEmptyExecute(Sender: TObject);
     procedure ActionNewUnitHereClassExecute(Sender: TObject);
     procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
-    procedure ActionNewUnitHereStateExecute(Sender: TObject);
-    procedure ActionNewUnitStateExecute(Sender: TObject);
+    procedure ActionNewUnitHereViewExecute(Sender: TObject);
+    procedure ActionNewUnitViewExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
     procedure ActionOutputCopyAllExecute(Sender: TObject);
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
@@ -1214,14 +1214,14 @@ begin
   ShowNewUnitForm(utEmpty, true);
 end;
 
-procedure TProjectForm.ActionNewUnitHereStateExecute(Sender: TObject);
+procedure TProjectForm.ActionNewUnitHereViewExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utState, true);
+  ShowNewUnitForm(utView, true);
 end;
 
-procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
+procedure TProjectForm.ActionNewUnitViewExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utState, false);
+  ShowNewUnitForm(utView, false);
 end;
 
 procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;
@@ -2194,8 +2194,7 @@ begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     Result := YesNoBox('The editor is during of physics simulation.'+ NL +
-      'Saving the design will save the current state, not the state ' + NL +
-      'before the start of the simulation. Do you want to continue?');
+      'Saving the design will save the current state, not the state before the start of the simulation. Do you want to continue?');
   end;
 end;
 

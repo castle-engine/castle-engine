@@ -27,7 +27,7 @@ object NewUnitForm: TNewUnitForm
     Items.Strings = (
       'Empty Unit'
       'Unit With Class (empty class derived from TObject) '
-      'Unit With State  (class derived from TUIState) '
+      'Unit With View (class derived from TCastleView) '
     )
     OnChange = ComboUnitTypeChange
     Style = csDropDownList
@@ -108,7 +108,7 @@ object NewUnitForm: TNewUnitForm
     OnClick = ButtonUnitDirClick
     TabOrder = 3
   end
-  object PanelUnitState: TPanel
+  object PanelUnitView: TPanel
     AnchorSideTop.Control = LabelFinalUnitFile
     AnchorSideTop.Side = asrBottom
     Left = 0
@@ -121,19 +121,19 @@ object NewUnitForm: TNewUnitForm
     ClientHeight = 384
     ClientWidth = 720
     TabOrder = 5
-    object LabelStateName: TLabel
+    object LabelViewName: TLabel
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 23
       Top = 8
       Width = 150
       BorderSpacing.Top = 16
-      Caption = 'State Class Name:'
+      Caption = 'View Class Name:'
       ParentColor = False
     end
-    object EditStateName: TEdit
+    object EditViewName: TEdit
       AnchorSideLeft.Control = LabelCreateUnit
-      AnchorSideTop.Control = LabelStateName
+      AnchorSideTop.Control = LabelViewName
       AnchorSideTop.Side = asrBottom
       Left = 2
       Height = 40
@@ -142,18 +142,18 @@ object NewUnitForm: TNewUnitForm
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       TabOrder = 0
-      Text = 'TStateSomething'
+      Text = 'TViewSomething'
     end
     object LabelDesignDir: TLabel
       AnchorSideLeft.Control = LabelCreateUnit
-      AnchorSideTop.Control = EditStateName
+      AnchorSideTop.Control = EditViewName
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 23
       Top = 95
       Width = 191
       BorderSpacing.Top = 16
-      Caption = 'State Design Directory:'
+      Caption = 'View Design Directory:'
       ParentColor = False
     end
     object EditDesignDir: TEdit
@@ -170,7 +170,7 @@ object NewUnitForm: TNewUnitForm
       TabOrder = 1
       Text = 'data/'
     end
-    object ButtonStateDir: TButton
+    object ButtonViewDir: TButton
       AnchorSideLeft.Control = EditDesignDir
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = EditDesignDir
@@ -181,10 +181,10 @@ object NewUnitForm: TNewUnitForm
       Width = 31
       AutoSize = True
       Caption = '...'
-      OnClick = ButtonStateDirClick
+      OnClick = ButtonViewDirClick
       TabOrder = 2
     end
-    object CheckStateInitialize: TCheckBox
+    object CheckViewInitialize: TCheckBox
       AnchorSideLeft.Control = LabelCreateUnit
       AnchorSideTop.Control = LabelFinalDesignFile
       AnchorSideTop.Side = asrBottom
@@ -193,12 +193,12 @@ object NewUnitForm: TNewUnitForm
       Top = 199
       Width = 427
       BorderSpacing.Top = 8
-      Caption = 'Add State Initialization to Application.OnInitialize'
+      Caption = 'Add View Initialization to Application.OnInitialize'
       TabOrder = 3
     end
-    object LabelStateInitializeInfo: TLabel
+    object LabelViewInitializeInfo: TLabel
       AnchorSideLeft.Control = LabelCreateUnit
-      AnchorSideTop.Control = CheckStateInitialize
+      AnchorSideTop.Control = CheckViewInitialize
       AnchorSideTop.Side = asrBottom
       Left = 40
       Height = 184
@@ -207,12 +207,12 @@ object NewUnitForm: TNewUnitForm
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
-      Caption = 'We will modify code/gameinitialize.pas to add state initialization.'#10#10'Warning: Found code/gameinitialize.pas , but it is missing special CGE-XXX comments (see the new project templates for example).'#10'You will need to manually create the new state in Application.OnInitialize.'#10#10'Warning: Could not find code/gameinitialize.pas .'#10'You will need to manually create the new state in Application.OnInitialize.'
+      Caption = 'We will modify code/gameinitialize.pas to add view initialization.'#10#10'Warning: Found code/gameinitialize.pas , but it is missing special CGE-XXX comments (see the new project templates for example).'#10'You will need to manually create the new view in Application.OnInitialize.'#10#10'Warning: Could not find code/gameinitialize.pas .'#10'You will need to manually create the new view in Application.OnInitialize.'
       ParentColor = False
       WordWrap = True
     end
     object LabelFinalDesignFile: TLabel
-      AnchorSideLeft.Control = LabelStateName
+      AnchorSideLeft.Control = LabelViewName
       AnchorSideTop.Control = EditDesignDir
       AnchorSideTop.Side = asrBottom
       Left = 8

@@ -26,34 +26,34 @@ uses
   ToolManifest;
 
 type
-  TNewUnitType = (utEmpty, utClass, utState);
+  TNewUnitType = (utEmpty, utClass, utView);
 
   { Dialog to configure new unit properties. }
   TNewUnitForm = class(TForm)
-    ButtonStateDir: TButton;
+    ButtonViewDir: TButton;
     ButtonUnitDir: TButton;
     ButtonPanel1: TButtonPanel;
-    CheckStateInitialize: TCheckBox;
+    CheckViewInitialize: TCheckBox;
     ComboUnitType: TComboBox;
     EditClassName: TEdit;
     EditDesignDir: TEdit;
-    EditStateName: TEdit;
+    EditViewName: TEdit;
     EditUnitName: TEdit;
     EditUnitDir: TEdit;
     LabelFinalUnitFile: TLabel;
     LabelFinalDesignFile: TLabel;
     LabelClassName: TLabel;
     LabelDesignDir: TLabel;
-    LabelStateInitializeInfo: TLabel;
-    LabelStateName: TLabel;
+    LabelViewInitializeInfo: TLabel;
+    LabelViewName: TLabel;
     LabelUnitName: TLabel;
     LabelCreateUnit: TLabel;
     LabelUnitDir: TLabel;
     PanelUnitClass: TPanel;
-    PanelUnitState: TPanel;
+    PanelUnitView: TPanel;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     procedure ButtonUnitDirClick(Sender: TObject);
-    procedure ButtonStateDirClick(Sender: TObject);
+    procedure ButtonViewDirClick(Sender: TObject);
     procedure ComboUnitTypeChange(Sender: TObject);
     procedure EditDesignDirChange(Sender: TObject);
     procedure EditUnitDirChange(Sender: TObject);
@@ -70,7 +70,7 @@ type
     FUnitOutputPath: String;
     { Current project manifest. }
     FProjectManifest: TCastleManifest;
-    UnitToInitializeState: String;
+    UnitToInitializeView: String;
     procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String);
     procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String;
       out FinalUnitAbsolute, FinalDesignAbsolute: String);
@@ -156,7 +156,7 @@ begin
   EditUnitDir.Text := RelativeUnitPath;
 
   SetEnabledVisible(PanelUnitClass, FUnitType = utClass);
-  SetEnabledVisible(PanelUnitState, FUnitType = utState);
+  SetEnabledVisible(PanelUnitView, FUnitType = utView);
 
   case UnitType of
     utEmpty:
@@ -174,28 +174,29 @@ begin
         { adjust form height }
         ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
-    utState:
+    utView:
       begin
-        UnitToInitializeState := FindUnitToInitializeState(FProjectManifest);
+        UnitToInitializeView := FindUnitToInitializeView(FProjectManifest);
 
-        EditUnitName.Text := 'GameStateSomething';
-        EditStateName.Text := 'TStateSomething';
+        EditUnitName.Text := 'GameViewSomething';
+        EditViewName.Text := 'TViewSomething';
         EditDesignDir.Text := 'data/';
-        CheckStateInitialize.Checked := UnitToInitializeState <> '';
-        CheckStateInitialize.Enabled := UnitToInitializeState <> '';
+        CheckViewInitialize.Checked := UnitToInitializeView <> '';
+        CheckViewInitialize.Enabled := UnitToInitializeView <> '';
 
-        if UnitToInitializeState <> '' then
-          LabelStateInitializeInfo.Caption := Format(
-            'Select above checkbox to modify %s to add state initialization.',
-            [UnitToInitializeState])
+        if UnitToInitializeView <> '' then
+          LabelViewInitializeInfo.Caption := Format(
+            'Select above checkbox to modify %s to add view initialization.', [
+            UnitToInitializeView
+          ])
         else
-          LabelStateInitializeInfo.Caption :=
-            'WARNING: Cannot find unit with state initialization. We search units listed in game_units in CastleEngineManifest.xml, among the search paths, for special CASTLE-XXX comments (see the new project templates for example).' + NL + NL +
-            'You will need to manually create the new state in Application.OnInitialize.';
+          LabelViewInitializeInfo.Caption :=
+            'WARNING: Cannot find unit with view initialization. We search units listed in game_units in CastleEngineManifest.xml, among the search paths, for special comments like {$region ''Castle...''} (see the new project templates for a precise example).' + NL + NL +
+            'You will need to manually create the view somewhere, like "ViewMy := TViewMy.Create(Application);".';
 
         { adjust form height }
-        PanelUnitState.ClientHeight := LabelStateInitializeInfo.Top + LabelStateInitializeInfo.Height;
-        ClientHeight := PanelUnitState.Top + PanelUnitState.Height + ButtonsMargin + ButtonPanel1.Height;
+        PanelUnitView.ClientHeight := LabelViewInitializeInfo.Top + LabelViewInitializeInfo.Height;
+        ClientHeight := PanelUnitView.Top + PanelUnitView.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
   end;
 
@@ -203,7 +204,7 @@ begin
   UpdateFinalFilenames;
 end;
 
-procedure TNewUnitForm.ButtonStateDirClick(Sender: TObject);
+procedure TNewUnitForm.ButtonViewDirClick(Sender: TObject);
 var
   DataPath: String;
 begin
@@ -216,7 +217,7 @@ begin
     begin
       MessageDlg('Design outside data', 'You are saving a design outside of the project''s "data" directory.' + NL +
         NL +
-        'The state design file will not be automatically referenced correctly from code (using "castle-data:/" protocol) and will not be automatically packaged in the project.' + NL +
+        'The view design file will not be automatically referenced correctly from code (using "castle-data:/" protocol) and will not be automatically packaged in the project.' + NL +
         NL +
         'Unless you really know what you''re doing, we heavily advice to change the directory to be inside the project "data" directory.',
         mtWarning, [mbOK], 0);
@@ -249,9 +250,9 @@ begin
      SameText(EditClassName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
     EditClassName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
 
-  if SameText(EditStateName.Text, 'T' + EditUnitNameOldText) or
-     SameText(EditStateName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
-    EditStateName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
+  if SameText(EditViewName.Text, 'T' + EditUnitNameOldText) or
+     SameText(EditViewName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
+    EditViewName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
 
   EditUnitNameOldText := EditUnitName.Text;
 
@@ -276,15 +277,15 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
       Exit(false);
     end;
 
-    if (UnitType = utState) and (not IsValidIdent(EditStateName.Text, true)) then
+    if (UnitType = utView) and (not IsValidIdent(EditViewName.Text, true)) then
     begin
-      ErrorBox(Format('State name "%s" is not a valid Pascal identifier', [EditStateName.Text]));
+      ErrorBox(Format('View name "%s" is not a valid Pascal identifier', [EditViewName.Text]));
       Exit(false);
     end;
 
-    if (UnitType = utState) and (not IsPrefix('t', EditStateName.Text, true)) then
+    if (UnitType = utView) and (not IsPrefix('t', EditViewName.Text, true)) then
     begin
-      ErrorBox(Format('State name "%s" must start with letter "T" (following Pascal conventions for type names, this allows to have state singleton variable without "T" prefix)', [EditStateName.Text]));
+      ErrorBox(Format('View name "%s" must start with letter "T" (following Pascal conventions for type names, this allows to have view singleton variable without "T" prefix)', [EditViewName.Text]));
       Exit(false);
     end;
   end;
@@ -294,7 +295,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
     const FinalUnitAbsolute, FinalDesignAbsolute: String);
   var
     Macros: TStringStringMap;
-    TemplateSource, Contents, StateVariableName: String;
+    TemplateSource, Contents, ViewVariableName: String;
   begin
     Macros := TStringStringMap.Create;
     try
@@ -309,26 +310,26 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
             TemplateSource := 'newunitclass.pas';
             Macros.Add('${CLASS_NAME}', EditClassName.Text);
           end;
-        utState:
+        utView:
           begin
-            TemplateSource := 'newunitstate.pas';
-            StateVariableName := PrefixRemove('t', EditStateName.Text, true);
-            Macros.Add('${STATE_CLASS_NAME}', EditStateName.Text);
-            Macros.Add('${STATE_VARIABLE_NAME}', StateVariableName);
+            TemplateSource := 'newunitview.pas';
+            ViewVariableName := PrefixRemove('t', EditViewName.Text, true);
+            Macros.Add('${VIEW_CLASS_NAME}', EditViewName.Text);
+            Macros.Add('${VIEW_VARIABLE_NAME}', ViewVariableName);
             Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
 
             StringToFile(FinalDesignAbsolute, FileToString(
-              InternalCastleDesignData + 'templates/newunitstate.castle-user-interface'));
+              InternalCastleDesignData + 'templates/newunitview.castle-user-interface'));
             FCreatedDesignRelative := FinalDesignRelative;
             FCreatedDesignAbsolute := FinalDesignAbsolute;
 
-            if CheckStateInitialize.Checked then
+            if CheckViewInitialize.Checked then
             begin
-              Assert(UnitToInitializeState <> '');
-              AddInitializeState(CombinePaths(FProjectManifest.Path, UnitToInitializeState),
+              Assert(UnitToInitializeView <> '');
+              AddInitializeView(CombinePaths(FProjectManifest.Path, UnitToInitializeView),
                 EditUnitName.Text,
-                EditStateName.Text,
-                StateVariableName
+                EditViewName.Text,
+                ViewVariableName
               );
             end;
           end;
@@ -413,7 +414,7 @@ procedure TNewUnitForm.GetFinalFilenames(
 begin
   FinalUnitRelative := EditUnitDir.Text + LowerCase(EditUnitName.Text) + '.pas';
 
-  if UnitType = utState then
+  if UnitType = utView then
     FinalDesignRelative := EditDesignDir.Text + LowerCase(EditUnitName.Text) + '.castle-user-interface'
   else
     FinalDesignRelative := '';
