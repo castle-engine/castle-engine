@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -386,11 +386,11 @@ begin
     and do other useful things (we don't need it *for now*) like
 
     - handling WaitingForRender
-    - handilng DesignUrl
+    - handling DesignUrl
     - freeing FFreeAtStop
     - setting FStartContainer
 
-    A cleaner way would to use it like a proper state.
+    A cleaner way would be to use it like a proper state.
     - set State.PopOnAnswered := true;
     - do not call
         State.Start;
@@ -474,7 +474,7 @@ begin
   State.Html := Html;
   if MessageOKPushesState then
   begin
-    TUIState.Push(State);
+    Window.Container.PushView(State);
   end else
   begin
     MessageCore(Window, State);

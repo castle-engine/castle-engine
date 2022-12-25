@@ -460,7 +460,7 @@ procedure TStateDialog.DoAnswered;
 begin
   FAnswered := true;
   if PopOnAnswered then
-    TUIState.Pop(Self);
+    Container.PopView(Self);
 end;
 
 { TStateDialogOK ------------------------------------------------------------- }
