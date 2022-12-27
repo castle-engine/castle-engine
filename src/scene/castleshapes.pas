@@ -728,7 +728,7 @@ type
   strict private
     FChildren: TShapeTreeList;
     procedure ChildrenChanged(Sender: TObject;
-      {$ifdef FPC}constref{$else}const{$endif} Item: TShapeTree;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Item: TShapeTree;
       Action: TCollectionNotification);
   private
     function MaxShapesCountCore: Integer; override;
@@ -948,11 +948,11 @@ type
   strict private
     SortPosition: TVector3;
     function IsSmallerFrontToBack(
-      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
     function IsSmallerBackToFront3D(
-      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
     function IsSmallerBackToFront2D(
-      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
@@ -3097,8 +3097,9 @@ begin
   inherited;
 end;
 
-procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject; {$ifdef FPC}
-  constref{$else}const{$endif} Item: TShapeTree; Action: TCollectionNotification);
+procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Item: TShapeTree;
+  Action: TCollectionNotification);
 begin
   if Action = cnAdded then
     Item.FParent := Self;
@@ -3649,20 +3650,20 @@ type
   TShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TShape>;
 
 function TShapeList.IsSmallerFrontToBack(
-  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
   Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
 function TShapeList.IsSmallerBackToFront3D(
-  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
 function TShapeList.IsSmallerBackToFront2D(
-  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;

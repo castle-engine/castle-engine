@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestGenericsCollections" -*-
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -148,7 +148,7 @@ begin
   finally FreeAndNil(Apples) end;
 end;
 
-function CompareApples({$ifdef FPC}constref{$else}const{$endif} Left, Right: TApple): Integer;
+function CompareApples({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Left, Right: TApple): Integer;
 begin
   Result := AnsiCompareStr(Left.Name, Right.Name);
 end;

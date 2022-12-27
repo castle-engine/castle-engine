@@ -1174,7 +1174,7 @@ type
   private
     SceneManager: TCastleSceneManager;
   protected
-    procedure Notify({$ifdef FPC}constref{$else}const{$endif} Value: TCastleViewport;
+    procedure Notify({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TCastleViewport;
       Action: TCollectionNotification); override;
   end deprecated 'internal for TCastleSceneManager';
 
@@ -4056,7 +4056,7 @@ end;
 
 { TCastleViewportList -------------------------------------------------- }
 
-procedure TCastleViewportList.Notify({$ifdef FPC}constref{$else}const{$endif} Value: TCastleViewport;
+procedure TCastleViewportList.Notify({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TCastleViewport;
   Action: TCollectionNotification);
 begin
   inherited;

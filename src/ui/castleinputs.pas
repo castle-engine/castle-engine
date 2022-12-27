@@ -1028,7 +1028,7 @@ begin
     I.SaveToConfig(Config, ConfigPath);
 end;
 
-function SortInputShortcut({$ifdef FPC}constref{$else}const{$endif} A, B: TInputShortcut): Integer;
+function SortInputShortcut({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TInputShortcut): Integer;
 begin
   Result := A.GroupOrder - B.GroupOrder;
   { since TFPSList.Sort is not stable, we use Index to keep order predictable

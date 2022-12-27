@@ -67,7 +67,7 @@ begin
   S := AnS;
 end;
 
-function IsFooSmaller({$ifdef FPC}constref{$else}const{$endif} A, B: TFoo): Integer;
+function IsFooSmaller({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TFoo): Integer;
 begin
   Result := A.I - B.I;
 end;
