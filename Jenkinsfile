@@ -9,6 +9,10 @@ pipeline {
        they stuck Jenkins much with too many long-running builds.
        Better to wait for previous build to finish. */
     disableConcurrentBuilds()
+    /* Makes failure in any paralel job to stop the build,
+       instead of needlessly trying to finish on one node,
+       when another node already failed. */
+    parallelsAlwaysFailFast()
   }
 
   /* This job works on a few agents in parallel */
