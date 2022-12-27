@@ -55,7 +55,7 @@
       procedure Resume; override;
     end;
 
-  function Press(const Event: TInputPressRelease): boolean; override;
+  function TMyGameState.Press(const Event: TInputPressRelease): boolean; override;
   begin
     Result := inherited;
     if Result then Exit;
@@ -64,11 +64,11 @@
     begin
       DialogAskDeleteFile := TStateDialogYesNo.Create(Self);
       DialogAskDeleteFile.Caption := 'Are you sure you want to delete this file?';
-      TUIState.Push(DialogAskDeleteFile);
+      Container.PushView(DialogAskDeleteFile);
     end;
   end;
 
-  procedure TStatePlay.Resume;
+  procedure TMyGameState.Resume;
   begin
     inherited;
     if DialogAskDeleteFile <> nil then // returning from DialogAskDeleteFile
@@ -140,7 +140,7 @@ type
     procedure SaveScreenIfNecessary(const AContainer: TCastleContainer);
 
     { When user answers the dialog, this is set to @true.
-      The state also normally does TUIState.Pop, so there's no need to check
+      The state also normally does TCastleContainer.PopView, so there's no need to check
       this property, unless you set @link(PopOnAnswered) to @false. }
     property Answered: boolean read FAnswered;
 
@@ -204,7 +204,7 @@ type
     property BackgroundScreenshot: boolean
       read FBackgroundScreenshot write FBackgroundScreenshot default false;
 
-    { Should the state do @link(TUIState.Pop) when answered.
+    { Should the state do @link(TCastleContainer.PopView) when answered.
       This is usually most natural. }
     property PopOnAnswered: boolean
       read FPopOnAnswered write FPopOnAnswered default true;

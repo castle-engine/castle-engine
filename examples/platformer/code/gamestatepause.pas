@@ -51,12 +51,12 @@ end;
 procedure TStatePause.ClickResume(Sender: TObject);
 begin
   StatePlay.ResumeGame;
-  Pop;
+  Container.PopView(Self);
 end;
 
 procedure TStatePause.ClickMenu(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 procedure TStatePause.Start;

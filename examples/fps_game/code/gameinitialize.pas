@@ -71,7 +71,7 @@ begin
 
   InitializeMusicSound;
 
-  TUIState.Current := StateMenu;
+  Window.Container.View := StateMenu;
 end;
 
 initialization

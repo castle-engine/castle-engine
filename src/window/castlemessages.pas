@@ -322,7 +322,7 @@ function MessageInputQueryVector4(
 
 var
   { Change MessageOK behavior to create @link(TStateDialogOK)
-    and push it (using @link(TUIState.Push))
+    and push it (using @link(TCastleContainer.PushView))
     and immediately return, without waiting for user confirmation.
 
     Why you may want to use this (or not to use this)?
@@ -415,9 +415,10 @@ begin
     like "if MessageYesNo('Are you sure ?') then Window.Close;" }
   SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
   try
-    { use State directly as UI control, not using TUIState.Push or TUIState.Current,
+    { use State directly as UI control, not using TCastleContainer.PushView
+      nor setting TCastleContainer.View,
       because we can (TGLMode already took care to pause everything),
-      and this way we don't mess TUIState stack (in case game is using it). }
+      and this way we don't mess TCastleView stack (in case game is using it). }
     Window.Controls.InsertFront(State);
 
     repeat

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ begin
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   StateMain := TStateMain.Create(Application);
-  TUIState.Current := StateMain;
+  Window.Container.View := StateMain;
 end;
 
 initialization

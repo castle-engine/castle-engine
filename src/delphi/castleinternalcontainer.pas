@@ -29,13 +29,13 @@
   for historic purposes, e.g. they expose GL context requirements
   like TCastleWindow.DepthBits,
   and they expose callbacks like TCastleWindow.OnRender that we don't advise to use
-  (use TUIState instead or TCastleUserInterface.OnRender to do rendering).
+  (use TCastleView instead or TCastleUserInterface.OnRender to do rendering).
   Nowadays we know that
 
   - API of classes like TCastleWindow / TCastleControl should be simpler and just expose
     Container for everything reasonable.
 
-  - Container also should delegate to TUIState and in turn to TCastleUserInterface
+  - Container also should delegate to TCastleView and in turn to TCastleUserInterface
     for everything reasonable.
 
   TODO: Rename FContext:TGLContext here to not confuse with Container.Context:TRenderContext.
@@ -130,15 +130,17 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TUIState) instead.
-      In this case, load design using TUIState.DesignUrl.
+      into a number of states (TCastleView) instead.
+      In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, e.g. when TCastleControl just shows one UI.
 
       The design loaded here is visible also at design-time,
       when editing the form in Lazarus/Delphi.
       Though we have to way to edit it now in Lazarus/Delphi (you have to use CGE editor
-      to edit the design), so it is just a preview in this case. }
+      to edit the design), so it is just a preview in this case.
+
+      See https://castle-engine.io/control_on_form for documentation how to use TCastleControl. }
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
   end;
 
@@ -398,7 +400,7 @@ end;
 procedure TCastleContainerEasy.LoadDesign;
 
 { Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
-  methods in TUIState. Here they are much simplified, as we have no concept
+  methods in TCastleView. Here they are much simplified, as we have no concept
   of "started" / "stopped", so no DesignPreload too. }
 
   procedure FixApplicationDataInIDE;

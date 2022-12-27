@@ -46,7 +46,7 @@ begin
   StateMenu := TStateMenu.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMenu;
+  Window.Container.View := StateMenu;
 
   //SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
   //SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');

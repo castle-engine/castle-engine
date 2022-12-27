@@ -1296,20 +1296,20 @@ begin
   { This virtual method is executed every frame.}
 
   { If player is dead and we did not show game over state we do that }
-  if IsPlayerDead and (TUIState.CurrentTop <> StateGameOver) then
+  if IsPlayerDead and (Container.FrontView <> StateGameOver) then
   begin
     ScenePlayer.Exists := false;
 
-    TUIState.Push(StateGameOver);
+    Container.PushView(StateGameOver);
     Exit;
   end;
 
   { If level is completed and we did not show level complete we do that }
-  if LevelComplete and (TUIState.CurrentTop <> StateLevelComplete) then
+  if LevelComplete and (Container.FrontView <> StateLevelComplete) then
   begin
     PlayerRigidBody.Exists := false;
     PauseGame;
-    TUIState.Push(StateLevelComplete);
+    Container.PushView(StateLevelComplete);
     Exit;
   end;
 
@@ -1371,10 +1371,10 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyEscape) and (TUIState.CurrentTop = StatePlay) then
+  if Event.IsKey(keyEscape) and (Container.FrontView = StatePlay) then
   begin
     PauseGame;
-    TUIState.Push(StatePause);
+    Container.PushView(StatePause);
     Exit(true);
   end;
 end;

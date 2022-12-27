@@ -76,7 +76,7 @@ begin
   StatePlay := TStatePlay.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateIntro;
+  Window.Container.View := StateIntro;
 end;
 
 initialization

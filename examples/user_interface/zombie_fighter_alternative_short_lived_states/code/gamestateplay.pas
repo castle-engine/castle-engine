@@ -99,7 +99,7 @@ end;
 
 procedure TStatePlay.ClickBack(Sender: TObject);
 begin
-  TUIState.Current := TStateMainMenu.CreateUntilStopped;
+  Container.View := TStateMainMenu.CreateUntilStopped;
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): boolean;
@@ -119,7 +119,7 @@ begin
          (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
     begin
       Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
-      TUIState.Push(TStateAskDialog.CreateUntilStopped(Male));
+      Container.PushView(TStateAskDialog.CreateUntilStopped(Male));
     end;
   end;
 end;

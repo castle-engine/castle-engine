@@ -63,7 +63,7 @@ end;
 
 procedure TStateMainMenu.ClickNewGame(Sender: TObject);
 begin
-  TUIState.Current := TStateLoading.CreateUntilStopped;
+  Container.View := TStateLoading.CreateUntilStopped;
 end;
 
 procedure TStateMainMenu.ClickQuit(Sender: TObject);

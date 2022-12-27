@@ -73,7 +73,7 @@ end;
 
 procedure TStateCredits.ClickMenu(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 procedure TStateCredits.ClickCGE(Sender: TObject);

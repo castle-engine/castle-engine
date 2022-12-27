@@ -28,7 +28,7 @@ begin
   StateMain := TStateMain.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMain;
+  Window.Container.View := StateMain;
 end;
 
 initialization

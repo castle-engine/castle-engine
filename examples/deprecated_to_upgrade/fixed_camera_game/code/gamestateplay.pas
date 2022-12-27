@@ -134,7 +134,7 @@ begin
   case Event.EventType of
     itKey:
       if Event.KeyCharacter = CharEscape then
-        TUIState.Current := StateMainMenu
+        Container.View := StateMainMenu
       else
       { Debug keys }
       case Event.Key of

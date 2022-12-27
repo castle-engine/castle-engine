@@ -61,7 +61,7 @@ end;
 
 procedure TStateInstructions.ClickClose(Sender: TObject);
 begin
-  TUIState.Pop(Self);
+  Container.PopView(Self);
 end;
 
 end.

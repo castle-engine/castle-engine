@@ -77,17 +77,17 @@ end;
 
 procedure TStateMenu.ClickPlay(Sender: TObject);
 begin
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMenu.ClickOptions(Sender: TObject);
 begin
-  TUIState.Current := StateOptions;
+  Container.View := StateOptions;
 end;
 
 procedure TStateMenu.ClickCredits(Sender: TObject);
 begin
-  TUIState.Current := StateCredits;
+  Container.View := StateCredits;
 end;
 
 procedure TStateMenu.ClickQuit(Sender: TObject);

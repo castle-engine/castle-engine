@@ -48,7 +48,7 @@ end;
 
 procedure TStateGameOver.ClickMenu(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 procedure TStateGameOver.Start;

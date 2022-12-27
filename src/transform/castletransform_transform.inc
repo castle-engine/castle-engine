@@ -668,7 +668,7 @@
 
       This allows to use this method safely even in the middle of iteration
       over TCastleTransform children. For example you can use it from @link(Update) method,
-      from any TCastleTransform.Update or TCastleUserInterface.Update (including TUIState.Update).
+      from any TCastleTransform.Update or TCastleUserInterface.Update (including TCastleView.Update).
 
       Note: It is not a problem if the child scheduled to be removed
       will also be removed (or even freed) directly e.g. by just calling @code(Free) on it.

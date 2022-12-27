@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -167,7 +167,7 @@ begin
 
   CarScene := TCastleScene.Create(FreeAtStop);
   CarScene.Load('castle-data:/car.gltf');
-  CarScene.Spatial := [ssRendering, ssDynamicCollisions];
+  CarScene.PreciseCollisions := true;
   CarScene.PlayAnimation('wheels_turning', true);
 
   for I := Low(CarTransforms) to High(CarTransforms) do

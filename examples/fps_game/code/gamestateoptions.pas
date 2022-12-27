@@ -86,12 +86,12 @@ end;
 
 procedure TStateOptions.ClickBackMenu(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 procedure TStateOptions.ClickBackGame(Sender: TObject);
 begin
-  TUIState.Pop(Self);
+  Container.PopView(Self);
 end;
 
 procedure TStateOptions.ClickVolume(Sender: TObject);

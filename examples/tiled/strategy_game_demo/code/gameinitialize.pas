@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,13 +38,15 @@ begin
     for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Initialize TUIState instances and TUIState.Current }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMainMenu := TStateMainMenu.Create(Application);
   StatePlay := TStatePlay.Create(Application);
   StateInstructions := TStateInstructions.Create(Application);
   StateWin := TStateWin.Create(Application);
+  {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMainMenu;
+  Window.Container.View := StateMainMenu;
 end;
 
 initialization

@@ -27,7 +27,7 @@ uses GameStateMenu;
 
 procedure TStateCredits.ClickBack(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 constructor TStateCredits.Create(AOwner: TComponent);

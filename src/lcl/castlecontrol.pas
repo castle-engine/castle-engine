@@ -99,15 +99,17 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TUIState) instead.
-      In this case, load design using TUIState.DesignUrl.
+      into a number of states (TCastleView) instead.
+      In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
 
       The design loaded here is visible also at design-time,
       when editing the form in Lazarus/Delphi.
       Though we have no way to edit it now in Lazarus/Delphi (you have to use CGE editor
-      to edit the design), so it is just a preview in this case. }
+      to edit the design), so it is just a preview in this case.
+
+      See https://castle-engine.io/control_on_form for documentation how to use TCastleControl. }
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
   end;
 
@@ -116,7 +118,7 @@ type
     See https://castle-engine.io/control_on_form for a documentation
     how to use this.
 
-    You can use this with TUIState, following https://castle-engine.io/control_on_form instructions.
+    You can use this with TCastleView, following https://castle-engine.io/control_on_form instructions.
     In this case, all user interface creation and event handling should
     be inside some state.
 
@@ -549,8 +551,8 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TUIState) instead.
-      In this case, load design using TUIState.DesignUrl.
+      into a number of states (TCastleView) instead.
+      In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
 
@@ -722,7 +724,7 @@ var
 procedure TCastleControlContainer.LoadDesign;
 
 { Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
-  methods in TUIState. Here they are much simplified, as we have no concept
+  methods in TCastleView. Here they are much simplified, as we have no concept
   of "started" / "stopped", so no DesignPreload too. }
 
 var

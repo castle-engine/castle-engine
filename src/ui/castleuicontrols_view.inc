@@ -500,7 +500,6 @@ begin
     raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
 end;
 
-
 { TSerializedComponentHelper ------------------------------------------------- }
 
 type

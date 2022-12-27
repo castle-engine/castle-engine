@@ -77,7 +77,7 @@ begin
   StateCredits := TStateCredits.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMenu;
+  Window.Container.View := StateMenu;
 end;
 
 initialization

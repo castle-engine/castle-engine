@@ -140,7 +140,7 @@ begin
   IntroPartTime := 0.0;
 
   if IntroPart >= IntroParts.Count then
-    TUIState.Current := StateMainMenu;
+    Container.View := StateMainMenu;
 end;
 
 procedure TStateIntro.Update(const SecondsPassed: Single; var HandleInput: boolean);
@@ -186,7 +186,7 @@ begin
 
   if Event.IsKey(CharEscape) then
   begin
-    TUIState.Current := StateMainMenu;
+    Container.View := StateMainMenu;
     Result := true;
   end else
   if Event.IsMouseButton(buttonLeft) or Event.IsKey(keySpace) then

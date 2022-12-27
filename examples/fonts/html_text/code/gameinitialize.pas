@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2020 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,7 @@ begin
   StateMain := TStateMain.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  TUIState.Current := StateMain;
+  Window.Container.View := StateMain;
 end;
 
 initialization

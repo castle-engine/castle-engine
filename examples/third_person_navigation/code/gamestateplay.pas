@@ -283,7 +283,7 @@ begin
 
   if Event.IsKey(keyEscape) then
   begin
-    TUIState.Current := StateMenu;
+    Container.View := StateMenu;
     Exit(true);
   end;
 

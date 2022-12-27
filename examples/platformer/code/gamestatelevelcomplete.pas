@@ -48,7 +48,7 @@ end;
 
 procedure TStateLevelComplete.ClickCredits(Sender: TObject);
 begin
-  TUIState.Current := StateCredits;
+  Container.View := StateCredits;
 end;
 
 procedure TStateLevelComplete.Start;

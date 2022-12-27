@@ -80,7 +80,7 @@ begin
   SphereViewportPosition := MainViewport.PositionFromWorld(SphereWorldPosition);
 
   { SphereViewportPosition is immediately useful to determine LabelAttached position }
-  LabelAttached.AnchorDelta := SphereViewportPosition;
+  LabelAttached.Translation := SphereViewportPosition;
 
   { calculate Sphere1UnitSizeOnScreen, how large is 1 unit in 3D space around sphere, on the screen. }
   SphereWorldPosition1 := SphereWorldPosition + Vector3(0, 1, 0);

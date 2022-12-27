@@ -160,12 +160,12 @@ end;
 
 procedure TStatePlay.ClickQuit(Sender: TObject);
 begin
-  TUIState.Current := StateMainMenu;
+  Container.View := StateMainMenu;
 end;
 
 procedure TStatePlay.ClickInstructions(Sender: TObject);
 begin
-  TUIState.Push(StateInstructions);
+  Container.PushView(StateInstructions);
 end;
 
 procedure TStatePlay.ClickEndTurn(Sender: TObject);
@@ -204,7 +204,7 @@ procedure TStatePlay.MapPress(const Sender: TCastleUserInterface;
     if not FoundEnemy then
     begin
       StateWin.HumansWin := HumanTurn;
-      TUIState.Push(StateWin);
+      Container.PushView(StateWin);
     end;
   end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,7 +41,7 @@ begin
   { Create game states and set initial state }
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
-  TUIState.Current := StateMenu;
+  Window.Container.View := StateMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');

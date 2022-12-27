@@ -101,7 +101,7 @@ begin
   Application.MainWindow := Window;
 
   StateMain := TStateMain.Create(Application);
-  TUIState.Current := StateMain;
+  Window.Container.View := StateMain;
 
   Application.Run;
 end.

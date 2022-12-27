@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState,
+  CastleWindow, CastleLog,
   GameCustomCursor
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
@@ -42,17 +42,17 @@ begin
   CustomCursor := TCustomCursor.Create(Application);
   Window.Controls.InsertFront(CustomCursor);
 
-  { Create TStateMain that will handle "main" state of the game.
-    Larger games may use multiple states,
-    e.g. TStateMainMenu ("main menu state"),
-    TStatePlay ("playing the game state"),
-    TStateCredits ("showing the credits state") etc. }
-  {$region 'Castle State Creation'}
+  { Create TViewMain that will handle "main" view of the game.
+    Larger games may use multiple views,
+    e.g. TViewMainMenu ("main menu view"),
+    TViewPlay ("playing the game view"),
+    TViewCredits ("showing the credits view") etc. }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
-  {$endregion 'Castle State Creation'}
+  {$endregion 'Castle View Creation'}
 
-  TUIState.Current := StateMain;
+  Window.Container.View := StateMain;
 end;
 
 initialization

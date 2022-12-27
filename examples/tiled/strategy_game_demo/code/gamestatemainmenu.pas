@@ -71,25 +71,25 @@ end;
 procedure TStateMainMenu.ClickHexagonal(Sender: TObject);
 begin
   StatePlay.MapName := 'map-hexagonal';
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMainMenu.ClickIsometricStaggered(Sender: TObject);
 begin
   StatePlay.MapName := 'map-isometric-staggered';
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMainMenu.ClickIsometric(Sender: TObject);
 begin
   StatePlay.MapName := 'map-isometric';
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMainMenu.ClickOrthogonal(Sender: TObject);
 begin
   StatePlay.MapName := 'map-orthogonal';
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMainMenu.ClickQuit(Sender: TObject);

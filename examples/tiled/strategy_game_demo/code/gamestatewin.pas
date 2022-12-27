@@ -58,7 +58,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    TUIState.Current := StateMainMenu;
+    Container.View := StateMainMenu;
     Exit(ExclusiveEvents);
   end;
 end;

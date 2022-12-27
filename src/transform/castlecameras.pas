@@ -90,7 +90,7 @@ type
 
     Note that you don't really @italic(need) to use any TCastleNavigation to manipulate
     the camera. You can just access @link(TCastleViewport.Camera) from anywhere
-    (like TUIState code) and move, rotate it as you wish.
+    (like TCastleView code) and move, rotate it as you wish.
     TCastleNavigation is just a comfortable way to encapsulate
     some navigation methods, but it's not the only way to manipulate the camera.
 

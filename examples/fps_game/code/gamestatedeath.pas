@@ -55,7 +55,7 @@ end;
 
 procedure TStateDeath.ClickBack(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 end.

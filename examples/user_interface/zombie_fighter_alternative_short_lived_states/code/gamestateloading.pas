@@ -135,7 +135,7 @@ procedure TStateLoading.Update(const SecondsPassed: Single; var HandleInput: Boo
 begin
   inherited;
   if LoadingFinished then
-    TUIState.Current := TStatePlay.CreateUntilStopped;
+    Container.View := TStatePlay.CreateUntilStopped;
 end;
 
 end.

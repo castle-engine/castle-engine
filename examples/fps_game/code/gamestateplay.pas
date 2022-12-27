@@ -108,7 +108,7 @@ begin
   LabelFps.Caption := Container.Fps.ToString;
   UpdateMouseLook;
 
-  GameActive := TUIState.CurrentTop = Self;
+  GameActive := Container.FrontView = Self;
 
   SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround and GameActive, 1, 0);
 
@@ -128,13 +128,13 @@ begin
 
     if BoxWinDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
-      TUIState.Push(StateWin);
+      Container.PushView(StateWin);
       Exit;
     end;
 
     if BoxDieDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
-      TUIState.Push(StateDeath);
+      Container.PushView(StateDeath);
       Exit;
     end;
   end;
@@ -142,7 +142,7 @@ end;
 
 procedure TStatePlay.UpdateMouseLook;
 begin
-  WalkNavigation.MouseLook := (TUIState.CurrentTop = Self) and
+  WalkNavigation.MouseLook := (Container.FrontView = Self) and
     ( PersistentMouseLook or
       (buttonRight in Container.MousePressed) );
 end;
@@ -161,7 +161,7 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if TUIState.CurrentTop = Self then
+  if Container.FrontView = Self then
   begin
     if Event.IsKey(keyF4) then
     begin
@@ -202,19 +202,19 @@ begin
     if Event.IsKey(keyEscape) then
     begin
       StateOptions.OverGame := true;
-      TUIState.Push(StateOptions);
+      Container.PushView(StateOptions);
       Exit(true);
     end;
 
     if Event.IsKey(keyP) then
     begin
-      TUIState.Push(StateWin);
+      Container.PushView(StateWin);
       Exit(true);
     end;
 
     if Event.IsKey(keyO) then
     begin
-      TUIState.Push(StateDeath);
+      Container.PushView(StateDeath);
       Exit(true);
     end;
   end;

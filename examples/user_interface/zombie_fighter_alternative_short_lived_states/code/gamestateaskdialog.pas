@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -97,14 +97,14 @@ procedure TStateAskDialog.TZombieDialog.ClickRun(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "running",
     we just return to TStatePlay. }
-  TUIState.Pop(State);
+  Container.PopView(State);
 end;
 
 procedure TStateAskDialog.TZombieDialog.ClickFight(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "fighting",
     we just return to TStatePlay. }
-  TUIState.Pop(State);
+  Container.PopView(State);
 end;
 
 { TStateAskDialog ------------------------------------------------------------ }

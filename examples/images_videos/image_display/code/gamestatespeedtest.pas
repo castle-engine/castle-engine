@@ -92,7 +92,7 @@ end;
 
 procedure TStateSpeedTest.ClickGoView(Sender: TObject);
 begin
-  TUIState.Current := StateMain;
+  Container.View := StateMain;
 end;
 
 procedure TStateSpeedTest.NextTest(Sender: TObject);

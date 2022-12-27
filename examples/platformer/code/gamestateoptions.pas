@@ -132,7 +132,7 @@ end;
 
 procedure TStateOptions.ClickMenu(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  Container.View := StateMenu;
 end;
 
 procedure TStateOptions.ClickVolume(Sender: TObject);

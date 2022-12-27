@@ -128,12 +128,12 @@ end;
 
 procedure TStateMainMenu.TRiftMainMenu.ClickIntro(Sender: TObject);
 begin
-  TUIState.Current := StateIntro;
+  Container.View := StateIntro;
 end;
 
 procedure TStateMainMenu.TRiftMainMenu.ClickNewGame(Sender: TObject);
 begin
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 procedure TStateMainMenu.TRiftMainMenu.ClickSoundOptions(Sender: TObject);

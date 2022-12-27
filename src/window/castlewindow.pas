@@ -410,7 +410,7 @@ type
   { Non-abstract implementation of TCastleContainer that cooperates with TCastleWindow.
     To use it, you need to also create descendant of TCastleWindow,
     and override TCastleWindow.CreateContainer.
-    That said, it is much better to use TUIState and override methods there. }
+    That said, it is much better to use TCastleView and override methods there. }
   TWindowContainer = class(TCastleContainer)
   private
     Parent: TCastleWindow;
@@ -432,7 +432,7 @@ type
     function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
     function SettingMousePositionCausesMotion: Boolean; override;
-  end deprecated 'do not descend from this, instead use custom TUIState descendants';
+  end deprecated 'do not descend from this, instead use custom TCastleView descendants';
 
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
@@ -440,7 +440,7 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    You should use this with TUIState, following https://castle-engine.io/manual_state_events.php
+    You should use this with TCastleView, following https://castle-engine.io/manual_state_events.php
     and the rest of CGE manual.
     All user interface creation and event handling should be inside some state.
 
@@ -475,7 +475,7 @@ type
     { Create a container class for this window.
       Override this to use a custom container class, e.g. to override
       some container methods. }
-    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TUIState descendants';
+    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -1759,7 +1759,7 @@ type
       See TMouseCursor for a list of possible values and their meanings.
 
       Note that this is for internal usage in the engine. In your applications,
-      you should set TCastleUserInterface.Cursor on any UI control (including on TUIState),
+      you should set TCastleUserInterface.Cursor on any UI control (including on TCastleView),
       never set this property directly. }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
@@ -2112,7 +2112,7 @@ type
           We have a special code that disables all TCastleWindow
           callbacks (like TCastleWindow.OnUpdate) and temporarily
           disables all UI controls on the @link(Controls) list
-          (so your TCastleUserInterface, TCastleTransform, TUIState etc.
+          (so your TCastleUserInterface, TCastleTransform, TCastleView etc.
           instances will @italic(not) have their methods,
           like @code(Update), called).
         )
