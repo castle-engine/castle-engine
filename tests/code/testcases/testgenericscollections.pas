@@ -17,6 +17,9 @@
 { Test Generics.Collections unit. These tests are independent from CGE. }
 unit TestGenericsCollections;
 
+{ Needed to define GENERICS_CONSTREF on some platforms/compilers. }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses

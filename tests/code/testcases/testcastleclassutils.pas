@@ -17,6 +17,9 @@
 { Test CastleClassUtils unit. }
 unit TestCastleClassUtils;
 
+{ Needed to define GENERICS_CONSTREF on some platforms/compilers. }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit,
