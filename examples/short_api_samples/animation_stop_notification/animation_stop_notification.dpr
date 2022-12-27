@@ -19,13 +19,13 @@
 
 uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport, CastleCameras,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, X3DNodes,
+  CastleVectors, CastleUIControls, CastleControls, X3DNodes,
   CastleKeysMouse, CastleColors, CastleNotifications;
 
 { TStateMain ----------------------------------------------------------------- }
 
 type
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   strict private
     Viewport: TCastleViewport;
     Scene: TCastleScene;

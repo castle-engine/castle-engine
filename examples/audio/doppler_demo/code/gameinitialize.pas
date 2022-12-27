@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState, CastleSoundEngine
+  CastleWindow, CastleLog, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain

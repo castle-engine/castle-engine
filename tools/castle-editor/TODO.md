@@ -13,10 +13,6 @@ OK if after 7.0 release:
   castlecontrols_groups.inc
   castlecontrols_crosshair.inc
 
-* rename TUIState -> TCastleState? (best)
-  TCastleUserInterfaceState?
-  TCastleForm?
-
 * TCastleButton:
   - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
   - Test a way to upgrade names in design files while doing above?

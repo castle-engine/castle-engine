@@ -7,7 +7,7 @@ interface
 
 implementation
 
-uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState
+uses CastleWindow, CastleLog, CastleApplicationProperties
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain

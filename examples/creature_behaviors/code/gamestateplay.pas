@@ -19,13 +19,13 @@ unit GameStatePlay;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
   CastleTransform, CastleBehaviors, CastleClassUtils;
 
 type
   { Main "playing game" state, where most of the game logic takes place. }
-  TStatePlay = class(TUIState)
+  TStatePlay = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;

@@ -28,7 +28,7 @@ interface
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleApplicationProperties, CastleUIState
+  CastleWindow, CastleApplicationProperties
   {$ifdef UPCOMING_FPS_GAME_REDESIGN}
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.

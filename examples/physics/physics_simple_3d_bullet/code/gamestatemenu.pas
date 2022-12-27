@@ -19,11 +19,11 @@ unit GameStateMenu;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls;
+  CastleComponentSerialize, CastleUIControls, CastleControls;
 
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
-  TStateMenu = class(TUIState)
+  TStateMenu = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from gamestatemenu.castle-user-interface. }
     ButtonPlay, ButtonQuit: TCastleButton;

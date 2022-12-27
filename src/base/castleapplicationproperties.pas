@@ -79,7 +79,7 @@ type
         cannot just write a function like MessageYesNo that waits until user clicks
         something.
         You *have* to implement modal boxes then using states,
-        e.g. using CastleDialogStates or your own TUIState descendants. }
+        e.g. using CastleDialogStates or your own TCastleView descendants. }
       PlatformAllowsModalRoutines = {$if defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)} false {$else} true {$endif};
 
     constructor Create;

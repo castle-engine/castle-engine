@@ -25,7 +25,7 @@ uses SysUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleWindowProgress,
   CastleProgress, CastleGameNotifications, CastleVectors, CastleSoundEngine,
-  CastleTransform, CastleConfig, CastleUIState,
+  CastleTransform, CastleConfig,
   GameSound, GameConfiguration, GameCreatures, GameLocations
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.

@@ -19,13 +19,13 @@ unit GameStateMain;
 
 interface
 
-uses CastleUIState, CastleScene, CastleControls,
+uses CastleScene, CastleControls,
   CastleKeysMouse, CastleColors, CastleUIControls;
 
 type
   { Main user interface class.
     This implements the majority of this application functionality. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     Buttons: TCastleVerticalGroup;
     ButtonDragSimple: TCastleButton;

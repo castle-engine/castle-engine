@@ -14,9 +14,9 @@
 }
 
 (*Dialog windows (to display some information, or ask user for confirmation,
-  or ask user to input a simple value) as a user-interface state (@link(TUIState)).
+  or ask user to input a simple value) as a user-interface state (@link(TCastleView)).
   This unit defines the user-interface state classes
-  (@link(TUIState) descendants) to display given dialog.
+  (@link(TCastleView) descendants) to display given dialog.
 
   If you use @link(TCastleWindow) with most platforms (but not iOS),
   then it's usually more comfortable to use the unit @link(CastleMessages)
@@ -42,12 +42,12 @@
 
   In this case you should use this unit and instantiate the
   user-interface classes yourself, and you need to
-  @italic(organize your whole game using TUIState classes).
-  See https://castle-engine.io/states about how to use @link(TUIState). Like this:
+  @italic(organize your whole game using TCastleView classes).
+  See https://castle-engine.io/states about how to use @link(TCastleView). Like this:
 
   @longCode(#
   type
-    TMyGameState = class(TUIState)
+    TMyGameState = class(TCastleView)
     private
       DialogAskDeleteFile: TStateDialogYesNo;
     public
@@ -90,13 +90,13 @@ interface
 uses Classes, Math,
   CastleGLUtils, CastleUtils, CastleImages,
   CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls,
-  CastleRectangles, CastleUIState, CastleColors, CastleUIControls,
+  CastleRectangles, CastleColors, CastleUIControls,
   CastleFonts, CastleInternalRichText, CastleTimeUtils;
 
 type
   { Abstract class for a modal dialog user-interface state.
     See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialog = class abstract(TUIState)
+  TStateDialog = class abstract(TCastleView)
   strict private
     type
       {$define read_interface}

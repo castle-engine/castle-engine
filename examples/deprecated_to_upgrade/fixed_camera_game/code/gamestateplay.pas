@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,13 +19,13 @@ unit GameStatePlay;
 interface
 
 uses
-  CastleUIState, CastleViewport, X3DNodes, CastleProjection,
+  CastleUIControls, CastleViewport, X3DNodes, CastleProjection,
   CastleTransform, CastleVectors, CastleKeysMouse, CastleControls,
   GameCreatures, GameLocations;
 
 type
   { State in which you actually play the game. }
-  TStatePlay = class(TUIState)
+  TStatePlay = class(TCastleView)
   strict private
     Player: TPlayer;
     CurrentLocation: TLocation;
@@ -46,7 +46,7 @@ implementation
 
 uses Math, SysUtils,
   CastleGLUtils, CastleStringUtils, CastleProgress, CastleUtils, CastleCameras,
-  CastleFilesUtils, CastleUIControls, CastleImages,
+  CastleFilesUtils, CastleImages,
   CastleGameNotifications, CastleRectangles, CastleColors,
   GameStateMainMenu;
 

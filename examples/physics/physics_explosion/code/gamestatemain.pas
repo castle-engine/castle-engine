@@ -19,13 +19,13 @@ unit GameStateMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleTerrain,
   CastleCameras, CastleScene, CastleViewport, CastleTransform, CastleSoundEngine;
 
 type
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }

@@ -19,13 +19,13 @@ unit GameStateMain;
 interface
 
 uses Classes,
-  CastleUIState, CastleScene, CastleControls,
+  CastleScene, CastleControls,
   CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls,
   CastleDownload;
 
 type
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   strict private
     const
       DownloadsCount = 3;

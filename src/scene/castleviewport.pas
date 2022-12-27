@@ -1473,7 +1473,7 @@ begin
     - remove (and eventually free),
     - rename,
     - see in editor (e.g. in dropdown Viewport.Camera),
-    - access at runtime using TUIState.DesignedComponent }
+    - access at runtime using TCastleView.DesignedComponent }
 
   Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
 

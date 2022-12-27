@@ -19,10 +19,10 @@ unit GameStateMain;
 interface
 
 uses Classes, CastleCameras,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from the castle-user-interface file. }
     WalkNavigation: TCastleWalkNavigation;

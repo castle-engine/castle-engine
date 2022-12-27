@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2020 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,12 +18,12 @@ unit GameStateMain;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse;
 
 type
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelMain: TCastleLabel;

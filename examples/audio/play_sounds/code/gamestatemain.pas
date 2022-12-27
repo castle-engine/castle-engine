@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,12 +20,12 @@ unit GameStateMain;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUIState, CastleComponentSerialize, CastleControls, CastleSoundEngine;
+  CastleUIControls, CastleComponentSerialize, CastleControls, CastleSoundEngine;
 
 type
   { Main user interface class.
     This implements the majority of this application functionality. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     type
       TButtonSound = class(TCastleButton)
@@ -72,7 +72,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils,
+  CastleLog, CastleWindow, CastleURIUtils, CastleTimeUtils,
   CastleSoundBase, CastleViewport;
 
 { TButtonSound --------------------------------------------------------- }

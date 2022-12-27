@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,11 +19,11 @@ unit GameStateMainMenu;
 interface
 
 uses Classes,
-  CastleUIState, CastleOnScreenMenu, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleOnScreenMenu, CastleControls, CastleKeysMouse;
 
 type
   { State displaying main on-screen menu. }
-  TStateMainMenu = class(TUIState)
+  TStateMainMenu = class(TCastleView)
   private
     type
       TAbstractMenu = class(TCastleOnScreenMenu)
@@ -83,7 +83,7 @@ implementation
 uses SysUtils,
   CastleFilesUtils, CastleMessages, CastleWindow, CastleUtils,
   CastleVectors, CastleSoundMenu, CastleStringUtils,
-  CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
+  CastleGLImages, CastleColors, CastleSoundEngine,
   CastleApplicationProperties, CastleRectangles,
   GameConfiguration, GameSound, GameStatePlay, GameLocations, GameStateIntro;
 

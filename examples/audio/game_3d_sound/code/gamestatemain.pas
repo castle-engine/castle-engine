@@ -19,13 +19,13 @@ unit GameStateMain;
 interface
 
 uses Classes, Contnrs,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleTransform, CastleSoundEngine, CastleScene, CastleCameras,
   CastleViewport, CastleVectors, CastleBehaviors;
 
 type
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     const
       { Max number of TNT items. }

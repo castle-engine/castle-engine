@@ -19,7 +19,7 @@ unit GameStateMain;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleResources, CastleCreatures,
   CastleLevels, CastleVectors;
 
@@ -37,7 +37,7 @@ type
   TResourceButtonList = {$ifdef FPC}specialize{$endif} TObjectList<TResourceButton>;
 
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;

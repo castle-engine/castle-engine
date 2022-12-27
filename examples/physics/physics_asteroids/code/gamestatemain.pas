@@ -19,7 +19,7 @@ unit GameStateMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleTransform,
   CastleScene, CastleViewport;
 
@@ -34,7 +34,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }

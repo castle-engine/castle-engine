@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleVectors,
   CastleFilesUtils, CastleSceneCore, CastleViewport, CastleComponentSerialize,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, X3DNodes
+  CastleUIControls, CastleApplicationProperties, X3DNodes
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain

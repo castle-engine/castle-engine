@@ -22,7 +22,7 @@ interface
 
 implementation
 
-uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
+uses CastleWindow, CastleLog, CastleApplicationProperties,
   GameStateMain;
 
 var

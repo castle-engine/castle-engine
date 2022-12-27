@@ -19,12 +19,12 @@ unit GameStateMain;
 interface
 
 uses SysUtils, Classes,
-  CastleWindow, CastleScene, CastleControls, CastleLog, CastleVectors,
+  CastleScene, CastleControls, CastleLog, CastleVectors,
   CastleFilesUtils, CastleSceneCore, CastleViewport, CastleComponentSerialize,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, X3DNodes;
+  CastleUIControls, CastleApplicationProperties, X3DNodes;
 
 type
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   strict private
     LabelFps: TCastleLabel;
     ButtonAnimationSqueeze, ButtonAnimationGear: TCastleButton;

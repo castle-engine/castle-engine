@@ -20,13 +20,13 @@ unit GameStateMain;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUIState, CastleComponentSerialize, CastleControls, CastleTimeUtils,
+  CastleUIControls, CastleComponentSerialize, CastleControls, CastleTimeUtils,
   X3DNodes, CastleTextureFontData, CastleScene, CastleWindow;
 
 type
   { Main user interface class.
     This implements the majority of this application functionality. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   strict private
     Language: string;
 
@@ -62,7 +62,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleURIUtils, CastleFonts,
+  CastleLog, CastleURIUtils, CastleFonts,
   CastleLocalizationGetText, CastleColors, CastleViewport, CastleSystemLanguage,
   CastleVectors, CastleMessages,
   Font_DejaVuSans;

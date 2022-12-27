@@ -151,7 +151,6 @@ uses
   castlenotifications,
   castletiledmap,
   castleuicontrols,
-  castleuistate,
 
   // src/window
   castlemessages,

@@ -28,7 +28,7 @@ type
     position (anchors) to Container.MousePosition.
 
     Assumes that the parent UI is a container or some FullSize UI control
-    (like some TUIState).
+    (like some TCastleView).
     The TCustomCursor must fill the entire container, to capture motion
     events from the entire container, and for UpdateCursorPosition
     to work correctly. }

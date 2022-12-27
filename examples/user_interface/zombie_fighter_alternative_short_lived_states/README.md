@@ -1,6 +1,6 @@
-# Zombie fighter - game with multiple states (alternative version with short-lived TUIState instances)
+# Zombie fighter - game with multiple states (alternative version with short-lived TCastleView instances)
 
-Demo of Castle Game Engine states (`TUIState`) to define various game states, like
+Demo of Castle Game Engine states (`TCastleView`) to define various game states, like
 
 - main menu
 - playing the game
@@ -8,7 +8,7 @@ Demo of Castle Game Engine states (`TUIState`) to define various game states, li
 
 You can organize your game into such states, it is a nice way of splitting your user interface code into manageable chunks. See https://castle-engine.io/states .
 
-This is an alternative version of the demo in ../zombie_fighter/ . It uses short-lived states, created using TUIState.CreateUntilStopped. This approach to creating states has some advantages, see TUIState.CreateUntilStopped documentation.
+This is an alternative version of the demo in ../zombie_fighter/ . It uses short-lived states, created using TCastleView.CreateUntilStopped. This approach to creating states has some advantages, see TCastleView.CreateUntilStopped documentation.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

@@ -22,11 +22,11 @@ uses SysUtils, Classes, Math,
   CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
   CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport,
-  CastleURIUtils, X3DNodes, CastleTextureImages, CastleUIState;
+  CastleURIUtils, X3DNodes, CastleTextureImages;
 
 type
   { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  TStateMain = class(TCastleView)
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;

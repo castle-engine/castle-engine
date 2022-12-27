@@ -22,7 +22,7 @@ implementation
 
 uses SysUtils, Math, Classes,
   {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
-  CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
+  CastleWindow, CastleLog, CastleApplicationProperties,
   GameStateMain, GameLogHandler;
 
 var

@@ -517,7 +517,7 @@ begin
     and TCastleScrollViewCustom.Motion.
 
     But we still have to mark the mouse click as "handled" here.
-    Otherwise some control underneath us (like TUIState with InterceptInput = true,
+    Otherwise some control underneath us (like TCastleView with InterceptInput = true,
     like the one used by TStateDialogOK) could handle
     mouse and capture it (the TCastleContainer automatically "captures" the control
     that returns "true" from Press event), and then we would not receive

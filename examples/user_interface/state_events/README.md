@@ -1,6 +1,6 @@
 # State Events
 
-Demo of basic `TUIState` usage. See https://castle-engine.io/manual_state_events.php .
+Demo of basic `TCastleView` usage. See https://castle-engine.io/manual_state_events.php .
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

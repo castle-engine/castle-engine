@@ -589,7 +589,7 @@
       See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
-      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
       that will take care of freeing it. }
     procedure RemoveControl(const Item: TCastleUserInterface);
 
@@ -607,7 +607,7 @@
       See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
-      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
       that will take care of freeing it. }
     procedure ClearControls;
 

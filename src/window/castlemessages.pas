@@ -343,19 +343,19 @@ var
         On the other hand, the notification about unhandled exceptions
         (done by CastleWindow automatically, using MessageOK) is a little safer
         when this is @false. When this is @false, there's a greater chance that
-        the problematic code (e.g. the update method of some other TUIState)
+        the problematic code (e.g. the update method of some other TCastleView)
         it disabled during the display of the error messsage.)
     )
 
     If you turn this on, then you should organize your whole application
-    into states using TUIState. You can even pause the running game
-    in overridden @link(TUIState.Pause), to make game paused when
+    into states using TCastleView. You can even pause the running game
+    in overridden @link(TCastleView.Pause), to make game paused when
     the message dialog is displayed.
 
     Note that this feature doesn't change other routines in CastleMessages.
     For example @link(MessageYesNo) is still a modal function (it waits
     for user input), and it simply doesn't work on iOS.
-    If you want to use TUIState to manage all dialogs,
+    If you want to use TCastleView to manage all dialogs,
     then use explicitly states like @link(TStateDialogYesNo) from
     the @link(CastleDialogStates) unit.
   }
@@ -365,7 +365,7 @@ implementation
 
 uses SysUtils,
   CastleImages, CastleClassUtils, CastleInternalWindowModes, CastleLog,
-  CastleUIControls, CastleUIState, CastleDialogStates;
+  CastleUIControls, CastleDialogStates;
 
 { MessageCore ---------------------------------------------------------------- }
 

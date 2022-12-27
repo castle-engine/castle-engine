@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,11 +19,11 @@ unit GameStateMenu;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls;
+  CastleComponentSerialize, CastleUIControls, CastleControls;
 
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
-  TStateMenu = class(TUIState)
+  TStateMenu = class(TCastleView)
   private
     ButtonPlay, ButtonQuit: TCastleButton;
     procedure ClickPlay(Sender: TObject);

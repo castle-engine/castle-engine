@@ -164,7 +164,7 @@ begin
   if Assigned(OnMainContainer) then
     Result := OnMainContainer()
   else
-    //raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TUIState');
+    //raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TCastleView');
     // returning nil is more flexible to the caller
     Result := nil;
 end;

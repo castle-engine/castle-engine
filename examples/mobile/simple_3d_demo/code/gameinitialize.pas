@@ -25,7 +25,7 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleUIControls, CastleRectangles,
   CastleLog, CastleSceneCore, CastleStringUtils, CastleTimeUtils,
-  CastleApplicationProperties, CastleUIState, CastleProgress, CastleWindowProgress
+  CastleApplicationProperties, CastleProgress, CastleWindowProgress
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain

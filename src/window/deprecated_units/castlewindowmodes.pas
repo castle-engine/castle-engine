@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2020 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Deprecated unit, only to provide backward compatibility. }
-unit CastleWindowModes deprecated 'use CastleUIState to implement user-interface states in a cross-platform way';
+unit CastleWindowModes deprecated 'use TCastleView(s) instances to organize user interface of your game';
 
 {$I castleconf.inc}
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,12 +19,12 @@ unit GameStateIntro;
 interface
 
 uses Classes, Generics.Collections,
-  CastleGLImages, CastleUIState, CastleTimeUtils, CastleKeysMouse,
+  CastleGLImages, CastleUIControls, CastleTimeUtils, CastleKeysMouse,
   CastleControls;
 
 type
   { State showing the intro images. }
-  TStateIntro = class(TUIState)
+  TStateIntro = class(TCastleView)
   strict private
     type
       TIntroPart = class
@@ -57,7 +57,7 @@ implementation
 uses SysUtils, DOM,
   CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleImages, CastleSoundEngine,
-  CastleUIControls, CastleStringUtils, CastleXMLUtils,
+  CastleStringUtils, CastleXMLUtils,
   CastleColors, CastleApplicationProperties, CastleRenderOptions,
   GameConfiguration, GameSound, GameStateMainMenu;
 

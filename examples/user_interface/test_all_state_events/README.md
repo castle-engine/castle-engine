@@ -1,6 +1,6 @@
 # Test All State Events
 
-Demo of various events (virtual methods you can override) of TUIState.
+Demo of various events (virtual methods you can override) of TCastleView.
 These events allow to react to user input (like key press)
 or do something continuosly (e.g. move some game creature).
 

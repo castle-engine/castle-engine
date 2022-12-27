@@ -25,7 +25,7 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleSoundEngine,
+  CastleUIControls, CastleApplicationProperties, CastleSoundEngine,
   CastleTransform, CastleRenderOptions,
   GameStateMenu, GameStatePlay;
 

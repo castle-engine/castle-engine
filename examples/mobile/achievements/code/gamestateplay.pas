@@ -19,12 +19,12 @@ unit GameStatePlay;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors;
 
 type
   { Main "playing game" state, where most of the game logic takes place. }
-  TStatePlay = class(TUIState)
+  TStatePlay = class(TCastleView)
   private
     { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
       animation and it's movement. }
