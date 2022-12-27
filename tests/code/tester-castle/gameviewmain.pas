@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main state, where most of the application logic takes place. }
-unit GameStateMain;
+{ Main view, where most of the application logic takes place. }
+unit GameViewMain;
 
 interface
 
@@ -23,10 +23,10 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleTester;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TCastleView)
+  { Main view, where most of the application logic takes place. }
+  TViewMain = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
     LabelMessage: TCastleLabel;
     LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
@@ -63,7 +63,7 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 
 implementation
 
@@ -149,32 +149,32 @@ uses SysUtils,
   // {$ifdef FPC}TestCastleLCLUtils{$endif}
   ;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
-procedure TStateMain.AssertFailed(const TestName, Msg: String);
+procedure TViewMain.AssertFailed(const TestName, Msg: String);
 begin
   LogFailedAssertion(TestName + ': ' + Msg);
 end;
 
-procedure TStateMain.ClickStartTests(Sender: TObject);
+procedure TViewMain.ClickStartTests(Sender: TObject);
 begin
   Tester.StopOnFirstFail := CheckboxStopOnFail.Checked;
   Tester.PrepareTestListToRun;
   StartTesting;
 end;
 
-procedure TStateMain.ClickStopTests(Sender: TObject);
+procedure TViewMain.ClickStopTests(Sender: TObject);
 begin
   StopTesting('Testing aborted by user', false);
 end;
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-procedure TStateMain.EnabledTestCountChanged(Sender: TObject);
+procedure TViewMain.EnabledTestCountChanged(Sender: TObject);
 begin
   LabelTestsCount.Caption := Format('Tests: %d / %d', [
     Tester.EnabledTestCount,
@@ -182,7 +182,7 @@ begin
   ]);
 end;
 
-procedure TStateMain.LogFailedAssertion(const AMessage: String);
+procedure TViewMain.LogFailedAssertion(const AMessage: String);
 begin
   if LabelFailedTests.Caption = '' then
     LabelFailedTests.Caption :=  AMessage
@@ -190,7 +190,7 @@ begin
     LabelFailedTests.Caption := LabelFailedTests.Caption + NL + AMessage;
 end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 begin
   inherited;
 
@@ -245,7 +245,7 @@ begin
   Tester.PrepareTestListToRun;
 end;
 
-procedure TStateMain.StartTesting;
+procedure TViewMain.StartTesting;
 begin
   RunTests := true;
   LabelMessage.Caption := 'Processing...';
@@ -255,7 +255,7 @@ begin
   ButtonSelectTests.Enabled := false;
 end;
 
-procedure TStateMain.StopTesting(const AMessage: String; const Exception: Boolean = false);
+procedure TViewMain.StopTesting(const AMessage: String; const Exception: Boolean = false);
 begin
   RunTests := false;
 
@@ -275,22 +275,22 @@ begin
   ButtonSelectTests.Enabled := true;
 end;
 
-procedure TStateMain.TestExecuted(const AName: String);
+procedure TViewMain.TestExecuted(const AName: String);
 begin
   LabelCurrentTest.Caption := AName;
 end;
 
-procedure TStateMain.TestFailedCountChanged(const TestCount: Integer);
+procedure TViewMain.TestFailedCountChanged(const TestCount: Integer);
 begin
   LabelTestFailed.Caption := IntToStr(TestCount);
 end;
 
-procedure TStateMain.TestPassedCountChanged(const TestCount: Integer);
+procedure TViewMain.TestPassedCountChanged(const TestCount: Integer);
 begin
   LabelTestPassed.Caption := IntToStr(TestCount);
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   if RunTests then
   begin
