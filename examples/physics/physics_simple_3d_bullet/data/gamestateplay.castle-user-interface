@@ -40,10 +40,6 @@
                 "$$ClassName" : "TCastleRigidBody",
                 "Dynamic" : false,
                 "Gravity" : false,
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody1"
               }
             ]
@@ -134,10 +130,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody2"
               }
             ]
@@ -170,10 +162,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody7"
               }
             ]
@@ -210,10 +198,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody3"
               }
             ]
@@ -248,10 +232,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody5"
               }
             ]
@@ -286,10 +266,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody4"
               }
             ]
@@ -325,10 +301,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody6"
               }
             ]
@@ -368,11 +340,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : 5.0000000000000000E+001
                 },
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
-                "Name" : "RigidBody8"
+                "Name" : "BulletBody"
               }
             ]
           },
@@ -393,10 +361,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "LockRotation" : [
-                ],
-                "LockTranslation" : [
-                ],
                 "Name" : "RigidBody9"
               }
             ]
@@ -436,7 +400,7 @@
         {
           "$$ClassName" : "TCastleWalkNavigation",
           "Gravity" : false,
-          "Name" : "WalkNavigation1"
+          "Name" : "WalkNavigation"
         }
       ],
       "InternalDesignCamera" : {
@@ -511,8 +475,7 @@
       "Name" : "LabelInfo",
       "Text" : [
         "Move with AWSD and mouse dragging.",
-        "Press Ctrl + M to toggle \"Mouse Look\" mode.",
-        "Press F5 to make a screenshot."
+        "Right mouse click to toggle \"Mouse Look\" mode."
       ],
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",

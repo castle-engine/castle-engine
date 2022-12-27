@@ -26,12 +26,13 @@ uses Classes,
 type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
-  private
+  published
     { Components designed using CGE editor, loaded from gamestateplay.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     Sphere: TCastleTransform;
-
+    BulletBody: TCastleRigidBody;
+    WalkNavigation: TCastleWalkNavigation;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -60,11 +61,6 @@ end;
 procedure TStatePlay.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  Sphere := DesignedComponent('Sphere') as TCastleTransform;
 end;
 
 procedure TStatePlay.Stop;
@@ -84,21 +80,17 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStatePlay.Press method should be used to handle keys
-    not handled in children controls.
-  }
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
+    Exit(true);
+  end;
 
   if Event.IsKey(keyEnter) then
   begin
-    Sphere.RigidBody.ApplyImpulse(Vector3(0,0,100), Vector3(0,0,0));
-    Sphere.RigidBody.WakeUp;
-    Exit;
+    Sphere.Translation := Vector3(0, 2.17, -5.51);
+    BulletBody.ApplyImpulse(Vector3(0,0,100), Vector3(0,0,0));
+    Exit(true);
   end;
 
   if Event.IsKey(keyEscape) then
