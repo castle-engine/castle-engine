@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main menu. }
-unit GameViewMainMenu;
+{ Test 2D physics. }
+unit GameViewTest2D;
 
 interface
 
@@ -22,7 +22,7 @@ uses Classes,
   CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TViewMainMenu = class(TCastleView)
+  TViewTest2D = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -33,17 +33,17 @@ type
   end;
 
 var
-  ViewMainMenu: TViewMainMenu;
+  ViewTest2D: TViewTest2D;
 
 implementation
 
-constructor TViewMainMenu.Create(AOwner: TComponent);
+constructor TViewTest2D.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewmainmenu.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewtest2d.castle-user-interface';
 end;
 
-procedure TViewMainMenu.Start;
+procedure TViewTest2D.Start;
 begin
   inherited;
 end;

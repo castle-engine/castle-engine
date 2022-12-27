@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Play. }
-unit GameViewPlay;
+{ Test 3D physics. }
+unit GameViewTest3D;
 
 interface
 
@@ -22,7 +22,7 @@ uses Classes,
   CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TViewPlay = class(TCastleView)
+  TViewTest3D = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -33,17 +33,17 @@ type
   end;
 
 var
-  ViewPlay: TViewPlay;
+  ViewTest3D: TViewTest3D;
 
 implementation
 
-constructor TViewPlay.Create(AOwner: TComponent);
+constructor TViewTest3D.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewtest3d.castle-user-interface';
 end;
 
-procedure TViewPlay.Start;
+procedure TViewTest3D.Start;
 begin
   inherited;
 end;

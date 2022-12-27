@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main menu. }
+{ Main LCL form. }
 unit FormMain;
 
 {$mode objfpc}{$H+}
@@ -29,12 +29,12 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
-    ButtonMainMenu: TButton;
-    ButtonPlay: TButton;
+    ButtonTest2D: TButton;
+    ButtonTest3D: TButton;
     CastleControl1: TCastleControl;
     Panel1: TPanel;
-    procedure ButtonMainMenuClick(Sender: TObject);
-    procedure ButtonPlayClick(Sender: TObject);
+    procedure ButtonTest2DClick(Sender: TObject);
+    procedure ButtonTest3DClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
 
@@ -47,28 +47,28 @@ var
 
 implementation
 
-uses GameViewMainMenu, GameViewPlay;
+uses GameViewTest2D, GameViewTest3D;
 
 {$R *.lfm}
 
 { TMainForm }
 
-procedure TMainForm.ButtonMainMenuClick(Sender: TObject);
+procedure TMainForm.ButtonTest2DClick(Sender: TObject);
 begin
-  CastleControl1.Container.View := ViewMainMenu;
+  CastleControl1.Container.View := ViewTest2D;
 end;
 
-procedure TMainForm.ButtonPlayClick(Sender: TObject);
+procedure TMainForm.ButtonTest3DClick(Sender: TObject);
 begin
-  CastleControl1.Container.View := ViewPlay;
+  CastleControl1.Container.View := ViewTest3D;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  ViewMainMenu := TViewMainMenu.Create(Application);
-  ViewPlay := TViewPlay.Create(Application);
+  ViewTest2D := TViewTest2D.Create(Application);
+  ViewTest3D := TViewTest3D.Create(Application);
 
-  CastleControl1.Container.View := ViewMainMenu;
+  CastleControl1.Container.View := ViewTest2D;
 end;
 
 end.
