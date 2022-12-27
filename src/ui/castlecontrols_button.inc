@@ -120,6 +120,8 @@
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure FontChanged; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+
     { Internal: set FCalculatedSize to false,
       to make sure TextWidth, TextWidth and FCalculatedPreferredWidth/Height are recalculated
       at next PreferredSize. } { }
@@ -698,13 +700,34 @@ begin
   if Result then Exit;
 
   if ClickStarted and
-    (ClickStartedFinger = Event.FingerIndex) and
-    EnableParentDragging and
-    (PointsDistanceSqr(ClickStartedPosition, Event.Position) >
-     { scaling with UIScale is helpful. Scaling with physical size
-       would probably be even better, for mobiles. }
-     Sqr(DistanceToHijackDragging * UIScale)) then
-    CancelDragging;
+    (ClickStartedFinger = Event.FingerIndex) then
+  begin
+    if EnableParentDragging and
+       (PointsDistanceSqr(ClickStartedPosition, Event.Position) >
+        { scaling with UIScale is helpful. Scaling with physical size
+          would probably be even better, for mobiles. }
+        Sqr(DistanceToHijackDragging * UIScale)) then
+    begin
+      CancelDragging;
+      Exit(false); // drag not handled, pass to parent
+    end;
+
+    // drag handled, don't pass to others.
+    Exit(true);
+  end;
+end;
+
+procedure TCastleButton.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+
+  if ClickStarted and HandleInput then
+  begin
+    // don't let others, like TCastleWalkNavigation, handle drag input to move.
+    // Testcase: physics_3d_demo, clicking on button should not cause accidental move.
+    HandleInput := false;
+  end;
 end;
 
 procedure TCastleButton.DoClick;
