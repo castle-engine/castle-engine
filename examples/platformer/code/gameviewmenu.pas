@@ -14,19 +14,19 @@
 }
 
 { Simple "menu" user interface, that allows to run the game or quit. }
-unit GameStateMenu;
+unit GameViewMenu;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleSoundEngine;
 
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
-  TStateMenu = class(TUIState)
+  TViewMenu = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
+    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
     ButtonPlay, ButtonOptions, ButtonCredits, ButtonQuit: TCastleButton;
     procedure ClickPlay(Sender: TObject);
     procedure ClickOptions(Sender: TObject);
@@ -38,22 +38,22 @@ type
   end;
 
 var
-  StateMenu: TStateMenu;
+  ViewMenu: TViewMenu;
 
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameStatePlay, GameStateOptions, GameStateCredits;
+  GameViewPlay, GameViewOptions, GameViewCredits;
 
-{ TStateMenu ----------------------------------------------------------------- }
+{ TViewMenu ----------------------------------------------------------------- }
 
-constructor TStateMenu.Create(AOwner: TComponent);
+constructor TViewMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmenu.castle-user-interface';
 end;
 
-procedure TStateMenu.Start;
+procedure TViewMenu.Start;
 begin
   inherited;
 
@@ -75,22 +75,22 @@ begin
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
 end;
 
-procedure TStateMenu.ClickPlay(Sender: TObject);
+procedure TViewMenu.ClickPlay(Sender: TObject);
 begin
-  Container.View := StatePlay;
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMenu.ClickOptions(Sender: TObject);
+procedure TViewMenu.ClickOptions(Sender: TObject);
 begin
-  Container.View := StateOptions;
+  Container.View := ViewOptions;
 end;
 
-procedure TStateMenu.ClickCredits(Sender: TObject);
+procedure TViewMenu.ClickCredits(Sender: TObject);
 begin
-  Container.View := StateCredits;
+  Container.View := ViewCredits;
 end;
 
-procedure TStateMenu.ClickQuit(Sender: TObject);
+procedure TViewMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;

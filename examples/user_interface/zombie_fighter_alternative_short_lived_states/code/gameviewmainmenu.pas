@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Game state with main menu. }
-unit GameStateMainMenu;
+{ Game view with main menu. }
+unit GameViewMainMenu;
 
 interface
 
-uses Classes, CastleControls, CastleUIState;
+uses Classes, CastleControls, CastleUIControls;
 
 type
-  TStateMainMenu = class(TUIState)
+  TViewMainMenu = class(TCastleView)
   strict private
     ButtonNewGame, ButtonQuit: TCastleButton;
     procedure ClickNewGame(Sender: TObject);
@@ -31,24 +31,21 @@ type
     procedure Start; override;
   end;
 
-var
-  StateMainMenu: TStateMainMenu;
-
 implementation
 
-uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleApplicationProperties,
+uses CastleColors, CastleWindow, CastleFilesUtils, CastleApplicationProperties,
   CastleUtils, CastleComponentSerialize,
-  GameStateLoading;
+  GameViewLoading;
 
-{ TStateMainMenu ------------------------------------------------------------- }
+{ TViewMainMenu ------------------------------------------------------------- }
 
-constructor TStateMainMenu.Create(AOwner: TComponent);
+constructor TViewMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemainmenu.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmainmenu.castle-user-interface';
 end;
 
-procedure TStateMainMenu.Start;
+procedure TViewMainMenu.Start;
 begin
   inherited;
 
@@ -64,12 +61,12 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
-procedure TStateMainMenu.ClickNewGame(Sender: TObject);
+procedure TViewMainMenu.ClickNewGame(Sender: TObject);
 begin
-  Container.View := StateLoading;
+  Container.View := TViewLoading.CreateUntilStopped;
 end;
 
-procedure TStateMainMenu.ClickQuit(Sender: TObject);
+procedure TViewMainMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;

@@ -13,16 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ State pause. }
-unit GameStatePause;
+{ View pause. }
+unit GameViewPause;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleControls;
+  CastleUIControls, CastleControls;
 
 type
-  TStatePause = class(TUIState)
+  TViewPause = class(TCastleView)
   private
     ButtonMenu: TCastleButton;
     ButtonResume: TCastleButton;
@@ -36,30 +36,30 @@ type
   end;
 
 var
-  StatePause: TStatePause;
+  ViewPause: TViewPause;
 
 implementation
 
-uses CastleSoundEngine, GameStateMenu, GameStatePlay;
+uses CastleSoundEngine, GameViewMenu, GameViewPlay;
 
-constructor TStatePause.Create(AOwner: TComponent);
+constructor TViewPause.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatepause.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewpause.castle-user-interface';
 end;
 
-procedure TStatePause.ClickResume(Sender: TObject);
+procedure TViewPause.ClickResume(Sender: TObject);
 begin
-  StatePlay.ResumeGame;
+  ViewPlay.ResumeGame;
   Container.PopView(Self);
 end;
 
-procedure TStatePause.ClickMenu(Sender: TObject);
+procedure TViewPause.ClickMenu(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
-procedure TStatePause.Start;
+procedure TViewPause.Start;
 begin
   inherited;
 

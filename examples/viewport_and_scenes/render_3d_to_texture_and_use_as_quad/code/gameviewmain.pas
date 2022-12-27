@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,20 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main state, where most of the application logic takes place. }
-unit GameStateMain;
+{ Main view, where most of the application logic takes place. }
+unit GameViewMain;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleViewport, CastleScene;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TViewMain = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
     LabelFps: TCastleLabel;
     SourceViewport: TCastleViewport;
     DisplayedScene: TCastleScene;
@@ -37,22 +37,22 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 
 implementation
 
 uses SysUtils, X3DNodes,
   CastleImages, CastleGLImages, CastleRectangles;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 
   { Load and render a 3D scene to a new texture. }
   function CreateSpriteTexture: TCastleImage;
@@ -75,7 +75,7 @@ procedure TStateMain.Start;
         is done off-screen.
         Below, we explicitly render the SourceViewport. }
       SourceViewport.Exists := true;
-      StateContainer.RenderControl(SourceViewport, ViewportRect);
+      Container.RenderControl(SourceViewport, ViewportRect);
       SourceViewport.Exists := false; // hide it back
 
       Result := SaveScreen_NoFlush(TRGBImage, ViewportRect, RenderToTexture.ColorBuffer);
@@ -119,7 +119,7 @@ begin
   DisplayedMaterial.BaseTexture := NewTexture;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}

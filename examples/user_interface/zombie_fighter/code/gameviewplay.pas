@@ -13,17 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ Game state where you actually play a game. }
-unit GameStatePlay;
+{ Game view where you actually play a game. }
+unit GameViewPlay;
 
 interface
 
-uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu,
+uses Classes, CastleControls, CastleUIControls, CastleOnScreenMenu,
   CastleViewport, CastleSceneCore, CastleScene,
   CastleCameras, CastleKeysMouse;
 
 type
-  TStatePlay = class(TUIState)
+  TViewPlay = class(TCastleView)
   strict private
     MainViewport, MapViewport: TCastleViewport;
     ButtonBack: TCastleButton;
@@ -36,22 +36,25 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
+var
+  ViewPlay: TViewPlay;
+
 implementation
 
-uses CastleVectors, CastleColors, CastleUIControls,
+uses CastleVectors, CastleColors,
   CastleFilesUtils, CastleUtils, CastleTriangles, CastleShapes,
   CastleComponentSerialize,
-  GameStateMainMenu, GameStateAskDialog;
+  GameViewMainMenu, GameViewAskDialog;
 
-{ TStatePlay ------------------------------------------------------------- }
+{ TViewPlay ------------------------------------------------------------- }
 
-constructor TStatePlay.Create(AOwner: TComponent);
+constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-procedure TStatePlay.Start;
+procedure TViewPlay.Start;
 begin
   inherited;
 
@@ -76,7 +79,7 @@ begin
   ButtonBack.OnClick := {$ifdef FPC}@{$endif}ClickBack;
 end;
 
-procedure TStatePlay.Resume;
+procedure TViewPlay.Resume;
 begin
   inherited;
 
@@ -84,28 +87,27 @@ begin
     when mouse cursor is over the Viewport.
 
     Usually you set such things in Start method, but here we need to be
-    prepared that we may be covered by the transparent StateAskDialog state.
-    When StateAskDialog is active, we do *not* want to forcefully capture input
-    (it would allow user to move by mouse dragging when StateAskDialog is open).
+    prepared that we may be covered by the transparent ViewAskDialog view.
+    When ViewAskDialog is active, we do *not* want to forcefully capture input
+    (it would allow user to move by mouse dragging when ViewAskDialog is open).
     So we set this in Resume, and turn off in Pause. }
-  StateContainer.ForceCaptureInput := MainViewport.Navigation;
+  Container.ForceCaptureInput := MainViewport.Navigation;
 end;
 
-procedure TStatePlay.Pause;
+procedure TViewPlay.Pause;
 begin
-  StateContainer.ForceCaptureInput := nil;
+  Container.ForceCaptureInput := nil;
   inherited;
 end;
 
-procedure TStatePlay.ClickBack(Sender: TObject);
+procedure TViewPlay.ClickBack(Sender: TObject);
 begin
-  Container.View := TStateMainMenu.CreateUntilStopped;
+  Container.View := ViewMainMenu;
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): boolean;
+function TViewPlay.Press(const Event: TInputPressRelease): boolean;
 var
   Triangle: PTriangle;
-  Male: Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -118,8 +120,8 @@ begin
        ( (Triangle^.MaterialInfo.Node.X3DName = 'MA_female_zombie_material') or
          (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
     begin
-      Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
-      Container.PushView(TStateAskDialog.CreateUntilStopped(Male));
+      ViewAskDialog.Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
+      Container.PushView(ViewAskDialog);
     end;
   end;
 end;

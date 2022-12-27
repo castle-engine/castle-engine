@@ -24,16 +24,16 @@ interface
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleApplicationProperties, CastleUIState,
+  CastleWindow, CastleApplicationProperties,
   CastleComponentSerialize, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStatePlay
-  , GameStateMenu
-  , GameStateOptions
-  , GameStateDeath
-  , GameStateWin
-  , GameStateCredits
+  , GameViewPlay
+  , GameViewMenu
+  , GameViewOptions
+  , GameViewDeath
+  , GameViewWin
+  , GameViewCredits
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -58,20 +58,20 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StatePlay := TStatePlay.Create(Application);
-  StateMenu := TStateMenu.Create(Application);
-  StateOptions := TStateOptions.Create(Application);
-  StateDeath := TStateDeath.Create(Application);
-  StateWin := TStateWin.Create(Application);
-  StateCredits := TStateCredits.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewPlay := TViewPlay.Create(Application);
+  ViewMenu := TViewMenu.Create(Application);
+  ViewOptions := TViewOptions.Create(Application);
+  ViewDeath := TViewDeath.Create(Application);
+  ViewWin := TViewWin.Create(Application);
+  ViewCredits := TViewCredits.Create(Application);
+  {$endregion 'Castle View Creation'}
 
   InitializeMusicSound;
 
-  Window.Container.View := StateMenu;
+  Window.Container.View := ViewMenu;
 end;
 
 initialization

@@ -14,24 +14,24 @@
 }
 
 { Game options, just volume for now. }
-unit GameStateOptions;
+unit GameViewOptions;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleViewport, CastleSoundEngine;
 
 type
-  TStateOptions = class(TUIState)
+  TViewOptions = class(TCastleView)
   private
     ButtonsVolume: array [0..10] of TCastleButton;
     procedure ClickBackMenu(Sender: TObject);
     procedure ClickBackGame(Sender: TObject);
     procedure ClickVolume(Sender: TObject);
   public
-    { Whether this is displayed on top of StatePlay
-      or not (in which case this goes back to StateMenu). }
+    { Whether this is displayed on top of ViewPlay
+      or not (in which case this goes back to ViewMenu). }
     OverGame: Boolean;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -45,22 +45,22 @@ type
   end;
 
 var
-  StateOptions: TStateOptions;
+  ViewOptions: TViewOptions;
 
 implementation
 
 uses SysUtils,
   CastleLog,
-  GameStateMenu;
+  GameViewMenu;
 
-constructor TStateOptions.Create(AOwner: TComponent);
+constructor TViewOptions.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateoptions.castle-user-interface';
-  DesignPreload := true; // make it fast to transition to this state
+  DesignUrl := 'castle-data:/gameviewoptions.castle-user-interface';
+  DesignPreload := true; // make it fast to transition to this view
 end;
 
-procedure TStateOptions.Start;
+procedure TViewOptions.Start;
 var
   I: Integer;
 begin
@@ -84,22 +84,22 @@ begin
     ButtonBackMenu.Caption := 'Back to menu';
 end;
 
-procedure TStateOptions.ClickBackMenu(Sender: TObject);
+procedure TViewOptions.ClickBackMenu(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
-procedure TStateOptions.ClickBackGame(Sender: TObject);
+procedure TViewOptions.ClickBackGame(Sender: TObject);
 begin
   Container.PopView(Self);
 end;
 
-procedure TStateOptions.ClickVolume(Sender: TObject);
+procedure TViewOptions.ClickVolume(Sender: TObject);
 begin
   SoundEngine.Volume := (Sender as TCastleButton).Tag / High(ButtonsVolume);
 end;
 
-function TStateOptions.Press(const Event: TInputPressRelease): Boolean;
+function TViewOptions.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys

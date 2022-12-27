@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main "playing game" state, where most of the game logic takes place. }
-unit GameStatePlay;
+{ Main "playing game" view, where most of the game logic takes place. }
+unit GameViewPlay;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
   CastleTransform, CastleSoundEngine, X3DNodes,
   GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform;
@@ -45,12 +45,12 @@ type
     property RBody: TCastleRigidBody read FRBody;
   end;
 
-  { Main "playing game" state, where most of the game logic takes place. }
-  TStatePlay = class(TUIState)
+  { Main "playing game" view, where most of the game logic takes place. }
+  TViewPlay = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
+    { Components designed using CGE editor, loaded from view_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;
@@ -172,14 +172,14 @@ type
   end;
 
 var
-  StatePlay: TStatePlay;
+  ViewPlay: TViewPlay;
 
 implementation
 
 uses
   SysUtils, Math,
   CastleLog,
-  GameStateMenu, GameStateGameOver, GameStateLevelComplete, GameStatePause;
+  GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -234,15 +234,15 @@ begin
   Down := -800;
 end;
 
-{ TStatePlay ----------------------------------------------------------------- }
+{ TViewPlay ----------------------------------------------------------------- }
 
-constructor TStatePlay.Create(AOwner: TComponent);
+constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-function TStatePlay.InputLeft: Boolean;
+function TViewPlay.InputLeft: Boolean;
 var
   I: Integer;
 begin
@@ -263,7 +263,7 @@ begin
         Exit(true);
 end;
 
-function TStatePlay.InputRight: Boolean;
+function TViewPlay.InputRight: Boolean;
 var
   I: Integer;
 begin
@@ -279,7 +279,7 @@ begin
         Exit(true);
 end;
 
-function TStatePlay.InputJump: Boolean;
+function TViewPlay.InputJump: Boolean;
 var
   I: Integer;
 begin
@@ -294,7 +294,7 @@ begin
         Exit(true);
 end;
 
-function TStatePlay.InputShot: Boolean;
+function TViewPlay.InputShot: Boolean;
 begin
   Result :=
     Container.Pressed.Items[keySpace] or
@@ -303,7 +303,7 @@ begin
     (Container.TouchesCount >= 2);
 end;
 
-procedure TStatePlay.ConfigurePlayerPhysics(
+procedure TViewPlay.ConfigurePlayerPhysics(
   const Player: TCastleScene);
 var
   RBody: TCastleRigidBody;
@@ -318,7 +318,7 @@ begin
   WasInputJump := false;
 end;
 
-procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
+procedure TViewPlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
@@ -329,7 +329,7 @@ begin
   ResetCollectedKeys;
 end;
 
-procedure TStatePlay.PlayerCollisionEnter(
+procedure TViewPlay.PlayerCollisionEnter(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
   if CollisionDetails.OtherTransform <> nil then
@@ -367,7 +367,7 @@ begin
   end;
 end;
 
-procedure TStatePlay.PlayerCollisionExit(
+procedure TViewPlay.PlayerCollisionExit(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
   { Hide no key message. }
@@ -379,14 +379,14 @@ begin
   end;
 end;
 
-procedure TStatePlay.ConfigureBulletSpriteScene;
+procedure TViewPlay.ConfigureBulletSpriteScene;
 begin
   BulletSpriteScene := TCastleScene.Create(FreeAtStop);
   BulletSpriteScene.URL := 'castle-data:/bullet/particle_darkGrey.png';
   BulletSpriteScene.Scale := Vector3(0.5, 0.5, 0.5);
 end;
 
-procedure TStatePlay.UpdatePlayerSimpleDependOnlyVelocity(
+procedure TViewPlay.UpdatePlayerSimpleDependOnlyVelocity(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 700;
@@ -471,7 +471,7 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
-procedure TStatePlay.UpdatePlayerByVelocityAndRay(const SecondsPassed: Single;
+procedure TViewPlay.UpdatePlayerByVelocityAndRay(const SecondsPassed: Single;
   var HandleInput: Boolean);
 const
   JumpVelocity = 700;
@@ -586,7 +586,7 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
-procedure TStatePlay.UpdatePlayerByVelocityAndRayWithDblJump(
+procedure TViewPlay.UpdatePlayerByVelocityAndRayWithDblJump(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 700;
@@ -728,7 +728,7 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
-procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJump(
+procedure TViewPlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJump(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 700;
@@ -858,7 +858,7 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
-procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
+procedure TViewPlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 680;
@@ -1053,7 +1053,7 @@ begin
   end;
 end;
 
-procedure TStatePlay.Shot(BulletOwner: TComponent; const Origin,
+procedure TViewPlay.Shot(BulletOwner: TComponent; const Origin,
   Direction: TVector3);
 var
   Bullet: TBullet;
@@ -1064,47 +1064,47 @@ begin
   MainViewport.Items.Add(Bullet);
 end;
 
-procedure TStatePlay.CollectCoin;
+procedure TViewPlay.CollectCoin;
 begin
   SoundEngine.Play(SoundEngine.SoundFromName('coin'));
   Inc(PlayerCollectedCoins);
   LabelCollectedCoins.Caption := PlayerCollectedCoins.ToString;
 end;
 
-procedure TStatePlay.ResetCollectedCoins;
+procedure TViewPlay.ResetCollectedCoins;
 begin
   PlayerCollectedCoins := 0;
   LabelCollectedCoins.Caption := '0';
 end;
 
-procedure TStatePlay.HitPlayer;
+procedure TViewPlay.HitPlayer;
 begin
   SetHitPoints(PlayerHitPoints - 1);
   SoundEngine.Play(SoundEngine.SoundFromName('hurt'));
   PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
-function TStatePlay.IsPlayerDead: Boolean;
+function TViewPlay.IsPlayerDead: Boolean;
 begin
   Result := PlayerHitPoints < 0;
 end;
 
-procedure TStatePlay.PauseGame;
+procedure TViewPlay.PauseGame;
 begin
   MainViewport.Items.TimeScale := 0;
 end;
 
-procedure TStatePlay.ResumeGame;
+procedure TViewPlay.ResumeGame;
 begin
   MainViewport.Items.TimeScale := 1;
 end;
 
-procedure TStatePlay.ResetHitPoints;
+procedure TViewPlay.ResetHitPoints;
 begin
   SetHitPoints(4);
 end;
 
-procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
+procedure TViewPlay.SetHitPoints(const HitPoints: Integer);
 begin
   PlayerHitPoints := HitPoints;
 
@@ -1129,20 +1129,20 @@ begin
     ImageHitPoint1.URL := 'castle-data:/ui/hud_heartEmpty.png';
 end;
 
-procedure TStatePlay.CollectKey;
+procedure TViewPlay.CollectKey;
 begin
   SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
   PlayerHasKey := true;
   ImageKey.Exists := true;
 end;
 
-procedure TStatePlay.ResetCollectedKeys;
+procedure TViewPlay.ResetCollectedKeys;
 begin
   PlayerHasKey := false;
   ImageKey.Exists := false;
 end;
 
-procedure TStatePlay.PlayAnimationOnceAndLoop(Scene: TCastleScene;
+procedure TViewPlay.PlayAnimationOnceAndLoop(Scene: TCastleScene;
   const AnimationNameToPlayOnce, AnimationNameToLoop: String);
 var
   Parameters: TPlayAnimationParameters;
@@ -1160,13 +1160,13 @@ begin
   end;
 end;
 
-procedure TStatePlay.OnAnimationStop(const Scene: TCastleSceneCore;
+procedure TViewPlay.OnAnimationStop(const Scene: TCastleSceneCore;
   const Animation: TTimeSensorNode);
 begin
   Scene.PlayAnimation(PlayerAnimationToLoop, true);
 end;
 
-procedure TStatePlay.Start;
+procedure TViewPlay.Start;
 var
   { TCastleTransforms that groups objects in our level }
   PlatformsRoot: TCastleTransform;
@@ -1269,7 +1269,7 @@ begin
   WritelnLog('Configuration done');
 end;
 
-procedure TStatePlay.Stop;
+procedure TViewPlay.Stop;
 begin
   FreeAndNil(Enemies);
   FreeAndNil(FallingObstacles);
@@ -1278,7 +1278,7 @@ begin
   inherited;
 end;
 
-procedure TStatePlay.Resume;
+procedure TViewPlay.Resume;
 begin
   inherited Resume;
 
@@ -1286,7 +1286,7 @@ begin
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
 end;
 
-procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   CamPos: TVector3;
   ViewHeight: Single;
@@ -1295,21 +1295,21 @@ begin
   inherited;
   { This virtual method is executed every frame.}
 
-  { If player is dead and we did not show game over state we do that }
-  if IsPlayerDead and (Container.FrontView <> StateGameOver) then
+  { If player is dead and we did not show game over view we do that }
+  if IsPlayerDead and (Container.FrontView <> ViewGameOver) then
   begin
     ScenePlayer.Exists := false;
 
-    Container.PushView(StateGameOver);
+    Container.PushView(ViewGameOver);
     Exit;
   end;
 
   { If level is completed and we did not show level complete we do that }
-  if LevelComplete and (Container.FrontView <> StateLevelComplete) then
+  if LevelComplete and (Container.FrontView <> ViewLevelComplete) then
   begin
     PlayerRigidBody.Exists := false;
     PauseGame;
-    Container.PushView(StateLevelComplete);
+    Container.PushView(ViewLevelComplete);
     Exit;
   end;
 
@@ -1350,7 +1350,7 @@ begin
     UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
+function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -1361,7 +1361,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TStatePlay.Press method should be used to handle keys
+    The TViewPlay.Press method should be used to handle keys
     not handled in children controls.
   }
 
@@ -1371,10 +1371,10 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyEscape) and (Container.FrontView = StatePlay) then
+  if Event.IsKey(keyEscape) and (Container.FrontView = ViewPlay) then
   begin
     PauseGame;
-    Container.PushView(StatePause);
+    Container.PushView(ViewPause);
     Exit(true);
   end;
 end;

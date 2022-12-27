@@ -25,17 +25,17 @@ implementation
 uses SysUtils,
   CastleApplicationProperties, CastleColors, CastleConfig, CastleControls,
   CastleImages, CastleFilesUtils, CastleKeysMouse, CastleLog, CastleScene,
-  CastleSceneCore, CastleSoundEngine, CastleUIControls, CastleUIState,
+  CastleSceneCore, CastleSoundEngine, CastleUIControls,
   CastleVectors, CastleWindow
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMenu
-  , GameStatePlay
-  , GameStateGameOver
-  , GameStateLevelComplete
-  , GameStatePause
-  , GameStateOptions
-  , GameStateCredits
+  , GameViewMenu
+  , GameViewPlay
+  , GameViewGameOver
+  , GameViewLevelComplete
+  , GameViewPause
+  , GameViewOptions
+  , GameViewCredits
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -65,19 +65,19 @@ begin
   Theme.ImagesPersistent[tiButtonPressed].Url := 'castle-data:/ui/red_button07.png';
   Theme.ImagesPersistent[tiButtonPressed].ProtectedSides.AllSides := 6;
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StatePlay := TStatePlay.Create(Application);
-  StateMenu := TStateMenu.Create(Application);
-  StateGameOver := TStateGameOver.Create(Application);
-  StateLevelComplete := TStateLevelComplete.Create(Application);
-  StatePause := TStatePause.Create(Application);
-  StateOptions := TStateOptions.Create(Application);
-  StateCredits := TStateCredits.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewPlay := TViewPlay.Create(Application);
+  ViewMenu := TViewMenu.Create(Application);
+  ViewGameOver := TViewGameOver.Create(Application);
+  ViewLevelComplete := TViewLevelComplete.Create(Application);
+  ViewPause := TViewPause.Create(Application);
+  ViewOptions := TViewOptions.Create(Application);
+  ViewCredits := TViewCredits.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  Window.Container.View := StateMenu;
+  Window.Container.View := ViewMenu;
 end;
 
 initialization

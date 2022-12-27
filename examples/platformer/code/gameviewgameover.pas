@@ -13,20 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-{ State when you win. }
-unit GameStateLevelComplete;
+{ View when game is over (player died or cancelled). }
+unit GameViewGameOver;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleControls;
+  CastleUIControls, CastleControls;
 
 type
-  TStateLevelComplete = class(TUIState)
+  TViewGameOver = class(TCastleView)
   private
-    ButtonCredits: TCastleButton;
+    ButtonMenu: TCastleButton;
 
-    procedure ClickCredits(Sender: TObject);
+    procedure ClickMenu(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -34,29 +34,29 @@ type
   end;
 
 var
-  StateLevelComplete: TStateLevelComplete;
+  ViewGameOver: TViewGameOver;
 
 implementation
 
-uses CastleSoundEngine, GameStateCredits;
+uses CastleSoundEngine, GameViewMenu;
 
-constructor TStateLevelComplete.Create(AOwner: TComponent);
+constructor TViewGameOver.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatelevelcomplete.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewgameover.castle-user-interface';
 end;
 
-procedure TStateLevelComplete.ClickCredits(Sender: TObject);
+procedure TViewGameOver.ClickMenu(Sender: TObject);
 begin
-  Container.View := StateCredits;
+  Container.View := ViewMenu;
 end;
 
-procedure TStateLevelComplete.Start;
+procedure TViewGameOver.Start;
 begin
   inherited;
 
-  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
-  ButtonCredits.OnClick := {$ifdef FPC}@{$endif}ClickCredits;
+  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
+  ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');

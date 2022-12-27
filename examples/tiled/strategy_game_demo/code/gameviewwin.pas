@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,51 +14,51 @@
 }
 
 { Display instructions. }
-unit GameStateWin;
+unit GameViewWin;
 
 interface
 
-uses CastleUIState, CastleControls, CastleWindow, CastleUIControls,
+uses CastleControls, CastleWindow, CastleUIControls,
   CastleKeysMouse;
 
 type
-  TStateWin = class(TUIState)
+  TViewWin = class(TCastleView)
   public
-    HumansWin: Boolean; //< Set this before starting this state.
+    HumansWin: Boolean; //< Set this before starting this view.
     procedure Start; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
-  StateWin: TStateWin;
+  ViewWin: TViewWin;
 
 implementation
 
 uses SysUtils, Classes,
   CastleComponentSerialize,
-  GameStateMainMenu;
+  GameViewMainMenu;
 
-procedure TStateWin.Start;
+procedure TViewWin.Start;
 begin
   inherited;
 
   { Load designed user interface }
   if HumansWin then
-    DesignUrl := 'castle-data:/gamestatewinhumans.castle-user-interface'
+    DesignUrl := 'castle-data:/gameviewwinhumans.castle-user-interface'
   else
-    DesignUrl := 'castle-data:/gamestatewinaliens.castle-user-interface';
+    DesignUrl := 'castle-data:/gameviewwinaliens.castle-user-interface';
 
-  { do not pass clicks to state underneath }
+  { do not pass clicks to view underneath }
   InterceptInput := true;
 end;
 
-function TStateWin.Press(const Event: TInputPressRelease): Boolean;
+function TViewWin.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    Container.View := StateMainMenu;
+    Container.View := ViewMainMenu;
     Exit(ExclusiveEvents);
   end;
 end;

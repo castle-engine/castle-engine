@@ -14,17 +14,17 @@
 }
 
 { Display the game map, play the game. }
-unit GameStatePlay;
+unit GameViewPlay;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
+  CastleControls, CastleTiledMap, CastleUIControls,
   CastleVectors, CastleKeysMouse,
   GameUnit;
 
 type
-  TStatePlay = class(TUIState)
+  TViewPlay = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -47,7 +47,7 @@ type
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure UpdateTurnStatus;
   public
-    { Set this before starting this state. }
+    { Set this before starting this view. }
     MapName: String;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -57,21 +57,21 @@ type
   end;
 
 var
-  StatePlay: TStatePlay;
+  ViewPlay: TViewPlay;
 
 implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleUtils, CastleRectangles,
-  GameStateMainMenu, GameStateInstructions, GameStateWin;
+  GameViewMainMenu, GameViewInstructions, GameViewWin;
 
-constructor TStatePlay.Create(AOwner: TComponent);
+constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-procedure TStatePlay.Start;
+procedure TViewPlay.Start;
 
   procedure PlaceInitialUnits;
 
@@ -148,9 +148,9 @@ begin
   UpdateTurnStatus;
 end;
 
-procedure TStatePlay.Stop;
+procedure TViewPlay.Stop;
 begin
-  { Make sure to clear fields, otherwise stopping + starting this state again
+  { Make sure to clear fields, otherwise stopping + starting this view again
     (when you exit the game and start a new game) could have non-nil but
     invalid SelectedUnit reference. }
   TileUnderMouseExists := false;
@@ -158,17 +158,17 @@ begin
   inherited;
 end;
 
-procedure TStatePlay.ClickQuit(Sender: TObject);
+procedure TViewPlay.ClickQuit(Sender: TObject);
 begin
-  Container.View := StateMainMenu;
+  Container.View := ViewMainMenu;
 end;
 
-procedure TStatePlay.ClickInstructions(Sender: TObject);
+procedure TViewPlay.ClickInstructions(Sender: TObject);
 begin
-  Container.PushView(StateInstructions);
+  Container.PushView(ViewInstructions);
 end;
 
-procedure TStatePlay.ClickEndTurn(Sender: TObject);
+procedure TViewPlay.ClickEndTurn(Sender: TObject);
 
   procedure ResetMovement;
   var
@@ -185,7 +185,7 @@ begin
   UpdateTurnStatus;
 end;
 
-procedure TStatePlay.MapPress(const Sender: TCastleUserInterface;
+procedure TViewPlay.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 
   procedure CheckWin;
@@ -203,8 +203,8 @@ procedure TStatePlay.MapPress(const Sender: TCastleUserInterface;
 
     if not FoundEnemy then
     begin
-      StateWin.HumansWin := HumanTurn;
-      Container.PushView(StateWin);
+      ViewWin.HumansWin := HumanTurn;
+      Container.PushView(ViewWin);
     end;
   end;
 
@@ -244,7 +244,7 @@ begin
   end;
 end;
 
-procedure TStatePlay.UpdateTurnStatus;
+procedure TViewPlay.UpdateTurnStatus;
 var
   SideName: String;
 begin
@@ -269,7 +269,7 @@ begin
   end;
 end;
 
-procedure TStatePlay.Update(const SecondsPassed: Single;
+procedure TViewPlay.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
   TileStr: String;
@@ -285,8 +285,7 @@ begin
   if TileUnderMouseExists then
   begin
     TileRect := MapControl.TileRectangle(TileUnderMouse, false);
-    TileUnderMouseImage.Left := TileRect.Left;
-    TileUnderMouseImage.Bottom := TileRect.Bottom;
+    TileUnderMouseImage.Translation := Vector2(TileRect.Left, TileRect.Bottom);
     TileUnderMouseImage.Width := TileRect.Width;
     TileUnderMouseImage.Height := TileRect.Height;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];

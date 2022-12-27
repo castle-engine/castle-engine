@@ -14,18 +14,18 @@
 }
 
 { Credits screen }
-unit GameStateCredits;
+unit GameViewCredits;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls;
+  CastleComponentSerialize, CastleUIControls, CastleControls;
 
 type
-  { Credits state }
-  TStateCredits = class(TUIState)
+  { Credits view }
+  TViewCredits = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
+    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
     ButtonCGE, ButtonGraphics, ButtonMusic, ButtonSources, ButtonMenu: TCastleButton;
     procedure ClickCGE(Sender: TObject);
     procedure ClickGraphics(Sender: TObject);
@@ -38,22 +38,22 @@ type
   end;
 
 var
-  StateCredits: TStateCredits;
+  ViewCredits: TViewCredits;
 
 implementation
 
 uses CastleApplicationProperties, CastleWindow, CastleOpenDocument,
-  GameStateMenu;
+  GameViewMenu;
 
-{ TStateMenu ----------------------------------------------------------------- }
+{ TViewMenu ----------------------------------------------------------------- }
 
-constructor TStateCredits.Create(AOwner: TComponent);
+constructor TViewCredits.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatecredits.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewcredits.castle-user-interface';
 end;
 
-procedure TStateCredits.Start;
+procedure TViewCredits.Start;
 begin
   inherited;
 
@@ -71,27 +71,27 @@ begin
   ButtonSources.OnClick := {$ifdef FPC}@{$endif}ClickSources;
 end;
 
-procedure TStateCredits.ClickMenu(Sender: TObject);
+procedure TViewCredits.ClickMenu(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
-procedure TStateCredits.ClickCGE(Sender: TObject);
+procedure TViewCredits.ClickCGE(Sender: TObject);
 begin
   OpenURL('https://castle-engine.io');
 end;
 
-procedure TStateCredits.ClickGraphics(Sender: TObject);
+procedure TViewCredits.ClickGraphics(Sender: TObject);
 begin
   OpenURL('https://www.kenney.nl');
 end;
 
-procedure TStateCredits.ClickMusic(Sender: TObject);
+procedure TViewCredits.ClickMusic(Sender: TObject);
 begin
   OpenURL('https://www.akimaze.com');
 end;
 
-procedure TStateCredits.ClickSources(Sender: TObject);
+procedure TViewCredits.ClickSources(Sender: TObject);
 begin
   OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/platformer');
 end;

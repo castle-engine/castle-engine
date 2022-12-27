@@ -44,7 +44,7 @@ type
 
 implementation
 
-uses GameStatePlay;
+uses GameViewPlay;
 
 { TDeadlyObstacle ------------------------------------------------------------ }
 
@@ -86,9 +86,9 @@ end;
 
 procedure TDeadlyObstacle.HitPlayer;
 begin
-  StatePlay.HitPlayer;
+  ViewPlay.HitPlayer;
   { When player is dead stop hiting. }
-  if StatePlay.IsPlayerDead then
+  if ViewPlay.IsPlayerDead then
   begin
     IsPlayerColliding := false;
     CollidingTime := 0;

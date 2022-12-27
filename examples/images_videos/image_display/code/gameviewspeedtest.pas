@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,15 +14,15 @@
 }
 
 { Measure loading time of various images. }
-unit GameStateSpeedTest;
+unit GameViewSpeedTest;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TStateSpeedTest = class(TUIState)
+  TViewSpeedTest = class(TCastleView)
   private
     const
       TestImages: array [0..11] of String = (
@@ -55,21 +55,21 @@ type
   end;
 
 var
-  StateSpeedTest: TStateSpeedTest;
+  ViewSpeedTest: TViewSpeedTest;
 
 implementation
 
 uses SysUtils,
   CastleImages, CastleTimeUtils, CastleURIUtils,
-  GameStateMain;
+  GameViewMain;
 
-constructor TStateSpeedTest.Create(AOwner: TComponent);
+constructor TViewSpeedTest.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatespeedtest.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewspeedtest.castle-user-interface';
 end;
 
-procedure TStateSpeedTest.Start;
+procedure TViewSpeedTest.Start;
 begin
   inherited;
 
@@ -90,12 +90,12 @@ begin
   WaitForRenderAndCall({$ifdef FPC}@{$endif} NextTest);
 end;
 
-procedure TStateSpeedTest.ClickGoView(Sender: TObject);
+procedure TViewSpeedTest.ClickGoView(Sender: TObject);
 begin
-  Container.View := StateMain;
+  Container.View := ViewMain;
 end;
 
-procedure TStateSpeedTest.NextTest(Sender: TObject);
+procedure TViewSpeedTest.NextTest(Sender: TObject);
 const
   TestsCountDefault = 100;
   TestsCountXpm = 5; // XPM loading is *very* slow, smaller amount of tests is enough

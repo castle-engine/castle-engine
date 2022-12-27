@@ -14,19 +14,19 @@
 }
 
 { Simple options user interface, that allows to change sound settings. }
-unit GameStateOptions;
+unit GameViewOptions;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleSoundEngine;
 
 type
   { Simple options user interface, that allows to change sound settings. }
-  TStateOptions = class(TUIState)
+  TViewOptions = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
+    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
     ButtonMenu: TCastleButton;
     VolumeGroup: TCastleHorizontalGroup;
     MusicGroup: TCastleHorizontalGroup;
@@ -42,22 +42,22 @@ type
   end;
 
 var
-  StateOptions: TStateOptions;
+  ViewOptions: TViewOptions;
 
 implementation
 
 uses CastleApplicationProperties, CastleWindow, CastleConfig,
-  GameStateMenu;
+  GameViewMenu;
 
-{ TStateMenu ----------------------------------------------------------------- }
+{ TViewMenu ----------------------------------------------------------------- }
 
-constructor TStateOptions.Create(AOwner: TComponent);
+constructor TViewOptions.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateoptions.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewoptions.castle-user-interface';
 end;
 
-procedure TStateOptions.Start;
+procedure TViewOptions.Start;
 var
   I: Integer;
   Button: TCastleButton;
@@ -86,7 +86,7 @@ begin
   SetMusic(UserConfig.GetFloat('music', 1.0));
 end;
 
-procedure TStateOptions.SetVolume(const Volume: Single);
+procedure TViewOptions.SetVolume(const Volume: Single);
 var
   I: Integer;
   MaxButtonIndex: Integer;
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-procedure TStateOptions.SetMusic(const Music: Single);
+procedure TViewOptions.SetMusic(const Music: Single);
 var
   I: Integer;
   MaxButtonIndex: Integer;
@@ -130,12 +130,12 @@ begin
   end;
 end;
 
-procedure TStateOptions.ClickMenu(Sender: TObject);
+procedure TViewOptions.ClickMenu(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
-procedure TStateOptions.ClickVolume(Sender: TObject);
+procedure TViewOptions.ClickVolume(Sender: TObject);
 var
   ClickedButtonIndex: Integer;
 begin
@@ -144,7 +144,7 @@ begin
   SetVolume((ClickedButtonIndex -1) / 10);
 end;
 
-procedure TStateOptions.ClickMusic(Sender: TObject);
+procedure TViewOptions.ClickMusic(Sender: TObject);
 var
   ClickedButtonIndex: Integer;
 begin

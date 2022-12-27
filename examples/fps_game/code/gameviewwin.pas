@@ -14,15 +14,15 @@
 }
 
 { Win screen. }
-unit GameStateWin;
+unit GameViewWin;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TStateWin = class(TUIState)
+  TViewWin = class(TCastleView)
   private
     procedure ClickBack(Sender: TObject);
   public
@@ -35,27 +35,27 @@ type
   end;
 
 var
-  StateWin: TStateWin;
+  ViewWin: TViewWin;
 
 implementation
 
-uses GameStateMenu;
+uses GameViewMenu;
 
-constructor TStateWin.Create(AOwner: TComponent);
+constructor TViewWin.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatewin.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewwin.castle-user-interface';
 end;
 
-procedure TStateWin.Start;
+procedure TViewWin.Start;
 begin
   inherited;
   ButtonBack.OnClick := {$ifdef FPC}@{$endif} ClickBack;
 end;
 
-procedure TStateWin.ClickBack(Sender: TObject);
+procedure TViewWin.ClickBack(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
 end.

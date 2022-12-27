@@ -14,15 +14,15 @@
 }
 
 { Display instructions. }
-unit GameStateInstructions;
+unit GameViewInstructions;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleControls, CastleWindow, CastleUIControls;
+  CastleControls, CastleWindow, CastleUIControls;
 
 type
-  TStateInstructions = class(TUIState)
+  TViewInstructions = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -35,31 +35,31 @@ type
   end;
 
 var
-  StateInstructions: TStateInstructions;
+  ViewInstructions: TViewInstructions;
 
 implementation
 
 uses SysUtils,
   CastleComponentSerialize,
-  GameStatePlay;
+  GameViewPlay;
 
-constructor TStateInstructions.Create(AOwner: TComponent);
+constructor TViewInstructions.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateinstructions.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewinstructions.castle-user-interface';
 end;
 
-procedure TStateInstructions.Start;
+procedure TViewInstructions.Start;
 begin
   inherited;
 
   ButtonClose.OnClick := {$ifdef FPC}@{$endif}ClickClose;
 
-  { do not pass clicks to state underneath }
+  { do not pass clicks to view underneath }
   InterceptInput := true;
 end;
 
-procedure TStateInstructions.ClickClose(Sender: TObject);
+procedure TViewInstructions.ClickClose(Sender: TObject);
 begin
   Container.PopView(Self);
 end;

@@ -14,15 +14,15 @@
 }
 
 { Death (game lost) screen. }
-unit GameStateDeath;
+unit GameViewDeath;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  TStateDeath = class(TUIState)
+  TViewDeath = class(TCastleView)
   private
     procedure ClickBack(Sender: TObject);
   public
@@ -35,27 +35,27 @@ type
   end;
 
 var
-  StateDeath: TStateDeath;
+  ViewDeath: TViewDeath;
 
 implementation
 
-uses GameStateMenu;
+uses GameViewMenu;
 
-constructor TStateDeath.Create(AOwner: TComponent);
+constructor TViewDeath.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatedeath.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewdeath.castle-user-interface';
 end;
 
-procedure TStateDeath.Start;
+procedure TViewDeath.Start;
 begin
   inherited;
   ButtonBack.OnClick := {$ifdef FPC}@{$endif} ClickBack;
 end;
 
-procedure TStateDeath.ClickBack(Sender: TObject);
+procedure TViewDeath.ClickBack(Sender: TObject);
 begin
-  Container.View := StateMenu;
+  Container.View := ViewMenu;
 end;
 
 end.

@@ -45,7 +45,7 @@ implementation
 
 uses
   CastleLog,
-  GameStatePlay;
+  GameViewPlay;
 
 { TEnemy --------------------------------------------------------------------- }
 
@@ -144,7 +144,7 @@ end;
 
 procedure TEnemy.HitPlayer;
 begin
-  StatePlay.HitPlayer;
+  ViewPlay.HitPlayer;
   Dead := true;
   RBody.Exists := false;
 end;

@@ -14,18 +14,18 @@
 }
 
 { Playing the game. }
-unit GameStatePlay;
+unit GameViewPlay;
 
 interface
 
 uses Classes, CastleCameras,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleViewport, CastleSceneCore, X3DNodes, CastleScene, CastleSoundEngine,
   CastleBehaviors, CastleNotifications, CastleTransform,
   GameEnemy;
 
 type
-  TStatePlay = class(TUIState)
+  TViewPlay = class(TCastleView)
   private
     PersistentMouseLook: Boolean;
     Enemies: TEnemyList;
@@ -52,21 +52,21 @@ type
   end;
 
 var
-  StatePlay: TStatePlay;
+  ViewPlay: TViewPlay;
 
 implementation
 
 uses SysUtils, Math,
   CastleComponentSerialize, CastleLog,
-  GameStateWin, GameStateDeath, GameStateOptions;
+  GameViewWin, GameViewDeath, GameViewOptions;
 
-constructor TStatePlay.Create(AOwner: TComponent);
+constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-procedure TStatePlay.Start;
+procedure TViewPlay.Start;
 var
   SceneName: String;
   SceneEnemy: TCastleScene;
@@ -93,13 +93,13 @@ begin
   MapViewport.Items := MainViewport.Items;
 end;
 
-procedure TStatePlay.Stop;
+procedure TViewPlay.Stop;
 begin
   FreeAndNil(Enemies);
   inherited;
 end;
 
-procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   DirectionHorizontal: TVector3;
   GameActive: Boolean;
@@ -128,32 +128,32 @@ begin
 
     if BoxWinDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
-      Container.PushView(StateWin);
+      Container.PushView(ViewWin);
       Exit;
     end;
 
     if BoxDieDetect.WorldBoundingBox.Contains(MainViewport.Camera.WorldTranslation) then
     begin
-      Container.PushView(StateDeath);
+      Container.PushView(ViewDeath);
       Exit;
     end;
   end;
 end;
 
-procedure TStatePlay.UpdateMouseLook;
+procedure TViewPlay.UpdateMouseLook;
 begin
   WalkNavigation.MouseLook := (Container.FrontView = Self) and
     ( PersistentMouseLook or
       (buttonRight in Container.MousePressed) );
 end;
 
-procedure TStatePlay.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
+procedure TViewPlay.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
   const Animation: TTimeSensorNode);
 begin
   Scene.PlayAnimation('idle', true);
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
+function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
   HitEnemy: TEnemy;
   PlayAnimationParams: TPlayAnimationParameters;
@@ -201,20 +201,20 @@ begin
 
     if Event.IsKey(keyEscape) then
     begin
-      StateOptions.OverGame := true;
-      Container.PushView(StateOptions);
+      ViewOptions.OverGame := true;
+      Container.PushView(ViewOptions);
       Exit(true);
     end;
 
     if Event.IsKey(keyP) then
     begin
-      Container.PushView(StateWin);
+      Container.PushView(ViewWin);
       Exit(true);
     end;
 
     if Event.IsKey(keyO) then
     begin
-      Container.PushView(StateDeath);
+      Container.PushView(ViewDeath);
       Exit(true);
     end;
   end;

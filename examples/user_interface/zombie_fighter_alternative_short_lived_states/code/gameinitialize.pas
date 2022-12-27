@@ -23,9 +23,9 @@ interface
 implementation
 
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
-  CastleColors, CastleUIControls, CastleUIState, CastleWindow,
+  CastleColors, CastleUIControls, CastleWindow,
   CastleApplicationProperties, CastleLog,
-  GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
+  GameViewMainMenu, GameViewLoading, GameViewPlay, GameViewAskDialog;
 
 var
   Window: TCastleWindow;
@@ -35,8 +35,8 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { initialize first state }
-  Window.Container.View := TStateMainMenu.CreateUntilStopped;
+  { initialize first view }
+  Window.Container.View := TViewMainMenu.CreateUntilStopped;
 end;
 
 initialization

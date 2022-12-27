@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,20 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main state, where most of the application logic takes place. }
-unit GameStateMain;
+{ Main view, where most of the application logic takes place. }
+unit GameViewMain;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TViewMain = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
     LabelFps: TCastleLabel;
     ButtonQuit, ButtonGoSpeedTest: TCastleButton;
 
@@ -39,23 +39,23 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 
 implementation
 
 uses SysUtils,
   CastleApplicationProperties, CastleWindow,
-  GameStateSpeedTest;
+  GameViewSpeedTest;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 begin
   inherited;
 
@@ -71,21 +71,21 @@ begin
   ButtonGoSpeedTest.OnClick := {$ifdef FPC}@{$endif} ClickGoSpeedTest;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure TStateMain.ClickQuit(Sender: TObject);
+procedure TViewMain.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;
 
-procedure TStateMain.ClickGoSpeedTest(Sender: TObject);
+procedure TViewMain.ClickGoSpeedTest(Sender: TObject);
 begin
-  Container.View := StateSpeedTest;
+  Container.View := ViewSpeedTest;
 end;
 
 end.

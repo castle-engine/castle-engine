@@ -14,16 +14,16 @@
 }
 
 { Main menu, at the start of the game. }
-unit GameStateMenu;
+unit GameViewMenu;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse,
+  CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleSoundEngine;
 
 type
-  TStateMenu = class(TUIState)
+  TViewMenu = class(TCastleView)
   private
     procedure ClickCredits(Sender: TObject);
     procedure ClickPlay(Sender: TObject);
@@ -42,21 +42,21 @@ type
   end;
 
 var
-  StateMenu: TStateMenu;
+  ViewMenu: TViewMenu;
 
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameStateOptions, GameStatePlay, GameStateCredits;
+  GameViewOptions, GameViewPlay, GameViewCredits;
 
-constructor TStateMenu.Create(AOwner: TComponent);
+constructor TViewMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
-  DesignPreload := true; // make it fast to transition to this state
+  DesignUrl := 'castle-data:/gameviewmenu.castle-user-interface';
+  DesignPreload := true; // make it fast to transition to this view
 end;
 
-procedure TStateMenu.Start;
+procedure TViewMenu.Start;
 begin
   inherited;
 
@@ -69,23 +69,23 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
-procedure TStateMenu.ClickCredits(Sender: TObject);
+procedure TViewMenu.ClickCredits(Sender: TObject);
 begin
-  Container.View := StateCredits;
+  Container.View := ViewCredits;
 end;
 
-procedure TStateMenu.ClickPlay(Sender: TObject);
+procedure TViewMenu.ClickPlay(Sender: TObject);
 begin
-  Container.View := StatePlay;
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMenu.ClickOptions(Sender: TObject);
+procedure TViewMenu.ClickOptions(Sender: TObject);
 begin
-  StateOptions.OverGame := false;
-  Container.View := StateOptions;
+  ViewOptions.OverGame := false;
+  Container.View := ViewOptions;
 end;
 
-procedure TStateMenu.ClickQuit(Sender: TObject);
+procedure TViewMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;

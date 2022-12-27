@@ -12,21 +12,21 @@
 
   ----------------------------------------------------------------------------
 }
-{ Main state, where most of the application logic takes place. }
-unit GameStateMain;
+{ Main view, where most of the application logic takes place. }
+unit GameViewMain;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleScene, CastleTransform,
   CastleViewport;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TViewMain = class(TCastleView)
   private
-    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
     LabelFps: TCastleLabel;
     RoadScene: TCastleScene;
     MainViewport: TCastleViewport;
@@ -41,7 +41,7 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 
 implementation
 
@@ -70,15 +70,15 @@ begin
   Parent.Translation := T;
 end;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 
   function CreateAdditionalMesh: TCastleScene;
   var
@@ -181,14 +181,14 @@ begin
   end;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys

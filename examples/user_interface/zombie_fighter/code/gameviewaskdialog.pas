@@ -13,16 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Game state that asks a question using a dialog. }
-unit GameStateAskDialog;
+{ Game view that asks a question using a dialog. }
+unit GameViewAskDialog;
 
 interface
 
 uses Classes,
-  CastleControls, CastleUIState, CastleUIControls;
+  CastleControls, CastleUIControls;
 
 type
-  TStateAskDialog = class(TUIState)
+  TViewAskDialog = class(TCastleView)
   strict private
     type
       { Example of designing a custom TCastleUserInterface descendant,
@@ -30,7 +30,7 @@ type
 
         Note: In this example, this is quite pointless.
         You could (and should) just put the dialog inside
-        state_ask_dialog.castle-user-interface, and you don't need nested
+        view_ask_dialog.castle-user-interface, and you don't need nested
         class TZombieDialog! This is just a demo that you *could* design a reusable
         UI component like this.
 
@@ -43,25 +43,27 @@ type
         procedure ClickRun(Sender: TObject);
         procedure ClickFight(Sender: TObject);
       public
-        State: TStateAskDialog; //< set after creation
         constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
       end;
     var
       Dialog: TZombieDialog;
-      { Whether to show male image. Set by constructor. }
-      Male: boolean;
   public
-    constructor CreateUntilStopped(const AMale: Boolean);
+    { Whether to show male image. Set before doing @link(Start). }
+    Male: boolean;
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
+
+var
+  ViewAskDialog: TViewAskDialog;
 
 implementation
 
 uses CastleUtils, CastleVectors, CastleComponentSerialize;
 
-{ TStateAskDialog.TZombieDialog ---------------------------------------------- }
+{ TViewAskDialog.TZombieDialog ---------------------------------------------- }
 
-constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: boolean);
+constructor TViewAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: boolean);
 var
   UiOwner: TComponent;
   Ui: TCastleUserInterface;
@@ -93,42 +95,40 @@ begin
   AutoSizeToChildren := true;
 end;
 
-procedure TStateAskDialog.TZombieDialog.ClickRun(Sender: TObject);
+procedure TViewAskDialog.TZombieDialog.ClickRun(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "running",
-    we just return to TStatePlay. }
-  Container.PopView(State);
+    we just return to ViewPlay. }
+  Container.PopView(ViewAskDialog);
 end;
 
-procedure TStateAskDialog.TZombieDialog.ClickFight(Sender: TObject);
+procedure TViewAskDialog.TZombieDialog.ClickFight(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "fighting",
-    we just return to TStatePlay. }
-  Container.PopView(State);
+    we just return to ViewPlay. }
+  Container.PopView(ViewAskDialog);
 end;
 
-{ TStateAskDialog ------------------------------------------------------------ }
+{ TViewAskDialog ------------------------------------------------------------ }
 
-constructor TStateAskDialog.CreateUntilStopped(const AMale: Boolean);
+constructor TViewAskDialog.Create(AOwner: TComponent);
 begin
-  inherited CreateUntilStopped;
-  Male := AMale;
-  DesignUrl := 'castle-data:/gamestateaskdialog.castle-user-interface';
+  inherited;
+  DesignUrl := 'castle-data:/gameviewaskdialog.castle-user-interface';
 end;
 
-procedure TStateAskDialog.Start;
+procedure TViewAskDialog.Start;
 begin
   inherited;
 
-  { Do not allow clicks to pass to StatePlay underneath.
-    We are transparent (show the StatePlay underneath),
+  { Do not allow clicks to pass to ViewPlay underneath.
+    We are transparent (show the ViewPlay underneath),
     but we don't want to allow user to interact with it (e.g. by causing
-    another StateAskDialog by clicking, or by pressing on
-    StatePlay.ButtonBack). }
+    another ViewAskDialog by clicking, or by pressing on
+    ViewPlay.ButtonBack). }
   InterceptInput := true;
 
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
-  Dialog.State := Self;
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);

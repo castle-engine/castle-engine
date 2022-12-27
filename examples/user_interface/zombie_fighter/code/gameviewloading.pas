@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,23 +13,24 @@
   ----------------------------------------------------------------------------
 }
 
-{ State with sample loading. }
-unit GameStateLoading;
+{ View with sample loading. }
+unit GameViewLoading;
 
 interface
 
-uses Classes, CastleControls, CastleUIState;
+uses Classes,
+  CastleControls, CastleUIControls;
 
 type
-  { Loading state.
-    This is an example how to show a loading progress using TStateLoading.
+  { Loading view.
+    This is an example how to show a loading progress using TViewLoading.
 
     As an example, it assumes that your "loading" consists of
     - one call to DoLoadSomething1
     - one call to DoLoadSomething2
     - 17 calls to DoLoadSomethingSmall
   }
-  TStateLoading = class(TUIState)
+  TViewLoading = class(TCastleView)
   strict private
     const
       FakeLoadingAdditionalStepsCount = 17;
@@ -38,7 +39,6 @@ type
       { Variable that simulates loading progress,
         we will grow it from 0 to FakeLoadingAdditionalStepsCount during loading. }
       FakeLoadingAdditionalSteps: Cardinal;
-      LoadingFinished: Boolean;
     procedure UpdateProgress(const Progress: Single);
     procedure DoLoadSomething1(Sender: TObject);
     procedure DoLoadSomething2(Sender: TObject);
@@ -47,43 +47,44 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
+
+var
+  ViewLoading: TViewLoading;
 
 implementation
 
 uses SysUtils,
-  CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleApplicationProperties,
+  CastleColors, CastleWindow, CastleFilesUtils, CastleApplicationProperties,
   CastleUtils, CastleComponentSerialize,
-  GameStatePlay;
+  GameViewPlay;
 
-{ TStateLoading ------------------------------------------------------------- }
+{ TViewLoading ------------------------------------------------------------- }
 
-constructor TStateLoading.Create(AOwner: TComponent);
+constructor TViewLoading.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestateloading.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewloading.castle-user-interface';
 end;
 
-procedure TStateLoading.Start;
+procedure TViewLoading.Start;
 begin
   inherited;
 
   { Find components, by name, that we need to access from code }
   LabelPercent := DesignedComponent('LabelPercent') as TCastleLabel;
 
-  LoadingFinished := false;
   FakeLoadingAdditionalSteps := 0;
   UpdateProgress(0);
   WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomething1);
 end;
 
-procedure TStateLoading.UpdateProgress(const Progress: Single);
+procedure TViewLoading.UpdateProgress(const Progress: Single);
 begin
   LabelPercent.Caption := IntToStr(Round(100 * Progress)) + '%';
 end;
 
-procedure TStateLoading.DoLoadSomething1(Sender: TObject);
+procedure TViewLoading.DoLoadSomething1(Sender: TObject);
 begin
   { Fake loading something big, one time. Just do something time-consuming there. }
   Sleep(100);
@@ -92,7 +93,7 @@ begin
   WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomething2);
 end;
 
-procedure TStateLoading.DoLoadSomething2(Sender: TObject);
+procedure TViewLoading.DoLoadSomething2(Sender: TObject);
 begin
   { Fake loading something big, one time. Just do something time-consuming there. }
   Sleep(100);
@@ -101,7 +102,7 @@ begin
   WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomethingSmall);
 end;
 
-procedure TStateLoading.DoLoadSomethingSmall(Sender: TObject);
+procedure TViewLoading.DoLoadSomethingSmall(Sender: TObject);
 begin
   { Fake loading something small, 17 times (FakeLoadingAdditionalStepsCount).
     Just do something time-consuming there. }
@@ -118,24 +119,10 @@ begin
     WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomethingSmall); // call this again, to load next step
 end;
 
-procedure TStateLoading.DoLoadingFinish(Sender: TObject);
+procedure TViewLoading.DoLoadingFinish(Sender: TObject);
 begin
-  { Finished loading, go to StatePlay.
-
-    In case of using CreateUntilStopped, you cannot change state
-    inside a WaitForRenderAndCall callback.
-    So we need additional flag LoadingFinished to mark this state,
-    that is handled in Update.
-    This is more straightforward in version without CreateUntilStopped,
-    in examples/zombie_fighter/ . }
-  LoadingFinished := true;
-end;
-
-procedure TStateLoading.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-begin
-  inherited;
-  if LoadingFinished then
-    Container.View := TStatePlay.CreateUntilStopped;
+  { Finished loading, go to ViewPlay }
+  Container.View := ViewPlay;
 end;
 
 end.

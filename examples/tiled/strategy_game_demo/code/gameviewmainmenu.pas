@@ -14,15 +14,15 @@
 }
 
 { Display main menu. }
-unit GameStateMainMenu;
+unit GameViewMainMenu;
 
 interface
 
 uses Classes,
-  CastleUIState, CastleControls, CastleWindow, CastleUIControls;
+  CastleControls, CastleWindow, CastleUIControls;
 
 type
-  TStateMainMenu = class(TUIState)
+  TViewMainMenu = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -43,21 +43,21 @@ type
   end;
 
 var
-  StateMainMenu: TStateMainMenu;
+  ViewMainMenu: TViewMainMenu;
 
 implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleApplicationProperties,
-  GameStatePlay;
+  GameViewPlay;
 
-constructor TStateMainMenu.Create(AOwner: TComponent);
+constructor TViewMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemainmenu.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmainmenu.castle-user-interface';
 end;
 
-procedure TStateMainMenu.Start;
+procedure TViewMainMenu.Start;
 begin
   inherited;
   ButtonPlayHexagonal.OnClick := {$ifdef FPC}@{$endif}ClickHexagonal;
@@ -68,31 +68,31 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
-procedure TStateMainMenu.ClickHexagonal(Sender: TObject);
+procedure TViewMainMenu.ClickHexagonal(Sender: TObject);
 begin
-  StatePlay.MapName := 'map-hexagonal';
-  Container.View := StatePlay;
+  ViewPlay.MapName := 'map-hexagonal';
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMainMenu.ClickIsometricStaggered(Sender: TObject);
+procedure TViewMainMenu.ClickIsometricStaggered(Sender: TObject);
 begin
-  StatePlay.MapName := 'map-isometric-staggered';
-  Container.View := StatePlay;
+  ViewPlay.MapName := 'map-isometric-staggered';
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMainMenu.ClickIsometric(Sender: TObject);
+procedure TViewMainMenu.ClickIsometric(Sender: TObject);
 begin
-  StatePlay.MapName := 'map-isometric';
-  Container.View := StatePlay;
+  ViewPlay.MapName := 'map-isometric';
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMainMenu.ClickOrthogonal(Sender: TObject);
+procedure TViewMainMenu.ClickOrthogonal(Sender: TObject);
 begin
-  StatePlay.MapName := 'map-orthogonal';
-  Container.View := StatePlay;
+  ViewPlay.MapName := 'map-orthogonal';
+  Container.View := ViewPlay;
 end;
 
-procedure TStateMainMenu.ClickQuit(Sender: TObject);
+procedure TViewMainMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;
