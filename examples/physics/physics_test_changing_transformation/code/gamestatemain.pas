@@ -38,6 +38,7 @@ type
     CheckboxContinuousCollisionDetectionSphereDynamic: TCastleCheckbox;
     ButtonBodyAnimated: TCastleButton;
     ButtonBodyDynamic: TCastleButton;
+    PlayerBody, TestBody: TCastleRigidBody;
   private
     procedure ClickMoveByTranslate(Sender: TObject);
     procedure ClickMoveByVelocity(Sender: TObject);
@@ -112,17 +113,17 @@ end;
 procedure TStateMain.CheckboxContinuousCollisionDetectionChange(Sender: TObject);
 begin
   if CheckboxContinuousCollisionDetection.Checked then
-    SpherePlayer.RigidBody.CollisionDetection := cdContinuous
+    PlayerBody.CollisionDetection := cdContinuous
   else
-    SpherePlayer.RigidBody.CollisionDetection := cdDiscrete;
+    PlayerBody.CollisionDetection := cdDiscrete;
 end;
 
 procedure TStateMain.CheckboxContinuousCollisionDetectionSphereDynamicChange(Sender: TObject);
 begin
   if CheckboxContinuousCollisionDetectionSphereDynamic.Checked then
-    SphereDynamic.RigidBody.CollisionDetection := cdContinuous
+    TestBody.CollisionDetection := cdContinuous
   else
-    SphereDynamic.RigidBody.CollisionDetection := cdDiscrete;
+    TestBody.CollisionDetection := cdDiscrete;
 end;
 
 procedure TStateMain.ClickBodyDynamic(Sender: TObject);
@@ -130,8 +131,8 @@ begin
   ButtonBodyAnimated.Pressed := false;
   ButtonBodyDynamic.Pressed := true;
 
-  SpherePlayer.RigidBody.Animated := false;
-  SpherePlayer.RigidBody.Dynamic := true;
+  PlayerBody.Animated := false;
+  PlayerBody.Dynamic := true;
 end;
 
 procedure TStateMain.ClickBodyAnimated(Sender: TObject);
@@ -139,8 +140,8 @@ begin
   ButtonBodyAnimated.Pressed := true;
   ButtonBodyDynamic.Pressed := false;
 
-  SpherePlayer.RigidBody.Animated := true;
-  SpherePlayer.RigidBody.Dynamic := false;
+  PlayerBody.Animated := true;
+  PlayerBody.Dynamic := false;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -156,7 +157,7 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolea
       SpherePlayer.Translate(Vector3(V, 0))
     else
     if ButtonMoveByVelocity.Pressed then
-      SpherePlayer.RigidBody.LinearVelocity := SpherePlayer.RigidBody.LinearVelocity + Vector3(V, 0)
+      PlayerBody.LinearVelocity := PlayerBody.LinearVelocity + Vector3(V, 0)
     //else
     //if CheckboxMoveByAnimateTranslation.Checked then
       //
@@ -179,7 +180,7 @@ begin
   if Container.Pressed.Items[keyS] or Container.Pressed.Items[keyArrowDown] then
     MovePlayer(0, -1)
   else
-    SpherePlayer.RigidBody.LinearVelocity := Vector3(0, 0, 0);
+    PlayerBody.LinearVelocity := Vector3(0, 0, 0);
 end;
 
 end.

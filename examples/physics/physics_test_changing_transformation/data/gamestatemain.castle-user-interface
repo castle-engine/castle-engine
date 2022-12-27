@@ -93,7 +93,7 @@
                 "LockTranslation" : [
                   2
                 ],
-                "Name" : "RigidBody3"
+                "Name" : "PlayerBody"
               }
             ]
           },
@@ -134,7 +134,7 @@
                 "LockTranslation" : [
                   2
                 ],
-                "Name" : "RigidBody6"
+                "Name" : "TestBody"
               }
             ]
           },
@@ -414,7 +414,7 @@
               "Toggle" : true,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -3.2000000000000000E+001
+                "Y" : -3.2000003814697266E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
@@ -497,7 +497,7 @@
               "Toggle" : true,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -3.2000000000000000E+001
+                "Y" : -3.2000003814697266E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
