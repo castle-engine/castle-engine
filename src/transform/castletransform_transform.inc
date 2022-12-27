@@ -268,6 +268,9 @@
     { Call UpdateWorldScale on all colliders here and in children. }
     procedure UpdateCollidersWorldScale;
   protected
+    { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
+    function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
+
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
     procedure RegisterGLContextClose;
@@ -2464,68 +2467,10 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-function CompareBackToFront2D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
-end;
-
-var
-  { Has to be global, since TObjectList.Sort
-    requires normal function (not "of object"). }
-  SortCameraPosition: TVector3;
-
-function CompareBackToFront3DBox(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
-    SortCameraPosition);
-end;
-
-function CompareBackToFront3DOrigin(A, B: Pointer): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := TCastleTransform(A).Translation;
-  PointB := TCastleTransform(B).Translation;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortCameraPosition) -
-    PointsDistanceSqr(PointA, SortCameraPosition));
-end;
-
-function CompareBackToFront3DGround(A, B: Pointer): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := TCastleTransform(A).Translation;
-  PointB := TCastleTransform(B).Translation;
-  PointA.Y := 0;
-  PointB.Y := 0;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortCameraPosition) -
-    PointsDistanceSqr(PointA, SortCameraPosition));
-end;
-
 procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
   const CameraPosition: TVector3);
 begin
-  case BlendingSort of
-    bs2D: List.Sort(@CompareBackToFront2D);
-    bs3D:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3DBox);
-      end;
-    bs3DOrigin:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3DOrigin);
-      end;
-    bs3DGround:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3DGround);
-      end;
-    else ;
-  end;
+  List.SortBackToFront(BlendingSort, CameraPosition);
 end;
 
 procedure TCastleTransform.SortBackToFront2D;
@@ -2560,15 +2505,22 @@ begin
   end;
 end;
 
+function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
+begin
+  Result := List;
+end;
+
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);
 var
   I: Integer;
+  RenderList: TCastleTransformList;
 begin
   if CheckVisible then
   begin
     PendingRemovals;
-    for I := 0 to List.Count - 1 do
-      List[I].Render(Params);
+    RenderList := GetRenderList(Params);
+    for I := 0 to RenderList.Count - 1 do
+      RenderList[I].Render(Params);
   end;
 end;
 

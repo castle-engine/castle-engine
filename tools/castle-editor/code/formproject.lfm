@@ -396,15 +396,6 @@ object ProjectForm: TProjectForm
       object MenuItem19: TMenuItem
         Action = ActionViewportSort2D
       end
-      object MenuItem33: TMenuItem
-        Action = ActionViewportSort3DBox
-      end
-      object MenuItemViewportSort3DOrigin: TMenuItem
-        Action = ActionViewportSort3DOrigin
-      end
-      object MenuItemViewportSort3DGround: TMenuItem
-        Action = ActionViewportSort3DGround
-      end
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
@@ -1137,24 +1128,6 @@ object ProjectForm: TProjectForm
       ImageIndex = 7
       OnExecute = ActionSimulationPauseUnpauseExecute
       OnUpdate = ActionSimulationPauseUnpauseUpdate
-    end
-    object ActionViewportSort3DBox: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 3D Blending (from current view, using bounding box)'
-      OnExecute = ActionViewportSort3DBoxExecute
-      OnUpdate = ActionViewportUpdate
-    end
-    object ActionViewportSort3DOrigin: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 3D Blending (from current view, using origin point)'
-      OnExecute = ActionViewportSort3DOriginExecute
-      OnUpdate = ActionViewportUpdate
-    end
-    object ActionViewportSort3DGround: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 3D Blending (from current view, using origin point on ground)'
-      OnExecute = ActionViewportSort3DGroundExecute
-      OnUpdate = ActionViewportUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
