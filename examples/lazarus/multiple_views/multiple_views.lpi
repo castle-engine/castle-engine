@@ -4,6 +4,9 @@
     <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="multiple_views"/>
       <Scaled Value="True"/>
@@ -14,8 +17,8 @@
       </XPManifest>
       <Icon Value="0"/>
     </General>
-    <BuildModes>
-      <Item Name="Default" Default="True"/>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -24,26 +27,27 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages>
-      <Item>
+    <RequiredPackages Count="2">
+      <Item1>
         <PackageName Value="castle_components"/>
-      </Item>
-      <Item>
+      </Item1>
+      <Item2>
         <PackageName Value="LCL"/>
-      </Item>
+      </Item2>
     </RequiredPackages>
-    <Units>
-      <Unit>
+    <Units Count="2">
+      <Unit0>
         <Filename Value="multiple_views.lpr"/>
         <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
+      </Unit0>
+      <Unit1>
         <Filename Value="formmain.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MainForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormMain"/>
-      </Unit>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -68,16 +72,16 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions>
-      <Item>
+    <Exceptions Count="3">
+      <Item1>
         <Name Value="EAbort"/>
-      </Item>
-      <Item>
+      </Item1>
+      <Item2>
         <Name Value="ECodetoolError"/>
-      </Item>
-      <Item>
+      </Item2>
+      <Item3>
         <Name Value="EFOpenError"/>
-      </Item>
+      </Item3>
     </Exceptions>
   </Debugging>
 </CONFIG>
