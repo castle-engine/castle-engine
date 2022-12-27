@@ -60,6 +60,8 @@ end;
 procedure TStateMain.Start;
 begin
   inherited;
+  ButtonLevelFlat.OnClick := {$ifdef FPC}@{$endif} ClickLevelFlat;
+  ButtonLevelComplex.OnClick := {$ifdef FPC}@{$endif} ClickLevelComplex;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -74,14 +76,20 @@ procedure TStateMain.ClickLevelFlat(Sender: TObject);
 begin
   LevelFlat.Exists := true;
   LevelComplex.Exists := false;
-  MainViewport.AssignDefaultCamera;
+  MainViewport.Camera.SetView(
+    Vector3(0.00, 2.00, 4.00),
+    Vector3(0, 0, -1),
+    Vector3(0, 1, 0));
 end;
 
 procedure TStateMain.ClickLevelComplex(Sender: TObject);
 begin
   LevelFlat.Exists := false;
   LevelComplex.Exists := true;
-  MainViewport.AssignDefaultCamera;
+  MainViewport.Camera.SetView(
+    Vector3(0.00, 2.00, 4.00),
+    Vector3(0, 0, -1),
+    Vector3(0, 1, 0));
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
