@@ -717,7 +717,7 @@
     { Current view. Simply assign to this property to change the current view.
 
       In case multiple views are active (only possible
-      if you used the @link(Push) method), this property returns the @italic(bottom) view
+      if you used the @link(PushView) method), this property returns the @italic(bottom) view
       (use @link(FrontView) to get @italic(top) view).
       Setting this property resets whole view stack.
 

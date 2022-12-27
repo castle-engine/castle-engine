@@ -59,7 +59,8 @@ type
 
       You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider
       and @link(TCastleRigidBody.Exists) = @true)
-      set up on the @link(AvatarHierarchy) or @link(Avatar) in this case.
+      set up on the @link(TCastleThirdPersonNavigation.AvatarHierarchy) or
+      @link(TCastleThirdPersonNavigation.Avatar) in this case.
       Having physics components will make it impossible to change @link(TCastleTransform.Translation),
       @link(TCastleTransform.Rotation) each frame.
 
@@ -80,8 +81,8 @@ type
       we should be using forces). But it cooperates nicely with physics engine.
 
       It requires a TCastleRigidBody and TCastleCollider components
-      to be attached to the @link(AvatarHierarchy)
-      (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
+      to be attached to the @link(TCastleThirdPersonNavigation.AvatarHierarchy)
+      (or @link(TCastleThirdPersonNavigation.Avatar), if @link(TCastleThirdPersonNavigation.AvatarHierarchy) is @nil).
       Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
 
       This also means that gravity should be handled by the physics engine.
@@ -100,8 +101,8 @@ type
       This is realistic and cooperates nicely with physics engine.
 
       It requires a TCastleRigidBody and TCastleCollider components
-      to be attached to the @link(AvatarHierarchy)
-      (or @link(Avatar), if @link(AvatarHierarchy) is @nil).
+      to be attached to the @link(TCastleThirdPersonNavigation.AvatarHierarchy)
+      (or @link(TCastleThirdPersonNavigation.Avatar), if @link(TCastleThirdPersonNavigation.AvatarHierarchy) is @nil).
       Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
 
       TODO: Unfinished, not really functional now. }
