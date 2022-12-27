@@ -120,6 +120,7 @@ begin
 
   { initialize global Resources list contents }
   Resources.LoadFromFiles;
+  Levels.LoadFromFiles;
   TestAddingResourceByCode;
 
   { Prepare (load animations) for all resources }
@@ -131,6 +132,7 @@ begin
     placing it inside "Viewport.Items". }
   Level := TLevel.Create(FreeAtStop);
   Level.Viewport := MainViewport;
+  Level.Load('main_level');
 
   ResourceButtons := TResourceButtonList.Create(true);
   UpdateResourceButtons;
