@@ -20,7 +20,7 @@ unit Vcl.CastleControl;
 
 interface
 
-uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,
+uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
   CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
   CastleVectors, CastleKeysMouse;
 
@@ -50,7 +50,7 @@ type
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
         function Dpi: Single; override;
-      end;
+     end;
 
     var
       FContainer: TContainer;
@@ -67,6 +67,9 @@ type
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
+  private
+      FEraseBackGround : Boolean;
+      procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
     procedure CreateHandle; override;
     procedure DestroyHandle; override;
@@ -89,15 +92,20 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
+
   published
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
-
+    property EraseBackGround : Boolean read FEraseBackGround write FEraseBackGround default False;
     property Align;
     property Anchors;
     property OnClick;
     property OnDblClick;
+    property OnMouseDown;
+    property OnMouseUp;
+    property OnMouseMove;
+    property OnMouseWheel;
   end;
 
 procedure Register;
@@ -169,6 +177,16 @@ begin
   Result := Parent.Width;
 end;
 
+procedure TCastleControl.WMEraseBkgnd(var Message: TWMEraseBkgnd);
+begin
+ if FEraseBackGround then
+ begin
+  inherited;
+ end
+ else
+  Message.Result := 1;
+end;
+
 function TCastleControl.TContainer.Height: Integer;
 begin
   Result := Parent.Height;
@@ -192,7 +210,7 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
-
+  FEraseBackGround := false;
   TabStop := true;
 end;
 
