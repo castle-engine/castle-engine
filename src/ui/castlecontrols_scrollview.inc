@@ -116,7 +116,7 @@
       setting this moves the @link(TCastleScrollView.ScrollArea) vertical anchor,
       effectively moving the scrolled children.
       As such, it is expressed in unscaled pixels
-      (just like @link(TCastleUserInterface.VerticalAnchorDelta),
+      (just like @link(TCastleUserInterface.Translation),
       @link(TCastleUserInterface.Height),
       @link(TCastleUserInterface.EffectiveHeight)...).
 

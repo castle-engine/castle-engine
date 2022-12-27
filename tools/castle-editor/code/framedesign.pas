@@ -60,7 +60,7 @@ type
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
-    ButtonClearAnchorDeltas: TButton;
+    ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
@@ -130,7 +130,7 @@ type
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
     procedure ActionSimulationPlayStopUpdate(Sender: TObject);
-    procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ButtonClearTranslationClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
     procedure ButtonScaleModeClick(Sender: TObject);
@@ -1022,7 +1022,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
         end;
       dmResize:
         begin
-          {$warnings off} // TODO: using deprecated Horizontal/VerticalAnchorDelta
           case ResizingHorizontal of
             hpLeft:
               begin
@@ -1032,9 +1031,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Width := UI.Width - X;
 
                 case UI.HorizontalAnchorSelf of
-                  hpLeft  : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
-                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
-                  //hpRight : UI.HorizontalAnchorDelta := no need to change
+                  hpLeft  : UI.Translation := UI.Translation + Vector2(X, 0);
+                  hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
+                  //hpRight : UI.Translation := no need to change
                 end;
               end;
             hpRight:
@@ -1045,9 +1044,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Width := UI.Width + X;
 
                 case UI.HorizontalAnchorSelf of
-                  // hpLeft  : UI.HorizontalAnchorDelta := no need to change
-                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
-                  hpRight : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
+                  // hpLeft  : UI.Translation := no need to change
+                  hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
+                  hpRight : UI.Translation := UI.Translation + Vector2(X, 0);
                 end;
               end;
           end;
@@ -1060,9 +1059,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Height := UI.Height - Y;
 
                 case UI.VerticalAnchorSelf of
-                  vpBottom: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
-                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
-                  //vpTop : UI.VerticalAnchorDelta := no need to change
+                  vpBottom: UI.Translation := UI.Translation + Vector2(0, Y);
+                  vpMiddle: UI.Translation := UI.Translation + Vector2(0, Y / 2);
+                  //vpTop : UI.Translation := no need to change
                 end;
               end;
             vpTop:
@@ -1073,13 +1072,12 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Height := UI.Height + Y;
 
                 case UI.VerticalAnchorSelf of
-                  //vpBottom: UI.VerticalAnchorDelta := no need to change
-                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
-                  vpTop   : UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
+                  //vpBottom: UI.Translation := no need to change
+                  vpMiddle: UI.Translation := UI.Translation + Vector2(0, Y / 2);
+                  vpTop   : UI.Translation := UI.Translation + Vector2(0, Y);
                 end;
               end;
           end;
-          {$warnings on}
         end;
     end;
 
@@ -5047,7 +5045,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ButtonClearAnchorDeltasClick(Sender: TObject);
+procedure TDesignFrame.ButtonClearTranslationClick(Sender: TObject);
 var
   UI: TCastleUserInterface;
 begin

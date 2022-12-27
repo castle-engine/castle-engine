@@ -109,7 +109,7 @@ object DesignFrame: TDesignFrame
             end
             inline SelfAnchorsFrame: TAnchorsFrame
               AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideTop.Side = asrBottom
               Left = 8
               Height = 169
@@ -179,7 +179,7 @@ object DesignFrame: TDesignFrame
             inline ParentAnchorsFrame: TAnchorsFrame
               AnchorSideLeft.Control = SelfAnchorsFrame
               AnchorSideLeft.Side = asrBottom
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideTop.Side = asrBottom
               Left = 164
               Height = 169
@@ -248,7 +248,7 @@ object DesignFrame: TDesignFrame
                 end
               end
             end
-            object ButtonClearAnchorDeltas: TButton
+            object ButtonClearTranslation: TButton
               AnchorSideLeft.Control = SelfAnchorsFrame
               Left = 8
               Height = 37
@@ -256,14 +256,14 @@ object DesignFrame: TDesignFrame
               Width = 170
               AutoSize = True
               Caption = 'Move to the anchor'
-              OnClick = ButtonClearAnchorDeltasClick
+              OnClick = ButtonClearTranslationClick
               ParentFont = False
               TabOrder = 3
             end
             object LabelSizeInfo: TLabel
-              AnchorSideLeft.Control = ButtonClearAnchorDeltas
+              AnchorSideLeft.Control = ButtonClearTranslation
               AnchorSideLeft.Side = asrBottom
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideRight.Side = asrBottom
               Left = 202
               Height = 21

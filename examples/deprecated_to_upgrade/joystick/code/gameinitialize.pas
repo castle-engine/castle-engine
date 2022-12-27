@@ -71,7 +71,7 @@ end;
 procedure TJoyAxisVisualize.SetAxis(const Value: TVector2);
 begin
   FAxis := Value;
-  Shape.AnchorDelta := Value * Vector2(Width - Shape.Width, Height - Shape.Height) / 2;
+  Shape.Translation := Value * Vector2(Width - Shape.Width, Height - Shape.Height) / 2;
 end;
 
 { globals -------------------------------------------------------------------- }
