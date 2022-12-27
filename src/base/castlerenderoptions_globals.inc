@@ -383,14 +383,33 @@ type
       even if viewed from the other side). }
     bs2D,
 
-    { Sort objects by the (3D) distance to the camera.
+    { Sort objects by the (3D) distance of their bounding box to the camera.
       Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       is the best sorting method for 3D
       scenes with many partially-transparent objects.
 
       The distance is measured from the middle
       of the bounding box to the camera posotion. }
-    bs3D
+    bs3D,
+
+    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+      to the camera.
+      This is a useful sorting method for 3D
+      scenes with many partially-transparent objects.
+
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
+      is an alternative to bs3D, it is a bit faster (no need to calculate bounding box)
+      and more under your control (because the origin doesn't change e.g. because of animations
+      or using TCastleBillboard, contrary to bounding box,
+      see https://github.com/castle-engine/castle-engine/issues/427#issuecomment-1365862663 ).
+      The downside is that you need to be more aware where is your object origin. }
+    bs3DOrigin,
+
+    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+      to the camera, projected on the ground (Y=0).
+
+      Similar to bs3DOrigin, but the height of the object (above Y) doesn't matter. }
+    bs3DGround
   );
 
   T3DCoord = 0..2;

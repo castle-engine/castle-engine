@@ -29,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
   CastleTriangles, CastleImages, CastleInternalMaterialProperties,
-  CastleShapeInternalShadowVolumes;
+  CastleShapeInternalShadowVolumes, CastleRenderOptions;
 
 const
   { }
@@ -949,9 +949,13 @@ type
     SortPosition: TVector3;
     function IsSmallerFrontToBack(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3D(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
     function IsSmallerBackToFront2D(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+    function IsSmallerBackToFront3DBox(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+    function IsSmallerBackToFront3DOrigin(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+    function IsSmallerBackToFront3DGround(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
@@ -969,15 +973,10 @@ type
 
     { Sort shapes by distance to given Position point, farthest first.
 
-      If Distance3D is @true: we use real distance in 3D to sort.
-      See the @link(bs3D) at @link(TBlendingSort) documentation.
-
-      If Distance3D is @false: we use only the distance in the Z coordinate
-      to sort. This is suitable for
-      rendering things that pretend to be 2D, like Spine slots.
-      See the @link(bs2D) at @link(TBlendingSort) documentation. }
+      BlendingSort determines the sorting algorithm.
+      See @link(TBlendingSort) documentation. }
     procedure SortBackToFront(const Position: TVector3;
-      const Distance3D: boolean);
+      const BlendingSort: TBlendingSort);
   end;
 
 var
@@ -1042,7 +1041,7 @@ var
 
 implementation
 
-uses Generics.Defaults,
+uses Generics.Defaults, Math,
   CastleSceneCore, CastleInternalNormals, CastleLog, CastleTimeUtils,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
@@ -3656,16 +3655,42 @@ begin
   Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
-function TShapeList.IsSmallerBackToFront3D(
+function TShapeList.IsSmallerBackToFront2D(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+begin
+  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
+end;
+
+function TShapeList.IsSmallerBackToFront3DBox(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
-function TShapeList.IsSmallerBackToFront2D(
+function TShapeList.IsSmallerBackToFront3DOrigin(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+var
+  PointA, PointB: TVector3;
 begin
-  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
+  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
+  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
+end;
+
+function TShapeList.IsSmallerBackToFront3DGround(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
+  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
+  PointA.Y := 0;
+  PointB.Y := 0;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
 end;
 
 procedure TShapeList.SortFrontToBack(const Position: TVector3);
@@ -3675,13 +3700,16 @@ begin
 end;
 
 procedure TShapeList.SortBackToFront(const Position: TVector3;
-  const Distance3D: boolean);
+  const BlendingSort: TBlendingSort);
 begin
   SortPosition := Position;
-  if Distance3D then
-    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3D))
-  else
-    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
+  case BlendingSort of
+    bs2D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
+    bs3D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DBox));
+    bs3DOrigin: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DOrigin));
+    bs3DGround: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DGround));
+    else ;
+  end;
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

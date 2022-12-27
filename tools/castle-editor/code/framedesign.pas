@@ -34,7 +34,7 @@ uses
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
-  CastleColors, CastleScene,
+  CastleColors, CastleScene, CastleRenderOptions,
   // editor units
   FrameAnchors, CastleShellCtrls, EditorUtils,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
@@ -546,8 +546,7 @@ type
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
     procedure ViewportSetup2D;
-    procedure ViewportSort2D;
-    procedure ViewportSort3D;
+    procedure ViewportSort(const BlendingSort: TBlendingSort);
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
@@ -5401,28 +5400,16 @@ begin
   ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
 end;
 
-procedure TDesignFrame.ViewportSort2D;
+procedure TDesignFrame.ViewportSort(const BlendingSort: TBlendingSort);
 var
   V: TCastleViewport;
 begin
   V := CurrentViewport;
   if V = nil then Exit;
 
-  V.Items.SortBackToFront2D;
+  V.Items.SortBackToFront(BlendingSort, V.InternalCamera.WorldTranslation);
   UpdateDesign; // make the tree reflect new order
-  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
-end;
-
-procedure TDesignFrame.ViewportSort3D;
-var
-  V: TCastleViewport;
-begin
-  V := CurrentViewport;
-  if V = nil then Exit;
-
-  V.Items.SortBackToFront(bs3D, V.InternalCamera.WorldTranslation);
-  UpdateDesign; // make the tree reflect new order
-  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
+  ModifiedOutsideObjectInspector('Sort Items for Correct Blending: ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.ViewportToggleProjection;

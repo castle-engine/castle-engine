@@ -743,8 +743,9 @@
           In 3D, it may make sense to call this method even every frame
           (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change (note that CameraPosition is only
-          relevant if BlendingSort = bs3D).
+          or if the CameraPosition may change. Note that CameraPosition is only
+          relevant if BlendingSort is one of the bs3D* options,
+          like bs3D, bs3DOrigin, bs3DGround.
         )
         @item(
           In 2D, it is a bit simpler.
@@ -759,8 +760,9 @@
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
       @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D, to keep it sorted.
-      It is the default now, so you typically don't need to worry about it.
+      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
+      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
+      so you typically don't need to worry about it.
 
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing.
@@ -2472,10 +2474,34 @@ var
     requires normal function (not "of object"). }
   SortCameraPosition: TVector3;
 
-function CompareBackToFront3D(A, B: Pointer): Integer;
+function CompareBackToFront3DBox(A, B: Pointer): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
     SortCameraPosition);
+end;
+
+function CompareBackToFront3DOrigin(A, B: Pointer): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := TCastleTransform(A).Translation;
+  PointB := TCastleTransform(B).Translation;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortCameraPosition) -
+    PointsDistanceSqr(PointA, SortCameraPosition));
+end;
+
+function CompareBackToFront3DGround(A, B: Pointer): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := TCastleTransform(A).Translation;
+  PointB := TCastleTransform(B).Translation;
+  PointA.Y := 0;
+  PointB.Y := 0;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortCameraPosition) -
+    PointsDistanceSqr(PointA, SortCameraPosition));
 end;
 
 procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
@@ -2486,7 +2512,17 @@ begin
     bs3D:
       begin
         SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3D);
+        List.Sort(@CompareBackToFront3DBox);
+      end;
+    bs3DOrigin:
+      begin
+        SortCameraPosition := CameraPosition;
+        List.Sort(@CompareBackToFront3DOrigin);
+      end;
+    bs3DGround:
+      begin
+        SortCameraPosition := CameraPosition;
+        List.Sort(@CompareBackToFront3DGround);
       end;
     else ;
   end;

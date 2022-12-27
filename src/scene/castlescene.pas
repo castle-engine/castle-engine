@@ -949,9 +949,11 @@ begin
      (NavigationInfoStack.Top.BlendingSort <> obsDefault) then
   begin
     case NavigationInfoStack.Top.BlendingSort of
-      obsNone: Result := bsNone;
-      obs2D  : Result := bs2D;
-      obs3D  : Result := bs3D;
+      obsNone    : Result := bsNone;
+      obs2D      : Result := bs2D;
+      obs3D      : Result := bs3D;
+      obs3DOrigin: Result := bs3DOrigin;
+      obs3DGround: Result := bs3DGround;
       else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
     end;
   end else
@@ -1193,7 +1195,7 @@ procedure TCastleScene.LocalRenderInside(
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort);
             if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do

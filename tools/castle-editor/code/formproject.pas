@@ -42,7 +42,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    ActionViewportSort3D: TAction;
+    ActionViewportSort3DBox: TAction;
+    ActionViewportSort3DOrigin: TAction;
+    ActionViewportSort3DGround: TAction;
     ActionShowColliders: TAction;
     ActionSimulationPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
@@ -102,6 +104,8 @@ type
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItem33: TMenuItem;
+    MenuItemViewportSort3DOrigin: TMenuItem;
+    MenuItemViewportSort3DGround: TMenuItem;
     MenuItemSimulationPauseUnpause: TMenuItem;
     MenuItemSimulationPlayStop: TMenuItem;
     SeparatorBeforeShowColliders: TMenuItem;
@@ -317,7 +321,9 @@ type
     procedure ActionViewportRenderNormalExecute(Sender: TObject);
     procedure ActionViewportRenderSolidWireframeExecute(Sender: TObject);
     procedure ActionViewportRenderWireframeOnlyExecute(Sender: TObject);
-    procedure ActionViewportSort3DExecute(Sender: TObject);
+    procedure ActionViewportSort3DBoxExecute(Sender: TObject);
+    procedure ActionViewportSort3DOriginExecute(Sender: TObject);
+    procedure ActionViewportSort3DGroundExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
@@ -837,10 +843,22 @@ begin
   ActionViewportRenderWireframeOnly.Checked := true;
 end;
 
-procedure TProjectForm.ActionViewportSort3DExecute(Sender: TObject);
+procedure TProjectForm.ActionViewportSort3DBoxExecute(Sender: TObject);
 begin
   if Design <> nil then
-    Design.ViewportSort3D;
+    Design.ViewportSort(bs3D);
+end;
+
+procedure TProjectForm.ActionViewportSort3DOriginExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort(bs3DOrigin);
+end;
+
+procedure TProjectForm.ActionViewportSort3DGroundExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort(bs3DGround);
 end;
 
 procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
@@ -1124,7 +1142,7 @@ end;
 procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
 begin
   if Design <> nil then
-    Design.ViewportSort2D;
+    Design.ViewportSort(bs2D);
 end;
 
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
