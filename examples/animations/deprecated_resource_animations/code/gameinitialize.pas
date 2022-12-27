@@ -29,7 +29,7 @@ uses SysUtils,
   CastleProgress, CastleWindowProgress
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMain
+  , GameViewMain
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -43,13 +43,13 @@ begin
 
   Progress.UserInterface := WindowProgressInterface;
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateMain := TStateMain.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewMain := TViewMain.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  Window.Container.View := StateMain;
+  Window.Container.View := ViewMain;
 end;
 
 initialization

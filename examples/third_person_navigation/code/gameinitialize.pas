@@ -27,7 +27,7 @@ uses SysUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleSoundEngine,
   CastleTransform, CastleRenderOptions,
-  GameStateMenu, GameStatePlay;
+  GameViewMenu, GameViewPlay;
 
 var
   Window: TCastleWindow;
@@ -38,10 +38,10 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
-  StatePlay := TStatePlay.Create(Application);
-  StateMenu := TStateMenu.Create(Application);
-  Window.Container.View := StateMenu;
+  { Create game views and set initial view }
+  ViewPlay := TViewPlay.Create(Application);
+  ViewMenu := TViewMenu.Create(Application);
+  Window.Container.View := ViewMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');

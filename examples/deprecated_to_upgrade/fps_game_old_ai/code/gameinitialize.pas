@@ -19,7 +19,7 @@
   (desktop or mobile). }
 unit GameInitialize;
 
-{ Use GameStateMain with UI and level designed in CGE editor.
+{ Use GameViewMain with UI and level designed in CGE editor.
   Not functional yet, but this is the future we go for. }
 {.$define UPCOMING_FPS_GAME_REDESIGN}
 
@@ -32,7 +32,7 @@ uses SysUtils, Classes,
   {$ifdef UPCOMING_FPS_GAME_REDESIGN}
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMain
+  , GameViewMain
   {$endregion 'Castle Initialization Uses'}
   {$else}
   , CastleLog, CastleConfig, CastleLevels,
@@ -57,13 +57,13 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateMain := TStateMain.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewMain := TViewMain.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  Window.Container.View := StateMain;
+  Window.Container.View := ViewMain;
 end;
 
 {$else UPCOMING_FPS_GAME_REDESIGN}

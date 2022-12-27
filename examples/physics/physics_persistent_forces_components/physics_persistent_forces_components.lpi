@@ -82,9 +82,9 @@
         <UnitName Value="gameinitialize"/>
       </Unit11>
       <Unit12>
-        <Filename Value="code/gamestatemain.pas"/>
+        <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gamestatemain"/>
+        <UnitName Value="gameviewmain"/>
       </Unit12>
       <Unit13>
         <Filename Value="code/gravityforcebehavior.pas"/>

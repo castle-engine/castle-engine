@@ -14,7 +14,7 @@ You can define custom components, specific to your project, that are available i
 
 - Done. Use the new component as a regular component.
 
-    In this example, we placed `TImageGrid` in our main design, `data/gamestatemain.castle-user-interface`.
+    In this example, we placed `TImageGrid` in our main design, `data/gameviewmain.castle-user-interface`.
 
 See https://castle-engine.io/custom_components for more information how you can extend custom components to look great in CGE editor.
 

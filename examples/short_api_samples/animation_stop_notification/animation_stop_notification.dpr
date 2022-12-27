@@ -22,10 +22,10 @@ uses SysUtils,
   CastleVectors, CastleUIControls, CastleControls, X3DNodes,
   CastleKeysMouse, CastleColors, CastleNotifications;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
 type
-  TStateMain = class(TCastleView)
+  TViewMain = class(TCastleView)
   strict private
     Viewport: TCastleViewport;
     Scene: TCastleScene;
@@ -36,7 +36,7 @@ type
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 begin
   inherited;
 
@@ -62,7 +62,7 @@ begin
   Viewport.InsertFront(Notifications);
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 var
   PlayAnimationParams: TPlayAnimationParameters;
 begin
@@ -85,7 +85,7 @@ begin
     Scene.StopAnimation;
 end;
 
-procedure TStateMain.AnimationStopped(const AScene: TCastleSceneCore; const Animation: TTimeSensorNode);
+procedure TViewMain.AnimationStopped(const AScene: TCastleSceneCore; const Animation: TTimeSensorNode);
 begin
   Notifications.Show('Stopped.');
 end;
@@ -94,14 +94,14 @@ end;
 
 var
   Window: TCastleWindow;
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 begin
   Window := TCastleWindow.Create(Application);
   Window.Open;
   Application.MainWindow := Window;
 
-  StateMain := TStateMain.Create(Application);
-  Window.Container.View := StateMain;
+  ViewMain := TViewMain.Create(Application);
+  Window.Container.View := ViewMain;
 
   Application.Run;
 end.

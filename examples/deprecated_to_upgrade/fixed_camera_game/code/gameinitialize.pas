@@ -29,9 +29,9 @@ uses SysUtils,
   GameSound, GameConfiguration, GameCreatures, GameLocations
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateIntro
-  , GameStateMainMenu
-  , GameStatePlay
+  , GameViewIntro
+  , GameViewMainMenu
+  , GameViewPlay
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -68,15 +68,15 @@ begin
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateIntro := TStateIntro.Create(Application);
-  StateMainMenu := TStateMainMenu.Create(Application);
-  StatePlay := TStatePlay.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewIntro := TViewIntro.Create(Application);
+  ViewMainMenu := TViewMainMenu.Create(Application);
+  ViewPlay := TViewPlay.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  Window.Container.View := StateIntro;
+  Window.Container.View := ViewIntro;
 end;
 
 initialization

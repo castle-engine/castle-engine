@@ -1,31 +1,31 @@
 msgctxt "castle-components"
-msgid "gamestatemain.Label1.Caption"
+msgid "gameviewmain.Label1.Caption"
 msgstr "Mein Etikett"
 
 msgctxt "castle-components"
-msgid "gamestatemain.Edit.Text"
+msgid "gameviewmain.Edit.Text"
 msgstr "Anfänglicher Inhalt bearbeiten"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonMessage.Caption"
+msgid "gameviewmain.ButtonMessage.Caption"
 msgstr "Zeige Nachricht"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonSwitchEnglish.Caption"
+msgid "gameviewmain.ButtonSwitchEnglish.Caption"
 msgstr "Englisch"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonSwitchGerman.Caption"
+msgid "gameviewmain.ButtonSwitchGerman.Caption"
 msgstr "Deutsche"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonSwitchPolish.Caption"
+msgid "gameviewmain.ButtonSwitchPolish.Caption"
 msgstr "Polieren"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonSwitchRussian.Caption"
+msgid "gameviewmain.ButtonSwitchRussian.Caption"
 msgstr "Russisch"
 
 msgctxt "castle-components"
-msgid "gamestatemain.ButtonSwitchUkrainian.Caption"
+msgid "gameviewmain.ButtonSwitchUkrainian.Caption"
 msgstr "Ukrainisch"
