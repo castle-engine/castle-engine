@@ -356,19 +356,19 @@ type
     bdOneMinusConstantAlpha
   );
 
-  { Various ways to sort the 3D objects, in particular useful to correctly
-    render the partially-transparent objects.
-    @seealso TCastleRenderOptions.BlendingSort }
+  { Various ways to sort the objects, useful to correctly
+    render partially-transparent objects.
+    See https://castle-engine.io/blending .
+    @seealso TCastleRenderOptions.BlendingSort
+    @seealso TCastleAbstractRootTransform.BlendingSort }
   TBlendingSort = (
     { Do not sort.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      is fastest, but will cause artifacts if multiple
+      This is of course fastest, but will cause artifacts if multiple
       partially-transparent objects may be visible on top of each other. }
     bsNone,
 
     { Sort objects by their Z coordinate.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      is very useful for 2D worlds, with flat 2D objects
+      Good for 2D worlds, with flat 2D objects
       that have zero (or near-zero) size in the Z axis,
       and they are moved in the Z axis to specify which is on top for another.
 
@@ -378,14 +378,13 @@ type
       The one with @italic(larger) Z coordinate is considered to be
       @italic(closer), this is consistent with the right-handed coordinate system.
 
-      Note that the actual camera position doesn't matter for this sorting.
+      Note that the camera position doesn't matter for this sorting.
       So the 2D object will look OK, @italic(even if viewed from an angle,
       even if viewed from the other side). }
     bs2D,
 
     { Sort objects by the (3D) distance of their bounding box to the camera.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      is the best sorting method for 3D
+      This is the best universal sorting method for 3D
       scenes with many partially-transparent objects.
 
       The distance is measured from the middle
@@ -397,9 +396,8 @@ type
       This is a useful sorting method for 3D
       scenes with many partially-transparent objects.
 
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      is an alternative to bs3D, it is a bit faster (no need to calculate bounding box)
-      and more under your control (because the origin doesn't change e.g. because of animations
+      This is an alternative to bs3D, it is more under your control
+      (because the origin doesn't change e.g. because of animations
       or using TCastleBillboard, contrary to bounding box,
       see https://github.com/castle-engine/castle-engine/issues/427#issuecomment-1365862663 ).
       The downside is that you need to be more aware where is your object origin. }
