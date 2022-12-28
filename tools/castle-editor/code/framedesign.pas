@@ -1687,6 +1687,13 @@ begin
         so e.g. Stop of physics will keep showing colliders. }
     end;
   end;
+
+  { After restoring design, reliably focus the CastleControl,
+    not the edit box of some property
+    (which is optionally done by ActiveInspector.SetItemIndexAndFocus above).
+    This allows using our general shortcuts, like Ctrl+Z, reliably after RestoreSavedSelection,
+    in particular you can use Ctrl+Z after Ctrl+Z. }
+  FocusDesign;
 end;
 
 procedure TDesignFrame.PerformRedo;
