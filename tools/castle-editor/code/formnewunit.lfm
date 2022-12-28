@@ -1,12 +1,12 @@
 object NewUnitForm: TNewUnitForm
   Left = 737
-  Height = 657
-  Top = 128
-  Width = 696
+  Height = 815
+  Top = 129
+  Width = 732
   ActiveControl = EditUnitName
   Caption = 'Create Pascal Unit'
-  ClientHeight = 657
-  ClientWidth = 696
+  ClientHeight = 815
+  ClientWidth = 732
   DesignTimePPI = 115
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
@@ -19,7 +19,7 @@ object NewUnitForm: TNewUnitForm
     Left = 8
     Height = 33
     Top = 37
-    Width = 675
+    Width = 711
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     ItemHeight = 0
@@ -41,12 +41,12 @@ object NewUnitForm: TNewUnitForm
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 38
-    Top = 114
-    Width = 675
+    Top = 196
+    Width = 711
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     OnChange = EditUnitNameChange
-    TabOrder = 1
+    TabOrder = 2
     Text = 'GameSomething'
   end
   object LabelCreateUnit: TLabel
@@ -59,11 +59,11 @@ object NewUnitForm: TNewUnitForm
   end
   object LabelUnitName: TLabel
     AnchorSideLeft.Control = LabelCreateUnit
-    AnchorSideTop.Control = ComboUnitType
+    AnchorSideTop.Control = EditBaseName
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 85
+    Top = 167
     Width = 88
     BorderSpacing.Top = 15
     Caption = 'Unit Name:'
@@ -75,7 +75,7 @@ object NewUnitForm: TNewUnitForm
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 167
+    Top = 249
     Width = 116
     BorderSpacing.Top = 15
     Caption = 'Unit Directory:'
@@ -87,12 +87,12 @@ object NewUnitForm: TNewUnitForm
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 38
-    Top = 196
-    Width = 630
+    Top = 278
+    Width = 666
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     OnChange = EditUnitDirChange
-    TabOrder = 2
+    TabOrder = 3
     Text = 'code/'
   end
   object ButtonUnitDir: TButton
@@ -100,58 +100,34 @@ object NewUnitForm: TNewUnitForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = EditUnitDir
     AnchorSideTop.Side = asrCenter
-    Left = 638
+    Left = 674
     Height = 37
-    Top = 197
+    Top = 279
     Width = 28
     AutoSize = True
     Caption = '...'
     OnClick = ButtonUnitDirClick
-    TabOrder = 3
+    TabOrder = 4
   end
   object PanelUnitView: TPanel
-    AnchorSideTop.Control = LabelFinalUnitFile
+    AnchorSideTop.Control = PanelUnitClass
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 368
-    Top = 265
-    Width = 690
+    Top = 440
+    Width = 726
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 368
-    ClientWidth = 690
-    TabOrder = 5
-    object LabelViewName: TLabel
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 21
-      Top = 8
-      Width = 140
-      BorderSpacing.Top = 15
-      Caption = 'View Class Name:'
-      ParentColor = False
-    end
-    object EditViewName: TEdit
-      AnchorSideLeft.Control = LabelCreateUnit
-      AnchorSideTop.Control = LabelViewName
-      AnchorSideTop.Side = asrBottom
-      Left = 2
-      Height = 38
-      Top = 37
-      Width = 688
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 8
-      TabOrder = 0
-      Text = 'TViewSomething'
-    end
+    ClientWidth = 726
+    TabOrder = 6
     object LabelDesignDir: TLabel
       AnchorSideLeft.Control = LabelCreateUnit
-      AnchorSideTop.Control = EditViewName
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 21
-      Top = 90
+      Top = 0
       Width = 182
       BorderSpacing.Top = 15
       Caption = 'View Design Directory:'
@@ -163,12 +139,12 @@ object NewUnitForm: TNewUnitForm
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 38
-      Top = 119
-      Width = 630
+      Top = 29
+      Width = 666
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       OnChange = EditDesignDirChange
-      TabOrder = 1
+      TabOrder = 0
       Text = 'data/'
     end
     object ButtonViewDir: TButton
@@ -176,14 +152,14 @@ object NewUnitForm: TNewUnitForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = EditDesignDir
       AnchorSideTop.Side = asrCenter
-      Left = 638
+      Left = 674
       Height = 37
-      Top = 120
+      Top = 30
       Width = 28
       AutoSize = True
       Caption = '...'
       OnClick = ButtonViewDirClick
-      TabOrder = 2
+      TabOrder = 1
     end
     object CheckViewInitialize: TCheckBox
       AnchorSideLeft.Control = LabelCreateUnit
@@ -191,11 +167,11 @@ object NewUnitForm: TNewUnitForm
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 25
-      Top = 188
+      Top = 98
       Width = 409
       BorderSpacing.Top = 8
       Caption = 'Add View Initialization to Application.OnInitialize'
-      TabOrder = 3
+      TabOrder = 2
     end
     object LabelViewInitializeInfo: TLabel
       AnchorSideLeft.Control = LabelCreateUnit
@@ -203,8 +179,8 @@ object NewUnitForm: TNewUnitForm
       AnchorSideTop.Side = asrBottom
       Left = 38
       Height = 126
-      Top = 221
-      Width = 623
+      Top = 131
+      Width = 659
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 31
       BorderSpacing.Top = 8
@@ -213,12 +189,11 @@ object NewUnitForm: TNewUnitForm
       WordWrap = True
     end
     object LabelFinalDesignFile: TLabel
-      AnchorSideLeft.Control = LabelViewName
       AnchorSideTop.Control = EditDesignDir
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 21
-      Top = 159
+      Top = 69
       Width = 473
       BorderSpacing.Top = 2
       Caption = 'Final Design File: data/gamesomething.castle-user-interface'
@@ -231,15 +206,15 @@ object NewUnitForm: TNewUnitForm
     AnchorSideTop.Control = LabelFinalUnitFile
     AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 101
-    Top = 265
-    Width = 690
+    Height = 85
+    Top = 347
+    Width = 726
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 101
-    ClientWidth = 690
-    TabOrder = 4
+    ClientHeight = 85
+    ClientWidth = 726
+    TabOrder = 5
     object LabelClassName: TLabel
       AnchorSideTop.Side = asrBottom
       Left = 8
@@ -257,7 +232,7 @@ object NewUnitForm: TNewUnitForm
       Left = 8
       Height = 38
       Top = 37
-      Width = 670
+      Width = 706
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       TabOrder = 0
@@ -267,8 +242,8 @@ object NewUnitForm: TNewUnitForm
   object ButtonPanel1: TButtonPanel
     Left = 8
     Height = 45
-    Top = 604
-    Width = 680
+    Top = 762
+    Width = 716
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
@@ -278,7 +253,7 @@ object NewUnitForm: TNewUnitForm
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 6
+    TabOrder = 7
     ShowButtons = [pbOK, pbCancel]
   end
   object LabelFinalUnitFile: TLabel
@@ -287,13 +262,39 @@ object NewUnitForm: TNewUnitForm
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 236
+    Top = 318
     Width = 318
     BorderSpacing.Top = 2
     Caption = 'Final Unit File: code/gamesomething.pas'
     Font.Color = clBlue
     ParentColor = False
     ParentFont = False
+  end
+  object LabelBaseName: TLabel
+    AnchorSideLeft.Control = ComboUnitType
+    AnchorSideTop.Control = ComboUnitType
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 21
+    Top = 85
+    Width = 468
+    BorderSpacing.Top = 15
+    Caption = 'Base Name (other names are derived from this, by default):'
+    ParentColor = False
+  end
+  object EditBaseName: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelBaseName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 38
+    Top = 114
+    Width = 711
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    OnChange = EditBaseNameChange
+    TabOrder = 1
+    Text = 'Something'
   end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
     Left = 482

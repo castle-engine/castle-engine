@@ -37,15 +37,15 @@ type
     ComboUnitType: TComboBox;
     EditClassName: TEdit;
     EditDesignDir: TEdit;
-    EditViewName: TEdit;
+    EditBaseName: TEdit;
     EditUnitName: TEdit;
     EditUnitDir: TEdit;
     LabelFinalUnitFile: TLabel;
     LabelFinalDesignFile: TLabel;
     LabelClassName: TLabel;
     LabelDesignDir: TLabel;
+    LabelBaseName: TLabel;
     LabelViewInitializeInfo: TLabel;
-    LabelViewName: TLabel;
     LabelUnitName: TLabel;
     LabelCreateUnit: TLabel;
     LabelUnitDir: TLabel;
@@ -55,13 +55,13 @@ type
     procedure ButtonUnitDirClick(Sender: TObject);
     procedure ButtonViewDirClick(Sender: TObject);
     procedure ComboUnitTypeChange(Sender: TObject);
+    procedure EditBaseNameChange(Sender: TObject);
     procedure EditDesignDirChange(Sender: TObject);
     procedure EditUnitDirChange(Sender: TObject);
     procedure EditUnitNameChange(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
   private
-    EditUnitNameOldText: String;
     FCreatedUnitRelative, FCreatedDesignRelative: String;
     FCreatedUnitAbsolute, FCreatedDesignAbsolute: String;
     FUnitType: TNewUnitType;
@@ -155,30 +155,19 @@ begin
   RelativeUnitPath := ExtractRelativePathDelim(FProjectManifest.Path, FUnitOutputPath);
   EditUnitDir.Text := RelativeUnitPath;
 
-  SetEnabledVisible(PanelUnitClass, FUnitType in [utClass, utBehavior]);
+  SetEnabledVisible(PanelUnitClass, FUnitType in [utClass, utBehavior, utView]);
   SetEnabledVisible(PanelUnitView, FUnitType = utView);
+
+  EditBaseName.Text := 'Something';
 
   case UnitType of
     utEmpty:
       begin
-        EditUnitName.Text := 'GameSomething';
-
         { adjust form height }
         ClientHeight := LabelFinalUnitFile.Top + LabelFinalUnitFile.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
-    utClass:
+    utClass, utBehavior:
       begin
-        EditUnitName.Text := 'GameSomething';
-        EditClassName.Text := 'TSomething';
-
-        { adjust form height }
-        ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
-      end;
-    utBehavior:
-      begin
-        EditUnitName.Text := 'GameSomethingBehavior';
-        EditClassName.Text := 'TSomethingBehavior';
-
         { adjust form height }
         ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
@@ -186,8 +175,6 @@ begin
       begin
         UnitToInitializeView := FindUnitToInitializeView(FProjectManifest);
 
-        EditUnitName.Text := 'GameViewSomething';
-        EditViewName.Text := 'TViewSomething';
         EditDesignDir.Text := 'data/';
         CheckViewInitialize.Checked := UnitToInitializeView <> '';
         CheckViewInitialize.Enabled := UnitToInitializeView <> '';
@@ -208,8 +195,7 @@ begin
       end;
   end;
 
-  EditUnitNameOldText := EditUnitName.Text;
-  UpdateFinalFilenames;
+  EditBaseNameChange(nil);
 end;
 
 procedure TNewUnitForm.ButtonViewDirClick(Sender: TObject);
@@ -241,6 +227,30 @@ begin
   UnitType := TNewUnitType(ComboUnitType.ItemIndex);
 end;
 
+procedure TNewUnitForm.EditBaseNameChange(Sender: TObject);
+begin
+  { automatically change lower edit boxes }
+  case UnitType of
+    utBehavior:
+      begin
+        EditClassName.Text := 'T' + EditBaseName.Text + 'Behavior';
+        EditUnitName.Text := 'Game' + EditBaseName.Text + 'Behavior';
+      end;
+    utView:
+      begin
+        EditClassName.Text := 'TView' + EditBaseName.Text;
+        EditUnitName.Text := 'GameView' + EditBaseName.Text;
+      end;
+    else
+      begin
+        EditClassName.Text := 'T' + EditBaseName.Text;
+        EditUnitName.Text := 'Game' + EditBaseName.Text;
+      end;
+  end;
+
+  UpdateFinalFilenames;
+end;
+
 procedure TNewUnitForm.EditDesignDirChange(Sender: TObject);
 begin
   UpdateFinalFilenames;
@@ -253,17 +263,6 @@ end;
 
 procedure TNewUnitForm.EditUnitNameChange(Sender: TObject);
 begin
-  { automatically change lower edit boxes, if they matched }
-  if SameText(EditClassName.Text, 'T' + EditUnitNameOldText) or
-     SameText(EditClassName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
-    EditClassName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
-
-  if SameText(EditViewName.Text, 'T' + EditUnitNameOldText) or
-     SameText(EditViewName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
-    EditViewName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
-
-  EditUnitNameOldText := EditUnitName.Text;
-
   UpdateFinalFilenames;
 end;
 
@@ -275,25 +274,34 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 
     if not IsValidIdent(EditUnitName.Text, true) then
     begin
-      ErrorBox(Format('Unit name "%s" is not a valid Pascal identifier', [EditUnitName.Text]));
+      ErrorBox(Format('Unit name "%s" is not a valid Pascal identifier.', [
+        EditUnitName.Text
+      ]));
       Exit(false);
     end;
 
     if (UnitType in [utClass, utBehavior]) and (not IsValidIdent(EditClassName.Text, true)) then
     begin
-      ErrorBox(Format('Class name "%s" is not a valid Pascal identifier', [EditClassName.Text]));
+      ErrorBox(Format('Class name "%s" is not a valid Pascal identifier.', [
+        EditClassName.Text
+      ]));
       Exit(false);
     end;
 
-    if (UnitType = utView) and (not IsValidIdent(EditViewName.Text, true)) then
+    if (UnitType = utView) and (not IsPrefix('t', EditClassName.Text, true)) then
     begin
-      ErrorBox(Format('View name "%s" is not a valid Pascal identifier', [EditViewName.Text]));
+      ErrorBox(Format('View name "%s" must start with letter "T" (following Pascal conventions for type names; this allows to declare singleton variable, with consistent name but without the "T" prefix).', [
+        EditClassName.Text
+      ]));
       Exit(false);
     end;
 
-    if (UnitType = utView) and (not IsPrefix('t', EditViewName.Text, true)) then
+    if (UnitType = utView) and
+       SameText(PrefixRemove('t', EditClassName.Text, true), EditUnitName.Text) then
     begin
-      ErrorBox(Format('View name "%s" must start with letter "T" (following Pascal conventions for type names, this allows to have view singleton variable without "T" prefix)', [EditViewName.Text]));
+      ErrorBox(Format('View unit name "%s" must be different than class name (with "T" prefix removed), otherwise we cannot declare view singleton variable.', [
+        EditUnitName.Text
+      ]));
       Exit(false);
     end;
   end;
@@ -326,8 +334,8 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
         utView:
           begin
             TemplateSource := 'newunitview.pas';
-            ViewVariableName := PrefixRemove('t', EditViewName.Text, true);
-            Macros.Add('${VIEW_CLASS_NAME}', EditViewName.Text);
+            ViewVariableName := PrefixRemove('t', EditClassName.Text, true);
+            Macros.Add('${VIEW_CLASS_NAME}', EditClassName.Text);
             Macros.Add('${VIEW_VARIABLE_NAME}', ViewVariableName);
             Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
 
@@ -341,7 +349,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
               Assert(UnitToInitializeView <> '');
               AddInitializeView(CombinePaths(FProjectManifest.Path, UnitToInitializeView),
                 EditUnitName.Text,
-                EditViewName.Text,
+                EditClassName.Text,
                 ViewVariableName
               );
             end;
@@ -419,8 +427,8 @@ end;
 
 procedure TNewUnitForm.FormShow(Sender: TObject);
 begin
-  ActiveControl := EditUnitName; // set focus on EditUnitName each time you open this form
-  EditUnitName.SelectAll; // allow to easily type something from scratch
+  ActiveControl := EditBaseName; // set focus on EditBaseName each time you open this form
+  EditBaseName.SelectAll; // allow to easily type something from scratch
 end;
 
 procedure TNewUnitForm.GetFinalFilenames(
