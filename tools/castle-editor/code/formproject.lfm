@@ -784,17 +784,17 @@ object ProjectForm: TProjectForm
     end
     object ActionNewUnitClass: TAction
       Category = 'Code'
-      Caption = 'Unit With Class...'
+      Caption = 'Class...'
       OnExecute = ActionNewUnitClassExecute
     end
     object ActionNewUnitView: TAction
       Category = 'Code'
-      Caption = 'Unit With View...'
+      Caption = 'View...'
       OnExecute = ActionNewUnitViewExecute
     end
     object ActionNewUnitBehavior: TAction
       Category = 'Code'
-      Caption = 'Unit With Behavior...'
+      Caption = 'Behavior...'
       OnExecute = ActionNewUnitBehaviorExecute
     end
     object ActionNewUnitHereEmpty: TAction
@@ -804,17 +804,17 @@ object ProjectForm: TProjectForm
     end
     object ActionNewUnitHereClass: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With Class...'
+      Caption = 'Class...'
       OnExecute = ActionNewUnitHereClassExecute
     end
     object ActionNewUnitHereView: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With View...'
+      Caption = 'View...'
       OnExecute = ActionNewUnitHereViewExecute
     end
     object ActionNewUnitHereBehavior: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With Behavior...'
+      Caption = 'Behavior...'
       OnExecute = ActionNewUnitHereBehaviorExecute
     end
     object ActionEditAssociatedUnit: TAction

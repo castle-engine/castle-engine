@@ -26,9 +26,9 @@ object NewUnitForm: TNewUnitForm
     ItemIndex = 0
     Items.Strings = (
       'Empty Unit'
-      'Unit With Class (TObject descendant)'
-      'Unit With View (TCastleView descendant)'
-      'Unit With Behavior (TCastleBehavior descendant)'
+      'Class (TObject descendant)'
+      'View (TCastleView descendant)'
+      'Behavior (TCastleBehavior descendant)'
     )
     OnChange = ComboUnitTypeChange
     Style = csDropDownList
