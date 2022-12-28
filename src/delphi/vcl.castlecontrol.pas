@@ -68,7 +68,6 @@ type
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
   private
-      FEraseBackGround : Boolean;
       procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
     procedure CreateHandle; override;
@@ -97,7 +96,6 @@ type
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
-    property EraseBackGround : Boolean read FEraseBackGround write FEraseBackGround default False;
     property Align;
     property Anchors;
     property OnClick;
@@ -179,11 +177,6 @@ end;
 
 procedure TCastleControl.WMEraseBkgnd(var Message: TWMEraseBkgnd);
 begin
- if FEraseBackGround then
- begin
-  inherited;
- end
- else
   Message.Result := 1;
 end;
 
@@ -210,7 +203,6 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
-  FEraseBackGround := false;
   TabStop := true;
 end;
 
