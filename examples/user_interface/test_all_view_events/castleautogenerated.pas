@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'state_events';
-  ApplicationProperties.Caption := 'State Events';
+  ApplicationProperties.ApplicationName := 'test_all_view_events';
+  ApplicationProperties.Caption := 'Test All View Events';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

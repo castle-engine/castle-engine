@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="test_all_state_events"
-  standalone_source="test_all_state_events_standalone.dpr"
+<project name="view_events"
+  standalone_source="view_events_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.test.all.state.events"
-  caption="Test All State Events"
+  qualified_name="io.castleengine.view.events"
+  caption="View Events"
 >
   <compiler_options>
     <search_paths>

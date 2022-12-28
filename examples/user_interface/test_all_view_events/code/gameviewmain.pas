@@ -91,7 +91,7 @@ begin
 
   Timer.OnTimer := {$ifdef FPC}@{$endif}DoTimer;
 
-  Notifications.Show('State started');
+  Notifications.Show('View started');
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;

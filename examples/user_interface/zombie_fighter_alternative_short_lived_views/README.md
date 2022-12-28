@@ -1,14 +1,14 @@
-# Zombie fighter - game with multiple states (alternative version with short-lived TCastleView instances)
+# Zombie fighter - game with multiple views (alternative version with short-lived TCastleView instances)
 
-Demo of Castle Game Engine states (`TCastleView`) to define various game states, like
+Demo of Castle Game Engine views (`TCastleView`) to define various game views, like
 
 - main menu
 - playing the game
 - dialog asking user for something
 
-You can organize your game into such states, it is a nice way of splitting your user interface code into manageable chunks. See https://castle-engine.io/states .
+You can organize your game into such views, it is a nice way of splitting your user interface code into manageable chunks. See https://castle-engine.io/views .
 
-This is an alternative version of the demo in ../zombie_fighter/ . It uses short-lived states, created using TCastleView.CreateUntilStopped. This approach to creating states has some advantages, see TCastleView.CreateUntilStopped documentation.
+This is an alternative version of the demo in ../zombie_fighter/ . It uses short-lived views, created using `TCastleView.CreateUntilStopped`. This approach to creating views has some advantages, see `TCastleView.CreateUntilStopped` documentation.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

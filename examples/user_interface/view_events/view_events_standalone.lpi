@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="state_events"/>
+      <Title Value="view_events"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="state_events_standalone.dpr"/>
+        <Filename Value="view_events_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -46,7 +46,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="state_events"/>
+      <Filename Value="view_events"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>
