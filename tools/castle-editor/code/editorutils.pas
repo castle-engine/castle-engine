@@ -663,8 +663,19 @@ begin
   begin
     case OutputInfo.Kind of
       okImportantInfo: C.Font.Bold := true;
-      okWarning      : C.Brush.Color := clYellow;
-      okError        : C.Brush.Color := clRed;
+      okWarning:
+        begin
+          C.Brush.Color := clYellow;
+          { If the font color is too light on yellow, change it }
+          if GrayscaleValue(ColorToVector3(C.Font.Color)) > 0.75 then
+          begin
+            if List.ItemIndex = Index then
+              C.Font.Color := clBlue
+            else
+              C.Font.Color := clBlack;
+          end;
+        end;
+      okError: C.Brush.Color := clRed;
     end;
   end else
   begin
