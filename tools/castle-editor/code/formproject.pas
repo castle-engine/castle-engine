@@ -29,9 +29,10 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
-  AnchorDocking, XMLPropStorage,
+  AnchorDocking, XMLPropStorage, ImgList,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
+  DataModuleIcons,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   ToolPackageFormat;
 
@@ -42,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionPlayStop: TAction;
     ActionShowColliders: TAction;
     ActionSimulationPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
@@ -90,6 +92,10 @@ type
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    BitBtnPlayStop: TBitBtn;
+    BitBtnNewView: TBitBtn;
+    LabelOpenExistingView: TLabel;
+    ListOpenExistingView: TListView;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
@@ -100,6 +106,9 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    PanelOpenExistingView: TPanel;
+    PanelNoDesign: TPanel;
+    PanelNoDesignTop: TPanel;
     Separator9: TMenuItem;
     MenuItem38: TMenuItem;
     MenuItemSimulationPauseUnpause: TMenuItem;
@@ -219,7 +228,6 @@ type
     MenuItemShellTreeRefresh: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
-    LabelNoDesign: TLabel;
     ListWarnings: TListBox;
     MenuItemRename: TMenuItem;
     MenuItemRedo: TMenuItem;
@@ -306,6 +314,8 @@ type
     procedure ActionModeScaleExecute(Sender: TObject);
     procedure ActionModeSelectExecute(Sender: TObject);
     procedure ActionModeTranslateExecute(Sender: TObject);
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
@@ -368,7 +378,7 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
-    procedure ListOutputClick(Sender: TObject);
+    procedure ListOpenExistingViewDblClick(Sender: TObject);
     procedure ListOutputDblClick(Sender: TObject);
     procedure MenuItemCacheCleanClick(Sender: TObject);
     procedure MenuItemCacheClick(Sender: TObject);
@@ -472,6 +482,9 @@ type
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
+    procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
+      var StopSearch: boolean);
+    procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure MenuItemPackageFormatChangeClick(Sender: TObject);
@@ -552,7 +565,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
+  CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
@@ -906,6 +919,35 @@ procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ChangeMode(moTranslate);
+end;
+
+procedure TProjectForm.ActionPlayStopExecute(Sender: TObject);
+begin
+  RunningToggle(Sender);
+end;
+
+procedure TProjectForm.ActionPlayStopUpdate(Sender: TObject);
+var
+  NowIsRunning: Boolean;
+begin
+  NowIsRunning := IsRunning;
+  if NowIsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := NowIsRunning;
+
+  BitBtnPlayStop.ImageIndex := ActionPlayStop.ImageIndex;
+  if NowIsRunning then
+  begin
+    BitBtnPlayStop.Caption := 'Stop';
+    BitBtnPlayStop.Hint := 'Break Compilation or Run (Ctrl + F2)';
+  end else
+  begin
+    BitBtnPlayStop.Caption := 'Compile and Run';
+    BitBtnPlayStop.Hint := 'Compile and Run (F9)';
+  end;
+  //BitBtnPlayStop.Checked := NowIsRunning;
 end;
 
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
@@ -1304,6 +1346,7 @@ begin
 
   if NewUnitForm.ShowModal = mrOK then
   begin
+    ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
     RefreshFiles(rfFilesInCurrentDir);
@@ -1738,8 +1781,17 @@ begin
   end;
 end;
 
-procedure TProjectForm.ListOutputClick(Sender: TObject);
+procedure TProjectForm.ListOpenExistingViewDblClick(Sender: TObject);
+var
+  DesignRelativeFileName, DesignFileName, DesignUrl: String;
 begin
+  if ListOpenExistingView.ItemIndex <> -1 then
+  begin
+    DesignRelativeFileName := ListOpenExistingView.Items[ListOpenExistingView.ItemIndex].Caption;
+    DesignFileName := CombinePaths(ProjectPath, DesignRelativeFileName);
+    DesignUrl := FilenameToURISafe(DesignFileName);
+    ProposeOpenDesign(DesignUrl);
+  end;
 end;
 
 procedure TProjectForm.ListOutputDblClick(Sender: TObject);
@@ -2072,6 +2124,31 @@ begin
   MenuItemModeDebug.Checked := true;
 end;
 
+procedure TProjectForm.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  ListItem: TListItem;
+  FileDateTime: TDateTime;
+  FileDateTimeStr, DesignRelative: String;
+begin
+  DesignRelative := ExtractRelativePath(ProjectPath, FileInfo.AbsoluteName);
+
+  ListItem := ListOpenExistingView.Items.Add;
+  ListItem.Caption := DesignRelative;
+  if FileAge(FileInfo.AbsoluteName, FileDateTime) then
+    FileDateTimeStr := DateTimeToAtStr(FileDateTime)
+  else
+    FileDateTimeStr := 'Unknown';
+  ListItem.SubItems.Append(FileDateTimeStr);
+end;
+
+procedure TProjectForm.ListOpenExistingViewRefresh;
+begin
+  ListOpenExistingView.Items.Clear;
+  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  // support deprecated? not worth confusion in UI
+  //FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+end;
+
 procedure TProjectForm.DesignExistenceChanged;
 var
   NewPanelRightWidth, NewPanelLeftWidth: Integer;
@@ -2124,7 +2201,10 @@ begin
     end;
   end;
 
-  LabelNoDesign.Visible := Design = nil;
+  SetEnabledVisible(PanelNoDesign, Design = nil);
+
+  if Design = nil then
+    ListOpenExistingViewRefresh;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
