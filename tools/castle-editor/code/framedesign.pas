@@ -2155,6 +2155,28 @@ end;
 
 procedure TDesignFrame.DeleteComponent;
 
+  { Explain to user why C cannot be deleted.
+    We know that Deletable(C) = false at this point. }
+  function ReasonWhyNotDeletable(const C: TComponent): String;
+  var
+    ReasonStart: String;
+  begin
+    ReasonStart := 'Cannot remove "' + C.Name + '":' + NL + NL;
+
+    // This analyzes some conditions of Deletable and Selectable
+    if C is TCastleToolTransform then
+      Exit(ReasonStart + 'This is a temporary (tool) component, helpful to edit something, but it is not part of the final design. Use "Hide Joint Tools" to hide it.');
+    if csTransient in C.ComponentStyle then
+      Exit(ReasonStart + 'This is an internal component, you should not be able to even select it.');
+    if csSubComponent in C.ComponentStyle then
+      Exit(ReasonStart + 'This is a subcomponent, and subcomponents cannot be removed because owner depends that they always exist.');
+    if C = DesignRoot then
+      Exit(ReasonStart + 'This is the root component of the design. Design must always have a root component. You can only change it to something else using "Change Class".');
+
+    // Shorter error message, if we don't know any specific reason
+    Result := 'Cannot remove "' + C.Name + '".';
+  end;
+
   function FirstDeletableComponent(const List: TComponentList): TComponent;
   var
     I: Integer;
@@ -2179,6 +2201,14 @@ begin
         UndoSummary := Selected[0].Name
       else
         UndoSummary := SelectedCount.ToString + ' components';
+
+      if (SelectedCount = 1) and not Deletable(Selected[0]) then
+      begin
+        { In this case we will not remove anything.
+          Be vocal to user to explain "why", e.g. why root components cannot be removed. }
+        ErrorBox(ReasonWhyNotDeletable(Selected[0]));
+        Exit;
+      end;
 
       { We depend on the fact TComponentList observes freed items,
         and removes them automatically.
@@ -3658,15 +3688,28 @@ end;
 
 class function TDesignFrame.Selectable(const Child: TComponent): Boolean;
 begin
-  { Do not show in hierarchy the TCastleDesign loaded hierarchy,
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable (not being selectable
+    also makes it not deletable). }
+
+  { csTransient reason:
+
+    Do not show in hierarchy the TCastleDesign loaded hierarchy,
     as it will not be saved.
     Same for TCastleCheckbox children.
-    Consequently, do not allow to select stuff inside. }
+    Consequently, do not allow to select stuff inside.
+
+    However, show TCastleToolTransform, even though it is csTransient.
+    We want to allow selecting joint tools.
+  }
   Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable. }
+
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
     (Child <> DesignRoot) and (not (Child is TCastleToolTransform));
