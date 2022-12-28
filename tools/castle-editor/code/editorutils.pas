@@ -16,7 +16,7 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
-{$modeswitch advancedrecords}
+{$I editorconf.inc}
 
 interface
 
@@ -888,7 +888,8 @@ begin
   end;
 end;
 
-function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+function CompareRegisteredComponent({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TRegisteredComponent): Integer;
 var
   I: Integer;
 begin
