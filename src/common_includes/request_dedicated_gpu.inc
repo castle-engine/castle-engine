@@ -22,13 +22,15 @@
     and it seems that this flag is ignored (but maybe it's the fault of my setup).
     Reports are welcome.
 
-  - macOS: It didn't compile on macOS, so we disabled it
-    (including this file does nothing on macOS).
+  - macOS, FreeBSD: It didn't compile, so we disabled it
+    (that is, including this file does nothing on these systems).
 
-    FPC 3.2.2 fails at "exports"
+    macOS: FPC 3.2.2 fails at "exports"
 
     .../common_includes/request_dedicated_gpu.inc(42,1) Warning: (3186) Use of unsupported feature!
     .../common_includes/request_dedicated_gpu.inc(42,1) Fatal: (2003) Syntax error, "BEGIN" expected but "EXPORTS" found
+
+    Similar for FreeBSD ( https://discord.com/channels/389676745957310465/389676745957310467/1057727043506286665 ).
 
   TODO:
   How to nicely allow CGE applications to utilize this?
@@ -38,7 +40,7 @@
 // uncomment and recomment this line, for compile-time-switching between integrated GPU and dedicated GPU
 {$define ForceDedicatedGPUUsage}
 
-{$if defined(ForceDedicatedGPUUsage) and (defined(cpu386) or defined(cpux64) or defined(cpuamd64)) and (not defined(Darwin))}
+{$if defined(ForceDedicatedGPUUsage) and (defined(cpu386) or defined(cpux64) or defined(cpuamd64)) and (defined(MSWINDOWS) or defined(Linux))}
 
 {$ifdef fpc}
  {$asmmode intel}
