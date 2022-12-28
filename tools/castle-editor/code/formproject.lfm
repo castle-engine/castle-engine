@@ -165,6 +165,13 @@ object ProjectForm: TProjectForm
     end
     object MenuItemDesign: TMenuItem
       Caption = '&Design'
+      object MenuItem38: TMenuItem
+        Action = ActionNewUnitView
+        Caption = 'New View (User Interface connected with Pascal code)...'
+      end
+      object Separator9: TMenuItem
+        Caption = '-'
+      end
       object MenuItemDesignNewUserInterfaceRect: TMenuItem
         Caption = 'New User Interface (Empty Rectangle as Root)'
         OnClick = MenuItemDesignNewUserInterfaceRectClick

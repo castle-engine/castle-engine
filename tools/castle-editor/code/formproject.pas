@@ -100,6 +100,8 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    Separator9: TMenuItem;
+    MenuItem38: TMenuItem;
     MenuItemSimulationPauseUnpause: TMenuItem;
     MenuItemSimulationPlayStop: TMenuItem;
     SeparatorBeforeShowColliders: TMenuItem;
