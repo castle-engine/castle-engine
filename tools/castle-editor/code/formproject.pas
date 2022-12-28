@@ -185,9 +185,11 @@ type
     ActionNewUnitHereClass: TAction;
     ActionNewUnitHereView: TAction;
     ActionNewUnitHereEmpty: TAction;
+    ActionNewUnitHereBehavior: TAction;
     ActionNewUnitClass: TAction;
     ActionNewUnitView: TAction;
     ActionNewUnitEmpty: TAction;
+    ActionNewUnitBehavior: TAction;
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
@@ -198,11 +200,13 @@ type
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
     MenuItemPopupNewUnitView: TMenuItem;
+    MenuItemPopupNewUnitBehavior: TMenuItem;
     MenuItemPopupNewUnit: TMenuItem;
     N3: TMenuItem;
     MenuItemNewUnitView: TMenuItem;
     MenuItemNewUnitClass: TMenuItem;
     MenuItemNewUnitEmpty: TMenuItem;
+    MenuItemNewUnitBehavior: TMenuItem;
     MenuItemNewUnit: TMenuItem;
     N2: TMenuItem;
     MenuItemEditUnitCode: TMenuItem;
@@ -327,10 +331,12 @@ type
     procedure ActionEditUnitExecute(Sender: TObject);
     procedure ActionNewUnitClassExecute(Sender: TObject);
     procedure ActionNewUnitEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitViewExecute(Sender: TObject);
+    procedure ActionNewUnitBehaviorExecute(Sender: TObject);
     procedure ActionNewUnitHereClassExecute(Sender: TObject);
     procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
     procedure ActionNewUnitHereViewExecute(Sender: TObject);
-    procedure ActionNewUnitViewExecute(Sender: TObject);
+    procedure ActionNewUnitHereBehaviorExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
     procedure ActionOutputCopyAllExecute(Sender: TObject);
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
@@ -1195,6 +1201,16 @@ begin
   ShowNewUnitForm(utEmpty, false);
 end;
 
+procedure TProjectForm.ActionNewUnitViewExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utView, false);
+end;
+
+procedure TProjectForm.ActionNewUnitBehaviorExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utBehavior, false);
+end;
+
 procedure TProjectForm.ActionNewUnitHereClassExecute(Sender: TObject);
 begin
   ShowNewUnitForm(utClass, true);
@@ -1210,9 +1226,9 @@ begin
   ShowNewUnitForm(utView, true);
 end;
 
-procedure TProjectForm.ActionNewUnitViewExecute(Sender: TObject);
+procedure TProjectForm.ActionNewUnitHereBehaviorExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utView, false);
+  ShowNewUnitForm(utBehavior, true);
 end;
 
 procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;

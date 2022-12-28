@@ -14,6 +14,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   end;
 
 var
@@ -30,6 +31,13 @@ end;
 procedure ${VIEW_CLASS_NAME}.Start;
 begin
   inherited;
+  { Executed once when view starts. }
+end;
+
+procedure ${VIEW_CLASS_NAME}.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  { Executed every frame. }
 end;
 
 end.

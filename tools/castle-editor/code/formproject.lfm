@@ -449,6 +449,9 @@ object ProjectForm: TProjectForm
         object MenuItemNewUnitView: TMenuItem
           Action = ActionNewUnitView
         end
+        object MenuItemNewUnitBehavior: TMenuItem
+          Action = ActionNewUnitBehavior
+        end
       end
       object MenuItemSeparator123123345: TMenuItem
         Caption = '-'
@@ -716,6 +719,9 @@ object ProjectForm: TProjectForm
       object MenuItemPopupNewUnitView: TMenuItem
         Action = ActionNewUnitHereView
       end
+      object MenuItemPopupNewUnitBehavior: TMenuItem
+        Action = ActionNewUnitHereBehavior
+      end
     end
   end
   object ShellTreePopupMenu: TPopupMenu
@@ -786,6 +792,11 @@ object ProjectForm: TProjectForm
       Caption = 'Unit With View...'
       OnExecute = ActionNewUnitViewExecute
     end
+    object ActionNewUnitBehavior: TAction
+      Category = 'Code'
+      Caption = 'Unit With Behavior...'
+      OnExecute = ActionNewUnitBehaviorExecute
+    end
     object ActionNewUnitHereEmpty: TAction
       Category = 'PopupFiles'
       Caption = 'Empty Unit...'
@@ -800,6 +811,11 @@ object ProjectForm: TProjectForm
       Category = 'PopupFiles'
       Caption = 'Unit With View...'
       OnExecute = ActionNewUnitHereViewExecute
+    end
+    object ActionNewUnitHereBehavior: TAction
+      Category = 'PopupFiles'
+      Caption = 'Unit With Behavior...'
+      OnExecute = ActionNewUnitHereBehaviorExecute
     end
     object ActionEditAssociatedUnit: TAction
       Category = 'Code'

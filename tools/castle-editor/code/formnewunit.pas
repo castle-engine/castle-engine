@@ -26,7 +26,7 @@ uses
   ToolManifest;
 
 type
-  TNewUnitType = (utEmpty, utClass, utView);
+  TNewUnitType = (utEmpty, utClass, utView, utBehavior);
 
   { Dialog to configure new unit properties. }
   TNewUnitForm = class(TForm)
@@ -155,7 +155,7 @@ begin
   RelativeUnitPath := ExtractRelativePathDelim(FProjectManifest.Path, FUnitOutputPath);
   EditUnitDir.Text := RelativeUnitPath;
 
-  SetEnabledVisible(PanelUnitClass, FUnitType = utClass);
+  SetEnabledVisible(PanelUnitClass, FUnitType in [utClass, utBehavior]);
   SetEnabledVisible(PanelUnitView, FUnitType = utView);
 
   case UnitType of
@@ -170,6 +170,14 @@ begin
       begin
         EditUnitName.Text := 'GameSomething';
         EditClassName.Text := 'TSomething';
+
+        { adjust form height }
+        ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
+      end;
+    utBehavior:
+      begin
+        EditUnitName.Text := 'GameSomethingBehavior';
+        EditClassName.Text := 'TSomethingBehavior';
 
         { adjust form height }
         ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
@@ -271,7 +279,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
       Exit(false);
     end;
 
-    if (UnitType = utClass) and (not IsValidIdent(EditClassName.Text, true)) then
+    if (UnitType in [utClass, utBehavior]) and (not IsValidIdent(EditClassName.Text, true)) then
     begin
       ErrorBox(Format('Class name "%s" is not a valid Pascal identifier', [EditClassName.Text]));
       Exit(false);
@@ -308,6 +316,11 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
         utClass:
           begin
             TemplateSource := 'newunitclass.pas';
+            Macros.Add('${CLASS_NAME}', EditClassName.Text);
+          end;
+        utBehavior:
+          begin
+            TemplateSource := 'newunitbehavior.pas';
             Macros.Add('${CLASS_NAME}', EditClassName.Text);
           end;
         utView:
@@ -407,6 +420,7 @@ end;
 procedure TNewUnitForm.FormShow(Sender: TObject);
 begin
   ActiveControl := EditUnitName; // set focus on EditUnitName each time you open this form
+  EditUnitName.SelectAll; // allow to easily type something from scratch
 end;
 
 procedure TNewUnitForm.GetFinalFilenames(
