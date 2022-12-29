@@ -38,6 +38,8 @@ type
     procedure Button2DClick(Sender: TObject);
     procedure ButtonUIClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
   public
     { Public declarations }
@@ -52,37 +54,52 @@ implementation
 
 uses CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
   CastleApplicationProperties, CastleVectors, CastleUIControls, CastleKeysMouse,
-  CastleCameras;
+  CastleCameras, CastleLog;
 
-{ TMyRenderTest --------------------------------------------------------------------- }
+{ TUiTest --------------------------------------------------------------------- }
 
 type
-  TMyRenderTest = class(TCastleUserInterface)
+  { Define a TCastleUserInterface descendant using code,
+    to showcase various features from Pascal:
+
+    - observe when GL context is available to do something (here: get OpenGL info)
+
+    - do direct rendering by overriding TUiTest.Render
+      (you can even use OpenGL(ES) directly there)
+
+    - handle keys and mouse presses using CGE API.
+  }
+  TUiTest = class(TCastleUserInterface)
     procedure Render; override;
     procedure GLContextOpen; override;
-    //function Press(const Event: TInputPressRelease): Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
-procedure TMyRenderTest.GLContextOpen;
+procedure TUiTest.GLContextOpen;
 begin
   inherited;
   Form1.Memo1.Lines.Add(GLInformationString);
 end;
 
-procedure TMyRenderTest.Render;
+procedure TUiTest.Render;
 begin
   inherited;
   DrawRectangle(FloatRectangle(5, 5, 10, 10), Blue);
   FallbackFont.Print(30, 5, Yellow, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 end;
 
-{
-function TMyRenderTest.Press(const Event: TInputPressRelease): Boolean;
+function TUiTest.Press(const Event: TInputPressRelease): Boolean;
 var
   WalkNav: TCastleWalkNavigation;
 begin
   Result := inherited;
 
+  { See https://castle-engine.io/log where to find log output,
+    it is also in Delphi Events window. }
+  WritelnLog('Press received ' + Event.ToString);
+
+  { To test it, change design to remove TCastleExamineNavigation and add
+    WalkNavigation1: TCastleWalkNavigation. }
   if Event.IsMouseButton(buttonRight) then
   begin
     WalkNav := Form1.CastleControl.Container.DesignedComponent(
@@ -94,7 +111,6 @@ begin
     end;
   end;
 end;
-}
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -114,9 +130,35 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  UiTest: TUiTest;
 begin
-  // adding a component created by code, doing manual rendering in TMyRenderTest.Render
-  CastleControl.Container.Controls.InsertFront(TMyRenderTest.Create(Self));
+  InitializeLog;
+
+  UiTest := TUiTest.Create(Self);
+  UiTest.FullSize := true;
+  CastleControl.Container.Controls.InsertFront(UiTest);
+end;
+
+procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  { If you want to handle arrow keys in CastleControl,
+    you have to set KeyPreview=true on form,
+    and redirect them here to the CastleControl.
+    Otherwise arrow keys are used for navigation by Windows,
+    and the CastleControl will never even see them.
+
+    In this demo, you can test arrow keys and space by using
+    them to rotate in 3D view.
+    You can also see key presses received by CGE in Delphi Events window.
+  }
+  CastleControl.PreviewFormKeyDown(Key, Shift);
+end;
+
+procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  CastleControl.PreviewFormKeyUp(Key, Shift);
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

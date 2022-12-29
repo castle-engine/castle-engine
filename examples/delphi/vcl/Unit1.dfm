@@ -12,7 +12,10 @@ object Form1: TForm1
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  KeyPreview = True
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
   DesignSize = (
     1025
     502)
@@ -37,7 +40,7 @@ object Form1: TForm1
     Margins.Bottom = 80
     Align = alRight
     ScrollBars = ssBoth
-    TabOrder = 0
+    TabOrder = 1
     ExplicitLeft = 632
     ExplicitHeight = 403
   end
@@ -48,7 +51,7 @@ object Form1: TForm1
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = '3D'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = Button3DClick
     ExplicitLeft = 720
     ExplicitTop = 460
@@ -60,7 +63,7 @@ object Form1: TForm1
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = '2D'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = Button2DClick
     ExplicitLeft = 829
     ExplicitTop = 460
@@ -72,7 +75,7 @@ object Form1: TForm1
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'UI'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = ButtonUIClick
     ExplicitLeft = 934
     ExplicitTop = 460
