@@ -95,7 +95,7 @@ type
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
-    
+
     property Align;
     property Anchors;
     property OnClick;
@@ -203,7 +203,7 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
-  
+
   TabStop := true;
 end;
 
