@@ -57,21 +57,21 @@ uses Windows, FMX.Presentation.Win,
   CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
   CastleVectors;
 
-{ TMyRenderTest -------------------------------------------------------------- }
+{ TUiTest -------------------------------------------------------------- }
 
 type
-  TMyRenderTest = class(TCastleUserInterface)
+  TUiTest = class(TCastleUserInterface)
     procedure Render; override;
     procedure GLContextOpen; override;
   end;
 
-procedure TMyRenderTest.GLContextOpen;
+procedure TUiTest.GLContextOpen;
 begin
   inherited;
   TestCgeControl.Memo1.Lines.Add(GLInformationString);
 end;
 
-procedure TMyRenderTest.Render;
+procedure TUiTest.Render;
 begin
   inherited;
   DrawRectangle(FloatRectangle(5, 5, 10, 10), Yellow);
@@ -102,8 +102,8 @@ begin
 
   CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
 
-  // adding a component created by code, doing manual rendering in TMyRenderTest.Render
-  CastleControl.Container.Controls.InsertFront(TMyRenderTest.Create(Self));
+  // adding a component created by code, doing manual rendering in TUiTest.Render
+  CastleControl.Container.Controls.InsertFront(TUiTest.Create(Self));
 end;
 
 procedure TTestCgeControl.Timer1Timer(Sender: TObject);
