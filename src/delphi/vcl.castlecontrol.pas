@@ -50,7 +50,7 @@ type
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
         function Dpi: Single; override;
-     end;
+      end;
 
     var
       FContainer: TContainer;
@@ -91,11 +91,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
-
   published
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
     property Container: TContainer read FContainer;
+    
     property Align;
     property Anchors;
     property OnClick;
@@ -203,6 +203,7 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
+  
   TabStop := true;
 end;
 
