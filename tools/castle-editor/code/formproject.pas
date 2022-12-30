@@ -471,6 +471,7 @@ type
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
+      ListOpenExistingViewStr: TStringList;
       { Anchor docking forms }
       DesignForm: TForm;
       DesignHierarchyForm: TForm;
@@ -1593,6 +1594,7 @@ begin
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  ListOpenExistingViewStr := TStringList.Create;
   if Docking then
   begin
     // Create dockable forms
@@ -1682,6 +1684,7 @@ begin
   FreeAndNil(DesignOutputForm);
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
+  FreeAndNil(ListOpenExistingViewStr);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -1783,12 +1786,11 @@ end;
 
 procedure TProjectForm.ListOpenExistingViewDblClick(Sender: TObject);
 var
-  DesignRelativeFileName, DesignFileName, DesignUrl: String;
+  DesignFileName, DesignUrl: String;
 begin
   if ListOpenExistingView.ItemIndex <> -1 then
   begin
-    DesignRelativeFileName := ListOpenExistingView.Items[ListOpenExistingView.ItemIndex].Caption;
-    DesignFileName := CombinePaths(ProjectPath, DesignRelativeFileName);
+    DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
     DesignUrl := FilenameToURISafe(DesignFileName);
     ProposeOpenDesign(DesignUrl);
   end;
@@ -2125,28 +2127,48 @@ begin
 end;
 
 procedure TProjectForm.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-var
-  ListItem: TListItem;
-  FileDateTime: TDateTime;
-  FileDateTimeStr, DesignRelative: String;
 begin
-  DesignRelative := ExtractRelativePath(ProjectPath, FileInfo.AbsoluteName);
-
-  ListItem := ListOpenExistingView.Items.Add;
-  ListItem.Caption := DesignRelative;
-  if FileAge(FileInfo.AbsoluteName, FileDateTime) then
-    FileDateTimeStr := DateTimeToAtStr(FileDateTime)
-  else
-    FileDateTimeStr := 'Unknown';
-  ListItem.SubItems.Append(FileDateTimeStr);
+  ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
 end;
 
 procedure TProjectForm.ListOpenExistingViewRefresh;
+
+  function ShortDesignName(const S: String): String;
+  begin
+    Result := DeleteFileExt(ExtractFileName(S));
+    Result := PrefixRemove('gameview', Result, true);
+    Result := PrefixRemove('gamestate', Result, true);
+    Result := SuffixRemove('.castle-user-interface', Result, true);
+  end;
+
+var
+  ListItem: TListItem;
+  FileDateTime: TDateTime;
+  DesignFileName, FileDateTimeStr: String;
 begin
-  ListOpenExistingView.Items.Clear;
+  { calculate ListOpenExistingViewStr contents }
+  ListOpenExistingViewStr.Clear;
   FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  // support deprecated? not worth confusion in UI
-  //FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  // support deprecated names
+  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { without sorting, the order would be ~random (as FindFiles enumarates).
+    Note that we sort including the subdirectory names, which is good,
+    we want files in the same subdirectory to be together. }
+  ListOpenExistingViewStr.Sort;
+
+  { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
+  ListOpenExistingView.Items.Clear;
+  for DesignFileName in ListOpenExistingViewStr do
+  begin
+    ListItem := ListOpenExistingView.Items.Add;
+    ListItem.Caption := ShortDesignName(DesignFileName);
+    ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
+    if FileAge(DesignFileName, FileDateTime) then
+      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
+    else
+      FileDateTimeStr := 'Unknown';
+    ListItem.SubItems.Append(FileDateTimeStr);
+  end;
 end;
 
 procedure TProjectForm.DesignExistenceChanged;

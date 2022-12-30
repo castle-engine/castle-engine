@@ -200,12 +200,20 @@ object ProjectForm: TProjectForm
           BorderSpacing.Around = 10
           Columns = <          
             item
+              AutoSize = True
+              Caption = 'Name'
+              MinWidth = 200
+              Width = 200
+            end          
+            item
               Caption = 'File'
               Width = 600
             end          
             item
+              AutoSize = True
               Caption = 'Last Modified'
-              Width = 562
+              Width = 362
+              SortIndicator = siDescending
             end>
           ScrollBars = ssAutoBoth
           TabOrder = 0
