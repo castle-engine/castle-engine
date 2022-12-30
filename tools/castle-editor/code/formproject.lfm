@@ -296,6 +296,7 @@ object ProjectForm: TProjectForm
       end
       object MenuItemDesignClose: TMenuItem
         Caption = 'Close'
+        ShortCut = 16471
         OnClick = MenuItemDesignCloseClick
       end
     end
