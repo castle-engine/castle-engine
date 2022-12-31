@@ -3,6 +3,8 @@ Castle Game Engine
 
 ["Castle Game Engine"](https://castle-engine.io/) is a cross-platform (desktop, mobile, console) 3D and 2D game engine.
 
+![Castle Game Engine - editor with terrain](https://castle-engine.io/images/not_resized_original/combined_cge_logo_game.png)
+
 We feature:
 
 * Powerful visual editor to design 3D and 2D games.
@@ -18,8 +20,6 @@ We feature:
 * We are free and open-source.
 
 See https://castle-engine.io/features for the complete list of engine features.
-
-![Castle Game Engine - editor with terrain](https://castle-engine.io/images/not_resized_original/combined_cge_logo_game.png)
 
 Installation and building your first application
 ---------
