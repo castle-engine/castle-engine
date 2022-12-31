@@ -1222,10 +1222,7 @@ begin
       It worked for FPC 3.3.1 from 2022-07-28.
       It also worked in FPC 3.2.0.
 
-      TODO: Submit and report.
-      There are not so many changes,
-      https://gitlab.com/freepascal.org/fpc/source/-/commits/main/packages/rtl-generics ,
-      assuming that the fault is in some rtl-generics commit.
+      Submitted as https://gitlab.com/freepascal.org/fpc/source/-/issues/40074 .
     }
     {$ifndef VER3_3}
 
