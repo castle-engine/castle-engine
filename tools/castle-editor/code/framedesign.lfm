@@ -1,37 +1,37 @@
 object DesignFrame: TDesignFrame
   Left = 0
-  Height = 489
+  Height = 522
   Top = 0
-  Width = 1208
-  ClientHeight = 489
-  ClientWidth = 1208
+  Width = 1237
+  ClientHeight = 522
+  ClientWidth = 1237
   DesignTimePPI = 115
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 289
+  DesignLeft = 260
   DesignTop = 243
   object SplitterLeft: TSplitter
     Left = 255
-    Height = 489
+    Height = 522
     Top = 0
     Width = 8
   end
   object SplitterRight: TSplitter
-    Left = 888
-    Height = 489
+    Left = 917
+    Height = 522
     Top = 0
     Width = 8
     Align = alRight
     ResizeAnchor = akRight
   end
   object PanelRight: TPanel
-    Left = 896
-    Height = 489
+    Left = 925
+    Height = 522
     Top = 0
     Width = 312
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 489
+    ClientHeight = 522
     ClientWidth = 312
     ParentFont = False
     TabOrder = 2
@@ -48,7 +48,7 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 437
+      Height = 470
       Top = 52
       Width = 312
       ActivePage = TabLayout
@@ -62,7 +62,7 @@ object DesignFrame: TDesignFrame
       end
       object TabLayout: TTabSheet
         Caption = 'Layout'
-        ClientHeight = 402
+        ClientHeight = 435
         ClientWidth = 302
         ParentFont = False
         object PanelLayoutTop: TPanel
@@ -312,7 +312,7 @@ object DesignFrame: TDesignFrame
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
-        ClientHeight = 402
+        ClientHeight = 435
         ClientWidth = 302
         ParentFont = False
         object PanelEventsInfo: TPanel
@@ -346,21 +346,39 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
     end
+    object ButtonApiReferenceForCurrent: TSpeedButton
+      Left = 272
+      Height = 36
+      Top = 5
+      Width = 36
+      Action = ActionApiReferenceOfCurrent
+      AllowAllUp = True
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Constraints.MinHeight = 34
+      Constraints.MinWidth = 34
+      Images = Icons.ToolbarIcons
+      ImageIndex = 12
+      ImageWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
   end
   object PanelLeft: TPanel
     Left = 0
-    Height = 489
+    Height = 522
     Top = 0
     Width = 255
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 489
+    ClientHeight = 522
     ClientWidth = 255
     ParentFont = False
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 458
+      Height = 491
       Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
       Top = 31
       Width = 255
@@ -399,20 +417,20 @@ object DesignFrame: TDesignFrame
   end
   object PanelMiddle: TPanel
     Left = 263
-    Height = 489
+    Height = 522
     Top = 0
-    Width = 625
+    Width = 654
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 489
-    ClientWidth = 625
+    ClientHeight = 522
+    ClientWidth = 654
     ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
       Height = 38
       Top = 5
-      Width = 615
+      Width = 644
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
@@ -421,7 +439,7 @@ object DesignFrame: TDesignFrame
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 100
       ClientHeight = 38
-      ClientWidth = 615
+      ClientWidth = 644
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
@@ -1177,7 +1195,7 @@ object DesignFrame: TDesignFrame
         Value = 10
       end
       object LabelUIScaling: TLabel
-        Left = 580
+        Left = 609
         Height = 21
         Hint = 'UI Scaling to 1600x900'
         Top = 0
@@ -1203,7 +1221,7 @@ object DesignFrame: TDesignFrame
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
         GroupIndex = 220
-        Images = Icons.ToolbarStroke1_5
+        Images = Icons.ToolbarIcons
         ImageIndex = 5
         ImageWidth = 32
         ShowCaption = False
@@ -1232,7 +1250,7 @@ object DesignFrame: TDesignFrame
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
         GroupIndex = 10
-        Images = Icons.ToolbarStroke1_5
+        Images = Icons.ToolbarIcons
         ImageIndex = 8
         ImageWidth = 32
         ShowCaption = False
@@ -1248,7 +1266,7 @@ object DesignFrame: TDesignFrame
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
         GroupIndex = 9
-        Images = Icons.ToolbarStroke1_5
+        Images = Icons.ToolbarIcons
         ImageIndex = 10
         ImageWidth = 32
         ShowCaption = False
@@ -1362,14 +1380,14 @@ object DesignFrame: TDesignFrame
     Top = 307
   end
   object ActionListDesign: TActionList
-    Images = Icons.ToolbarStroke1_5
+    Images = Icons.ToolbarIcons
     Left = 790
     Top = 201
     object ActionSimulationPlayStop: TAction
       Category = 'Physics'
       Caption = 'Play/Stop Simulation'
       GroupIndex = 10
-      Hint = 'Play/Stop Simulation'
+      Hint = 'Play/Stop Simulation'#10'(Ctrl + P)'
       ImageIndex = 8
       OnExecute = ActionSimulationPlayStopExecute
       OnUpdate = ActionSimulationPlayStopUpdate
@@ -1383,11 +1401,19 @@ object DesignFrame: TDesignFrame
       OnUpdate = ActionSimulationPauseUnpauseUpdate
     end
     object ActionPlayStop: TAction
+      Category = 'Run'
       Caption = 'Application Play/Stop'
-      Hint = 'Play/Stop Application'
+      Hint = 'Play/Stop Application'#10'(F9 / Ctrl + F2)'
       ImageIndex = 5
       OnExecute = ActionPlayStopExecute
       OnUpdate = ActionPlayStopUpdate
+    end
+    object ActionApiReferenceOfCurrent: TAction
+      Category = 'Help'
+      Caption = 'Help (API Reference) for Current Component / Property'
+      Hint = 'Help for Current Component / Property'#10'(F1)'
+      ImageIndex = 12
+      OnExecute = ActionApiReferenceOfCurrentExecute
     end
   end
 end

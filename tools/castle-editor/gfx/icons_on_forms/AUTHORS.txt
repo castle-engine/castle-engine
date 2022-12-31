@@ -4,6 +4,7 @@ heart-solid.svg
 pause-solid.svg
 play-solid.svg
 stop-solid.svg
+info-solid.svg
 
   from https://fontawesome.com/
   License: https://fontawesome.com/license/free

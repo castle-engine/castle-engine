@@ -150,7 +150,7 @@ object ProjectForm: TProjectForm
           Constraints.MinWidth = 150
           GlyphShowMode = gsmAlways
           Layout = blGlyphTop
-          Images = Icons.ToolbarStroke1_5
+          Images = Icons.ToolbarIcons
           ImageIndex = 11
           TabOrder = 0
         end
@@ -165,7 +165,7 @@ object ProjectForm: TProjectForm
           Constraints.MinWidth = 180
           GlyphShowMode = gsmAlways
           Layout = blGlyphTop
-          Images = Icons.ToolbarStroke1_5
+          Images = Icons.ToolbarIcons
           ImageIndex = 5
           TabOrder = 1
         end
@@ -711,7 +711,7 @@ object ProjectForm: TProjectForm
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
       object MenuItemReferenceOfCurrent: TMenuItem
-        Caption = 'API Reference of Current Component / Property'
+        Caption = 'Help (API Reference) for Current Component / Property'
         ShortCut = 112
         OnClick = MenuItemReferenceOfCurrentClick
       end
@@ -857,7 +857,7 @@ object ProjectForm: TProjectForm
     Top = 472
   end
   object ActionList: TActionList
-    Images = Icons.ToolbarStroke1_5
+    Images = Icons.ToolbarIcons
     Left = 784
     Top = 464
     object ActionNewSpriteSheet: TAction

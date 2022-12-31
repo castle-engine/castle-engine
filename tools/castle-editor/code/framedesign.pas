@@ -55,6 +55,7 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionApiReferenceOfCurrent: TAction;
     ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
@@ -62,6 +63,7 @@ type
     ButtonResetTransformation: TButton;
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
+    ButtonApiReferenceForCurrent: TSpeedButton;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
     LabelViewport: TLabel;
@@ -124,6 +126,7 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
@@ -475,7 +478,7 @@ type
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
-    OnRunningToggle: TNotifyEvent;
+    OnRunningToggle, OnApiReferenceOfCurrent: TNotifyEvent;
     OnIsRunning: TIsRunningEvent;
 
     function RenamePossible: Boolean;
@@ -5218,6 +5221,11 @@ end;
 procedure TDesignFrame.ActionPlayStopExecute(Sender: TObject);
 begin
   OnRunningToggle(Self);
+end;
+
+procedure TDesignFrame.ActionApiReferenceOfCurrentExecute(Sender: TObject);
+begin
+  OnApiReferenceOfCurrent(Self);
 end;
 
 procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);

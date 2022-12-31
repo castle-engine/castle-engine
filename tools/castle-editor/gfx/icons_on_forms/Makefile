@@ -27,7 +27,8 @@ SOURCE_FOR_MULTIPLE_SIZES:=pause-solid.svg \
   pause-solid-physics.svg \
   play-solid-physics.svg \
   stop-solid-physics.svg \
-  file-plus.svg
+  file-plus.svg \
+  info-solid.svg
 
 # ----------------------------------------------------------------------------
 # Implementation

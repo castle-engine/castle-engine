@@ -2255,6 +2255,7 @@ begin
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
     Design.OnIsRunning  := @IsRunning;
     Design.OnRunningToggle  := @RunningToggle;
+    Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);

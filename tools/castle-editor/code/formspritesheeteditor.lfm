@@ -498,7 +498,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     ResizeAnchor = akRight
   end
   object ActionListSpriteSheet: TActionList
-    Images = Icons.ToolbarStroke1_5
+    Images = Icons.ToolbarSpriteSheet
     Left = 629
     Top = 131
     object ActionNewSpriteSheet: TAction
@@ -642,7 +642,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     end
   end
   object MainMenu: TMainMenu
-    Images = Icons.MenuStroke1_5
+    Images = Icons.MenuSpriteSheet
     Left = 339
     Top = 109
     object MenuItemFile: TMenuItem
