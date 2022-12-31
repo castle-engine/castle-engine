@@ -107,8 +107,10 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean default
       - name: Build And Run Auto-Tests (FPC Latest Unstable)
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests
-      - name: Build Using FpMake (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake
+      # fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+      # TODO investigate and report.
+      # - name: Build Using FpMake (FPC Latest Unstable)
+      #   run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake
 
   test-fpc-latest-unstable-examples:
     name: Examples (FPC Latest Unstable)
