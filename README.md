@@ -19,7 +19,7 @@ We feature:
 
 See https://castle-engine.io/features for the complete list of engine features.
 
-!["Lynch" demo image 1](https://castle-engine.io/images/not_resized/combined_cge_logo_game.webp)
+![Castle Game Engine - editor with terrain](https://castle-engine.io/images/not_resized_original/combined_cge_logo_game.png)
 
 Installation and building your first application
 ---------
