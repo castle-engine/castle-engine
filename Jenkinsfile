@@ -146,11 +146,15 @@ pipeline {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
               }
             }
+            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+               TODO investigate and report.
+
             stage('(Docker) Build Using FpMake (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
               }
             }
+            */
 
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
