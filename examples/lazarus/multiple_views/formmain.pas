@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,12 @@ var
 
 implementation
 
-uses GameViewTest2D, GameViewTest3D;
+uses CastleUtils
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameViewTest2D
+  , GameViewTest3D
+  {$endregion 'Castle Initialization Uses'};
 
 {$R *.lfm}
 
@@ -65,8 +70,17 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  { Create game views and set initial view.
+
+    Note: We define special $region to allow CGE editor "New View"
+    to be able to automatically add creation of new views here.
+    It isn't necessary at all, you don't need this special $region
+    and you can create ciews whenever you want. }
+  {$region 'Castle View Creation'}
+  // The content here may be automatically updated by CGE editor.
   ViewTest2D := TViewTest2D.Create(Application);
   ViewTest3D := TViewTest3D.Create(Application);
+  {$endregion 'Castle View Creation'}
 
   CastleControl1.Container.View := ViewTest2D;
 end;
