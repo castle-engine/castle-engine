@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,6 +43,11 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRunParameterDefaultWindowOrFullscreen: TAction;
+    ActionRunParameterRequestWindow: TAction;
+    ActionRunParameterRequestFullScreen: TAction;
+    ActionRunParameterDisableFpsLimit: TAction;
+    ActionRunParameterDisableSound: TAction;
     ActionPlayStop: TAction;
     ActionShowColliders: TAction;
     ActionSimulationPlayStop: TAction;
@@ -106,6 +111,13 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
+    Separator11: TMenuItem;
+    MenuItemRunParameterRequestWindow: TMenuItem;
+    MenuItemRunParameterRequestFullScreen: TMenuItem;
+    MenuItemRunParameterDisableFpsLimit: TMenuItem;
+    MenuItemRunParameterDisableSound: TMenuItem;
+    MenuItemRunParameters: TMenuItem;
     PanelOpenExistingView: TPanel;
     PanelNoDesign: TPanel;
     PanelNoDesignTop: TPanel;
@@ -316,6 +328,12 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionRunParameterDefaultWindowOrFullscreenExecute(Sender: TObject
+      );
+    procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
+    procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
+    procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
@@ -949,6 +967,34 @@ begin
     BitBtnPlayStop.Hint := 'Compile and Run (F9)';
   end;
   //BitBtnPlayStop.Checked := NowIsRunning;
+end;
+
+procedure TProjectForm.ActionRunParameterDefaultWindowOrFullscreenExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
+  );
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterRequestFullScreenExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterRequestWindowExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
@@ -2974,6 +3020,22 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--package-format=' + PackageFormatToString(Format));
   end;
 
+  { Add parameters for "castle-engine run".
+    Call it last, because it has to add also "--" that delimits build tool params
+    from application params. }
+  procedure AddRunParameters(const Params: TStrings);
+  begin
+    Params.Add('--');
+    if ActionRunParameterDisableSound.Checked then
+      Params.Add('--no-sound');
+    if ActionRunParameterDisableFpsLimit.Checked then
+      Params.Add('--no-limit-fps');
+    if ActionRunParameterRequestFullScreen.Checked then
+      Params.Add('--fullscreen');
+    if ActionRunParameterRequestWindow.Checked then
+      Params.Add('--window');
+  end;
+
 var
   BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -3032,6 +3094,9 @@ begin
     // editor always add --fast to package, as its more comfortable for normal development
     if (Command = 'package') then
       QueueItem.Parameters.Add('--fast');
+    // add --target, --os, --cpu parameters
+    if (Command = 'run') then
+      AddRunParameters(QueueItem.Parameters);
     RunningProcess.Queue.Add(QueueItem);
   end;
 
