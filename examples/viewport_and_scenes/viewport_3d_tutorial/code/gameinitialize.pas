@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,17 +52,43 @@ begin
 end;
 
 initialization
-  { Initialize Application.OnInitialize. }
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
+
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
-  { You should not need to do *anything* more in the unit "initialization" section.
-    Most of your game initialization should happen inside ApplicationInitialize.
-    In particular, it is not allowed to read files before ApplicationInitialize
-    (because in case of non-desktop platforms,
-    some necessary resources may not be prepared yet). }
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 end.
