@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Manifest that basically says that this project has to be compiled with lazbuild,
+  using Lazarus LPK file.
+
+  We define game_units to allow CGE editor to add new view creation there.
+  The game_units value is not used for anything else when build_using_lazbuild="true".
+-->
+
 <project name="multiple_views"
   lazarus_project="multiple_views.lpi"
   build_using_lazbuild="true"
+  game_units="FormMain"
 >
 </project>
