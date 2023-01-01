@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2488,10 +2488,12 @@ type
     { @groupEnd }
     {$endif FPC}
 
-    { Main window used for various purposes.
-      On targets when only one TCastleWindow instance makes sense
-      (like Android or iOS or web), set this to the reference of that window.
-      It is also used by TWindowProgressInterface to display progress bar. }
+    { Used on platforms that can only show a single window (TCastleWindow) at a time,
+      like mobile or web applications.
+
+      In other exceptional situations when we need a single window
+      (e.g. to display CGE uncaught exception) we may also use this window,
+      if set (otherwise we may use the 1st currently open window). }
     property MainWindow: TCastleWindow read FMainWindow write SetMainWindow;
 
     { User agent string, when running inside a browser.
