@@ -31,6 +31,9 @@ jobs:
         uses: gcarreno/setup-lazarus@v3.1.1
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
+          # Cache makes Windows jobs fail (they timeout),
+          # documented as TODO on https://github.com/marketplace/actions/setup-lazarus-environment .
+          with-cache: false
       - name: Install Ubuntu dependencies
         if: ${{ matrix.operating-system == 'ubuntu-latest' }}
         run: sudo apt-get --no-install-recommends -y install libgl-dev
