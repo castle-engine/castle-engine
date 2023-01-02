@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -97,7 +97,7 @@ begin
 
     More complicated approaches are possible if neded, e.g. you could
     avoid reloading the existing UI, and translate it using "TranslateDesign(UiRoot)".
-    TextNode can also be updated without reloading, by "TextNode.SetString([Text3D])".
+    TextNode can also be updated without reloading, by "TextNode.SetText([Text3D])".
     You could also preserve the TCastleEdit contents around it. }
   DesignUrl := '';
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
@@ -119,7 +119,7 @@ procedure TViewMain.InitializeUserInterface;
     TextNode := TTextNode.CreateWithTransform(TextShape, TextTransform);
     TextNode.FontStyle := FontStyle;
     TextNode.Solid := false;
-    TextNode.SetString([Text3D]);
+    TextNode.SetText([Text3D]);
 
     Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := YellowRGB;
