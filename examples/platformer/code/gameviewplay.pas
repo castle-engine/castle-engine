@@ -1293,7 +1293,7 @@ var
   ViewWidth: Single;
 begin
   inherited;
-  { This virtual method is executed every frame.}
+  { This virtual method is executed every frame (many times per second). }
 
   { If player is dead and we did not show game over view we do that }
   if IsPlayerDead and (Container.FrontView <> ViewGameOver) then

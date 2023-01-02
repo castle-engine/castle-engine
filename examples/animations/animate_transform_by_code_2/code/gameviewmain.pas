@@ -102,7 +102,7 @@ var
   T: TVector3;
 begin
   inherited;
-  { This virtual method is executed every frame.}
+  { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   Time := Time + Container.Fps.SecondsPassed;

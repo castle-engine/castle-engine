@@ -72,7 +72,7 @@ var
   Sphere1UnitSizeOnScreen, TextAttachedScale: Single;
 begin
   inherited;
-  { This virtual method is executed every frame.}
+  { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   { calculate SphereViewportPosition, position of the sphere middle in 2D viewport coordinates. }
