@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +33,6 @@ type
     ButtonToggleSSAO: TCastleButton;
     ButtonTouchNavigation: TCastleButton;
     ButtonMessage: TCastleButton;
-    ButtonProgress: TCastleButton;
     ButtonReopenContext: TCastleButton;
     ButtonToggleTextureUpdates: TCastleButton;
     ButtonPlaySoundWav: TCastleButton;
@@ -55,7 +54,6 @@ type
     procedure ClickToggleSSAO(Sender: TObject);
     procedure ClickTouchNavigation(Sender: TObject);
     procedure ClickMessage(Sender: TObject);
-    procedure ClickProgress(Sender: TObject);
     procedure ClickReopenContext(Sender: TObject);
     procedure ClickToggleTextureUpdates(Sender: TObject);
     procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
@@ -75,7 +73,7 @@ var
 implementation
 
 uses SysUtils, TypInfo,
-  CastleProgress, CastleWindow, CastleFilesUtils, CastleFindFiles,
+  CastleWindow, CastleFilesUtils, CastleFindFiles,
   CastleOpenDocument, CastleMessages, CastleLog, CastleApplicationProperties, CastleUtils;
 
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
@@ -113,7 +111,6 @@ begin
   ButtonToggleSSAO := DesignedComponent('ButtonToggleSSAO') as TCastleButton;
   ButtonTouchNavigation := DesignedComponent('ButtonTouchNavigation') as TCastleButton;
   ButtonMessage := DesignedComponent('ButtonMessage') as TCastleButton;
-  ButtonProgress := DesignedComponent('ButtonProgress') as TCastleButton;
   ButtonReopenContext := DesignedComponent('ButtonReopenContext') as TCastleButton;
   ButtonToggleTextureUpdates := DesignedComponent('ButtonToggleTextureUpdates') as TCastleButton;
   ButtonPlaySoundWav := DesignedComponent('ButtonPlaySoundWav') as TCastleButton;
@@ -133,7 +130,6 @@ begin
   ButtonToggleSSAO.OnClick := {$ifdef FPC}@{$endif}ClickToggleSSAO;
   ButtonTouchNavigation.OnClick := {$ifdef FPC}@{$endif}ClickTouchNavigation;
   ButtonMessage.OnClick := {$ifdef FPC}@{$endif}ClickMessage;
-  ButtonProgress.OnClick := {$ifdef FPC}@{$endif}ClickProgress;
   ButtonReopenContext.OnClick := {$ifdef FPC}@{$endif}ClickReopenContext;
   ButtonToggleTextureUpdates.OnClick := {$ifdef FPC}@{$endif}ClickToggleTextureUpdates;
   ButtonPlaySoundWav.OnClick := {$ifdef FPC}@{$endif}ClickPlaySoundWav;
@@ -143,7 +139,6 @@ begin
 
   { configure components }
   ButtonMessage.Exists := ApplicationProperties.PlatformAllowsModalRoutines;
-  ButtonProgress.Exists := ApplicationProperties.PlatformAllowsModalRoutines;
   ButtonTerminate.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
   TouchNavigation.TouchInterface := tiWalk;
 
@@ -223,45 +218,6 @@ begin
     raise Exception.Create('Test exception');
   end else
     MessageOK(Application.MainWindow, 'You clicked "No".');
-end;
-
-procedure TViewMain.ClickProgress(Sender: TObject);
-const
-  TestProgressSteps = 100;
-var
-  I: Integer;
-begin
-  { Tests deprecated CastleProgress }
-
-  Progress.Init(TestProgressSteps, 'Please wait');
-  try
-    for I := 1 to TestProgressSteps do
-    begin
-      Sleep(100);
-      Progress.Step;
-      { Note that on Android, Window may get closed (OpenGL context lost)
-        at any time, also during such progress operation.
-        For example when user switches to desktop (home) on Android.
-
-        Progress.Step processes events (Application.ProcessMessage),
-        so it will correctly react to it, closing the Window.
-        This "for" loop will still continue, even though the window
-        is closed (so no redraw will happen). It will actually get to the end
-        of progress quickier (because without redraw, our speed is not throttled;
-        you can see this by commenting Sleep call above. With window open,
-        we're throttled by redraw speed. With window closed, we're not,
-        and even long progress finishes quickly.)
-        When the progress finishes, the main loop (from Application.Run)
-        will allow to wait for next event (without doing busy waiting and wasting
-        CPU), so we do not drain your battery power at all.
-
-        If user will get back to our application before the progress finished,
-        she/he will even correctly see the progress continuing at correct point.
-        So everything just works. Just do not assume that Window stays
-        open when processing events, and you're fine. }
-      WritelnLog('Progress', 'Step %d', [I]);
-    end;
-  finally Progress.Fini end;
 end;
 
 procedure TViewMain.ClickReopenContext(Sender: TObject);
