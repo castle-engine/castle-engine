@@ -23,7 +23,11 @@ implementation
 uses SysUtils, Math, Classes,
   {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
   CastleWindow, CastleLog, CastleApplicationProperties,
-  GameViewMain, GameLogHandler;
+  GameLogHandler
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameViewMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindow;
@@ -39,7 +43,12 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
+  // The content here may be automatically updated by CGE editor.
   ViewMain := TViewMain.Create(Application);
+  {$endregion 'Castle View Creation'}
+
   Window.Container.View := ViewMain;
 end;
 
