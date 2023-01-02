@@ -21,13 +21,13 @@ interface
 uses CastleDialogViews;
 
 type
-  TStateDialog = TViewDialog; deprecated 'use TViewDialog';
-  TStateDialogOK = TViewDialogOK; deprecated 'use TViewDialogOK';
-  TStateDialogYesNo = TViewDialogYesNo; deprecated 'use TViewDialogYesNo';
-  TStateDialogChoice = TViewDialogChoice; deprecated 'use TViewDialogChoice';
-  TStateDialogInput = TViewDialogInput; deprecated 'use TViewDialogInput';
-  TStateDialogKey = TViewDialogKey; deprecated 'use TViewDialogKey';
-  TStateDialogPressEvent = TViewDialogPressEvent; deprecated 'use TViewDialogPressEvent';
+  TStateDialog = TViewDialog deprecated 'use TViewDialog';
+  TStateDialogOK = TViewDialogOK deprecated 'use TViewDialogOK';
+  TStateDialogYesNo = TViewDialogYesNo deprecated 'use TViewDialogYesNo';
+  TStateDialogChoice = TViewDialogChoice deprecated 'use TViewDialogChoice';
+  TStateDialogInput = TViewDialogInput deprecated 'use TViewDialogInput';
+  TStateDialogKey = TViewDialogKey deprecated 'use TViewDialogKey';
+  TStateDialogPressEvent = TViewDialogPressEvent deprecated 'use TViewDialogPressEvent';
 
 implementation
 
