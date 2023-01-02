@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,9 +63,12 @@ type
       (@link(TextWidth), @link(TextHeight) and related).
       Should be always > 0.
 
-      The font size should correspond to the font height (@link(RowHeight)),
-      but actually we don't assume it, and querying @link(RowHeightBase)
-      and @link(RowHeight) is independent from this property. }
+      The font size should correspond to the font height, which you can query using @link(RowHeight).
+      So in general @link(Size) and @link(RowHeight) should be equal.
+      That said, it is up to each specific font file to have correct size that satisfies above.
+      This property, @name, gets and sets the size, as understood by FreeType font size.
+      On the other hand, the @link(RowHeightBase) and @link(RowHeight) properties
+      actually query the letters height. }
     property Size: Single read FSize write SetSize;
 
     { Draw text at the current WindowPos, and move

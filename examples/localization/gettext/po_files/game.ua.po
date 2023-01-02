@@ -1,7 +1,3 @@
-#: game:text3d
-msgid "I am 3D Text"
-msgstr "Це - тривимірний текст"
-
 #: game:messagetext
 msgid "I am a message!"
 msgstr "Це - повідомлення!"

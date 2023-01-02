@@ -1,4 +1,8 @@
 msgctxt "castle-components"
+msgid "gameviewmain.Text3d.Caption"
+msgstr "Jestem tekstem 3D"
+
+msgctxt "castle-components"
 msgid "gameviewmain.Label1.Caption"
 msgstr "Moja Etykieta"
 

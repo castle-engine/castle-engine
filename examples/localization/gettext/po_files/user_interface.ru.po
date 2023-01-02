@@ -1,4 +1,8 @@
 msgctxt "castle-components"
+msgid "gameviewmain.Text3d.Caption"
+msgstr "Это - трёхмерный текст"
+
+msgctxt "castle-components"
 msgid "gameviewmain.Label1.Caption"
 msgstr "Это - метка"
 
