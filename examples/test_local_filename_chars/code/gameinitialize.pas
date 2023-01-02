@@ -53,9 +53,12 @@ procedure ApplicationInitialize;
           AssertEquals('Testing.', Trim(S));
         finally CloseFile(F) end;
       except
-        // catch EInOutError and raise our own exception that shows a FileName
+        // catch EInOutError and add FileName
         on E: EInOutError do
-          raise Exception.CreateFmt('EInOutError when reading file "%s"', [FileName]);
+        begin
+          E.Message := Format('Reading file "%s": ', [FileName]) + E.Message;
+          raise;
+        end;
       end;
     end;
 
@@ -107,7 +110,8 @@ procedure ApplicationInitialize;
     { This is an *extremely* simplified (only correct in simplest cases) implementation
       of determining application data directory
       ( https://castle-engine.io/manual_data_directory.php ).
-      We do it only for TestReadingRtl test here.
+      We do it only for TestReadingRtl test here (that uses FPC functions
+      *without* any CGE API, just for test).
       In real CGE applications, you should always use 'castle-data:/'
       URL instead of doing it like this! }
     DataPath :=
