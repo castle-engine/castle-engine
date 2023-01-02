@@ -63,6 +63,9 @@ procedure TViewMain.Start;
     Result := TDrawableImage.Create('castle-data:/brush_' + Name + '.png');
   end;
 
+var
+  NewImage: TRGBImage;
+  NewDrawableImage: TDrawableImage;
 begin
   inherited;
   Brushes[0] := LoadBrush('red');
@@ -71,6 +74,15 @@ begin
   Brushes[3] := LoadBrush('cross_red');
   Brushes[4] := LoadBrush('cross_green');
   Brushes[5] := LoadBrush('cross_blue');
+
+  { Create new image to draw on }
+  NewImage := TRGBImage.Create(Container.Width, Container.Height);
+  NewImage.Clear(Black);
+  NewDrawableImage := TDrawableImage.Create(
+    NewImage,
+    { SmoothScaling } true,
+    { OwnsImage } true);
+  MainImageControl.DrawableImage := NewDrawableImage;
 end;
 
 procedure TViewMain.Stop;
@@ -110,15 +122,30 @@ end;
 procedure TViewMain.Resize;
 var
   NewImage: TRGBImage;
+  NewDrawableImage: TDrawableImage;
+  CommonRect: TFloatRectangle;
 begin
   inherited;
-  if (MainImageControl.Image = nil) or
-     (MainImageControl.Image.Width <> Container.Width) or
-     (MainImageControl.Image.Height <> Container.Height) then
+
+  { When window is resized, create new TDrawableImage with new size
+    and copy contens from previous image (as much as possible). }
+
+  if (MainImageControl.DrawableImage = nil) or
+     (MainImageControl.DrawableImage.Width <> Container.Width) or
+     (MainImageControl.DrawableImage.Height <> Container.Height) then
   begin
     NewImage := TRGBImage.Create(Container.Width, Container.Height);
     NewImage.Clear(Black);
-    MainImageControl.Image := NewImage;
+
+    NewDrawableImage := TDrawableImage.Create(
+      NewImage,
+      { SmoothScaling } true,
+      { OwnsImage } true);
+    { Common part in both old and new areas }
+    CommonRect := FloatRectangle(MainImageControl.DrawableImage.Rect * NewDrawableImage.Rect);
+    NewDrawableImage.PrepareResources; // create OpenGL resources now, to enable DrawFrom
+    NewDrawableImage.DrawFrom(MainImageControl.DrawableImage, CommonRect, CommonRect);
+    MainImageControl.DrawableImage := NewDrawableImage;
   end;
 end;
 
