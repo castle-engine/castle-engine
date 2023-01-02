@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,8 +14,8 @@
 }
 
 (*Dialog windows (to display some information, or ask user for confirmation,
-  or ask user to input a simple value) as a user-interface state (@link(TCastleView)).
-  This unit defines the user-interface state classes
+  or ask user to input a simple value) as a user-interface view (@link(TCastleView)).
+  This unit defines the user-interface view classes
   (@link(TCastleView) descendants) to display given dialog.
 
   If you use @link(TCastleWindow) with most platforms (but not iOS),
@@ -31,44 +31,44 @@
     DeleteFile(...);
   #)
 
-  Underneath, the @link(MessageYesNo) will use a @link(TStateDialogYesNo),
+  Underneath, the @link(MessageYesNo) will use a @link(TViewDialogYesNo),
   making sure that your normal window callbacks are redirected as appropriate.
   But you don't need to be concerned with this.
 
   However, if you need to work on iOS, then you cannot use most of routines
   from the @link(CastleMessages) unit. You can use @link(MessageOK) if you turn on
-  the @link(MessageOKPushesState) flag, but nothing else. E.g. @link(MessageYesNo)
+  the @link(MessageOKPushesView) flag, but nothing else. E.g. @link(MessageYesNo)
   cannot work on iOS now. Making modal boxes like that is not supported on iOS.
 
   In this case you should use this unit and instantiate the
   user-interface classes yourself, and you need to
   @italic(organize your whole game using TCastleView classes).
-  See https://castle-engine.io/states about how to use @link(TCastleView). Like this:
+  See https://castle-engine.io/views about how to use @link(TCastleView). Like this:
 
   @longCode(#
   type
-    TMyGameState = class(TCastleView)
+    TMyGameView = class(TCastleView)
     private
-      DialogAskDeleteFile: TStateDialogYesNo;
+      DialogAskDeleteFile: TViewDialogYesNo;
     public
       function Press(const Event: TInputPressRelease): boolean; override;
       procedure Resume; override;
     end;
 
-  function TMyGameState.Press(const Event: TInputPressRelease): boolean; override;
+  function TMyGameView.Press(const Event: TInputPressRelease): boolean; override;
   begin
     Result := inherited;
     if Result then Exit;
 
     if Event.IsKey(keyEnter) then
     begin
-      DialogAskDeleteFile := TStateDialogYesNo.Create(Self);
+      DialogAskDeleteFile := TViewDialogYesNo.Create(Self);
       DialogAskDeleteFile.Caption := 'Are you sure you want to delete this file?';
       Container.PushView(DialogAskDeleteFile);
     end;
   end;
 
-  procedure TMyGameState.Resume;
+  procedure TMyGameView.Resume;
   begin
     inherited;
     if DialogAskDeleteFile <> nil then // returning from DialogAskDeleteFile
@@ -81,7 +81,7 @@
   #)
 *)
 
-unit CastleDialogStates;
+unit CastleDialogViews;
 
 {$I castleconf.inc}
 
@@ -94,13 +94,13 @@ uses Classes, Math,
   CastleFonts, CastleInternalRichText, CastleTimeUtils;
 
 type
-  { Abstract class for a modal dialog user-interface state.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialog = class abstract(TCastleView)
+  { Abstract class for a modal dialog user-interface view.
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialog = class abstract(TCastleView)
   strict private
     type
       {$define read_interface}
-      {$I castledialogstates_dialog.inc}
+      {$I castledialogviews_dialog.inc}
       {$undef read_interface}
     var
       FText: TStrings;
@@ -140,7 +140,7 @@ type
     procedure SaveScreenIfNecessary(const AContainer: TCastleContainer);
 
     { When user answers the dialog, this is set to @true.
-      The state also normally does TCastleContainer.PopView, so there's no need to check
+      The view also normally does TCastleContainer.PopView, so there's no need to check
       this property, unless you set @link(PopOnAnswered) to @false. }
     property Answered: boolean read FAnswered;
 
@@ -155,12 +155,12 @@ type
 
       @longCode(#
         // one way
-        StateDialogOK.Text.Clear;
-        StateDialogOK.Text.Add('First line');
-        StateDialogOK.Text.Add('Second line');
+        ViewDialogOK.Text.Clear;
+        ViewDialogOK.Text.Add('First line');
+        ViewDialogOK.Text.Add('Second line');
 
         // alternative way to do the same
-        StateDialogOK.Caption := 'First line' + LineEnding + 'Second line';
+        ViewDialogOK.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
     property Caption: string read GetCaption write SetCaption stored false;
@@ -174,66 +174,66 @@ type
       HTML constructs. }
     property Html: boolean read FHtml write FHtml default false;
 
-    { Obscure the state underneath with our own background (using a color or screenshot).
+    { Obscure the view underneath with our own background (using a color or screenshot).
 
       The obscuring background is defined by @link(BackgroundColor).
       It may be just a solid opaque color.
       Or it may be a partially-transparent or even completely transparent
-      color, showing the state underneath (or showing the screenshot
-      of the state underneath, if @link(BackgroundScreenshot)). }
+      color, showing the view underneath (or showing the screenshot
+      of the view underneath, if @link(BackgroundScreenshot)). }
     property Background: boolean read FBackground write FBackground default false;
 
-    { Color of the background obscuring the state underneath,
+    { Color of the background obscuring the view underneath,
       if @link(Background) is @true.
-      This color may be partially-transparent (e.g. to visually "dim" the state
+      This color may be partially-transparent (e.g. to visually "dim" the view
       underneath) or even completely transparent (alpha 0).
 
       Default is Theme.BackgroundColor,
-      which is dark with alpha = 0.5, so it will dim the state underneath.
+      which is dark with alpha = 0.5, so it will dim the view underneath.
       Sometimes (under exception handler) it's Theme.BackgroundOpaqueColor. }
     property BackgroundColor: TCastleColor read FBackgroundColor write FBackgroundColor;
 
     { Initialize the background by taking a screenshot of the current screen
-      when the state was started.
-      This screenshot is shown, instead of actually rendering the state underneath,
+      when the view was started.
+      This screenshot is shown, instead of actually rendering the view underneath,
       under the @link(BackgroundColor), when @link(Background) is @true.
 
       This is less functional (when the user scales the window,
       the screenshot is stretched too), but is safer:
-      it means that the state underneath does not need to be "renderable" anymore. }
+      it means that the view underneath does not need to be "renderable" anymore. }
     property BackgroundScreenshot: boolean
       read FBackgroundScreenshot write FBackgroundScreenshot default false;
 
-    { Should the state do @link(TCastleContainer.PopView) when answered.
+    { Should the view do @link(TCastleContainer.PopView) when answered.
       This is usually most natural. }
     property PopOnAnswered: boolean
       read FPopOnAnswered write FPopOnAnswered default true;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tviewdialog_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
   { Wait for simple confirmation ("OK") from user.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogOK = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogOK = class(TViewDialog)
   strict private
     procedure ButtonOKClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TViewDialog.TButtonArray); override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
   { Ask user a simple "yes" / "no" question.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogYesNo = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogYesNo = class(TViewDialog)
   strict private
     FAnswer: boolean;
     procedure ButtonYesClick(Sender: TObject);
     procedure ButtonNoClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TViewDialog.TButtonArray); override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
     { User answer to the dialog question, defined when @link(Answered). }
@@ -243,13 +243,13 @@ type
   { Ask user to choose from a number of options.
     Each choice is shown as a button, user can also press the appropriate character.
     ButtonChars length must be always equal to ButtonCaptions.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogChoice = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogChoice = class(TViewDialog)
   strict private
     FAnswer: char;
     procedure ButtonClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TViewDialog.TButtonArray); override;
   public
     ButtonCaptions: array of string;
     ButtonChars: array of char;
@@ -261,8 +261,8 @@ type
   end;
 
   { Ask user to input a string, or cancel.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogInput = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogInput = class(TViewDialog)
   strict private
     FAllowedChars: TSetOfChars;
     FMinLength, FMaxLength: Cardinal;
@@ -273,7 +273,7 @@ type
     function GetAnswer: string;
     procedure SetAnswer(const Value: string);
   protected
-    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TViewDialog.TButtonArray); override;
     function DrawInputText: boolean; override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -296,15 +296,15 @@ type
       This is possible only if @link(CanCancel). }
     property AnswerCancelled: boolean read FAnswerCancelled;
 
-    { The user input. May be set before starting the state.
-      After the state stopped, if @link(Answered), then this contains user answer.
+    { The user input. May be set before starting the view.
+      After the view stopped, if @link(Answered), then this contains user answer.
       You should ignore it if @link(AnswerCancelled). }
     property Answer: string read GetAnswer write SetAnswer;
   end;
 
   { Ask user a press any key, and return this key.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogKey = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogKey = class(TViewDialog)
   strict private
     FAnswer: TKey;
   public
@@ -315,8 +315,8 @@ type
 
   { Ask user a press anything (key, mouse button, mouse wheel),
     for example to configure a keybinding for a game.
-    See unit @link(CastleDialogStates) documentation for example usage. }
-  TStateDialogPressEvent = class(TStateDialog)
+    See unit @link(CastleDialogViews) documentation for example usage. }
+  TViewDialogPressEvent = class(TViewDialog)
   strict private
     FAnswer: TInputPressRelease;
   public
@@ -330,11 +330,11 @@ implementation
 uses SysUtils;
 
 {$define read_implementation}
-{$I castledialogstates_dialog.inc}
+{$I castledialogviews_dialog.inc}
 
-{ TStateDialog ------------------------------------------------------------- }
+{ TViewDialog ------------------------------------------------------------- }
 
-constructor TStateDialog.Create(AOwner: TComponent);
+constructor TViewDialog.Create(AOwner: TComponent);
 begin
   inherited;
   FText := TStringList.Create;
@@ -348,42 +348,42 @@ begin
   FDialog := TDialog.Create(Self);
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tviewdialog_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
-destructor TStateDialog.Destroy;
+destructor TViewDialog.Destroy;
 begin
   FreeAndNil(FText);
   FreeAndNil(FUnusedSaveScreen);
 
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tviewdialog_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
 end;
 
-function TStateDialog.GetCaption: string;
+function TViewDialog.GetCaption: string;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TStateDialog.SetCaption(const Value: string);
+procedure TViewDialog.SetCaption(const Value: string);
 begin
   Text.Text := Value;
 end;
 
-function TStateDialog.GetInputText: string;
+function TViewDialog.GetInputText: string;
 begin
   Result := FDialog.InputText;
 end;
 
-procedure TStateDialog.SetInputText(const Value: string);
+procedure TViewDialog.SetInputText(const Value: string);
 begin
   FDialog.InputText := Value;
 end;
 
-procedure TStateDialog.SaveScreenIfNecessary(const AContainer: TCastleContainer);
+procedure TViewDialog.SaveScreenIfNecessary(const AContainer: TCastleContainer);
 begin
   if Background and BackgroundScreenshot and (BackgroundColor[3] <> 1) then
   begin
@@ -391,7 +391,7 @@ begin
   end;
 end;
 
-procedure TStateDialog.Start;
+procedure TViewDialog.Start;
 const
   MinButtonWidth = 100; //< OK button looks too small without this
 var
@@ -440,32 +440,32 @@ begin
   InterceptInput := true;
 end;
 
-procedure TStateDialog.Stop;
+procedure TViewDialog.Stop;
 begin
   // remove FDialog, to clearly reinsert it at next Start call
   RemoveControl(FDialog);
   inherited;
 end;
 
-procedure TStateDialog.InitializeButtons(var Buttons: TButtonArray);
+procedure TViewDialog.InitializeButtons(var Buttons: TButtonArray);
 begin
 end;
 
-function TStateDialog.DrawInputText: boolean;
+function TViewDialog.DrawInputText: boolean;
 begin
   Result := false;
 end;
 
-procedure TStateDialog.DoAnswered;
+procedure TViewDialog.DoAnswered;
 begin
   FAnswered := true;
   if PopOnAnswered then
     Container.PopView(Self);
 end;
 
-{ TStateDialogOK ------------------------------------------------------------- }
+{ TViewDialogOK ------------------------------------------------------------- }
 
-procedure TStateDialogOK.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
+procedure TViewDialogOK.InitializeButtons(var Buttons: TViewDialog.TButtonArray);
 begin
   SetLength(Buttons, 1);
   Buttons[0] := TCastleButton.Create(Self);
@@ -473,12 +473,12 @@ begin
   Buttons[0].Caption := 'OK';
 end;
 
-procedure TStateDialogOK.ButtonOKClick(Sender: TObject);
+procedure TViewDialogOK.ButtonOKClick(Sender: TObject);
 begin
   DoAnswered;
 end;
 
-function TStateDialogOK.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogOK.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -490,9 +490,9 @@ begin
   end;
 end;
 
-{ TStateDialogYesNo ---------------------------------------------------------- }
+{ TViewDialogYesNo ---------------------------------------------------------- }
 
-procedure TStateDialogYesNo.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
+procedure TViewDialogYesNo.InitializeButtons(var Buttons: TViewDialog.TButtonArray);
 begin
   SetLength(Buttons, 2);
 
@@ -505,19 +505,19 @@ begin
   Buttons[1].Caption := 'Yes';
 end;
 
-procedure TStateDialogYesNo.ButtonYesClick(Sender: TObject);
+procedure TViewDialogYesNo.ButtonYesClick(Sender: TObject);
 begin
   FAnswer := true;
   DoAnswered;
 end;
 
-procedure TStateDialogYesNo.ButtonNoClick(Sender: TObject);
+procedure TViewDialogYesNo.ButtonNoClick(Sender: TObject);
 begin
   FAnswer := false;
   DoAnswered;
 end;
 
-function TStateDialogYesNo.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogYesNo.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -537,13 +537,13 @@ begin
   end;
 end;
 
-{ TStateDialogChoice ---------------------------------------------------------- }
+{ TViewDialogChoice ---------------------------------------------------------- }
 
-procedure TStateDialogChoice.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
+procedure TViewDialogChoice.InitializeButtons(var Buttons: TViewDialog.TButtonArray);
 var
   I: Integer;
 begin
-  Check(Length(ButtonCaptions) = Length(ButtonChars), 'In TStateDialogChoice, ButtonCaptions must have the same length as ButtonChars');
+  Check(Length(ButtonCaptions) = Length(ButtonChars), 'In TViewDialogChoice, ButtonCaptions must have the same length as ButtonChars');
   SetLength(Buttons, Length(ButtonCaptions));
 
   for I := 0 to High(ButtonCaptions) do
@@ -555,13 +555,13 @@ begin
   end;
 end;
 
-procedure TStateDialogChoice.ButtonClick(Sender: TObject);
+procedure TViewDialogChoice.ButtonClick(Sender: TObject);
 begin
   FAnswer := Chr((Sender as TCastleButton).Tag);
   DoAnswered;
 end;
 
-function TStateDialogChoice.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogChoice.Press(const Event: TInputPressRelease): boolean;
 var
   C: char;
 begin
@@ -584,9 +584,9 @@ begin
   end;
 end;
 
-{ TStateDialogInput ---------------------------------------------------------- }
+{ TViewDialogInput ---------------------------------------------------------- }
 
-procedure TStateDialogInput.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
+procedure TViewDialogInput.InitializeButtons(var Buttons: TViewDialog.TButtonArray);
 begin
   if CanCancel then
   begin
@@ -608,17 +608,17 @@ begin
   end;
 end;
 
-procedure TStateDialogInput.ButtonOKClick(Sender: TObject);
+procedure TViewDialogInput.ButtonOKClick(Sender: TObject);
 begin
   Press(InputKey(Container.MousePosition, keyEnter, CharEnter, []));
 end;
 
-procedure TStateDialogInput.ButtonCancelClick(Sender: TObject);
+procedure TViewDialogInput.ButtonCancelClick(Sender: TObject);
 begin
   Press(InputKey(Container.MousePosition, keyEscape, CharEscape, []));
 end;
 
-function TStateDialogInput.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogInput.Press(const Event: TInputPressRelease): boolean;
 { TODO: copy-paste of TCastleEdit.Press here.
   We should instead reuse TCastleEdit? Although TDialog provides multiline display,
   which may be cool e.g. to edit long URLs in view3dscene. }
@@ -696,24 +696,24 @@ begin
   end;
 end;
 
-function TStateDialogInput.DrawInputText: boolean;
+function TViewDialogInput.DrawInputText: boolean;
 begin
   Result := true;
 end;
 
-function TStateDialogInput.GetAnswer: string;
+function TViewDialogInput.GetAnswer: string;
 begin
   Result := InputText;
 end;
 
-procedure TStateDialogInput.SetAnswer(const Value: string);
+procedure TViewDialogInput.SetAnswer(const Value: string);
 begin
   InputText := Value;
 end;
 
-{ TStateDialogKey ------------------------------------------------------------ }
+{ TViewDialogKey ------------------------------------------------------------ }
 
-function TStateDialogKey.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogKey.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -726,9 +726,9 @@ begin
   end;
 end;
 
-{ TStateDialogPressEvent ------------------------------------------------------------ }
+{ TViewDialogPressEvent ------------------------------------------------------------ }
 
-function TStateDialogPressEvent.Press(const Event: TInputPressRelease): boolean;
+function TViewDialogPressEvent.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -739,7 +739,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tviewdialog_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 end.

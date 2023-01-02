@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -102,14 +102,14 @@ const
 
 { TDialogScrollArea -------------------------------------------------------------- }
 
-constructor TStateDialog.TDialog.TDialogScrollArea.Create(AOwner: TComponent);
+constructor TViewDialog.TDialog.TDialogScrollArea.Create(AOwner: TComponent);
 begin
   inherited;
-  Dialog := AOwner as TStateDialog.TDialog;
+  Dialog := AOwner as TViewDialog.TDialog;
   FullSize := true; // we want our RenderRect to be equal to parent
 end;
 
-procedure TStateDialog.TDialog.TDialogScrollArea.Render;
+procedure TViewDialog.TDialog.TDialogScrollArea.Render;
 type
   TCaretMode = (cmNone, cmVisible, cmInvisible);
 
@@ -185,15 +185,15 @@ begin
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
 
-{ TStateDialog.TDialog -------------------------------------------------------------- }
+{ TViewDialog.TDialog -------------------------------------------------------------- }
 
-constructor TStateDialog.TDialog.Create(AOwner: TComponent);
+constructor TViewDialog.TDialog.Create(AOwner: TComponent);
 begin
   inherited;
   { use Theme.MessageFont this way }
   CustomFont := Theme.MessageFont;
   Text := TStringList.Create;
-  { Contents of Broken_InputText will be initialized in TStateDialog.TDialog.UpdateSizes. }
+  { Contents of Broken_InputText will be initialized in TViewDialog.TDialog.UpdateSizes. }
   Broken_InputText := TStringList.Create;
   Anchor(hpMiddle);
   Anchor(vpMiddle);
@@ -204,7 +204,7 @@ begin
   InsertFront(ScrollView);
 end;
 
-procedure TStateDialog.TDialog.Initialize(const TextList: TStrings;
+procedure TViewDialog.TDialog.Initialize(const TextList: TStrings;
   const ATextAlign: THorizontalPosition; const AHtml: boolean;
   const AButtons: array of TCastleButton;
   const ADrawInputText: boolean);
@@ -223,7 +223,7 @@ begin
   end;
 end;
 
-destructor TStateDialog.TDialog.Destroy;
+destructor TViewDialog.TDialog.Destroy;
 begin
   FreeAndNil(Broken_Text);
   FreeAndNil(Broken_InputText);
@@ -231,7 +231,7 @@ begin
   inherited;
 end;
 
-procedure TStateDialog.TDialog.SetInputText(const value: string);
+procedure TViewDialog.TDialog.SetInputText(const value: string);
 begin
   FInputText := value;
   if Container <> nil then
@@ -241,7 +241,7 @@ begin
   end;
 end;
 
-function TStateDialog.TDialog.ButtonsHeightScaled: Single;
+function TViewDialog.TDialog.ButtonsHeightScaled: Single;
 var
   Button: TCastleButton;
 begin
@@ -250,7 +250,7 @@ begin
     MaxVar(Result, Button.EffectiveHeight * UIScale + 2 * BoxMarginScaled);
 end;
 
-function TStateDialog.TDialog.ButtonsHeight: Single;
+function TViewDialog.TDialog.ButtonsHeight: Single;
 var
   Button: TCastleButton;
 begin
@@ -259,13 +259,13 @@ begin
     MaxVar(Result, Button.EffectiveHeight + 2 * BoxMargin);
 end;
 
-procedure TStateDialog.TDialog.Resize;
+procedure TViewDialog.TDialog.Resize;
 begin
   inherited;
   UpdateSizes;
 end;
 
-procedure TStateDialog.TDialog.UpdateSizes;
+procedure TViewDialog.TDialog.UpdateSizes;
 
   { Reposition Buttons. }
   procedure UpdateButtons;
@@ -360,7 +360,7 @@ begin
   UpdateButtons;
 end;
 
-procedure TStateDialog.TDialog.Update(const SecondsPassed: Single;
+procedure TViewDialog.TDialog.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
@@ -370,19 +370,19 @@ begin
     VisibleChange([chRender]);
 end;
 
-procedure TStateDialog.TDialog.Render;
+procedure TViewDialog.TDialog.Render;
 begin
   inherited;
 
   Theme.Draw(RenderRect, tiWindow, UIScale);
 end;
 
-function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TViewDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always capture
 end;
 
-procedure TStateDialog.TDialog.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+procedure TViewDialog.TDialog.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   PR: TFloatRectangle;
 begin
@@ -408,17 +408,17 @@ begin
       PR.Height - WindowMarginScaled * 2);
 end;
 
-function TStateDialog.TDialog.BoxMarginScaled: Single;
+function TViewDialog.TDialog.BoxMarginScaled: Single;
 begin
   Result := BoxMargin * UIScale;
 end;
 
-function TStateDialog.TDialog.WindowMarginScaled: Single;
+function TViewDialog.TDialog.WindowMarginScaled: Single;
 begin
   Result := WindowMargin * UIScale;
 end;
 
-function TStateDialog.TDialog.ButtonHorizontalMarginScaled: Single;
+function TViewDialog.TDialog.ButtonHorizontalMarginScaled: Single;
 begin
   Result := ButtonHorizontalMargin * UIScale;
 end;

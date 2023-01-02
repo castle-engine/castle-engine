@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TStateDialog.GetBackgroundColorForPersistent: TCastleColor;
+function TViewDialog.GetBackgroundColorForPersistent: TCastleColor;
 begin
   Result := BackgroundColor;
 end;
 
-procedure TStateDialog.SetBackgroundColorForPersistent(const AValue: TCastleColor);
+procedure TViewDialog.SetBackgroundColorForPersistent(const AValue: TCastleColor);
 begin
   BackgroundColor := AValue;
 end;

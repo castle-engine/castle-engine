@@ -440,7 +440,7 @@ begin
 
     P.SourcePath.Add('src/ui');
     P.Targets.AddUnit('castlecontrols.pas');
-    P.Targets.AddUnit('castledialogstates.pas');
+    P.Targets.AddUnit('castledialogviews.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castleinternalcameragestures.pas');
@@ -481,6 +481,7 @@ begin
     P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
+    P.Targets.AddUnit('castledialogstates.pas');
 
     P.SourcePath.Add('src/scene');
     P.Targets.AddUnit('castledebugtransform.pas');

@@ -5,7 +5,6 @@ Lower priority:
 OK if after 7.0 release:
 
 * Define EditorAllowResize for
-  castledialogstates_dialog.inc
   castlecontrols_progressbar.inc
   castleonscreenmenu.pas
   castlenotifications.pas

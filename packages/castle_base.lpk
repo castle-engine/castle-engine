@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1050">
+    <Files Count="1051">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -3947,7 +3947,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item961>
       <Item962>
-        <Filename Value="../src/ui/auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tviewdialog_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item962>
       <Item963>
@@ -4047,11 +4047,11 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item986>
       <Item987>
-        <Filename Value="../src/ui/castledialogstates.pas"/>
-        <UnitName Value="CastleDialogStates"/>
+        <Filename Value="../src/ui/castledialogviews.pas"/>
+        <UnitName Value="CastleDialogViews"/>
       </Item987>
       <Item988>
-        <Filename Value="../src/ui/castledialogstates_dialog.inc"/>
+        <Filename Value="../src/ui/castledialogviews_dialog.inc"/>
         <Type Value="Include"/>
       </Item988>
       <Item989>
@@ -4306,6 +4306,11 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/ui/castleuicontrols_view.inc"/>
         <Type Value="Include"/>
       </Item1050>
+      <Item1051>
+        <Filename Value="../src/deprecated_units/castledialogstates.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleDialogStates"/>
+      </Item1051>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

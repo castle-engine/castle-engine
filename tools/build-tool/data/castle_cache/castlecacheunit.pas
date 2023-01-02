@@ -143,7 +143,7 @@ uses
 
   // src/ui
   castlecontrols,
-  castledialogstates,
+  castledialogviews,
   castleflasheffect,
   castleinputs,
   castlejoysticks,

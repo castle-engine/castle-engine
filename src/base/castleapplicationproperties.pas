@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -78,8 +78,8 @@ type
       { Some platforms do not support Application.ProcessMessages, which means you
         cannot just write a function like MessageYesNo that waits until user clicks
         something.
-        You *have* to implement modal boxes then using states,
-        e.g. using CastleDialogStates or your own TCastleView descendants. }
+        You *have* to implement modal boxes then using views,
+        e.g. using CastleDialogViews or your own TCastleView descendants. }
       PlatformAllowsModalRoutines = {$if defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)} false {$else} true {$endif};
 
     constructor Create;
