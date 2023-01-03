@@ -41,6 +41,8 @@ type
     STabColorPickerHsv: TSColorPicker;
     TabSheetHsv: TTabSheet;
     TabSheetRgb: TTabSheet;
+    procedure AlphaColorPickerChange(Sender: TObject);
+    procedure AlphaSpinEditChange(Sender: TObject);
     procedure BSpinEditRgbChange(Sender: TObject);
     procedure BTabColorPickerRgbChange(Sender: TObject);
     procedure GSpinEditRgbChange(Sender: TObject);
@@ -92,6 +94,8 @@ type
     { Used to get current color value from HSV circle, We need function like
       this because updating all controls is too expensive. }
     procedure UpdateCurrentTabFromPanel;
+
+    procedure SetAlphaValue(const NewValue: Integer);
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
@@ -143,6 +147,16 @@ procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
 begin
   SetBValueInRgbTab(BSpinEditRgb.Value);
   SetBValueInCirclePickerPanel(BSpinEditRgb.Value);
+end;
+
+procedure TCastleColorPickerForm.AlphaColorPickerChange(Sender: TObject);
+begin
+  SetAlphaValue(AlphaColorPicker.Value);
+end;
+
+procedure TCastleColorPickerForm.AlphaSpinEditChange(Sender: TObject);
+begin
+  SetAlphaValue(CastleFloatToByteColorValue(AlphaSpinEdit.Value));
 end;
 
 procedure TCastleColorPickerForm.GSpinEditRgbChange(Sender: TObject);
@@ -516,6 +530,18 @@ begin
     SetColorInRgbTab(HSPanelCirclePicker.SelectedColor)
   else if PageControlColorModel.ActivePage = TabSheetHsv then
     SetColorInHsvTab(HSPanelCirclePicker.SelectedColor);
+end;
+
+procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Integer);
+var
+  DoubleValue: Double;
+begin
+  if AlphaColorPicker.Value <> NewValue then
+    AlphaColorPicker.Value := NewValue;
+
+  DoubleValue := ByteColorValueToCastleFloat(NewValue);
+  if not SameValue(AlphaSpinEdit.Value, DoubleValue) then
+    AlphaSpinEdit.Value := DoubleValue;
 end;
 
 procedure TCastleColorPickerForm.Init(

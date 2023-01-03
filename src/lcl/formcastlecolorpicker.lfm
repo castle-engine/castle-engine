@@ -414,6 +414,8 @@ object CastleColorPickerForm: TCastleColorPickerForm
       BorderSpacing.Left = 4
       BorderSpacing.Right = 4
       TabOrder = 0
+      OnChange = AlphaColorPickerChange
+      BrightnessMode = bmValue
       LHintFormat = 'Alpha: %lum (selected)'
       VHintFormat = 'Value: %value (selected)'
     end
@@ -430,7 +432,9 @@ object CastleColorPickerForm: TCastleColorPickerForm
       BorderSpacing.Right = 4
       Constraints.MinWidth = 93
       DecimalPlaces = -1
+      Increment = 0.1
       MaxValue = 1
+      OnChange = AlphaSpinEditChange
       TabOrder = 1
       Value = 1
     end
