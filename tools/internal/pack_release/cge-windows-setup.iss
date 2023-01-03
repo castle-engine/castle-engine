@@ -33,7 +33,11 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile={#MyAppSrcDir}\COPYING.md
-InfoAfterFile={#MyAppSrcDir}\README.md
+
+; This works, but actually showing README.md at this point feels more distracting than helpful.
+; Our website, from which user presumably downloaded the CGE, presents engine much better.
+; InfoAfterFile={#MyAppSrcDir}\README.md
+
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
