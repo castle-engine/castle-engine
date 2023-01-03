@@ -197,6 +197,8 @@ object ProjectForm: TProjectForm
           Top = 41
           Width = 1164
           Align = alClient
+          AutoSortIndicator = True
+          AutoWidthLastColumn = True
           BorderSpacing.Around = 10
           Columns = <          
             item
@@ -210,12 +212,13 @@ object ProjectForm: TProjectForm
               Width = 600
             end          
             item
-              AutoSize = True
               Caption = 'Last Modified'
               Width = 362
               SortIndicator = siDescending
             end>
+          RowSelect = True
           ScrollBars = ssAutoBoth
+          SortType = stText
           TabOrder = 0
           ViewStyle = vsReport
           OnDblClick = ListOpenExistingViewDblClick

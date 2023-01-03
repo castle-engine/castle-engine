@@ -2202,6 +2202,10 @@ begin
     we want files in the same subdirectory to be together. }
   ListOpenExistingViewStr.Sort;
 
+  { TODO: It seems LCL UI always shows as if the "Last Modified" (column 2)
+    was sorted, and setting ListOpenExistingView.SortColumn from code
+    or LFM doesn't change it. }
+
   { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
   ListOpenExistingView.Items.Clear;
   for DesignFileName in ListOpenExistingViewStr do
