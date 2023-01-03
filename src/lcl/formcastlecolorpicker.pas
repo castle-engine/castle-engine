@@ -96,6 +96,8 @@ type
     procedure UpdateCurrentTabFromPanel;
 
     procedure SetAlphaValue(const NewValue: Integer);
+
+    procedure UpdatePropertyEditorValue;
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
@@ -115,19 +117,8 @@ uses Math, CastleVectors, CastleLog, CastleUtils, mbColorConv;
 { TCastleColorPickerForm }
 
 procedure TCastleColorPickerForm.HSPanelCirclePickerChange(Sender: TObject);
-var
-  ColorByte: TVector3Byte;
-  NewColor: TCastleColor;
 begin
-  // on color change in circle
-  if Assigned(ColorPropertyEditor) then
-  begin
-    RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
-
-    NewColor := Vector4(Vector3(ColorByte), 1); // TODO: Alpha support
-
-    ColorPropertyEditor.SetAllValues(NewColor);
-  end;
+  UpdatePropertyEditorValue;
   UpdateCurrentTabFromPanel;
 end;
 
@@ -535,13 +526,39 @@ end;
 procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Integer);
 var
   DoubleValue: Double;
+  ValueChanged: Boolean;
 begin
+  ValueChanged := false;
+
   if AlphaColorPicker.Value <> NewValue then
+  begin
     AlphaColorPicker.Value := NewValue;
+    ValueChanged := true;
+  end;
 
   DoubleValue := ByteColorValueToCastleFloat(NewValue);
   if not SameValue(AlphaSpinEdit.Value, DoubleValue) then
+  begin
     AlphaSpinEdit.Value := DoubleValue;
+    ValueChanged := true;
+  end;
+
+  if ValueChanged then
+    UpdatePropertyEditorValue;
+end;
+
+procedure TCastleColorPickerForm.UpdatePropertyEditorValue;
+var
+  ColorByte: TVector4Byte;
+begin
+  // on color change in circle
+  if Assigned(ColorPropertyEditor) then
+  begin
+    RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
+
+    ColorByte.W := AlphaColorPicker.Value;
+    ColorPropertyEditor.SetAllValues(Vector4(ColorByte));
+  end;
 end;
 
 procedure TCastleColorPickerForm.Init(
