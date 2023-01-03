@@ -13,7 +13,6 @@
 #define MyAppVersion "7.0-alpha.snapshot"
 #define MyAppPublisher "Michalis Kamburelis & Castle Game Engine Contributors"
 #define MyAppURL "https://castle-engine.io/"
-#define MyAppExeName "castle-editor.exe"
 #define MyAppExeFullName "bin\castle-editor.exe"
 ; CGE directory to distribute, created by pack_release.sh .
 ; Asumes it has the same contents as the files we pack to zip.
@@ -78,7 +77,6 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#MyAppSrcDir}\{#MyAppExeFullName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyAppSrcDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
