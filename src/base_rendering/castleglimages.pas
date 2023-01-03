@@ -163,7 +163,7 @@ end;
 
 procedure ContextClose;
 begin
-  if DecompressTexture = @GLDecompressTexture then
+  if DecompressTexture = {$ifdef FPC}@{$endif} GLDecompressTexture then
     DecompressTexture := nil;
   TextureMemoryProfiler.CheckLeaks;
   TDrawableImage.StaticGLContextClose;
