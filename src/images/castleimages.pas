@@ -3047,6 +3047,9 @@ end;
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
+  WritelnLog('Decompressing GPU-compressed "%s", this is usually a waste of time for normal games that should load textures in format (compressed or not) suitable for current GPU', [
+    URL
+  ]);
   if Assigned(DecompressTexture) then
     Result := DecompressTexture(Self)
   else
