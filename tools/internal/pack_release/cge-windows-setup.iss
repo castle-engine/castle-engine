@@ -37,10 +37,16 @@ LicenseFile={#MyAppSrcDir}\COPYING.md
 ; Our website, from which user presumably downloaded the CGE, presents engine much better.
 ; InfoAfterFile={#MyAppSrcDir}\README.md
 
-; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=castle-game-engine-setup
+; TODO: This is better (give both options, use dialog),
+; but for now in admin mode opening+running examples doesn't work without
+; manual copy (because they are read-only).
+; So to make things simpler, for now we just default to user-only install.
+; ; Uncomment the following line to run in non administrative install mode (install for current user only.)
+; ;PrivilegesRequired=lowest
+; PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequired=lowest
+
+OutputBaseFilename=castle-engine-setup
 SetupIconFile={#MyAppSrcDir}\doc\pasdoc\logo\castle_game_engine_icon.ico
 Compression=lzma
 SolidCompression=yes
