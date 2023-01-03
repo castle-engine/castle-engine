@@ -383,11 +383,15 @@ pipeline {
                 sh 'make clean test-fpmake'
               }
             }
-
-            /* Note that we don't pack_release on Windows.
-               The Windows releases are done by building on Linux already.
-               The purpose of this job is to just run tests on Windows.
-            */
+            /* Pack Windows installer on Windows node.
+               Note that Windows zip is packed inside Docker (on Linux). */
+            stage('(Windows) Pack Windows Installer') {
+              steps {
+                copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer'
+                archiveArtifacts artifacts: 'castle-engine-setup-*.exe'
+              }
+            }
           }
         }
       }
