@@ -387,7 +387,8 @@ pipeline {
                Note that Windows zip is packed inside Docker (on Linux). */
             stage('(Windows) Pack Windows Installer') {
               steps {
-                sh './tools/internal/pack_release/pack_release.sh windows_installer'
+                copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer'
                 archiveArtifacts artifacts: 'castle-engine-setup-*.exe'
               }
             }
