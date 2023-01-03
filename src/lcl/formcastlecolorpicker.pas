@@ -182,7 +182,6 @@ procedure TCastleColorPickerForm.SSpinEditHsvChange(Sender: TObject);
 var
   NewValue: Integer;
 begin
-  WritelnLog('SSpinEditHsvChange');
   NewValue := CastleFloatToByteColorValue(SSpinEditHsv.Value);
 
   SetSValueInHsvTab(NewValue);
@@ -191,7 +190,6 @@ end;
 
 procedure TCastleColorPickerForm.STabColorPickerHsvChange(Sender: TObject);
 begin
-  WritelnLog('STabColorPickerHsvChange');
   SetSValueInHsvTab(STabColorPickerHsv.Saturation);
   SetSValueInCirclePickerPanel(STabColorPickerHsv.Saturation);
 end;
@@ -212,7 +210,6 @@ procedure TCastleColorPickerForm.VSpinEditHsvChange(Sender: TObject);
 var
   NewValue: Integer;
 begin
-  WritelnLog('VSpinEditHsvChange');
   NewValue := CastleFloatToByteColorValue(VSpinEditHsv.Value);
 
   SetVValueInHsvTab(NewValue);
@@ -472,7 +469,7 @@ begin
   NewDoubleValue := ByteColorValueToCastleFloat(NewValue);
   if not SameValue(SSpinEditHsv.Value, NewDoubleValue) then
   begin
-    WritelnLog('Same value: ' + FloatToStr(SSpinEditHsv.Value) + ' <> ' + FloatToStr(NewDoubleValue));
+    //WritelnLog('Same value: ' + FloatToStr(SSpinEditHsv.Value) + ' <> ' + FloatToStr(NewDoubleValue));
     SSpinEditHsv.Value := NewDoubleValue;
   end;
 end;
