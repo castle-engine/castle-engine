@@ -123,7 +123,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(CtrlM) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
     Exit(true);

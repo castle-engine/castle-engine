@@ -288,8 +288,8 @@
       "FontSize" : 2.0000000000000000E+001,
       "Name" : "LabelInfo",
       "Text" : [
-        "Move with AWSD and mouse dragging.",
-        "Press Ctrl + M to toggle \"Mouse Look\" mode.",
+        "Move with AWSD and mouse / touch dragging.",
+        "Click Right Mouse Button to toggle \"Mouse Look\".",
         "Press F5 to make a screenshot."
       ],
       "TranslationPersistent" : {
