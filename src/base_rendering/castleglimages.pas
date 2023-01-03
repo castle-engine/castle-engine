@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -156,13 +156,21 @@ uses Math, Generics.Defaults,
 
 { initialization / finalization ---------------------------------------------- }
 
+procedure ContextOpen;
+begin
+  DecompressTexture := @GLDecompressTexture;
+end;
+
 procedure ContextClose;
 begin
+  if DecompressTexture = @GLDecompressTexture then
+    DecompressTexture := nil;
   TextureMemoryProfiler.CheckLeaks;
   TDrawableImage.StaticGLContextClose;
 end;
 
 initialization
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
   ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 finalization
   FreeAndNil(BoundFboStack);

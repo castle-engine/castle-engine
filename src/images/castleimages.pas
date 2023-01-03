@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1037,8 +1037,9 @@ type
 
     { Decompress the image.
 
-      This uses DecompressTexture variable, so you have to initialialize it
-      first (for example to CastleGLImages.GLDecompressTexture) before using this.
+      This uses DecompressTexture routine.
+      By default, it is assigned only when OpenGL(ES) context is available
+      and can decompress textures with the help of OpenGL(ES).
 
       @raises(ECannotDecompressTexture If we cannot decompress the texture,
         because decompressor is not set or there was some other error
@@ -1061,7 +1062,7 @@ type
 
   ECannotDecompressTexture = class(Exception);
 
-  TDecompressTextureFunction = function (Image: TGPUCompressedImage): TCastleImage;
+  TDecompressTextureFunction = function (const Image: TGPUCompressedImage): TCastleImage;
 
 var
   { Assign here texture decompression function that is available.
