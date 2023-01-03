@@ -12,64 +12,80 @@ uses
 
 type
   TCastleColorPickerForm = class(TForm)
-    BTabColorPicker: TBColorPicker;
-    GTabColorPicker: TGColorPicker;
-    HTabColorPicker: THColorPicker;
+    BTabColorPickerRgb: TBColorPicker;
+    GTabColorPickerRgb: TGColorPicker;
     HSPanelCirclePicker: THSCirclePicker;
-    LabelTitleL: TLabel;
-    LabelTitleS: TLabel;
-    LabelTitleH: TLabel;
-    LabelTitleR: TLabel;
-    LabelTitleG: TLabel;
-    LabelTitleB: TLabel;
+    HTabColorPickerHsv: THColorPicker;
+    HSV: TLabel;
+    LabelTabHsvTitleH: TLabel;
+    LabelTabHsvTitleV: TLabel;
+    RLabelTitleRgb: TLabel;
+    GLabelTitleRgb: TLabel;
+    BLabelTitleRgb: TLabel;
     LabelTitleAlpha: TLabel;
-    LPanelColorPicker: TLVColorPicker;
-    LTabColorPicker: TLVColorPicker;
+    LabelTabHsvTitleS: TLabel;
+    VPanelColorPicker: TLVColorPicker;
     AlphaColorPicker: TLVColorPicker;
-    PageControl1: TPageControl;
+    VTabColorPickerHsv: TLVColorPicker;
+    PageControlColorModel: TPageControl;
     PanelAlpha: TPanel;
     PanelCirclePicker: TPanel;
-    RTabColorPicker: TRColorPicker;
-    STabColorPicker: TSColorPicker;
-    SpinEditH: TSpinEdit;
-    SpinEditS: TSpinEdit;
-    SpinEditL: TSpinEdit;
-    SpinEditR: TSpinEdit;
-    SpinEditG: TSpinEdit;
-    SpinEditB: TSpinEdit;
-    SpinEditAlpha: TSpinEdit;
-    TabSheetHSL: TTabSheet;
-    TabSheetRGB: TTabSheet;
+    RTabColorPickerRgb: TRColorPicker;
+    HSpinEditHsv: TSpinEdit;
+    VSpinEditHsv: TSpinEdit;
+    SSpinEditHsv: TSpinEdit;
+    RSpinEditRgb: TSpinEdit;
+    GSpinEditRgb: TSpinEdit;
+    BSpinEditRgb: TSpinEdit;
+    AlphaSpinEdit: TSpinEdit;
+    STabColorPickerHsv: TSColorPicker;
+    TabSheetHsv: TTabSheet;
+    TabSheetRgb: TTabSheet;
+    procedure BSpinEditRgbChange(Sender: TObject);
+    procedure BTabColorPickerRgbChange(Sender: TObject);
+    procedure GSpinEditRgbChange(Sender: TObject);
+    procedure GTabColorPickerRgbChange(Sender: TObject);
     procedure HSPanelCirclePickerChange(Sender: TObject);
-    procedure HTabColorPickerChange(Sender: TObject);
-    procedure LPanelColorPickerChange(Sender: TObject);
-    procedure LTabColorPickerChange(Sender: TObject);
-    procedure SpinEditHChange(Sender: TObject);
-    procedure SpinEditLChange(Sender: TObject);
-    procedure SpinEditSChange(Sender: TObject);
-    procedure STabColorPickerChange(Sender: TObject);
-  strict private
+    procedure HSpinEditHsvChange(Sender: TObject);
+    procedure HTabColorPickerHsvChange(Sender: TObject);
+    procedure PageControlColorModelChange(Sender: TObject);
+    procedure RTabColorPickerRgbChange(Sender: TObject);
+    procedure SSpinEditHsvChange(Sender: TObject);
+    procedure STabColorPickerHsvChange(Sender: TObject);
+    procedure VPanelColorPickerChange(Sender: TObject);
+    procedure RSpinEditRgbChange(Sender: TObject);
+    procedure VSpinEditHsvChange(Sender: TObject);
+    procedure VTabColorPickerHsvChange(Sender: TObject);
 
+  strict private
     procedure SetColorInCirclePickerPanel(NewColor: TCastleColor); overload;
     procedure SetColorInCirclePickerPanel(NewColor: TColor); overload;
-    procedure SetLValueInCirclePickerPanel(const NewValue: Integer);
     procedure SetHValueInCirclePickerPanel(const NewValue: Integer);
     procedure SetSValueInCirclePickerPanel(const NewValue: Integer);
-
+    procedure SetVValueInCirclePickerPanel(const NewValue: Integer);
+    procedure SetRValueInCirclePickerPanel(const NewValue: Integer);
+    procedure SetGValueInCirclePickerPanel(const NewValue: Integer);
+    procedure SetBValueInCirclePickerPanel(const NewValue: Integer);
 
     procedure SetColorInRgbTab(const NewColor: TCastleColor); overload;
     procedure SetColorInRgbTab(const NewColor: TColor); overload;
     procedure SetRValueInRgbTab(const NewValue: Integer);
     procedure SetGValueInRgbTab(const NewValue: Integer);
     procedure SetBValueInRgbTab(const NewValue: Integer);
+    procedure BlockEventsInRgbTab;
+    procedure UnblockEventsInRgbTab;
 
-    procedure SetColorInHslTab(const NewColor: TCastleColor); overload;
-    procedure SetColorInHslTab(const NewColor: TColor); overload;
-    procedure SetHValueInHslTab(const NewValue: Integer);
-    procedure SetSValueInHslTab(const NewValue: Integer);
-    procedure SetLValueInHslTab(const NewValue: Integer);
-    procedure BlockEventsInHslTab;
-    procedure UnblockEventsInHslTab;
+    procedure SetColorInHsvTab(const NewColor: TCastleColor); overload;
+    procedure SetColorInHsvTab(const NewColor: TColor); overload;
+    procedure SetHValueInHsvTab(const NewValue: Integer);
+    procedure SetSValueInHsvTab(const NewValue: Integer);
+    procedure SetVValueInHsvTab(const NewValue: Integer);
+    procedure BlockEventsInHsvTab;
+    procedure UnblockEventsInHsvTab;
+
+    { Used to get current color value from HSV circle, We need function like
+      this because updating all controls is too expensive. }
+    procedure UpdateCurrentTabFromPanel;
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
@@ -93,7 +109,7 @@ var
   ColorByte: TVector3Byte;
   NewColor: TCastleColor;
 begin
-  // on color change
+  // on color change in circle
   if Assigned(ColorPropertyEditor) then
   begin
     RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
@@ -102,52 +118,91 @@ begin
 
     ColorPropertyEditor.SetAllValues(NewColor);
   end;
-  SetColorInRgbTab(HSPanelCirclePicker.SelectedColor);
-  SetColorInHslTab(HSPanelCirclePicker.SelectedColor);
+  UpdateCurrentTabFromPanel;
 end;
 
-procedure TCastleColorPickerForm.HTabColorPickerChange(Sender: TObject);
+procedure TCastleColorPickerForm.GTabColorPickerRgbChange(Sender: TObject);
 begin
-  SetHValueInHslTab(HTabColorPicker.Hue);
-  SetHValueInCirclePickerPanel(HTabColorPicker.Hue);
+  SetGValueInRgbTab(GTabColorPickerRgb.Green);
+  SetGValueInCirclePickerPanel(GTabColorPickerRgb.Green);
 end;
 
-procedure TCastleColorPickerForm.LPanelColorPickerChange(Sender: TObject);
+procedure TCastleColorPickerForm.BTabColorPickerRgbChange(Sender: TObject);
 begin
-  //WritelnLog('LVColorPicker luminance: ' + IntToStr(LPanelColorPicker.Luminance));
-  //WritelnLog('HSCirclePicker luminance: ' + IntToStr(HSPanelCirclePicker.Luminance));
-  if HSPanelCirclePicker.Luminance <> LPanelColorPicker.Luminance then
-    HSPanelCirclePicker.Luminance := LPanelColorPicker.Luminance;
+  SetBValueInRgbTab(BTabColorPickerRgb.Blue);
+  SetBValueInCirclePickerPanel(BTabColorPickerRgb.Blue);
 end;
 
-procedure TCastleColorPickerForm.LTabColorPickerChange(Sender: TObject);
+procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
 begin
-  SetLValueInHslTab(LTabColorPicker.Luminance);
-  SetLValueInCirclePickerPanel(LTabColorPicker.Luminance);
+  SetBValueInRgbTab(BSpinEditRgb.Value);
+  SetBValueInCirclePickerPanel(BSpinEditRgb.Value);
 end;
 
-procedure TCastleColorPickerForm.SpinEditHChange(Sender: TObject);
+procedure TCastleColorPickerForm.GSpinEditRgbChange(Sender: TObject);
 begin
-  SetHValueInHslTab(SpinEditH.Value);
-  SetHValueInCirclePickerPanel(SpinEditH.Value);
+  SetGValueInRgbTab(GSpinEditRgb.Value);
+  SetGValueInCirclePickerPanel(GSpinEditRgb.Value);
 end;
 
-procedure TCastleColorPickerForm.SpinEditLChange(Sender: TObject);
+procedure TCastleColorPickerForm.HSpinEditHsvChange(Sender: TObject);
 begin
-  SetLValueInHslTab(SpinEditL.Value);
-  SetLValueInCirclePickerPanel(SpinEditL.Value);
+  SetHValueInHsvTab(HSpinEditHsv.Value);
+  SetHValueInCirclePickerPanel(HSpinEditHsv.Value);
 end;
 
-procedure TCastleColorPickerForm.SpinEditSChange(Sender: TObject);
+procedure TCastleColorPickerForm.HTabColorPickerHsvChange(Sender: TObject);
 begin
-  SetSValueInHslTab(SpinEditS.Value);
-  SetSValueInCirclePickerPanel(SpinEditS.Value);
+  SetHValueInHsvTab(HTabColorPickerHsv.Hue);
+  SetHValueInCirclePickerPanel(HTabColorPickerHsv.Hue);
 end;
 
-procedure TCastleColorPickerForm.STabColorPickerChange(Sender: TObject);
+procedure TCastleColorPickerForm.PageControlColorModelChange(Sender: TObject);
 begin
-  SetSValueInHslTab(STabColorPicker.Saturation);
-  SetSValueInCirclePickerPanel(STabColorPicker.Saturation);
+  { Update values when tab is shown. }
+  UpdateCurrentTabFromPanel;
+end;
+
+procedure TCastleColorPickerForm.RTabColorPickerRgbChange(Sender: TObject);
+begin
+  SetRValueInRgbTab(RTabColorPickerRgb.Red);
+  SetRValueInCirclePickerPanel(RTabColorPickerRgb.Red);
+end;
+
+procedure TCastleColorPickerForm.SSpinEditHsvChange(Sender: TObject);
+begin
+  SetSValueInHsvTab(SSpinEditHsv.Value);
+  SetSValueInCirclePickerPanel(SSpinEditHsv.Value);
+end;
+
+procedure TCastleColorPickerForm.STabColorPickerHsvChange(Sender: TObject);
+begin
+  SetSValueInHsvTab(STabColorPickerHsv.Saturation);
+  SetSValueInCirclePickerPanel(STabColorPickerHsv.Saturation);
+end;
+
+procedure TCastleColorPickerForm.VPanelColorPickerChange(Sender: TObject);
+begin
+  if HSPanelCirclePicker.Value <> VPanelColorPicker.Value then
+    HSPanelCirclePicker.Value := VPanelColorPicker.Value;
+end;
+
+procedure TCastleColorPickerForm.RSpinEditRgbChange(Sender: TObject);
+begin
+  SetRValueInRgbTab(RSpinEditRgb.Value);
+  SetRValueInCirclePickerPanel(RSpinEditRgb.Value);
+end;
+
+procedure TCastleColorPickerForm.VSpinEditHsvChange(Sender: TObject);
+begin
+  SetVValueInHsvTab(VSpinEditHsv.Value);
+  SetVValueInCirclePickerPanel(VSpinEditHsv.Value);
+end;
+
+procedure TCastleColorPickerForm.VTabColorPickerHsvChange(Sender: TObject);
+begin
+  SetVValueInHsvTab(VTabColorPickerHsv.Value);
+  SetVValueInCirclePickerPanel(VTabColorPickerHsv.Value);
 end;
 
 procedure TCastleColorPickerForm.SetColorInCirclePickerPanel(NewColor: TCastleColor);
@@ -160,18 +215,10 @@ end;
 
 procedure TCastleColorPickerForm.SetColorInCirclePickerPanel(NewColor: TColor);
 begin
-  HSPanelCirclePicker.SelectedColor := NewColor;
-  if LPanelColorPicker.Luminance <> HSPanelCirclePicker.Luminance then
-    LPanelColorPicker.Luminance := HSPanelCirclePicker.Luminance;
-end;
-
-procedure TCastleColorPickerForm.SetLValueInCirclePickerPanel(
-  const NewValue: Integer);
-begin
-  if HSPanelCirclePicker.Luminance <> NewValue then
-    HSPanelCirclePicker.Luminance := NewValue;
-  if LPanelColorPicker.Luminance <> NewValue then
-    LPanelColorPicker.Luminance := NewValue;
+  if HSPanelCirclePicker.SelectedColor <> NewColor then
+    HSPanelCirclePicker.SelectedColor := NewColor;
+  if VPanelColorPicker.Value <> HSPanelCirclePicker.Value then
+    VPanelColorPicker.Value := HSPanelCirclePicker.Value;
 end;
 
 procedure TCastleColorPickerForm.SetHValueInCirclePickerPanel(
@@ -188,23 +235,48 @@ begin
     HSPanelCirclePicker.Saturation := NewValue;
 end;
 
+procedure TCastleColorPickerForm.SetVValueInCirclePickerPanel(
+  const NewValue: Integer);
+begin
+  if HSPanelCirclePicker.Value <> NewValue then
+    HSPanelCirclePicker.Value := NewValue;
+  if VPanelColorPicker.Value <> NewValue then
+    VPanelColorPicker.Value := NewValue;
+end;
+
+procedure TCastleColorPickerForm.SetRValueInCirclePickerPanel(
+  const NewValue: Integer);
+begin
+  if HSPanelCirclePicker.Red <> NewValue then
+    HSPanelCirclePicker.Red := NewValue;
+end;
+
+procedure TCastleColorPickerForm.SetGValueInCirclePickerPanel(
+  const NewValue: Integer);
+begin
+  if HSPanelCirclePicker.Green <> NewValue then
+    HSPanelCirclePicker.Green := NewValue;
+end;
+
+procedure TCastleColorPickerForm.SetBValueInCirclePickerPanel(
+  const NewValue: Integer);
+begin
+  if HSPanelCirclePicker.Blue <> NewValue then
+    HSPanelCirclePicker.Blue := NewValue;
+end;
+
 procedure TCastleColorPickerForm.SetColorInRgbTab(const NewColor: TCastleColor);
 var
   ColorByte: TVector3Byte;
 begin
-  RTabColorPicker.OnChange := nil;
-  GTabColorPicker.OnChange := nil;
-  BTabColorPicker.OnChange := nil;
+  ColorByte := Vector3Byte(NewColor.XYZ); // edit only Color RGB
+  BlockEventsInRgbTab;
   try
-    ColorByte := Vector3Byte(NewColor.XYZ); // edit only Color RGB
     SetRValueInRgbTab(ColorByte[0]);
     SetGValueInRgbTab(ColorByte[1]);
     SetBValueInRgbTab(ColorByte[2]);
   finally
-    // to do
-    RTabColorPicker.OnChange := nil;
-    GTabColorPicker.OnChange := nil;
-    BTabColorPicker.OnChange := nil;
+    UnblockEventsInRgbTab;
   end;
 end;
 
@@ -213,139 +285,177 @@ var
   Rgb: Longint;
 begin
   Rgb := ColorToRGB(NewColor);
-  SetRValueInRgbTab(GetRValue(Rgb));
-  SetGValueInRgbTab(GetGValue(Rgb));
-  SetBValueInRgbTab(GetBValue(Rgb));
+  BlockEventsInRgbTab;
+  try
+    SetRValueInRgbTab(GetRValue(Rgb));
+    SetGValueInRgbTab(GetGValue(Rgb));
+    SetBValueInRgbTab(GetBValue(Rgb));
+  finally
+    UnblockEventsInRgbTab;
+  end;
 end;
 
 procedure TCastleColorPickerForm.SetRValueInRgbTab(const NewValue: Integer);
 begin
-  if RTabColorPicker.Red <> NewValue then
-    RTabColorPicker.Red := NewValue;
-  if GTabColorPicker.Red <> NewValue then
-    GTabColorPicker.Red := NewValue;
-  if BTabColorPicker.Red <> NewValue then
-    BTabColorPicker.Red := NewValue;
-  if SpinEditR.Value <> NewValue then
-    SpinEditR.Value := NewValue;
+  if RTabColorPickerRgb.Red <> NewValue then
+    RTabColorPickerRgb.Red := NewValue;
+  if GTabColorPickerRgb.Red <> NewValue then
+    GTabColorPickerRgb.Red := NewValue;
+  if BTabColorPickerRgb.Red <> NewValue then
+    BTabColorPickerRgb.Red := NewValue;
+  if RSpinEditRgb.Value <> NewValue then
+    RSpinEditRgb.Value := NewValue;
 end;
 
 procedure TCastleColorPickerForm.SetGValueInRgbTab(const NewValue: Integer);
 begin
-  if RTabColorPicker.Green <> NewValue then
-    RTabColorPicker.Green := NewValue;
-  if GTabColorPicker.Green <> NewValue then
-    GTabColorPicker.Green := NewValue;
-  if BTabColorPicker.Green <> NewValue then
-    BTabColorPicker.Green := NewValue;
-  if SpinEditG.Value <> NewValue then
-    SpinEditG.Value := NewValue;
+  if RTabColorPickerRgb.Green <> NewValue then
+    RTabColorPickerRgb.Green := NewValue;
+  if GTabColorPickerRgb.Green <> NewValue then
+    GTabColorPickerRgb.Green := NewValue;
+  if BTabColorPickerRgb.Green <> NewValue then
+    BTabColorPickerRgb.Green := NewValue;
+  if GSpinEditRgb.Value <> NewValue then
+    GSpinEditRgb.Value := NewValue;
 end;
 
 procedure TCastleColorPickerForm.SetBValueInRgbTab(const NewValue: Integer);
 begin
-  if RTabColorPicker.Blue <> NewValue then
-    RTabColorPicker.Blue := NewValue;
-  if GTabColorPicker.Blue <> NewValue then
-    GTabColorPicker.Blue := NewValue;
-  if BTabColorPicker.Blue <> NewValue then
-    BTabColorPicker.Blue := NewValue;
-  if SpinEditB.Value <> NewValue then
-    SpinEditB.Value := NewValue;
+  if RTabColorPickerRgb.Blue <> NewValue then
+    RTabColorPickerRgb.Blue := NewValue;
+  if GTabColorPickerRgb.Blue <> NewValue then
+    GTabColorPickerRgb.Blue := NewValue;
+  if BTabColorPickerRgb.Blue <> NewValue then
+    BTabColorPickerRgb.Blue := NewValue;
+  if BSpinEditRgb.Value <> NewValue then
+    BSpinEditRgb.Value := NewValue;
 end;
 
-procedure TCastleColorPickerForm.SetColorInHslTab(const NewColor: TCastleColor);
+procedure TCastleColorPickerForm.BlockEventsInRgbTab;
+begin
+  RTabColorPickerRgb.OnChange := nil;
+  GTabColorPickerRgb.OnChange := nil;
+  BTabColorPickerRgb.OnChange := nil;
+  RSpinEditRgb.OnChange := nil;
+  GSpinEditRgb.OnChange := nil;
+  BSpinEditRgb.OnChange := nil;
+end;
+
+procedure TCastleColorPickerForm.UnblockEventsInRgbTab;
+begin
+  RTabColorPickerRgb.OnChange := @RTabColorPickerRgbChange;
+  GTabColorPickerRgb.OnChange := @GTabColorPickerRgbChange;
+  BTabColorPickerRgb.OnChange := @BTabColorPickerRgbChange;
+  RSpinEditRgb.OnChange := @RSpinEditRgbChange;
+  GSpinEditRgb.OnChange := @GSpinEditRgbChange;
+  BSpinEditRgb.OnChange := @BSpinEditRgbChange;
+end;
+
+procedure TCastleColorPickerForm.SetColorInHsvTab(const NewColor: TCastleColor);
 var
   ColorByte: TVector3Byte;
-  HDouble, SDouble, LDouble: Double;
-  H, S, L: Integer;
+  HDouble, SDouble, VDouble: Double;
+  H, S, V: Integer;
 begin
   ColorByte := Vector3Byte(NewColor.XYZ); // edit only Color RGB
-  RGBtoHSL(ColorByte[0], ColorByte[1], ColorByte[2], HDouble, SDouble, LDouble);
+  RGBtoHSV(ColorByte[0], ColorByte[1], ColorByte[2], HDouble, SDouble, VDouble);
 
-  H := Round(HDouble * HTabColorPicker.MaxHue);
-  S := Round(SDouble * STabColorPicker.MaxSaturation);
-  L := Round(LDouble * LTabColorPicker.MaxLuminance);
+  H := Round(HDouble * HTabColorPickerHsv.MaxHue);
+  S := Round(SDouble * STabColorPickerHsv.MaxSaturation);
+  V := Round(VDouble * VTabColorPickerHsv.MaxValue);
 
-  SetHValueInHslTab(H);
-  SetSValueInHslTab(S);
-  SetLValueInHslTab(L);
-end;
-
-procedure TCastleColorPickerForm.SetColorInHslTab(const NewColor: TColor);
-var
-  HDouble, SDouble, LDouble: Double;
-  H, S, L: Integer;
-begin
-  ColortoHSL(NewColor, HDouble, SDouble, LDouble);
-  H := Round(HDouble * HTabColorPicker.MaxHue);
-  S := Round(SDouble * STabColorPicker.MaxSaturation);
-  L := Round(LDouble * LTabColorPicker.MaxLuminance);
-
-  BlockEventsInHslTab;
+  BlockEventsInHsvTab;
   try
-    SetHValueInHslTab(H);
-    SetSValueInHslTab(S);
-    SetLValueInHslTab(L);
+    SetHValueInHsvTab(H);
+    SetSValueInHsvTab(S);
+    SetVValueInHsvTab(V);
   finally
-    UnblockEventsInHslTab;
+    UnblockEventsInHsvTab;
   end;
 end;
 
-procedure TCastleColorPickerForm.SetHValueInHslTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetColorInHsvTab(const NewColor: TColor);
+var
+  HDouble, SDouble, VDouble: Double;
+  H, S, V: Integer;
 begin
-  if HTabColorPicker.Hue <> NewValue then
-    HTabColorPicker.Hue := NewValue;
-  if STabColorPicker.Hue <> NewValue then
-    STabColorPicker.Hue := NewValue;
-  if LTabColorPicker.Hue <> NewValue then
-    LTabColorPicker.Hue := NewValue;
-  if SpinEditH.Value <> NewValue then
-    SpinEditH.Value := NewValue;
+  ColortoHSV(NewColor, HDouble, SDouble, VDouble);
+  H := Round(HDouble * HTabColorPickerHsv.MaxHue);
+  S := Round(SDouble * STabColorPickerHsv.MaxSaturation);
+  V := Round(VDouble * VTabColorPickerHsv.MaxValue);
+
+  BlockEventsInHsvTab;
+  try
+    SetHValueInHsvTab(H);
+    SetSValueInHsvTab(S);
+    SetVValueInHsvTab(V);
+  finally
+    UnblockEventsInHsvTab;
+  end;
 end;
 
-procedure TCastleColorPickerForm.SetSValueInHslTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetHValueInHsvTab(const NewValue: Integer);
 begin
-  if HTabColorPicker.Saturation <> NewValue then
-    HTabColorPicker.Saturation := NewValue;
-  if STabColorPicker.Saturation <> NewValue then
-    STabColorPicker.Saturation := NewValue;
-  if LTabColorPicker.Saturation <> NewValue then
-    LTabColorPicker.Saturation := NewValue;
-  if SpinEditS.Value <> NewValue then
-    SpinEditS.Value := NewValue;
+  if HTabColorPickerHsv.Hue <> NewValue then
+    HTabColorPickerHsv.Hue := NewValue;
+  if STabColorPickerHsv.Hue <> NewValue then
+    STabColorPickerHsv.Hue := NewValue;
+  if VTabColorPickerHsv.Hue <> NewValue then
+    VTabColorPickerHsv.Hue := NewValue;
+  if HSpinEditHsv.Value <> NewValue then
+    HSpinEditHsv.Value := NewValue;
 end;
 
-procedure TCastleColorPickerForm.SetLValueInHslTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetSValueInHsvTab(const NewValue: Integer);
 begin
-  if HTabColorPicker.Luminance <> NewValue then
-    HTabColorPicker.Luminance := NewValue;
-  if STabColorPicker.Luminance <> NewValue then
-    STabColorPicker.Luminance := NewValue;
-  if LTabColorPicker.Luminance <> NewValue then
-    LTabColorPicker.Luminance := NewValue;
-  if SpinEditL.Value <> NewValue then
-    SpinEditL.Value := NewValue;
+  if HTabColorPickerHsv.Saturation <> NewValue then
+    HTabColorPickerHsv.Saturation := NewValue;
+  if STabColorPickerHsv.Saturation <> NewValue then
+    STabColorPickerHsv.Saturation := NewValue;
+  if VTabColorPickerHsv.Saturation <> NewValue then
+    VTabColorPickerHsv.Saturation := NewValue;
+  if SSpinEditHsv.Value <> NewValue then
+    SSpinEditHsv.Value := NewValue;
 end;
 
-procedure TCastleColorPickerForm.BlockEventsInHslTab;
+procedure TCastleColorPickerForm.SetVValueInHsvTab(const NewValue: Integer);
 begin
-  HTabColorPicker.OnChange := nil;
-  STabColorPicker.OnChange := nil;
-  LTabColorPicker.OnChange := nil;
-  SpinEditH.OnChange := nil;
-  SpinEditS.OnChange := nil;
-  SpinEditL.OnChange := nil;
+  if HTabColorPickerHsv.Value <> NewValue then
+    HTabColorPickerHsv.Value := NewValue;
+  if STabColorPickerHsv.Value <> NewValue then
+    STabColorPickerHsv.Value := NewValue;
+  if VTabColorPickerHsv.Value <> NewValue then
+    VTabColorPickerHsv.Value := NewValue;
+  if VSpinEditHsv.Value <> NewValue then
+    VSpinEditHsv.Value := NewValue;
 end;
 
-procedure TCastleColorPickerForm.UnblockEventsInHslTab;
+procedure TCastleColorPickerForm.BlockEventsInHsvTab;
 begin
-  HTabColorPicker.OnChange := @HTabColorPickerChange;
-  STabColorPicker.OnChange := @STabColorPickerChange;
-  LTabColorPicker.OnChange := @LTabColorPickerChange;
-  SpinEditH.OnChange := @SpinEditHChange;
-  SpinEditS.OnChange := @SpinEditSChange;
-  SpinEditL.OnChange := @SpinEditLChange;
+  HTabColorPickerHsv.OnChange := nil;
+  STabColorPickerHsv.OnChange := nil;
+  VTabColorPickerHsv.OnChange := nil;
+  HSpinEditHsv.OnChange := nil;
+  SSpinEditHsv.OnChange := nil;
+  VSpinEditHsv.OnChange := nil;
+end;
+
+procedure TCastleColorPickerForm.UnblockEventsInHsvTab;
+begin
+  HTabColorPickerHsv.OnChange := @HTabColorPickerHsvChange;
+  STabColorPickerHsv.OnChange := @STabColorPickerHsvChange;
+  VTabColorPickerHsv.OnChange := @VTabColorPickerHsvChange;
+  HSpinEditHsv.OnChange := @HSpinEditHsvChange;
+  SSpinEditHsv.OnChange := @SSpinEditHsvChange;
+  VSpinEditHsv.OnChange := @VSpinEditHsvChange;
+end;
+
+procedure TCastleColorPickerForm.UpdateCurrentTabFromPanel;
+begin
+  if PageControlColorModel.ActivePage = TabSheetRgb then
+    SetColorInRgbTab(HSPanelCirclePicker.SelectedColor)
+  else if PageControlColorModel.ActivePage = TabSheetHsv then
+    SetColorInHsvTab(HSPanelCirclePicker.SelectedColor);
 end;
 
 procedure TCastleColorPickerForm.Init(
@@ -355,7 +465,7 @@ begin
   PrevColor := InitColor;
   SetColorInCirclePickerPanel(InitColor);
   SetColorInRgbTab(InitColor);
-  SetColorInHslTab(InitColor);
+  SetColorInHsvTab(InitColor);
 end;
 
 end.
