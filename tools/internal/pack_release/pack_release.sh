@@ -351,7 +351,7 @@ pack_platform_dir ()
   add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
-  local ARCHIVE_NAME_BUNDLE=''
+  ARCHIVE_NAME_BUNDLE=''
   if [ "${CGE_PACK_BUNDLE:-}" == 'yes' ]; then
     cd "${TEMP_PATH_CGE}"tools/contrib/
     unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
