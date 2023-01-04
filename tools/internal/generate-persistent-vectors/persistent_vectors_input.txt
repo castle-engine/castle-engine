@@ -54,6 +54,8 @@
 
 ../../../src/ui/ TCastleCrosshair Color TCastleColor
 
+../../../src/ui/ TCastleAbstractSlider TextColor TCastleColor
+
 ../../../src/transform/ TCastleTransform Center TVector3
 ../../../src/transform/ TCastleTransform Rotation TVector4 rotation
 ../../../src/transform/ TCastleTransform Scale TVector3
