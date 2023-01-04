@@ -25,7 +25,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 2.5000000000000000E+001
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/HP_Bar_New1.png"
+            "URL" : "castle-data:/hud/HP_Bar_New1.png"
           },
           "Height" : 6.0000000000000000E+001,
           "Name" : "Frame0",
@@ -50,7 +50,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Only.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Only.png"
           },
           "Height" : 2.8000000000000000E+001,
           "Name" : "Background",
@@ -75,7 +75,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/HP_Fill2.png"
+            "URL" : "castle-data:/hud/HP_Fill2.png"
           },
           "Height" : 2.8000000000000000E+001,
           "Name" : "HPFill",
@@ -93,7 +93,7 @@
       "$$ClassName" : "TCastleImageControl",
       "Content" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/gfx/HUD%20Assets/HPealthPack_bg.png"
+        "URL" : "castle-data:/hud/HPealthPack_bg.png"
       },
       "Height" : 8.0000000000000000E+001,
       "Name" : "HealthPack",
@@ -114,7 +114,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/healthpack_placeholder.png"
+            "URL" : "castle-data:/hud/healthpack_placeholder.png"
           },
           "Height" : 3.3000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -142,7 +142,7 @@
           "$$ClassName" : "TBorder",
           "AllSides" : 1.8000000000000000E+001
         },
-        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Only2.png"
+        "URL" : "castle-data:/hud/Slot_Bg_Only2.png"
       },
       "Height" : 5.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
@@ -203,7 +203,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 2.5000000000000000E+001
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/HP_Bar_New1.png"
+            "URL" : "castle-data:/hud/HP_Bar_New1.png"
           },
           "Height" : 6.0000000000000000E+001,
           "Name" : "AmmoBox",
@@ -255,27 +255,27 @@
                     {
                       "$$ClassName" : "TCastleFont",
                       "Name" : "UrbanistRegular",
-                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
+                      "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
                     },
                     {
                       "$$ClassName" : "TCastleFont",
                       "Name" : "UrbanistBold",
-                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+                      "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
                     },
                     {
                       "$$ClassName" : "TCastleFont",
                       "Name" : "UrbanistBlack",
-                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
+                      "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
                     },
                     {
                       "$$ClassName" : "TCastleFont",
                       "Name" : "UrbanistItalic",
-                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Italic.otf"
+                      "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Italic.otf"
                     },
                     {
                       "$$ClassName" : "TCastleFont",
                       "Name" : "UrbanistThin",
-                      "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Thin.otf"
+                      "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Thin.otf"
                     }
                   ]
                 }
@@ -292,7 +292,7 @@
               "AllSides" : 5.0000000000000000E+000
             },
             "Rotation" : 7.8539818525314331E-001,
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Weapon.png"
+            "URL" : "castle-data:/hud/Slot_Weapon.png"
           },
           "Height" : 1.3000000000000000E+002,
           "HorizontalAnchorParent" : "hpRight",
@@ -315,7 +315,7 @@
               },
               "Content" : {
                 "$$ClassName" : "TCastleImagePersistent",
-                "URL" : "castle-data:/gfx/HUD%20Assets/weapon2_placeholder.png"
+                "URL" : "castle-data:/hud/weapon2_placeholder.png"
               },
               "FullSize" : true,
               "Height" : 5.0000000000000000E+001,
@@ -337,7 +337,7 @@
               "$$ClassName" : "TBorder",
               "AllSides" : 5.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Weapon.png"
+            "URL" : "castle-data:/hud/Slot_Weapon.png"
           },
           "Height" : 1.6000000000000000E+002,
           "HorizontalAnchorParent" : "hpRight",
@@ -355,7 +355,7 @@
               "$$ClassName" : "TCastleImageControl",
               "Content" : {
                 "$$ClassName" : "TCastleImagePersistent",
-                "URL" : "castle-data:/gfx/HUD%20Assets/weapon1_placeholder.png"
+                "URL" : "castle-data:/hud/weapon1_placeholder.png"
               },
               "Height" : 6.0000000000000000E+001,
               "HorizontalAnchorParent" : "hpMiddle",
@@ -388,7 +388,7 @@
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/MiniMap_BG.png"
+            "URL" : "castle-data:/hud/MiniMap_BG.png"
           },
           "Height" : 2.0000000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -409,7 +409,7 @@
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/MiniMap_BG2.png"
+            "URL" : "castle-data:/hud/MiniMap_BG2.png"
           },
           "Height" : 2.0000000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -430,7 +430,7 @@
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/MiniMap_Frame.png"
+            "URL" : "castle-data:/hud/MiniMap_Frame.png"
           },
           "Height" : 2.9000000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -451,7 +451,7 @@
               "$$ClassName" : "TCastleImageControl",
               "Content" : {
                 "$$ClassName" : "TCastleImagePersistent",
-                "URL" : "castle-data:/gfx/HUD%20Assets/Simple_compass_rose.svg.png"
+                "URL" : "castle-data:/hud/Simple_compass_rose.svg.png"
               },
               "Height" : 5.0000000000000000E+001,
               "HorizontalAnchorParent" : "hpMiddle",
@@ -490,7 +490,7 @@
           "$$ClassName" : "TBorder",
           "AllSides" : 1.8000000000000000E+001
         },
-        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Only2.png"
+        "URL" : "castle-data:/hud/Slot_Bg_Only2.png"
       },
       "Height" : 5.0000000000000000E+001,
       "Name" : "NotificationBox1",

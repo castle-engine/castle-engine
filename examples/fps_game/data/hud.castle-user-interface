@@ -20,7 +20,7 @@
           "Green" : 0.0000000000000000E+000,
           "Red" : 0.0000000000000000E+000
         },
-        "URL" : "castle-data:/gfx/HUD%20Assets/rect.png"
+        "URL" : "castle-data:/hud/rect.png"
       },
       "Height" : 7.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
@@ -170,7 +170,7 @@
                   "$$ClassName" : "TCastleImageControl",
                   "Content" : {
                     "$$ClassName" : "TCastleImagePersistent",
-                    "URL" : "castle-data:/gfx/HUD%20Assets/HP_Bar_New.png"
+                    "URL" : "castle-data:/hud/HP_Bar_New.png"
                   },
                   "FullSize" : true,
                   "Name" : "HPBar",
@@ -200,7 +200,7 @@
                   "$$ClassName" : "TCastleImageControl",
                   "Content" : {
                     "$$ClassName" : "TCastleImagePersistent",
-                    "URL" : "castle-data:/gfx/HUD%20Assets/HP_Fill.png"
+                    "URL" : "castle-data:/hud/HP_Fill.png"
                   },
                   "Height" : 3.0000000000000000E+001,
                   "Name" : "RectLife1",
@@ -329,7 +329,7 @@
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/HP_Bar_New.png"
+            "URL" : "castle-data:/hud/HP_Bar_New.png"
           },
           "Height" : 1.1000000000000000E+002,
           "Name" : "ImageControl3",

@@ -25,7 +25,7 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "URL" : "castle-data:/gfx/HUD%20Assets/viniette01.png"
+            "URL" : "castle-data:/hud/viniette01.png"
           },
           "FullSize" : true,
           "Height" : 1.0800000000000000E+003,
@@ -60,7 +60,7 @@
           "$$ClassName" : "TCastleFont",
           "Name" : "UrbanistBlack",
           "OptimalSize" : 50,
-          "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
+          "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
         }
       ]
     },
@@ -76,15 +76,15 @@
       },
       "CustomBackgroundFocused" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
       },
       "CustomBackgroundNormal" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
       },
       "CustomBackgroundPressed" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
       },
       "CustomTextColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",

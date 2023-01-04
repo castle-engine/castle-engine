@@ -65,13 +65,13 @@
               "$$ClassName" : "TCastleFont",
               "Name" : "UrbanistBold",
               "OptimalSize" : 50,
-              "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+              "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
             },
             {
               "$$ClassName" : "TCastleFont",
               "Name" : "UrbanistRegular",
               "OptimalSize" : 30,
-              "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
+              "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
             }
           ]
         },
@@ -318,15 +318,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "UrbanistBold",
           "CustomTextColorPersistent" : {
@@ -363,15 +363,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "UrbanistBold",
           "CustomTextColorPersistent" : {

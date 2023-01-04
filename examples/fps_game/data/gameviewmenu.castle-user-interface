@@ -21,7 +21,7 @@
           "Red" : 0.0000000000000000E+000
         },
         "Rotation" : 3.1415927410125732E+000,
-        "URL" : "castle-data:/gfx/HUD%20Assets/gradient3.png"
+        "URL" : "castle-data:/hud/gradient3.png"
       },
       "Height" : 1.0800000000000000E+003,
       "HorizontalAnchorParent" : "hpRight",
@@ -75,7 +75,7 @@
               "$$ClassName" : "TCastleFont",
               "Name" : "Font1",
               "OptimalSize" : 80,
-              "URL" : "castle-data:/gfx/Fonts/Abibas/Abibas.otf"
+              "URL" : "castle-data:/fonts/Abibas/Abibas.otf"
             }
           ],
           "$Children" : [
@@ -117,12 +117,12 @@
                   "$$ClassName" : "TCastleFont",
                   "Name" : "Font",
                   "OptimalSize" : 80,
-                  "URL" : "castle-data:/gfx/Fonts/Abibas/Abibas.otf"
+                  "URL" : "castle-data:/fonts/Abibas/Abibas.otf"
                 },
                 {
                   "$$ClassName" : "TCastleFont",
                   "Name" : "Urbanist",
-                  "URL" : "castle-data:/gfx/Fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+                  "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
                 }
               ]
             }
@@ -153,15 +153,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -198,15 +198,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -243,15 +243,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
@@ -288,15 +288,15 @@
           },
           "CustomBackgroundFocused" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-focused.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
           },
           "CustomBackgroundNormal" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
           },
           "CustomBackgroundPressed" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/gfx/HUD%20Assets/Slot_Bg_Bolts1-pressed.png"
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
           },
           "CustomFont" : "Urbanist",
           "CustomTextColorPersistent" : {
