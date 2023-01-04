@@ -342,7 +342,7 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonCreditsLink",
+          "Name" : "ButtonCredits",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "Y" : -5.7500000000000000E+002

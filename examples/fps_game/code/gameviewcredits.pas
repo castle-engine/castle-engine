@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,15 +23,17 @@ uses Classes,
 
 type
   TViewCredits = class(TCastleView)
-  private
-    procedure ClickBack(Sender: TObject);
-  public
-    constructor Create(AOwner: TComponent); override;
-    procedure Start; override;
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     ButtonBack: TCastleButton;
+    ButtonCredits: TCastleButton;
+  private
+    procedure ClickBack(Sender: TObject);
+    procedure ClickCredits(Sender: TObject);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Start; override;
   end;
 
 var
@@ -39,7 +41,8 @@ var
 
 implementation
 
-uses GameViewMenu;
+uses GameViewMenu,
+  CastleOpenDocument;
 
 procedure TViewCredits.ClickBack(Sender: TObject);
 begin
@@ -56,6 +59,12 @@ procedure TViewCredits.Start;
 begin
   inherited;
   ButtonBack.OnClick  := {$ifdef FPC}@{$endif} ClickBack;
+  ButtonCredits.OnClick  := {$ifdef FPC}@{$endif} ClickCredits;
+end;
+
+procedure TViewCredits.ClickCredits(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/credits');
 end;
 
 end.

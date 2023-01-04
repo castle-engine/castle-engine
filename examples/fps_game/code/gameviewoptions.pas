@@ -24,6 +24,12 @@ uses Classes,
 
 type
   TViewOptions = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    ButtonBackMenu, ButtonBackGame: TCastleButton;
+    ViewportUnderUi: TCastleViewport;
+    Fade: TCastleRectangleControl;
   private
     ButtonsVolume: array [0..10] of TCastleButton;
     procedure ClickBackMenu(Sender: TObject);
@@ -36,12 +42,6 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
-  published
-    { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
-    ButtonBackMenu, ButtonBackGame: TCastleButton;
-    ViewportUnderUi: TCastleViewport;
-    Fade: TCastleRectangleControl;
   end;
 
 var

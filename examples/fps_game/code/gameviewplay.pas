@@ -26,6 +26,17 @@ uses Classes, CastleCameras,
 
 type
   TViewPlay = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    WalkNavigation: TCastleWalkNavigation;
+    MainViewport: TCastleViewport;
+    SceneGun: TCastleScene;
+    SoundSourceFootsteps: TCastleSoundSource;
+    SoundShoot: TCastleSound;
+    BoxDieDetect, BoxWinDetect: TCastleTransform;
+    DesignHud: TCastleDesign;
+    MapCamera: TCastleCamera;
   private
     PersistentMouseLook: Boolean;
     Enemies: TEnemyList;
@@ -44,17 +55,6 @@ type
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
-  published
-    { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
-    WalkNavigation: TCastleWalkNavigation;
-    MainViewport: TCastleViewport;
-    SceneGun: TCastleScene;
-    SoundSourceFootsteps: TCastleSoundSource;
-    SoundShoot: TCastleSound;
-    BoxDieDetect, BoxWinDetect: TCastleTransform;
-    DesignHud: TCastleDesign;
-    MapCamera: TCastleCamera;
   end;
 
 var

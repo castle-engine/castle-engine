@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,6 +24,13 @@ uses Classes,
 
 type
   TViewMenu = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    ButtonPlay: TCastleButton;
+    ButtonQuit: TCastleButton;
+    ButtonOptions: TCastleButton;
+    ButtonCredits: TCastleButton;
   private
     procedure ClickCredits(Sender: TObject);
     procedure ClickPlay(Sender: TObject);
@@ -32,13 +39,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-  published
-    { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
-    ButtonPlay: TCastleButton;
-    ButtonQuit: TCastleButton;
-    ButtonOptions: TCastleButton;
-    ButtonCredits: TCastleButton;
   end;
 
 var

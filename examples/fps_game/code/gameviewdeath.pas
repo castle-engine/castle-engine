@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,15 +23,15 @@ uses Classes,
 
 type
   TViewDeath = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    ButtonBack: TCastleButton;
   private
     procedure ClickBack(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-  published
-    { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
-    ButtonBack: TCastleButton;
   end;
 
 var
