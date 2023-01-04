@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -82,9 +82,9 @@ begin
   inherited;
 
   { initialize components in DesignHud }
-  LabelFps := DesignHud.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainNotifications := DesignHud.FindRequiredComponent('MainNotifications') as TCastleNotifications;
-  MapViewport := DesignHud.FindRequiredComponent('MapViewport') as TCastleViewport;
+  LabelFps := DesignHud.DesignedComponent('LabelFps') as TCastleLabel;
+  MainNotifications := DesignHud.DesignedComponent('MainNotifications') as TCastleNotifications;
+  MapViewport := DesignHud.DesignedComponent('MapViewport') as TCastleViewport;
 
   Enemies := TEnemyList.Create(true);
 
