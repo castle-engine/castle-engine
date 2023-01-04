@@ -30,11 +30,11 @@ type
     ButtonBackMenu, ButtonBackGame: TCastleButton;
     ViewportUnderUi: TCastleViewport;
     Fade: TCastleRectangleControl;
+    SliderVolume: TCastleIntegerSlider;
   private
-    ButtonsVolume: array [0..10] of TCastleButton;
     procedure ClickBackMenu(Sender: TObject);
     procedure ClickBackGame(Sender: TObject);
-    procedure ClickVolume(Sender: TObject);
+    procedure ChangeSliderVolume(Sender: TObject);
   public
     { Whether this is displayed on top of ViewPlay
       or not (in which case this goes back to ViewMenu). }
@@ -65,14 +65,11 @@ var
   I: Integer;
 begin
   inherited;
-  for I := Low(ButtonsVolume) to High(ButtonsVolume) do
-  begin
-    ButtonsVolume[I] := DesignedComponent('ButtonVolume' + IntToStr(I)) as TCastleButton;
-    ButtonsVolume[I].Tag := I;
-    ButtonsVolume[I].OnClick := {$ifdef FPC}@{$endif} ClickVolume;
-  end;
   ButtonBackMenu.OnClick := {$ifdef FPC}@{$endif} ClickBackMenu;
   ButtonBackGame.OnClick := {$ifdef FPC}@{$endif} ClickBackGame;
+
+  SliderVolume.Value := Round(SoundEngine.Volume * SliderVolume.Max);
+  SliderVolume.OnChange := {$ifdef FPC}@{$endif} ChangeSliderVolume;
 
   ViewportUnderUi.Exists := not OverGame;
   Fade.Exists := OverGame;
@@ -94,9 +91,9 @@ begin
   Container.PopView(Self);
 end;
 
-procedure TViewOptions.ClickVolume(Sender: TObject);
+procedure TViewOptions.ChangeSliderVolume(Sender: TObject);
 begin
-  SoundEngine.Volume := (Sender as TCastleButton).Tag / High(ButtonsVolume);
+  SoundEngine.Volume := SliderVolume.Value / SliderVolume.Max;
 
   { save volume to UserConfig, to make it saved for next game run }
   UserConfig.SetDeleteFloat('sound_volume', SoundEngine.Volume, 1);
