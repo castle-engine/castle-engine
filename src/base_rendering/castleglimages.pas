@@ -163,7 +163,8 @@ end;
 
 procedure ContextClose;
 begin
-  if DecompressTexture = {$ifdef FPC}@{$endif} GLDecompressTexture then
+  // Use @ on both sides to compare on Delphi, https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Procedural_Types_(Delphi)
+  if {$ifndef FPC}@{$endif} DecompressTexture = @GLDecompressTexture then
     DecompressTexture := nil;
   TextureMemoryProfiler.CheckLeaks;
   TDrawableImage.StaticGLContextClose;
