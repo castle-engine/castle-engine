@@ -302,6 +302,9 @@ begin
   for T := Low(TThemeImage) to High(TThemeImage) do
   begin
     FImagesPersistent[T] := TCastleImagePersistent.Create;
+    { Hide 9-slices visualization in editor, as user likely didn't set the corners of theme,
+      and could be surprised by all extra drawing (e.g. on every default button). }
+    FImagesPersistent[T].InternalVisualizeProtectedSides := false;
     FImagesPersistent[T].OwnsImage := false;
   end;
 
