@@ -102,7 +102,6 @@ type
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
-    LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
     PanelMiddleTop: TPanel;
@@ -2765,10 +2764,12 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlResize(Sender: TObject);
-var
-  CalculatedUIScale: Single;
-  H, CalculatedUIScaleStr: String;
+//var
+//  CalculatedUIScale: Single;
+//  H, CalculatedUIScaleStr: String;
 begin
+  // TODO: where to display UI scaling effect nicely?
+  {
   // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
@@ -2801,6 +2802,7 @@ begin
        CastleControl.Container.UnscaledHeight]);
   end;
   LabelUIScaling.Hint := H;
+  }
 end;
 
 procedure TDesignFrame.CastleControlOpen(Sender: TObject);

@@ -8,8 +8,8 @@ object DesignFrame: TDesignFrame
   DesignTimePPI = 115
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 260
-  DesignTop = 243
+  DesignLeft = 403
+  DesignTop = 237
   object SplitterLeft: TSplitter
     Left = 255
     Height = 522
@@ -449,7 +449,7 @@ object DesignFrame: TDesignFrame
         Height = 38
         Hint = 'Interact with components like a normal user (click buttons, drag scrollbars etc.).'#10#10'(Alt+1)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -586,15 +586,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 1
+        Images = Icons.ToolbarIcons
+        ImageIndex = 13
         OnClick = ButtonInteractModeClick
         ParentFont = False
       end
       object ButtonSelectMode: TSpeedButton
-        Left = 40
+        Left = 37
         Height = 38
         Hint = 'Select components.'#10#10'(Alt+2)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -731,15 +733,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 3
+        Images = Icons.ToolbarIcons
+        ImageIndex = 16
         OnClick = ButtonSelectModeClick
         ParentFont = False
       end
       object ButtonTranslateMode: TSpeedButton
-        Left = 80
+        Left = 74
         Height = 38
         Hint = 'Move (and Select) components.'#10'Hold "Shift" to Move without changing the selection.'#10#10'(Alt+3)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -876,15 +880,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 4
+        Images = Icons.ToolbarIcons
+        ImageIndex = 17
         OnClick = ButtonTranslateModeClick
         ParentFont = False
       end
       object ButtonRotateMode: TSpeedButton
-        Left = 120
+        Left = 111
         Height = 38
         Hint = 'Rotate (and Select) components.'#10'Hold "Shift" to Rotate without changing the selection.'#10#10'(Alt+4)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -1021,15 +1027,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 5
+        Images = Icons.ToolbarIcons
+        ImageIndex = 14
         OnClick = ButtonRotateModeClick
         ParentFont = False
       end
       object ButtonScaleMode: TSpeedButton
-        Left = 160
+        Left = 148
         Height = 38
         Hint = 'Scale (and Select) components.'#10'Hold "Shift" to Scale without changing the selection.'#10#10'(Alt+5)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -1166,11 +1174,13 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 6
+        Images = Icons.ToolbarIcons
+        ImageIndex = 15
         OnClick = ButtonScaleModeClick
         ParentFont = False
       end
       object LabelHeaderUi: TLabel
-        Left = 206
+        Left = 191
         Height = 38
         Top = 0
         Width = 62
@@ -1184,7 +1194,7 @@ object DesignFrame: TDesignFrame
       object SpinEditSnap: TSpinEdit
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Side = asrCenter
-        Left = 278
+        Left = 263
         Height = 38
         Hint = 'Snap (when moving/resizing UI)'
         Top = 0
@@ -1194,23 +1204,8 @@ object DesignFrame: TDesignFrame
         TabOrder = 0
         Value = 10
       end
-      object LabelUIScaling: TLabel
-        Left = 609
-        Height = 21
-        Hint = 'UI Scaling to 1600x900'
-        Top = 0
-        Width = 35
-        Align = alCustom
-        Alignment = taRightJustify
-        Anchors = [akTop, akRight]
-        Caption = '50%'
-        ParentColor = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-      end
       object ButtonPlayStop: TSpeedButton
-        Left = 368
+        Left = 353
         Height = 38
         Top = 0
         Width = 36
@@ -1228,7 +1223,7 @@ object DesignFrame: TDesignFrame
       end
       object LabelSimulation: TLabel
         AnchorSideTop.Side = asrCenter
-        Left = 434
+        Left = 419
         Height = 38
         Top = 0
         Width = 62
@@ -1240,7 +1235,7 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonSimulationPlayStop: TSpeedButton
-        Left = 506
+        Left = 491
         Height = 38
         Top = 0
         Width = 36
@@ -1256,7 +1251,7 @@ object DesignFrame: TDesignFrame
         ShowCaption = False
       end
       object ButtonSimulationPause: TSpeedButton
-        Left = 546
+        Left = 531
         Height = 38
         Top = 0
         Width = 36
@@ -1272,7 +1267,7 @@ object DesignFrame: TDesignFrame
         ShowCaption = False
       end
       object LabelViewport: TLabel
-        Left = 618
+        Left = 603
         Height = 38
         Top = 0
         Width = 218
