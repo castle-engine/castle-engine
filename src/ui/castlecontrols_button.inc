@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -447,7 +447,7 @@ var
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
-  Tint, SolidColor, OriginalColor: TCastleColor;
+  Tint, SolidColor: TCastleColor;
   RectForTextAndImage: TFloatRectangle;
 begin
   inherited;
@@ -487,14 +487,10 @@ begin
     { render using CustomBackgroundImage, if any }
     if not CustomBackgroundImage.Empty then
     begin
-      // Temporarily disable OnChange, since below we change image
-      CustomBackgroundImage.OnChange := nil;
-      OriginalColor := CustomBackgroundImage.Color;
-      CustomBackgroundImage.Color := OriginalColor * Tint;
-      CustomBackgroundImage.ScaleCorners := UIScale;
+      CustomBackgroundImage.DrawUiBegin(UIScale);
+      CustomBackgroundImage.Color := CustomBackgroundImage.Color * Tint;
       CustomBackgroundImage.Draw(SR);
-      CustomBackgroundImage.Color := OriginalColor;
-      CustomBackgroundImage.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
+      CustomBackgroundImage.DrawUiEnd;
     end else
     begin
       if Pressed then
@@ -622,7 +618,9 @@ begin
         else ;
       end;
     end;
+    FImage.DrawUiBegin(UIScale);
     FImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
+    FImage.DrawUiEnd;
   end;
 end;
 
