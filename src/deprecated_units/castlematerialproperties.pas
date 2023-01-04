@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,16 +38,16 @@ function MaterialProperties: TDummyMaterialProperties;
 
 implementation
 
-uses SysUtils, CastleLog;
+uses SysUtils, CastleLog, CastleTextureImages;
 
 function GetTextureLoadingScale: Cardinal;
 begin
-  Result := TextureLoadingScale;
+  Result := CastleTextureImages.TextureLoadingScale;
 end;
 
 procedure SetTextureLoadingScale(const Value: Cardinal);
 begin
-  TextureLoadingScale := Value;
+  CastleTextureImages.TextureLoadingScale := Value;
 end;
 
 procedure TDummyMaterialProperties.SetUrl(const Value: String);

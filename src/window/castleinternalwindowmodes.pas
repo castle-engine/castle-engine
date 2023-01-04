@@ -27,8 +27,7 @@
   or wait for 10 seconds displaying some animation, etc.
 
   This unit is internal, and in time may be removed.
-  For users, we recommend using CastleUIState as a way to implement user-interface
-  states. }
+  We recommend using TCastleView(s) instances to organize your user-interface. }
 unit CastleInternalWindowModes;
 
 {$I castleconf.inc}

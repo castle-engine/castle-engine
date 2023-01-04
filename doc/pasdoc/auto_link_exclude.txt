@@ -7,6 +7,7 @@ alpha
 amplitude
 anchor
 angle
+animated
 animation
 animations
 appearance
@@ -54,6 +55,7 @@ click
 close
 closed
 collidable
+collider
 collision
 color
 colors
@@ -378,6 +380,7 @@ transparent
 traverse
 triangle
 triangles
+trigger
 uniform
 uniforms
 unprepare

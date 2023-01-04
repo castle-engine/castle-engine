@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijanski
 
   This file is part of "Castle Game Engine".
 

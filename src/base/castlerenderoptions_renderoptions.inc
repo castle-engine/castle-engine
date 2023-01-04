@@ -60,6 +60,7 @@ type
     FSilhouetteScale: Single;
     FSilhouetteBias: Single;
     FRobustNegativeScale: Boolean;
+    FWholeSceneManifold: Boolean;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -541,6 +542,25 @@ type
       This has a small performance cost, and so is disabled by default. }
     property RobustNegativeScale: Boolean
       read FRobustNegativeScale write FRobustNegativeScale default false;
+
+    { When considering this scene to be a shadow caster for shadow volumes,
+      assume it is 2-manifold when treated as whole scene (each separate
+      shape may be not 2-manifold). This means that you guarantee that
+      all border edges of all shapes match with each other, closing the skin
+      of the model perfectly.
+      See https://castle-engine.io/x3d_extensions_shadow_volumes.php
+      about using shadow volumes and the requirement to be 2-manifold.
+
+      If this is @true then, even if some shapes are not 2-manifold,
+      we will generate shadow (using shadow volumes) from them.
+      And we will never reject shadows from a particular shape,
+      we will either reject whole scene shadow, or render whole scene shadow.
+
+      It is the user responsibility to guarantee that whole scene is
+      really 2-manifold. If it is not, then shadow volumes may exhibit
+      weird artifacts. }
+    property WholeSceneManifold: Boolean
+      read FWholeSceneManifold write FWholeSceneManifold default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}

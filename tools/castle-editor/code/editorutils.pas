@@ -16,7 +16,7 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
-{$modeswitch advancedrecords}
+{$I editorconf.inc}
 
 interface
 
@@ -271,7 +271,7 @@ type
 implementation
 
 uses
-  SysUtils, Graphics, TypInfo, Generics.Defaults,
+  SysUtils, Graphics, TypInfo, Generics.Defaults, Math,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors,
@@ -482,6 +482,18 @@ procedure TAsynchronousProcess.Update;
     end;
   end;
 
+  function LineOutputKind(const Line: String): TOutputKind;
+  begin
+    if (Pos(') Error', Line) <> 0) or
+       (Pos(') Fatal', Line) <> 0) then
+      Result := okError
+    else
+    if (Pos(') Warning', Line) <> 0) then
+      Result := okWarning
+    else
+      Result := okInfo;
+  end;
+
 const
   ReadMaxSize = 65536;
 var
@@ -515,7 +527,7 @@ begin
     if (not Process.Running) and (Length(PendingLines) <> 0) then
     begin
       if not LineProcessInternalInfo(Line) then
-        OutputList.AddLine(PendingLines, okInfo);
+        OutputList.AddLine(PendingLines, LineOutputKind(PendingLines));
       PendingLines := '';
     end;
     Exit;
@@ -551,7 +563,7 @@ begin
         Dec(NewLinePos);
       Line := Copy(PendingLines, 1, NewLinePos - 1);
       if not LineProcessInternalInfo(Line) then
-        OutputList.AddLine(Line, okInfo);
+        OutputList.AddLine(Line, LineOutputKind(Line));
 
       PendingLines := SEnding(PendingLines, ProcessedLength + 1);
     end else
@@ -651,8 +663,19 @@ begin
   begin
     case OutputInfo.Kind of
       okImportantInfo: C.Font.Bold := true;
-      okWarning      : C.Brush.Color := clYellow;
-      okError        : C.Brush.Color := clRed;
+      okWarning:
+        begin
+          C.Brush.Color := clYellow;
+          { If the font color is too light on yellow, change it }
+          if GrayscaleValue(ColorToVector3(C.Font.Color)) > 0.75 then
+          begin
+            if List.ItemIndex = Index then
+              C.Font.Color := clBlue
+            else
+              C.Font.Color := clBlack;
+          end;
+        end;
+      okError: C.Brush.Color := clRed;
     end;
   end else
   begin
@@ -888,9 +911,20 @@ begin
   end;
 end;
 
-function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+function CompareRegisteredComponent({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TRegisteredComponent): Integer;
+var
+  I: Integer;
 begin
-  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+  for I := 0 to Min(Length(Left.Caption), Length(Right.Caption)) - 1 do
+  begin
+    Result := AnsiCompareStr(Left.Caption[I], Right.Caption[I]);
+    if Result <> 0 then Exit;
+  end;
+
+  { When all common parts are the same, let the shorter one be considered smaller.
+    So < 0 when Length(Left.Caption) < Length(Right.Caption). }
+  Result := Length(Left.Caption) - Length(Right.Caption);
 end;
 
 procedure BuildComponentsMenu(
@@ -898,20 +932,37 @@ procedure BuildComponentsMenu(
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
-    const R: TRegisteredComponent): TMenuItem;
+    const R: TRegisteredComponent; const CaptionPart: Integer = 0): TMenuItem;
   var
     S: String;
   begin
     if OwnerAndParent = nil then
       Exit; // exit if relevant ParentXxx is nil
-    Result := TMenuItem.Create(OwnerAndParent);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-    Result.OnClick := OnClickEvent;
-    OwnerAndParent.Add(Result);
+
+    if CaptionPart = Length(R.Caption) - 1 then
+    begin
+      { create last part, to actually invoke OnClickEvent }
+      Result := TMenuItem.Create(OwnerAndParent);
+      S := R.Caption[CaptionPart] + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+      Result.OnClick := OnClickEvent;
+      OwnerAndParent.Add(Result);
+    end else
+    begin
+      { create intermediate submenu part }
+      Result := OwnerAndParent.Find(R.Caption[CaptionPart]);
+      if Result = nil then
+      begin
+        Result := TMenuItem.Create(OwnerAndParent);
+        Result.Caption := R.Caption[CaptionPart];
+        OwnerAndParent.Add(Result);
+      end;
+      { recursive call to create deeper menu level }
+      CreateMenuItemForComponent(Result, R, CaptionPart + 1);
+    end;
   end;
 
 type

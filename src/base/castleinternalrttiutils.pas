@@ -50,7 +50,7 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
     This is useful for object inspector that may display subcomponents expanded,
     so particular subcomponent's non-default properties would be emphasized anyway.
 
-    Note that TreatSubComponentAsDefault doesn't mattter for behavior on
+    Note that TreatSubComponentAsDefault doesn't matter for behavior on
     special subcomponents with HasDefaultValue
     methods, like TCastleVectorXxPersistent.
   ) }

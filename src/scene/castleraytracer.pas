@@ -19,6 +19,10 @@ unit CastleRayTracer;
 {$I castleconf.inc}
 {$I octreeconf.inc}
 
+{$ifndef FPC}
+  {$message fatal 'This unit is only for FPC, not Delphi.'}
+{$endif}
+
 { TODO:
   - for classic raytracer do shadow cache
   - for classic raytracer use various space filling curves

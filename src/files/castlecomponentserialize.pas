@@ -76,7 +76,7 @@ type
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
     { Nice caption to show user in the editor. }
-    Caption: String;
+    Caption: array of String;
     { Called by the editor always after creating this component. }
     OnCreate: TNotifyEvent;
     { Should correspond to whether class is declared as "deprecated" in Pascal
@@ -91,7 +91,9 @@ type
   the TRegisteredComponent instance becomes internally owned in this unit
   (do not free it yourself). }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String); overload;
+  const Caption: array of String); overload;
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String); overload;
 procedure RegisterSerializableComponent(const C: TRegisteredComponent); overload;
 
 { Read-only list of currently registered
@@ -197,18 +199,65 @@ begin
 end;
 
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
+  const Caption: array of String);
+var
+  R: TRegisteredComponent;
+  I: Integer;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  SetLength(R.Caption, High(Caption) + 1);
+  for I := 0 to High(Caption) do
+    R.Caption[I] := Caption[I];
+  RegisteredComponents.Add(R);
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String);
 var
   R: TRegisteredComponent;
 begin
   R := TRegisteredComponent.Create;
   R.ComponentClass := ComponentClass;
-  R.Caption := Caption;
+  R.Caption := [CaptionOnePart];
   RegisteredComponents.Add(R);
 end;
 
 procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+
+  function InsertSpacesBeforeUpperLetters(const S: String): String;
+  var
+    StrBuild: TStringBuilder;
+    I: Integer;
+  begin
+    StrBuild := TStringBuilder.Create;
+    try
+      for I := 1 to Length(S) do
+      begin
+        if (I > 1) and (S[I] in ['A'..'Z']) then
+          StrBuild.Append(' ');
+        StrBuild.Append(S[I]);
+      end;
+      Result := StrBuild.ToString;
+    finally FreeAndNil(StrBuild) end;
+  end;
+
+var
+  GuessedCaption: String;
 begin
+  if C.ComponentClass = nil then
+    raise Exception.Create('RegisterSerializableComponent: ComponentClass not assigned');
+
+  if (Length(C.Caption) = 0) or (C.Caption[0] = '') then
+  begin
+    GuessedCaption := InsertSpacesBeforeUpperLetters(
+      PrefixRemove('Castle', PrefixRemove('T', C.ComponentClass.ClassName, true), true));
+    C.Caption := [GuessedCaption];
+    WritelnWarning('RegisterSerializableComponent: component Caption at registration cannot be empty, setting a placeholder "%s"', [
+      GuessedCaption
+    ]);
+  end;
+
   RegisteredComponents.Add(C);
 end;
 

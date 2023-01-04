@@ -25,7 +25,7 @@ uses
 
 { Fill directory for new project with the template. }
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption, MainState: String);
+  const TemplateName, ProjectName, ProjectCaption, MainView: String);
 
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
@@ -53,7 +53,7 @@ type
   TTemplateCopyProcess = class
     TemplateUrl: String;
     ProjectDirUrl: String;
-    MainState: String;
+    MainView: String;
     Macros: TStringStringMap;
     procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
@@ -70,11 +70,11 @@ begin
       [TemplateUrl, FileInfo.URL]);
   RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
   TargetUrl := CombineURI(ProjectDirUrl, RelativeUrl);
-  { Rename target files that depend on MainState. }
-  if ExtractURIName(TargetUrl) = 'gamestatemain.pas' then
-    TargetUrl := ExtractURIPath(TargetUrl) + 'gamestate' + LowerCase(MainState) + '.pas';
-  if ExtractURIName(TargetUrl) = 'gamestatemain.castle-user-interface' then
-    TargetUrl := ExtractURIPath(TargetUrl) + 'gamestate' + LowerCase(MainState) + '.castle-user-interface';
+  { Rename target files that depend on MainView. }
+  if ExtractURIName(TargetUrl) = 'gameviewmain.pas' then
+    TargetUrl := ExtractURIPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
+  if ExtractURIName(TargetUrl) = 'gameviewmain.castle-user-interface' then
+    TargetUrl := ExtractURIPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
   TargetFileName := URIToFilenameSafe(TargetUrl);
 
   if FileInfo.Directory then
@@ -118,7 +118,7 @@ begin
 end;
 
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption, MainState: String);
+  const TemplateName, ProjectName, ProjectCaption, MainView: String);
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
@@ -144,8 +144,8 @@ begin
     Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
     Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
     Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
-    Macros.Add('${MAIN_STATE}', MainState);
-    Macros.Add('${MAIN_STATE_LOWERCASE}', LowerCase(MainState));
+    Macros.Add('${MAIN_VIEW}', MainView);
+    Macros.Add('${MAIN_VIEW_LOWERCASE}', LowerCase(MainView));
 
     { Generate versions of some macros with xml_quote function. }
     AddMacroXmlQuote(Macros, 'PROJECT_NAME');
@@ -158,7 +158,7 @@ begin
       CopyProcess.TemplateUrl := TemplateUrl;
       CopyProcess.ProjectDirUrl := ProjectDirUrl;
       CopyProcess.Macros := Macros;
-      CopyProcess.MainState := MainState;
+      CopyProcess.MainView := MainView;
       FindFiles(TemplateUrl, '*', true, @CopyProcess.FoundFile, [ffRecursive]);
     finally FreeAndNil(CopyProcess) end;
   finally FreeAndNil(Macros) end;

@@ -23,7 +23,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleTriangles, CastleRenderOptions, CastleProjection,
-  CastleUIControls, CastleQuaternions;
+  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils;
 
 type
   {$define read_interface}
@@ -39,6 +39,8 @@ type
 
 {$I castletransform_physics.inc}
 {$I castletransform_physics_deprecated.inc}
+{$I castletransform_joints.inc}
+{$I castletransform_joints_experimental.inc}
 {$I castletransform_serialize.inc}
 {$I castletransform_miscellaneous_globals.inc}
 {$I castletransform_camera_utils.inc}
@@ -47,15 +49,17 @@ type
 implementation
 
 uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
-  CastleRenderContext, CastleColors,
+  CastleRenderContext,
   // TODO: this breaks unit dependencies, transform->scene
-  X3DNodes, CastleScene;
+  X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
 {$I castletransform_renderparams.inc}
 {$I castletransform_physics.inc}
 {$I castletransform_physics_deprecated.inc}
+{$I castletransform_joints.inc}
+{$I castletransform_joints_experimental.inc}
 {$I castletransform_collisions.inc}
 {$I castletransform_behavior.inc}
 {$I castletransform_serialize.inc}
@@ -82,38 +86,63 @@ initialization
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
 
-  RegisterSerializableComponent(TCastleRigidBody, 'Rigid Body');
+  RegisterSerializableComponent(TCastleRigidBody, ['Physics', 'Rigid Body']);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleRigidBody;
-  R.Caption := 'Rigid Body (2D)';
+  R.Caption := ['Physics', 'Rigid Body (2D)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleRigidBody{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleBoxCollider, 'Box Colllider');
+  RegisterSerializableComponent(TCastleBoxCollider, ['Physics', 'Collider', 'Box']);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleBoxCollider;
-  R.Caption := 'Box Colllider (2D)';
+  R.Caption := ['Physics', 'Collider 2D', 'Box'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleBoxCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleCapsuleCollider, 'Capsule Colllider');
+  RegisterSerializableComponent(TCastleCapsuleCollider, ['Physics', 'Collider', 'Capsule']);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleCapsuleCollider;
-  R.Caption := 'Capsule Colllider (2D)';
+  R.Caption := ['Physics', 'Collider 2D', 'Capsule'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleCapsuleCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastlePlaneCollider, 'Plane Colllider');
-  RegisterSerializableComponent(TCastleSphereCollider, 'Sphere Colllider');
+  RegisterSerializableComponent(TCastlePlaneCollider, ['Physics', 'Collider', 'Plane']);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastlePlaneCollider;
+  R.Caption := ['Physics', 'Collider 2D', 'Plane'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastlePlaneCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleSphereCollider, ['Physics', 'Collider', 'Sphere']);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleSphereCollider;
-  R.Caption := 'Sphere Colllider (2D)';
+  R.Caption := ['Physics', 'Collider 2D', 'Sphere'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
+  RegisterSerializableComponent(TCastleMeshCollider, ['Physics', 'Collider', 'Mesh']);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleMeshCollider;
+  R.Caption := ['Physics', 'Collider 2D', 'Mesh'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleMeshCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleRopeJoint, ['Physics', 'Joint', 'Rope']);
+  RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge ']);
+  RegisterSerializableComponent(TCastleBallJoint, ['Physics', 'Joint', 'Ball']);
+  RegisterSerializableComponent(TCastleDistanceJoint, ['Physics', 'Joint', 'Distance']);
+  RegisterSerializableComponent(TCastleGrabJoint, ['Physics', 'Joint', 'Grab']);
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
+  RegisterSerializableComponent(TCastleFixedJoint, ['Physics', 'Joint', 'Fixed']);
+  RegisterSerializableComponent(TCastlePulleyJoint, ['Physics', 'Joint', 'Pulley']);
+  RegisterSerializableComponent(TCastleWorldPlaneDistanceJoint, ['Physics', 'Joint', 'World Plane Distance']);
+  RegisterSerializableComponent(TCastleSliderJoint, ['Physics', 'Joint', 'Slider']);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end.

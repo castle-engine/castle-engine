@@ -9,6 +9,10 @@ pipeline {
        they stuck Jenkins much with too many long-running builds.
        Better to wait for previous build to finish. */
     disableConcurrentBuilds()
+    /* Makes failure in any paralel job to stop the build,
+       instead of needlessly trying to finish on one node,
+       when another node already failed. */
+    parallelsAlwaysFailFast()
   }
 
   /* This job works on a few agents in parallel */
@@ -142,11 +146,15 @@ pipeline {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
               }
             }
+            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+               TODO investigate and report.
+
             stage('(Docker) Build Using FpMake (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
               }
             }
+            */
 
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
@@ -375,11 +383,15 @@ pipeline {
                 sh 'make clean test-fpmake'
               }
             }
-
-            /* Note that we don't pack_release on Windows.
-               The Windows releases are done by building on Linux already.
-               The purpose of this job is to just run tests on Windows.
-            */
+            /* Pack Windows installer on Windows node.
+               Note that Windows zip is packed inside Docker (on Linux). */
+            stage('(Windows) Pack Windows Installer') {
+              steps {
+                copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer'
+                archiveArtifacts artifacts: 'castle-engine-setup-*.exe'
+              }
+            }
           }
         }
       }

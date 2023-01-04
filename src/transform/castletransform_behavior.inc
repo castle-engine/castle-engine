@@ -60,7 +60,12 @@
     procedure ParentAfterAttach; virtual;
 
     { Called before @link(Parent) changed, e.g. at the beginning of @link(TCastleTransform.RemoveBehavior).
-      This is also called from destructor of behavior. }
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
     procedure ParentBeforeDetach; virtual;
 
     { Called after @link(Parent) became part of @link(World).
@@ -68,8 +73,13 @@
     procedure WorldAfterAttach; virtual;
 
     { Called before @link(Parent) stops being part of @link(World).
-      This is also called from destructor of behavior.
-      Called only if ListenWorldChange is @true. }
+      Called only if ListenWorldChange is @true.
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
     procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
@@ -96,6 +106,17 @@
       out ReasonWhyCannot: String): Boolean; virtual;
   public
     procedure BeforeDestruction; override;
+
+    (*
+    // Not used in the end, for now the TransformDesigning and these methods are commented out.
+
+    { Create design-time things that are not displayed in the hierarchy
+      so can be created after behavior selection in editor hierarchy }
+    procedure DesigningBegin; virtual;
+
+    { Destroy design-time stuff. }
+    procedure DesigningEnd; virtual;
+    *)
 
     function World: TCastleAbstractRootTransform;
 
@@ -201,8 +222,55 @@ end;
 
 procedure TCastleBehavior.BeforeDestruction;
 begin
+  (*
+  // The TransformDesigning mechanism works, but it unused for now.
+  DesigningEnd;
+  *)
+
+  { Imagine this:
+
+      TMyBehavior = class(TCastleBehavior)
+        MyStuff: TObject;
+        constructor Create;
+        destructor Destroy; override;
+        procedure BeforeParentDetach; override;
+      end;
+
+      constructor TMyBehavior.Create;
+      begin
+        inherited;
+        MyStuff := TObject.Create;
+      end;
+
+      destructor TMyBehavior.Destroy;
+      begin
+        FreeAndNil(MyStuff);
+        inherited;
+      end;
+
+      procedure TMyBehavior.BeforeParentDetach;
+      begin
+        MyStuff.Xxx := ...; // <- this is safe, because BeforeParentDetach is done from BeforeBehaviorDestroy
+        inherited;
+      end;
+
+      var
+        B: TMyBehavior;
+      begin
+        ..
+        FreeAndNil(B);
+      end;
+
+    Thanks to calling Parent.BeforeBehaviorDestroy in TCastleBehavior.BeforeDestruction
+    (and not TCastleBehavior.Destroy) accessing MyStuff in TMyBehavior.BeforeParentDetach
+    is safe.
+  }
+
   if Parent <> nil then
+  begin
     Parent.BeforeBehaviorDestroy(Self);
+    Assert(Parent = nil);
+  end;
 
   inherited BeforeDestruction;
 end;

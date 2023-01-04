@@ -146,7 +146,7 @@
     { Scales the projection size derived from @link(Width) and @link(Height).
 
       The effect of this scale is also affected by the @link(Origin).
-      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
+      When @link(Origin) is zero, this behaves like scaling around left-bottom corner
       of the viewport.
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
@@ -629,16 +629,32 @@ begin
   inherited;
   ScaleValue := 1;
   SerializationProcess.ReadWriteSingle('Scale', ScaleValue, false);
-  if ScaleValue <> 1 then
+
+  { Scale property is not published anymore, we read it in CustomSerialization
+    and apply by multiplying Width / Height.
+
+    Note that we rely on the fact that CustomSerialization is done
+    after reading all published properties, so Width and Height are already surely read from design file. }
+
+  if not SameValue(ScaleValue, 1.0) then
   begin
-    WritelnWarning('Upgrading deprecated TCastleOrthographic.Scale to just multiply TCastleOrthographic.Width and TCastleOrthographic.Height. Width x Height: old %f x %f -> new %f x %f.', [
-      Width,
-      Height,
-      Width * ScaleValue,
-      Height * ScaleValue
-    ]);
-    Width  := Width * ScaleValue;
-    Height := Height * ScaleValue;
+    if (Width = 0) and (Height = 0) then
+    begin
+      WritelnWarning('Deprecated TCastleOrthographic.Scale value %f will be lost. Set to non-zero TCastleOrthographic.Width or TCastleOrthographic.Height to control the viewport field of view', [
+        ScaleValue
+      ]);
+    end else
+    begin
+      WritelnWarning('Upgrading deprecated TCastleOrthographic.Scale %f to just multiply TCastleOrthographic.Width and TCastleOrthographic.Height. Width x Height: old %f x %f -> new %f x %f.', [
+        ScaleValue,
+        Width,
+        Height,
+        Width * ScaleValue,
+        Height * ScaleValue
+      ]);
+      Width  := Width * ScaleValue;
+      Height := Height * ScaleValue;
+    end;
   end;
 end;
 

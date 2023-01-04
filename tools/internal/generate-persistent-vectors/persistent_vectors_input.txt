@@ -4,7 +4,7 @@
 ../../../src/ui/ TCastleUserInterface Translation TVector2
 
 ../../../src/ui/ TCastleRectangleControl Color TCastleColor
-../../../src/ui/ TStateDialog BackgroundColor TCastleColor
+../../../src/ui/ TViewDialog BackgroundColor TCastleColor
 ../../../src/ui/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
 
 ../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
@@ -70,6 +70,26 @@
 
 ../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
 ../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
+
+../../../src/transform/ TCastleHingeJoint Anchor TVector3
+../../../src/transform/ TCastleHingeJoint Axis TVector3
+../../../src/transform/ TCastleRopeJoint Anchor TVector3
+../../../src/transform/ TCastleRopeJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleFixedJoint Anchor TVector3
+../../../src/transform/ TCastleBallJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleGrabJoint Anchor TVector3
+../../../src/transform/ TCastleGrabJoint TargetWorld TVector3
+
+../../../src/transform/ TCastlePulleyJoint WorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint WorldGroundAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldGroundAnchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint PlaneNormal TVector3
+../../../src/transform/ TCastleSliderJoint WorldAnchor TVector3
+../../../src/transform/ TCastleSliderJoint WorldSliderAxis TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 

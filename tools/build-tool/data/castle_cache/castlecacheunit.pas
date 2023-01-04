@@ -16,7 +16,6 @@ uses
   castlefrustum,
   castlenurbs,
   castlequaternions,
-  castlerandom,
   castlesectors,
   castletransform,
   castletriangles,
@@ -144,7 +143,7 @@ uses
 
   // src/ui
   castlecontrols,
-  castledialogstates,
+  castledialogviews,
   castleflasheffect,
   castleinputs,
   castlejoysticks,
@@ -152,7 +151,6 @@ uses
   castlenotifications,
   castletiledmap,
   castleuicontrols,
-  castleuistate,
 
   // src/window
   castlemessages,

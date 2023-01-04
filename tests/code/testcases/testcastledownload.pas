@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestDownload" -*-
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,10 +32,12 @@ type
 
 implementation
 
-uses CastleDownload, CastleClassUtils, CastleVectors, CastleStringUtils;
+uses CastleDownload, CastleClassUtils, CastleVectors, CastleStringUtils,
+  CastleFonts, CastleFilesUtils;
 
 procedure TTestDownload.TestLocalChars;
 
+  { Test reading file using URL (through CGE function). }
   procedure TestReading(const URL: String);
   var
     Stream: TStream;
@@ -48,11 +50,54 @@ procedure TTestDownload.TestLocalChars;
     finally FreeAndNil(Stream) end;
   end;
 
+  { Test reading file, whose URL is written inside another file, in UTF-8 encoding. }
+  procedure TestReadingThroughReference(const URL: String);
+  var
+    Stream: TStream;
+    ReferredURL: String;
+  begin
+    Stream := Download(URL);
+    try
+      ReferredURL := Trim(StreamToString(Stream));
+      TestReading(ReferredURL);
+    finally FreeAndNil(Stream) end;
+  end;
+
+  { Test reading font (as it goes through FreeType library). }
+  procedure TestReadingFont(const FontUrl: String);
+  var
+    MyNewFont: TCastleFont;
+  begin
+    MyNewFont := TCastleFont.Create(nil);
+    try
+      MyNewFont.Size := 20;
+      MyNewFont.AntiAliased := true;
+      MyNewFont.Url := FontUrl;
+    finally FreeAndNil(MyNewFont) end;
+  end;
+
 begin
   TestReading('castle-data:/local_chars/ascii_name.txt');
   TestReading('castle-data:/local_chars/name with Polish chars ćma źrebak żmija wąż królik.txt');
   TestReading('castle-data:/local_chars/name with Chinese chars 样例中文文本.txt');
   TestReading('castle-data:/local_chars/样例中文文本/name with Chinese chars 样例中文文本.txt');
+  TestReading('castle-data:/local_chars/name with Russian chars образец русского текста.txt');
+  TestReading('castle-data:/local_chars/образец русского текста/name with Russian chars образец русского текста.txt');
+
+  TestReadingThroughReference('castle-data:/local_chars/reference to file with Chinese chars.txt');
+  TestReadingThroughReference('castle-data:/local_chars/reference to file with Russian chars.txt');
+  TestReadingThroughReference('castle-data:/local_chars/reference to file with Polish chars.txt');
+
+  { This would fail in Docker now, where we cannot create /.config/... }
+  {.$define TEST_CONFIG}
+  {$ifdef TEST_CONFIG}
+  StringToFile(ApplicationConfig('config_ascii.txt'), 'Testing save.');
+  StringToFile(ApplicationConfig('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
+  StringToFile(ApplicationConfig('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
+  StringToFile(ApplicationConfig('config with Russian chars образец русского текста.txt'), 'Testing save.');
+  {$endif}
+
+  TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
 end;
 
 procedure TTestDownload.TestTextReader;

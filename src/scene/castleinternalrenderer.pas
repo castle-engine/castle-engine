@@ -663,6 +663,7 @@ type
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
+
   public
     type
       TRenderMode = (
@@ -681,7 +682,6 @@ type
       something created and used by many scenes. }
     constructor Create(const RenderOptionsClass: TCastleRenderOptionsClass;
       const ACache: TGLRendererContextCache);
-
     destructor Destroy; override;
 
     { Rendering attributes. You can change them only when renderer
@@ -3531,7 +3531,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: boolean);
+procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: Boolean);
 begin
   if FFixedFunctionAlphaTest <> Value then
   begin

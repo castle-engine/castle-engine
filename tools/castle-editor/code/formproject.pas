@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,9 +29,10 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
-  AnchorDocking, XMLPropStorage,
+  AnchorDocking, XMLPropStorage, ImgList,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
+  DataModuleIcons,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   ToolPackageFormat;
 
@@ -42,11 +43,19 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRunParameterDefaultWindowOrFullscreen: TAction;
+    ActionRunParameterRequestWindow: TAction;
+    ActionRunParameterRequestFullScreen: TAction;
+    ActionRunParameterDisableFpsLimit: TAction;
+    ActionRunParameterDisableSound: TAction;
+    ActionPlayStop: TAction;
     ActionShowColliders: TAction;
     ActionSimulationPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionViewportRenderNext: TAction;
     ActionViewportRenderSolidWireframe: TAction;
+    ActionPhysicsHideAllJointsTools: TAction;
+    ActionPhysicsShowAllJointsTools: TAction;
     ActionModeSelect: TAction;
     ActionModeTranslate: TAction;
     ActionModeRotate: TAction;
@@ -88,6 +97,10 @@ type
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    BitBtnPlayStop: TBitBtn;
+    BitBtnNewView: TBitBtn;
+    LabelOpenExistingView: TLabel;
+    ListOpenExistingView: TListView;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
@@ -96,7 +109,20 @@ type
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
+    MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
+    Separator11: TMenuItem;
+    MenuItemRunParameterRequestWindow: TMenuItem;
+    MenuItemRunParameterRequestFullScreen: TMenuItem;
+    MenuItemRunParameterDisableFpsLimit: TMenuItem;
+    MenuItemRunParameterDisableSound: TMenuItem;
+    MenuItemRunParameters: TMenuItem;
+    PanelOpenExistingView: TPanel;
+    PanelNoDesign: TPanel;
+    PanelNoDesignTop: TPanel;
+    Separator9: TMenuItem;
+    MenuItem38: TMenuItem;
     MenuItemSimulationPauseUnpause: TMenuItem;
     MenuItemSimulationPlayStop: TMenuItem;
     SeparatorBeforeShowColliders: TMenuItem;
@@ -111,6 +137,7 @@ type
     MenuItem36: TMenuItem;
     MenuItem37: TMenuItem;
     Separator10: TMenuItem;
+    MenuShowJointTools28: TMenuItem;
     MenuItem29: TMenuItem;
     MenuItem30: TMenuItem;
     MenuItem31: TMenuItem;
@@ -119,6 +146,7 @@ type
     Separator7: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
+    Separator888888: TMenuItem;
     WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
     MenuItem23: TMenuItem;
@@ -178,11 +206,13 @@ type
     ActionRegenerateProject: TAction;
     ActionEditAssociatedUnit: TAction;
     ActionNewUnitHereClass: TAction;
-    ActionNewUnitHereState: TAction;
+    ActionNewUnitHereView: TAction;
     ActionNewUnitHereEmpty: TAction;
+    ActionNewUnitHereBehavior: TAction;
     ActionNewUnitClass: TAction;
-    ActionNewUnitState: TAction;
+    ActionNewUnitView: TAction;
     ActionNewUnitEmpty: TAction;
+    ActionNewUnitBehavior: TAction;
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
@@ -192,12 +222,14 @@ type
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
-    MenuItemPopupNewUnitState: TMenuItem;
+    MenuItemPopupNewUnitView: TMenuItem;
+    MenuItemPopupNewUnitBehavior: TMenuItem;
     MenuItemPopupNewUnit: TMenuItem;
     N3: TMenuItem;
-    MenuItemNewUnitState: TMenuItem;
+    MenuItemNewUnitView: TMenuItem;
     MenuItemNewUnitClass: TMenuItem;
     MenuItemNewUnitEmpty: TMenuItem;
+    MenuItemNewUnitBehavior: TMenuItem;
     MenuItemNewUnit: TMenuItem;
     N2: TMenuItem;
     MenuItemEditUnitCode: TMenuItem;
@@ -208,7 +240,6 @@ type
     MenuItemShellTreeRefresh: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
-    LabelNoDesign: TLabel;
     ListWarnings: TListBox;
     MenuItemRename: TMenuItem;
     MenuItemRedo: TMenuItem;
@@ -287,12 +318,22 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+    procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
     procedure ActionModeInteractExecute(Sender: TObject);
     procedure ActionModeRotateExecute(Sender: TObject);
     procedure ActionModeScaleExecute(Sender: TObject);
     procedure ActionModeSelectExecute(Sender: TObject);
     procedure ActionModeTranslateExecute(Sender: TObject);
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionRunParameterDefaultWindowOrFullscreenExecute(Sender: TObject
+      );
+    procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
+    procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
+    procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
@@ -320,10 +361,12 @@ type
     procedure ActionEditUnitExecute(Sender: TObject);
     procedure ActionNewUnitClassExecute(Sender: TObject);
     procedure ActionNewUnitEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitViewExecute(Sender: TObject);
+    procedure ActionNewUnitBehaviorExecute(Sender: TObject);
     procedure ActionNewUnitHereClassExecute(Sender: TObject);
     procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
-    procedure ActionNewUnitHereStateExecute(Sender: TObject);
-    procedure ActionNewUnitStateExecute(Sender: TObject);
+    procedure ActionNewUnitHereViewExecute(Sender: TObject);
+    procedure ActionNewUnitHereBehaviorExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
     procedure ActionOutputCopyAllExecute(Sender: TObject);
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
@@ -353,7 +396,7 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
-    procedure ListOutputClick(Sender: TObject);
+    procedure ListOpenExistingViewDblClick(Sender: TObject);
     procedure ListOutputDblClick(Sender: TObject);
     procedure MenuItemCacheCleanClick(Sender: TObject);
     procedure MenuItemCacheClick(Sender: TObject);
@@ -446,6 +489,7 @@ type
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
+      ListOpenExistingViewStr: TStringList;
       { Anchor docking forms }
       DesignForm: TForm;
       DesignHierarchyForm: TForm;
@@ -457,6 +501,9 @@ type
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
+    procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
+      var StopSearch: boolean);
+    procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure MenuItemPackageFormatChangeClick(Sender: TObject);
@@ -537,7 +584,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils, CastleLclEditHack, CastleRenderOptions,
+  CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
@@ -670,7 +717,7 @@ begin
     raise EInternalError.Create('No process is running now');
 
   OutputList.AddSeparator;
-  OutputList.AddLine('Stopping the process.', okError);
+  OutputList.AddLine('Stopping the process.', okInfo);
   RunningProcess.TerminateChildrenHarder;
   FreeProcess;
 end;
@@ -845,6 +892,18 @@ begin
     Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
 end;
 
+procedure TProjectForm.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ShowAllJointsTools;
+end;
+
+procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.HideAllJointsTools;
+end;
+
 procedure TProjectForm.ActionFocusDesignExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -879,6 +938,63 @@ procedure TProjectForm.ActionModeTranslateExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ChangeMode(moTranslate);
+end;
+
+procedure TProjectForm.ActionPlayStopExecute(Sender: TObject);
+begin
+  RunningToggle(Sender);
+end;
+
+procedure TProjectForm.ActionPlayStopUpdate(Sender: TObject);
+var
+  NowIsRunning: Boolean;
+begin
+  NowIsRunning := IsRunning;
+  if NowIsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := NowIsRunning;
+
+  BitBtnPlayStop.ImageIndex := ActionPlayStop.ImageIndex;
+  if NowIsRunning then
+  begin
+    BitBtnPlayStop.Caption := 'Stop';
+    BitBtnPlayStop.Hint := 'Break Compilation or Run (Ctrl + F2)';
+  end else
+  begin
+    BitBtnPlayStop.Caption := 'Compile and Run';
+    BitBtnPlayStop.Hint := 'Compile and Run (F9)';
+  end;
+  //BitBtnPlayStop.Checked := NowIsRunning;
+end;
+
+procedure TProjectForm.ActionRunParameterDefaultWindowOrFullscreenExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
+  );
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterRequestFullScreenExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterRequestWindowExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
@@ -1096,7 +1212,7 @@ end;
 procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
 begin
   if Design <> nil then
-    Design.ViewportSort2D;
+    Design.ViewportSort(bs2D);
 end;
 
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
@@ -1176,6 +1292,16 @@ begin
   ShowNewUnitForm(utEmpty, false);
 end;
 
+procedure TProjectForm.ActionNewUnitViewExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utView, false);
+end;
+
+procedure TProjectForm.ActionNewUnitBehaviorExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utBehavior, false);
+end;
+
 procedure TProjectForm.ActionNewUnitHereClassExecute(Sender: TObject);
 begin
   ShowNewUnitForm(utClass, true);
@@ -1186,14 +1312,14 @@ begin
   ShowNewUnitForm(utEmpty, true);
 end;
 
-procedure TProjectForm.ActionNewUnitHereStateExecute(Sender: TObject);
+procedure TProjectForm.ActionNewUnitHereViewExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utState, true);
+  ShowNewUnitForm(utView, true);
 end;
 
-procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
+procedure TProjectForm.ActionNewUnitHereBehaviorExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utState, false);
+  ShowNewUnitForm(utBehavior, true);
 end;
 
 procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;
@@ -1267,6 +1393,7 @@ begin
 
   if NewUnitForm.ShowModal = mrOK then
   begin
+    ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
     RefreshFiles(rfFilesInCurrentDir);
@@ -1513,6 +1640,7 @@ begin
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  ListOpenExistingViewStr := TStringList.Create;
   if Docking then
   begin
     // Create dockable forms
@@ -1602,6 +1730,7 @@ begin
   FreeAndNil(DesignOutputForm);
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
+  FreeAndNil(ListOpenExistingViewStr);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -1701,8 +1830,16 @@ begin
   end;
 end;
 
-procedure TProjectForm.ListOutputClick(Sender: TObject);
+procedure TProjectForm.ListOpenExistingViewDblClick(Sender: TObject);
+var
+  DesignFileName, DesignUrl: String;
 begin
+  if ListOpenExistingView.ItemIndex <> -1 then
+  begin
+    DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
+    DesignUrl := FilenameToURISafe(DesignFileName);
+    ProposeOpenDesign(DesignUrl);
+  end;
 end;
 
 procedure TProjectForm.ListOutputDblClick(Sender: TObject);
@@ -1888,6 +2025,10 @@ end;
 
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
+  { It is important to disable these actions, as e.g. calling
+    TUndoSystem.Undo when IsUndoPossible=false will result in an exception.
+    Testcase: right after loading the design, undo should not be possible,
+    Ctrl+Z should do nothing. }
   if Design <> nil then
   begin
     MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
@@ -2031,6 +2172,55 @@ begin
   MenuItemModeDebug.Checked := true;
 end;
 
+procedure TProjectForm.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
+end;
+
+procedure TProjectForm.ListOpenExistingViewRefresh;
+
+  function ShortDesignName(const S: String): String;
+  begin
+    Result := DeleteFileExt(ExtractFileName(S));
+    Result := PrefixRemove('gameview', Result, true);
+    Result := PrefixRemove('gamestate', Result, true);
+    Result := SuffixRemove('.castle-user-interface', Result, true);
+  end;
+
+var
+  ListItem: TListItem;
+  FileDateTime: TDateTime;
+  DesignFileName, FileDateTimeStr: String;
+begin
+  { calculate ListOpenExistingViewStr contents }
+  ListOpenExistingViewStr.Clear;
+  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  // support deprecated names
+  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { without sorting, the order would be ~random (as FindFiles enumarates).
+    Note that we sort including the subdirectory names, which is good,
+    we want files in the same subdirectory to be together. }
+  ListOpenExistingViewStr.Sort;
+
+  { TODO: It seems LCL UI always shows as if the "Last Modified" (column 2)
+    was sorted, and setting ListOpenExistingView.SortColumn from code
+    or LFM doesn't change it. }
+
+  { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
+  ListOpenExistingView.Items.Clear;
+  for DesignFileName in ListOpenExistingViewStr do
+  begin
+    ListItem := ListOpenExistingView.Items.Add;
+    ListItem.Caption := ShortDesignName(DesignFileName);
+    ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
+    if FileAge(DesignFileName, FileDateTime) then
+      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
+    else
+      FileDateTimeStr := 'Unknown';
+    ListItem.SubItems.Append(FileDateTimeStr);
+  end;
+end;
+
 procedure TProjectForm.DesignExistenceChanged;
 var
   NewPanelRightWidth, NewPanelLeftWidth: Integer;
@@ -2083,7 +2273,10 @@ begin
     end;
   end;
 
-  LabelNoDesign.Visible := Design = nil;
+  SetEnabledVisible(PanelNoDesign, Design = nil);
+
+  if Design = nil then
+    ListOpenExistingViewRefresh;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
@@ -2112,6 +2305,7 @@ begin
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
     Design.OnIsRunning  := @IsRunning;
     Design.OnRunningToggle  := @RunningToggle;
+    Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);
@@ -2162,8 +2356,7 @@ begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
     Result := YesNoBox('The editor is during of physics simulation.'+ NL +
-      'Saving the design will save the current state, not the state ' + NL +
-      'before the start of the simulation. Do you want to continue?');
+      'Saving the design will save the current state, not the state before the start of the simulation. Do you want to continue?');
   end;
 end;
 
@@ -2831,6 +3024,22 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--package-format=' + PackageFormatToString(Format));
   end;
 
+  { Add parameters for "castle-engine run".
+    Call it last, because it has to add also "--" that delimits build tool params
+    from application params. }
+  procedure AddRunParameters(const Params: TStrings);
+  begin
+    Params.Add('--');
+    if ActionRunParameterDisableSound.Checked then
+      Params.Add('--no-sound');
+    if ActionRunParameterDisableFpsLimit.Checked then
+      Params.Add('--no-limit-fps');
+    if ActionRunParameterRequestFullScreen.Checked then
+      Params.Add('--fullscreen');
+    if ActionRunParameterRequestWindow.Checked then
+      Params.Add('--window');
+  end;
+
 var
   BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -2889,6 +3098,9 @@ begin
     // editor always add --fast to package, as its more comfortable for normal development
     if (Command = 'package') then
       QueueItem.Parameters.Add('--fast');
+    // add --target, --os, --cpu parameters
+    if (Command = 'run') then
+      AddRunParameters(QueueItem.Parameters);
     RunningProcess.Queue.Add(QueueItem);
   end;
 

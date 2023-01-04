@@ -37,14 +37,14 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gamestatemain.pas"/>
+        <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gamestatemain"/>
+        <UnitName Value="gameviewmain"/>
       </Unit3>
       <Unit4>
-        <Filename Value="code/gamestatespeedtest.pas"/>
+        <Filename Value="code/gameviewspeedtest.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gamestatespeedtest"/>
+        <UnitName Value="gameviewspeedtest"/>
       </Unit4>
     </Units>
   </ProjectOptions>

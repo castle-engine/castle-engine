@@ -209,7 +209,10 @@ var
   InternalCastleApplicationMode: TCastleApplicationMode;
 
   { @exclude Path to editor data, in design mode.
-    Useful e.g. to initialize gizmo textures. }
+    Useful e.g. to initialize gizmo textures.
+
+    Note: always be prepared it may not be initialized (empty),
+    e.g. it is not initialized when using TCastleControl in Delphi IDE. }
   InternalCastleDesignData: String;
 
   { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }

@@ -1602,7 +1602,7 @@ begin
     raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
       [Element.TagName, DocumentBaseURL]);
 
-  { Required atttributes }
+  { Required attributes }
 
   if not Element.AttributeString('name', FName) then
     MissingRequiredAttribute('name');
@@ -1679,7 +1679,7 @@ begin
   raise Exception.Create(S);
 end;
 
-function IsSmallerByNumber({$ifdef FPC}constref{$else}const{$endif} A, B: TLevelInfo): Integer;
+function IsSmallerByNumber({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TLevelInfo): Integer;
 begin
   Result := A.Number - B.Number;
 end;

@@ -463,7 +463,7 @@ begin
          is enough to do it reliably, but it's not:
          - Testcase: Escape with ship_upgrades.json
          - In case the animation is started at the end of some time-consuming
-           OnUpdate (like when TUIState starts), and the next OnUpdate may get large
+           OnUpdate (like when TCastleView starts), and the next OnUpdate may get large
            SecondsPassed (like 0.2 of second). This means that in initial SetTime
            call we get "NewTime - FdStartTime.Value" close to zero,
            but FElapsedTimeInCycle is set to something significant like 0.2.

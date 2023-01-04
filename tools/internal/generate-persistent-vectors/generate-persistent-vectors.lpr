@@ -1,3 +1,4 @@
+// -*- compile-command: "castle-engine compile && castle-engine run" -*-
 {
   Copyright 2018-2022 Michalis Kamburelis.
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,8 +79,13 @@ uses SysUtils, Classes, Math, Generics.Collections,
   FPReadPNM, FPWritePNM,
   FPReadPNG, FPWritePNG,
   {$else}
-  { Delphi units }
-  Vcl.Imaging.PngImage,
+    { Delphi units }
+    {$ifndef USE_VAMPYRE_IMAGING}
+    { Vcl.Imaging.PngImage works fine, but disabled now:
+      CastleImages must be used with FMX too,
+      without depending on VCL units. }
+    Vcl.Imaging.PngImage,
+    {$endif}
   {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
@@ -1032,8 +1037,9 @@ type
 
     { Decompress the image.
 
-      This uses DecompressTexture variable, so you have to initialialize it
-      first (for example to CastleGLImages.GLDecompressTexture) before using this.
+      This uses DecompressTexture routine.
+      By default, it is assigned only when OpenGL(ES) context is available
+      and can decompress textures with the help of OpenGL(ES).
 
       @raises(ECannotDecompressTexture If we cannot decompress the texture,
         because decompressor is not set or there was some other error
@@ -1056,7 +1062,7 @@ type
 
   ECannotDecompressTexture = class(Exception);
 
-  TDecompressTextureFunction = function (Image: TGPUCompressedImage): TCastleImage;
+  TDecompressTextureFunction = function (const Image: TGPUCompressedImage): TCastleImage;
 
 var
   { Assign here texture decompression function that is available.
@@ -3041,6 +3047,9 @@ end;
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
+  WritelnLog('Decompressing GPU-compressed "%s", this is usually a waste of time for normal games that should load textures in format (compressed or not) suitable for current GPU', [
+    URL
+  ]);
   if Assigned(DecompressTexture) then
     Result := DecompressTexture(Self)
   else

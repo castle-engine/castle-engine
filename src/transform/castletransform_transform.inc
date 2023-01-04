@@ -130,6 +130,9 @@
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+      FOnAddedBehaviorNotification: TCastleComponentNotification;
+      FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -221,12 +224,53 @@
     procedure NotifyWorldAfterAttach;
     procedure NotifyWorldBeforeDetach;
 
+    // TODO: Do we need so much new API?
+
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behavior is added to this CastleTransform. }
+    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behavior is added to this CastleTransform with
+      object class filtering. }
+    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
+      const ClassFilter: TComponentClass); overload;
+    { Calls all behavior add callbacks with ABehavior as parameter value. }
+    procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
+    { Remove all occurrences of callback (object of procedure have to be TComponent)
+      from "OnBehaviorAdded" list. }
+    procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
+    { Remove a callback (object of procedure have to be TComponent)
+      from "OnBehaviorAdded" calbacks list with object class filtering. }
+    procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
+      const ClassFilter: TComponentClass); overload;
+
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behavior is added to this CastleTransform }
+    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behevior is added to this CastleTransform with
+      object class filtering. }
+    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
+      const ClassFilter: TComponentClass); overload;
+    { Calls all behavior remove callbacks with ABehavior as parameter value. }
+    procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
+    { Remove all occurrences of callback (object of procedure have to be TComponent)
+      from "BeforeBehaviorRemove" list. }
+    procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
+    { Remove a callback (object of procedure have to be TComponent)
+      from "BeforeBehaviorRemove" calbacks list with object class filtering. }
+    procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
+      const ClassFilter: TComponentClass); overload;
+
     { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 
     { Call UpdateWorldScale on all colliders here and in children. }
     procedure UpdateCollidersWorldScale;
   protected
+    { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
+    function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
+
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
     procedure RegisterGLContextClose;
@@ -627,7 +671,7 @@
 
       This allows to use this method safely even in the middle of iteration
       over TCastleTransform children. For example you can use it from @link(Update) method,
-      from any TCastleTransform.Update or TCastleUserInterface.Update (including TUIState.Update).
+      from any TCastleTransform.Update or TCastleUserInterface.Update (including TCastleView.Update).
 
       Note: It is not a problem if the child scheduled to be removed
       will also be removed (or even freed) directly e.g. by just calling @code(Free) on it.
@@ -702,8 +746,9 @@
           In 3D, it may make sense to call this method even every frame
           (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change (note that CameraPosition is only
-          relevant if BlendingSort = bs3D).
+          or if the CameraPosition may change. Note that CameraPosition is only
+          relevant if BlendingSort is one of the bs3D* options,
+          like bs3D, bs3DOrigin, bs3DGround.
         )
         @item(
           In 2D, it is a bit simpler.
@@ -718,8 +763,9 @@
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
       @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D, to keep it sorted.
-      It is the default now, so you typically don't need to worry about it.
+      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
+      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
+      so you typically don't need to worry about it.
 
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing.
@@ -1949,7 +1995,6 @@ begin
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
-  PendingRemovals;
   FreeAndNil(FPendingToRemove);
   FreeAndNil(FPendingToRemoveAndFree);
 
@@ -1963,8 +2008,6 @@ begin
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
-  { set to nil, to detach free notification }
-  ChangeWorld(nil);
   inherited;
 end;
 
@@ -1972,6 +2015,11 @@ procedure TCastleTransform.BeforeDestruction;
 var
   I: Integer;
 begin
+  { set to nil, to detach free notification }
+  ChangeWorld(nil);
+
+  PendingRemovals;
+
   { Before we start destroying the transform we need to remove all behaviors from
     it, because destroying behavior calls on it events like BeforeParentDetach,
     ParentChanged.
@@ -2419,34 +2467,10 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-function CompareBackToFront2D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
-end;
-
-var
-  { Has to be global, since TObjectList.Sort
-    requires normal function (not "of object"). }
-  SortCameraPosition: TVector3;
-
-function CompareBackToFront3D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
-    SortCameraPosition);
-end;
-
 procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
   const CameraPosition: TVector3);
 begin
-  case BlendingSort of
-    bs2D: List.Sort(@CompareBackToFront2D);
-    bs3D:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3D);
-      end;
-    else ;
-  end;
+  List.SortBackToFront(BlendingSort, CameraPosition);
 end;
 
 procedure TCastleTransform.SortBackToFront2D;
@@ -2481,15 +2505,22 @@ begin
   end;
 end;
 
+function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
+begin
+  Result := List;
+end;
+
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);
 var
   I: Integer;
+  RenderList: TCastleTransformList;
 begin
   if CheckVisible then
   begin
     PendingRemovals;
-    for I := 0 to List.Count - 1 do
-      List[I].Render(Params);
+    RenderList := GetRenderList(Params);
+    for I := 0 to RenderList.Count - 1 do
+      RenderList[I].Render(Params);
   end;
 end;
 
@@ -2771,10 +2802,94 @@ begin
   end;
 end;
 
+procedure TCastleTransform.AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent);
+begin
+  AddNotificationOnBehaviorAdded(AEvent, TCastleComponent);
+end;
+
+procedure TCastleTransform.AddNotificationOnBehaviorAdded(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    FOnAddedBehaviorNotification := TCastleComponentNotification.Create(Self);
+
+  FOnAddedBehaviorNotification.AddNotification(AEvent, ClassFilter);
+end;
+
+procedure TCastleTransform.NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    Exit;
+
+  FOnAddedBehaviorNotification.Notify(ABehavior);
+end;
+
+procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
+  const AEvent: TComponentEvent);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    Exit;
+
+  FOnAddedBehaviorNotification.RemoveNotification(AEvent);
+end;
+
+procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    Exit;
+
+  FOnAddedBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
+end;
+
+procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
+  const AEvent: TComponentEvent);
+begin
+  AddNotificationBeforeBehaviorRemove(AEvent, TCastleComponent);
+end;
+
+procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    FBeforeRemoveBehaviorNotification := TCastleComponentNotification.Create(Self);
+
+  FBeforeRemoveBehaviorNotification.AddNotification(AEvent, ClassFilter);
+end;
+
+procedure TCastleTransform.NotifyBeforeBehaviorRemove(
+  const ABehavior: TCastleBehavior);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    Exit;
+
+  FBeforeRemoveBehaviorNotification.Notify(ABehavior);
+end;
+
+procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
+  const AEvent: TComponentEvent);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    Exit;
+
+  FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent);
+end;
+
+procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    Exit;
+
+  FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
+end;
+
 procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 begin
   if Behavior.Parent <> nil then
   begin
+    NotifyBeforeBehaviorRemove(Behavior);
+
     if Behavior.ListenWorldChange and (FWorld <> nil) then
       Behavior.WorldBeforeDetach;
 
@@ -3002,16 +3117,18 @@ end;
 procedure TCastleTransform.WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
 begin
   WritelnWarning('Transform', Format(
-    'Inverse transform matrix has NaN value inside:' + NL +
+    'Inverse transform of "%s" (%s) matrix has NaN value inside:' + NL +
     '%s' + NL +
-    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-    [NewParamsInverseTransformValue.ToString('  '),
-     FCenter.ToString,
-     FRotation.ToString,
-     FScale.ToString,
-     FScaleOrientation.ToString,
-     FTranslation.ToString
-    ]));
+    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s', [
+    Name,
+    ClassName,
+    NewParamsInverseTransformValue.ToString('  '),
+    FCenter.ToString,
+    FRotation.ToString,
+    FScale.ToString,
+    FScaleOrientation.ToString,
+    FTranslation.ToString
+  ]));
 end;
 
 procedure TCastleTransform.Render(const Params: TRenderParams);
@@ -3804,6 +3921,13 @@ end;
 
 function TCastleTransform.BehaviorsCount: Integer;
 begin
+  { This can be called when TCastleTransform is in the middle of being
+    destroyed, and TDesignFrame.SetTransformForGizmos tries to iterate
+    over behaviors. So prepare to handle FBehaviors = nil case,
+    which should not be possible during normal lifetime. }
+  if FBehaviors = nil then
+    Exit(0);
+
   Result := FBehaviors.Count;
 end;
 
@@ -3850,6 +3974,7 @@ begin
       if FWorld <> nil then
         Behavior.WorldAfterAttach;
     end;
+    NotifyBehaviorAdded(Behavior);
   end;
 end;
 
@@ -3858,6 +3983,8 @@ var
   Beh: TCastleBehavior;
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
+
+  NotifyBeforeBehaviorRemove(Beh);
 
   { Call WorldBeforeDetach }
   if Beh.ListenWorldChange and (FWorld <> nil) then

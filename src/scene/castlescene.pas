@@ -949,9 +949,11 @@ begin
      (NavigationInfoStack.Top.BlendingSort <> obsDefault) then
   begin
     case NavigationInfoStack.Top.BlendingSort of
-      obsNone: Result := bsNone;
-      obs2D  : Result := bs2D;
-      obs3D  : Result := bs3D;
+      obsNone    : Result := bsNone;
+      obs2D      : Result := bs2D;
+      obs3D      : Result := bs3D;
+      obs3DOrigin: Result := bs3DOrigin;
+      obs3DGround: Result := bs3DGround;
       else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
     end;
   end else
@@ -1193,7 +1195,7 @@ procedure TCastleScene.LocalRenderInside(
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort);
             if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
@@ -1798,7 +1800,8 @@ begin
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
-        if SVRenderer.CasterShadowPossiblyVisible then
+        if RenderOptions.WholeSceneManifold or
+           SVRenderer.CasterShadowPossiblyVisible then
         begin
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1809,7 +1812,8 @@ begin
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
-            ForceOpaque);
+            ForceOpaque,
+            RenderOptions.WholeSceneManifold);
         end;
       end;
     end;
@@ -2425,7 +2429,7 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Optimal Blending for 2D Models)';
+  R.Caption := ['Scene (Optimal Blending for 2D Models)'];
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
@@ -2438,11 +2442,11 @@ initialization
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
   RegisterSerializableComponent(TCastleFog, 'Fog');
-  RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
-  RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
-  RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');
+  RegisterSerializableComponent(TCastlePointLight, ['Light', 'Point']);
+  RegisterSerializableComponent(TCastleDirectionalLight, ['Light', 'Directional']);
+  RegisterSerializableComponent(TCastleSpotLight, ['Light', 'Spot']);
   {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Light/Environment');
+  RegisterSerializableComponent(TCastleEnvironmentLight, ['Light', 'Environment']);
   {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);

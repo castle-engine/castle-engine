@@ -152,7 +152,8 @@ begin
   FEnvironmentLight.Global := true;
   LightNode := FEnvironmentLight;
   if Gizmo <> nil then
-    Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_environment.png');
+    if InternalCastleDesignData <> '' then
+      Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_environment.png');
 end;
 
 function TCastleEnvironmentLight.PropertySections(const PropertyName: String): TPropertySections;

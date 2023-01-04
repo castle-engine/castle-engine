@@ -756,7 +756,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHull=class;
 
      PKraftQuickHullVector3D=^TKraftQuickHullVector3D;
-     TKraftQuickHullVector3D=object
+     TKraftQuickHullVector3D={$ifdef FPC}object{$else}record{$endif}
       public
        x:double;
        y:double;
@@ -816,7 +816,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHullThreeVertices=array[0..2] of TKraftQuickHullVertex;
 
      PKraftQuickHullVertexList=^TKraftQuickHullVertexList;
-     TKraftQuickHullVertexList=object
+     TKraftQuickHullVertexList={$ifdef FPC}object{$else}record{$endif}
       public
        Head:TKraftQuickHullVertex;
        Tail:TKraftQuickHullVertex;
@@ -831,7 +831,7 @@ type PKraftForceMode=^TKraftForceMode;
      end;
 
      PKraftQuickHullFaceList=^TKraftQuickHullFaceList;
-     TKraftQuickHullFaceList=object
+     TKraftQuickHullFaceList={$ifdef FPC}object{$else}record{$endif}
       public
        Head:TKraftQuickHullFace;
        Tail:TKraftQuickHullFace;
@@ -1571,7 +1571,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftGJKClosestPoints=array[0..1] of TKraftVector3;
 
      PKraftGJK=^TKraftGJK;
-     TKraftGJK=object
+     TKraftGJK={$ifdef FPC}object{$else}record{$endif}
       public
        Distance:TKraftScalar;
        Iterations:longint;
@@ -1672,7 +1672,7 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftContactPairContactManifoldMode=^TKraftContactPairContactManifoldMode;
      TKraftContactPairContactManifoldMode=(kcpcmmVelocitySolver,kcpcmmPositionSolver,kcpcmmBaumgarte,kcpcmmTemporalCoherence);
 
-     TKraftContactPair=object
+     TKraftContactPair={$ifdef FPC}object{$else}record{$endif}
       public
        Previous:PKraftContactPair;
        Next:PKraftContactPair;

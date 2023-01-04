@@ -48,7 +48,7 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState,
+  CastleTransform, CastleScene, CastleApplicationProperties,
   CastleViewport;
 
 procedure TTestCastleWindow.Test1;
@@ -368,6 +368,9 @@ var
     AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, -10, WorldPlaneResult));
     AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
 
+    AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, 2, -10, WorldPlaneResult));
+    AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
+
     Pos2D := Viewport.PositionTo2DWorld(ScreenPos, true);
     AssertVectorEquals(CorrectPos2D, Pos2D, 0.1);
   end;
@@ -424,18 +427,18 @@ procedure TTestCastleWindow.TestStateAutoStop;
     begin
       TCastleControl.MainControl := Window;
       CastleApp := TCastleApp.Create(Window);
-      TUIState.Current := CastleApp;
+      TCastleView.Current := CastleApp;
       Window.Container.UIScaling := usNone;
     end;
 }
 
 var
   Window: TCastleWindow;
-  SomeState: TUIState;
+  SomeState: TCastleView;
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Exit; // TODO: We can test TUIState only in console mode
+    Exit; // TODO: We can test TCastleView only in console mode
   {$endif}
 
   {$ifndef CASTLE_TESTER}
@@ -449,8 +452,8 @@ begin
     {$endif}
 
     Window.Open;
-    SomeState := TUIState.Create(Window);
-    TUIState.Current := SomeState;
+    SomeState := TCastleView.Create(Window);
+    TCastleView.Current := SomeState;
   finally
     { let freeing Window cause everything else:
       - freeing of SomeState
@@ -470,7 +473,7 @@ begin
 end;
 
 type
-  TStateTestingSize = class(TUIState)
+  TStateTestingSize = class(TCastleView)
   public
     W, H: Single;
     TestCase: TCastleTestCase;
@@ -512,7 +515,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Exit; // TODO: We can test TUIState only in console mode
+    Exit; // TODO: We can test TCastleView only in console mode
   {$endif}
 
   {$ifndef CASTLE_TESTER}
@@ -541,7 +544,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 160) or
       SameValue(StateTesting.EffectiveRect.Height, 90));
 
-    TUIState.Current := StateTesting;
+    TCastleView.Current := StateTesting;
   finally
     {$ifndef CASTLE_TESTER}
     FreeAndNil(Window);
@@ -555,7 +558,7 @@ begin
 end;
 
 type
-  TStateTestingSize2 = class(TUIState)
+  TStateTestingSize2 = class(TCastleView)
   public
     W, H: Single;
     TestCase: TCastleTestCase;
@@ -597,7 +600,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Exit; // TODO: We can test TUIState only in console mode
+    Exit; // TODO: We can test TCastleView only in console mode
   {$endif}
 
   {$ifndef CASTLE_TESTER}
@@ -626,7 +629,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 200) or
       SameValue(StateTesting.EffectiveRect.Height, 400));
 
-    TUIState.Current := StateTesting;
+    TCastleView.Current := StateTesting;
   finally
     {$ifndef CASTLE_TESTER}
     FreeAndNil(Window);

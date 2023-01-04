@@ -21,6 +21,7 @@ lib/
 *.~dsk
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
+*.local
 
 # Other backups
 *.blend1
@@ -82,11 +83,6 @@ castle-game-engine-*.fpm
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
-/examples/deprecated_random_generator/globalrandom/globalrandom
-/examples/deprecated_random_generator/graphics_random_test/graphics_random_test
-/examples/deprecated_random_generator/random_speed_test/random_speed_test
-/examples/deprecated_random_generator/random_threads_test/random_threads_test
-/examples/deprecated_random_generator/testhash/testhash
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
@@ -105,17 +101,18 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_convert/image_convert
 /examples/images_videos/image_display/image_display
 /examples/images_videos/image_identify/image_identify
+/examples/deprecated_to_upgrade/isometric_game/isometric_game
+/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_to_upgrade/isometric_game/isometric_game
-/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
 /examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls
+/examples/lazarus/multiple_views/multiple_views
 /examples/lazarus/two_controls/lib/
 /examples/lazarus/two_controls/two_controls
 /examples/lazarus/two_controls/two_controls.lps
@@ -134,11 +131,15 @@ castle-game-engine-*.fpm
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server
+/examples/physics/physics_asteroids/physics_asteroids
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 /examples/physics/physics_3d_demo/physics_3d_demo
 /examples/physics/physics_3d_shooter/physics_3d_shooter
-/examples/physics/physics_asteroids/physics_asteroids
+/examples/physics/physics_joints_2d/physics_joints_2d
+/examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
+/examples/physics/physics_joints_3d/physics_joints_3d
+/examples/physics/physics_joints_frequency/physics_joints_frequency
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
@@ -175,11 +176,11 @@ castle-game-engine-*.fpm
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
-/examples/user_interface/state_events/state_events
-/examples/user_interface/test_all_state_events/test_all_state_events
+/examples/user_interface/view_events/view_events
+/examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
 /examples/user_interface/zombie_fighter/zombie_fighter
-/examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
+/examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
 /examples/viewport_and_scenes/build_3d_object_by_code/build_3d_object_by_code
 /examples/viewport_and_scenes/build_3d_object_by_code_2_tunnel/build_3d_object_by_code_2_tunnel

@@ -1,0 +1,36 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleButton",
+      "Caption" : "Button1",
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "Button1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleImageControl",
+          "Content" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ImageControl1"
+        }
+      ]
+    }
+  ]
+}

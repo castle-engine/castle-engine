@@ -1,8 +1,8 @@
 { Enemy behavior.
 
   Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This template code is in public domain, unlike most other CGE code which
+  is covered by BSD or LGPL (see https://castle-engine.io/license). }
 unit GameEnemy;
 
 interface

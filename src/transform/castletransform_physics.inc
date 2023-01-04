@@ -145,6 +145,9 @@
     function StoredWithAutoSize: Boolean;
 
     function WorldScaleScalar: Single;
+
+    { Configure Sender (TCastleCollider) to have Mode2D. }
+    class procedure CreateComponent2D(Sender: TObject);
   protected
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
@@ -410,8 +413,6 @@
     procedure SetSize(const AValue: TVector3);
     { Returns scaled size, because scale is added to size directly. }
     function CalculateScaledSize: CastleVectors.TVector3;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -443,8 +444,6 @@
     procedure SetRadius(const AValue: Single);
     { Returns scaled Radius, because scale is added to size directly. }
     function CalculateScaledRadius: Single;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -478,8 +477,6 @@
     procedure SetHeight(const AValue: Single);
     function CalculateScaledHeight: Single;
     function CalculateScaledRadius: Single;
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -534,7 +531,7 @@
 
       We do it automatically in some circumstances (like when you change
       collider properties, like @link(Mesh) or @link(DoubleSided),
-      or when you change @link(TCastleScene.Url)) but we don't try to keep
+      or when you change @link(TCastleSceneCore.Url)) but we don't try to keep
       the physics mesh follow the triangles every frame (as you really shouldn't
       change physics mesh so often, it's supposed to be a static collider). }
     procedure MeshChanged;
@@ -602,7 +599,8 @@
       FOnCollisionEnter: TCollisionEvent;
       FOnCollisionStay: TCollisionEvent;
       FOnCollisionExit: TCollisionEvent;
-
+      FNotifyOnInitialized: TCastleComponentNotification;
+      FNotifyBeforeDeinitialized: TCastleComponentNotification;
     procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
     procedure CheckPhysicsPostStepNeeded;
@@ -724,7 +722,25 @@
     { Called by TCastleCollider when it's shape changes }
     procedure ReinitializeCastleCollider;
 
+    { Configure Sender (TCastleRigidBody) using Setup2D. }
     class procedure CreateComponent2D(Sender: TObject);
+
+    procedure AddNotificationOnInitialized(
+      const AEvent: TComponentEvent); overload;
+    { Calls all callbacks added by AddNotificationOnInitialized }
+    procedure NotifyOnInitialized;
+    procedure RemoveNotificationOnInitialized(
+      const AEvent: TComponentEvent); overload;
+
+    procedure AddNotificationBeforeDeinitialized(
+      const AEvent: TComponentEvent); overload;
+    { Calls all callbacks added by AddNotificationOnInitialized }
+    procedure NotifyBeforeDeinitialized;
+    procedure RemoveNotificationBeforeDeinitialized(
+      const AEvent: TComponentEvent); overload;
+
+    { Is rigid body full initialized? }
+    function IsInitialized: Boolean;
 
     property DuringSettingTransformationFromPhysicsEngine: Boolean
       read FDuringSettingTransformationFromPhysicsEngine;
@@ -1641,6 +1657,11 @@ begin
   end;
 end;
 
+class procedure TCastleCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleCollider).Mode2D := true;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -1799,7 +1820,7 @@ end;
 
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
 begin
-  if not TVector3.Equals(FSize, AValue) then
+  if not TVector3.PerfectlyEquals(FSize, AValue) then
   begin
     FSize := AValue;
     DisableAutoSize;
@@ -1811,11 +1832,6 @@ end;
 function TCastleBoxCollider.CalculateScaledSize: TVector3;
 begin
   Result := FSize * TotalScale;
-end;
-
-class procedure TCastleBoxCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleBoxCollider).Mode2D := true;
 end;
 
 function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
@@ -1955,11 +1971,6 @@ begin
   begin
     TCastleSphere(FVisualization).Radius := CalculateScaledRadius;
   end;
-end;
-
-class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleSphereCollider).Mode2D := true;
 end;
 
 procedure TCastleSphereCollider.CalculateSizeCore;
@@ -2135,11 +2146,6 @@ end;
 function TCastleCapsuleCollider.CalculateScaledRadius: Single;
 begin
   Result := FRadius * TotalScale;
-end;
-
-class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleCapsuleCollider).Mode2D := true;
 end;
 
 procedure TCastleCapsuleCollider.CalculateSizeCore;
@@ -2397,9 +2403,22 @@ begin
   if Parent = nil then
     raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
 
-  // TODO: This is wrong check for multiple usage
+  { We don't really need to access Parent.Parent, but
+
+    - We need WorldTransform (so unique Parent.Parent or Parent.Parent = nil)
+
+    - We do not sensibly work on Viewport.Items root --
+      such body movement would affect also all children.
+
+    So in practice we need Parent.Parent <> nil. }
   if Parent.Parent = nil then
-    raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
+    raise EMultipleReferencesInWorld.CreateFmt('Cannot use physics on %s. Reason is either:' + NL +
+      NL +
+      '1. It is the root transformation (Viewport.Items). You should instead: move the rigid body and collider behaviors to some child TCastleTransform.' + NL +
+      NL +
+      '2  It is inserted multiple times into the Viewport.Items. You should instead: Duplicate (clone) the instance. Or use TCastleTransformReference to refer to the TCastleTransform multiple times (and attach collider/rigid body to TCastleTransformReference).', [
+        Parent.Name
+      ]);
 
   FTransform := Parent;
   InitializeEngineRigidBody;
@@ -2537,6 +2556,7 @@ procedure TCastleRigidBody.InitializeCollider;
     SetWorldTransformation(FTransform.WorldTransform);
 
     CheckPhysicsPostStepNeeded;
+    NotifyOnInitialized;
   end;
 
 var
@@ -2648,6 +2668,9 @@ procedure TCastleRigidBody.DeinitializeCollider;
   end;
 
 begin
+  if FState = stateReady then
+    NotifyBeforeDeinitialized;
+
   { Deinitialize rigid body when it's in collision with other rigid body make
     this body will be dangling pointer on it's FPrevCollisions list.
     So other rigid body can crash when it try to send FOnCollisionExit event.
@@ -2689,6 +2712,63 @@ end;
 class procedure TCastleRigidBody.CreateComponent2D(Sender: TObject);
 begin
   (Sender as TCastleRigidBody).Setup2D;
+end;
+
+procedure TCastleRigidBody.AddNotificationOnInitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyOnInitialized = nil then
+    FNotifyOnInitialized := TCastleComponentNotification.Create(Self);
+
+  FNotifyOnInitialized.AddNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.NotifyOnInitialized;
+begin
+  if FNotifyOnInitialized = nil then
+    Exit;
+
+  FNotifyOnInitialized.Notify(Self);
+end;
+
+procedure TCastleRigidBody.RemoveNotificationOnInitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyOnInitialized = nil then
+    Exit;
+
+  FNotifyOnInitialized.RemoveNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.AddNotificationBeforeDeinitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    FNotifyBeforeDeinitialized := TCastleComponentNotification.Create(Self);
+
+  FNotifyBeforeDeinitialized.AddNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.NotifyBeforeDeinitialized;
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    Exit;
+
+  FNotifyBeforeDeinitialized.Notify(Self);
+end;
+
+procedure TCastleRigidBody.RemoveNotificationBeforeDeinitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    Exit;
+
+  FNotifyBeforeDeinitialized.RemoveNotification(AEvent);
+end;
+
+function TCastleRigidBody.IsInitialized: Boolean;
+begin
+  Result := (FState = stateReady);
 end;
 
 procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);

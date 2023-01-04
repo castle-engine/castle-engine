@@ -25,6 +25,8 @@
   TCastleContainer = class;
   TCastleTheme = class;
   TCastleUserInterfaceList = class;
+  TCastleView = class;
+  TCastleViewList = class;
 
   TContainerEvent = procedure (Container: TCastleContainer);
   TContainerObjectEvent = procedure (Container: TCastleContainer) of object;

@@ -6,7 +6,6 @@
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >
-  <data exists="false" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

@@ -73,6 +73,8 @@ uses // FPC and LCL units
 {$I castlepropedits_component_imagecontrol.inc}
 {$I castlepropedits_component_transformdesign.inc}
 {$I castlepropedits_component_design.inc}
+{$I castlepropedits_component_joints.inc}
+{$I castlepropedits_abstracttwobodiesjoint.inc}
 
 procedure Register;
 begin
@@ -170,6 +172,9 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);
 
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
+    TConnectedPropertyEditor);
+
   { used by LockRotation, LockTranslation }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
@@ -200,6 +205,17 @@ begin
   RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
   RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
   RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
+  RegisterComponentEditor(TCastleHingeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleRopeJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleBallJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleGrabJoint, TCastleJointsComponentEditor);
+  {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
+  RegisterComponentEditor(TCastleFixedJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleWorldPlaneDistanceJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastlePulleyJoint, TCastleJointsComponentEditor);
+  RegisterComponentEditor(TCastleSliderJoint, TCastleJointsComponentEditor);
+  {$endif CASTLE_EXPERIMENTAL_JOINTS}
 end;
 
 initialization
