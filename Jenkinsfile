@@ -337,7 +337,7 @@ pipeline {
                According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
                this should be supported. */
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
-            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
+            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/;${WORKSPACE}/pasdoc/bin/" // Note: on Windows, PATH is separated by ;
           }
           stages {
             stage('(Windows) Info') {
@@ -381,6 +381,17 @@ pipeline {
             stage('(Windows) Build Using FpMake') {
               steps {
                 sh 'make clean test-fpmake'
+              }
+            }
+            stage('(Windows) Get PasDoc') {
+              steps {
+                /* remove older PasDoc versions, so that later "pasdoc-*-win64.zip"
+                   expands "pasdoc-*-win64.zip" only to one file.
+                   This matters when PasDoc version change, e.g. from 0.15.0 to 0.16.0. */
+                sh 'rm -f pasdoc-*-win64.zip'
+                /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
+                copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-win64.zip')
+                sh 'unzip pasdoc-*-win64.zip'
               }
             }
             /* Pack Windows installer on Windows node.
