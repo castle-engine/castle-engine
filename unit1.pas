@@ -49,7 +49,9 @@ const
 const
   AppId = UInt32(480);
 
-{ See full documentation at https://partner.steamgames.com/doc/api/steam_api }
+{ char *ver = PAnsiChar }
+
+{ steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
 function SteamAPI_Init(): Boolean; CDecl; external SteamLib;
 //procedure SteamAPI_ReleaseCurrentThreadMemory(); CDecl; external SteamLib;
 function SteamAPI_RestartAppIfNecessary(unOwnAppID: UInt32): Boolean; CDecl; external SteamLib;
@@ -58,7 +60,15 @@ procedure SteamAPI_RunCallbacks(); CDecl; external SteamLib;
 procedure SteamAPI_Shutdown(); CDecl; external SteamLib;
 //procedure SteamAPI_WriteMiniDump( uint32 uStructuredExceptionCode, void* pvExceptionInfo, uint32 uBuildID );
 
+const
+  STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
 
+{ steam_api_internal.h : undocumented? }
+
+//function SteamInternal_ContextInit( void *pContextInitData ): Pointer;
+function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
+//function SteamInternal_FindOrCreateUserInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
+//function SteamInternal_FindOrCreateGameServerInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
 
 function SteamAPI_ISteamUserStats_SetAchievement(pchName: PAnsiChar): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUtils_GetAppID(): UInt32; CDecl; external SteamLib;
@@ -66,6 +76,8 @@ function SteamAPI_ISteamUser_BLoggedOn(): Boolean; CDecl; external SteamLib;
 procedure SteamAPI_ISteamClient_SetWarningMessageHook(pFunction: SteamAPIWarningMessageHook); CDecl; external SteamLib;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  SteamInterface: Pointer;
 begin
   if SteamAPI_Init() then
   begin
@@ -84,6 +96,8 @@ begin
 
   //if SteamAPI_ISteamUser_BLoggedOn() then
     WriteLn('Login successful');
+
+  SteamInterface := SteamInternal_CreateInterface(STEAMCLIENT_INTERFACE_VERSION);
 
   //https://partner.steamgames.com/doc/features/achievements
 
