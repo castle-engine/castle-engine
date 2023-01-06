@@ -404,22 +404,13 @@ pack_windows_installer ()
     INNO_SETUP_CLI='c:/Program Files (x86)/Inno Setup 6/iscc.exe'
   fi
 
-  # For unknown reason, commmad-line parameter to iscc /D fails,
-  # as of Inno Setup 6.2.1, although the preprocessor still works (in fact it seems
-  # Inno Setup is now integrated with preprocessor always).
-  # So this fails:
-  #
-  #   "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine"
-  #
-  # Instead we configure MyAppSrcDir using overrides.iss file.
-
-  echo "#define MyAppSrcDir \"${TEMP_PATH}castle_game_engine\"" > 'overrides.iss'
-
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
+  # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
   "${INNO_SETUP_CLI}" \
     "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
-    "/F${ARCHIVE_NAME}"
+    "/F${ARCHIVE_NAME}" \
+    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"
