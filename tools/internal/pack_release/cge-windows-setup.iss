@@ -16,7 +16,12 @@
 #define MyAppExeFullName "bin\castle-editor.exe"
 ; CGE directory to distribute, created by pack_release.sh .
 ; Asumes it has the same contents as the files we pack to zip.
-#define MyAppSrcDir "C:\cygwin64\tmp\castle-engine-release-1593\castle_game_engine"
+#define MyAppSrcDir "C:\customize-MyAppSrcDir-in-innosetup-file"
+
+; allows to customize e.g. MyAppSrcDir from scripts, like pack_release.sh .
+#ifexist "overrides.iss"
+  #include "overrides.iss"
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
