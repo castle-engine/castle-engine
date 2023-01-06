@@ -97,7 +97,7 @@ begin
   //if SteamAPI_ISteamUser_BLoggedOn() then
     WriteLn('Login successful');
 
-  SteamInterface := SteamInternal_CreateInterface(STEAMCLIENT_INTERFACE_VERSION);
+  SteamInterface := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
 
   //https://partner.steamgames.com/doc/features/achievements
 
