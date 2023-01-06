@@ -327,7 +327,6 @@ pipeline {
           }
         }
         stage('Windows') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'windows-cge-builder'
           }
@@ -354,6 +353,7 @@ pipeline {
               }
             }
             stage('(Windows) Build Tools') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'rm -Rf installed/'
                 sh 'mkdir -p installed/'
@@ -369,16 +369,19 @@ pipeline {
               }
             }
             stage('(Windows) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples'
               }
             }
             stage('(Windows) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(Windows) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
