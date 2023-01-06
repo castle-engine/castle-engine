@@ -77,7 +77,10 @@ type
   HSteamUser = Int32;
   //CSteamId = UInt64; // Why the documentation says it's struct?
 
-function GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
+{ steam_api_internal.h : undocumented? }
+
+function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
+function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 //function GetSteamID(): CSteamId; CDecl; external SteamLib;
 //function GetPlayerSteamLevel(): Integer; CDecl; external SteamLib;
 
@@ -89,6 +92,8 @@ function GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 procedure TForm1.FormCreate(Sender: TObject);
 var
   SteamInterface: Pointer;
+  SteamUserHandle: HSteamUser;
+  SteamPipeHandle: HSteamPipe;
 begin
   if SteamAPI_Init() then
   begin
@@ -103,8 +108,8 @@ begin
   end else
     WriteLn('FATAL: SteamAPI_Init failed!');
 
-  WriteLn(GetHSteamUser());
-
+  SteamUserHandle := SteamAPI_GetHSteamUser();
+  SteamPipeHandle := SteamAPI_GetHSteamPipe();
 
   //SteamAPI_ISteamClient_SetWarningMessageHook(@WarningHook);
 
