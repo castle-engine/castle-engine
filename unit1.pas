@@ -6,7 +6,8 @@ unit Unit1;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, DynLibs;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
+  DynLibs;
 
 type
 
@@ -14,9 +15,11 @@ type
 
   TForm1 = class(TForm)
     Button1: TButton;
+    Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
 
   public
@@ -50,7 +53,7 @@ const
 function SteamAPI_Init(): Boolean; CDecl; external SteamLib;
 //procedure SteamAPI_ReleaseCurrentThreadMemory(); CDecl; external SteamLib;
 function SteamAPI_RestartAppIfNecessary(unOwnAppID: UInt32): Boolean; CDecl; external SteamLib;
-//procedure SteamAPI_RunCallbacks(); CDecl; external SteamLib;
+procedure SteamAPI_RunCallbacks(); CDecl; external SteamLib;
 //procedure SteamAPI_SetMiniDumpComment( const char *pchMsg );
 procedure SteamAPI_Shutdown(); CDecl; external SteamLib;
 //procedure SteamAPI_WriteMiniDump( uint32 uStructuredExceptionCode, void* pvExceptionInfo, uint32 uBuildID );
@@ -108,6 +111,11 @@ procedure TForm1.FormDestroy(Sender: TObject);
 begin
   SteamAPI_Shutdown();
   //Sleep(10000);
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  SteamAPI_RunCallbacks();
 end;
 
 end.

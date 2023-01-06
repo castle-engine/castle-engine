@@ -18,4 +18,10 @@ object Form1: TForm1
     OnClick = Button1Click
     TabOrder = 0
   end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    Left = 37
+    Top = 20
+  end
 end
