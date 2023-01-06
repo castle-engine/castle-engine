@@ -70,10 +70,21 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 //function SteamInternal_FindOrCreateUserInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
 //function SteamInternal_FindOrCreateGameServerInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
 
-function SteamAPI_ISteamUserStats_SetAchievement(pchName: PAnsiChar): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUtils_GetAppID(): UInt32; CDecl; external SteamLib;
-function SteamAPI_ISteamUser_BLoggedOn(): Boolean; CDecl; external SteamLib;
-procedure SteamAPI_ISteamClient_SetWarningMessageHook(pFunction: SteamAPIWarningMessageHook); CDecl; external SteamLib;
+{ isteamuser.h : See documentation at https://partner.steamgames.com/doc/api/ISteamClient }
+
+type
+  HSteamPipe = Int32;
+  HSteamUser = Int32;
+  //CSteamId = UInt64; // Why the documentation says it's struct?
+
+function GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
+//function GetSteamID(): CSteamId; CDecl; external SteamLib;
+//function GetPlayerSteamLevel(): Integer; CDecl; external SteamLib;
+
+//function SteamAPI_ISteamUserStats_SetAchievement(pchName: PAnsiChar): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUtils_GetAppID(): UInt32; CDecl; external SteamLib;
+//function SteamAPI_ISteamUser_BLoggedOn(): Boolean; CDecl; external SteamLib;
+//procedure SteamAPI_ISteamClient_SetWarningMessageHook(pFunction: SteamAPIWarningMessageHook); CDecl; external SteamLib;
 
 procedure TForm1.FormCreate(Sender: TObject);
 var
@@ -91,6 +102,9 @@ begin
       WriteLn('The Steam client is running and no restart is necessary');
   end else
     WriteLn('FATAL: SteamAPI_Init failed!');
+
+  WriteLn(GetHSteamUser());
+
 
   //SteamAPI_ISteamClient_SetWarningMessageHook(@WarningHook);
 
