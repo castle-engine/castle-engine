@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -218,7 +218,7 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
+      TTreeNodeSide = (tnsInside, tnsBottom, tnsTop);
 
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
@@ -4505,13 +4505,13 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
     R: TRect;
   begin
     R := Node.DisplayRect(false);
-    if X > R.SplitRect(srRight, 0.33).Left then
-      Result := tnsRight
+    if Y < Lerp(0.75, R.Bottom, R.Top) then
+      Result := tnsTop
     else
-    if Y > R.CenterPoint.Y then
+    if Y > Lerp(0.25, R.Bottom, R.Top) then
       Result := tnsBottom
     else
-      Result := tnsTop;
+      Result := tnsInside;
   end;
 
 var
@@ -4740,7 +4740,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     OldRect := Src.RenderRectWithBorder;
 
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
@@ -4783,7 +4783,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
       Src.GetWorldView(WorldPos, WorldDir, WorldUp);
 
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
@@ -4819,7 +4819,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           Src.Parent.RemoveBehavior(Src);
           Dst.AddBehavior(Src);
@@ -4836,7 +4836,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     const Dst: TCastleComponent);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           SrcParentComponent.RemoveNonVisualComponent(Src);
           Dst.AddNonVisualComponent(Src);
@@ -4878,10 +4878,10 @@ var
     DestinationName: String;
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           { Special treatment when inserting UI into TCastleViewport,
-            testcase: try to drag some UI into TCastleViewport (with tnsRight),
+            testcase: try to drag some UI into TCastleViewport (with tnsInside),
             it should be added right before "Items" node. }
           if (DstComponent is TCastleViewport) and
              (SrcComponent is TCastleUserInterface) then
@@ -5010,7 +5010,7 @@ var
     C.Brush.Style := bsClear;
     C.Rectangle(NodeRect);
 
-    if ControlsTreeNodeUnderMouseSide = tnsRight then
+    if ControlsTreeNodeUnderMouseSide = tnsInside then
     begin
       R := NodeRect.SplitRect(srRight, NodeRect.Height);
       R.Inflate(-5, -5);
