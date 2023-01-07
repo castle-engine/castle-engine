@@ -410,7 +410,8 @@ pack_windows_installer ()
     "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
     "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine"
+    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \
+    "/DMyAppVersion=${CGE_VERSION}"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"

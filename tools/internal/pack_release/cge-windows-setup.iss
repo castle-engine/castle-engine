@@ -10,10 +10,13 @@
 ; and configure output dir and filename.
 
 #define MyAppName "Castle Game Engine"
-#define MyAppVersion "7.0-alpha.snapshot"
 #define MyAppPublisher "Michalis Kamburelis & Castle Game Engine Contributors"
 #define MyAppURL "https://castle-engine.io/"
 #define MyAppExeFullName "bin\castle-editor.exe"
+
+; CGE version.
+; Define passed on the command-line by pack_release.sh.
+;#define MyAppVersion "7.0-alpha.snapshot"
 
 ; CGE directory to distribute.
 ; Usually created by pack_release.sh , and define passed on the command-line by pack_release.sh.
