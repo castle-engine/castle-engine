@@ -45,9 +45,14 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   if GetAchievement('ACH_WIN_ONE_GAME') then
-    ClearAchievement('ACH_WIN_ONE_GAME')
-  else
+  begin
+    WriteLn('Achievement set, clearing');
+    ClearAchievement('ACH_WIN_ONE_GAME');
+  end else
+  begin
+    WriteLn('Achievement not set, adding');
     SetAchievement('ACH_WIN_ONE_GAME');
+  end;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);

@@ -45,7 +45,7 @@ function SteamAPI_ISteamClient_GetISteamUserStats(SteamClient: Pointer; SteamUse
 (* ISteamUserStats *)
 
 // function SteamAPI_SteamUserStats(): Pointer; CDecl; external SteamLib; // This one returns something that doesn't work
-// function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats: Pointer; const AchievementName: PChar; out Achieved: Boolean): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
