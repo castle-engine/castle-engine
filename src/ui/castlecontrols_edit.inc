@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -160,8 +160,14 @@
     { Show given character (usually "*") instead of actual input characters.
       Useful for password input fields.
 
-      In the case of mobile systems, when PasswordChar is set the keyboard
-      doesn't save the entered text (keyboard starts in the password mode). }
+      Setting the PasswordChar to something else than #0 also informs
+      the system that the input is sensitive (e.g. it is a password)
+      and should not be stored in any system-wide dictionary for easy future reuse.
+      This is meaningful for on-screen keyboards on mobile systems,
+      that by default (when PasswordChar is #0) may store entered text in some
+      system-wide dictionary and propose user to use the same words in future inputs.
+      If the user inputs something sensitive (like a password) you want to disable this
+      using PasswordChar <> #0. }
     property PasswordChar: Char
       read FPasswordChar write SetPasswordChar default #0;
 
