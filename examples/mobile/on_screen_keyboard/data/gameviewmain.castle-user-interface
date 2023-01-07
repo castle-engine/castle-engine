@@ -1,0 +1,164 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleFont",
+      "LoadCharacters" : "ąęćśźżĄĘłŁĆŻŹ!@#$%^&*()_+='\"",
+      "Name" : "Font1",
+      "OptimalSize" : 80,
+      "URL" : "castle-data:/DejaVuSans.ttf"
+    }
+  ],
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleButton",
+      "AutoSize" : false,
+      "AutoSizeHeight" : false,
+      "Caption" : "ButtonShow",
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 3.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonShow",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : -1.3000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 8.0000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleButton",
+      "AutoSize" : false,
+      "AutoSizeHeight" : false,
+      "Caption" : "ButtonHide",
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 3.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonHide",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : -4.5000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 8.0000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleEdit",
+      "AutoOnScreenKeyboard" : true,
+      "CaptureAllInput" : false,
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 5.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Edit1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.5000000000000000E+001,
+        "Y" : -1.3000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.4500000000000000E+003
+    },
+    {
+      "$$ClassName" : "TCastleEdit",
+      "AutoOnScreenKeyboard" : true,
+      "CaptureAllInput" : false,
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 5.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Edit2",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.5000000000000000E+001,
+        "Y" : -2.6000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.4500000000000000E+003
+    },
+    {
+      "$$ClassName" : "TCastleEdit",
+      "AutoOnScreenKeyboard" : true,
+      "CaptureAllInput" : false,
+      "CustomFont" : "Font1",
+      "FontSize" : 8.0000000000000000E+001,
+      "Height" : 5.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Edit3",
+      "PasswordChar" : "*",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.5000000000000000E+001,
+        "Y" : -4.0000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.4500000000000000E+003
+    }
+  ]
+}

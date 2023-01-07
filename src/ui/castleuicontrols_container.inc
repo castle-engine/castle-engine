@@ -1089,7 +1089,7 @@ begin
       for I := 0 to FFocus.Count - 1 do
         if FNewFocus.IndexOf(FFocus[I]) = -1 then
           FFocus[I].Focused := false;
-    end;
+    end
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,

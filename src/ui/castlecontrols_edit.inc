@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -158,7 +158,16 @@
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
     { Show given character (usually "*") instead of actual input characters.
-      Useful for password input fields. }
+      Useful for password input fields.
+
+      Setting the PasswordChar to something else than #0 also informs
+      the system that the input is sensitive (e.g. it is a password)
+      and should not be stored in any system-wide dictionary for easy future reuse.
+      This is meaningful for on-screen keyboards on mobile systems,
+      that by default (when PasswordChar is #0) may store entered text in some
+      system-wide dictionary and propose user to use the same words in future inputs.
+      If the user inputs something sensitive (like a password) you want to disable this
+      using PasswordChar <> #0. }
     property PasswordChar: Char
       read FPasswordChar write SetPasswordChar default #0;
 
@@ -248,6 +257,44 @@
 
 const
   CaretChar = '|';
+
+{ These routines may be public at some point. }
+
+{ Displays the keyboard on Android. It requires the current text to be edited
+  and the target user interface to which the events will be send. }
+procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
+  const CurrentText: String; PasswordMode: Boolean); forward;
+
+{ Hides keyboard on Android but only when KeyboardTarget and ForceCaptureInput
+  is the same object. }
+procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface); forward;
+
+procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
+  const CurrentText: String; PasswordMode: Boolean);
+begin
+  { Remove focus from another control }
+  if (KeyboardTarget.Container.ForceCaptureInput <> nil) and
+     (KeyboardTarget.Container.ForceCaptureInput <> KeyboardTarget) then
+    KeyboardTarget.Container.ForceCaptureInput.Focused := false;
+
+  { Set ForceCaptureInput to control that will show keyboard }
+  KeyboardTarget.Container.ForceCaptureInput := KeyboardTarget;
+
+  { Send message to open keyboard. }
+  Messaging.Send(['castle-show-keyboard', CurrentText,
+    Iff(PasswordMode, 'true', 'false')]);
+end;
+
+procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
+begin
+  { Don't hide keyboard if another TCastleEdit has displayed it }
+  if KeyboardTarget.Container.ForceCaptureInput = KeyboardTarget then
+  begin
+    Messaging.Send(['castle-hide-keyboard']);
+    KeyboardTarget.Container.ForceCaptureInput := nil;
+  end;
+end;
+
 
 { TCastleEdit --------------------------------------------------------------- }
 
@@ -598,6 +645,25 @@ begin
     DoChange;
     Result := ExclusiveEvents;
   end;
+
+  { Ability to open keyboard when it is closed and edit is focused }
+  if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice and
+     (Event.IsMouseButton(TCastleMouseButton.buttonLeft)) then
+  begin
+    { If Edit is focused but ForceCaptureInput is not set to it that means
+      we need set focus again to show keyboard. }
+    if Container.ForceCaptureInput = nil then
+    begin
+      Focused := true;
+    end else
+    if Container.ForceCaptureInput <> Self then
+    begin
+      { Only when other edit shows keyboard (or none), change it focus to false
+        and focus/open keyboard for current edit }
+      Container.ForceCaptureInput.Focused := false;
+      Focused := true;
+    end;
+  end;
 end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
@@ -616,8 +682,16 @@ procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
 
-  if FAutoOnScreenKeyboard then
-    Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
+  { We take care about on screen keyboard only when AutoOnScreenKeyboard = true
+    and this is touch device. We don't want to change Container.ForceCaptureInput
+    in other cases.}
+  if FAutoOnScreenKeyboard and ApplicationProperties.TouchDevice then
+  begin
+    if Value then
+      ShowOnScreenKeyboard(Self, Text, PasswordChar <> #0)
+    else
+      HideOnScreenKeyboard(Self);
+  end;
 end;
 
 procedure TCastleEdit.SetPlaceholder(const Value: string);
