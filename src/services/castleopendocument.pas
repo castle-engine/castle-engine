@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2022 Michalis Kamburelis and Lazarus developers.
+  Copyright 2012-2023 Michalis Kamburelis and Lazarus developers.
 
   This file is part of "Castle Game Engine".
 
@@ -95,15 +95,6 @@ procedure Vibrate(const Miliseconds: Cardinal);
   See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
 procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
-
-{ Displays the keyboard on Android. It requires the current text to be edited
-  and the target user interface to which the events will be send. }
-procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
-  const CurrentText: String; PasswordMode: Boolean);
-
-{ Hides keyboard on Android but only when KeyboardTarget and ForceCaptureInput
-  is the same object. }
-procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
 
 implementation
 
@@ -396,32 +387,6 @@ end;
 procedure OnScreenNotification(const Message: string);
 begin
   Messaging.Send(['on-screen-notification', Message]);
-end;
-
-procedure ShowOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface;
-  const CurrentText: String; PasswordMode: Boolean);
-begin
-  { Remove focus from another control }
-  if (KeyboardTarget.Container.ForceCaptureInput <> nil) and
-     (KeyboardTarget.Container.ForceCaptureInput <> KeyboardTarget) then
-    KeyboardTarget.Container.ForceCaptureInput.Focused := false;
-
-  { Set ForceCaptureInput to control that will show keyboard }
-  KeyboardTarget.Container.ForceCaptureInput := KeyboardTarget;
-
-  { Send message to open keyboard. }
-  Messaging.Send(['castle-show-keyboard', CurrentText,
-    Iff(PasswordMode, 'true', 'false')]);
-end;
-
-procedure HideOnScreenKeyboard(const KeyboardTarget: TCastleUserInterface);
-begin
-  { Don't hide keyboard if another TCastleEdit has displayed it }
-  if KeyboardTarget.Container.ForceCaptureInput = KeyboardTarget then
-  begin
-    Messaging.Send(['castle-hide-keyboard']);
-    KeyboardTarget.Container.ForceCaptureInput := nil;
-  end;
 end;
 
 end.
