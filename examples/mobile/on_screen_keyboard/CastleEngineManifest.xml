@@ -5,11 +5,11 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="keyboard_example"
-  standalone_source="keyboard_example_standalone.dpr"
+<project name="on_screen_keyboard"
+  standalone_source="on_screen_keyboard_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.keyboard.example"
-  caption="Keyboard Example"
+  qualified_name="io.castleengine.on.screen.keyboard"
+  caption="On-Screen Keyboard Example"
 >
   <compiler_options>
     <search_paths>

@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'keyboard_example';
-  ApplicationProperties.Caption := 'Keyboard Example';
+  ApplicationProperties.ApplicationName := 'on_screen_keyboard';
+  ApplicationProperties.Caption := 'On-Screen Keyboard Example';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
