@@ -15,11 +15,7 @@
 
 { Game initialization.
   This unit is cross-platform.
-  It will be used by the platform-specific program or library file.
-
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
