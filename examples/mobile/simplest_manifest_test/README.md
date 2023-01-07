@@ -19,3 +19,13 @@ The advantage: your directory is cleaner, no need to see/commit auto-generated s
 The disadvantage: your project can be build only by CGE editor or CGE build tool
 (`castle-engine compile`) out-of-the-box.
 You cannot open project with Lazarus or Delphi IDEs out-of-the-box.
+
+Using [Castle Game Engine](https://castle-engine.io/).
+
+## Building
+
+Compile by:
+
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+
+- Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
