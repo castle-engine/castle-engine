@@ -27,6 +27,12 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
+(* ISteamUserStats *)
+
+function SteamAPI_SteamUserStats(): Pointer; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
+
+
 
 implementation
 

@@ -13,6 +13,7 @@ uses
 
 var
   SteamInterface: Pointer;
+  SteamUserStats: Pointer;
   SteamUserHandle: HSteamUser;
   SteamPipeHandle: HSteamPipe;
 
@@ -38,6 +39,9 @@ begin
   SteamInterface := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
+
+  SteamUserStats := SteamAPI_SteamUserStats();
+  //SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   Exit(true);
 end;
 
