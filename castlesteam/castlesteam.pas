@@ -25,7 +25,7 @@ begin
 
     if SteamAPI_RestartAppIfNecessary(AppId) then
     begin
-      WriteLn('The app was run through exe - restarting through Steam. DRM will do this automatically.');
+      WriteLn('The app was run through exe - restarting through Steam.');
       Exit(false);
       Halt(0);
     end else
