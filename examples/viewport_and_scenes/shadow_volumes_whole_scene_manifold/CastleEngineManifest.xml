@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="shadow_volumes_whole_scene_manifold"
   standalone_source="shadow_volumes_whole_scene_manifold_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.shadowvolumeswholescenemanifold"
+  qualified_name="io.castleengine.shadow.volumes.whole.scene.manifold"
   caption="Test RenderOptions.WholeSceneManifold"
 >
   <compiler_options>
