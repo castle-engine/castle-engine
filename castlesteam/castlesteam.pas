@@ -4,9 +4,21 @@ unit CastleSteam;
 
 interface
 
+(* Basic functions *)
+
+{ This one needs to be run at least 10 times a second,
+  Better if every frame }
 procedure UpdateSteam;
+{ Disconnect from Steam }
 procedure ShutdownSteam;
+{ Connect to Steam and initialize everything }
 function InitSteam(const AppId: Integer): Boolean;
+
+(* Achievements *)
+
+procedure SetAchievement(const AchievementId: String);
+function GetAchievement(const AchievementId: String): Boolean;
+procedure ClearAchievement(const AchievementId: String);
 implementation
 uses
   CastleInternalSteamApi, CastleInternalSteamConstantsAndTypes;
@@ -55,6 +67,21 @@ begin
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   //SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   Exit(true);
+end;
+
+procedure SetAchievement(const AchievementId: String);
+begin
+  SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId));
+end;
+
+function GetAchievement(const AchievementId: String): Boolean;
+begin
+  SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats, PAnsiChar(AchievementId), {out} Result);
+end;
+
+procedure ClearAchievement(const AchievementId: String);
+begin
+  SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId));
 end;
 
 procedure UpdateSteam;
