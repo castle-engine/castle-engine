@@ -4701,6 +4701,12 @@ end;
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 
+  { Preserve UI or TCastleTransform transformation when changing parent. }
+  function PreserveTransformation: Boolean;
+  begin
+    Result := not (ssCtrl in GetKeyShiftState);
+  end;
+
   procedure MoveOnlyTreeNodes; forward;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -4747,7 +4753,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.RemoveControl(Src);
             Dst.InsertFront(Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4763,7 +4770,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.InsertControl(Index, Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4774,12 +4782,17 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
-    SrcHasWorld: Boolean;
+    FinalPreserveTransformation: Boolean;
     WorldPos, WorldDir, WorldUp: TVector3;
   begin
-    // TODO: Available only with Ctrl, to test this feature
-    SrcHasWorld := (ssCtrl in GetKeyShiftState) and Src.HasWorldTransform;
-    if SrcHasWorld then
+    FinalPreserveTransformation := PreserveTransformation and
+      Src.HasWorldTransform and
+      { Do it only when scale is identity, otherwise GetWorldView/SetWorldView would
+        not preserve scale. }
+      TVector3.Equals(ScaleFromMatrix(Src.WorldTransform), NoScale) and
+      Dst.HasWorldTransform and
+      TVector3.Equals(ScaleFromMatrix(Dst.WorldTransform), NoScale);
+    if FinalPreserveTransformation then
       Src.GetWorldView(WorldPos, WorldDir, WorldUp);
 
     case ControlsTreeNodeUnderMouseSide of
@@ -4790,7 +4803,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
-            if SrcHasWorld then
+            if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
@@ -4807,7 +4820,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
-            if SrcHasWorld then
+            if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
