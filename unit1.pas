@@ -43,11 +43,11 @@ begin
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
-var
-  AchievementString: AnsiString;
 begin
-  AchievementString := 'ACH_WIN_ONE_GAME';
-  //SteamAPI_ISteamUserStats_SetAchievement(PAnsiChar(AchievementString));
+  if GetAchievement('ACH_WIN_ONE_GAME') then
+    ClearAchievement('ACH_WIN_ONE_GAME')
+  else
+    SetAchievement('ACH_WIN_ONE_GAME');
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
