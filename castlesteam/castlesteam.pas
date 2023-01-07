@@ -26,8 +26,8 @@ begin
     if SteamAPI_RestartAppIfNecessary(AppId) then
     begin
       WriteLn('The app was run through exe - restarting through Steam.');
-      Exit(false);
       Halt(0);
+      Exit(false); // ? do we need this ?
     end else
       WriteLn('The Steam client is running and no restart is necessary');
   end else
