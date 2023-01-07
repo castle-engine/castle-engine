@@ -13,22 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Main state, where most of the application logic takes place.
-
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
-unit GameStateMain;
+{ Main view, where most of the application logic takes place. }
+unit GameViewMain;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleUIState, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleAds, CastleOpenDocument;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main view, where most of the application logic takes place. }
+  TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
@@ -46,28 +42,28 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  ViewMain: TViewMain;
 
 implementation
 
 uses SysUtils, CastleWindow;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TViewMain ----------------------------------------------------------------- }
 
-constructor TStateMain.Create(AOwner: TComponent);
+constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-procedure TStateMain.Start;
+procedure TViewMain.Start;
 begin
   inherited;
   ButtonShow.OnClick := {$ifdef FPC}@{$endif}ButtonShowClick;
   ButtonHide.OnClick := {$ifdef FPC}@{$endif}ButtonHideClick;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -75,12 +71,12 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure TStateMain.ButtonShowClick(Sender: TObject);
+procedure TViewMain.ButtonShowClick(Sender: TObject);
 begin
   Edit1.Focused := true;
 end;
 
-procedure TStateMain.ButtonHideClick(Sender: TObject);
+procedure TViewMain.ButtonHideClick(Sender: TObject);
 begin
   Edit1.Focused := false;
 end;
