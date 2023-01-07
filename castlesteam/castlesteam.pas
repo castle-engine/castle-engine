@@ -66,7 +66,7 @@ begin
 
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
-  //SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
+
   Exit(true);
 end;
 
