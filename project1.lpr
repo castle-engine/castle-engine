@@ -1,6 +1,7 @@
 program project1;
 
 {$mode objfpc}{$H+}
+{$apptype console}
 
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
