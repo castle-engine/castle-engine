@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -224,7 +224,7 @@
     function RectWithAnchors(
       const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
     { How to translate local coordinates to the container.
-      Looks at our and parent's anchors (AnchorDelta) and positon (Left, Bottom).
+      Looks at our and parent's anchors (@link(Translation)) and positon (Left, Bottom).
 
       As such it is useful to modify the children UI control position.
 
@@ -250,6 +250,10 @@
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
     procedure Loaded; override;
+
+    { Show and hide UI used to render tooltip (may come from user TooltipControl or some internal component).
+      @exclude }
+    procedure InternalSetTooltipExists(const Value: Boolean); virtual;
 
     { Container sizes.
       @groupBegin }
@@ -931,7 +935,7 @@
       of this UI control.
 
       The exact definition is that using the result of this to set our child
-      AnchorDelta, assuming the child is anchored to the left-bottom (the default state)
+      @link(Translation), assuming the child is anchored to the left-bottom (the default state)
       and child has Left = Bottom = 0, sets child position exactly to
       the indicated point on the container.
 
@@ -2867,6 +2871,12 @@ begin
       Name
     ]);
   {$warnings on}
+end;
+
+procedure TCastleUserInterface.InternalSetTooltipExists(const Value: Boolean);
+begin
+  if TooltipControl <> nil then
+    TooltipControl.Exists := Value;
 end;
 
 {$define read_implementation_methods}
