@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -505,7 +505,9 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindow);
     BackgroundRect := TCastleRectangleControl.Create(BackgroundControls);
     BackgroundRect.Color := BackgroundColor;
     BackgroundRect.FullSize := true;
+    {$warnings off} // using deprecated, but this whole TGLMode is hacky, we should rather use TCastleView and TCastleView.InterceptInput
     BackgroundRect.InterceptInput := true;
+    {$warnings on}
     BackgroundControls.InsertFront(BackgroundRect);
   end;
 

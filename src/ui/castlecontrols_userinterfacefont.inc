@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -209,6 +209,7 @@ begin
   begin
     TooltipLabel := TCastleLabelTooltip.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
+    // TODO
     TooltipLabel.Frame := true;
     TooltipLabel.InternalSetContainer(Container);
     { we know that GL context now exists, so just directly call GLContextOpen }
