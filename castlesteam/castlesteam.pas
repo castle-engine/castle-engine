@@ -13,6 +13,7 @@ uses
 
 var
   SteamClient: Pointer;
+  SteamUser: Pointer;
   SteamUserStats: Pointer;
   SteamUserHandle: HSteamUser;
   SteamPipeHandle: HSteamPipe;
@@ -40,7 +41,9 @@ begin
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
 
-  SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
+  SteamUser := SteamAPI_ISteamClient_GetISteamUser(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
+
+  SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   //SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   Exit(true);
 end;

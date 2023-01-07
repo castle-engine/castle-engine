@@ -29,8 +29,8 @@ function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
 (* ISteamClient *)
 
-function SteamAPI_ISteamClient_GetISteamUserStats(SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
-
+function SteamAPI_ISteamClient_GetISteamUser(SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
+function SteamAPI_ISteamClient_GetISteamUserStats(SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserStatsInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
 
 (* ISteamUserStats *)
 
