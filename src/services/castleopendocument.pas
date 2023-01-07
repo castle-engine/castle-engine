@@ -23,8 +23,6 @@ unit CastleOpenDocument;
 
 interface
 
-uses CastleUIControls;
-
 resourcestring
   SCannotOpenURL = 'Browser not found on your system.';
 
