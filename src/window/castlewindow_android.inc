@@ -49,7 +49,7 @@ CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleI
 private
   NativeWindow: EGLNativeWindowType; //< must be set before Window.Open
   function HandleOnScreenKeyboard(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+    const ReceivedStream: TMemoryStream): boolean;
 
   function AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
 {$endif read_window_interface}
@@ -520,7 +520,6 @@ begin
     Exit(true);
   end;
 end;
-
 
 function TCastleWindow.AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
 begin
