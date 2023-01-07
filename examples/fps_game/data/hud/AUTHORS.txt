@@ -1,3 +1,7 @@
-box.png based on http://opengameart.org/content/fantasy-ui-box
-by http://opengameart.org/users/stumpystrust
-CC-BY 3.0
+box.png
+  based on http://opengameart.org/content/fantasy-ui-box
+  by http://opengameart.org/users/stumpystrust
+  License: CC-BY 3.0
+
+Most UI graphics by Adrianna Matejek
+  License: same as CGE examples, permissive "modified BSD (3-clause)", see https://castle-engine.io/license

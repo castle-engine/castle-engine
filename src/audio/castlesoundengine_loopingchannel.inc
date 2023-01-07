@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,6 +128,9 @@ begin
     FAllocatedSource.OnRelease :=
       {$ifdef FPC}@{$endif} AllocatedSourceRelease
   else
+  { Make a warning only if FEngine.Enabled.
+    When FEngine.Enabled = false (like when --no-sound was passed) this is normal. }
+  if FEngine.Enabled then
     WritelnWarning('Could not allocate sound source, to play looping sound %s', [
       Sound.Name
     ]);

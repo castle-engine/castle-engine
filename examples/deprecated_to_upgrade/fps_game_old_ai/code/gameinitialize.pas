@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2022 Michalis Kamburelis.
+  Copyright 2012-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@
   (desktop or mobile). }
 unit GameInitialize;
 
-{ Use GameStateMain with UI and level designed in CGE editor.
+{ Use GameViewMain with UI and level designed in CGE editor.
   Not functional yet, but this is the future we go for. }
 {.$define UPCOMING_FPS_GAME_REDESIGN}
 
@@ -28,11 +28,11 @@ interface
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleApplicationProperties, CastleUIState
+  CastleWindow, CastleApplicationProperties
   {$ifdef UPCOMING_FPS_GAME_REDESIGN}
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateMain
+  , GameViewMain
   {$endregion 'Castle Initialization Uses'}
   {$else}
   , CastleLog, CastleConfig, CastleLevels,
@@ -57,13 +57,13 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create game views and set initial view }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateMain := TStateMain.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewMain := TViewMain.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  TUIState.Current := StateMain;
+  Window.Container.View := ViewMain;
 end;
 
 {$else UPCOMING_FPS_GAME_REDESIGN}
@@ -722,16 +722,45 @@ end;
 {$endif UPCOMING_FPS_GAME_REDESIGN}
 
 initialization
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
+
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { Create a window. }
   Window := TCastleWindow.Create(Application);
-  { Set default Window size, and parse command-line parameters
-    that may also affect Window size. }
-  Window.FullScreen := true; { by default we open in fullscreen }
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
-
   Application.MainWindow := Window;
+
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 finalization
   { In a desktop game, it's OK to store the preferences
     in the finalization section, when the program stops.

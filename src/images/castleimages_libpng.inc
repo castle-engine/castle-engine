@@ -528,7 +528,7 @@ begin
   end else
     WritelnLog('LibPng not found.' + NL +
       '  This also happens when a dependency of LibPng, like Zlib, is missing.' + NL +
-      '  We will use slower FPImage to load PNG format.');
+      '  Loading PNG images will be slower.');
 end;
 
 { error / warning handlers --------------------------------------------------- }

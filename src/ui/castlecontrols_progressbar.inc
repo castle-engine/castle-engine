@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -192,8 +192,6 @@ begin
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
-  { it's normal that at the beginning FillRect is too small to be drawn }
-  Theme.ImagesPersistent[tiProgressFill].DrawableImage.IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
   MaxTextWidth := Round(BarRect.Width - PaddingHorizontal);

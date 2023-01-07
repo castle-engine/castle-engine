@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -187,6 +187,7 @@ begin
 
     if FinalImage <> nil then
     begin
+      FinalImage.ScaleCorners := UIScale;
       FinalImage.Color := FinalColor;
       FinalImage.Alpha := acBlending;
       FinalImage.BlendingSourceFactor := SourceFactor;

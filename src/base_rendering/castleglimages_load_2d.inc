@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -186,7 +186,7 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
   @raises(ECannotLoadCompressedTexture If we cannot decompress, for example
     because we cannot load to OpenGL this compressed texture (for example
     because appropriate OpenGL extensions are not available, or such).) }
-function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
+function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$endif read_interface_func}
 
@@ -643,7 +643,7 @@ end;
 
 { GLDecompressTexture ------------------------------------------------------------- }
 
-function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
+function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$ifndef OpenGLES}
 var

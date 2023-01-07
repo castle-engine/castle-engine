@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses GameStatePlay;
+uses GameViewPlay;
 
 { TFallingObstacle ----------------------------------------------------------- }
 
@@ -92,7 +92,7 @@ end;
 
 procedure TFallingObstacle.HitPlayer;
 begin
-  StatePlay.HitPlayer;
+  ViewPlay.HitPlayer;
   Scene.Exists := false;
 end;
 

@@ -1,0 +1,88 @@
+object TestCgeControl: TTestCgeControl
+  Left = 0
+  Top = 0
+  ActiveControl = CastleControl
+  Caption = 'Form1'
+  ClientHeight = 504
+  ClientWidth = 832
+  Position = Default
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 512
+    Top = 16
+  end
+  object Panel1: TPanel
+    Align = Right
+    Margins.Top = 10.000000000000000000
+    Margins.Right = 10.000000000000000000
+    Margins.Bottom = 80.000000000000000000
+    Position.X = 482.000000000000000000
+    Position.Y = 10.000000000000000000
+    Size.Width = 340.000000000000000000
+    Size.Height = 414.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Client
+      Size.Width = 340.000000000000000000
+      Size.Height = 414.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 336.000000000000000000
+      Viewport.Height = 410.000000000000000000
+    end
+    object Button2D: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 152.000000000000000000
+      Position.Y = 464.000000000000000000
+      TabOrder = 3
+      Text = '2D'
+      OnClick = Button2DClick
+    end
+    object ButtonUI: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 248.000000000000000000
+      Position.Y = 464.000000000000000000
+      TabOrder = 1
+      Text = 'UI'
+      OnClick = ButtonUIClick
+    end
+    object Button3D: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 56.000000000000000000
+      Position.Y = 464.000000000000000000
+      TabOrder = 2
+      Text = '3D'
+      OnClick = Button3DClick
+    end
+    object LabelFps: TLabel
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      Position.X = 4.000000000000000000
+      Position.Y = 426.000000000000000000
+      Size.Width = 310.399993896484400000
+      Size.Height = 16.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'LabelFps'
+      TabOrder = 4
+    end
+  end
+  object CastleControl: TCastleControl
+    Container.DesignUrl = 'castle-data:/test_ui.castle-user-interface'
+    Align = Client
+    Size.Width = 462.000000000000000000
+    Size.Height = 484.000000000000000000
+    Size.PlatformDefault = False
+    Margins.Left = 10.000000000000000000
+    Margins.Top = 10.000000000000000000
+    Margins.Right = 10.000000000000000000
+    Margins.Bottom = 10.000000000000000000
+  end
+end

@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -97,13 +97,12 @@ type
 
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
-      You have to call this before InitCaster.
 
-      This prepares some things (so that each InitCaster call doesn't have to) and
-      all subsequent InitCaster calls assume that Frustum and
-      LightPosition are the same.
+      You have to call this before any InitCaster / GetCasterShadowPossiblyVisible
+      call. All subsequent InitCaster / GetCasterShadowPossiblyVisible calls
+      assume that Frustum and LightPosition remain like this.
 
-      It also resets CountCasters etc. counters for debug purposes. }
+      It also resets CountCasters and other counters for debug purposes. }
     procedure InitFrustumAndLight(
       const Frustum: TFrustum;
       const ALightPosition: TVector4);
@@ -135,6 +134,12 @@ type
       The above optimization works OK if you do not change StencilOp configuration
       yourself during SV rendering. }
     procedure InitCaster(const CasterBox: TBox3D);
+
+    { Check is shadow caster's shadow is possibly visible.
+      Unlike InitCaster, this doesn't change any state,
+      it doesn't set any OpenGL stuff,
+      it doesn't update @link(CasterShadowPossiblyVisible) property. }
+    function GetCasterShadowPossiblyVisible(const CasterBox: TBox3D): Boolean;
 
     { Does the shadow need to be rendered, calculated by last InitCaster call. }
     property CasterShadowPossiblyVisible: boolean read FCasterShadowPossiblyVisible;
@@ -357,38 +362,40 @@ begin
   FCountZFailAndLightCap := 0;
 end;
 
+function TGLShadowVolumeRenderer.GetCasterShadowPossiblyVisible(const CasterBox: TBox3D): Boolean;
+var
+  I: Integer;
+
+  function CheckPoint(const X, Y, Z: Integer): boolean;
+  begin
+    Result :=
+      CasterBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
+      CasterBox.Data[Y][1] * FrustumAndLightPlanes[I][1] +
+      CasterBox.Data[Z][2] * FrustumAndLightPlanes[I][2] +
+      FrustumAndLightPlanes[I][3] < 0;
+  end;
+
+begin
+  if CasterBox.IsEmpty then
+    Exit(false);
+  for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
+  begin
+    if CheckPoint(0, 0, 0) and
+       CheckPoint(0, 0, 1) and
+       CheckPoint(0, 1, 0) and
+       CheckPoint(0, 1, 1) and
+       CheckPoint(1, 0, 0) and
+       CheckPoint(1, 0, 1) and
+       CheckPoint(1, 1, 0) and
+       CheckPoint(1, 1, 1) then
+      Exit(false);
+  end;
+  Result := true;
+end;
+
 procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
 
   procedure DontSetupStencil(const CasterBox: TBox3D);
-
-    function CalculateShadowPossiblyVisible(const CasterBox: TBox3D): boolean;
-    var
-      I: Integer;
-
-      function CheckPoint(const X, Y, Z: Integer): boolean;
-      begin
-        Result :=
-          CasterBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
-          CasterBox.Data[Y][1] * FrustumAndLightPlanes[I][1] +
-          CasterBox.Data[Z][2] * FrustumAndLightPlanes[I][2] +
-          FrustumAndLightPlanes[I][3] < 0;
-      end;
-
-    begin
-      for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
-      begin
-        if CheckPoint(0, 0, 0) and
-           CheckPoint(0, 0, 1) and
-           CheckPoint(0, 1, 0) and
-           CheckPoint(0, 1, 1) and
-           CheckPoint(1, 0, 0) and
-           CheckPoint(1, 0, 1) and
-           CheckPoint(1, 1, 0) and
-           CheckPoint(1, 1, 1) then
-          Exit(false);
-      end;
-      Result := true;
-    end;
 
     function CalculateZFail: boolean;
 
@@ -526,7 +533,7 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
     { Frustum culling for shadow volumes.
       If the CasterBox is outside of convex hull light pos + frustum,
       the shadow of this scene is not visible for sure. }
-    FCasterShadowPossiblyVisible := CalculateShadowPossiblyVisible(CasterBox);
+    FCasterShadowPossiblyVisible := GetCasterShadowPossiblyVisible(CasterBox);
 
     FZFail := FCasterShadowPossiblyVisible and CalculateZFail;
 

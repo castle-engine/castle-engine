@@ -37,9 +37,9 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gamestatemenu.pas"/>
+        <Filename Value="code/gameviewmenu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gamestatemenu"/>
+        <UnitName Value="gameviewmenu"/>
       </Unit3>
       <Unit4>
         <Filename Value="code/gameachievements.pas"/>
@@ -47,9 +47,9 @@
         <UnitName Value="gameachievements"/>
       </Unit4>
       <Unit5>
-        <Filename Value="code/gamestateplay.pas"/>
+        <Filename Value="code/gameviewplay.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gamestateplay"/>
+        <UnitName Value="gameviewplay"/>
       </Unit5>
     </Units>
   </ProjectOptions>

@@ -9,6 +9,10 @@ pipeline {
        they stuck Jenkins much with too many long-running builds.
        Better to wait for previous build to finish. */
     disableConcurrentBuilds()
+    /* Makes failure in any paralel job to stop the build,
+       instead of needlessly trying to finish on one node,
+       when another node already failed. */
+    parallelsAlwaysFailFast()
   }
 
   /* This job works on a few agents in parallel */
@@ -142,11 +146,15 @@ pipeline {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
               }
             }
+            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+               TODO investigate and report.
+
             stage('(Docker) Build Using FpMake (FPC trunk)') {
               steps {
                 sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
               }
             }
+            */
 
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
@@ -319,7 +327,6 @@ pipeline {
           }
         }
         stage('Windows') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'windows-cge-builder'
           }
@@ -329,7 +336,7 @@ pipeline {
                According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
                this should be supported. */
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
-            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
+            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/;${WORKSPACE}/pasdoc/bin/" // Note: on Windows, PATH is separated by ;
           }
           stages {
             stage('(Windows) Info') {
@@ -346,6 +353,7 @@ pipeline {
               }
             }
             stage('(Windows) Build Tools') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'rm -Rf installed/'
                 sh 'mkdir -p installed/'
@@ -361,25 +369,43 @@ pipeline {
               }
             }
             stage('(Windows) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples'
               }
             }
             stage('(Windows) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(Windows) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
             }
-
-            /* Note that we don't pack_release on Windows.
-               The Windows releases are done by building on Linux already.
-               The purpose of this job is to just run tests on Windows.
-            */
+            stage('(Windows) Get PasDoc') {
+              steps {
+                /* remove older PasDoc versions, so that later "pasdoc-*-win64.zip"
+                   expands "pasdoc-*-win64.zip" only to one file.
+                   This matters when PasDoc version change, e.g. from 0.15.0 to 0.16.0. */
+                sh 'rm -f pasdoc-*-win64.zip'
+                /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
+                copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-win64.zip')
+                sh 'unzip pasdoc-*-win64.zip'
+              }
+            }
+            /* Pack Windows installer on Windows node.
+               Note that Windows zip is packed inside Docker (on Linux). */
+            stage('(Windows) Pack Windows Installer') {
+              steps {
+                copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
+                sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer'
+                archiveArtifacts artifacts: 'castle-engine-setup-*.exe'
+              }
+            }
           }
         }
       }

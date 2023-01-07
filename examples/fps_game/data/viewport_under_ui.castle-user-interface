@@ -1,5 +1,6 @@
 {
   "$$ClassName" : "TCastleViewport",
+  "Background" : "Background1",
   "Camera" : "Camera1",
   "FullSize" : true,
   "Items" : {
@@ -19,16 +20,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 1.1382386684417725E+000,
-          "X" : -4.5487079024314880E-001,
-          "Y" : -8.5462081432342529E-001,
-          "Z" : -2.5043129920959473E-001
+          "W" : 7.8281342983245850E-001,
+          "X" : 9.6000574529170990E-002,
+          "Y" : -9.9501889944076538E-001,
+          "Z" : 2.6857836171984673E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.4250272750854492E+001,
-          "Y" : 1.1434561729431152E+001,
-          "Z" : 8.2851734161376953E+000
+          "X" : -4.3228744506835938E+001,
+          "Y" : 2.1142101287841797E+001,
+          "Z" : -2.6395559310913086E+000
         }
       },
       {
@@ -50,12 +51,12 @@
         "$$ClassName" : "TCastleSpotLight",
         "ColorPersistent" : {
           "$$ClassName" : "TCastleColorRGBPersistent",
-          "Blue" : 9.9607843160629272E-001,
-          "Green" : 1.8039216101169586E-001,
-          "Red" : 9.4901961088180542E-001
+          "Blue" : 3.5294118523597717E-001,
+          "Green" : 4.0000000596046448E-001,
+          "Red" : 8.1960785388946533E-001
         },
         "CutOffAngle" : 6.9999998807907104E-001,
-        "Intensity" : 5.0000000000000000E+000,
+        "Intensity" : 2.0000000000000000E+000,
         "Name" : "SpotLight1",
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
@@ -64,18 +65,19 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -7.1100716590881348E+000,
-          "Y" : 8.3753566741943359E+000,
-          "Z" : -4.5426797866821289E-001
+          "X" : -1.8926712036132812E+001,
+          "Y" : 6.0554847717285156E+001,
+          "Z" : -9.7140522003173828E+000
         }
       },
       {
         "$$ClassName" : "TCastleSpotLight",
         "ColorPersistent" : {
           "$$ClassName" : "TCastleColorRGBPersistent",
-          "Blue" : 0.0000000000000000E+000,
-          "Green" : 0.0000000000000000E+000
+          "Blue" : 2.1568627655506134E-001,
+          "Green" : 7.6862746477127075E-001
         },
+        "Intensity" : 4.0000000000000000E+000,
         "Name" : "SpotLight2",
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
@@ -84,8 +86,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 1.7380359649658203E+001,
-          "Z" : 6.6070313453674316E+000
+          "X" : 2.7855476379394531E+001,
+          "Y" : 7.8319892883300781E+001,
+          "Z" : -4.5899536132812500E+001
         }
       },
       {
@@ -100,14 +103,14 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 1.7712974548339844E+000,
-          "Y" : -9.9999964237213135E-001
+          "W" : 4.3407556414604187E-001,
+          "Y" : -9.9998867511749268E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -5.6887664794921875E+000,
+          "X" : 2.3066809177398682E+000,
           "Y" : 4.6364626884460449E+000,
-          "Z" : -3.6920061111450195E+000
+          "Z" : -4.3033535003662109E+001
         },
         "URL" : "castle-data:/enemy/knight.gltf"
       },
@@ -123,20 +126,44 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 9.2083698511123657E-001,
-          "Y" : 9.9999815225601196E-001
+          "W" : 2.7770774364471436E+000,
+          "Y" : 9.9999910593032837E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -8.4147281646728516E+000,
+          "X" : 2.4724175930023193E+000,
           "Y" : 4.6364626884460449E+000,
-          "Z" : -3.6920061111450195E+000
+          "Z" : -3.8909599304199219E+001
         },
         "URL" : "castle-data:/enemy/knight.gltf"
       }
     ]
   },
   "Name" : "Viewport1",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleBackground",
+      "GroundEquatorColorPersistent" : {
+        "$$ClassName" : "TCastleColorRGBPersistent",
+        "Blue" : 2.9411765933036804E-001,
+        "Green" : 3.1372550129890442E-001,
+        "Red" : 3.7254902720451355E-001
+      },
+      "Name" : "Background1",
+      "SkyEquatorColorPersistent" : {
+        "$$ClassName" : "TCastleColorRGBPersistent",
+        "Blue" : 5.9215688705444336E-001,
+        "Green" : 6.1960786581039429E-001,
+        "Red" : 8.6666667461395264E-001
+      },
+      "SkyTopColorPersistent" : {
+        "$$ClassName" : "TCastleColorRGBPersistent",
+        "Blue" : 3.0980393290519714E-001,
+        "Green" : 6.3529413938522339E-001,
+        "Red" : 8.7450981140136719E-001
+      }
+    }
+  ],
   "InternalDesignCamera" : {
     "$$ClassName" : "TCastleCamera",
     "Name" : "",
@@ -148,26 +175,21 @@
     },
     "RotationPersistent" : {
       "$$ClassName" : "TCastleVector4Persistent",
-      "W" : 1.1382389068603516E+000,
-      "X" : -4.5487046241760254E-001,
-      "Y" : -8.5462093353271484E-001,
-      "Z" : -2.5043174624443054E-001
-    },
-    "ScalePersistent" : {
-      "$$ClassName" : "TCastleVector3Persistent",
-      "X" : 9.9999994039535522E-001,
-      "Y" : 9.9999994039535522E-001,
-      "Z" : 9.9999994039535522E-001
+      "W" : 7.8281342983245850E-001,
+      "X" : 9.6001923084259033E-002,
+      "Y" : -9.9501889944076538E-001,
+      "Z" : 2.6854570955038071E-002
     },
     "TranslationPersistent" : {
       "$$ClassName" : "TCastleVector3Persistent",
-      "X" : -1.4250272750854492E+001,
-      "Y" : 1.1434561729431152E+001,
-      "Z" : 8.2851734161376953E+000
+      "X" : -4.3228744506835938E+001,
+      "Y" : 2.1142101287841797E+001,
+      "Z" : -2.6395559310913086E+000
     }
   },
   "InternalDesignNavigations[dnFly]" : {
     "$$ClassName" : "TCastleWalkNavigationDesign",
+    "MoveSpeed" : 4.2986625671386719E+001,
     "Name" : ""
   },
   "InternalDesignNavigations[dnExamine]" : {

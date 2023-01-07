@@ -44,12 +44,81 @@ const
     deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
 
 type
+  TCastleControl = class;
+
+  { TCastleContainer that cooperates with TCastleControl. }
+  TCastleControlContainer = class(TCastleContainer)
+  strict private
+    FDesignUrl: String;
+    FDesignLoaded: TCastleUserInterface;
+    FDesignLoadedOwner: TComponent;
+    procedure SetDesignUrl(const Value: String);
+    procedure LoadDesign;
+  private
+    Parent: TCastleControl;
+    procedure UnLoadDesign;
+  protected
+    function GetMousePosition: TVector2; override;
+    procedure SetMousePosition(const Value: TVector2); override;
+  public
+    constructor Create(AParent: TCastleControl); reintroduce;
+    procedure Invalidate; override;
+    function GLInitialized: boolean; override;
+    function Width: Integer; override;
+    function Height: Integer; override;
+    procedure SetInternalCursor(const Value: TMouseCursor); override;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+    function Dpi: Single; override;
+
+    procedure EventOpen(const OpenWindowsCount: Cardinal); override;
+    procedure EventClose(const OpenWindowsCount: Cardinal); override;
+    function EventPress(const Event: TInputPressRelease): boolean; override;
+    function EventRelease(const Event: TInputPressRelease): boolean; override;
+    procedure EventUpdate; override;
+    procedure EventMotion(const Event: TInputMotion); override;
+    procedure EventBeforeRender; override;
+    procedure EventRender; override;
+    procedure EventResize; override;
+  public
+    { When the DesignUrl is set you can use this method to find
+      loaded components. Like this:
+
+      @longCode(#
+      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
+      #)
+
+      When the name is not found, raises exception (unless Required is @false,
+      then it returns @nil).
+
+      @seealso DesignUrl }
+    function DesignedComponent(const ComponentName: String;
+      const Required: Boolean = true): TComponent;
+  published
+    { Load and show the design (.castle-user-interface file).
+      You can reference the loaded components by name using @link(DesignedComponent).
+
+      If you have more complicated control flow,
+      we recommend to leave this property empty, and split your management
+      into a number of states (TCastleView) instead.
+      In this case, load design using TCastleView.DesignUrl.
+      This property makes it however easy to use .castle-user-interface
+      in simple cases, when TCastleControl just shows one UI.
+
+      The design loaded here is visible also at design-time,
+      when editing the form in Lazarus/Delphi.
+      Though we have no way to edit it now in Lazarus/Delphi (you have to use CGE editor
+      to edit the design), so it is just a preview in this case.
+
+      See https://castle-engine.io/control_on_form for documentation how to use TCastleControl. }
+    property DesignUrl: String read FDesignUrl write SetDesignUrl;
+  end;
+
   { Control to render everything (3D or 2D) with Castle Game Engine.
 
     See https://castle-engine.io/control_on_form for a documentation
     how to use this.
 
-    You can use this with TUIState, following https://castle-engine.io/control_on_form instructions.
+    You can use this with TCastleView, following https://castle-engine.io/control_on_form instructions.
     In this case, all user interface creation and event handling should
     be inside some state.
 
@@ -67,56 +136,23 @@ type
     within the same application. }
   TCastleControl = class(TCustomOpenGLControl)
   strict private
-    type
-      { Non-abstract implementation of TCastleContainer that cooperates with
-        TCastleControl. }
-      TContainer = class(TCastleContainer)
-      private
-        Parent: TCastleControl;
-      protected
-        function GetMousePosition: TVector2; override;
-        procedure SetMousePosition(const Value: TVector2); override;
-      public
-        constructor Create(AParent: TCastleControl); reintroduce;
-        procedure Invalidate; override;
-        function GLInitialized: boolean; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
-        procedure SetInternalCursor(const Value: TMouseCursor); override;
-        function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
-        function Dpi: Single; override;
-
-        procedure EventOpen(const OpenWindowsCount: Cardinal); override;
-        procedure EventClose(const OpenWindowsCount: Cardinal); override;
-        function EventPress(const Event: TInputPressRelease): boolean; override;
-        function EventRelease(const Event: TInputPressRelease): boolean; override;
-        procedure EventUpdate; override;
-        procedure EventMotion(const Event: TInputMotion); override;
-        procedure EventBeforeRender; override;
-        procedure EventRender; override;
-        procedure EventResize; override;
-      end;
-    var
-      FContainer: TContainer;
-      FMousePosition: TVector2;
-      FGLInitialized: boolean;
-      FAutoRedisplay: boolean;
-      { manually track when we need to be repainted, useful for AggressiveUpdate }
-      Invalidated: boolean;
-      FOnOpen: TNotifyEvent;
-      FOnBeforeRender: TNotifyEvent;
-      FOnRender: TNotifyEvent;
-      FOnResize: TNotifyEvent;
-      FOnClose: TNotifyEvent;
-      FOnPress: TControlInputPressReleaseEvent;
-      FOnRelease: TControlInputPressReleaseEvent;
-      FOnMotion: TControlInputMotionEvent;
-      FOnUpdate: TNotifyEvent;
-      FKeyPressHandler: TLCLKeyPressHandler;
-      FDesignUrl: String;
-      FDesignLoaded: TCastleUserInterface;
-      FDesignLoadedOwner: TComponent;
-      FAutoFocus: Boolean;
+    FContainer: TCastleControlContainer;
+    FMousePosition: TVector2;
+    FGLInitialized: boolean;
+    FAutoRedisplay: boolean;
+    { manually track when we need to be repainted, useful for AggressiveUpdate }
+    Invalidated: boolean;
+    FOnOpen: TNotifyEvent;
+    FOnBeforeRender: TNotifyEvent;
+    FOnRender: TNotifyEvent;
+    FOnResize: TNotifyEvent;
+    FOnClose: TNotifyEvent;
+    FOnPress: TControlInputPressReleaseEvent;
+    FOnRelease: TControlInputPressReleaseEvent;
+    FOnMotion: TControlInputMotionEvent;
+    FOnUpdate: TNotifyEvent;
+    FKeyPressHandler: TLCLKeyPressHandler;
+    FAutoFocus: Boolean;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -133,9 +169,8 @@ type
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
+    function GetDesignUrl: String;
     procedure SetDesignUrl(const Value: String);
-    procedure LoadDesign;
-    procedure UnLoadDesign;
 
     { Force DoUpdate and Paint (if invalidated) events to happen,
       if sufficient time (based on LimitFPS, that in this case acts like
@@ -228,9 +263,16 @@ type
     property GLInitialized: boolean read FGLInitialized;
   public
     class var
-      { Central control where user-interface states (TUIState) are added.
-        You do not need to set this if you don't use TUIState. }
-      MainControl: TCastleControl;
+      { Central control.
+
+        This is only important now if you use deprecated way of setting TCastleView,
+        using class properties/methods TUIState.Current, TUIState.Push.
+        If instead you use new way of setting TCastleView,
+        using container properties/methods TCastleContainer.Current, TCastleContainer.Push,
+        then this value isn't useful.
+
+        This means that in new applications, you probably have no need to set this value. }
+      MainControl: TCastleControl deprecated 'this should no longer be useful, if you change views using MyControl.Container.View := .. or MyControl.Container.PushView(...)';
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -278,15 +320,8 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { When the DesignUrl is set you can use this method to find
-      loaded components. Like this:
-
-      @longCode(#
-      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
-      #)
-
-      @seealso DesignUrl }
     function DesignedComponent(const ComponentName: String): TComponent;
+      deprecated 'use Container.DesignedComponent';
 
     { Be cafeful about comments in the published section.
       They are picked up and shown automatically by Lazarus Object Inspector,
@@ -360,7 +395,9 @@ type
       or FormXxx.ActiveControl or register OnEnter / OnExit LCL events. }
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus default false;
 
-    property Container: TContainer read FContainer;
+    { Access Castle Game Engine container properties and events,
+      not specific for Lazarus LCL. }
+    property Container: TCastleControlContainer read FContainer;
 
     { Event called when the OpenGL context is created.
 
@@ -514,8 +551,8 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TUIState) instead.
-      In this case, load design using TUIState.DesignUrl.
+      into a number of states (TCastleView) instead.
+      In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
 
@@ -523,7 +560,8 @@ type
       when editing the form in Lazarus/Delphi.
       Though we have to way to edit it now in Lazarus/Delphi (you have to use CGE editor
       to edit the design), so it is just a preview in this case. }
-    property DesignUrl: String read FDesignUrl write SetDesignUrl;
+    property DesignUrl: String read GetDesignUrl write SetDesignUrl stored false;
+      deprecated 'use Container.DesignUrl';
   end;
 
   TCastleControlCustom = TCastleControl deprecated 'use TCastleControl';
@@ -681,45 +719,140 @@ end;
 var
   ApplicationIdleSet: boolean;
 
-{ TCastleControl.TContainer ----------------------------------------------------- }
+{ TCastleControlContainer ---------------------------------------------------- }
 
-constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
+procedure TCastleControlContainer.LoadDesign;
+
+{ Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
+  methods in TCastleView. Here they are much simplified, as we have no concept
+  of "started" / "stopped", so no DesignPreload too. }
+
+var
+  OldCastleApplicationMode: TCastleApplicationMode;
+begin
+  if DesignUrl <> '' then
+  begin
+    { Make sure InternalCastleApplicationMode is correct, to
+      - not e.g. do physics in Lazarus/Delphi form designer.
+      - not show design-time stuff in DesignUrl loaded in CGE editor "help->system information".
+
+      Note that we restore later InternalCastleApplicationMode.
+      This way we avoid changing InternalCastleApplicationMode for future loads,
+      when TCastleControl is used inside castle-editor.
+      Testcase:
+        in CGE editor:
+        - open tools/castle-editor project
+        - double click on demo design in data/demo_animation/
+        - open help->system information (this uses TCastleControl too, with DesignUrl assigned)
+        - close help->system information
+        - close design
+        - reopen design
+    }
+    OldCastleApplicationMode := InternalCastleApplicationMode;
+    try
+      if csDesigning in ComponentState then
+        InternalCastleApplicationMode := appDesign
+      else
+        InternalCastleApplicationMode := appRunning;
+      FixApplicationDataInIDE; // in case DesignUrl uses castle-data: protocol, which is most often the case
+
+      FDesignLoadedOwner := TComponent.Create(nil);
+      try
+        FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
+        {$ifdef HAS_RENDER_AT_DESIGN_TIME}
+        Parent.Options := Parent.Options + [ocoRenderAtDesignTime];
+        {$endif}
+      except
+        { If loading design file failed, and we're inside form designer,
+          merely report a warning. This allows deserializing LFMs with broken URLs. }
+        on E: Exception do
+        begin
+          if CastleDesignMode then // looks at InternalCastleApplicationMode
+          begin
+            WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
+              URIDisplay(DesignUrl),
+              ExceptMessage(E)
+            ]);
+            Exit;
+          end else
+            raise;
+        end;
+      end;
+      Controls.InsertFront(FDesignLoaded);
+    finally
+      InternalCastleApplicationMode := OldCastleApplicationMode;
+    end;
+  end;
+end;
+
+procedure TCastleControlContainer.UnLoadDesign;
+begin
+  FreeAndNil(FDesignLoadedOwner);
+  FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
+end;
+
+procedure TCastleControlContainer.SetDesignUrl(const Value: String);
+begin
+  if FDesignUrl <> Value then
+  begin
+    UnLoadDesign;
+    FDesignUrl := Value;
+    LoadDesign;
+  end;
+end;
+
+function TCastleControlContainer.DesignedComponent(const ComponentName: String;
+  const Required: Boolean = true): TComponent;
+begin
+  if FDesignLoaded <> nil then
+    Result := FDesignLoadedOwner.FindComponent(ComponentName)
+  else
+    Result := nil;
+
+  if Required and (Result = nil) then
+    raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
+      ComponentName,
+      URIDisplay(DesignUrl)
+    ]);
+end;
+
+constructor TCastleControlContainer.Create(AParent: TCastleControl);
 begin
   inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.Invalidate;
+procedure TCastleControlContainer.Invalidate;
 begin
   Parent.Invalidate;
 end;
 
-function TCastleControl.TContainer.GLInitialized: boolean;
+function TCastleControlContainer.GLInitialized: boolean;
 begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleControl.TContainer.Width: Integer;
+function TCastleControlContainer.Width: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControlContainer.Height: Integer;
 begin
   Result := Parent.Height;
 end;
 
-function TCastleControl.TContainer.GetMousePosition: TVector2;
+function TCastleControlContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
 end;
 
-procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
+procedure TCastleControlContainer.SetMousePosition(const Value: TVector2);
 begin
   Parent.MousePosition := Value;
 end;
 
-procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
+procedure TCastleControlContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin
@@ -733,7 +866,7 @@ begin
     Parent.Cursor := NewCursor;
 end;
 
-function TCastleControl.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+function TCastleControlContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   if Parent.MakeCurrent then
   begin
@@ -743,78 +876,78 @@ begin
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
 end;
 
-function TCastleControl.TContainer.Dpi: Single;
+function TCastleControlContainer.Dpi: Single;
 begin
   Result := Screen.PixelsPerInch;
 end;
 
-procedure TCastleControl.TContainer.EventOpen(const OpenWindowsCount: Cardinal);
+procedure TCastleControlContainer.EventOpen(const OpenWindowsCount: Cardinal);
 begin
   inherited;
-  if Assigned(Parent.FOnOpen) then
-    Parent.FOnOpen(Parent);
+  if Assigned(Parent.OnOpen) then
+    Parent.OnOpen(Parent);
 end;
 
-procedure TCastleControl.TContainer.EventClose(const OpenWindowsCount: Cardinal);
+procedure TCastleControlContainer.EventClose(const OpenWindowsCount: Cardinal);
 begin
-  if Assigned(Parent.FOnClose) then
-    Parent.FOnClose(Parent);
+  if Assigned(Parent.OnClose) then
+    Parent.OnClose(Parent);
   inherited;
 end;
 
-function TCastleControl.TContainer.EventPress(const Event: TInputPressRelease): boolean;
+function TCastleControlContainer.EventPress(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if (not Result) and Assigned(Parent.FOnPress) then
+  if (not Result) and Assigned(Parent.OnPress) then
   begin
-    Parent.FOnPress(Parent, Event);
+    Parent.OnPress(Parent, Event);
     Result := true;
   end;
 end;
 
-function TCastleControl.TContainer.EventRelease(const Event: TInputPressRelease): boolean;
+function TCastleControlContainer.EventRelease(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if (not Result) and Assigned(Parent.FOnRelease) then
+  if (not Result) and Assigned(Parent.OnRelease) then
   begin
-    Parent.FOnRelease(Parent, Event);
+    Parent.OnRelease(Parent, Event);
     Result := true;
   end;
 end;
 
-procedure TCastleControl.TContainer.EventUpdate;
+procedure TCastleControlContainer.EventUpdate;
 begin
   inherited;
-  if Assigned(Parent.FOnUpdate) then
-    Parent.FOnUpdate(Parent);
+  if Assigned(Parent.OnUpdate) then
+    Parent.OnUpdate(Parent);
 end;
 
-procedure TCastleControl.TContainer.EventMotion(const Event: TInputMotion);
+procedure TCastleControlContainer.EventMotion(const Event: TInputMotion);
 begin
   inherited;
-  if Assigned(Parent.FOnMotion) then
-    Parent.FOnMotion(Parent, Event);
+  if Assigned(Parent.OnMotion) then
+    Parent.OnMotion(Parent, Event);
 end;
 
-procedure TCastleControl.TContainer.EventBeforeRender;
+procedure TCastleControlContainer.EventBeforeRender;
 begin
   inherited;
-  if Assigned(Parent.FOnBeforeRender) then
-    Parent.FOnBeforeRender(Parent);
+  if Assigned(Parent.OnBeforeRender) then
+    Parent.OnBeforeRender(Parent);
 end;
 
-procedure TCastleControl.TContainer.EventRender;
+procedure TCastleControlContainer.EventRender;
 begin
   inherited;
-  if Assigned(Parent.FOnRender) then
-    Parent.FOnRender(Parent);
+  if Assigned(Parent.OnRender) then
+    Parent.OnRender(Parent);
 end;
 
-procedure TCastleControl.TContainer.EventResize;
+procedure TCastleControlContainer.EventResize;
 begin
   inherited;
-  if Assigned(Parent.FOnResize) then
-    Parent.FOnResize(Parent);
+  if Assigned(Parent.OnResize) then
+    Parent.OnResize(Parent);
 end;
 
 { TCastleControl -------------------------------------------------- }
@@ -828,13 +961,16 @@ begin
   FKeyPressHandler.OnPress := @KeyPressHandlerPress;
   StencilBits := DefaultStencilBits;
 
-  FContainer := TContainer.Create(Self);
+  FContainer := TCastleControlContainer.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
     so no troubles) are necessary to store it in LFM and display in object inspector
     nicely. }
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
+  // TODO: what if ControlsList[0] was created but it not active?
+  // Does this maybe explain crash with docked editor?
+  // TODO: Or is it because we never remove from ControlsList?
   if ControlsList.Count <> 0 then
     SharedControl := ControlsList[0] as TCastleControl;
   ControlsList.Add(Self);
@@ -852,7 +988,7 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
-  UnLoadDesign;
+  Container.UnLoadDesign;
 
   if ApplicationIdleSet and
      (ControlsList <> nil) and
@@ -1169,7 +1305,7 @@ begin
     // change FMousePosition *after* EventMotion, callbacks may depend on it
     FMousePosition := Vector2(NewX, Height - 1 - NewY);
 
-    UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+    UpdateShiftState(Shift);
     AggressiveUpdate;
   end;
 
@@ -1295,6 +1431,12 @@ begin
   Result := Container.Rect;
 end;
 
+function TCastleControl.DesignedComponent(const ComponentName: String
+  ): TComponent;
+begin
+  Result := Container.DesignedComponent(ComponentName);
+end;
+
 function TCastleControl.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
@@ -1302,102 +1444,22 @@ end;
 
 class function TCastleControl.GetMainContainer: TCastleContainer;
 begin
+  {$warnings off} // using MainControl just to keep it working
   if MainControl <> nil then
     Result := MainControl.Container
   else
     Result := nil;
+  {$warnings on}
 end;
 
-procedure TCastleControl.LoadDesign;
-
-{ Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
-  methods in TUIState. Here they are much simplified, as we have no concept
-  of "started" / "stopped", so no DesignPreload too. }
-
-var
-  OldCastleApplicationMode: TCastleApplicationMode;
+function TCastleControl.GetDesignUrl: String;
 begin
-  if DesignUrl <> '' then
-  begin
-    { Make sure InternalCastleApplicationMode is correct, to
-      - not e.g. do physics in Lazarus/Delphi form designer.
-      - not show design-time stuff in DesignUrl loaded in CGE editor "help->system information".
-
-      Note that we restore later InternalCastleApplicationMode.
-      This way we avoid changing InternalCastleApplicationMode for future loads,
-      when TCastleControl is used inside castle-editor.
-      Testcase:
-        in CGE editor:
-        - open tools/castle-editor project
-        - double click on demo design in data/demo_animation/
-        - open help->system information (this uses TCastleControl too, with DesignUrl assigned)
-        - close help->system information
-        - close design
-        - reopen design
-    }
-    OldCastleApplicationMode := InternalCastleApplicationMode;
-    try
-      if csDesigning in ComponentState then
-        InternalCastleApplicationMode := appDesign
-      else
-        InternalCastleApplicationMode := appRunning;
-      FixApplicationDataInIDE; // in case DesignUrl uses castle-data: protocol, which is most often the case
-
-      FDesignLoadedOwner := TComponent.Create(nil);
-      try
-        FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
-        {$ifdef HAS_RENDER_AT_DESIGN_TIME}
-        Options := Options + [ocoRenderAtDesignTime];
-        {$endif}
-      except
-        { If loading design file failed, and we're inside form designer,
-          merely report a warning. This allows deserializing LFMs with broken URLs. }
-        on E: Exception do
-        begin
-          if CastleDesignMode then // looks at InternalCastleApplicationMode
-          begin
-            WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
-              ExceptMessage(E)
-            ]);
-            Exit;
-          end else
-            raise;
-        end;
-      end;
-      Controls.InsertFront(FDesignLoaded);
-    finally
-      InternalCastleApplicationMode := OldCastleApplicationMode;
-    end;
-  end;
-end;
-
-procedure TCastleControl.UnLoadDesign;
-begin
-  FreeAndNil(FDesignLoadedOwner);
-  FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
+  Result := Container.DesignUrl;
 end;
 
 procedure TCastleControl.SetDesignUrl(const Value: String);
 begin
-  if FDesignUrl <> Value then
-  begin
-    UnLoadDesign;
-    FDesignUrl := Value;
-    LoadDesign;
-  end;
-end;
-
-procedure ErrorDesignLoaded;
-begin
-  raise Exception.Create('TCastleControl.DesignedComponent can only be used if the desing was loaded, which means that TCastleControl.DesignUrl is not empty');
-end;
-
-function TCastleControl.DesignedComponent(const ComponentName: String): TComponent;
-begin
-  if FDesignLoaded = nil then
-    ErrorDesignLoaded;
-  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+  Container.DesignUrl := Value;
 end;
 
 { TLCLClipboard ----------------------------------------------------------- }

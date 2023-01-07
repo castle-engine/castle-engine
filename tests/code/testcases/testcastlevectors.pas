@@ -60,6 +60,7 @@ type
     procedure TestEpsilonInModelViewToNormalMatrix;
     procedure TestInit;
     procedure TestRotationZeroAxis;
+    procedure TestVectorsList;
   end;
 
 function RandomVector: TVector3;
@@ -1176,6 +1177,89 @@ begin
   AssertMatrixEquals(T.InverseTransform, TMatrix4.Identity);
   AssertSameValue(1, T.Scale);
   AssertTrue(T.UniformScale);
+end;
+
+procedure TTestCastleVectors.TestVectorsList;
+
+{ This test is similar to TTestGenericsCollections.TestVectorsList,
+  but now using TVector2 instead of TMyVector. }
+
+var
+  List: TVector2List;
+  R1, R2, R: TVector2;
+begin
+  List := TVector2List.Create;
+  try
+    R1.X := 11;
+    R1.Y := 22;
+    List.Add(R1);
+
+    R2.X := 33;
+    R2.Y := 44;
+    List.Add(R2);
+
+    R2.X := 33;
+    R2.Y := 44;
+    List.Add(R2);
+
+    AssertEquals(3, List.Count);
+    AssertEquals(11, List[0].X);
+    AssertEquals(22, List[0].Y);
+    AssertEquals(33, List[1].X);
+    AssertEquals(44, List[1].Y);
+    AssertEquals(33, List[2].X);
+    AssertEquals(44, List[2].Y);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    AssertEquals(11, List[0].X);
+    AssertEquals(22, List[0].Y);
+    AssertEquals(33, List[1].X);
+    AssertEquals(44, List[1].Y);
+
+    { This test fails on FPC 3.3.1 from 2022-12-27.
+      It worked for FPC 3.3.1 from 2022-07-28.
+      It also worked in FPC 3.2.0.
+
+      Submitted as https://gitlab.com/freepascal.org/fpc/source/-/issues/40074 .
+    }
+    {$ifndef VER3_3}
+
+    AssertEquals(0, List.IndexOf(R1));
+    AssertEquals(1, List.IndexOf(R2));
+
+    // change R1 and R2, to make sure it doesn't matter for tests
+    R1.X := 111111;
+    R1.Y := 222222;
+    R2.X := 333333;
+    R2.Y := 444444;
+    AssertEquals(-1, List.IndexOf(R1));
+    AssertEquals(-1, List.IndexOf(R2));
+
+    R.X := 11;
+    R.Y := 22;
+    AssertEquals(0, List.IndexOf(R));
+
+    R.X := 33;
+    R.Y := 44;
+    AssertEquals(1, List.IndexOf(R));
+
+    R.X := 11;
+    R.Y := 22;
+    List.Remove(R);
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0].X);
+    AssertEquals(44, List[0].Y);
+
+    R.X := 666;
+    R.Y := 22;
+    List.Remove(R); // does nothing, no such item
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0].X);
+    AssertEquals(44, List[0].Y);
+    {$endif}
+  finally FreeAndNil(List) end;
 end;
 
 initialization

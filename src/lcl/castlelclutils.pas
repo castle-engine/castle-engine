@@ -82,14 +82,10 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   out LazKey: Word; out Shift: TShiftState);
 { @groupEnd }
 
-{ Convert Lazarus Controls.TMouseButton value to Castle Game Engine
-  CastleKeysMouse.TCastleMouseButton.
-
-  (By coincidence, my type name and values are the same as used by LCL;
-  but beware --- the order of values in my type is different (buttonMiddle
-  is in the middle in my type)). }
+{ Convert Lazarus TMouseButton value to Castle Game Engine
+  TCastleMouseButton. }
 function MouseButtonLCLToCastle(
-  const MouseButton: Controls.TMouseButton;
+  const MouseButton: TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
 { Convert CGE to LCL cursor type. }

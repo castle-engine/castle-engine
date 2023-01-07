@@ -12,6 +12,7 @@ uses
   castle_components, OpenGLInformation, consolef;
 
 begin
+  Application.Title := 'Castle Game Engine - Lazarus Model Viewer';
   Application.Initialize;
   Application.CreateForm(TMain, Main);
   Application.Run;

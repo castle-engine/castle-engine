@@ -83,7 +83,8 @@ begin
 
   if Gizmo <> nil then
   begin
-    Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_directional.png');
+    if InternalCastleDesignData <> '' then
+      Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_directional.png');
     Gizmo.LoadVisualization(BuildGizmo);
   end;
 

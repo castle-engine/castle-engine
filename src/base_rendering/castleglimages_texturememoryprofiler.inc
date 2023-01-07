@@ -238,7 +238,7 @@ begin
     [Result, Image.Size, Result / Image.Size]));}
 end;
 
-function AllocatedTexturesSort({$ifdef FPC}constref{$else}const{$endif} Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
+function AllocatedTexturesSort({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
 begin
   Result := Value2.Size - Value1.Size;
 end;

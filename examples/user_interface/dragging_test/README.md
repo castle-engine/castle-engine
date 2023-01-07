@@ -1,6 +1,6 @@
 Test two approaches to implement dragging in CGE:
 
-1. Just watch Motion events (e.g. by overriding TUIState.Motion),
+1. Just watch Motion events (e.g. by overriding TCastleView.Motion),
    and subtract `new mouse position - old mouse position`.
 
    This is simple, and makes sense if

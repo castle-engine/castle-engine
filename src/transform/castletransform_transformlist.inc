@@ -29,6 +29,12 @@
     { TCastleTransform instance that owns this list.
       May be @nil, for example when this list is used by TRayCollision. }
     property Owner: TCastleTransform read FOwner;
+
+    { Sort objects back-to-front @italic(right now)
+      following one of the blending sorting algorithms.
+      See @link(TCastleTransform.SortBackToFront) for description. }
+    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+      const CameraPosition: TVector3);
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
@@ -40,6 +46,48 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ utilities for TCastleTransformList.SortBackToFront ------------------------- }
+
+function CompareBackToFront2D(A, B: Pointer): Integer;
+begin
+  Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
+end;
+
+var
+  { Has to be global, since TObjectList.Sort
+    requires normal function (not "of object"). }
+  SortCameraPosition: TVector3;
+
+function CompareBackToFront3DBox(A, B: Pointer): Integer;
+begin
+  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
+    SortCameraPosition);
+end;
+
+function CompareBackToFront3DOrigin(A, B: Pointer): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := TCastleTransform(A).Translation;
+  PointB := TCastleTransform(B).Translation;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortCameraPosition) -
+    PointsDistanceSqr(PointA, SortCameraPosition));
+end;
+
+function CompareBackToFront3DGround(A, B: Pointer): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := TCastleTransform(A).Translation;
+  PointB := TCastleTransform(B).Translation;
+  PointA.Y := 0;
+  PointB.Y := 0;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortCameraPosition) -
+    PointsDistanceSqr(PointA, SortCameraPosition));
+end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
@@ -84,6 +132,30 @@ end;
 function TCastleTransformList.Last: TCastleTransform;
 begin
   Result := (inherited Last) as TCastleTransform;
+end;
+
+procedure TCastleTransformList.SortBackToFront(const BlendingSort: TBlendingSort;
+  const CameraPosition: TVector3);
+begin
+  case BlendingSort of
+    bs2D: Sort(@CompareBackToFront2D);
+    bs3D:
+      begin
+        SortCameraPosition := CameraPosition;
+        Sort(@CompareBackToFront3DBox);
+      end;
+    bs3DOrigin:
+      begin
+        SortCameraPosition := CameraPosition;
+        Sort(@CompareBackToFront3DOrigin);
+      end;
+    bs3DGround:
+      begin
+        SortCameraPosition := CameraPosition;
+        Sort(@CompareBackToFront3DGround);
+      end;
+    else ;
+  end;
 end;
 
 {$endif read_implementation}

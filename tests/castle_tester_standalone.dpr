@@ -27,11 +27,10 @@ var
 begin
   if Parameters.IndexOf('--console') = -1 then
   begin
-    if Application.MainWindow <> nil then
-      Application.MainWindow.OpenAndRun;
+    Application.MainWindow.OpenAndRun;
   end else
   begin
-    { Avoid warnings that opening files too early. }
+    { Avoid warnings about opening files too early. }
     ApplicationProperties._FileAccessSafe := true;
     ConsoleTester := TCastleConsoleTester.Create;
     try

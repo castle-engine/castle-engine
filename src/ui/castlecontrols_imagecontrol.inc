@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -456,11 +456,9 @@ end;
 procedure TCastleImageControl.Render;
 begin
   inherited;
-  FContent.OnChange := nil;
-  FContent.ScaleCorners := UIScale;
-  FContent.InternalVisualizeProtectedSides := Stretch;
+  FContent.DrawUiBegin(UIScale);
   FContent.Draw(RenderRect);
-  FContent.OnChange := {$ifdef FPC}@{$endif}ContentChanged;
+  FContent.DrawUiEnd;
 end;
 
 procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);

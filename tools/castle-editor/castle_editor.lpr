@@ -47,6 +47,8 @@ uses
   CastleComponentEditorDesigner, DesignCameraPreview, DesignObjectInspector,
   DesignUndoSystem;
 
+{$I request_dedicated_gpu.inc}
+
 {$R *.res}
 
 { Do not auto-create below forms that use TCastleControl, and would initialize OpenGL

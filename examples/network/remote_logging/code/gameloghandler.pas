@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -81,9 +81,18 @@ begin
 
   InsideLogCallback := true;
   try
-    // We use TrimRight to strip traling newline
-    SendMessage := ApplicationName + '[' + IntToStr(ProcessId) + '] ' + TrimRight(Message);
-    HttpPost('https://castle-engine.io/cge_logger.php', 'message', SendMessage);
+    try
+      // We use TrimRight to strip traling newline
+      SendMessage := ApplicationName + '[' + IntToStr(ProcessId) + '] ' + TrimRight(Message);
+      HttpPost('https://castle-engine.io/cge_logger.php', 'message', SendMessage);
+    except
+      { Catch exception, like
+          EInOutError: Could not initialize OpenSSL library
+        (easily possible on Linux with FPC < 3.3.1 due to libssl incompatibility).
+        Display it as nice warning, instead of crashing application. }
+      on E: Exception do
+        WritelnWarning('Sending log remotely failed: ' + ExceptMessage(E));
+    end;
   finally InsideLogCallback := false end;
 end;
 

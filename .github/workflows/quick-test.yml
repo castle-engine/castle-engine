@@ -19,14 +19,10 @@ jobs:
     name: Quick Test of Tools
     strategy:
       matrix:
-        # TODO: Not including windows-latest, as it fails:
-        # ./tools/build-tool/castle-engine_compile.sh: line 43: fpc: command not found
-        # Looks like https://github.com/gcarreno/setup-lazarus doesn't put FPC on $PATH on Windows?
-        #
         # Not using macos-latest as it randomly fails because of timeouts
         # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
         # Looks like GH hosted macOS runner is just too busy.
-        operating-system: [ubuntu-latest]
+        operating-system: [ubuntu-latest, windows-latest]
         lazarus-versions: [stable]
     runs-on: ${{ matrix.operating-system }}
     steps:
@@ -35,6 +31,9 @@ jobs:
         uses: gcarreno/setup-lazarus@v3.1.1
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
+          # Cache makes Windows jobs fail (they timeout),
+          # documented as TODO on https://github.com/marketplace/actions/setup-lazarus-environment .
+          with-cache: false
       - name: Install Ubuntu dependencies
         if: ${{ matrix.operating-system == 'ubuntu-latest' }}
         run: sudo apt-get --no-install-recommends -y install libgl-dev
@@ -43,8 +42,13 @@ jobs:
         run: brew install gnu-sed coreutils
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Build Tool
+      - name: Build Tool (Unix)
+        if: ${{ matrix.operating-system == 'ubuntu-latest' || matrix.operating-system == 'macos-latest' }}
         run: ./tools/build-tool/castle-engine_compile.sh
+      - name: Build Tool (Windows)
+        if: ${{ matrix.operating-system == 'windows-latest' }}
+        shell: pwsh
+        run: ./tools/build-tool/castle-engine_compile.ps1
       - name: Build Editor
         run: ./tools/build-tool/castle-engine compile --project ./tools/castle-editor/
       - name: Build FPS Game

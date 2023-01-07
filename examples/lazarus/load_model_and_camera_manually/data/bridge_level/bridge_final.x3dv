@@ -1,38 +1,6 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-NavigationInfo {
-	#headlight FALSE
-	type ["WALK", "ANY"]
-        # leave default avatarSize, as our model tries to be adjusted to that,
-        # approx 1 unit = 1 meter, with player height = 1.75 meters
-        speed 5
-}
-
-# Camera settings "encoded" in the VRML declaration below :
-# direction 0.9622886776924133 0.0329807139933109 -0.2700241208076477
-# up -0.0317542664706707 0.9994559288024902 0.008910440839827
-# gravityUp 0 1 0
-Viewpoint {
-  position -46.300395965576172 -4.4862656593322754 4.8882923126220703
-  orientation 0.0217522922903299 -0.9996275305747985 0.0164888687431812 1.2975844144821167
-}
-
-# Test light for shadows.
-# SpotLight {
-#   color 1 1 0.5
-# #  beamWidth 0.9
-#   cutOffAngle 1
-#   direction -0 -1 0
-#   location -25 10 0
-#   defaultShadowMap GeneratedShadowMap {
-#     update "ALWAYS"
-#     size 1024
-#     scale 4
-#   }
-#   shadows TRUE
-# }
-
 KambiInline {
   url "bridge.x3d"
 

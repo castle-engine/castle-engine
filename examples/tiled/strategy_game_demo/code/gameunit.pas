@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -254,8 +254,8 @@ begin
 
     R := UnitsOnMap.MapControl.TileRectangle(TilePosition, false);
     R := R.CenterInside(Ui.EffectiveWidth, Ui.EffectiveHeight);
-    Ui.Left := R.Left;
-    Ui.Bottom := R.Bottom;
+    Ui.Anchor(hpLeft, R.Left);
+    Ui.Anchor(vpBottom, R.Bottom);
     Ui.Exists := true;
   end;
 end;

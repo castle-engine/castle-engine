@@ -2292,12 +2292,14 @@ begin
     ( B.IsEmpty or
       ( PointsDistanceSqr(A.Center, SortPosition) >
         PointsDistanceSqr(B.Center, SortPosition))) then
-    Result := -1 else
+    Result := -1
+  else
   if (not B.IsEmpty) and
     ( A.IsEmpty or
       ( PointsDistanceSqr(B.Center, SortPosition) >
         PointsDistanceSqr(A.Center, SortPosition))) then
-    Result :=  1 else
+    Result :=  1
+  else
     Result :=  0;
 end;
 

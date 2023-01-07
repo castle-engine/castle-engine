@@ -1,0 +1,113 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.0000000745058060E-002,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 8.0000001192092896E-001
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl2",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleImageControl",
+          "Content" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Alpha" : 3.4999999403953552E-001,
+              "Blue" : 0.0000000000000000E+000,
+              "Green" : 8.0000001192092896E-001
+            },
+            "URL" : "castle-data:/hud/viniette01.png"
+          },
+          "FullSize" : true,
+          "Height" : 1.0800000000000000E+003,
+          "Name" : "ImageControl3",
+          "Stretch" : true,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 6.0000000000000000E+002
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "Alignment" : "hpMiddle",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 8.0392158031463623E-001,
+        "Green" : 8.9019608497619629E-001,
+        "Red" : 8.9411765336990356E-001
+      },
+      "CustomFont" : "UrbanistBlack",
+      "FontSize" : 8.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Label1",
+      "Text" : [
+        "YOU HAVE SAVED",
+        "THE PRINCESS!"
+      ],
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "UrbanistBlack",
+          "OptimalSize" : 50,
+          "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Black.otf"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleButton",
+      "AutoSize" : false,
+      "AutoSizeHeight" : false,
+      "AutoSizeWidth" : false,
+      "Caption" : "BACK TO MENU",
+      "CustomBackground" : true,
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
+      },
+      "CustomTextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 8.0392158031463623E-001,
+        "Green" : 8.9019608497619629E-001,
+        "Red" : 8.9411765336990356E-001
+      },
+      "CustomTextColorUse" : true,
+      "FontSize" : 2.8000000000000000E+001,
+      "Height" : 1.1000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonBack",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -5.0000000000000000E+000,
+        "Y" : 1.0000000000000000E+002
+      },
+      "Width" : 4.0000000000000000E+002
+    }
+  ]
+}

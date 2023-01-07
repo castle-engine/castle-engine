@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,7 +118,6 @@
       FWidth: Cardinal;
       FHeight: Cardinal;
       FAlpha: TAutoAlphaChannel;
-      FIgnoreTooLargeCorners: boolean;
       FColor: TCastleColor;
       FSmoothScaling: boolean;
       FScaleCorners: Single;
@@ -436,7 +435,7 @@
       )
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
+      CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
@@ -460,19 +459,6 @@
     procedure Draw3x1(const ScreenRect: TRectangle;
       const Side: TVector2Integer);
     *)
-
-    { Ignore (do not log to CastleLog) situations when Draw3x3
-      cannot work because corners are larger than draw area size.
-      Set this to @true when it's perfectly possible (you do not want to even
-      see it in log) for Draw3x3 calls to fail because corners
-      are larger than draw area size.
-
-      This is @true by default now, since it's safer for UI rendering.
-      Otherwise causing this problem makes a flood of errors to the log file,
-      and it's easy to make this problem when your UI adjusts to the screen size.
-    }
-    property IgnoreTooLargeCorners: boolean
-      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default true;
 
     { Color to multiply the texture contents (all RGBA channels).
       By default this is White, which is (1, 1, 1, 1) as RGBA,
@@ -713,7 +699,6 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingConstantColor := DefaultBlendingConstantColor;
-  FIgnoreTooLargeCorners := true;
 
   Load(AImage);
 
@@ -1318,7 +1303,7 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
+  CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
@@ -1334,6 +1319,22 @@ var
     Inc(DrawAddCount);
   end;
 
+  { Make A + B <= Max.
+    If A + B are too large, decrease them, but preserving A to B ratio.
+    In effect e.g.
+      A = 10, B = 100, MaxSize = 1
+    ->
+      A := 1/11, B = 10/11
+  }
+  procedure FitWithin(var A, B: Single; const Max: Single);
+  begin
+    if A + B > Max then
+    begin
+      A := Max * A / (A + B);
+      B := Max * B / (A + B);
+    end;
+  end;
+
 var
   XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
     HorizontalScreenSize, VerticalScreenSize: Single;
@@ -1347,23 +1348,16 @@ const
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
+  FitWithin(CornerLeft, CornerRight, Width);
+  FitWithin(CornerBottom, CornerTop, Height);
+
   DrawCornerTop    := CornerTop    * ScaleCorners;
   DrawCornerRight  := CornerRight  * ScaleCorners;
   DrawCornerBottom := CornerBottom * ScaleCorners;
   DrawCornerLeft   := CornerLeft   * ScaleCorners;
 
-  if not ( (    CornerLeft +     CornerRight <     Width) and
-           (DrawCornerLeft + DrawCornerRight < DrawWidth) and
-           (    CornerBottom +     CornerTop <     Height) and
-           (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
-  begin
-    if not IgnoreTooLargeCorners then
-      WritelnLog('TDrawableImage.Draw3x3', 'Image corners are too large to draw it: corners are %f %f %f %f, image size is %d %d, draw area size is %f %f',
-        [CornerTop, CornerRight, CornerBottom, CornerLeft,
-         Width, Height,
-         DrawWidth, DrawHeight]);
-    Exit;
-  end;
+  FitWithin(DrawCornerLeft, DrawCornerRight, DrawWidth);
+  FitWithin(DrawCornerBottom, DrawCornerTop, DrawHeight);
 
   XScreenLeft := X;
   XImageLeft := 0;

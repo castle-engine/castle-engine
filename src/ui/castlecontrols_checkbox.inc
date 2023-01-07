@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -340,14 +340,15 @@ end;
 function TCastleCheckbox.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Caption') or
-     (PropertyName = 'Checked') or
-     (PropertyName = 'CustomFont') or
-     (PropertyName = 'FontSize') or
-     (PropertyName = 'CheckboxColorPersistent') or
-     (PropertyName = 'TextColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+       'Caption', 'Checked', 'CustomFont', 'FontSize',
+       'CheckboxColorPersistent', 'TextColorPersistent'
+     ]) then
     Result := [psBasic]
-  else if (PropertyName = 'AutoSize') then
+  else
+  if ArrayContainsString(PropertyName, [
+       'AutoSize'
+     ]) then
     Result := [psLayout]
   else
     Result := inherited PropertySections(PropertyName);

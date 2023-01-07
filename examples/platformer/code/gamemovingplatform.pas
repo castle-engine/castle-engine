@@ -43,7 +43,7 @@ implementation
 
 uses
   CastleLog,
-  GameStatePlay;
+  GameViewPlay;
 
 { TMovingPlatform ------------------------------------------------------------ }
 
