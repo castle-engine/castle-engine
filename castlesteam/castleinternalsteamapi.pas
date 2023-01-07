@@ -1,0 +1,47 @@
+unit CastleInternalSteamApi;
+
+{$mode ObjFPC}{$H+}
+
+interface
+
+uses
+  CastleInternalSteamConstantsAndTypes;
+
+{ char *ver = PAnsiChar }
+
+{ steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
+function SteamAPI_Init(): Boolean; CDecl; external SteamLib;
+//procedure SteamAPI_ReleaseCurrentThreadMemory(); CDecl; external SteamLib;
+function SteamAPI_RestartAppIfNecessary(unOwnAppID: UInt32): Boolean; CDecl; external SteamLib;
+procedure SteamAPI_RunCallbacks(); CDecl; external SteamLib;
+//procedure SteamAPI_SetMiniDumpComment( const char *pchMsg );
+procedure SteamAPI_Shutdown(); CDecl; external SteamLib;
+//procedure SteamAPI_WriteMiniDump( uint32 uStructuredExceptionCode, void* pvExceptionInfo, uint32 uBuildID );
+
+{ steam_api_internal.h : undocumented? }
+
+//function SteamInternal_ContextInit( void *pContextInitData ): Pointer;
+function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
+//function SteamInternal_FindOrCreateUserInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
+//function SteamInternal_FindOrCreateGameServerInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
+
+{ isteamuser.h : See documentation at https://partner.steamgames.com/doc/api/ISteamClient }
+
+
+{ steam_api_internal.h : undocumented? }
+
+function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
+function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
+//function GetSteamID(): CSteamId; CDecl; external SteamLib;
+//function GetPlayerSteamLevel(): Integer; CDecl; external SteamLib;
+
+//function SteamAPI_ISteamUserStats_SetAchievement(pchName: PAnsiChar): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUtils_GetAppID(): UInt32; CDecl; external SteamLib;
+//function SteamAPI_ISteamUser_BLoggedOn(): Boolean; CDecl; external SteamLib;
+//procedure SteamAPI_ISteamClient_SetWarningMessageHook(pFunction: SteamAPIWarningMessageHook); CDecl; external SteamLib;
+
+
+implementation
+
+end.
+
