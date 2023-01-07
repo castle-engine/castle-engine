@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,7 +51,7 @@ private
   function HandleOnScreenKeyboard(const Received: TCastleStringList;
   const ReceivedStream: TMemoryStream): boolean;
 
-  function AndroidKeyCodeToKey(AndroidKeyCode: Integer): TKey;
+  function AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -522,7 +522,7 @@ begin
 end;
 
 
-function TCastleWindow.AndroidKeyCodeToKey(AndroidKeyCode: Integer): TKey;
+function TCastleWindow.AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
 begin
   // http://www.temblast.com/ref/akeyscode.htm
   case AndroidKeyCode of
