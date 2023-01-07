@@ -24,14 +24,9 @@ procedure SteamAPI_Shutdown(); CDecl; external SteamLib;
 function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
 //function SteamInternal_FindOrCreateUserInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
 //function SteamInternal_FindOrCreateGameServerInterface( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
-
-{ isteamuser.h : See documentation at https://partner.steamgames.com/doc/api/ISteamClient }
-
-
-{ steam_api_internal.h : undocumented? }
-
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
+
 
 implementation
 
