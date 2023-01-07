@@ -15,8 +15,8 @@ const
 type
   HSteamPipe = Int32;
   HSteamUser = Int32;
-  CSteamId = UInt64; // It's a struct but passed as UInt64
-  CGameID = UInt64;
+  //CSteamId = UInt64; // It's a struct but passed as UInt64
+  //CGameID = UInt64;
 
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
