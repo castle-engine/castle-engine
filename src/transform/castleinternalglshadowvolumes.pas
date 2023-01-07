@@ -376,6 +376,8 @@ var
   end;
 
 begin
+  if CasterBox.IsEmpty then
+    Exit(false);
   for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
   begin
     if CheckPoint(0, 0, 0) and
