@@ -40,9 +40,9 @@
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="code/gamestatemain.pas"/>
+        <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GameStateMain"/>
+        <UnitName Value="GameViewMain"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/gameinitialize.pas"/>
