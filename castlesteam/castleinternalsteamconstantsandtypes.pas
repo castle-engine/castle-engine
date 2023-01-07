@@ -9,6 +9,7 @@ const
 
 const
   STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
+  STEAMUSER_INTERFACE_VERSION = 'SteamUser021'; // in isteamuser.h
 
 type
   HSteamPipe = Int32;
