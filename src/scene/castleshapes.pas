@@ -1,3 +1,11 @@
+// TODO: why box is not rendered even if *earlier* something set InternalForceRendering:=true?
+// Looks like it is rejected by something we don't understand.
+
+// TODO: At the same time, indeed in buggy situation GetCasterShadowPossiblyVisible
+// fails the test, and it should pass the test.
+
+// TODO: instead of InternalForceRendering: Boolean use render frame id, compare if force in the current frame
+
 {
   Copyright 2003-2023 Michalis Kamburelis.
 
@@ -387,6 +395,16 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
+    { Disable any frustum culling for this shape.
+      This is used by shadow volumes: when we render shadow quads of some shape,
+      the shape itself also *has* to be rendered, shadow quads construction depends
+      on it.
+
+      Whether the shadow was rendered because of WholeSceneManifold,
+      or because SVRenderer.CasterShadowPossiblyVisible was true for this particular shape,
+      in all cases it must force rendering the shape too. }
+    InternalForceRendering: Boolean;
+
     { Constructor.
       @param(ParentInfo Recursive information about parents,
         for the geometry node of given shape.

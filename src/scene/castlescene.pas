@@ -172,6 +172,12 @@ type
       Render_Params: TRenderParams;
       Render_TestShapeVisibility: TTestShapeVisibility;
 
+      { Disable any frustum culling for this scene.
+        This is used by shadow volumes: when we render shadow quads of some scene,
+        the scene itself also *has* to be rendered, shadow quads construction depends
+        on it. }
+      InternalForceRendering: Boolean;
+
     { Checks DynamicBatching and not occlusion query. }
     function ReallyDynamicBatching: Boolean;
 
@@ -1752,6 +1758,16 @@ end;
 
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+
+  function NiceName: String;
+  begin
+    Result := Name;
+    if (Name = '') and
+       (csTransient in ComponentStyle) and
+       (Parent <> nil) then
+      Result := 'child(' + Parent.Name + ')';
+  end;
+
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
@@ -1760,6 +1776,10 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
+  WritelnLog('%d: %s LocalRenderShadowVolume', [
+    TFramesPerSecond.RenderFrameId,
+    NiceName
+  ]);
   if CheckVisible and
      CastShadows and
      { Do not render shadow volumes when rendering wireframe.
@@ -1771,13 +1791,20 @@ begin
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
+
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
     if not Params.TransformIdentity then
       SceneBox := SceneBox.Transform(Params.Transform^);
-    SVRenderer.InitCaster(SceneBox);
-    if SVRenderer.CasterShadowPossiblyVisible then
+
+    WritelnLog('  scene testing ' + SceneBox.ToString);
+    if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
+
+      WritelnLog('  scene passed, InternalForceRendering := true');
+
+      InternalForceRendering := true;
+
       { shadows are cast only by visible scene parts
         (not e.g. invisible collision box of castle-anim-frames) }
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
@@ -1798,6 +1825,10 @@ begin
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
+          Shape.InternalForceRendering := true;
+
+         WritelnLog('  shape passed, InternalForceRendering := true');
+
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
           else
@@ -1825,49 +1856,47 @@ end;
 
 function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
 begin
-  Result :=
+  Result := Shape.InternalForceRendering or
     Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 end;
 
 function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
 begin
-  Result :=
+  Result := Shape.InternalForceRendering or
     FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
 function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
 begin
-  Result :=
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(
-      FrustumForShapeCulling^) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(
-      Shape.BoundingBox);
+  Result := Shape.InternalForceRendering or
+    (
+      Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^) and
+      FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox)
+    );
 end;
 
 function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
 begin
-  Result := DistanceCullingCheck(Shape);
+  Result := DistanceCullingCheck(Shape)
+    { and FrustumCulling_None(Shape) -- pointless, always true };
 end;
 
 function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
+    FrustumCulling_Sphere(Shape);
 end;
 
 function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
+    FrustumCulling_Box(Shape);
 end;
 
 function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(
-      FrustumForShapeCulling^) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(
-      Shape.BoundingBox);
+    FrustumCulling_Both(Shape);
 end;
 
 function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
@@ -2121,7 +2150,8 @@ begin
        (not ExcludeFromStatistics) then
       Inc(Params.Statistics.ScenesVisible);
 
-    if FSceneFrustumCulling and
+    if (not InternalForceRendering) and
+       FSceneFrustumCulling and
        (Params.Frustum <> nil) and
        (not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox)) then
     begin
