@@ -39,11 +39,6 @@ uses
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
 
-procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
-begin
-  WriteLn(NSeverity, pchDebugText^);
-end;
-
 const
   AppId = UInt32(480);
 

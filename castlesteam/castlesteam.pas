@@ -18,6 +18,12 @@ var
   SteamUserHandle: HSteamUser;
   SteamPipeHandle: HSteamPipe;
 
+procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
+begin
+  WriteLn(NSeverity, pchDebugText^);
+  // TODO: CastleLog
+end;
+
 function InitSteam(const AppId: Integer): Boolean;
 begin
   if SteamAPI_Init() then
@@ -38,6 +44,9 @@ begin
   end;
 
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
+
+  SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient, @WarningHook);
+
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
 
