@@ -27,6 +27,15 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
+{ steam_api_flat.h : contains all available functions in one place
+  Weird enough not all of them seem to do what they look like they're supposed to do
+  So, sometimes experimenting is necessary : which function will work
+  and which will simply crash without explaining any reason
+  I don't see any big point in translating all of the hearders currently,
+  for the said weird behavior first of all,
+  Let's add here only functions that were teseted and proven to work,
+  which should be done on use-case basis. }
+
 (* ISteamClient *)
 
 procedure SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient: Pointer; WarningMessageHook: SteamAPIWarningMessageHook); CDecl; external SteamLib;
