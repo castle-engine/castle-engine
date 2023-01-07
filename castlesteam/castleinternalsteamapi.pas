@@ -27,9 +27,14 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
+(* ISteamClient *)
+
+function SteamAPI_ISteamClient_GetISteamUserStats(SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl; external SteamLib;
+
+
 (* ISteamUserStats *)
 
-function SteamAPI_SteamUserStats(): Pointer; CDecl; external SteamLib;
+// function SteamAPI_SteamUserStats(): Pointer; CDecl; external SteamLib; // This one returns something that doesn't work
 function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
 
 

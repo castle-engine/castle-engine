@@ -12,7 +12,7 @@ uses
   CastleInternalSteamApi, CastleInternalSteamConstantsAndTypes;
 
 var
-  SteamInterface: Pointer;
+  SteamClient: Pointer;
   SteamUserStats: Pointer;
   SteamUserHandle: HSteamUser;
   SteamPipeHandle: HSteamPipe;
@@ -36,11 +36,11 @@ begin
     Exit(false);
   end;
 
-  SteamInterface := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
+  SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
 
-  SteamUserStats := SteamAPI_SteamUserStats();
+  SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
   //SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   Exit(true);
 end;
