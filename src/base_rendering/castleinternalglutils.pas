@@ -37,6 +37,7 @@ uses
 {$I castleinternalglutils_mipmaps.inc}
 {$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
+{$I castleinternalglutils_render_unlit_mesh.inc}
 
 {$undef read_interface}
 
@@ -53,5 +54,6 @@ uses
 {$I castleinternalglutils_mipmaps.inc}
 {$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
+{$I castleinternalglutils_render_unlit_mesh.inc}
 
 end.
