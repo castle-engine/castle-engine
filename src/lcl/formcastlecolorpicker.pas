@@ -573,17 +573,26 @@ end;
 procedure TCastleColorPickerForm.GeneratePascalCode;
 var
   RSingle, GSingle, BSingle: Single;
+  HSingle, SSingle, VSingle: Single;
   RText, GText, BText, AText: String;
+  HText, SText, VText: String;
 begin
   MemoPascalCode.Lines.Clear;
 
   RSingle := RoundTo(HSPanelCirclePicker.Red / 255, ColorPrecision);
   GSingle := RoundTo(HSPanelCirclePicker.Green / 255, ColorPrecision);
   BSingle := RoundTo(HSPanelCirclePicker.Blue / 255, ColorPrecision);
+  HSingle := RoundTo(HSPanelCirclePicker.RelHue * 6, ColorPrecision);
+  SSingle := RoundTo(HSPanelCirclePicker.RelSaturation, ColorPrecision);
+  VSingle := RoundTo(HSPanelCirclePicker.RelValue, ColorPrecision);
 
   RText := FloatToStrFDot(RSingle, ffFixed, 0, Abs(ColorPrecision));
   GText := FloatToStrFDot(GSingle, ffFixed, 0, Abs(ColorPrecision));
   BText := FloatToStrFDot(BSingle, ffFixed, 0, Abs(ColorPrecision));
+  HText := FloatToStrFDot(HSingle, ffFixed, 0, Abs(ColorPrecision));
+  SText := FloatToStrFDot(SSingle, ffFixed, 0, Abs(ColorPrecision));
+  VText := FloatToStrFDot(VSingle, ffFixed, 0, Abs(ColorPrecision));
+
   AText := FloatToStrFDot(AlphaSpinEdit.Value, ffFixed, 0, Abs(ColorPrecision));
 
   MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
@@ -596,7 +605,8 @@ begin
   MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
   MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
     ', ' + BText + ', ' + AText +');');
-  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(0.123, 0.123, 0.123), ' + AText + ');');
+  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
+    ', ' + SText + ', ' + VText + '), ' + AText + ');');
   MemoPascalCode.Lines.Add('HexToColor(''aabbccdd'');');
 end;
 
