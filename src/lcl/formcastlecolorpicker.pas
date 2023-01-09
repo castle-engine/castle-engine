@@ -110,6 +110,8 @@ type
     procedure UpdatePropertyEditorValue;
 
     procedure GeneratePascalCode;
+
+    function CurrentCastleColor: TCastleColor;
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
@@ -557,17 +559,10 @@ begin
 end;
 
 procedure TCastleColorPickerForm.UpdatePropertyEditorValue;
-var
-  ColorByte: TVector4Byte;
 begin
   // on color change in circle
   if Assigned(ColorPropertyEditor) then
-  begin
-    RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
-
-    ColorByte.W := AlphaColorPicker.Value;
-    ColorPropertyEditor.SetAllValues(Vector4(ColorByte));
-  end;
+    ColorPropertyEditor.SetAllValues(CurrentCastleColor);
 end;
 
 procedure TCastleColorPickerForm.GeneratePascalCode;
@@ -607,7 +602,18 @@ begin
     ', ' + BText + ', ' + AText +');');
   MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
     ', ' + SText + ', ' + VText + '), ' + AText + ');');
-  MemoPascalCode.Lines.Add('HexToColor(''aabbccdd'');');
+  MemoPascalCode.Lines.Add('HexToColor(' + ColorToHex(CurrentCastleColor) + ');');
+end;
+
+function TCastleColorPickerForm.CurrentCastleColor: TCastleColor;
+var
+  ColorByte: TVector4Byte;
+begin
+  RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
+
+  ColorByte.W := AlphaColorPicker.Value;
+
+  Result := Vector4(ColorByte);
 end;
 
 procedure TCastleColorPickerForm.Init(
