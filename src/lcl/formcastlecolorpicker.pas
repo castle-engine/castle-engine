@@ -449,11 +449,8 @@ var
   NewValueRounded: Single;
   NewValueForControl: Single; // controls uses 0..1 range for hue
 begin
-  WritelnLog('HTab NewValue ' + FloatToStr(NewValue));
   NewValueRounded := RoundTo(NewValue, ColorPrecision);
-  WritelnLog('HTab NewValueRounded ' + FloatToStr(NewValueRounded));
   NewValueForControl := RoundTo(NewValueRounded / 6, ColorPrecision);
-  WritelnLog('HTab NewValueForControl ' + FloatToStr(NewValueForControl));
   if not SameValue(HTabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
     HTabColorPickerHsv.RelHue := NewValueForControl;
   if not SameValue(STabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
@@ -461,7 +458,6 @@ begin
   if not SameValue(VTabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
     VTabColorPickerHsv.RelHue := NewValueForControl;
 
-  WritelnLog('HSpinEditHsv.Value ' + FloatToStr(HSpinEditHsv.Value));
   if not SameValue(HSpinEditHsv.Value, NewValueRounded, ColorEpsilon) then
     HSpinEditHsv.Value := NewValueRounded;
 end;
