@@ -103,7 +103,7 @@ type
       this because updating all controls is too expensive. }
     procedure UpdateCurrentTabFromPanel;
 
-    procedure SetAlphaValue(const NewValue: Integer);
+    procedure SetAlphaValue(const NewValue: Single);
 
     procedure UpdatePropertyEditorValue;
   public
@@ -150,12 +150,12 @@ end;
 
 procedure TCastleColorPickerForm.AlphaColorPickerChange(Sender: TObject);
 begin
-  SetAlphaValue(AlphaColorPicker.Value);
+  SetAlphaValue(AlphaColorPicker.RelValue);
 end;
 
 procedure TCastleColorPickerForm.AlphaSpinEditChange(Sender: TObject);
 begin
-  SetAlphaValue(CastleFloatToByteColorValue(AlphaSpinEdit.Value));
+  SetAlphaValue(AlphaSpinEdit.Value);
 end;
 
 procedure TCastleColorPickerForm.GSpinEditRgbChange(Sender: TObject);
@@ -522,23 +522,23 @@ begin
     SetColorInHsvTab(HSPanelCirclePicker.SelectedColor);
 end;
 
-procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Single);
 var
-  DoubleValue: Double;
+  NewValueRounded: Single;
   ValueChanged: Boolean;
 begin
   ValueChanged := false;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
 
-  if AlphaColorPicker.Value <> NewValue then
+  if not SameValue(AlphaColorPicker.RelValue, NewValueRounded, ColorEpsilon) then
   begin
-    AlphaColorPicker.Value := NewValue;
+    AlphaColorPicker.RelValue := NewValueRounded;
     ValueChanged := true;
   end;
 
-  DoubleValue := ByteColorValueToCastleFloat(NewValue);
-  if not SameValue(AlphaSpinEdit.Value, DoubleValue) then
+  if not SameValue(AlphaSpinEdit.Value, NewValueRounded) then
   begin
-    AlphaSpinEdit.Value := DoubleValue;
+    AlphaSpinEdit.Value := NewValueRounded;
     ValueChanged := true;
   end;
 

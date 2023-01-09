@@ -431,7 +431,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 4
       Constraints.MinWidth = 93
-      DecimalPlaces = -1
+      DecimalPlaces = 3
       Increment = 0.1
       MaxValue = 1
       OnChange = AlphaSpinEditChange
