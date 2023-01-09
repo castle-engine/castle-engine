@@ -14,12 +14,15 @@ type
   TCastleColorPickerForm = class(TForm)
     AlphaSpinEdit: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
+    ButtonCopy: TButton;
+    EditHex: TEdit;
     GTabColorPickerRgb: TGColorPicker;
     HSPanelCirclePicker: THSCirclePicker;
     HSpinEditHsv: TFloatSpinEdit;
     HTabColorPickerHsv: THColorPicker;
     HSV: TLabel;
     LabelTabHsvTitleH: TLabel;
+    LabelTabHexTitleHex: TLabel;
     LabelTabHsvTitleV: TLabel;
     MemoPascalCode: TMemo;
     RLabelTitleRgb: TLabel;
@@ -28,6 +31,7 @@ type
     LabelTitleAlpha: TLabel;
     LabelTabHsvTitleS: TLabel;
     SSpinEditHsv: TFloatSpinEdit;
+    TabSheetHex: TTabSheet;
     TabSheetPascalCode: TTabSheet;
     VPanelColorPicker: TLVColorPicker;
     AlphaColorPicker: TLVColorPicker;
@@ -47,6 +51,7 @@ type
     procedure AlphaSpinEditChange(Sender: TObject);
     procedure BSpinEditRgbChange(Sender: TObject);
     procedure BTabColorPickerRgbChange(Sender: TObject);
+    procedure ButtonCopyClick(Sender: TObject);
     procedure GSpinEditRgbChange(Sender: TObject);
     procedure GTabColorPickerRgbChange(Sender: TObject);
     procedure HSPanelCirclePickerChange(Sender: TObject);
@@ -95,6 +100,9 @@ type
     procedure BlockEventsInHsvTab;
     procedure UnblockEventsInHsvTab;
 
+    procedure SetColorInHexTab(const NewColor: TCastleColor); overload;
+    procedure SetColorInHexTab(const NewColor: TColor); overload;
+
     { Used to get current color value from HSV circle, We need function like
       this because updating all controls is too expensive. }
     procedure UpdateCurrentTabFromPanel;
@@ -120,7 +128,7 @@ implementation
 
 {$R *.lfm}
 
-uses CastleVectors, CastleLog, CastleUtils, mbColorConv;
+uses Clipbrd, CastleVectors, CastleLog, CastleUtils, mbColorConv;
 
 { TCastleColorPickerForm }
 
@@ -140,6 +148,11 @@ procedure TCastleColorPickerForm.BTabColorPickerRgbChange(Sender: TObject);
 begin
   SetBValueInRgbTab(BTabColorPickerRgb.Blue);
   SetBValueInCirclePickerPanel(BTabColorPickerRgb.Blue);
+end;
+
+procedure TCastleColorPickerForm.ButtonCopyClick(Sender: TObject);
+begin
+  Clipboard.AsText := EditHex.Text;
 end;
 
 procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
@@ -486,6 +499,20 @@ begin
   VSpinEditHsv.OnChange := @VSpinEditHsvChange;
 end;
 
+procedure TCastleColorPickerForm.SetColorInHexTab(const NewColor: TCastleColor);
+begin
+  EditHex.Text := ColorToHex(NewColor);
+end;
+
+procedure TCastleColorPickerForm.SetColorInHexTab(const NewColor: TColor);
+var
+  ColorByte: TVector4Byte;
+begin
+  RedGreenBlue(NewColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
+  ColorByte.W := AlphaColorPicker.Value;
+  EditHex.Text := ColorToHex(Vector4(ColorByte));
+end;
+
 procedure TCastleColorPickerForm.UpdateCurrentTabFromPanel;
 begin
   if PageControlColorModel.ActivePage = TabSheetRgb then
@@ -493,7 +520,9 @@ begin
   else if PageControlColorModel.ActivePage = TabSheetHsv then
     SetColorInHsvTab(HSPanelCirclePicker.SelectedColor)
   else if PageControlColorModel.ActivePage = TabSheetPascalCode then
-    GeneratePascalCode;
+    GeneratePascalCode
+  else if PageControlColorModel.ActivePage = TabSheetHex then
+    SetColorInHexTab(HSPanelCirclePicker.SelectedColor);
 end;
 
 procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Single);
