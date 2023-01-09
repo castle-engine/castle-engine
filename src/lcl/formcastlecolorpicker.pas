@@ -13,9 +13,11 @@ uses
 type
   TCastleColorPickerForm = class(TForm)
     AlphaSpinEdit: TFloatSpinEdit;
+    BSpinEditRgb: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
     ButtonCopy: TButton;
     EditHex: TEdit;
+    GSpinEditRgb: TFloatSpinEdit;
     GTabColorPickerRgb: TGColorPicker;
     HSPanelCirclePicker: THSCirclePicker;
     HSpinEditHsv: TFloatSpinEdit;
@@ -30,6 +32,7 @@ type
     BLabelTitleRgb: TLabel;
     LabelTitleAlpha: TLabel;
     LabelTabHsvTitleS: TLabel;
+    RSpinEditRgb: TFloatSpinEdit;
     SSpinEditHsv: TFloatSpinEdit;
     TabSheetHex: TTabSheet;
     TabSheetPascalCode: TTabSheet;
@@ -41,9 +44,6 @@ type
     PanelAlpha: TPanel;
     PanelCirclePicker: TPanel;
     RTabColorPickerRgb: TRColorPicker;
-    RSpinEditRgb: TSpinEdit;
-    GSpinEditRgb: TSpinEdit;
-    BSpinEditRgb: TSpinEdit;
     STabColorPickerHsv: TSColorPicker;
     TabSheetHsv: TTabSheet;
     TabSheetRgb: TTabSheet;
@@ -79,15 +79,15 @@ type
     procedure SetSValueInCirclePickerPanel(const NewValue: Single);
     { Sets Value, it should be in range from 0 to 1 }
     procedure SetVValueInCirclePickerPanel(const NewValue: Single);
-    procedure SetRValueInCirclePickerPanel(const NewValue: Integer);
-    procedure SetGValueInCirclePickerPanel(const NewValue: Integer);
-    procedure SetBValueInCirclePickerPanel(const NewValue: Integer);
+    procedure SetRValueInCirclePickerPanel(const NewValue: Single);
+    procedure SetGValueInCirclePickerPanel(const NewValue: Single);
+    procedure SetBValueInCirclePickerPanel(const NewValue: Single);
 
     procedure SetColorInRgbTab(const NewColor: TCastleColor); overload;
     procedure SetColorInRgbTab(const NewColor: TColor); overload;
-    procedure SetRValueInRgbTab(const NewValue: Integer);
-    procedure SetGValueInRgbTab(const NewValue: Integer);
-    procedure SetBValueInRgbTab(const NewValue: Integer);
+    procedure SetRValueInRgbTab(const NewValue: Single);
+    procedure SetGValueInRgbTab(const NewValue: Single);
+    procedure SetBValueInRgbTab(const NewValue: Single);
     procedure BlockEventsInRgbTab;
     procedure UnblockEventsInRgbTab;
 
@@ -140,14 +140,14 @@ end;
 
 procedure TCastleColorPickerForm.GTabColorPickerRgbChange(Sender: TObject);
 begin
-  SetGValueInRgbTab(GTabColorPickerRgb.Green);
-  SetGValueInCirclePickerPanel(GTabColorPickerRgb.Green);
+  SetGValueInRgbTab(GTabColorPickerRgb.Green / 255);
+  SetGValueInCirclePickerPanel(GTabColorPickerRgb.Green / 255);
 end;
 
 procedure TCastleColorPickerForm.BTabColorPickerRgbChange(Sender: TObject);
 begin
-  SetBValueInRgbTab(BTabColorPickerRgb.Blue);
-  SetBValueInCirclePickerPanel(BTabColorPickerRgb.Blue);
+  SetBValueInRgbTab(BTabColorPickerRgb.Blue / 255);
+  SetBValueInCirclePickerPanel(BTabColorPickerRgb.Blue / 255);
 end;
 
 procedure TCastleColorPickerForm.ButtonCopyClick(Sender: TObject);
@@ -197,8 +197,8 @@ end;
 
 procedure TCastleColorPickerForm.RTabColorPickerRgbChange(Sender: TObject);
 begin
-  SetRValueInRgbTab(RTabColorPickerRgb.Red);
-  SetRValueInCirclePickerPanel(RTabColorPickerRgb.Red);
+  SetRValueInRgbTab(RTabColorPickerRgb.Red / 255);
+  SetRValueInCirclePickerPanel(RTabColorPickerRgb.Red / 255);
 end;
 
 procedure TCastleColorPickerForm.SSpinEditHsvChange(Sender: TObject);
@@ -289,36 +289,42 @@ begin
 end;
 
 procedure TCastleColorPickerForm.SetRValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueInt: Integer;
 begin
-  if HSPanelCirclePicker.Red <> NewValue then
-    HSPanelCirclePicker.Red := NewValue;
+  NewValueInt := Round(RoundTo(NewValue, ColorPrecision) * 255);
+  if HSPanelCirclePicker.Red <> NewValueInt then
+    HSPanelCirclePicker.Red := NewValueInt;
 end;
 
 procedure TCastleColorPickerForm.SetGValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueInt: Integer;
 begin
-  if HSPanelCirclePicker.Green <> NewValue then
-    HSPanelCirclePicker.Green := NewValue;
+  NewValueInt := Round(RoundTo(NewValue, ColorPrecision) * 255);
+  if HSPanelCirclePicker.Green <> NewValueInt then
+    HSPanelCirclePicker.Green := NewValueInt;
 end;
 
 procedure TCastleColorPickerForm.SetBValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueInt: Integer;
 begin
-  if HSPanelCirclePicker.Blue <> NewValue then
-    HSPanelCirclePicker.Blue := NewValue;
+  NewValueInt := Round(RoundTo(NewValue, ColorPrecision) * 255);
+  if HSPanelCirclePicker.Blue <> NewValueInt then
+    HSPanelCirclePicker.Blue := NewValueInt;
 end;
 
 procedure TCastleColorPickerForm.SetColorInRgbTab(const NewColor: TCastleColor);
-var
-  ColorByte: TVector3Byte;
 begin
-  ColorByte := Vector3Byte(NewColor.XYZ); // edit only Color RGB
   BlockEventsInRgbTab;
   try
-    SetRValueInRgbTab(ColorByte[0]);
-    SetGValueInRgbTab(ColorByte[1]);
-    SetBValueInRgbTab(ColorByte[2]);
+    SetRValueInRgbTab(NewColor.X);
+    SetGValueInRgbTab(NewColor.Y);
+    SetBValueInRgbTab(NewColor.Z);
   finally
     UnblockEventsInRgbTab;
   end;
@@ -331,48 +337,63 @@ begin
   Rgb := ColorToRGB(NewColor);
   BlockEventsInRgbTab;
   try
-    SetRValueInRgbTab(GetRValue(Rgb));
-    SetGValueInRgbTab(GetGValue(Rgb));
-    SetBValueInRgbTab(GetBValue(Rgb));
+    SetRValueInRgbTab(GetRValue(Rgb) / 255);
+    SetGValueInRgbTab(GetGValue(Rgb) / 255);
+    SetBValueInRgbTab(GetBValue(Rgb) / 255);
   finally
     UnblockEventsInRgbTab;
   end;
 end;
 
-procedure TCastleColorPickerForm.SetRValueInRgbTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetRValueInRgbTab(const NewValue: Single);
+var
+  NewValueRounded: Single;
+  NewValueInt: Integer;
 begin
-  if RTabColorPickerRgb.Red <> NewValue then
-    RTabColorPickerRgb.Red := NewValue;
-  if GTabColorPickerRgb.Red <> NewValue then
-    GTabColorPickerRgb.Red := NewValue;
-  if BTabColorPickerRgb.Red <> NewValue then
-    BTabColorPickerRgb.Red := NewValue;
-  if RSpinEditRgb.Value <> NewValue then
-    RSpinEditRgb.Value := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  NewValueInt := Round(NewValueRounded * 255);
+  if RTabColorPickerRgb.Red <> NewValueInt then
+    RTabColorPickerRgb.Red := NewValueInt;
+  if GTabColorPickerRgb.Red <> NewValueInt then
+    GTabColorPickerRgb.Red := NewValueInt;
+  if BTabColorPickerRgb.Red <> NewValueInt then
+    BTabColorPickerRgb.Red := NewValueInt;
+  if not SameValue(RSpinEditRgb.Value, NewValueRounded, ColorEpsilon) then
+    RSpinEditRgb.Value := NewValueRounded;
 end;
 
-procedure TCastleColorPickerForm.SetGValueInRgbTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetGValueInRgbTab(const NewValue: Single);
+var
+  NewValueRounded: Single;
+  NewValueInt: Integer;
 begin
-  if RTabColorPickerRgb.Green <> NewValue then
-    RTabColorPickerRgb.Green := NewValue;
-  if GTabColorPickerRgb.Green <> NewValue then
-    GTabColorPickerRgb.Green := NewValue;
-  if BTabColorPickerRgb.Green <> NewValue then
-    BTabColorPickerRgb.Green := NewValue;
-  if GSpinEditRgb.Value <> NewValue then
-    GSpinEditRgb.Value := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  NewValueInt := Round(NewValueRounded * 255);
+  if RTabColorPickerRgb.Green <> NewValueInt then
+    RTabColorPickerRgb.Green := NewValueInt;
+  if GTabColorPickerRgb.Green <> NewValueInt then
+    GTabColorPickerRgb.Green := NewValueInt;
+  if BTabColorPickerRgb.Green <> NewValueInt then
+    BTabColorPickerRgb.Green := NewValueInt;
+  if not SameValue(GSpinEditRgb.Value, NewValueRounded, ColorEpsilon) then
+    GSpinEditRgb.Value := NewValueRounded;
 end;
 
-procedure TCastleColorPickerForm.SetBValueInRgbTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetBValueInRgbTab(const NewValue: Single);
+var
+  NewValueRounded: Single;
+  NewValueInt: Integer;
 begin
-  if RTabColorPickerRgb.Blue <> NewValue then
-    RTabColorPickerRgb.Blue := NewValue;
-  if GTabColorPickerRgb.Blue <> NewValue then
-    GTabColorPickerRgb.Blue := NewValue;
-  if BTabColorPickerRgb.Blue <> NewValue then
-    BTabColorPickerRgb.Blue := NewValue;
-  if BSpinEditRgb.Value <> NewValue then
-    BSpinEditRgb.Value := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  NewValueInt := Round(NewValueRounded * 255);
+  if RTabColorPickerRgb.Blue <> NewValueInt then
+    RTabColorPickerRgb.Blue := NewValueInt;
+  if GTabColorPickerRgb.Blue <> NewValueInt then
+    GTabColorPickerRgb.Blue := NewValueInt;
+  if BTabColorPickerRgb.Blue <> NewValueInt then
+    BTabColorPickerRgb.Blue := NewValueInt;
+  if not SameValue(BSpinEditRgb.Value, NewValueRounded, ColorEpsilon) then
+    BSpinEditRgb.Value := NewValueRounded;
 end;
 
 procedure TCastleColorPickerForm.BlockEventsInRgbTab;
