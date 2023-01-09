@@ -330,7 +330,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Anchors = [akTop, akRight]
         BorderSpacing.Top = 10
         Constraints.MinWidth = 93
-        DecimalPlaces = -1
+        DecimalPlaces = 3
         Increment = 0.5
         MaxValue = 6
         OnChange = HSpinEditHsvChange
@@ -347,7 +347,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 94
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 10
-        DecimalPlaces = -1
+        DecimalPlaces = 3
         Increment = 0.1
         MaxValue = 1
         OnChange = SSpinEditHsvChange
@@ -364,7 +364,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 94
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 10
-        DecimalPlaces = -1
+        DecimalPlaces = 3
         Increment = 0.1
         MaxValue = 1
         OnChange = VSpinEditHsvChange

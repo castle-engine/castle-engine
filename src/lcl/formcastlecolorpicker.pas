@@ -5,7 +5,7 @@ unit FormCastleColorPicker;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ComCtrls,
+  Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls, ComCtrls,
   StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker, HRingPicker,
   HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker, BColorPicker,
   HColorPicker, SColorPicker, CastlePropEdits, CastleColors, LCLIntf;
@@ -60,11 +60,18 @@ type
     procedure VTabColorPickerHsvChange(Sender: TObject);
 
   strict private
+    { How many digits to use for comparisons }
+    ColorPrecision: TRoundToRange;
+    ColorEpsilon: Single;
+
     procedure SetColorInCirclePickerPanel(NewColor: TCastleColor); overload;
     procedure SetColorInCirclePickerPanel(NewColor: TColor); overload;
-    procedure SetHValueInCirclePickerPanel(const NewValue: Integer);
-    procedure SetSValueInCirclePickerPanel(const NewValue: Integer);
-    procedure SetVValueInCirclePickerPanel(const NewValue: Integer);
+    { Sets Hue the value should be in range from 0 to 6 }
+    procedure SetHValueInCirclePickerPanel(const NewValue: Single);
+    { Sets Saturation value should be i range from 0 to 1 }
+    procedure SetSValueInCirclePickerPanel(const NewValue: Single);
+    { Sets Value, it should be in range from 0 to 1 }
+    procedure SetVValueInCirclePickerPanel(const NewValue: Single);
     procedure SetRValueInCirclePickerPanel(const NewValue: Integer);
     procedure SetGValueInCirclePickerPanel(const NewValue: Integer);
     procedure SetBValueInCirclePickerPanel(const NewValue: Integer);
@@ -85,9 +92,10 @@ type
 
     procedure SetColorInHsvTab(const NewColor: TCastleColor); overload;
     procedure SetColorInHsvTab(const NewColor: TColor); overload;
-    procedure SetHValueInHsvTab(const NewValue: Integer);
-    procedure SetSValueInHsvTab(const NewValue: Integer);
-    procedure SetVValueInHsvTab(const NewValue: Integer);
+    { Sets Hue in Hsv tab NewValue should be in 0..6 range. }
+    procedure SetHValueInHsvTab(const NewValue: Single);
+    procedure SetSValueInHsvTab(const NewValue: Single);
+    procedure SetVValueInHsvTab(const NewValue: Single);
     procedure BlockEventsInHsvTab;
     procedure UnblockEventsInHsvTab;
 
@@ -112,7 +120,7 @@ implementation
 
 {$R *.lfm}
 
-uses Math, CastleVectors, CastleLog, CastleUtils, mbColorConv;
+uses CastleVectors, CastleLog, CastleUtils, mbColorConv;
 
 { TCastleColorPickerForm }
 
@@ -157,18 +165,15 @@ begin
 end;
 
 procedure TCastleColorPickerForm.HSpinEditHsvChange(Sender: TObject);
-var
-  NewValue: Integer;
 begin
-  NewValue := CastleFloatToHue(HSpinEditHsv.Value);
-  SetHValueInHsvTab(NewValue);
-  SetHValueInCirclePickerPanel(NewValue);
+  SetHValueInHsvTab(HSpinEditHsv.Value); // Spin edit uses castle range from 0..6
+  SetHValueInCirclePickerPanel(HSpinEditHsv.Value);
 end;
 
 procedure TCastleColorPickerForm.HTabColorPickerHsvChange(Sender: TObject);
 begin
-  SetHValueInHsvTab(HTabColorPickerHsv.Hue);
-  SetHValueInCirclePickerPanel(HTabColorPickerHsv.Hue);
+  SetHValueInHsvTab(HTabColorPickerHsv.RelHue * 6);
+  SetHValueInCirclePickerPanel(HTabColorPickerHsv.RelHue * 6);
 end;
 
 procedure TCastleColorPickerForm.PageControlColorModelChange(Sender: TObject);
@@ -184,19 +189,15 @@ begin
 end;
 
 procedure TCastleColorPickerForm.SSpinEditHsvChange(Sender: TObject);
-var
-  NewValue: Integer;
 begin
-  NewValue := CastleFloatToByteColorValue(SSpinEditHsv.Value);
-
-  SetSValueInHsvTab(NewValue);
-  SetSValueInCirclePickerPanel(NewValue);
+  SetSValueInHsvTab(SSpinEditHsv.Value);
+  SetSValueInCirclePickerPanel(SSpinEditHsv.Value);
 end;
 
 procedure TCastleColorPickerForm.STabColorPickerHsvChange(Sender: TObject);
 begin
-  SetSValueInHsvTab(STabColorPickerHsv.Saturation);
-  SetSValueInCirclePickerPanel(STabColorPickerHsv.Saturation);
+  SetSValueInHsvTab(STabColorPickerHsv.RelSaturation);
+  SetSValueInCirclePickerPanel(STabColorPickerHsv.RelSaturation);
 end;
 
 procedure TCastleColorPickerForm.VPanelColorPickerChange(Sender: TObject);
@@ -212,19 +213,15 @@ begin
 end;
 
 procedure TCastleColorPickerForm.VSpinEditHsvChange(Sender: TObject);
-var
-  NewValue: Integer;
 begin
-  NewValue := CastleFloatToByteColorValue(VSpinEditHsv.Value);
-
-  SetVValueInHsvTab(NewValue);
-  SetVValueInCirclePickerPanel(NewValue);
+  SetVValueInHsvTab(VSpinEditHsv.Value);
+  SetVValueInCirclePickerPanel(VSpinEditHsv.Value);
 end;
 
 procedure TCastleColorPickerForm.VTabColorPickerHsvChange(Sender: TObject);
 begin
-  SetVValueInHsvTab(VTabColorPickerHsv.Value);
-  SetVValueInCirclePickerPanel(VTabColorPickerHsv.Value);
+  SetVValueInHsvTab(VTabColorPickerHsv.RelValue);
+  SetVValueInCirclePickerPanel(VTabColorPickerHsv.RelValue);
 end;
 
 procedure TCastleColorPickerForm.SetColorInCirclePickerPanel(NewColor: TCastleColor);
@@ -244,26 +241,38 @@ begin
 end;
 
 procedure TCastleColorPickerForm.SetHValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueRounded: Single;
+  NewValueForControl: Single; // THSCirclePicker uses value from 0..1
 begin
-  if HSPanelCirclePicker.Hue <> NewValue then
-    HSPanelCirclePicker.Hue := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  NewValueForControl := RoundTo(NewValue / 6, ColorPrecision);
+  if not SameValue(RoundTo(HSPanelCirclePicker.RelHue, ColorPrecision), NewValueForControl, ColorEpsilon) then
+    HSPanelCirclePicker.RelHue := NewValueForControl;
 end;
 
 procedure TCastleColorPickerForm.SetSValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueRounded: Single;
 begin
-  if HSPanelCirclePicker.Saturation <> NewValue then
-    HSPanelCirclePicker.Saturation := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  if not SameValue(RoundTo(HSPanelCirclePicker.RelSaturation, ColorPrecision),
+      NewValueRounded, ColorEpsilon) then
+    HSPanelCirclePicker.RelSaturation := NewValueRounded;
 end;
 
 procedure TCastleColorPickerForm.SetVValueInCirclePickerPanel(
-  const NewValue: Integer);
+  const NewValue: Single);
+var
+  NewValueRounded: Single;
 begin
-  if HSPanelCirclePicker.Value <> NewValue then
-    HSPanelCirclePicker.Value := NewValue;
-  if VPanelColorPicker.Value <> NewValue then
-    VPanelColorPicker.Value := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  if not SameValue(HSPanelCirclePicker.RelValue, NewValueRounded, ColorEpsilon) then
+    HSPanelCirclePicker.RelValue := NewValueRounded;
+  if not SameValue(VPanelColorPicker.RelValue, NewValueRounded, ColorEpsilon) then
+    VPanelColorPicker.RelValue := NewValueRounded;
 end;
 
 procedure TCastleColorPickerForm.SetRValueInCirclePickerPanel(
@@ -405,20 +414,15 @@ procedure TCastleColorPickerForm.SetColorInHsvTab(const NewColor: TCastleColor);
 var
   ColorByte: TVector3Byte;
   HDouble, SDouble, VDouble: Double;
-  H, S, V: Integer;
 begin
   ColorByte := Vector3Byte(NewColor.XYZ); // edit only Color RGB
   RGBtoHSV(ColorByte[0], ColorByte[1], ColorByte[2], HDouble, SDouble, VDouble);
 
-  H := Round(HDouble * HTabColorPickerHsv.MaxHue);
-  S := Round(SDouble * STabColorPickerHsv.MaxSaturation);
-  V := Round(VDouble * VTabColorPickerHsv.MaxValue);
-
   BlockEventsInHsvTab;
   try
-    SetHValueInHsvTab(H);
-    SetSValueInHsvTab(S);
-    SetVValueInHsvTab(V);
+    SetHValueInHsvTab(HDouble * 6);
+    SetSValueInHsvTab(SDouble);
+    SetVValueInHsvTab(VDouble);
   finally
     UnblockEventsInHsvTab;
   end;
@@ -427,72 +431,71 @@ end;
 procedure TCastleColorPickerForm.SetColorInHsvTab(const NewColor: TColor);
 var
   HDouble, SDouble, VDouble: Double;
-  H, S, V: Integer;
 begin
   ColortoHSV(NewColor, HDouble, SDouble, VDouble);
-  H := Round(HDouble * HTabColorPickerHsv.MaxHue);
-  S := Round(SDouble * STabColorPickerHsv.MaxSaturation);
-  V := Round(VDouble * VTabColorPickerHsv.MaxValue);
 
   BlockEventsInHsvTab;
   try
-    SetHValueInHsvTab(H);
-    SetSValueInHsvTab(S);
-    SetVValueInHsvTab(V);
+    SetHValueInHsvTab(HDouble * 6);
+    SetSValueInHsvTab(SDouble);
+    SetVValueInHsvTab(VDouble);
   finally
     UnblockEventsInHsvTab;
   end;
 end;
 
-procedure TCastleColorPickerForm.SetHValueInHsvTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetHValueInHsvTab(const NewValue: Single);
 var
-  NewDoubleValue: Double;
+  NewValueRounded: Single;
+  NewValueForControl: Single; // controls uses 0..1 range for hue
 begin
-  if HTabColorPickerHsv.Hue <> NewValue then
-    HTabColorPickerHsv.Hue := NewValue;
-  if STabColorPickerHsv.Hue <> NewValue then
-    STabColorPickerHsv.Hue := NewValue;
-  if VTabColorPickerHsv.Hue <> NewValue then
-    VTabColorPickerHsv.Hue := NewValue;
+  WritelnLog('HTab NewValue ' + FloatToStr(NewValue));
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  WritelnLog('HTab NewValueRounded ' + FloatToStr(NewValueRounded));
+  NewValueForControl := RoundTo(NewValueRounded / 6, ColorPrecision);
+  WritelnLog('HTab NewValueForControl ' + FloatToStr(NewValueForControl));
+  if not SameValue(HTabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
+    HTabColorPickerHsv.RelHue := NewValueForControl;
+  if not SameValue(STabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
+    STabColorPickerHsv.RelHue := NewValueForControl;
+  if not SameValue(VTabColorPickerHsv.RelHue, NewValueForControl, ColorEpsilon) then
+    VTabColorPickerHsv.RelHue := NewValueForControl;
 
-  NewDoubleValue := HueToCastleFloat(NewValue);
-  if not SameValue(HSpinEditHsv.Value, NewDoubleValue) then
-    HSpinEditHsv.Value := NewDoubleValue;
+  WritelnLog('HSpinEditHsv.Value ' + FloatToStr(HSpinEditHsv.Value));
+  if not SameValue(HSpinEditHsv.Value, NewValueRounded, ColorEpsilon) then
+    HSpinEditHsv.Value := NewValueRounded;
 end;
 
-procedure TCastleColorPickerForm.SetSValueInHsvTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetSValueInHsvTab(const NewValue: Single);
 var
-  NewDoubleValue: Double;
+  NewValueRounded: Single;
 begin
-  if HTabColorPickerHsv.Saturation <> NewValue then
-    HTabColorPickerHsv.Saturation := NewValue;
-  if STabColorPickerHsv.Saturation <> NewValue then
-    STabColorPickerHsv.Saturation := NewValue;
-  if VTabColorPickerHsv.Saturation <> NewValue then
-    VTabColorPickerHsv.Saturation := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  if not SameValue(HTabColorPickerHsv.RelSaturation, NewValueRounded, ColorEpsilon) then
+    HTabColorPickerHsv.RelSaturation := NewValueRounded;
+  if not SameValue(STabColorPickerHsv.RelSaturation, NewValueRounded, ColorEpsilon) then
+    STabColorPickerHsv.RelSaturation := NewValueRounded;
+  if not SameValue(VTabColorPickerHsv.RelSaturation, NewValueRounded, ColorEpsilon) then
+    VTabColorPickerHsv.RelSaturation := NewValueRounded;
 
-  NewDoubleValue := ByteColorValueToCastleFloat(NewValue);
-  if not SameValue(SSpinEditHsv.Value, NewDoubleValue) then
-  begin
-    //WritelnLog('Same value: ' + FloatToStr(SSpinEditHsv.Value) + ' <> ' + FloatToStr(NewDoubleValue));
-    SSpinEditHsv.Value := NewDoubleValue;
-  end;
+  if not SameValue(SSpinEditHsv.Value, NewValueRounded, ColorEpsilon) then
+    SSpinEditHsv.Value := NewValueRounded;
 end;
 
-procedure TCastleColorPickerForm.SetVValueInHsvTab(const NewValue: Integer);
+procedure TCastleColorPickerForm.SetVValueInHsvTab(const NewValue: Single);
 var
-  NewDoubleValue: Double;
+  NewValueRounded: Single;
 begin
-  if HTabColorPickerHsv.Value <> NewValue then
-    HTabColorPickerHsv.Value := NewValue;
-  if STabColorPickerHsv.Value <> NewValue then
-    STabColorPickerHsv.Value := NewValue;
-  if VTabColorPickerHsv.Value <> NewValue then
-    VTabColorPickerHsv.Value := NewValue;
+  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  if not SameValue(HTabColorPickerHsv.RelValue, NewValueRounded, ColorEpsilon) then
+    HTabColorPickerHsv.RelValue := NewValueRounded;
+  if not SameValue(STabColorPickerHsv.RelValue, NewValueRounded, ColorEpsilon) then
+    STabColorPickerHsv.RelValue := NewValueRounded;
+  if not SameValue(VTabColorPickerHsv.RelValue, NewValueRounded, ColorEpsilon) then
+    VTabColorPickerHsv.RelValue := NewValue;
 
-  NewDoubleValue := ByteColorValueToCastleFloat(NewValue);
-  if not SameValue(VSpinEditHsv.Value, NewDoubleValue) then
-    VSpinEditHsv.Value := NewDoubleValue;
+  if not SameValue(VSpinEditHsv.Value, NewValueRounded, ColorEpsilon) then
+    VSpinEditHsv.Value := NewValueRounded;
 end;
 
 procedure TCastleColorPickerForm.BlockEventsInHsvTab;
@@ -564,6 +567,8 @@ end;
 procedure TCastleColorPickerForm.Init(
   const ColorPropEditor: TCastleColorPropertyEditor; InitColor: TCastleColor);
 begin
+  ColorPrecision := -3;
+  ColorEpsilon := 0.0009;
   ColorPropertyEditor := ColorPropEditor;
   PrevColor := InitColor;
   SetColorInCirclePickerPanel(InitColor);
