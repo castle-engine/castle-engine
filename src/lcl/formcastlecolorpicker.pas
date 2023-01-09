@@ -86,12 +86,6 @@ type
     procedure BlockEventsInRgbTab;
     procedure UnblockEventsInRgbTab;
 
-    { Convert Hue integer value to castle float range 0..6 }
-    function HueToCastleFloat(const NewValue: Integer): Double;
-    function CastleFloatToHue(const NewValue: Double): Integer;
-    function ByteColorValueToCastleFloat(const NewValue: Integer): Double;
-    function CastleFloatToByteColorValue(const NewValue: Double): Integer;
-
     procedure SetColorInHsvTab(const NewColor: TCastleColor); overload;
     procedure SetColorInHsvTab(const NewColor: TColor); overload;
     { Sets Hue in Hsv tab NewValue should be in 0..6 range. }
@@ -386,34 +380,6 @@ begin
   RSpinEditRgb.OnChange := @RSpinEditRgbChange;
   GSpinEditRgb.OnChange := @GSpinEditRgbChange;
   BSpinEditRgb.OnChange := @BSpinEditRgbChange;
-end;
-
-function TCastleColorPickerForm.HueToCastleFloat(
-  const NewValue: Integer): Double;
-begin
-  Result := Clamped(NewValue / HTabColorPickerHsv.MaxHue * 6, 0, 6);
-  //WritelnLog('HueToCastleFloat ' + FloatToStrDot(Result) + '(' + IntToStr(NewValue) + ')');
-end;
-
-function TCastleColorPickerForm.CastleFloatToHue(
-  const NewValue: Double): Integer;
-begin
-  Result := Round(NewValue / 6 * HTabColorPickerHsv.MaxHue);
-  //WritelnLog('CastleFloatToHue ' + IntToStr(Result) + '(' + FloatToStrDot(NewValue) + ')');
-end;
-
-function TCastleColorPickerForm.ByteColorValueToCastleFloat(
-  const NewValue: Integer): Double;
-begin
-  Result := Clamped(NewValue / 255, 0, 1);
-  //WritelnLog('ByteColorValueToCastleFloat ' + FloatToStrDot(Result) + '(' + IntToStr(NewValue) + ')');
-end;
-
-function TCastleColorPickerForm.CastleFloatToByteColorValue(
-  const NewValue: Double): Integer;
-begin
-  Result := Round(NewValue * 255);
-  //WritelnLog('CastleFloatToByteColorValue ' + IntToStr(Result) + '(' + FloatToStrDot(NewValue) + ')');
 end;
 
 procedure TCastleColorPickerForm.SetColorInHsvTab(const NewColor: TCastleColor);
