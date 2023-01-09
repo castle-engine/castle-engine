@@ -1240,7 +1240,7 @@ begin
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * Render_ModelView;
-    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+    //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
   end;
 
   {$ifndef OpenGLES}
