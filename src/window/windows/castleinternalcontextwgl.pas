@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,7 @@ type
 implementation
 
 uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleUtils, CastleStringUtils, CastleGLUtils, CastleLog;
+  CastleUtils, CastleStringUtils, CastleGLUtils, CastleInternalGLUtils, CastleLog;
 
 { TGLContextWGL -------------------------------------------------------------- }
 
