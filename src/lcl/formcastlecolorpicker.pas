@@ -536,7 +536,7 @@ begin
     ValueChanged := true;
   end;
 
-  if not SameValue(AlphaSpinEdit.Value, NewValueRounded) then
+  if not SameValue(AlphaSpinEdit.Value, NewValueRounded, ColorEpsilon) then
   begin
     AlphaSpinEdit.Value := NewValueRounded;
     ValueChanged := true;
