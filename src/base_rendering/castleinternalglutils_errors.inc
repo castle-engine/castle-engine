@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,14 +71,6 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
   @raises EOpenGLError }
 procedure CheckGLErrors(const AdditionalComment: string = '');
 
-{ Raise EOpenGLError for given OpenGL error code.
-  This has calling convention suitable for registering this procedure
-  as GLU_TESS_ERROR for gluTessCallback, or GLU_ERROR for gluQuadricCallback. }
-procedure GLErrorRaise(ErrorCode: TGLenum);
-  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
-  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
-  deprecated 'this function is no longer useful, as you should not use GLU in cross-platform programs';
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -140,15 +132,6 @@ begin
       raise EOpenGLError.Create(ErrorCode, AdditionalComment);
       {$endif}
   end;
-end;
-
-procedure GLErrorRaise(ErrorCode: TGLenum);
-  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
-  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
-begin
-  if ErrorCode = GL_OUT_OF_MEMORY then
-    GLOutOfMemory else
-    raise EOpenGLError.Create(ErrorCode);
 end;
 
 {$endif read_implementation}

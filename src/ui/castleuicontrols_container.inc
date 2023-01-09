@@ -1846,7 +1846,7 @@ begin
     glDisable(GL_LIGHTING);
     glDisable(GL_FOG);
     {$endif}
-    GLEnableTexture(CastleGLUtils.etNone);
+    GLEnableTexture(etNone);
   end;
 
   glDisable(GL_DEPTH_TEST);
@@ -1860,7 +1860,7 @@ begin
       guaranteed value, for Render2d calls. }
     {$ifndef OpenGLES} glLoadIdentity; {$endif}
     {$warnings off}
-    CastleGLUtils.WindowPos := Vector2Integer(0, 0);
+    CastleInternalGLUtils.WindowPos := Vector2Integer(0, 0);
     {$warnings on}
   end;
 end;

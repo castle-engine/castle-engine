@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,7 +68,7 @@ implementation
 uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
-  CastleRenderContext;
+  CastleRenderContext, CastleInternalGLUtils;
 
 {$ifndef OpenGLES}
 { Rendering in this unit for now uses fixed-function pipeline,

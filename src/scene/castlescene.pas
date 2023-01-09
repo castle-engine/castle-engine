@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -628,7 +628,7 @@ implementation
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes,
-  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
+  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}

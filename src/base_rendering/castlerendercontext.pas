@@ -275,7 +275,7 @@ function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar:
 
 implementation
 
-uses CastleLog, CastleGLUtils, CastleProjection;
+uses CastleLog, CastleGLUtils, CastleProjection, CastleInternalGLUtils;
 
 constructor TRenderContext.Create;
 begin

@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,13 +68,6 @@ procedure glColorv(const v: TVector3); overload; //deprecated 'instead of this, 
 procedure glColorv(const v: TVector4); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { }
-procedure glTranslatev(const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-
-procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-
 procedure glClipPlane(plane: TGLenum; const V: TVector4Double); overload;
 
 procedure glNormalv(const v: TVector3); overload;
@@ -109,9 +102,6 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4); overload;
 
 {$endif}
 
-procedure GLViewport(const Rect: TRectangle);
-  deprecated 'use RenderContext.Viewport';
-
 var
   { Current color, set by glColorv and used for TCastleAbstractFont font printing
     (in case you use deprecated TCastleAbstractFont.Print overloads without
@@ -123,73 +113,8 @@ var
   CurrentColor: TCastleColor
     deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
-{ ---------------------------------------------------------------------------- }
-
 { Enable or disable given OpenGL flag. }
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
-
-{$ifndef OpenGLES}
-
-{ Draw vertical line using OpenGL. Uses current OpenGL color.
-
-  Deprecated, do not draw lines directly like this,
-  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TDrawableImage.Draw. }
-procedure GLVerticalLine(x, y1, y2: TGLfloat); deprecated 'use DrawPrimitive2D';
-
-{ Draw horizontal line using OpenGL. Uses current OpenGL color.
-
-  Deprecated, do not draw lines directly like this,
-  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TDrawableImage.Draw. }
-procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D';
-
-{ Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
-  has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
-
-  Everything is drawn CCW when seen from standard view (x grows right, y up).
-  Uses current OpenGL color. }
-procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
-  HeadLength: TGLfloat = 0.5); deprecated 'use DrawPrimitive2D to draw shapes';
-
-{ Draw axis (3 lines) around given position.
-  Nothing is generated besides vertex positions ---
-  no normal vectors, no texture coords, nothing. }
-procedure glDrawAxisWire(const Position: TVector3; Size: Single); deprecated 'use TCastleScene to draw 3D stuff';
-
-{ Call glColor, taking Opacity as separate Single argument.
-  Deprecated, do not use colors like that, instead pass TCastleColor
-  to appropriate routines like TCastleAbstractFont.Print.
-  @groupBegin }
-procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
-{ @groupEnd }
-{$endif}
-
-{ Utilities for display lists ---------------------------------------- }
-
-{$ifndef OpenGLES}
-
-type
-  { }
-  EOpenGLNoMoreDisplayLists = class(Exception)
-  end;
-
-{ Call glGenLists(range) and checks the result.
-
-  @raises(EOpenGLNoMoreDisplayLists
-    When glGenLists(Range) returned zero for non-zero Range.
-    The exception's Message shows Place, which may describe
-    where this is called --- makes it easier to debug.) }
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
-
-{ If List <> 0 then it does glDeleteList on List and sets List to 0.
-  In other words this is simply glDeleteList but
-  @orderedList(
-    @item only if List really should be deleted
-    @item sets List to 0 after deletion
-  ) }
-procedure glFreeDisplayList(var list: TGLuint); deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
-
-{$endif}
 
 { If Buffer <> 0 then it does glDeleteBuffers and sets Buffer to 0. }
 procedure glFreeBuffer(var Buffer: TGLuint);
@@ -316,14 +241,6 @@ begin
   {$warnings on}
 end;
 
-procedure glTranslatev(const V: TVector3); begin glTranslatef(V.X, V.Y, V.Z); end;
-
-procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
-
-procedure glScalev(const V: TVector3); begin glScalef(V.X, V.Y, V.Z); end;
-
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); begin glRotatef(Angle, V.X, V.Y, V.Z); end;
-
 procedure glClipPlane(plane: TGLenum; const V: TVector4Double);
 begin
   {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
@@ -357,147 +274,12 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4); begin glTex
 
 {$endif}
 
-procedure GLViewport(const Rect: TRectangle);
-begin
-  RenderContext.Viewport := Rect;
-end;
-
 { Various helpers ------------------------------------------------------------ }
 
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
-
-{$ifndef OpenGLES}
-procedure GLVerticalLine(x, y1, y2: TGLfloat);
-begin
-  glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
-end;
-
-procedure GLHorizontalLine(x1, x2, y: TGLfloat);
-begin
-  glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
-end;
-
-procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
-begin
-  HeadLength := 2*HeadLength; { map HeadLength to 0..2 }
-
-  glBegin(GL_TRIANGLES);
-    glVertex2f(0, 2);
-    glVertex2f(-1, HeadLength);
-    glVertex2f(-HeadThickness, HeadLength);
-
-    glVertex2f(0, 2);
-    glVertex2f(-HeadThickness, HeadLength);
-    glVertex2f(HeadThickness, HeadLength);
-
-    glVertex2f(0, 2);
-    glVertex2f(HeadThickness, HeadLength);
-    glVertex2f(1, HeadLength);
-  glEnd;
-
-  glBegin(GL_QUADS);
-    glVertex2f(-HeadThickness, HeadLength);
-    glVertex2f(-HeadThickness, 0);
-    glVertex2f(HeadThickness, 0);
-    glVertex2f(HeadThickness, HeadLength);
-  glEnd;
-end;
-
-(* // These versions would work with OpenGLES. But they ignore OpenGL matrix state like glTransform etc.
-
-procedure GLVerticalLine(x, y1, y2: TGLfloat);
-begin
-  DrawPrimitive2D(pmLines,
-    [Vector2(x, y1),
-     Vector2(x, y2)],
-    CurrentColor);
-end;
-
-procedure GLHorizontalLine(x1, x2, y: TGLfloat);
-begin
-  DrawPrimitive2D(pmLines,
-    [Vector2(x1, y),
-     Vector2(x2, y)],
-    CurrentColor);
-end;
-
-procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
-begin
-  HeadLength := 2*HeadLength; { map HeadLength to 0..2 }
-
-  DrawPrimitive2D(pmTriangles,
-    [Vector2(0, 2),
-     Vector2(-1, HeadLength),
-     Vector2(-HeadThickness, HeadLength),
-
-     Vector2(0, 2),
-     Vector2(-HeadThickness, HeadLength),
-     Vector2(HeadThickness, HeadLength),
-
-     Vector2(0, 2),
-     Vector2(HeadThickness, HeadLength),
-     Vector2(1, HeadLength),
-
-     // quad
-     Vector2(-HeadThickness, HeadLength),
-     Vector2(-HeadThickness, 0),
-     Vector2(HeadThickness, 0),
-
-     Vector2(-HeadThickness, HeadLength),
-     Vector2(HeadThickness, 0),
-     Vector2(HeadThickness, HeadLength)
-    ],
-    CurrentColor);
-end;
-*)
-
-procedure glDrawAxisWire(const Position: TVector3; Size: Single);
-begin
-  Size := Size / 2;
-  glBegin(GL_LINES);
-    glVertexv(Position - Vector3(Size, 0, 0));
-    glVertexv(Position + Vector3(Size, 0, 0));
-    glVertexv(Position - Vector3(0, Size, 0));
-    glVertexv(Position + Vector3(0, Size, 0));
-    glVertexv(Position - Vector3(0, 0, Size));
-    glVertexv(Position + Vector3(0, 0, Size));
-  glEnd;
-end;
-
-procedure glColorOpacity(const Color: TVector3; const Opacity: Single);
-begin
-  glColor4f(Color.X, Color.Y, Color.Z, Opacity);
-end;
-
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
-begin
-  glColor4f(Color.X / 255, Color.Y / 255, Color.Z / 255, Opacity);
-end;
-{$endif}
-
-{$ifndef OpenGLES}
-
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
-begin
-  Result := glGenLists(range);
-  if (Result = 0) and (range <> 0) then
-    raise EOpenGLNoMoreDisplayLists.CreateFmt(
-      'No more OpenGL display lists available when trying to allocate new %d display lists from "%s". This may mean that GPU memory is full (low possibility, unless you used some ridiculous number of display lists), or that OpenGL context is not initialized yet', [range, Place]);
-end;
-
-procedure glFreeDisplayList(var list: TGLuint);
-begin
- if list <> 0 then
- begin
-  glDeleteLists(list, 1);
-  list := 0;
- end;
-end;
-
-{$endif}
 
 procedure glFreeBuffer(var Buffer: TGLuint);
 begin

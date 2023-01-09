@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -840,7 +840,7 @@ end;
 procedure TGLRenderToTexture.GenerateMipmap;
 begin
   glBindTexture(CompleteTextureTarget, Texture);
-  CastleGLUtils.GenerateMipmap(CompleteTextureTarget);
+  CastleInternalGLUtils.GenerateMipmap(CompleteTextureTarget);
   { TODO: size of these mipmaps is not accounted for in texture memory profiler }
 end;
 

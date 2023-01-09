@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -94,7 +94,7 @@ implementation
 
 uses SysUtils, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleUtils, CastleBoxes;
+  CastleUtils, CastleBoxes, CastleInternalGLUtils;
 
 { Set and enable OpenGL light properties based on X3D light.
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -569,7 +569,7 @@ end;
   The only thing that you have to care about is to specify TextureUnit <
   GLFeatures.MaxTextureUnits. Everything else (whether multitexturing
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
-procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
+procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4);
 begin
   if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord)

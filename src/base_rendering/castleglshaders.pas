@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -576,7 +576,8 @@ procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 
 implementation
 
-uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext;
+uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext,
+  CastleInternalGLUtils;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
