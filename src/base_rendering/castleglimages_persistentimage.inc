@@ -1,3 +1,4 @@
+{%MainUnit castleglimages.pas}
 {
   Copyright 2019-2023 Michalis Kamburelis.
 

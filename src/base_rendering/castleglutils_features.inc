@@ -1,3 +1,4 @@
+{%MainUnit castleglutils.pas}
 {
   Copyright 2016-2023 Michalis Kamburelis.
 
