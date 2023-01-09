@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls, ComCtrls,
   StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker, HRingPicker,
   HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker, BColorPicker,
-  HColorPicker, SColorPicker, CastlePropEdits, CastleColors, LCLIntf;
+  HColorPicker, SColorPicker, CastlePropEdits, CastleColors, LCLIntf, Buttons;
 
 type
   TCastleColorPickerForm = class(TForm)
@@ -21,12 +21,14 @@ type
     HSV: TLabel;
     LabelTabHsvTitleH: TLabel;
     LabelTabHsvTitleV: TLabel;
+    MemoPascalCode: TMemo;
     RLabelTitleRgb: TLabel;
     GLabelTitleRgb: TLabel;
     BLabelTitleRgb: TLabel;
     LabelTitleAlpha: TLabel;
     LabelTabHsvTitleS: TLabel;
     SSpinEditHsv: TFloatSpinEdit;
+    TabSheetPascalCode: TTabSheet;
     VPanelColorPicker: TLVColorPicker;
     AlphaColorPicker: TLVColorPicker;
     VSpinEditHsv: TFloatSpinEdit;
@@ -106,6 +108,8 @@ type
     procedure SetAlphaValue(const NewValue: Single);
 
     procedure UpdatePropertyEditorValue;
+
+    procedure GeneratePascalCode;
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
@@ -519,7 +523,9 @@ begin
   if PageControlColorModel.ActivePage = TabSheetRgb then
     SetColorInRgbTab(HSPanelCirclePicker.SelectedColor)
   else if PageControlColorModel.ActivePage = TabSheetHsv then
-    SetColorInHsvTab(HSPanelCirclePicker.SelectedColor);
+    SetColorInHsvTab(HSPanelCirclePicker.SelectedColor)
+  else if PageControlColorModel.ActivePage = TabSheetPascalCode then
+    GeneratePascalCode;
 end;
 
 procedure TCastleColorPickerForm.SetAlphaValue(const NewValue: Single);
@@ -543,7 +549,11 @@ begin
   end;
 
   if ValueChanged then
+  begin
     UpdatePropertyEditorValue;
+    if PageControlColorModel.ActivePage = TabSheetPascalCode then
+      GeneratePascalCode;
+  end;
 end;
 
 procedure TCastleColorPickerForm.UpdatePropertyEditorValue;
@@ -560,6 +570,36 @@ begin
   end;
 end;
 
+procedure TCastleColorPickerForm.GeneratePascalCode;
+var
+  RSingle, GSingle, BSingle: Single;
+  RText, GText, BText, AText: String;
+begin
+  MemoPascalCode.Lines.Clear;
+
+  RSingle := RoundTo(HSPanelCirclePicker.Red / 255, ColorPrecision);
+  GSingle := RoundTo(HSPanelCirclePicker.Green / 255, ColorPrecision);
+  BSingle := RoundTo(HSPanelCirclePicker.Blue / 255, ColorPrecision);
+
+  RText := FloatToStrFDot(RSingle, ffFixed, 0, Abs(ColorPrecision));
+  GText := FloatToStrFDot(GSingle, ffFixed, 0, Abs(ColorPrecision));
+  BText := FloatToStrFDot(BSingle, ffFixed, 0, Abs(ColorPrecision));
+  AText := FloatToStrFDot(AlphaSpinEdit.Value, ffFixed, 0, Abs(ColorPrecision));
+
+  MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
+  MemoPascalCode.Lines.Add('const');
+  MemoPascalCode.Lines.Add('  MyColor: TCastleColor = (Data:' +
+    ' (X: ' + RText + ', Y: ' + GText + ', Z: ' + BText + ', W: ' + AText + '));');
+
+  MemoPascalCode.Lines.Add('');
+  MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
+  MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
+  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
+    ', ' + BText + ', ' + AText +');');
+  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(0.123, 0.123, 0.123), ' + AText + ');');
+  MemoPascalCode.Lines.Add('HexToColor(''aabbccdd'');');
+end;
+
 procedure TCastleColorPickerForm.Init(
   const ColorPropEditor: TCastleColorPropertyEditor; InitColor: TCastleColor);
 begin
@@ -570,6 +610,7 @@ begin
   SetColorInCirclePickerPanel(InitColor);
   SetColorInRgbTab(InitColor);
   SetColorInHsvTab(InitColor);
+  SetAlphaValue(InitColor.W);
 end;
 
 end.

@@ -72,12 +72,12 @@ object CastleColorPickerForm: TCastleColorPickerForm
     Height = 189
     Top = 303
     Width = 472
-    ActivePage = TabSheetHsv
+    ActivePage = TabSheetPascalCode
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 4
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 1
     OnChange = PageControlColorModelChange
     object TabSheetRgb: TTabSheet
@@ -369,6 +369,30 @@ object CastleColorPickerForm: TCastleColorPickerForm
         MaxValue = 1
         OnChange = VSpinEditHsvChange
         TabOrder = 5
+      end
+    end
+    object TabSheetPascalCode: TTabSheet
+      Caption = 'Pascal Code'
+      ClientHeight = 155
+      ClientWidth = 462
+      object MemoPascalCode: TMemo
+        AnchorSideLeft.Control = TabSheetPascalCode
+        AnchorSideTop.Control = TabSheetPascalCode
+        AnchorSideRight.Control = TabSheetPascalCode
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheetPascalCode
+        AnchorSideBottom.Side = asrBottom
+        Left = 4
+        Height = 147
+        Top = 4
+        Width = 454
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Left = 4
+        BorderSpacing.Top = 4
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 4
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
       end
     end
   end
