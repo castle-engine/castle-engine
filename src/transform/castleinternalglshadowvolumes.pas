@@ -825,10 +825,13 @@ begin
     { Note: we do not save/restore GLBlendFunction state,
       assuming that anything that ever activates blending will adjust it. }
     GLBlendFunction(bsSrcAlpha, bdOneMinusSrcAlpha);
+    glEnable(GL_BLEND);
 
     glColorv(Vector4(1, 1, 0, 0.3)); // TODO: pass this to TCastleRenderUnlitMesh.Color
 
     RenderShadowVolumes(Params);
+
+    glDisable(GL_BLEND);
 
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
     RenderContext.DepthTest := SavedDepthTest;
