@@ -152,6 +152,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
@@ -376,6 +377,8 @@ type
     procedure PropertyGridCollectionItemDelete(Sender: TObject);
     procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
     procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
+    procedure UpdateEditorInspectorData;
+
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -1408,7 +1411,6 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
       Result.ReferencesColor := $9EFFFF;
     end;
   end;
-
 begin
   inherited;
 
@@ -1501,6 +1503,7 @@ begin
   FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
+  UpdateEditorInspectorData;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -3649,6 +3652,19 @@ begin
   end;
 end;
 
+procedure TDesignFrame.UpdateEditorInspectorData;
+var
+  CastleInspectorData: TCastleEditorInspectorData;
+begin
+  CastleInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
+  if CastleInspectorData = nil then
+    CastleInspectorData := TCastleEditorInspectorData.Create(Application);
+
+  CastleInspectorData.X := ProjectForm.Left + Left + PanelRight.Left;
+  CastleInspectorData.Y := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
+  CastleInspectorData.Name := 'CastleEditorInspectorData';
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority);
 var
@@ -5305,6 +5321,11 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moInteract);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.FrameResize(Sender: TObject);
+begin
+  UpdateEditorInspectorData;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);

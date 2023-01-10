@@ -19,6 +19,14 @@
 { TCastleColorPropertyEditor ------------------------------------------------- }
 {$ifdef read_interface}
 type
+
+  TCastleEditorInspectorData = class(TComponent)
+    public
+      X: Integer;
+      Y: Integer;
+
+  end;
+
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -31,7 +39,6 @@ type
     function ValueIsStreamed: boolean; override;
     function AllEqual: Boolean; override;
   end;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -50,6 +57,7 @@ var
   Color: TCastleColor;
   ColorByte: TVector3Byte;
   ColorPicker: TCastleColorPickerForm;
+  CastleEditorInspectorData: TCastleEditorInspectorData;
 begin
   {Dialog := TColorDialog.Create(nil);
   try
@@ -76,6 +84,16 @@ begin
     ColorPersistent := (GetObjectValue as TCastleColorPersistent);
     Color := ColorPersistent.Value;
     TCastleColorPickerForm(ColorPicker).Init(Self, Color);
+
+
+    CastleEditorInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
+    if CastleEditorInspectorData <> nil then
+    begin
+      ColorPicker.Position := poDefaultPosOnly;
+      ColorPicker.Left := CastleEditorInspectorData.X;
+      ColorPicker.Top := CastleEditorInspectorData.Y;
+    end;
+
     ColorPicker.ShowModal;
     SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColor);
   finally
