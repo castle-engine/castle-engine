@@ -516,4 +516,21 @@ object CastleColorPickerForm: TCastleColorPickerForm
     Anchors = [akTop, akRight]
     Caption = 'HSV:'
   end
+  object ButtonRevert: TButton
+    AnchorSideLeft.Control = PanelCirclePicker
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = PanelCirclePicker
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 408
+    Height = 31
+    Top = 20
+    Width = 68
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 4
+    BorderSpacing.Right = 4
+    Caption = 'Revert'
+    OnClick = ButtonRevertClick
+    TabOrder = 3
+  end
 end

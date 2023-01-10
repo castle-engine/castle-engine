@@ -15,6 +15,7 @@ type
     AlphaSpinEdit: TFloatSpinEdit;
     BSpinEditRgb: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
+    ButtonRevert: TButton;
     ButtonCopy: TButton;
     EditHex: TEdit;
     GSpinEditRgb: TFloatSpinEdit;
@@ -52,6 +53,7 @@ type
     procedure BSpinEditRgbChange(Sender: TObject);
     procedure BTabColorPickerRgbChange(Sender: TObject);
     procedure ButtonCopyClick(Sender: TObject);
+    procedure ButtonRevertClick(Sender: TObject);
     procedure GSpinEditRgbChange(Sender: TObject);
     procedure GTabColorPickerRgbChange(Sender: TObject);
     procedure HSPanelCirclePickerChange(Sender: TObject);
@@ -113,12 +115,14 @@ type
 
     procedure GeneratePascalCode;
 
-    function CurrentCastleColor: TCastleColor;
+
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
     PrevColor: TCastleColor;
 
     procedure Init(const ColorPropEditor: TCastleColorPropertyEditor; InitColor: TCastleColor);
+
+    function CurrentCastleColor: TCastleColor;
   end;
 
 var
@@ -153,6 +157,12 @@ end;
 procedure TCastleColorPickerForm.ButtonCopyClick(Sender: TObject);
 begin
   Clipboard.AsText := EditHex.Text;
+end;
+
+procedure TCastleColorPickerForm.ButtonRevertClick(Sender: TObject);
+begin
+  SetColorInCirclePickerPanel(PrevColor);
+  SetAlphaValue(PrevColor.W);
 end;
 
 procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
@@ -578,7 +588,11 @@ procedure TCastleColorPickerForm.UpdatePropertyEditorValue;
 begin
   // on color change in circle
   if Assigned(ColorPropertyEditor) then
-    ColorPropertyEditor.SetAllValues(CurrentCastleColor);
+  begin
+    ColorPropertyEditor.SetValue(ColorToHex(CurrentCastleColor));
+    //ColorPropertyEditor.SetAllValues(CurrentCastleColor);
+    WritelnLog('Set value inspector value ' + ColorToHex(CurrentCastleColor));
+  end;
 end;
 
 procedure TCastleColorPickerForm.GeneratePascalCode;
