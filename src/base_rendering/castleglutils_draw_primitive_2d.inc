@@ -744,8 +744,8 @@ begin
       ]);
       DestinationFactor := bdOneMinusSrcAlpha;
     end;
- end;
- {$endif}
+  end;
+  {$endif}
 
   glBlendFunc(
     BlendingSourceFactorToGL[SourceFactor],
