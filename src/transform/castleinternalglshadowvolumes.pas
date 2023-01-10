@@ -237,7 +237,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRenderOptions, CastleRenderContext;
+  CastleTriangles, CastleRenderOptions, CastleRenderContext, CastleInternalGLUtils;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
@@ -675,6 +675,8 @@ var
   SavedCount: boolean;
   SavedDepthBufferUpdate: Boolean;
   SavedColorChannels: TColorChannels;
+  SavedDepthFunc: TDepthFunction;
+  SavedCullFace, SavedDepthTest: Boolean;
 begin
   Params.InShadow := false;
   Params.Transparent := false;
@@ -688,46 +690,46 @@ begin
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
+    { Calculate shadows to the stencil buffer. }
 
-    glPushAttrib(GL_ENABLE_BIT
-      { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
-      glEnable(GL_DEPTH_TEST);
+    SavedCullFace := RenderContext.CullFace;
+    SavedDepthTest := RenderContext.DepthTest;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    SavedColorChannels := RenderContext.ColorChannels;
 
-      { Calculate shadows to the stencil buffer. }
+    RenderContext.DepthTest := true;
+    { Don't write anything to depth or color buffers. }
+    RenderContext.DepthBufferUpdate := false;
+    RenderContext.ColorChannels := [];
 
-      { Don't write anything to depth or color buffers. }
-      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
-      SavedColorChannels := RenderContext.ColorChannels;
-      RenderContext.DepthBufferUpdate := false;
-      RenderContext.ColorChannels := [];
+      glStencilFunc(GL_ALWAYS, 0, 0);
 
-        glStencilFunc(GL_ALWAYS, 0, 0);
+      if StencilTwoSided then
+      begin
+        StencilSetupKind := ssFrontAndBack;
+        RenderShadowVolumes(Params);
+      end else
+      begin
+        RenderContext.CullFace := true;
 
-        if StencilTwoSided then
-        begin
-          StencilSetupKind := ssFrontAndBack;
-          RenderShadowVolumes(Params);
-        end else
-        begin
-          glEnable(GL_CULL_FACE);
+        { Render front facing shadow shadow volume faces. }
+        StencilSetupKind := ssFront;
+        glCullFace(GL_BACK);
+        RenderShadowVolumes(Params);
 
-          { Render front facing shadow shadow volume faces. }
-          StencilSetupKind := ssFront;
-          glCullFace(GL_BACK);
-          RenderShadowVolumes(Params);
+        { Render back facing shadow shadow volume faces. }
+        StencilSetupKind := ssBack;
+        SavedCount := Count;
+        Count := false;
+        glCullFace(GL_FRONT);
+        RenderShadowVolumes(Params);
+        Count := SavedCount;
+      end;
 
-          { Render back facing shadow shadow volume faces. }
-          StencilSetupKind := ssBack;
-          SavedCount := Count;
-          Count := false;
-          glCullFace(GL_FRONT);
-          RenderShadowVolumes(Params);
-          Count := SavedCount;
-        end;
-
-      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
-      RenderContext.ColorChannels := SavedColorChannels;
-    glPopAttrib;
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.ColorChannels := SavedColorChannels;
+    RenderContext.CullFace := SavedCullFace;
+    RenderContext.DepthTest := SavedDepthTest;
   glDisable(GL_STENCIL_TEST);
 
   { Now render everything once again, with lights turned on.
@@ -793,8 +795,8 @@ begin
   Assert(Params.InternalPass = 0);
   Inc(Params.InternalPass);
 
-  glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
-    glDepthFunc(GL_LEQUAL);
+  SavedDepthFunc := RenderContext.DepthFunc;
+  RenderContext.DepthFunc := dfLessEqual;
 
     { setup stencil : don't modify stencil, stencil test passes only for =0 }
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -807,25 +809,30 @@ begin
       RenderOnePass(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
-  glPopAttrib();
+
+  RenderContext.DepthFunc := SavedDepthFunc;
 
   if DrawShadowVolumes then
   begin
     SavedCount := Count;
     Count := false;
-    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
-    RenderContext.DepthBufferUpdate := false;
 
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
-      glEnable(GL_DEPTH_TEST);
-      glDisable(GL_LIGHTING);
-      glColor4f(1, 1, 0, 0.3);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
-      RenderShadowVolumes(Params);
-    glPopAttrib;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    SavedDepthTest := RenderContext.DepthTest;
+
+    RenderContext.DepthBufferUpdate := false;
+    RenderContext.DepthTest := true;
+    { Note: we do not save/restore GLBlendFunction state,
+      assuming that anything that ever activates blending will adjust it. }
+    GLBlendFunction(bsSrcAlpha, bdOneMinusSrcAlpha);
+
+    glColorv(Vector4(1, 1, 0, 0.3)); // TODO: pass this to TCastleRenderUnlitMesh.Color
+
+    RenderShadowVolumes(Params);
 
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.DepthTest := SavedDepthTest;
+
     Count := SavedCount;
   end;
 

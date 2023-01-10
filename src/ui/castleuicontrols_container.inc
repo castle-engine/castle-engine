@@ -1849,7 +1849,7 @@ begin
     GLEnableTexture(etNone);
   end;
 
-  glDisable(GL_DEPTH_TEST);
+  RenderContext.DepthTest := false;
 
   RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));

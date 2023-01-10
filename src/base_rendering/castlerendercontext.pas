@@ -52,6 +52,21 @@ type
   { Possible values of @link(TRenderContext.DepthRange). }
   TDepthRange = (drFull, drNear, drFar);
 
+  { Possible values of @link(TRenderContext.DepthFunc).
+    Note: For now, the values of this enum correspond to OpenGL(ES) constants,
+    but do not depend on this outside (and it may change in the future).
+    Treat it like opaque enum. }
+  TDepthFunction = (
+    dfNever = $0200,
+    dfLess = $0201,
+    dfEqual = $0202,
+    dfLessEqual = $0203,
+    dfGreater = $0204,
+    dfNotEqual = $0205,
+    dfGreaterEqual = $0206,
+    dfAlways = $0207
+  );
+
   TColorChannel = 0..3;
   TColorChannels = set of TColorChannel;
 
@@ -91,6 +106,8 @@ type
       FProjectionMatrix: TMatrix4;
       FDepthRange: TDepthRange;
       FCullFace, FFrontFaceCcw: boolean;
+      FDepthTest: Boolean;
+      FDepthFunc: TDepthFunction;
       FColorChannels: TColorChannels;
       FDepthBufferUpdate: Boolean;
       FViewport: TRectangle;
@@ -106,6 +123,8 @@ type
       procedure SetDepthRange(const Value: TDepthRange);
       procedure SetCullFace(const Value: boolean);
       procedure SetFrontFaceCcw(const Value: boolean);
+      procedure SetDepthTest(const Value: Boolean);
+      procedure SetDepthFunc(const Value: TDepthFunction);
       function GetColorMask: boolean;
       procedure SetColorMask(const Value: boolean);
       procedure SetColorChannels(const Value: TColorChannels);
@@ -171,8 +190,7 @@ type
       very simple use for this, for TPlayer.RenderOnTop. }
     property DepthRange: TDepthRange read FDepthRange write SetDepthRange;
 
-    { Should we use backface-culling (ignore some faces during rendering).
-      This controls whether OpenGL GL_CULL_FACE flag is enabled or not. }
+    { Should we use backface-culling (ignore some faces during rendering). }
     property CullFace: boolean read FCullFace write SetCullFace
       default false;
 
@@ -181,6 +199,12 @@ type
       and to interpret the normal vectors (they point outward from front face). }
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
+
+    { Depth testing means we reject things that don't pass @link(DepthFunc). }
+    property DepthTest: Boolean read FDepthTest write SetDepthTest default false;
+
+    { Function to use when comparing depth, only if @link(DepthTest). }
+    property DepthFunc: TDepthFunction read FDepthFunc write SetDepthFunc default dfLess;
 
     {$ifdef FPC}
     { Are color buffer channels changed by rendering. }
@@ -290,6 +314,8 @@ begin
   FFrontFaceCcw := true;
   FColorChannels := [0..3];
   FDepthBufferUpdate := true;
+  FDepthTest := false;
+  FDepthFunc := dfLess;
   FViewport := TRectangle.Empty;
 end;
 
@@ -467,6 +493,30 @@ begin
       glFrontFace(GL_CCW)
     else
       glFrontFace(GL_CW);
+  end;
+end;
+
+procedure TRenderContext.SetDepthTest(const Value: Boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FDepthTest <> Value then
+  begin
+    FDepthTest := Value;
+    GLSetEnabled(GL_DEPTH_TEST, FDepthTest);
+  end;
+end;
+
+procedure TRenderContext.SetDepthFunc(const Value: TDepthFunction);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FDepthFunc <> Value then
+  begin
+    FDepthFunc := Value;
+    glDepthFunc(Ord(FDepthFunc));
   end;
 end;
 
