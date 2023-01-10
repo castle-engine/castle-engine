@@ -25,7 +25,7 @@ unit CastlePropEdits;
 
 interface
 
-uses PropEdits, CastleColors;
+uses PropEdits, Forms, CastleColors;
 
 { Some of the property editors are publicly exposed,
   to enable using them for your own properties in custom components too.
@@ -41,7 +41,7 @@ procedure Register;
 implementation
 
 uses // FPC and LCL units
-  SysUtils, Classes, TypInfo, Forms,
+  SysUtils, Classes, TypInfo,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
   // Lazarus design-time (IDE) units
   ComponentEditors,
