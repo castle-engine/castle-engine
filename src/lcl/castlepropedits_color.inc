@@ -20,12 +20,7 @@
 {$ifdef read_interface}
 type
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
-  protected
-    ColorPicker: TForm;
   public
-    constructor Create(Hook: TPropertyEditorHook; APropCount: Integer); override;
-    destructor Destroy; override;
-
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
     function GetName: shortstring; override;
@@ -41,19 +36,6 @@ type
 
 {$ifdef read_implementation}
 
-constructor TCastleColorPropertyEditor.Create(Hook: TPropertyEditorHook;
-  APropCount: Integer);
-begin
-  inherited Create(Hook, APropCount);
-end;
-
-destructor TCastleColorPropertyEditor.Destroy;
-begin
-  if Assigned(ColorPicker) then
-    FreeAndNil(ColorPicker);
-  inherited Destroy;
-end;
-
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := inherited GetAttributes + [paDialog, paRevertable]
@@ -67,6 +49,7 @@ var
   ColorPersistent: TCastleColorPersistent;
   Color: TCastleColor;
   ColorByte: TVector3Byte;
+  ColorPicker: TCastleColorPickerForm;
 begin
   {Dialog := TColorDialog.Create(nil);
   try
@@ -87,14 +70,17 @@ begin
       SetAllValues(Color);
     end;
   finally FreeAndNil(Dialog) end;}
-  if ColorPicker = nil then
-    ColorPicker := TCastleColorPickerForm.Create(nil);
 
-  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-  Color := ColorPersistent.Value;
-  TCastleColorPickerForm(ColorPicker).Init(Self, Color);
-  ColorPicker.Show;
-
+  ColorPicker := TCastleColorPickerForm.Create(nil);
+  try
+    ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+    Color := ColorPersistent.Value;
+    TCastleColorPickerForm(ColorPicker).Init(Self, Color);
+    ColorPicker.ShowModal;
+    SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColor);
+  finally
+    FreeAndNil(ColorPicker);
+  end;
 end;
 
 function TCastleColorPropertyEditor.GetName: shortstring;
@@ -121,6 +107,7 @@ begin
     ColorPersistent := GetObjectValueAt(I) as TCastleColorPersistent;
     ColorPersistent.Value := NewValue;
   end;
+  //SetStrValue(ColorToHex(NewValue));
   Modified;
 end;
 
