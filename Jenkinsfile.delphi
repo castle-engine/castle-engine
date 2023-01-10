@@ -110,6 +110,30 @@ pipeline {
         sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386"'
       }
     }
+    stage('Build Delphi-specific Examples (Win64)') {
+      steps {
+        dir ('examples/delphi/vcl') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+        }
+        dir ('examples/delphi/fmx') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+        }
+      }
+    }
+    stage('Build Delphi-specific Examples (Win32)') {
+      steps {
+        dir ('examples/delphi/vcl') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+        }
+        dir ('examples/delphi/fmx') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+        }
+      }
+    }
   }
   post {
     regression {

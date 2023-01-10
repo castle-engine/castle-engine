@@ -47,6 +47,7 @@ type
     GroupBoxCamera: TGroupBox;
     Browser: TCastleControl;
     ImagePoweredBy: TImage;
+    LabelFps: TLabel;
     LabelPosition: TLabel;
     LabelDirection: TLabel;
     LabelUp: TLabel;
@@ -79,7 +80,6 @@ type
     procedure MenuQuitClick(Sender: TObject);
     procedure MenuShowConsoleClick(Sender: TObject);
     procedure MenuWebsiteClick(Sender: TObject);
-    procedure ViewportBoundNavigationInfoChanged(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -88,15 +88,19 @@ type
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
-    CrosshairActive: Boolean;    // there is something to touch under the crosshair
+    CrosshairActive: Boolean; //< there is something to touch under the crosshair
     RecentFiles: TCastleRecentFiles;
-    Viewport: TCastleAutoNavigationViewport;
+    Viewport: TCastleViewport;
+    MainScene: TCastleScene; //< main loaded scene
+    NavigationType: TNavigationType;
+    Navigation: TCastleNavigation;
 
     procedure OpenScene(const URL: string);
     procedure UpdateCaption;
     procedure UpdateCrosshairImage;
     procedure OnPointingDeviceSensorsChange(Sender: TObject);
     procedure RecentFilesOpenRecent(const URL: string);
+    procedure ChangeNavigationType(const NewNavigationType: TNavigationType);
   public
     { public declarations }
   end;
@@ -117,20 +121,17 @@ uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes,
 procedure TMain.OpenScene(const URL: string);
 
   procedure LoadScene(const URL: String);
-  var
-    Scene: TCastleScene;
   begin
-    Scene := TCastleScene.Create(Self);
-    Scene.Load(URL);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    Scene.ProcessEvents := true;
+    MainScene.Free; // free previous MainScene
 
-    Viewport.Items.MainScene.Free; // free previous MainScene
-    Viewport.Items.MainScene := Scene;
-    Viewport.Items.Add(Scene);
+    MainScene := TCastleScene.Create(Self);
+    MainScene.Load(URL);
+    MainScene.PreciseCollisions := true;
+    MainScene.ProcessEvents := true;
+
+    Viewport.Items.Add(MainScene);
 
     Viewport.AssignDefaultCamera;
-    Viewport.AssignDefaultNavigation;
   end;
 
 begin
@@ -150,13 +151,8 @@ begin
 
   RecentFiles.Add(URL);
 
-  { after loading the scene, make sure to update ButtonsNavigationType state.
-    Although during scene loading, OnBoundNavigationInfoChanged was already
-    called, but at that time Camera was nil. }
-  ViewportBoundNavigationInfoChanged(nil);
-
   { for changing the crosshair shape }
-  Viewport.Items.MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
+  MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
 
   { simple Browser.Load always recreates the Navigation each time, which means
     that we have to restore all camera properties that should be
@@ -192,9 +188,10 @@ var
   S: string;
 begin
   if SceneURL <> '' then
-    S := URICaption(SceneURL) else
+    S := URICaption(SceneURL)
+  else
     S := 'No Scene';
-  S := S + ' - ' +  ApplicationName + ' - FPS: ' + Browser.Fps.ToString;
+  S := S + ' | Castle Game Engine - Lazarus Model Viewer';
   Caption := S;
 end;
 
@@ -218,11 +215,11 @@ procedure TMain.Timer1Timer(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
 begin
-  UpdateCaption; { to update FPS }
+  LabelFps.Caption := 'FPS: ' + Browser.Fps.ToString;
 
   { Update edit boxes about camera only from time to time.
     Otherwise, updating edit controls
-    on every move would cause refresh rate of OpenGL context to suffer
+    on every frame would lower performance of OpenGL
     (e.g. when rotating object in Examine mode) }
   if CameraChanged then
   begin
@@ -247,12 +244,12 @@ end;
 
 procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
 var
-  Walk: TCastleWalkNavigation;
+  WalkNav: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkNavigation(false);
-  if Walk <> nil then
+  if Navigation is TCastleWalkNavigation then
   begin
-    Walk.MouseLook := (Sender as TMenuItem).Checked;
+    WalkNav := Navigation as TCastleWalkNavigation;
+    WalkNav.MouseLook := (Sender as TMenuItem).Checked;
     UpdateCrosshairImage;
     Repaint;
   end;
@@ -265,7 +262,7 @@ var
 begin
   { check if the crosshair (mouse) is over any sensor }
   OverSensor := false;
-  SensorList := Viewport.Items.MainScene.PointingDeviceSensors;
+  SensorList := MainScene.PointingDeviceSensors;
   if (SensorList <> nil) then
     OverSensor := (SensorList.EnabledCount>0);
 
@@ -277,13 +274,11 @@ begin
 end;
 
 procedure TMain.UpdateCrosshairImage;
-var
-  Walk: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkNavigation(false);
-
-  CrosshairCtl.Exists := ((Walk <> nil) and Walk.MouseLook);
-
+  CrosshairCtl.Exists := (
+    (Navigation is TCastleWalkNavigation) and
+    (Navigation as TCastleWalkNavigation).MouseLook
+  );
   if CrosshairActive then
     CrosshairCtl.Shape := csCrossRect
   else
@@ -303,16 +298,12 @@ end;
 procedure TMain.FormCreate(Sender: TObject);
 begin
   { load config settings }
-  ApplicationProperties.ApplicationName := 'model_3d_viewer';
   UserConfig.Load;
-  SoundEngine.LoadFromConfig(UserConfig);
 
-  Viewport := TCastleAutoNavigationViewport.Create(Application);
+  Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
   Viewport.OnCameraChanged := @BrowserCameraChanged;
-  Viewport.OnBoundNavigationInfoChanged := @ViewportBoundNavigationInfoChanged;
+  Viewport.Camera.Add(TCastleDirectionalLight.Create(Self)); // headlight
   Browser.Controls.InsertFront(Viewport);
 
   RecentFiles := TCastleRecentFiles.Create(Self);
@@ -322,15 +313,20 @@ begin
 
   UpdateCaption;
 
-  MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
-
   Console := TConsole.Create(Application);
-  ApplicationProperties.OnWarning.Add(@Console.WarningToConsole);
 
   ButtonsNavigationType[ntExamine] := ButtonExamine;
   ButtonsNavigationType[ntWalk] := ButtonWalk;
   ButtonsNavigationType[ntFly] := ButtonFly;
   ButtonsNavigationType[ntNone] := ButtonNone;
+
+  // synchronize NavigationType value with actual state
+  NavigationType := ntNone;
+
+  // create ntExamine navigation (this changes NavigationType and Navigation)
+  ChangeNavigationType(ntExamine);
+  Assert(NavigationType = ntExamine);
+  ButtonsNavigationType[NavigationType].Down := true;
 
   CrosshairCtl := TCastleCrosshair.Create(Browser);
   CrosshairCtl.Exists := false;  // start as invisible
@@ -343,7 +339,6 @@ end;
 procedure TMain.FormDestroy(Sender: TObject);
 begin
   { save config settings }
-  SoundEngine.SaveToConfig(UserConfig);
   RecentFiles.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;
@@ -380,27 +375,43 @@ begin
   CameraChanged := true;
 end;
 
-procedure TMain.ViewportBoundNavigationInfoChanged(Sender: TObject);
-var
-  NavigationType: TNavigationType;
-begin
-  NavigationType := Viewport.NavigationType;
-  { make the appropriate button on ButtonsNavigationType pressed.
-    Thanks to TSpeedButton.GroupIndex, all others will be automatically released. }
-  ButtonsNavigationType[NavigationType].Down := true;
-end;
-
 procedure TMain.ButtonNavigationTypeClick(Sender: TObject);
 var
-  NavigationType, NT: TNavigationType;
+  NewNavigationType, NT: TNavigationType;
 begin
-  { this is a handler for all four navigation type buttons.
+  { This is a handler for all four navigation type buttons.
     Scan ButtonsNavigationType to detect which is Sender. }
   for NT := Low(NT) to High(NT) do
     if ButtonsNavigationType[NT] = Sender then
-      NavigationType := NT;
+      NewNavigationType := NT;
+  ChangeNavigationType(NewNavigationType);
+end;
 
-  Viewport.NavigationType := NavigationType;
+procedure TMain.ChangeNavigationType(const NewNavigationType: TNavigationType);
+begin
+  if NavigationType <> NewNavigationType then
+  begin
+    FreeAndNil(Navigation); // this will also remove Navigation from Viewport children
+    case NewNavigationType of
+      ntExamine:
+        begin
+          Navigation := TCastleExamineNavigation.Create(Self);
+        end;
+      ntWalk:
+        begin
+          Navigation := TCastleWalkNavigation.Create(Self);
+          (Navigation as TCastleWalkNavigation).Gravity := true;
+        end;
+      ntFly:
+        begin
+          Navigation := TCastleWalkNavigation.Create(Self);
+          (Navigation as TCastleWalkNavigation).Gravity := false;
+        end;
+    end;
+    NavigationType := NewNavigationType;
+    if Navigation <> nil then // we leave Navigation=nil in case of NavigationType=ntNone
+      Viewport.InsertFront(Navigation);
+  end;
 end;
 
 procedure TMain.ButtonScreenshotClick(Sender: TObject);

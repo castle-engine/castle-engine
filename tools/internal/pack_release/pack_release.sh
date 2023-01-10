@@ -19,6 +19,9 @@ set -euo pipefail
 #   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
 #   -- right now this means Linux and Windows.
 #
+# - 1 argument 'windows_installer' to build a Windows installer.
+#   This requires InnoSetup installed.
+#
 # Define CGE_PACK_BUNDLE=yes for a special behavior:
 # - The generated archive will be named -bundle
 # - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
@@ -41,8 +44,20 @@ set -euo pipefail
 # - macOS (install GNU sed from Homebrew).
 # ----------------------------------------------------------------------------
 
+# ----------------------------------------------------------------------------
+# Define global variables
+
 OUTPUT_DIRECTORY=`pwd`
+if which cygpath.exe > /dev/null; then
+  OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
+fi
+
 VERBOSE=false
+
+ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
+
+# ----------------------------------------------------------------------------
+# Define functions
 
 # Require building release with latest stable FPC, as supported by CGE,
 # see https://castle-engine.io/supported_compilers.php .
@@ -118,7 +133,7 @@ prepare_build_tool ()
 # Calculate $CGE_VERSION
 calculate_cge_version ()
 {
-  CGE_VERSION="`castle-engine --version | awk '{print $2}'`"
+  CGE_VERSION="`castle-engine --version | awk '{print $2}' | tr -d '\r'`"
   echo "Detected CGE version ${CGE_VERSION}"
 }
 
@@ -188,7 +203,19 @@ add_external_tool ()
   fi
 }
 
-do_pack_platform ()
+# Prepare directory with precompiled CGE.
+#
+# Parameters:
+# - $1: OS
+# - $2: CPU
+#
+# Output:
+# - $TEMP_PATH: absolute directory that contains castle_game_engine subdir
+#   (guaranteed to end with path delimiter,
+#   i.e. slash on Unix or backslash on Windows).
+# - $ARCHIVE_NAME_BUNDLE: empty string or '-bundle',
+#   depending on whether CGE_PACK_BUNDLE was defined.
+pack_platform_dir ()
 {
   OS="$1"
   CPU="$2"
@@ -223,7 +250,13 @@ do_pack_platform ()
   fi
 
   # Create temporary CGE copy, for packing
-  local TEMP_PATH="/tmp/castle-engine-release-$$/"
+  TEMP_PATH="/tmp/castle-engine-release-$$/"
+  if which cygpath.exe > /dev/null; then
+    # must be native (i.e. cannot be Unix path on Cygwin) as this path
+    # (or paths derived from it) is used by CGE native tools
+    # e.g. for compiling fpc-cge.
+    TEMP_PATH="`cygpath --mixed \"${TEMP_PATH}\"`"
+  fi
   mkdir -p "$TEMP_PATH"
   local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
   cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
@@ -243,10 +276,6 @@ do_pack_platform ()
 
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
-  if which cygpath.exe > /dev/null; then
-    # must be native (i.e. cannot be Unix path on Cygwin) as it is used by CGE native tools
-    CASTLE_ENGINE_PATH="`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"`"
-  fi
 
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
@@ -314,7 +343,10 @@ do_pack_platform ()
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
-  rm -Rf doc/pasdoc/cache/
+  # Remove pasdoc leftovers,
+  # including pasdoc dir and zip/tar.gz left after tasks like '(Windows) Get PasDoc' and '(macOS) Get PasDoc'.
+  # Otherwise they'd get packaged.
+  rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
@@ -322,7 +354,7 @@ do_pack_platform ()
   add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
-  local ARCHIVE_NAME_BUNDLE=''
+  ARCHIVE_NAME_BUNDLE=''
   if [ "${CGE_PACK_BUNDLE:-}" == 'yes' ]; then
     cd "${TEMP_PATH_CGE}"tools/contrib/
     unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
@@ -332,8 +364,23 @@ do_pack_platform ()
     # remove useless fpc-cge in this case
     rm -f "${TEMP_PATH_CGE}"tools/contrib/fpc/bin/fpc-cge"${EXE_EXTENSION}"
   fi
+}
+
+# Prepare zip with precompiled CGE.
+# zip is placed in OUTPUT_DIRECTORY.
+# Parameters:
+# - $1: OS
+# - $2: CPU
+pack_platform_zip ()
+{
+  OS="$1"
+  CPU="$2"
+  shift 2
+
+  pack_platform_dir "${OS}" "${CPU}"
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
+
   cd "${TEMP_PATH}"
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
@@ -341,17 +388,54 @@ do_pack_platform ()
   rm -Rf "${TEMP_PATH}"
 }
 
-ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
+# Prepare Windows installer with precompiled CGE.
+# Requires InnoSetup installed.
+# Result is placed in OUTPUT_DIRECTORY.
+pack_windows_installer ()
+{
+  OS="win64"
+  CPU="x86_64"
+
+  pack_platform_dir "${OS}" "${CPU}"
+
+  local ARCHIVE_NAME="castle-engine-setup-${CGE_VERSION}"
+
+  # Detect iscc location
+  INNO_SETUP_CLI='iscc'
+  if ! which "${INNO_SETUP_CLI}" > /dev/null; then
+    # if not on $PATH, try default location
+    INNO_SETUP_CLI='c:/Program Files (x86)/Inno Setup 6/iscc.exe'
+  fi
+
+  # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
+  # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
+  "${INNO_SETUP_CLI}" \
+    "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
+    "/O${OUTPUT_DIRECTORY}" \
+    "/F${ARCHIVE_NAME}" \
+    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \
+    "/DMyAppVersion=${CGE_VERSION}"
+
+  # cleanup to save disk space
+  rm -Rf "${TEMP_PATH}"
+}
+
+# ----------------------------------------------------------------------------
+# Main body
 
 detect_platform
 check_fpc_version
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then
-  do_pack_platform "${1}" "${2}"
+  if [ "$1" '=' 'windows_installer' ]; then
+    pack_windows_installer
+  else
+    pack_platform_zip "${1}" "${2}"
+  fi
 else
   # build for default platforms (expected by Jenkinsfile)
-  do_pack_platform win64 x86_64
-  do_pack_platform win32 i386
-  do_pack_platform linux x86_64
+  pack_platform_zip win64 x86_64
+  pack_platform_zip win32 i386
+  pack_platform_zip linux x86_64
 fi

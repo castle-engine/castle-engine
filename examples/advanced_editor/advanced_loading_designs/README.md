@@ -4,7 +4,7 @@ This example some advanced features of how you can use _"designs"_.
 
 "Designs" are files `xxx.castle-user-interface`, `xxx.castle-transform`, `xxx.castle-component` that you can visually create in the CGE editor.
 
-The default CGE templates start with just one design for one TUIState (like `gamestatemain.castle-user-interface` for `TStateMain`) and the design is set using `DesignUrl` and automatically shown/hidden when the state start/stops.
+The default CGE templates start with just one design for one `TCastleView` (like `gameviewmain.castle-user-interface` for `TViewMain`) and the design is set using `DesignUrl` and automatically shown/hidden when the view start/stops.
 
 But the designs are much more flexible. You can create any number of design files, load them (once or many times), and show/hide whenever you need. This demo shows how:
 

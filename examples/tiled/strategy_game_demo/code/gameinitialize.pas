@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,8 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState,
-  GameStateMainMenu, GameStatePlay, GameStateInstructions, GameStateWin;
+  CastleUIControls, CastleApplicationProperties,
+  GameViewMainMenu, GameViewPlay, GameViewInstructions, GameViewWin;
 
 var
   Window: TCastleWindow;
@@ -38,13 +38,15 @@ begin
     for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Initialize TUIState instances and TUIState.Current }
-  StateMainMenu := TStateMainMenu.Create(Application);
-  StatePlay := TStatePlay.Create(Application);
-  StateInstructions := TStateInstructions.Create(Application);
-  StateWin := TStateWin.Create(Application);
+  {$region 'Castle View Creation'}
+  // The content here may be automatically updated by CGE editor.
+  ViewMainMenu := TViewMainMenu.Create(Application);
+  ViewPlay := TViewPlay.Create(Application);
+  ViewInstructions := TViewInstructions.Create(Application);
+  ViewWin := TViewWin.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  TUIState.Current := StateMainMenu;
+  Window.Container.View := ViewMainMenu;
 end;
 
 initialization

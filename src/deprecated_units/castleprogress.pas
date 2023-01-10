@@ -15,7 +15,7 @@
 
 { Progress bar functionality (TProgress, global variable Progress). }
 unit CastleProgress
-  deprecated 'use TUIState and WaitForRenderAndCall to display progress of loading operations';
+  deprecated 'use TCastleView and WaitForRenderAndCall to display progress of loading operations';
 
 {$I castleconf.inc}
 

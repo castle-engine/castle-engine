@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -188,10 +188,10 @@ type
 
       Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
-      const TestDeviceIds: array of string);
+      const TestDeviceIds: array of string); overload;
 
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
-      const TestDeviceIds: array of string);
+      const TestDeviceIds: array of string); overload;
 
     { Initialize StartApp ads.
       You need to register your game on http://startapp.com/ to get app id.
@@ -262,16 +262,16 @@ constructor TAds.TAdNetworkHandler.Create(const AParent: TAds);
 begin
   inherited Create;
   FParent := AParent;
-  Messaging.OnReceive.Add(@MessageReceived);
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TAds.TAdNetworkHandler.Destroy;
 begin
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   inherited;
 end;
 

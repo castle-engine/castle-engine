@@ -268,6 +268,9 @@
     { Call UpdateWorldScale on all colliders here and in children. }
     procedure UpdateCollidersWorldScale;
   protected
+    { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
+    function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
+
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
     procedure RegisterGLContextClose;
@@ -668,7 +671,7 @@
 
       This allows to use this method safely even in the middle of iteration
       over TCastleTransform children. For example you can use it from @link(Update) method,
-      from any TCastleTransform.Update or TCastleUserInterface.Update (including TUIState.Update).
+      from any TCastleTransform.Update or TCastleUserInterface.Update (including TCastleView.Update).
 
       Note: It is not a problem if the child scheduled to be removed
       will also be removed (or even freed) directly e.g. by just calling @code(Free) on it.
@@ -743,8 +746,9 @@
           In 3D, it may make sense to call this method even every frame
           (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change (note that CameraPosition is only
-          relevant if BlendingSort = bs3D).
+          or if the CameraPosition may change. Note that CameraPosition is only
+          relevant if BlendingSort is one of the bs3D* options,
+          like bs3D, bs3DOrigin, bs3DGround.
         )
         @item(
           In 2D, it is a bit simpler.
@@ -759,8 +763,9 @@
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
       @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D, to keep it sorted.
-      It is the default now, so you typically don't need to worry about it.
+      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
+      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
+      so you typically don't need to worry about it.
 
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing.
@@ -2462,34 +2467,10 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-function CompareBackToFront2D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
-end;
-
-var
-  { Has to be global, since TObjectList.Sort
-    requires normal function (not "of object"). }
-  SortCameraPosition: TVector3;
-
-function CompareBackToFront3D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
-    SortCameraPosition);
-end;
-
 procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
   const CameraPosition: TVector3);
 begin
-  case BlendingSort of
-    bs2D: List.Sort(@CompareBackToFront2D);
-    bs3D:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3D);
-      end;
-    else ;
-  end;
+  List.SortBackToFront(BlendingSort, CameraPosition);
 end;
 
 procedure TCastleTransform.SortBackToFront2D;
@@ -2524,15 +2505,22 @@ begin
   end;
 end;
 
+function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
+begin
+  Result := List;
+end;
+
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);
 var
   I: Integer;
+  RenderList: TCastleTransformList;
 begin
   if CheckVisible then
   begin
     PendingRemovals;
-    for I := 0 to List.Count - 1 do
-      List[I].Render(Params);
+    RenderList := GetRenderList(Params);
+    for I := 0 to RenderList.Count - 1 do
+      RenderList[I].Render(Params);
   end;
 end;
 

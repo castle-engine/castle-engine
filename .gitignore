@@ -21,6 +21,7 @@ lib/
 *.~dsk
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
+*.local
 
 # Other backups
 *.blend1
@@ -113,6 +114,7 @@ castle-game-engine-*.fpm
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
 /examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls
+/examples/lazarus/multiple_views/multiple_views
 /examples/lazarus/two_controls/lib/
 /examples/lazarus/two_controls/two_controls
 /examples/lazarus/two_controls/two_controls.lps
@@ -122,8 +124,10 @@ castle-game-engine-*.fpm
 /examples/mobile/achievements/dragon_spine_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
+/examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/viewport_and_scenes/shadows/shadows
+/examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
@@ -176,11 +180,11 @@ castle-game-engine-*.fpm
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
-/examples/user_interface/state_events/state_events
-/examples/user_interface/test_all_state_events/test_all_state_events
+/examples/user_interface/view_events/view_events
+/examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
 /examples/user_interface/zombie_fighter/zombie_fighter
-/examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
+/examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
 /examples/viewport_and_scenes/build_3d_object_by_code/build_3d_object_by_code
 /examples/viewport_and_scenes/build_3d_object_by_code_2_tunnel/build_3d_object_by_code_2_tunnel

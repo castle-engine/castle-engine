@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,11 +18,13 @@
 
 {$ifdef read_interface_const}
 const
-  PixelsImageClasses: array [0..3] of TEncodedImageClass = (
+  PixelsImageClasses: array [0..4] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
-    TGrayscaleAlphaImage);
+    TGrayscaleAlphaImage,
+    TGPUCompressedImage
+  );
 {$endif read_interface_const}
 
 {$ifdef read_interface_func}

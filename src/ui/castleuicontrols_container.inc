@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -86,6 +86,11 @@
     FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
 
+    function GetView: TCastleView;
+    procedure SetView(const Value: TCastleView);
+    function GetFrontView: TCastleView;
+    function GetViewStack(const Index: Integer): TCastleView;
+
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
@@ -110,6 +115,8 @@
     { Create / destroy FInspector. }
     procedure ToggleInspector;
   private
+    FViewStack: TCastleViewList;
+    FDisableStackChange: Cardinal;
     FControls: TInternalChildrenControls;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
@@ -706,11 +713,80 @@
     { @deprecated Use InputInspector.Key now. }
     property InspectorKey: TKey read GetInspectorKey write SetInspectorKey;
       {$ifdef FPC}deprecated 'use InputInspector';{$endif}
+
+    { Current view. Simply assign to this property to change the current view.
+
+      In case multiple views are active (only possible
+      if you used the @link(PushView) method), this property returns the @italic(bottom) view
+      (use @link(FrontView) to get @italic(top) view).
+      Setting this property resets whole view stack.
+
+      @bold(When is it allowed to change the view?)
+
+      While in theory you can change current view stack (assigning @link(View)
+      or using @link(PushView) / @link(PopView)) at any moment,
+      but remember that stopping the view frees also the view UI.
+      So you should not change the current view stack within events/overriden methods
+      of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
+      that could be destroyed by the view stop.
+
+      The simpler advise is: @italic(Assign to @link(View) or use @link(PushView) / @link(PopView)
+      only from the overridden TCastleView methods.
+      Like TMyView.Update or TMyView.Press).
+
+      Note that you cannot change current view stack when another change is in progress.
+      That is, you cannot change view from within TMyView.Start/Resume/Pause/Stop.
+    }
+    property View: TCastleView read GetView write SetView;
+
+    { The view in the front (top-most view on the stack).
+
+      In case you used @link(PushView), this returns the top-most (most recently pushed) view.
+
+      If there is only one (or none) view, e.g. because you never used @link(PushView),
+      then this property returns the same thing as @link(View). }
+    property FrontView: TCastleView read GetFrontView;
+
+    { Pushing the view adds it at the top of the view stack,
+      this makes new view to be displayed on top of previous ones.
+
+      The view known as @link(View) is conceptually at the bottom of view stack, always.
+      When it is nil, then pushing new view sets the @link(View) view.
+      Otherwise @link(View) view is left as-it-is, new view is added on top. }
+    procedure PushView(const NewView: TCastleView);
+
+    { Pop the current top-most view, reversing the @link(PushView) operation. }
+    procedure PopView; overload;
+
+    { Pop the current top-most view, reversing the @link(PushView) operation,
+      also checking whether the current top-most view is as expected.
+
+      Makes a warning, and does nothing, if the current top-most view
+      is different than indicated. This is usually a safer (more chance
+      to easily catch bugs) version of PopView than the parameter-less version. }
+    procedure PopView(const CheckFrontView: TCastleView); overload;
+
+    { Count of views in the view stack.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
+    function ViewStackCount: Integer;
+
+    { Access any view within the view stack.
+      Use with indexes between 0 and ViewStackCount - 1.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
+    property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ Changing view during view Start/Stop/Push/Pop is not reliable,
+  e.g. doing TCastleContainer.PushView during another TCastleContainer.PushView will not result
+  in proper stack. }
+procedure ErrorStackChangeDisabled(const Message: String);
+begin
+  raise EInternalError.Create(Message);
+end;
 
 { TCastleContainer --------------------------------------------------------------- }
 
@@ -753,6 +829,11 @@ end;
 
 destructor TCastleContainer.Destroy;
 begin
+  if FViewStack <> nil then
+  begin
+    View := nil; // should clean FViewStack
+    FreeAndNil(FViewStack);
+  end;
   if RenderContext = FContext then
     RenderContext := nil;
   FreeAndNil(FContext);
@@ -802,9 +883,8 @@ var
 begin
   if C = FTooltipParent then
   begin
-    if (FTooltipParent <> nil) and
-       (FTooltipParent.TooltipControl <> nil) then
-      FTooltipParent.TooltipControl.Exists := false;
+    if FTooltipParent <> nil then
+      FTooltipParent.InternalSetTooltipExists(false);
     FTooltipParent := nil;
   end;
 
@@ -1009,7 +1089,7 @@ begin
       for I := 0 to FFocus.Count - 1 do
         if FNewFocus.IndexOf(FFocus[I]) = -1 then
           FFocus[I].Focused := false;
-    end;
+    end
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
@@ -1202,12 +1282,9 @@ procedure TCastleContainer.EventUpdate;
 
     if FTooltipParent <> NewTooltipParent then
     begin
+      { hide tooltip }
       if FTooltipParent <> nil then
-      begin
-        { hide TooltipControl }
-        if FTooltipParent.TooltipControl <> nil then
-          FTooltipParent.TooltipControl.Exists := false;
-      end;
+        FTooltipParent.InternalSetTooltipExists(false);
 
       FTooltipParent := NewTooltipParent;
 
@@ -1217,9 +1294,8 @@ procedure TCastleContainer.EventUpdate;
         LastPositionForTooltip := MousePosition;
         { also update TooltipPosition }
         FTooltipPosition := MousePosition;
-        { show TooltipControl }
-        if FTooltipParent.TooltipControl <> nil then
-          FTooltipParent.TooltipControl.Exists := true;
+        { show tooltip }
+        FTooltipParent.InternalSetTooltipExists(true);
       end;
 
       Invalidate;
@@ -2321,6 +2397,134 @@ end;
 procedure TCastleContainer.SetInspectorKey(const Value: TKey);
 begin
   FInputInspector.Key := Value;
+end;
+
+function TCastleContainer.GetView: TCastleView;
+begin
+  if (FViewStack = nil) or
+     (FViewStack.Count = 0) then
+    Result := nil
+  else
+    Result := FViewStack[0];
+end;
+
+function TCastleContainer.GetFrontView: TCastleView;
+begin
+  if (FViewStack = nil) or
+     (FViewStack.Count = 0) then
+    Result := nil
+  else
+    Result := FViewStack[FViewStack.Count - 1];
+end;
+
+procedure TCastleContainer.SetView(const Value: TCastleView);
+begin
+  { exit early if there's nothing to do }
+  if (ViewStackCount = 0) and (Value = nil) then
+    Exit;
+  if (ViewStackCount = 1) and (FViewStack[0] = Value) then
+    Exit;
+
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot change TCastleView.View from inside of TCastleView.Start/Resume/Pause/Stop');
+
+  { Remove and finish topmost view.
+    The loop is written to work even when some view Stop method
+    changes views. }
+  while ViewStackCount <> 0 do
+    PopView;
+  { deallocate empty FViewStack }
+  if Value = nil then
+    FreeAndNil(FViewStack);
+
+  PushView(Value);
+end;
+
+procedure TCastleContainer.PushView(const NewView: TCastleView);
+begin
+  if NewView <> nil then
+  begin
+    if FDisableStackChange <> 0 then
+      ErrorStackChangeDisabled('Cannot call TCastleContainer.Push from inside of TCastleView.Start/Resume/Pause/Stop');
+
+    Inc(FDisableStackChange);
+    try
+      { pause previous top-most view }
+      if (FViewStack <> nil) and
+         (FViewStack.Count <> 0) then
+        FViewStack.Last.Pause;
+
+      { create FViewStack on demand now }
+      if FViewStack = nil then
+        FViewStack := TCastleViewList.Create(false);
+      FViewStack.Add(NewView);
+      NewView.InternalStart(Self);
+      NewView.Resume;
+    finally
+      Dec(FDisableStackChange)
+    end;
+  end;
+end;
+
+procedure TCastleContainer.PopView;
+var
+  SavedFrontView: TCastleView;
+begin
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot call TCastleContainer.Pop from inside of TCastleView.Start/Resume/Pause/Stop');
+
+  Inc(FDisableStackChange);
+  try
+    SavedFrontView := FrontView;
+    SavedFrontView.Pause;
+    SavedFrontView.InternalStop;
+    if SavedFrontView = FrontView then
+      FViewStack.Delete(FViewStack.Count - 1)
+    else
+      WritelnWarning('TCastleView', 'Topmost view is no longer topmost after its Stop method. Do not change view stack from view Stop methods.');
+
+    if SavedFrontView.FFreeWhenStopped then
+      FreeAndNil(SavedFrontView);
+
+    { resume new top-most view }
+    if (FViewStack <> nil) and
+       (FViewStack.Count <> 0) then
+      FViewStack.Last.Resume;
+  finally
+    Dec(FDisableStackChange)
+  end;
+end;
+
+procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
+begin
+  if (FViewStack = nil) or (FViewStack.Count = 0) then
+  begin
+    WritelnWarning('TCastleView', 'Cannot pop UI view, that stack is empty');
+    Exit;
+  end;
+  if FViewStack.Last <> CheckFrontView then
+  begin
+    WritelnWarning('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be ' + CheckFrontView.ClassName + ', but is ' + FViewStack.Last.ClassName);
+    Exit;
+  end;
+
+  PopView;
+end;
+
+function TCastleContainer.ViewStackCount: Integer;
+begin
+  if FViewStack = nil then
+    Result := 0
+  else
+    Result := FViewStack.Count;
+end;
+
+function TCastleContainer.GetViewStack(const Index: Integer): TCastleView;
+begin
+  if FViewStack = nil then
+    raise EInternalError.CreateFmt('TCastleView.GetViewStack: view stack is empty, cannot get view index %d',
+      [Index]);
+  Result := FViewStack[Index];
 end;
 
 {$endif read_implementation}

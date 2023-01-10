@@ -413,7 +413,7 @@
     procedure InternalDestroyGizmos; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Point, in local coordinates, that will be pulled to @link(AnchorTarget). }
+    { Point, in local coordinates, that will be pulled to @link(TargetWorld). }
     property Anchor: TVector3 read FAnchor write SetAnchor;
 
     { Point, in world coordinates, that pulls @link(Anchor).

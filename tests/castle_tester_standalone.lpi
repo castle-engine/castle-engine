@@ -328,7 +328,7 @@
         <IsPartOfProject Value="True"/>
       </Unit68>
       <Unit69>
-        <Filename Value="code/tester-castle/gamestatemain.pas"/>
+        <Filename Value="code/tester-castle/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit69>
       <Unit70>

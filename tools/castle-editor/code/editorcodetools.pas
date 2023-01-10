@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,32 +21,34 @@ interface
 uses SysUtils,
   ToolManifest;
 
-{ Find unit where state initialization takes place.
+{ Find unit where view initialization takes place.
   Returns '' if not found.
   Returns relative filename (relative to project path) if found. }
-function FindUnitToInitializeState(const Manifest: TCastleManifest): String;
+function FindUnitToInitializeView(const Manifest: TCastleManifest): String;
 
-{ Add state initialization to given unit.
-  Assumes that it was a unit returned by FindUnitToInitializeState,
+{ Add view initialization to given unit.
+  Assumes that it was a unit returned by FindUnitToInitializeView,
   so it passed basic checks implemented there.
   Raises exception if unit cannot be modified for some reason
   (e.g. it was broken in the meantime, between
-  FindUnitToInitializeState and AddInitializeState calls,
+  FindUnitToInitializeView and AddInitializeView calls,
   or we have no permissions to write there). }
-procedure AddInitializeState(const UnitFileAbsolute: String;
-  const StateUnitName, StateClassName, StateVariableName: String);
+procedure AddInitializeView(const UnitFileAbsolute: String;
+  const ViewUnitName, ViewClassName, ViewVariableName: String);
 
 implementation
 
 uses CastleStringUtils, CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils;
 
 const
-  CommentStateCreateBegin = '{$region ''Castle State Creation''}';
-  CommentStateCreateEnd   = '{$endregion ''Castle State Creation''}';
+  CommentViewCreateBegin = '{$region ''Castle View Creation''}';
+  CommentViewCreateEnd   = '{$endregion ''Castle View Creation''}';
+  CommentView2CreateBegin = '{$region ''Castle State Creation''}';
+  CommentView2CreateEnd   = '{$endregion ''Castle State Creation''}';
   CommentInitializationUsesBegin = '{$region ''Castle Initialization Uses''}';
   CommentInitializationUsesEnd   = '{$endregion ''Castle Initialization Uses''}';
 
-function CheckUnitToInitializeState(const FileName: String): Boolean;
+function CheckUnitToInitializeView(const FileName: String): Boolean;
 var
   Content: String;
 begin
@@ -55,7 +57,7 @@ begin
   except
     on E: Exception do
     begin
-      WritelnWarning('Could not open main unit to initialize states "%s": %s', [
+      WritelnWarning('Could not open main unit to initialize views "%s": %s', [
         FileName,
         E.Message
       ]);
@@ -64,13 +66,13 @@ begin
   end;
 
   Result :=
-    (Pos(CommentStateCreateBegin, Content) <> 0) and
-    (Pos(CommentStateCreateEnd, Content) <> 0) and
+    ( (Pos(CommentViewCreateBegin, Content) <> 0) or (Pos(CommentView2CreateBegin, Content) <> 0) ) and
+    ( (Pos(CommentViewCreateEnd, Content) <> 0) or (Pos(CommentView2CreateEnd, Content) <> 0) ) and
     (Pos(CommentInitializationUsesBegin, Content) <> 0) and
     (Pos(CommentInitializationUsesEnd, Content) <> 0);
 end;
 
-function FindUnitToInitializeState(const Manifest: TCastleManifest): String;
+function FindUnitToInitializeView(const Manifest: TCastleManifest): String;
 var
   UnitNames: TCastleStringList;
   AUnitName, UnitFileNameAbsolute, UnitFileNameRelative: String;
@@ -81,7 +83,7 @@ begin
     begin
       UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
       if (UnitFileNameAbsolute <> '') and
-         CheckUnitToInitializeState(UnitFileNameAbsolute) then
+         CheckUnitToInitializeView(UnitFileNameAbsolute) then
       begin
         UnitFileNameRelative := ExtractRelativePath(Manifest.Path, UnitFileNameAbsolute);
         Exit(UnitFileNameRelative);
@@ -92,8 +94,8 @@ begin
   finally FreeAndNil(UnitNames) end;
 end;
 
-procedure AddInitializeState(const UnitFileAbsolute: String;
-  const StateUnitName, StateClassName, StateVariableName: String);
+procedure AddInitializeView(const UnitFileAbsolute: String;
+  const ViewUnitName, ViewClassName, ViewVariableName: String);
 var
   UnitFileUrl: String;
   Content: String;
@@ -102,15 +104,17 @@ begin
   UnitFileUrl := FilenameToURISafe(UnitFileAbsolute);
   Content := FileToString(UnitFileUrl);
 
-  P := Pos(CommentStateCreateEnd, Content);
+  P := Pos(CommentViewCreateEnd, Content);
+  if P = 0 then
+    P := Pos(CommentView2CreateEnd, Content);
   if P = 0 then
     raise Exception.CreateFmt('Cannot modify unit file "%s", does not contain comment "%s".', [
       UnitFileAbsolute,
-      CommentStateCreateEnd
+      CommentViewCreateEnd
     ]);
   Insert(Format('%s := %s.Create(Application);' + NL + '  ', [
-    StateVariableName,
-    StateClassName
+    ViewVariableName,
+    ViewClassName
   ]), Content, P);
 
   P := Pos(CommentInitializationUsesEnd, Content);
@@ -120,7 +124,7 @@ begin
       CommentInitializationUsesEnd
     ]);
   Insert(Format(', %s' + NL + '  ', [
-    StateUnitName
+    ViewUnitName
   ]), Content, P);
 
   StringToFile(UnitFileUrl, Content);

@@ -531,7 +531,7 @@
 
       We do it automatically in some circumstances (like when you change
       collider properties, like @link(Mesh) or @link(DoubleSided),
-      or when you change @link(TCastleScene.Url)) but we don't try to keep
+      or when you change @link(TCastleSceneCore.Url)) but we don't try to keep
       the physics mesh follow the triangles every frame (as you really shouldn't
       change physics mesh so often, it's supposed to be a static collider). }
     procedure MeshChanged;

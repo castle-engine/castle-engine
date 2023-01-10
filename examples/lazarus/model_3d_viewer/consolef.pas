@@ -17,6 +17,8 @@ type
     Memo1: TMemo;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
   public
     WasWarnings: boolean;
@@ -28,7 +30,8 @@ var
 
 implementation
 
-uses MainF;
+uses MainF,
+  CastleApplicationProperties;
 
 {$R *.lfm}
 
@@ -48,6 +51,16 @@ end;
 procedure TConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   Main.MenuShowConsole.Checked := false;
+end;
+
+procedure TConsole.FormCreate(Sender: TObject);
+begin
+  ApplicationProperties.OnWarning.Add(@WarningToConsole);
+end;
+
+procedure TConsole.FormDestroy(Sender: TObject);
+begin
+  ApplicationProperties.OnWarning.Remove(@WarningToConsole);
 end;
 
 end.

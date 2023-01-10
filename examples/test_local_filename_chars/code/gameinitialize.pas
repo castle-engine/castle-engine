@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,9 +53,12 @@ procedure ApplicationInitialize;
           AssertEquals('Testing.', Trim(S));
         finally CloseFile(F) end;
       except
-        // catch EInOutError and raise our own exception that shows a FileName
+        // catch EInOutError and add FileName
         on E: EInOutError do
-          raise Exception.CreateFmt('EInOutError when reading file "%s"', [FileName]);
+        begin
+          E.Message := Format('Reading file "%s": ', [FileName]) + E.Message;
+          raise;
+        end;
       end;
     end;
 
@@ -92,7 +95,9 @@ procedure ApplicationInitialize;
     begin
       MyNewFont := TCastleFont.Create(nil);
       try
-        MyNewFont.Load(FontUrl, 20, true);
+        MyNewFont.Size := 20;
+        MyNewFont.AntiAliased := true;
+        MyNewFont.Url := FontUrl;
       finally FreeAndNil(MyNewFont) end;
     end;
 
@@ -107,7 +112,8 @@ procedure ApplicationInitialize;
     { This is an *extremely* simplified (only correct in simplest cases) implementation
       of determining application data directory
       ( https://castle-engine.io/manual_data_directory.php ).
-      We do it only for TestReadingRtl test here.
+      We do it only for TestReadingRtl test here (that uses FPC functions
+      *without* any CGE API, just for test).
       In real CGE applications, you should always use 'castle-data:/'
       URL instead of doing it like this! }
     DataPath :=
@@ -119,11 +125,16 @@ procedure ApplicationInitialize;
       raise Exception.CreateFmt('Cannot find directory "%s"', [DataPath]);
 
     TestReadingRtl(DataPath + 'ascii_name.txt');
+    (*TODO:
+      This doesn't work (anymore?) with FPC 3.2.2 or FPC 3.3.1 on Linux/x86_64.
+      Unknown how to make it work, {$codepage utf8} doesn't help.
+
     TestReadingRtl(DataPath + 'name with Polish chars ćma źrebak żmija wąż królik.txt');
     TestReadingRtl(DataPath + 'name with Chinese chars 样例中文文本.txt');
     TestReadingRtl(DataPath + '样例中文文本/name with Chinese chars 样例中文文本.txt');
     TestReadingRtl(DataPath + 'name with Russian chars образец русского текста.txt');
     TestReadingRtl(DataPath + 'образец русского текста/name with Russian chars образец русского текста.txt');
+    *)
 
     TestReading('castle-data:/ascii_name.txt');
     TestReading('castle-data:/name with Polish chars ćma źrebak żmija wąż królik.txt');
@@ -158,11 +169,43 @@ begin
 end;
 
 initialization
-  { Initialize Application.OnInitialize. }
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
+
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
+
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 end.

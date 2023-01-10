@@ -846,8 +846,8 @@ type
   end;
 {$ENDIF}
 
-
-procedure Register;
+// CGE: Do not register any components
+//procedure Register;
 
 resourcestring
   dtlServerPage = 'ActiveX';
@@ -1764,10 +1764,12 @@ end;
 
 {$ENDIF}
 
+(*
 procedure Register;
 begin
   RegisterComponents(dtlServerPage, [TAngleAxis, TVector3D, TSensor, TKeyboard, 
     TDevice, TTDxInfo]);
 end;
+*)
 
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -410,7 +410,7 @@ type
   { Non-abstract implementation of TCastleContainer that cooperates with TCastleWindow.
     To use it, you need to also create descendant of TCastleWindow,
     and override TCastleWindow.CreateContainer.
-    That said, it is much better to use TUIState and override methods there. }
+    That said, it is much better to use TCastleView and override methods there. }
   TWindowContainer = class(TCastleContainer)
   private
     Parent: TCastleWindow;
@@ -432,7 +432,7 @@ type
     function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
     function SettingMousePositionCausesMotion: Boolean; override;
-  end deprecated 'do not descend from this, instead use custom TUIState descendants';
+  end deprecated 'do not descend from this, instead use custom TCastleView descendants';
 
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
@@ -440,7 +440,7 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    You should use this with TUIState, following https://castle-engine.io/manual_state_events.php
+    You should use this with TCastleView, following https://castle-engine.io/manual_state_events.php
     and the rest of CGE manual.
     All user interface creation and event handling should be inside some state.
 
@@ -475,7 +475,7 @@ type
     { Create a container class for this window.
       Override this to use a custom container class, e.g. to override
       some container methods. }
-    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TUIState descendants';
+    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -1282,34 +1282,27 @@ type
       Note that we have a fallback mechanism in case @link(DepthBits)
       is too large: we fallback on @link(DepthBitsFallback) then.
 
-      @italic(Design notes:) One may ask why default value is not 0?
+      @italic(Design notes:) Why default value is not 0?
 
       @orderedList(
         @item(
-          Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Window.DepthBits := DefaultDepthBits).)
+          Most programs using OpenGL use 3D and so use depth testing.
+          So many programs
+          would have to call something like @code(Window.DepthBits := DefaultDepthBits).
+        )
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
           context with depth buffer @italic(even if you don't need depth buffer).
-          I don't say that it's bad. But it makes very easy to forget about
-          doing @code(DepthBits := something-non-zero;).
-          If you're writing 3d program and sitting on some
-          system that always gives you depth buffer (even if DepthBits = 0)
-          then it may happen that you forget to write in your program
-          @longCode(#  Window.DepthBits := DefaultDepthBits;#)
-
-          And while on your system everything will work, you will
-          receive errors on other systems because you forgot to request a
-          depth buffer.)
+          This makes it easy to forget about setting DepthBits to something
+          non-zero, because on @italic(your) system you may happen
+          to always get some depth buffer.
+        )
       )
 
       If you are writing a program that does not need depth buffer
-      you should set Window.DepthBits := 0. The only advantage of having
-      default DepthBits = DefaultDepthBits is that if you forget to set
-      Window.DepthBits := 0 your programs will still work (most graphic cards
-      will give you some depth buffer anyway).
-      They will just use more resources than they should.
+      you can set Window.DepthBits := 0, to inform OpenGL it doesn't need
+      to allocate any depth buffer.
     }
     property DepthBits: Cardinal
       read FDepthBits write FDepthBits default DefaultDepthBits;
@@ -1392,14 +1385,10 @@ type
       Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error.
-
-      It's undefined how I'll treat this variable when indexed color mode
-      will be possible in TCastleWindow. }
+      @link(Open) will raise an error. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    {$ifdef FPC}
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1413,10 +1402,10 @@ type
 
       @deprecated
       This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. now LCL backend,
-      the default backend on macOS, doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
-    {$endif FPC}
+      buffer. It may not be supported by some backends (e.g. LCL backend
+      doesn't support it). }
+    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
+      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -1770,7 +1759,7 @@ type
       See TMouseCursor for a list of possible values and their meanings.
 
       Note that this is for internal usage in the engine. In your applications,
-      you should set TCastleUserInterface.Cursor on any UI control (including on TUIState),
+      you should set TCastleUserInterface.Cursor on any UI control (including on TCastleView),
       never set this property directly. }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
@@ -2123,7 +2112,7 @@ type
           We have a special code that disables all TCastleWindow
           callbacks (like TCastleWindow.OnUpdate) and temporarily
           disables all UI controls on the @link(Controls) list
-          (so your TCastleUserInterface, TCastleTransform, TUIState etc.
+          (so your TCastleUserInterface, TCastleTransform, TCastleView etc.
           instances will @italic(not) have their methods,
           like @code(Update), called).
         )
@@ -2499,10 +2488,12 @@ type
     { @groupEnd }
     {$endif FPC}
 
-    { Main window used for various purposes.
-      On targets when only one TCastleWindow instance makes sense
-      (like Android or iOS or web), set this to the reference of that window.
-      It is also used by TWindowProgressInterface to display progress bar. }
+    { Used on platforms that can only show a single window (TCastleWindow) at a time,
+      like mobile or web applications.
+
+      In other exceptional situations when we need a single window
+      (e.g. to display CGE uncaught exception) we may also use this window,
+      if set (otherwise we may use the 1st currently open window). }
     property MainWindow: TCastleWindow read FMainWindow write SetMainWindow;
 
     { User agent string, when running inside a browser.
@@ -4083,33 +4074,33 @@ procedure TCastleWindow.CheckRequestedBufferAttributes(
 
   procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
   begin
-   if ProvidedBits < RequestedBits then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
-      +' %d-bits sized but at least %d-bits sized is required',
-      [ ProviderName, Name, ProvidedBits, RequestedBits ]);
+    if ProvidedBits < RequestedBits then
+      raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
+        +' %d-bits sized but at least %d-bits sized is required',
+        [ ProviderName, Name, ProvidedBits, RequestedBits ]);
   end;
 
-begin
- CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
- CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
- CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
- CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
- CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
- CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
- CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
-
- { If MultiSampling <= 1, this means that multisampling not required,
-   so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
-   (as most backends report no multisampling as num samples = 0), it's all Ok. }
-
- if MultiSampling > 1 then
  begin
-   if ProvidedMultiSampling < MultiSampling then
-    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
-      'samples for multisampling (<= 1 means that no multisampling was provided) ' +
-      'but at last %d samples for multisampling is required',
-      [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
- end;
+  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
+  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
+  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
+  CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
+  CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
+  CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
+  CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
+
+  { If MultiSampling <= 1, this means that multisampling not required,
+    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
+    (as most backends report no multisampling as num samples = 0), it's all Ok. }
+
+  if MultiSampling > 1 then
+  begin
+    if ProvidedMultiSampling < MultiSampling then
+     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
+       'samples for multisampling (<= 1 means that no multisampling was provided) ' +
+       'but at last %d samples for multisampling is required',
+       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
+  end;
 end;
 
 procedure TCastleWindow.MenuUpdateBegin;

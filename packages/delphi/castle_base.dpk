@@ -1,0 +1,124 @@
+package castle_base;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Castle Game Engine - base for other packages'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  xmlrtl,
+  designide;
+
+contains
+  castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
+  castleinternaldelphiutils in '..\..\src\delphi\castleinternaldelphiutils.pas',
+  castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
+  castleclassutils in '..\..\src\base\castleclassutils.pas',
+  castlecolors in '..\..\src\base\castlecolors.pas',
+  castledynlib in '..\..\src\base\castledynlib.pas',
+  castleinternalclassutils in '..\..\src\base\castleinternalclassutils.pas',
+  castleinternalrttiutils in '..\..\src\base\castleinternalrttiutils.pas',
+  castleinternalzlib in '..\..\src\base\castleinternalzlib.pas',
+  castleinternalzstream in '..\..\src\base\castleinternalzstream.pas',
+  castlelog in '..\..\src\base\castlelog.pas',
+  castlemessaging in '..\..\src\base\castlemessaging.pas',
+  castleparameters in '..\..\src\base\castleparameters.pas',
+  castleprojection in '..\..\src\base\castleprojection.pas',
+  castlequaternions in '..\..\src\base\castlequaternions.pas',
+  castlerectangles in '..\..\src\base\castlerectangles.pas',
+  castlerenderoptions in '..\..\src\base\castlerenderoptions.pas',
+  castlestreamutils in '..\..\src\base\castlestreamutils.pas',
+  castlestringutils in '..\..\src\base\castlestringutils.pas',
+  castletimeutils in '..\..\src\base\castletimeutils.pas',
+  castleunicode in '..\..\src\base\castleunicode.pas',
+  castleutils in '..\..\src\base\castleutils.pas',
+  castlevectors in '..\..\src\base\castlevectors.pas',
+  castlevectorsinternaldouble in '..\..\src\base\castlevectorsinternaldouble.pas',
+  castlevectorsinternalsingle in '..\..\src\base\castlevectorsinternalsingle.pas',
+  castleinternalabstractsoundbackend in '..\..\src\audio\castleinternalabstractsoundbackend.pas',
+  castleinternalsoundfile in '..\..\src\audio\castleinternalsoundfile.pas',
+  castlesoundbase in '..\..\src\audio\castlesoundbase.pas',
+  castlesoundengine in '..\..\src\audio\castlesoundengine.pas',
+  castleglimages in '..\..\src\base_rendering\castleglimages.pas',
+  castleglshaders in '..\..\src\base_rendering\castleglshaders.pas',
+  castleglutils in '..\..\src\base_rendering\castleglutils.pas',
+  castleglversion in '..\..\src\base_rendering\castleglversion.pas',
+  castlerendercontext in '..\..\src\base_rendering\castlerendercontext.pas',
+  castlecomponentserialize in '..\..\src\files\castlecomponentserialize.pas',
+  castleconfig in '..\..\src\files\castleconfig.pas',
+  castledownload in '..\..\src\files\castledownload.pas',
+  castlefilefilters in '..\..\src\files\castlefilefilters.pas',
+  castlefilesutils in '..\..\src\files\castlefilesutils.pas',
+  castlefindfiles in '..\..\src\files\castlefindfiles.pas',
+  castleinternaldatauri in '..\..\src\files\castleinternaldatauri.pas',
+  castleinternaldirectoryinformation in '..\..\src\files\castleinternaldirectoryinformation.pas',
+  castlerecentfiles in '..\..\src\files\castlerecentfiles.pas',
+  castleuriutils in '..\..\src\files\castleuriutils.pas',
+  castlexmlcfginternal in '..\..\src\files\castlexmlcfginternal.pas',
+  castlexmlconfig in '..\..\src\files\castlexmlconfig.pas',
+  castlexmlutils in '..\..\src\files\castlexmlutils.pas',
+  castledebugtransform in '..\..\src\scene\castledebugtransform.pas',
+  castleinternalarraysgenerator in '..\..\src\scene\castleinternalarraysgenerator.pas',
+  castleinternalbackgroundrenderer in '..\..\src\scene\castleinternalbackgroundrenderer.pas',
+  castleinternalbatchshapes in '..\..\src\scene\castleinternalbatchshapes.pas',
+  castleinternalglcubemaps in '..\..\src\scene\castleinternalglcubemaps.pas',
+  castleinternalmaterialproperties in '..\..\src\scene\castleinternalmaterialproperties.pas',
+  castleinternalnodeinterpolator in '..\..\src\scene\castleinternalnodeinterpolator.pas',
+  castleinternalnoise in '..\..\src\scene\castleinternalnoise.pas',
+  castleinternalnormals in '..\..\src\scene\castleinternalnormals.pas',
+  castleinternalrenderer in '..\..\src\scene\castleinternalrenderer.pas',
+  castleinternalshadowmaps in '..\..\src\scene\castleinternalshadowmaps.pas',
+  castleinternalshapeoctree in '..\..\src\scene\castleinternalshapeoctree.pas',
+  castleinternalspritesheet in '..\..\src\scene\castleinternalspritesheet.pas',
+  castleinternaltriangleoctree in '..\..\src\scene\castleinternaltriangleoctree.pas',
+  castleinternalx3dlexer in '..\..\src\scene\castleinternalx3dlexer.pas',
+  castleinternalx3dscript in '..\..\src\scene\castleinternalx3dscript.pas',
+  castlerendererinternallights in '..\..\src\scene\castlerendererinternallights.pas',
+  castlerendererinternalshader in '..\..\src\scene\castlerendererinternalshader.pas',
+  castlerendererinternaltextureenv in '..\..\src\scene\castlerendererinternaltextureenv.pas',
+  castlescene in '..\..\src\scene\castlescene.pas',
+  castlescenecore in '..\..\src\scene\castlescenecore.pas',
+  castlesceneinternalblending in '..\..\src\scene\castlesceneinternalblending.pas',
+  castlesceneinternalocclusion in '..\..\src\scene\castlesceneinternalocclusion.pas',
+  castlesceneinternalshape in '..\..\src\scene\castlesceneinternalshape.pas',
+  castlescreeneffects in '..\..\src\scene\castlescreeneffects.pas',
+  castleshapeinternalrendershadowvolumes in '..\..\src\scene\castleshapeinternalrendershadowvolumes.pas',
+  castleshapeinternalshadowvolumes in '..\..\src\scene\castleshapeinternalshadowvolumes.pas',
+  castleshapes in '..\..\src\scene\castleshapes.pas',
+  castleterrain in '..\..\src\scene\castleterrain.pas',
+  castlethirdpersonnavigation in '..\..\src\scene\castlethirdpersonnavigation.pas',
+  castleviewport in '..\..\src\scene\castleviewport.pas',
+  x3dcamerautils in '..\..\src\scene\x3dcamerautils.pas',
+  x3dtime in '..\..\src\scene\x3dtime.pas',
+  x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
+  x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
+  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
+
+end.
+

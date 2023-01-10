@@ -60,7 +60,7 @@ type
       const LightPos: TVector4;
       const Transform: TMatrix4;
       const LightCap, DarkCap: boolean;
-      const ForceOpaque: boolean);
+      const ForceOpaque, WholeSceneManifold: Boolean);
   end;
 
 implementation
@@ -139,7 +139,7 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const LightPos: TVector4;
   const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
-  const ForceOpaque: boolean);
+  const ForceOpaque, WholeSceneManifold: boolean);
 
 {$ifndef OpenGLES} //TODO-es
 
@@ -430,7 +430,9 @@ begin
     We still have here some code to handle BorderEdges, but in practice:
     this just has no chance to work 100% reliably with BorderEdges.
     See demo_models/shadow_volumes/not_manifold/README.txt }
-  if BorderEdges.Count <> 0 then Exit;
+  if (BorderEdges.Count <> 0) and
+     (not WholeSceneManifold) then
+    Exit;
 
   Triangles := TrianglesListShadowCasters;
 

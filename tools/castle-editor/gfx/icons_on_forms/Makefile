@@ -10,23 +10,25 @@ SOURCE_FOR_24:=folder.svg \
 # Generate single 32x32 PNG from these
 SOURCE_FOR_32:=alert-triangle.svg \
   border-all.svg \
-  compress.svg \
   edit.svg \
   heart-solid.svg \
   menu.svg \
-  mouse-pointer.svg \
-  move.svg \
-  rotate-cw.svg \
   settings.svg
 
 # Generate multiple PNG sizes from these
 SOURCE_FOR_MULTIPLE_SIZES:=pause-solid.svg \
   play-solid.svg   \
-  square.svg \
   stop-solid.svg \
   pause-solid-physics.svg \
   play-solid-physics.svg \
-  stop-solid-physics.svg
+  stop-solid-physics.svg \
+  file-plus.svg \
+  info-solid.svg \
+  tool-translate.svg \
+  tool-rotate.svg \
+  tool-scale.svg \
+  tool-select.svg \
+  tool-interact.svg
 
 # ----------------------------------------------------------------------------
 # Implementation

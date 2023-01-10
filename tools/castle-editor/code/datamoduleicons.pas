@@ -9,12 +9,13 @@ uses
 
 type
   TIcons = class(TDataModule)
-    ToolbarStroke2: TImageList;
-    ToolbarStroke1_5: TImageList;
-    MenuStroke1_5: TImageList;
+    ToolbarSpriteSheet: TImageList;
+    ToolbarIcons: TImageList;
+    MenuSpriteSheet: TImageList;
   private
   public
     type
+      // Enums with order reflecting ToolbarIcons
       TIconIndexes = (
         iiNewFile,
         iiOpenFile,

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,11 @@
     FColor: TCastleColor;
     FCustomShader: TGLSLProgram;
     FScaleCorners: Single;
+
+    { Saved / restored by DrawUiBegin / DrawUiEnd. }
+    FSavedOnChange: TNotifyEvent;
+    FSavedColor: TCastleColor;
+    FSavedScaleCorners: Single;
 
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
@@ -173,7 +178,11 @@
     { In case of @link(TDrawableImage.Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
       for UI scaling, see @link(TCastleContainer.UIScaling)
-      and @link(TCastleUserInterface.UIScale). }
+      and @link(TCastleUserInterface.UIScale).
+
+      This is deliberately not published, because in typical usage
+      this value is updated by UI control that owns this,
+      before every render. }
     property ScaleCorners: Single
       read FScaleCorners write SetScaleCorners {$ifdef FPC}default 1{$endif};
 
@@ -183,7 +192,7 @@
     property Color: TCastleColor read FColor write SetColor;
 
     property InternalVisualizeProtectedSides: Boolean
-      read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides;
+      read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
 
     property ScaleFromUrl: Single read FScaleFromUrl;
 
@@ -197,6 +206,24 @@
 
     { Draw the image in given screen area. }
     procedure Draw(const ScreenRectangle: TFloatRectangle);
+
+    { Prepare image for typical drawing from UI.
+
+      - Saves OnChange and Color (to be later restored by CommonAfterDraw).
+
+      - Clears OnChange (so that changes between CommonBeforeDraw and CommonAfterDraw
+        do not cause OnChange, which is typically used to make repaint).
+
+      - Sets ScaleCorners.
+
+      Must be followed by DrawUiEnd.
+    }
+    procedure DrawUiBegin(const NewScaleCorners: Single);
+
+    { Finish image usage from typical UI drawing.
+
+      - Restores OnChange and Color. }
+    procedure DrawUiEnd;
   published
     { URL of the image.
       Set this to load a new image, you can set to '' to clear the image.
@@ -278,6 +305,7 @@ begin
   FColor := White;
   FScaleCorners := 1;
   FScaleFromUrl := 1;
+  FInternalVisualizeProtectedSides := true;
 
   FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
   CreateDrawableImage;
@@ -499,8 +527,74 @@ begin
   Result := (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0);
 end;
 
+procedure TCastleImagePersistent.DrawUiBegin(const NewScaleCorners: Single);
+begin
+  FSavedOnChange := OnChange;
+  FSavedColor := Color;
+  FSavedScaleCorners := ScaleCorners;
+
+  OnChange := nil;
+
+  ScaleCorners := NewScaleCorners;
+end;
+
+procedure TCastleImagePersistent.DrawUiEnd;
+begin
+  Color := FSavedColor;
+  ScaleCorners := FSavedScaleCorners;
+
+  // restore OnChange last, so that no OnChange is emitted between DrawUiBegin / DrawUiEnd
+  OnChange := FSavedOnChange;
+end;
+
 procedure TCastleImagePersistent.Draw(
   const ScreenRectangle: TFloatRectangle);
+
+  procedure VisualizeProtectedSides;
+
+    { Make A + B <= Max.
+      If A + B are too large, decrease them, but preserving A to B ratio.
+      In effect e.g.
+        A = 10, B = 100, MaxSize = 1
+      ->
+        A := 1/11, B = 10/11
+
+      Copied from FitWithin inside TDrawableImage.Draw3x3, to mirror what it does.
+    }
+    procedure FitWithin(var A, B: Single; const Max: Single);
+    begin
+      if A + B > Max then
+      begin
+        A := Max * A / (A + B);
+        B := Max * B / (A + B);
+      end;
+    end;
+
+  var
+    L, R, B, T: Single;
+  begin
+    L := ProtectedSides.TotalLeft   * ScaleCorners;
+    R := ProtectedSides.TotalRight  * ScaleCorners;
+    B := ProtectedSides.TotalBottom * ScaleCorners;
+    T := ProtectedSides.TotalTop    * ScaleCorners;
+
+    FitWithin(L, R, ScreenRectangle.Width);
+    FitWithin(B, T, ScreenRectangle.Height);
+
+    DrawPrimitive2D(pmLines, [
+      // vertical lines
+      Vector2(ScreenRectangle.Left + L, ScreenRectangle.Bottom),
+      Vector2(ScreenRectangle.Left + L, ScreenRectangle.Top),
+      Vector2(ScreenRectangle.Right - R, ScreenRectangle.Bottom),
+      Vector2(ScreenRectangle.Right - R, ScreenRectangle.Top),
+      // horizontal lines
+      Vector2(ScreenRectangle.Left , ScreenRectangle.Bottom + B),
+      Vector2(ScreenRectangle.Right, ScreenRectangle.Bottom + B),
+      Vector2(ScreenRectangle.Left , ScreenRectangle.Top - T),
+      Vector2(ScreenRectangle.Right, ScreenRectangle.Top - T)
+    ], Vector4(1, 1, 0, 0.5));
+  end;
+
 var
   ProtectedSidesVector: TVector4;
 begin
@@ -538,25 +632,8 @@ begin
     );
     FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector);
 
-    if CastleDesignMode and InternalVisualizeProtectedSides then
-    begin
-      if ((ProtectedSides.TotalRight + ProtectedSides.TotalLeft) * ScaleCorners < ScreenRectangle.Width) and
-         ((ProtectedSides.TotalTop + ProtectedSides.TotalBottom) * ScaleCorners < ScreenRectangle.Height) then
-      begin
-        DrawPrimitive2D(pmLines, [
-          // vertical lines
-          Vector2(ScreenRectangle.Left + ProtectedSides.TotalLeft * ScaleCorners, ScreenRectangle.Bottom),
-          Vector2(ScreenRectangle.Left + ProtectedSides.TotalLeft * ScaleCorners, ScreenRectangle.Top),
-          Vector2(ScreenRectangle.Right - ProtectedSides.TotalRight * ScaleCorners, ScreenRectangle.Bottom),
-          Vector2(ScreenRectangle.Right - ProtectedSides.TotalRight * ScaleCorners, ScreenRectangle.Top),
-          // horizontal lines
-          Vector2(ScreenRectangle.Left , ScreenRectangle.Bottom + ProtectedSides.TotalBottom * ScaleCorners),
-          Vector2(ScreenRectangle.Right, ScreenRectangle.Bottom + ProtectedSides.TotalBottom * ScaleCorners),
-          Vector2(ScreenRectangle.Left , ScreenRectangle.Top - ProtectedSides.TotalTop * ScaleCorners),
-          Vector2(ScreenRectangle.Right, ScreenRectangle.Top - ProtectedSides.TotalTop * ScaleCorners)
-        ], Vector4(1, 1, 0, 0.5));
-      end;
-    end;
+    if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
+      VisualizeProtectedSides;
   end;
 end;
 

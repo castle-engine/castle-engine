@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,21 +23,30 @@
     FDisplayValue: boolean;
     FOnChange: TNotifyEvent;
     FCaption: string;
-    function IndicatorWidth(const R: TFloatRectangle): Single;
+    FBackground, FThumb: TCastleImagePersistent;
+    FTextColor: TCastleColor;
+    function GetThumbSize(const ARenderRect: TFloatRectangle): TVector2;
     procedure SetCaption(const Value: string);
+    procedure SetTextColor(const Value: TCastleColor);
+    procedure ImageChanged(Sender: TObject);
   private
     { Draw a slider at given Position. If Position is outside 0..1, it is clamped
       to 0..1 (this way we do not show slider at some wild position if it's
       outside the expected range; but DrawSliderText will still show the true,
-      unclamped, value). }
-    procedure DrawSliderPosition(const R: TFloatRectangle; const Position: Single);
+      unclamped, value).
+
+      @param(ARenderRect Rectangle currently occupied by the whole slider,
+        in final device pixels. Should be equal to RenderRect.) }
+    procedure DrawSliderPosition(const ARenderRect: TFloatRectangle; const Position: Single);
 
     { Returns a value of Position, always in 0..1 range,
       that would result in slider being drawn at XCoord screen position
       by DrawSliderPosition.
-      Takes Rectangle as the rectangle currently occupied by the whole slider. }
+
+      @param(ARenderRect Rectangle currently occupied by the whole slider,
+        in final device pixels. Should be equal to RenderRect.) }
     function XCoordToSliderPosition(const XCoord: Single;
-      const R: TFloatRectangle): Single;
+      const ARenderRect: TFloatRectangle): Single;
 
     procedure DrawSliderText(const R: TFloatRectangle; Text: string);
   strict protected
@@ -50,14 +59,16 @@
       DefaultSliderWidth = 200;
       DefaultSliderHeight = 20;
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Color of the label. By default opaque black. }
+    property TextColor: TCastleColor read FTextColor write SetTextColor;
   published
     property Width {$ifdef FPC}default DefaultSliderWidth{$endif};
     property Height {$ifdef FPC}default DefaultSliderHeight{$endif};
-
-    {$ifdef FPC}property SmallFont default true;{$endif}
 
     { Display the current value as text on the slider,
       right next to the @link(Caption).
@@ -72,7 +83,21 @@
     { Displayed on the slider. Right before value, if @link(DisplayValue). }
     property Caption: string read FCaption write SetCaption;
 
+    { Called when value (like @link(TCastleFloatSlider.Value) or @link(TCastleIntegerSlider.Value))
+      changed because of user interaction (but not when it was changed by code setting
+      the property). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+
+    { Background image that fills the entire slider area. }
+    property Background: TCastleImagePersistent read FBackground;
+
+    { Thumb image indicates the current value,
+      like (like @link(TCastleFloatSlider.Value) or @link(TCastleIntegerSlider.Value)). }
+    property Thumb: TCastleImagePersistent read FThumb;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Slider to change a float value within a given range. }
@@ -177,44 +202,98 @@ begin
   FDisplayValue := true;
   Width := DefaultSliderWidth;
   Height := DefaultSliderHeight;
-  {$ifdef FPC}SmallFont := true;{$endif}
+  FTextColor := Black;
+
+  FBackground := TCastleImagePersistent.Create;
+  FBackground.OnChange := {$ifdef FPC}@{$endif} ImageChanged;
+  FThumb := TCastleImagePersistent.Create;
+  FThumb.OnChange := {$ifdef FPC}@{$endif} ImageChanged;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleAbstractSlider.Destroy;
+begin
+  FreeAndNil(FBackground);
+  FreeAndNil(FThumb);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
+
+procedure TCastleAbstractSlider.ImageChanged(Sender: TObject);
+begin
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleAbstractSlider.Render;
+var
+  BackgroundFinal: TCastleImagePersistent;
 begin
   inherited;
-  Theme.Draw(RenderRect, tiSlider, UIScale);
+
+  if FBackground.Empty then
+    BackgroundFinal := Theme.ImagesPersistent[tiSlider]
+  else
+    BackgroundFinal := FBackground;
+
+  BackgroundFinal.DrawUiBegin(UIScale);
+  BackgroundFinal.Draw(RenderRect);
+  BackgroundFinal.DrawUiEnd;
 end;
 
-function TCastleAbstractSlider.IndicatorWidth(const R: TFloatRectangle): Single;
+function TCastleAbstractSlider.GetThumbSize(const ARenderRect: TFloatRectangle): TVector2;
 begin
-  Result := R.Height / 2 { guess suitable tiSliderPosition width from height };
+  if FThumb.Empty then
+  begin
+    { The default thumb image adjusts to slides sizes. }
+    Result.X := ARenderRect.Height / 2;
+    Result.Y := ARenderRect.Height;
+  end else
+  begin
+    Result.X := UIScale * FThumb.Width;
+    Result.Y := UIScale * FThumb.Height;
+  end;
 end;
 
-procedure TCastleAbstractSlider.DrawSliderPosition(const R: TFloatRectangle;
+procedure TCastleAbstractSlider.DrawSliderPosition(const ARenderRect: TFloatRectangle;
   const Position: Single);
 var
-  IndicatorW: Single;
+  ThumbSize: TVector2;
+  ThumbFinal: TCastleImagePersistent;
 begin
-  IndicatorW := IndicatorWidth(R);
-  Theme.Draw(FloatRectangle(
-    R.Left +
-      Round(MapRangeClamped(Position, 0, 1, IndicatorW / 2, R.Width - IndicatorW / 2))
-      - IndicatorW / 2,
-    R.Bottom,
-    IndicatorW,
-    R.Height), tiSliderPosition, UIScale);
+  ThumbSize := GetThumbSize(ARenderRect);
+
+  if FThumb.Empty then
+    ThumbFinal := Theme.ImagesPersistent[tiSliderPosition]
+  else
+    ThumbFinal := FThumb;
+
+  ThumbFinal.DrawUiBegin(UIScale);
+  ThumbFinal.Draw(FloatRectangle(
+    ARenderRect.Left
+      + Round(MapRangeClamped(Position, 0, 1, 0, ARenderRect.Width - ThumbSize.X)),
+    ARenderRect.Bottom
+      + ARenderRect.Height / 2
+      - ThumbSize.Y / 2,
+    ThumbSize.X,
+    ThumbSize.Y));
+  ThumbFinal.DrawUiEnd;
 end;
 
 function TCastleAbstractSlider.XCoordToSliderPosition(
-  const XCoord: Single; const R: TFloatRectangle): Single;
+  const XCoord: Single; const ARenderRect: TFloatRectangle): Single;
 var
-  IndicatorW: Single;
+  ThumbSize: TVector2;
 begin
-  IndicatorW := IndicatorWidth(R);
-  Result := Clamped(MapRange(XCoord,
-    R.Left + IndicatorW / 2,
-    R.Left + R.Width - IndicatorW / 2, 0, 1), 0, 1);
+  ThumbSize := GetThumbSize(ARenderRect);
+  Result := MapRangeClamped(XCoord,
+    ARenderRect.Left + 0,
+    ARenderRect.Left + ARenderRect.Width - ThumbSize.X, 0, 1);
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(
@@ -226,7 +305,7 @@ begin
   Font.Print(
     R.Left + (R.Width - Font.TextWidth(Text)) / 2,
     R.Bottom + (R.Height - Font.RowHeight) / 2,
-    Black, Text);
+    TextColor, Text);
 end;
 
 procedure TCastleAbstractSlider.DoChange;
@@ -257,12 +336,25 @@ end;
 function TCastleAbstractSlider.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Caption', 'DisplayValue'
+       'Caption', 'DisplayValue', 'TextColorPersistent', 'Background', 'Thumb'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
+
+procedure TCastleAbstractSlider.SetTextColor(const Value: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FTextColor, Value) then
+  begin
+    FTextColor := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleFloatSlider --------------------------------------------------------- }
 
@@ -296,13 +388,13 @@ end;
 
 procedure TCastleFloatSlider.Render;
 var
-  SR: TFloatRectangle;
+  RR: TFloatRectangle;
 begin
   inherited;
-  SR := RenderRect;
-  DrawSliderPosition(SR, MapRange(Value, Min, Max, 0, 1));
+  RR := RenderRect;
+  DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
-    DrawSliderText(SR, ValueToStr(Value));
+    DrawSliderText(RR, ValueToStr(Value));
 end;
 
 function TCastleFloatSlider.Press(const Event: TInputPressRelease): boolean;
@@ -461,13 +553,13 @@ end;
 
 procedure TCastleIntegerSlider.Render;
 var
-  SR: TFloatRectangle;
+  RR: TFloatRectangle;
 begin
   inherited;
-  SR := RenderRect;
-  DrawSliderPosition(SR, MapRange(Value, Min, Max, 0, 1));
+  RR := RenderRect;
+  DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
-    DrawSliderText(SR, ValueToStr(Value));
+    DrawSliderText(RR, ValueToStr(Value));
 end;
 
 function TCastleIntegerSlider.Press(const Event: TInputPressRelease): boolean;

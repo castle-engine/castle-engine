@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>GFR - Waterfall</title>
+    
+    <style type="text/css">
+    
+        html{
+	  font-family: sans-serif;
+	}
+	.box-title{
+	  width: 100%;
+	  float: left;
+	  font-size: 8pt;
+	  font-weight: 700;
+	  border-top: 1px solid black;
+	  padding-top: 5px;
+	  margin-bottom: 10pt;
+	  display: block;
+	}
+	.box{
+	  margin-bottom: 20pt;
+	}
+	
+	#nav{
+	  position: fixed;
+	  right: 20px;
+	}
+	#font-toggle{
+	  display: block;
+	  font-weight: 700;
+	  cursor: pointer;
+	  -webkit-user-select: none; /* Safari */        
+	  -moz-user-select: none; /* Firefox */
+          -ms-user-select: none; /* IE10+/Edge */
+	  user-select: none; /* Standard */
+	  text-align: center;
+	  color: white;
+	  background-color: black;
+	  width: 50px;
+	  display: block;
+	  padding: 10px;
+	}
+
+	  
+
+	  
+
+	  
+	    @font-face { src: url(fonts/Urbanist-Italic.ttf); font-family: Urbanist-Italic; font-weight: 400; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Thin.ttf); font-family: Urbanist-Thin; font-weight: 100; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Black.ttf); font-family: Urbanist-Black; font-weight: 900; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Regular.ttf); font-family: Urbanist-Regular; font-weight: 400; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraLight.ttf); font-family: Urbanist-ExtraLight; font-weight: 200; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-BoldItalic.ttf); font-family: Urbanist-Bold-Italic; font-weight: 700; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraBold.ttf); font-family: Urbanist-ExtraBold; font-weight: 800; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraBoldItalic.ttf); font-family: Urbanist-ExtraBold-Italic; font-weight: 800; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-MediumItalic.ttf); font-family: Urbanist-Medium-Italic; font-weight: 500; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ThinItalic.ttf); font-family: Urbanist-Thin-Italic; font-weight: 100; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-ExtraLightItalic.ttf); font-family: Urbanist-ExtraLight-Italic; font-weight: 200; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Light.ttf); font-family: Urbanist-Light; font-weight: 300; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-SemiBoldItalic.ttf); font-family: Urbanist-SemiBold-Italic; font-weight: 600; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-SemiBold.ttf); font-family: Urbanist-SemiBold; font-weight: 600; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Bold.ttf); font-family: Urbanist-Bold; font-weight: 700; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-BlackItalic.ttf); font-family: Urbanist-Black-Italic; font-weight: 900; font-stretch: 100%; font-style: italic; }
+	  
+	    @font-face { src: url(fonts/Urbanist-Medium.ttf); font-family: Urbanist-Medium; font-weight: 500; font-stretch: 100%; font-style: normal; }
+	  
+	    @font-face { src: url(fonts/Urbanist-LightItalic.ttf); font-family: Urbanist-Light-Italic; font-weight: 300; font-stretch: 100%; font-style: italic; }
+	  
+
+	  
+
+	  
+
+	  
+	    .Urbanist-Italic { font-family: Urbanist-Italic; font-weight: 400; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Thin { font-family: Urbanist-Thin; font-weight: 100; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Black { font-family: Urbanist-Black; font-weight: 900; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Regular { font-family: Urbanist-Regular; font-weight: 400; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraLight { font-family: Urbanist-ExtraLight; font-weight: 200; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Bold-Italic { font-family: Urbanist-Bold-Italic; font-weight: 700; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraBold { font-family: Urbanist-ExtraBold; font-weight: 800; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraBold-Italic { font-family: Urbanist-ExtraBold-Italic; font-weight: 800; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Medium-Italic { font-family: Urbanist-Medium-Italic; font-weight: 500; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Thin-Italic { font-family: Urbanist-Thin-Italic; font-weight: 100; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-ExtraLight-Italic { font-family: Urbanist-ExtraLight-Italic; font-weight: 200; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Light { font-family: Urbanist-Light; font-weight: 300; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-SemiBold-Italic { font-family: Urbanist-SemiBold-Italic; font-weight: 600; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-SemiBold { font-family: Urbanist-SemiBold; font-weight: 600; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Bold { font-family: Urbanist-Bold; font-weight: 700; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Black-Italic { font-family: Urbanist-Black-Italic; font-weight: 900; font-style: italic; font-stretch: 100%; }
+	  
+	    .Urbanist-Medium { font-family: Urbanist-Medium; font-weight: 500; font-style: normal; font-stretch: 100%; }
+	  
+	    .Urbanist-Light-Italic { font-family: Urbanist-Light-Italic; font-weight: 300; font-style: italic; font-stretch: 100%; }
+	  
+	
+    </style>
+</head>
+<body>
+    
+    <div id="content">
+	<h2>
+<b>Waterfall</b>
+</h2>
+	
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 7pt</div>
+	<span class="Urbanist-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 10pt</div>
+	<span class="Urbanist-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 11pt</div>
+	<span class="Urbanist-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 12pt</div>
+	<span class="Urbanist-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 14pt</div>
+	<span class="Urbanist-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 16pt</div>
+	<span class="Urbanist-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 18pt</div>
+	<span class="Urbanist-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 21pt</div>
+	<span class="Urbanist-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 27pt</div>
+	<span class="Urbanist-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Italic 32pt</div>
+	<span class="Urbanist-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 7pt</div>
+	<span class="Urbanist-Thin" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 10pt</div>
+	<span class="Urbanist-Thin" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 11pt</div>
+	<span class="Urbanist-Thin" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 12pt</div>
+	<span class="Urbanist-Thin" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 14pt</div>
+	<span class="Urbanist-Thin" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 16pt</div>
+	<span class="Urbanist-Thin" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 18pt</div>
+	<span class="Urbanist-Thin" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 21pt</div>
+	<span class="Urbanist-Thin" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 27pt</div>
+	<span class="Urbanist-Thin" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin 32pt</div>
+	<span class="Urbanist-Thin" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 7pt</div>
+	<span class="Urbanist-Black" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 10pt</div>
+	<span class="Urbanist-Black" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 11pt</div>
+	<span class="Urbanist-Black" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 12pt</div>
+	<span class="Urbanist-Black" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 14pt</div>
+	<span class="Urbanist-Black" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 16pt</div>
+	<span class="Urbanist-Black" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 18pt</div>
+	<span class="Urbanist-Black" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 21pt</div>
+	<span class="Urbanist-Black" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 27pt</div>
+	<span class="Urbanist-Black" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black 32pt</div>
+	<span class="Urbanist-Black" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 7pt</div>
+	<span class="Urbanist-Regular" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 10pt</div>
+	<span class="Urbanist-Regular" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 11pt</div>
+	<span class="Urbanist-Regular" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 12pt</div>
+	<span class="Urbanist-Regular" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 14pt</div>
+	<span class="Urbanist-Regular" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 16pt</div>
+	<span class="Urbanist-Regular" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 18pt</div>
+	<span class="Urbanist-Regular" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 21pt</div>
+	<span class="Urbanist-Regular" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 27pt</div>
+	<span class="Urbanist-Regular" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Regular 32pt</div>
+	<span class="Urbanist-Regular" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 7pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 10pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 11pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 12pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 14pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 16pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 18pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 21pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 27pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight 32pt</div>
+	<span class="Urbanist-ExtraLight" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 7pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 10pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 11pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 12pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 14pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 16pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 18pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 21pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 27pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold-Italic 32pt</div>
+	<span class="Urbanist-Bold-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 7pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 10pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 11pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 12pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 14pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 16pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 18pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 21pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 27pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold 32pt</div>
+	<span class="Urbanist-ExtraBold" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 7pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 10pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 11pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 12pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 14pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 16pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 18pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 21pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 27pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraBold-Italic 32pt</div>
+	<span class="Urbanist-ExtraBold-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 7pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 10pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 11pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 12pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 14pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 16pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 18pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 21pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 27pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium-Italic 32pt</div>
+	<span class="Urbanist-Medium-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 7pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 10pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 11pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 12pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 14pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 16pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 18pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 21pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 27pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Thin-Italic 32pt</div>
+	<span class="Urbanist-Thin-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 7pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 10pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 11pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 12pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 14pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 16pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 18pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 21pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 27pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-ExtraLight-Italic 32pt</div>
+	<span class="Urbanist-ExtraLight-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 7pt</div>
+	<span class="Urbanist-Light" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 10pt</div>
+	<span class="Urbanist-Light" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 11pt</div>
+	<span class="Urbanist-Light" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 12pt</div>
+	<span class="Urbanist-Light" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 14pt</div>
+	<span class="Urbanist-Light" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 16pt</div>
+	<span class="Urbanist-Light" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 18pt</div>
+	<span class="Urbanist-Light" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 21pt</div>
+	<span class="Urbanist-Light" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 27pt</div>
+	<span class="Urbanist-Light" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light 32pt</div>
+	<span class="Urbanist-Light" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 7pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 10pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 11pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 12pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 14pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 16pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 18pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 21pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 27pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold-Italic 32pt</div>
+	<span class="Urbanist-SemiBold-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 7pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 10pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 11pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 12pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 14pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 16pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 18pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 21pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 27pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-SemiBold 32pt</div>
+	<span class="Urbanist-SemiBold" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 7pt</div>
+	<span class="Urbanist-Bold" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 10pt</div>
+	<span class="Urbanist-Bold" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 11pt</div>
+	<span class="Urbanist-Bold" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 12pt</div>
+	<span class="Urbanist-Bold" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 14pt</div>
+	<span class="Urbanist-Bold" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 16pt</div>
+	<span class="Urbanist-Bold" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 18pt</div>
+	<span class="Urbanist-Bold" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 21pt</div>
+	<span class="Urbanist-Bold" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 27pt</div>
+	<span class="Urbanist-Bold" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Bold 32pt</div>
+	<span class="Urbanist-Bold" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 7pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 10pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 11pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 12pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 14pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 16pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 18pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 21pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 27pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Black-Italic 32pt</div>
+	<span class="Urbanist-Black-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 7pt</div>
+	<span class="Urbanist-Medium" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 10pt</div>
+	<span class="Urbanist-Medium" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 11pt</div>
+	<span class="Urbanist-Medium" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 12pt</div>
+	<span class="Urbanist-Medium" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 14pt</div>
+	<span class="Urbanist-Medium" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 16pt</div>
+	<span class="Urbanist-Medium" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 18pt</div>
+	<span class="Urbanist-Medium" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 21pt</div>
+	<span class="Urbanist-Medium" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 27pt</div>
+	<span class="Urbanist-Medium" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Medium 32pt</div>
+	<span class="Urbanist-Medium" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 7pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 7pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 10pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 10pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 11pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 11pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 12pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 12pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 14pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 14pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 16pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 16pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 18pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 18pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 21pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 21pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 27pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 27pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+      <div class="box">
+	<div class="box-title">Urbanist-Light-Italic 32pt</div>
+	<span class="Urbanist-Light-Italic" style="font-size: 32pt">
+            QUICK WAFTING ZEPHYRS VEX BOLD JIM.<br>
+            quick wafting zephyrs vex bold jim.<br>
+            $14.95<br>
+          </span>
+       </div>
+    
+  
+
+    </div>
+</body>
+	<script>
+
+	POSITION = "after"
+	fontToggle = document.getElementById("font-toggle")
+	function switchFonts() {
+	  items = document.getElementsByClassName("box")
+	  
+	  if (POSITION === "before") {
+	  POSITION = "after"
+	  for (item of items) {
+	    item.firstElementChild.textContent = item.firstElementChild.textContent.replace("before", "after")
+            item.lastElementChild.className = item.lastElementChild.className.replace("before", "after")
+	    fontToggle.textContent = "After"
+	  }
+	  } else {
+	  POSITION = "before"
+	  for (item of items) {
+	    item.firstElementChild.textContent = item.firstElementChild.textContent.replace("after", "before")
+            item.lastElementChild.className = item.lastElementChild.className.replace("after", "before")
+	    fontToggle.textContent = "Before"
+	  }
+	}
+	}
+	fontToggle.addEventListener("click", switchFonts);
+	</script>
+</html>

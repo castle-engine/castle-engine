@@ -22,6 +22,10 @@ unit CastleInternalSoxSoundBackend;
 
 {$I castleconf.inc}
 
+{$ifndef FPC}
+  {$message fatal 'This internal unit is only for FPC, not Delphi.'}
+{$endif}
+
 interface
 
 { Use this to set sound engine backend to SOX. }
