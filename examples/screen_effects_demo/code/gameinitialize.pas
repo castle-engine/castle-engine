@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -357,19 +357,19 @@ begin
   FilmGrain.Button := TCastleButton.Create(Application);
   FilmGrain.Button.Caption := 'Film Grain';
   FilmGrain.Button.Toggle := true;
-  FilmGrain.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ToggleFilmGrain;
+  FilmGrain.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.ToggleFilmGrain;
   BottomControls.InsertFront(FilmGrain.Button);
 
   Pixelate.Button := TCastleButton.Create(Application);
   Pixelate.Button.Caption := 'Pixelate';
   Pixelate.Button.Toggle := true;
-  Pixelate.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.TogglePixelate;
+  Pixelate.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.TogglePixelate;
   BottomControls.InsertFront(Pixelate.Button);
 
   EdgeDetect.Button := TCastleButton.Create(Application);
   EdgeDetect.Button.Caption := 'Edge Detect';
   EdgeDetect.Button.Toggle := true;
-  EdgeDetect.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ToggleEdgeDetect;
+  EdgeDetect.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.ToggleEdgeDetect;
   BottomControls.InsertFront(EdgeDetect.Button);
 
   InitializeScreenEffects;
