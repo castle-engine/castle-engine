@@ -2033,7 +2033,8 @@ begin
     Remove(FList[0]);
     if FList.Count >= PreviousCount then
     begin
-      WritelnWarning('During TCastleTransform.BeforeDestruction, the number of children does not decrease -- this means that some TCastleTransform destructor adds new TCastleTransform instances. We break infinite loop by aborting normal destruction, but expect further problems. To avoid this warning, make sure your TCastleTransform destructor does not create new TCastleTransform instances.');
+      WritelnWarning('During TCastleTransform.BeforeDestruction, the number of children does not decrease -- this means that some TCastleTransform destructor adds new TCastleTransform instances. ' +
+        'We break infinite loop by aborting normal destruction, but expect further problems. To avoid this warning, make sure your TCastleTransform destructor does not create new TCastleTransform instances.');
       Break;
     end;
   end;
