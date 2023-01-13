@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -892,19 +892,23 @@ begin
     { inititalize Viewport }
     Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
-    Viewport.AutoCamera := true;
     Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
     Window.Controls.InsertFront(Viewport);
 
     { initialize Scene }
     Scene := TCastleScene.Create(Application);
     Scene.Load(ModelURL);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.ProcessEvents := true; { allow Scene animation }
     CalculateElements;
-    Viewport.Items.MainScene := Scene;
     Viewport.Items.Add(Scene);
+
+    // headlight
+    Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+    // nice initial camera position
+    Viewport.AssignDefaultCamera;
 
     { initialize SceneElements }
     SceneElements := TCastleScene.Create(Application);

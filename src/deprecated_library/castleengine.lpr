@@ -274,7 +274,7 @@ begin
 
     Scene := TCastleScene.Create(Window);
     Scene.Load(StrPas(PChar(szFile)));
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
     Viewport.Items.Add(Scene);
     Viewport.Items.MainScene := Scene;

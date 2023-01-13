@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -288,7 +288,7 @@ begin
     try
       Scene.URL := 'castle-data:/city_from_bugreport_38.x3dv';
       Scene.ProcessEvents := true;
-      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.PreciseCollisions := true;
       Viewport.Items.Add(Scene);
       Viewport.Items.MainScene := Scene;
 
@@ -700,7 +700,7 @@ begin
     Scene := TCastleScene.Create(nil);
     try
       Scene.Load('castle-data:/test_for_material_change.x3dv');
-      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.PreciseCollisions := true;
       Scene.ProcessEvents := true;
 
       Shape := Scene.Node('MyShape') as TShapeNode;
@@ -742,7 +742,7 @@ begin
       RootNode.AddChildren(Shape2);
 
       Scene.Load(RootNode, true);
-      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.PreciseCollisions := true;
       Scene.ProcessEvents := true;
 
       NewMaterial := TUnlitMaterialNode.Create;
@@ -799,7 +799,7 @@ begin
       RootNode.AddChildren(Shape2);
 
       Scene.Load(RootNode, true);
-      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.PreciseCollisions := true;
       Scene.ProcessEvents := true;
 
       NewMaterial := TUnlitMaterialNode.Create;
@@ -860,7 +860,7 @@ begin
       RootNode.AddChildren(Shape2);
 
       Scene.Load(RootNode, true);
-      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.PreciseCollisions := true;
       Scene.ProcessEvents := true;
 
       AssertTrue(OldAppearance.Scene <> nil);
