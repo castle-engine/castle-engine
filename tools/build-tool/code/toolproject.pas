@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1529,6 +1529,7 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
 
 var
   EditorExe, NewEditorExe, EditorPath: String;
+  NewEnvironment: TStringList;
 begin
   {$ifdef UNIX}
   DaemonizeProgram;
@@ -1536,6 +1537,8 @@ begin
 
   if WaitForProcessId <> 0 then
     WaitForProcessExit(WaitForProcessId);
+
+  NewEnvironment := nil;
 
   if Trim(Manifest.EditorUnits) = '' then
   begin
@@ -1562,6 +1565,30 @@ begin
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     CheckRenameFile(NewEditorExe, EditorExe);
     {$endif}
+
+    { When running custom editor build, we must make sure it can find CGE location,
+      in particular so it can find editor's data (which means InternalCastleDesignData
+      must be useful, and it must be able to load gfx stuff like gizmo images and
+      layer_physics_simulation.castle-user-interface).
+
+      So it is not sufficient that only build tool can find the CGE path (and use it for compilation).
+      CGE editor must be able to find it too.
+
+      Note that in usual user installation (when CASTLE_ENGINE_PATH is undefined):
+      - Build tool will be inside CGE/bin/  and can detect CGE location reliably
+        based on exe name.
+      - OTOH editor, when it is a custom editor build, is in project's directory and will
+        not be able to detect CGE location reliably based on exe name.
+      This means build tool must pass it to CGE editor.
+
+      Relevant bugreport: https://forum.castle-engine.io/t/castle-lines-2d/701/5
+    }
+    if (CastleEnginePath <> '') and
+       (GetEnvironmentVariable('CASTLE_ENGINE_PATH') = '') then
+    begin
+      NewEnvironment := EnvironmentStrings;
+      NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
+    end;
   end;
 
   { Running with CurrentDirectory = Path, so that at least on Windows
@@ -1571,7 +1598,7 @@ begin
     Running editor should not "lock" the project DLLs on Windows.
     We should have a system of services for desktop, to manage DLLs, including custom
     DLLs like Effekseer and FMOD. }
-  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+  RunCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
 end;
 
 procedure TCastleProject.DoOutput(const OutputKey: String);
