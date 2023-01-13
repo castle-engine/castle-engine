@@ -55,6 +55,7 @@ type
 var
   Window: TCastleWindow;
   Viewport: TCastleAutoNavigationViewport;
+  PreviousNavigationType: TNavigationType;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
@@ -103,12 +104,19 @@ begin
       when new viewpoint node is bound using X3D events or
       TCastleSceneCore.MoveToViewpoint call. }
     Viewport.AutoCamera := true;
+    { AutoNavigation is necessary for navigation to follow routes in X3D file.
+      For example when changing navigation by X3D events in
+      demo-models/navigation/navigation_info_bind.x3dv , to make it affect actual
+      CGE navigation. }
+    Viewport.AutoNavigation := true;
     Window.Controls.InsertFront(Viewport);
 
     TouchNavigation := TCastleTouchNavigation.Create(nil);
     TouchNavigation.FullSize := true;
     TouchNavigation.Viewport := Viewport;
     Viewport.InsertFront(TouchNavigation);
+
+    PreviousNavigationType := Viewport.NavigationType;
 
     CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi);
 
@@ -199,6 +207,25 @@ procedure CGE_Update; cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Update') then exit;
+
+    { Call LibraryCallbackProc(ecgelibNavigationTypeChanged,...) when necessary.
+      For this, we just query the Viewport.NavigationType every frame. }
+    if PreviousNavigationType <> Viewport.NavigationType then
+    begin
+      PreviousNavigationType := Viewport.NavigationType;
+      if Assigned(LibraryCallbackProc) then
+      begin
+        case Viewport.NavigationType of
+          ntWalk     : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavWalk     , 0, nil);
+          ntFly      : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavFly      , 0, nil);
+          ntExamine  : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavExamine  , 0, nil);
+          ntTurntable: LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavTurntable, 0, nil);
+          ntNone     : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavNone     , 0, nil);
+          else WritelnWarning('Window', 'Current NavigationType cannot be expressed as enum for ecgelibNavigationTypeChanged');
+        end;
+      end;
+    end;
+
     CGEApp_Update;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -281,6 +308,7 @@ begin
     Scene.Load(StrPas(PChar(szFile)));
     Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
+    Scene.ListenPressRelease := true; // necessary to pass keys to X3D sensors
     Viewport.Items.Add(Scene);
     Viewport.Items.MainScene := Scene;
 
