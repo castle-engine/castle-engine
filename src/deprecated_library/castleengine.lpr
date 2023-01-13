@@ -98,6 +98,11 @@ begin
 
     Viewport := TCastleAutoNavigationViewport.Create(Window);
     Viewport.FullSize := true;
+    { AutoCamera is necessary for Viewport.Camera to follow X3D file camera,
+      not only at initialization (this is done by AssignDefaultCamera) but also
+      when new viewpoint node is bound using X3D events or
+      TCastleSceneCore.MoveToViewpoint call. }
+    Viewport.AutoCamera := true;
     Window.Controls.InsertFront(Viewport);
 
     TouchNavigation := TCastleTouchNavigation.Create(nil);

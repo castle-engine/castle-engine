@@ -150,13 +150,25 @@ end;
 procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  { TODO }
+  { Test CGE_MoveToViewpoint by switching to 1st, 2nd or 3rd viewpoint
+    when you press 1,2,3 keys.
+    Hold Shift to switch with smooth animation instead of instantly.
+
+    Example test model for this: demo-models/navigation/viewpoints_various_tests.x3dv
+    (switch between 1st and 3rd viewpoints there, note that 2nd viewpoint there equals 1st). }
+  case Key of
+    VK_1: CGE_MoveToViewpoint(0, ssShift in Shift);
+    VK_2: CGE_MoveToViewpoint(1, ssShift in Shift);
+    VK_3: CGE_MoveToViewpoint(2, ssShift in Shift);
+  end;
+
+  { TODO: call CGE_KeyDown }
 end;
 
 procedure TForm1.OpenGLControl1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  { TODO }
+  { TODO: call CGE_KeyUp }
 end;
 
 const
