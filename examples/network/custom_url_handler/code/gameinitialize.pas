@@ -119,7 +119,6 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
@@ -135,19 +134,23 @@ begin
   ExampleImage.URL := 'castle-data:/example_image.png';
   // This also works:
   // 'my-packed-data:/example_image.png';
-  ExampleImage.Bottom := 100;
-  ExampleImage.Left := 100;
+  ExampleImage.Anchor(vpBottom, 100);
+  ExampleImage.Anchor(hpLeft, 100);
   Window.Controls.InsertFront(ExampleImage);
 
   { Show a 3D object (TCastleScene) inside a Viewport
     (which acts as a full-screen viewport by default). }
   ExampleScene := TCastleScene.Create(Application);
   ExampleScene.Load('castle-data:/example_scene.x3dv');
-  ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
-  ExampleScene.ProcessEvents := true;
+  ExampleScene.PreciseCollisions := true;
 
   Viewport.Items.Add(ExampleScene);
-  Viewport.Items.MainScene := ExampleScene;
+
+  // headlight
+  Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+  // nice initial camera position
+  Viewport.AssignDefaultCamera;
 end;
 
 initialization

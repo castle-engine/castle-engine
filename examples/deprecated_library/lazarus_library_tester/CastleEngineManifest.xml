@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="cge_dynlib_tester"
+  lazarus_project="cge_dynlib_tester.lpi"
+  build_using_lazbuild="true"
+>
+</project>

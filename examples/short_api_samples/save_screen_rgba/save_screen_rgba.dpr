@@ -48,17 +48,21 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport.Transparent := true; // do not fill parent with Viewport.BackgroundColor
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load('castle-data:/teapot.x3dv');
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.PreciseCollisions := true;
   Scene.ProcessEvents := true;
   Viewport.Items.Add(Scene);
-  Viewport.Items.MainScene := Scene;
+
+  // headlight
+  Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+  // nice initial camera position
+  Viewport.AssignDefaultCamera;
 
   Application.Run;
 end.
