@@ -315,7 +315,7 @@ examples:
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
-	  '(' -path ./examples/deprecated_library/lazarus_library_tester/ -prune ')' -o \
+	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
