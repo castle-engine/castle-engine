@@ -18,6 +18,7 @@ type
   HSteamUser = Int32;
   CSteamId = UInt64; // It's a struct but passed as UInt64
   //CGameID = UInt64;
+  EResult = UInt32;
 
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
@@ -71,10 +72,7 @@ const
 { callback received structs, from isteamxxxxxxx.h for other callbacks and constants }
 
 type
-  EResult = UInt32;
-
-type
-  { isteamuserstats.h }
+  { from isteamuserstats.h }
   UserStatsReceived_t = packed record
     const
       k_iCallback = k_iSteamUserStatsCallbacks + 1;
