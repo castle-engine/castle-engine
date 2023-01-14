@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -644,8 +644,7 @@ end;
 
 procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);
 begin
-  if (Scene <> nil) and
-     (FdMaterial.Value <> Value) then
+  if Scene <> nil then
     Scene.InternalMoveShapeAssociations(FdMaterial.Value, Value, InternalSceneShape);
 end;
 

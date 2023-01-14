@@ -59,6 +59,8 @@ type
     procedure TestUnassociateChangeMaterialOneLeft;
     procedure TestUnassociateChangeMaterialSharedAppearance;
     procedure TestUnassociateChangeAppearance;
+    procedure TestUnassociateAbstractPrimitive;
+    procedure TestUnassociateAbstractPrimitiveSimplified;
     procedure TestNonGenericNode;
     {$ifdef GENERIC_METHODS}
     procedure TestGenericNode;
@@ -877,6 +879,88 @@ begin
       AssertEquals(1, TShapeTree.AssociatedShapesCount(OldAppearance.Material));
       AssertEquals(1, TShapeTree.AssociatedShapesCount(NewAppearance.Material));
     finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+type
+  { Testcase from https://forum.castle-engine.io/t/warning-calling-tglsceneshape-unassociatenode/713 }
+  TMyClass = class(TCastleAbstractPrimitive)
+  private
+    FGeometry: TIndexedTriangleSetNode;
+    FCoordinate: TCoordinateNode;
+    FTextureCoordinate: TTextureCoordinateNode;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TMyClass.Create(AOwner: TComponent);
+begin
+  inherited;
+  Texture := 'castle-data:/images/no_alpha.png';
+  Material := pmUnlit;
+  FGeometry := TIndexedTriangleSetNode.Create;
+  FCoordinate := TCoordinateNode.Create;
+  FTextureCoordinate := TTextureCoordinateNode.Create;
+  FGeometry.Coord := FCoordinate;
+  ShapeNode.Geometry := FGeometry;
+  FCoordinate.SetPoint([
+    Vector3(0  ,   0, 0),
+    Vector3(100,   0, 0),
+    Vector3(100, 100, 0),
+    Vector3(0  , 100, 0),
+    Vector3(0  ,   0, 0),
+    Vector3(100, 100, 0)
+  ]);
+  FTextureCoordinate.SetPoint([
+    Vector2(0, 0),
+    Vector2(1, 0),
+    Vector2(1, 1),
+    Vector2(0, 1),
+    Vector2(0, 0),
+    Vector2(1, 1)
+  ]);
+  FGeometry.SetIndex([0, 1, 2, 3, 4, 5]);
+  FGeometry.TexCoord := FTextureCoordinate;
+end;
+
+procedure TTestSceneCore.TestUnassociateAbstractPrimitive;
+var
+  MyObject: TMyClass;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    MyObject := TMyClass.Create(nil);
+    try
+    finally FreeAndNil(MyObject) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociateAbstractPrimitiveSimplified;
+var
+  Scene: TCastleScene;
+  ShapeNode: TShapeNode;
+  RootNode: TX3DRootNode;
+  Geometry: TIndexedTriangleSetNode;
+  TextureCoordinate: TTextureCoordinateNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      ShapeNode := TShapeNode.Create;
+      RootNode := TX3DRootNode.Create;
+      RootNode.AddChildren(ShapeNode);
+      Scene.Load(RootNode, true);
+
+      Geometry := TIndexedTriangleSetNode.Create;
+      TextureCoordinate := TTextureCoordinateNode.Create;
+      ShapeNode.Geometry := Geometry;
+      Geometry.TexCoord := TextureCoordinate;
+    finally FreeAndNil(Scene) end
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
