@@ -27,6 +27,9 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
+procedure SteamAPI_RegisterCallback(pCallback: Pointer; iCallback: Integer);
+procedure SteamAPI_UnregisterCallback(pCallback: Pointer);
+
 { steam_api_flat.h : contains all available functions in one place
   Weird enough not all of them seem to do what they look like they're supposed to do
   So, sometimes experimenting is necessary : which function will work
@@ -53,6 +56,8 @@ function SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats: Pointer; cons
 function SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats: Pointer): UInt32; CDecl; external SteamLib;
 // It returns string-ID of the achievement, not a human readable name
 function SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats: Pointer; AchievementId: UInt32 ): PAnsiChar; CDecl; external SteamLib;
+// Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
+function SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats: Pointer; const AchievementName: PChar; CurrentProgress: UInt32; MaxProgress: UInt32): Boolean; CDecl; external SteamLib;
 
 function SteamAPI_ISteamUserStats_GetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_GetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
