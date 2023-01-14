@@ -60,6 +60,7 @@ type
     procedure TestUnassociateChangeMaterialSharedAppearance;
     procedure TestUnassociateChangeAppearance;
     procedure TestUnassociateAbstractPrimitive;
+    procedure TestUnassociateAbstractPrimitiveSimplified;
     procedure TestNonGenericNode;
     {$ifdef GENERIC_METHODS}
     procedure TestGenericNode;
@@ -933,6 +934,33 @@ begin
     MyObject := TMyClass.Create(nil);
     try
     finally FreeAndNil(MyObject) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociateAbstractPrimitiveSimplified;
+var
+  Scene: TCastleScene;
+  ShapeNode: TShapeNode;
+  RootNode: TX3DRootNode;
+  Geometry: TIndexedTriangleSetNode;
+  TextureCoordinate: TTextureCoordinateNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      ShapeNode := TShapeNode.Create;
+      RootNode := TX3DRootNode.Create;
+      RootNode.AddChildren(ShapeNode);
+      Scene.Load(RootNode, true);
+
+      Geometry := TIndexedTriangleSetNode.Create;
+      TextureCoordinate := TTextureCoordinateNode.Create;
+      ShapeNode.Geometry := Geometry;
+      Geometry.TexCoord := TextureCoordinate;
+    finally FreeAndNil(Scene) end
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;

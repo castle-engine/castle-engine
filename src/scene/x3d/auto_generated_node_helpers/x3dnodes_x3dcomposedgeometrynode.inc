@@ -231,6 +231,7 @@ end;
 
 procedure TAbstractComposedGeometryNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
 begin
+  SetTexCoordBefore(Value);
   FdTexCoord.Send(Value);
 end;
 
