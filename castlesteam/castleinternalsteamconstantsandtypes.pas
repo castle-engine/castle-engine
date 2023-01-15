@@ -81,6 +81,7 @@ type
       m_eResult: EResult;
       m_steamIDUser: CSteamID;	// The user for whom the stats are retrieved for
   end;
+  UserStatsReceivedCallback = procedure (Data: UserStatsReceived_t); Cdecl;
 
 implementation
 

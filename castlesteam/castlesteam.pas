@@ -36,6 +36,11 @@ begin
   // TODO: CastleLog
 end;
 
+procedure OnUserStatsReceived(Data: UserStatsReceived_t); Cdecl;
+begin
+  WriteLn('OnUserStatsReceived');
+end;
+
 function InitSteam(const AppId: Integer): Boolean;
 begin
   if SteamAPI_Init() then
@@ -66,6 +71,8 @@ begin
 
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
+
+  SteamAPI_RegisterCallback(@OnUserStatsReceived, UserStatsReceived_t.k_iCallback);
 
   Exit(true);
 end;
