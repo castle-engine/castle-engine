@@ -346,7 +346,7 @@ begin
     if IsFrameListItem(Item) then
       FSelectedFrames.Add(TCastleSpriteSheetFrame(Item.Data));
 
-    Item := FrameListView.GetNextItem(Item, sdBelow, [lisSelected]);
+    Item := FrameListView.GetNextItem(Item, sdAll, [lisSelected]);
   end;
 end;
 
