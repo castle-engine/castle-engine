@@ -85,14 +85,15 @@ begin
     Color := ColorPersistent.Value;
     TCastleColorPickerForm(ColorPicker).Init(Self, Color);
 
-
     CastleEditorInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
     if CastleEditorInspectorData <> nil then
     begin
       ColorPicker.Position := poDefaultPosOnly;
       ColorPicker.Left := CastleEditorInspectorData.X;
       ColorPicker.Top := CastleEditorInspectorData.Y;
-    end;
+    end
+    else
+      ColorPicker.Position := poOwnerFormCenter;
 
     ColorPicker.ShowModal;
     SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColor);
