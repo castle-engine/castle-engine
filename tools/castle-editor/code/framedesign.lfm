@@ -6,6 +6,7 @@ object DesignFrame: TDesignFrame
   ClientHeight = 522
   ClientWidth = 1237
   DesignTimePPI = 115
+  OnResize = FrameResize
   ParentFont = False
   TabOrder = 0
   DesignLeft = 403
