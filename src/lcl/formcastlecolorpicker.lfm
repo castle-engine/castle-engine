@@ -1,7 +1,7 @@
 object CastleColorPickerForm: TCastleColorPickerForm
-  Left = 1622
+  Left = 1613
   Height = 549
-  Top = 190
+  Top = 185
   Width = 480
   Caption = 'Choose Color'
   ClientHeight = 549
@@ -117,7 +117,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
         BorderSpacing.Right = 4
-        TabOrder = 1
+        TabOrder = 2
         OnChange = GTabColorPickerRgbChange
         HintFormat = 'Green: %value (selected)'
       end
@@ -135,7 +135,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
         BorderSpacing.Right = 4
-        TabOrder = 2
+        TabOrder = 4
         OnChange = BTabColorPickerRgbChange
         HintFormat = 'Blue: %value (selected)'
       end
@@ -185,7 +185,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Increment = 0.1
         MaxValue = 1
         OnChange = RSpinEditRgbChange
-        TabOrder = 3
+        TabOrder = 1
       end
       object GSpinEditRgb: TFloatSpinEdit
         AnchorSideTop.Side = asrBottom
@@ -201,7 +201,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Increment = 0.1
         MaxValue = 1
         OnChange = GSpinEditRgbChange
-        TabOrder = 4
+        TabOrder = 3
       end
       object BSpinEditRgb: TFloatSpinEdit
         AnchorSideTop.Side = asrBottom
@@ -269,7 +269,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
         BorderSpacing.Right = 4
-        TabOrder = 1
+        TabOrder = 2
         OnChange = STabColorPickerHsvChange
         Luminance = 128
         HintFormat = 'Saturation: %value (selected)'
@@ -306,7 +306,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
         BorderSpacing.Right = 4
-        TabOrder = 2
+        TabOrder = 4
         OnChange = VTabColorPickerHsvChange
         BrightnessMode = bmValue
         LHintFormat = 'Luminance: %lum (selected)'
@@ -327,7 +327,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Increment = 0.5
         MaxValue = 6
         OnChange = HSpinEditHsvChange
-        TabOrder = 3
+        TabOrder = 1
       end
       object SSpinEditHsv: TFloatSpinEdit
         AnchorSideTop.Control = HSpinEditHsv
@@ -344,7 +344,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Increment = 0.1
         MaxValue = 1
         OnChange = SSpinEditHsvChange
-        TabOrder = 4
+        TabOrder = 3
       end
       object VSpinEditHsv: TFloatSpinEdit
         AnchorSideTop.Control = SSpinEditHsv
