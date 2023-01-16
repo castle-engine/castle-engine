@@ -9,6 +9,7 @@ object ProjectForm: TProjectForm
   DesignTimePPI = 115
   KeyPreview = True
   Menu = MainMenu1
+  OnChangeBounds = FormChangeBounds
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
