@@ -35,6 +35,9 @@ type
     It doesn't define any per-vertex attributes other than vertex positions.
     It limits rendering to 16-bit indexes, and always passed vectors as 4D (in homogeneous
     coordinates).
+    It follows some current @link(RenderContext) state,
+    like @link(TCastleRenderContext.DepthTest),
+    @link(TCastleRenderContext.LineWidth) -- it doesn't control this state.
     For a full-featured mesh rendering, just use TCastleScene, and construct your
     mesh as TIndexedTriangleSetNode or TIndexedFaceSetNode, see
     https://castle-engine.io/viewport_and_scenes_from_code#_building_a_mesh_using_code .
@@ -93,10 +96,10 @@ type
     { Define indexes for all future rendering.
       Note: Passing indexes that do not exist in vertexes you define in SetVertexes
       may result in crashes, neither CGE nor rendering API necessarily check it. }
-    procedure SetIndexes(const Indexes: array of UInt16); overload;
+    procedure SetIndexes(const Indexes: packed array of UInt16); overload;
     procedure SetIndexes(const Indexes: PUInt16; const IndexesCount: Cardinal); overload;
 
-    procedure SetVertexes(const Vertexes: array of TVector4;
+    procedure SetVertexes(const Vertexes: packed array of TVector4;
       const UsageDynamic: Boolean); overload;
     procedure SetVertexes(const Vertexes: PVector4; const VertexesCount: Cardinal;
       const UsageDynamic: Boolean); overload;
@@ -200,6 +203,7 @@ begin
       glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
       {$warnings on}
 
+    // TODO: make sure GL_PROJECTION is identity here
     glLoadMatrix(ModelViewProjection);
 
     glEnableClientState(GL_VERTEX_ARRAY);
