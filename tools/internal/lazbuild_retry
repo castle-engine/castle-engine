@@ -22,8 +22,6 @@ LPI_FILENAME="$1"
 if ! lazbuild "${LPI_FILENAME}"; then
   echo '1st execution of lazbuild failed, trying again'
   make clean
-  lazbuild ${CASTLE_LAZBUILD_OPTIONS:-} packages/castle_base.lpk
-  lazbuild ${CASTLE_LAZBUILD_OPTIONS:-} packages/castle_window.lpk
-  lazbuild ${CASTLE_LAZBUILD_OPTIONS:-} packages/castle_components.lpk
+  # Note: Hopefully it doesn't need to recompile all CGE LPK packages here.
   lazbuild ${CASTLE_LAZBUILD_OPTIONS:-} "${LPI_FILENAME}"
 fi

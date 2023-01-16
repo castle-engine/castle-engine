@@ -297,6 +297,7 @@ pipeline {
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk'
+                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/contrib/xxx.lpk'
               }
             }
             stage('(macOS) Build Editor') {

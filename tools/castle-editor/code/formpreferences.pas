@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -435,6 +435,9 @@ begin
     RegisterPackage('packages/castle_components.lpk');
     RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
     RegisterPackage('packages/castle_indy.lpk');
+
+    // packages used by castle-editor (which is also important for users who create custom components, https://castle-engine.io/custom_components )
+    RegisterPackage('tools/castle-editor/contrib/xxx.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except
