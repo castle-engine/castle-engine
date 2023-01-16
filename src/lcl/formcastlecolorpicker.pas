@@ -54,6 +54,10 @@ type
     procedure BTabColorPickerRgbChange(Sender: TObject);
     procedure ButtonCopyClick(Sender: TObject);
     procedure ButtonRevertClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormMouseLeave(Sender: TObject);
+    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure GSpinEditRgbChange(Sender: TObject);
     procedure GTabColorPickerRgbChange(Sender: TObject);
     procedure HSPanelCirclePickerChange(Sender: TObject);
@@ -72,6 +76,9 @@ type
     { How many digits to use for comparisons }
     ColorPrecision: TRoundToRange;
     ColorEpsilon: Single;
+    { A flag to not close window when mouse is outside of form but never
+      was inside }
+    MouseWasInForm: Boolean;
 
     procedure SetColorInCirclePickerPanel(NewColor: TCastleColor); overload;
     procedure SetColorInCirclePickerPanel(NewColor: TColor); overload;
@@ -115,6 +122,7 @@ type
 
     procedure GeneratePascalCode;
 
+    procedure MouseCheckOnIdle(Sender: TObject; var Done: Boolean);
 
   public
     ColorPropertyEditor: TCastleColorPropertyEditor;
@@ -132,7 +140,7 @@ implementation
 
 {$R *.lfm}
 
-uses Clipbrd, CastleVectors, CastleLog, CastleUtils, mbColorConv;
+uses Clipbrd, CastleVectors, CastleLog, CastleUtils, mbColorConv, CastleControl;
 
 { TCastleColorPickerForm }
 
@@ -163,6 +171,34 @@ procedure TCastleColorPickerForm.ButtonRevertClick(Sender: TObject);
 begin
   SetColorInCirclePickerPanel(PrevColor);
   SetAlphaValue(PrevColor.W);
+end;
+
+procedure TCastleColorPickerForm.FormCreate(Sender: TObject);
+begin
+  MouseWasInForm := false;
+  //Application.AddOnIdleHandler(@MouseCheckOnIdle);
+  Application.OnIdle := @MouseCheckOnIdle;
+end;
+
+procedure TCastleColorPickerForm.FormDestroy(Sender: TObject);
+begin
+  //Application.RemoveOnIdleHandler(@MouseCheckOnIdle);
+  Application.OnIdle := nil;
+end;
+
+procedure TCastleColorPickerForm.FormMouseLeave(Sender: TObject);
+begin
+  if ClientRect.Contains(ScreenToClient(Mouse.CursorPos)) then
+    MouseWasInForm := true
+//  else
+//    Close;
+end;
+
+procedure TCastleColorPickerForm.FormMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  WritelnLog('Mouse move ' + IntToStr(X) + IntToStr(Y));
+  MouseWasInForm := true;
 end;
 
 procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
@@ -633,6 +669,28 @@ begin
   MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
     ', ' + SText + ', ' + VText + '), ' + AText + ');');
   MemoPascalCode.Lines.Add('HexToColor(' + ColorToHex(CurrentCastleColor) + ');');
+end;
+
+procedure TCastleColorPickerForm.MouseCheckOnIdle(Sender: TObject; var Done: Boolean);
+var
+  TestRect: TRect;
+  Margin: Integer;
+begin
+  Done := false;
+  Margin := Round (Width / 4);
+
+  TestRect.Top := ClientRect.Top - Margin ;
+  TestRect.Left := ClientRect.Left - Margin;
+  TestRect.Width := ClientRect.Width + Margin * 2;
+  TestRect.Height := ClientRect.Height + Margin * 2;
+
+  if TestRect.Contains(ScreenToClient(Mouse.CursorPos)) then
+    MouseWasInForm := true
+  else if MouseWasInForm then
+    Close;
+
+  TCastleApplicationIdle.ApplicationIdle(Self, Done);
+  //WritelnLog('On Idle mouse check');
 end;
 
 function TCastleColorPickerForm.CurrentCastleColor: TCastleColor;

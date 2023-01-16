@@ -564,6 +564,12 @@ type
       deprecated 'use Container.DesignUrl';
   end;
 
+
+  TCastleApplicationIdle = class
+    class procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
+  end;
+
+
   TCastleControlCustom = TCastleControl deprecated 'use TCastleControl';
 
   { Note: we need this deprecated class to be a separate class,
@@ -670,10 +676,6 @@ end;
 
 { TCastleApplicationIdle -------------------------------------------------- }
 
-type
-  TCastleApplicationIdle = class
-    class procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
-  end;
 
 class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done: Boolean);
 var
