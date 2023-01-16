@@ -74,21 +74,14 @@ uses SysUtils,
 { Rendering in this unit for now uses fixed-function pipeline,
   and it requires fixed-function matrix set up. }
 procedure PushMatrix(const Params: TRenderParams);
-var
-  CameraMatrix: PMatrix4;
 begin
   glMatrixMode(GL_PROJECTION);
   glPushMatrix;
   glLoadMatrix(RenderContext.ProjectionMatrix);
 
-  if Params.RenderingCamera.RotationOnly then
-    CameraMatrix := @Params.RenderingCamera.RotationMatrix
-  else
-    CameraMatrix := @Params.RenderingCamera.Matrix;
-
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix;
-  glLoadMatrix(CameraMatrix^);
+  glLoadMatrix(Params.RenderingCamera.CurrentMatrix);
 end;
 
 procedure PopMatrix;

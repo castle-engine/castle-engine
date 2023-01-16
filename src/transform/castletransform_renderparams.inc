@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -177,6 +177,10 @@
     property Target: TRenderTarget read FTarget write FTarget;
 
     procedure Assign(const Source: TRenderingCamera);
+
+    { Current matrix to use for rendering. Either @link(Matrix) or @link(RotationMatrix),
+      depending on @link(RotationOnly). }
+    function CurrentMatrix: TMatrix4;
   end;
 
   { Information that a TCastleTransform object needs to render.
@@ -398,6 +402,14 @@ begin
   RotationInverseMatrix     := Source.RotationInverseMatrix    ;
   RotationInverseMatrixDone := Source.RotationInverseMatrixDone;
   Frustum                   := Source.Frustum                  ;
+end;
+
+function TRenderingCamera.CurrentMatrix: TMatrix4;
+begin
+  if RotationOnly then
+    Result := RotationMatrix
+  else
+    Result := Matrix;
 end;
 
 { TRenderParams -------------------------------------------------------------- }

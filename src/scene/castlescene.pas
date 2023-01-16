@@ -1063,18 +1063,11 @@ procedure TCastleScene.LocalRenderInside(
   { Transformation of Params.Transform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
-  var
-    CameraMatrix: PMatrix4;
   begin
-    if Params.RenderingCamera.RotationOnly then
-      CameraMatrix := @Params.RenderingCamera.RotationMatrix
-    else
-      CameraMatrix := @Params.RenderingCamera.Matrix;
-
     if Params.TransformIdentity then
-      Result := CameraMatrix^
+      Result := Params.RenderingCamera.CurrentMatrix
     else
-      Result := CameraMatrix^ * Params.Transform^;
+      Result := Params.RenderingCamera.CurrentMatrix * Params.Transform^;
   end;
 
   procedure BatchingCommit;
