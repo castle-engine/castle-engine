@@ -3655,6 +3655,7 @@ end;
 procedure TDesignFrame.UpdateEditorInspectorData;
 var
   CastleInspectorData: TCastleEditorInspectorData;
+  {E: TCastleComponentEditorDesigner;}
 begin
   CastleInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
   if CastleInspectorData = nil then
@@ -3663,6 +3664,12 @@ begin
   CastleInspectorData.X := ProjectForm.Left + Left + PanelRight.Left;
   CastleInspectorData.Y := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
   CastleInspectorData.Name := 'CastleEditorInspectorData';
+  {if FComponentEditorDesigner is TCastleComponentEditorDesigner then
+  begin
+    E := FComponentEditorDesigner as TCastleComponentEditorDesigner;
+    E.ForPopup.X := ProjectForm.Left + Left + PanelRight.Left;
+    E.ForPopup.Y := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
+  end;}
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
