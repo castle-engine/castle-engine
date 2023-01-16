@@ -377,7 +377,6 @@ type
     procedure PropertyGridCollectionItemDelete(Sender: TObject);
     procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
     procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
-    procedure UpdateEditorInspectorData;
 
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
@@ -567,6 +566,10 @@ type
     procedure ChangeMode(const NewMode: TMode);
     procedure ShowAllJointsTools;
     procedure HideAllJointsTools;
+
+    { Saves some editor data in subcomponent of Application for property
+      editors }
+    procedure UpdateEditorDataForPropertyEditors;
   end;
 
 implementation
@@ -1503,7 +1506,7 @@ begin
   FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
-  UpdateEditorInspectorData;
+  UpdateEditorDataForPropertyEditors;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -3652,7 +3655,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.UpdateEditorInspectorData;
+procedure TDesignFrame.UpdateEditorDataForPropertyEditors;
 var
   CastleInspectorData: TCastleEditorInspectorData;
   {E: TCastleComponentEditorDesigner;}
@@ -3661,8 +3664,10 @@ begin
   if CastleInspectorData = nil then
     CastleInspectorData := TCastleEditorInspectorData.Create(Application);
 
-  CastleInspectorData.X := ProjectForm.Left + Left + PanelRight.Left;
-  CastleInspectorData.Y := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
+  CastleInspectorData.InspectorAreaOnScreen.Left := ProjectForm.Left + Left + PanelRight.Left;
+  CastleInspectorData.InspectorAreaOnScreen.Top := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
+  CastleInspectorData.InspectorAreaOnScreen.Width := ControlProperties.Width;
+  CastleInspectorData.InspectorAreaOnScreen.Height := ControlProperties.Height;
   CastleInspectorData.Name := 'CastleEditorInspectorData';
   {if FComponentEditorDesigner is TCastleComponentEditorDesigner then
   begin
@@ -5332,7 +5337,7 @@ end;
 
 procedure TDesignFrame.FrameResize(Sender: TObject);
 begin
-  UpdateEditorInspectorData;
+  UpdateEditorDataForPropertyEditors;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);

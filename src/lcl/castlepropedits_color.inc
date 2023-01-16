@@ -22,9 +22,8 @@ type
 
   TCastleEditorInspectorData = class(TComponent)
     public
-      X: Integer;
-      Y: Integer;
-
+      { Used by Colour picker to specify the position to show the window. }
+      InspectorAreaOnScreen: TRect;
   end;
 
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
@@ -58,6 +57,7 @@ var
   ColorByte: TVector3Byte;
   ColorPicker: TCastleColorPickerForm;
   CastleEditorInspectorData: TCastleEditorInspectorData;
+  InspectorArea: TRect;
 begin
   {Dialog := TColorDialog.Create(nil);
   try
@@ -89,8 +89,14 @@ begin
     if CastleEditorInspectorData <> nil then
     begin
       ColorPicker.Position := poDefaultPosOnly;
-      ColorPicker.Left := CastleEditorInspectorData.X;
-      ColorPicker.Top := CastleEditorInspectorData.Y;
+      InspectorArea := CastleEditorInspectorData.InspectorAreaOnScreen;
+      ColorPicker.Left := InspectorArea.Left -
+        (ColorPicker.Width - InspectorArea.Width);
+      if InspectorArea.Height > ColorPicker.Height then
+        ColorPicker.Top := CastleEditorInspectorData.InspectorAreaOnScreen.Top +
+          Round((InspectorArea.Height - ColorPicker.Height) / 2)
+      else
+        ColorPicker.Top := CastleEditorInspectorData.InspectorAreaOnScreen.Top;
     end
     else
       ColorPicker.Position := poOwnerFormCenter;
