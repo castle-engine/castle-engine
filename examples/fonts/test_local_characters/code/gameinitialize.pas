@@ -179,7 +179,7 @@ begin
 
   Scene := TCastleScene.Create(Application);
   Scene.Load('castle-data:/scene.x3dv');
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.PreciseCollisions := true;
   Scene.ProcessEvents := true;
 
   Viewport.Items.Add(Scene);

@@ -4093,13 +4093,13 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := ['Viewport (3D)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren3D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport.CreateComponentWithChildren3D;
   RegisterSerializableComponent(R);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := ['Viewport (2D)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport.CreateComponentWithChildren2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;

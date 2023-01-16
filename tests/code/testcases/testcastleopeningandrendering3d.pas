@@ -79,7 +79,7 @@ begin
     AssertTrue(Viewport.Items[0] is TCastleCamera);
 
     Scene := TCastleScene.Create(Window);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     Viewport := TCastleSceneManager.Create(Window);
@@ -160,7 +160,7 @@ begin
   Window := TCastleWindow.Create(nil);
   try
     Scene := TCastleScene.Create(Window);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     Viewport := TCastleAutoNavigationViewport.Create(Window);

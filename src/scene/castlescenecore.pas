@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -993,7 +993,12 @@ type
     procedure Loaded; override;
 
     { Called before changing one node into another,
-      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode.
+
+      Both OldNode and NewNode may be @nil, this method can handle it.
+
+      It is allowed to call this even when OldNode = NewNode, which means that nothing
+      really changes. }
     procedure InternalMoveShapeAssociations(
       const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
 
@@ -5593,9 +5598,7 @@ var
   L: TShapeTreeList;
   I: Integer;
 begin
-  Assert(OldNode <> NewNode); // should be checked before calling InternalMoveShapeAssociations
-
-  if ContainingShapes <> nil then
+  if (OldNode <> NewNode) and (ContainingShapes <> nil) then
   begin
     { For shapes on ContainingShapes, they should be removed from OldNode,
       and added to NewNode.

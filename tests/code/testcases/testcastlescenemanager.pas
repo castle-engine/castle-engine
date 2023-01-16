@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleSceneManager" -*-
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,7 +108,7 @@ begin
   try
     Scene := TCastleScene.Create(SceneManager);
     Scene.Load('castle-data:/level1.x3d');
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     SceneManager.Items.Add(Scene);
@@ -130,7 +130,7 @@ begin
   try
     Scene := TCastleScene.Create(SceneManager);
     Scene.Load('castle-data:/level1.x3d');
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     SceneManager.Items.Add(Scene);

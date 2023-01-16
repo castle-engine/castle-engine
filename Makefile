@@ -302,6 +302,9 @@ examples:
 #
 # - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
 #
+# - examples/deprecated_library: bacause it requires library first (we could build it..
+#   but it is already tested by examples-laz).
+#
 # - tools/build-tool: because
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
@@ -312,6 +315,7 @@ examples:
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
+	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
