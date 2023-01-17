@@ -122,10 +122,11 @@ type
 
     procedure GeneratePascalCode;
   public
-    ColorPropertyEditor: TCastleColorPropertyEditor;
+    ColorPropertyEditor: TCastleAbstractColorPropertyEditor;
     PrevColor: TCastleColor;
 
-    procedure Init(const ColorPropEditor: TCastleColorPropertyEditor; InitColor: TCastleColor);
+    procedure Init(const ColorPropEditor: TCastleAbstractColorPropertyEditor;
+      InitColor: TCastleColor);
 
     function CurrentCastleColor: TCastleColor;
   end;
@@ -624,11 +625,7 @@ procedure TCastleColorPickerForm.UpdatePropertyEditorValue;
 begin
   // on color change in circle
   if Assigned(ColorPropertyEditor) then
-  begin
     ColorPropertyEditor.SetValue(ColorToHex(CurrentCastleColor));
-    //ColorPropertyEditor.SetAllValues(CurrentCastleColor);
-    WritelnLog('Set value inspector value ' + ColorToHex(CurrentCastleColor));
-  end;
 end;
 
 procedure TCastleColorPickerForm.GeneratePascalCode;
@@ -683,7 +680,7 @@ begin
 end;
 
 procedure TCastleColorPickerForm.Init(
-  const ColorPropEditor: TCastleColorPropertyEditor; InitColor: TCastleColor);
+  const ColorPropEditor: TCastleAbstractColorPropertyEditor; InitColor: TCastleColor);
 begin
   ColorPrecision := -3;
   ColorEpsilon := 0.0009;

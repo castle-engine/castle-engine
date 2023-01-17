@@ -26,14 +26,19 @@ type
     InspectorAreaOnScreen: TRect;
   end;
 
-  TCastleColorPropertyEditor = class(TSubPropertiesEditor)
+  { Abstract class for grouping all color property editors }
+  TCastleAbstractColorPropertyEditor = class(TSubPropertiesEditor)
+  end;
+
+  TCastleColorPropertyEditor = class(TCastleAbstractColorPropertyEditor)
+  strict private
+    procedure SetAllValues(const NewValue: TCastleColor);
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
-    procedure SetAllValues(const NewValue: TCastleColor);
     function GetDefaultValue: String; override;
     function ValueIsStreamed: boolean; override;
     function AllEqual: Boolean; override;
@@ -156,7 +161,7 @@ end;
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
-  TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
+  TCastleColorRGBPropertyEditor = class(TCastleAbstractColorPropertyEditor)
   strict private
     procedure SetAllValues(const NewValue: TCastleColorRGB);
   public
