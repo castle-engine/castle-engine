@@ -305,6 +305,23 @@ type
     property Shaders: Boolean read FShaders;
 
     { Use OpenGL fixed-function rendering for ancient OpenGL versions on desktops.
+      This rules whole rendering approach.
+
+      When this is @false, you can be sure that shaders and VBO are supported (OpenGL
+      API exposes them, they are not detected as "buggy").
+      In particular Shaders and VertexBufferObject are @true.
+
+      When this is @true, you should use ancient fixed-function pipeline for all rendering,
+      without shaders or VBO.
+      In fact, to make it easier, we set Shaders and VertexBufferObject to @false
+      in this case (even if in theory one of them could be used, at least in some cases...
+      we don't want to maintain too many alternatives for ancient systems,
+      we want only want one path for ancient systems: all modern stuff disabled).
+      This makes Shaders and VertexBufferObject practically useless now:
+      they are always negation of EnabledFixedFunction. And this is OK, it means we have
+      2 clear approaches to rendering, not a lot of possible combinations to test.
+
+      When this is @true:
 
       @unorderedList(
         @item(This forces Gouraud shading.)
@@ -317,10 +334,8 @@ type
           to continue to work.)
       )
 
-      This is @false by default on modern GPUs (that have good GLSL and VBO support).
-
-      On OpenGLES, it must be @false always, since OpenGLES >= 2
-      has no fixed-function pipeline.
+      Note that on OpenGLES, it must be always @false, since OpenGLES >= 2
+      has no fixed-function pipeline, and it guarantees having working shaders and VBO.
     }
     property EnableFixedFunction: Boolean read FEnableFixedFunction;
 
@@ -733,6 +748,14 @@ begin
     (not VertexBufferObject) or
     GLVersion.BuggyPureShaderPipeline
     {$endif};
+
+  { Right now, EnableFixedFunction is actually synchronized with Shaders and VertexBufferObject.
+    When not EnableFixedFunction, everything should fall to rendering using ancient way. }
+  if EnableFixedFunction then
+  begin
+    FShaders := false;
+    FVertexBufferObject := false;
+  end;
 
   { Calculate MaxClipPlanes.
     The logic follows various approaches to clip planes in TShader.EnableClipPlane.
