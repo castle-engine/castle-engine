@@ -126,9 +126,13 @@ type
     PrevColor: TCastleColor;
 
     procedure Init(const ColorPropEditor: TCastleAbstractColorPropertyEditor;
-      InitColor: TCastleColor);
+      InitColor: TCastleColor); overload;
+
+    procedure Init(const ColorPropEditor: TCastleAbstractColorPropertyEditor;
+      InitColorRGB: TCastleColorRGB); overload;
 
     function CurrentCastleColor: TCastleColor;
+    function CurrentCastleColorRGB: TCastleColorRGB;
   end;
 
 var
@@ -653,19 +657,37 @@ begin
 
   AText := FloatToStrFDot(AlphaSpinEdit.Value, ffFixed, 0, Abs(ColorPrecision));
 
-  MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
-  MemoPascalCode.Lines.Add('const');
-  MemoPascalCode.Lines.Add('  MyColor: TCastleColor = (Data:' +
-    ' (X: ' + RText + ', Y: ' + GText + ', Z: ' + BText + ', W: ' + AText + '));');
+  if AlphaColorPicker.Enabled then
+  begin
+    MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
+    MemoPascalCode.Lines.Add('const');
+    MemoPascalCode.Lines.Add('  MyColor: TCastleColor = (' +
+      'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + '; W: ' + AText + ' );');
 
-  MemoPascalCode.Lines.Add('');
-  MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
-  MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
-  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
-    ', ' + BText + ', ' + AText +');');
-  MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
-    ', ' + SText + ', ' + VText + '), ' + AText + ');');
-  MemoPascalCode.Lines.Add('HexToColor(' + ColorToHex(CurrentCastleColor) + ');');
+    MemoPascalCode.Lines.Add('');
+    MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
+    MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
+    MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
+      ', ' + BText + ', ' + AText +');');
+    MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
+      ', ' + SText + ', ' + VText + '), ' + AText + ');');
+    MemoPascalCode.Lines.Add('HexToColor(' + ColorToHex(CurrentCastleColor) + ');');
+  end else
+  begin
+    MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
+    MemoPascalCode.Lines.Add('const');
+    MemoPascalCode.Lines.Add('  MyColor: TCastleColorRGB = (' +
+      'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + ');');
+
+    MemoPascalCode.Lines.Add('');
+    MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
+    MemoPascalCode.Lines.Add('MyControl.ColorRGB := MyColor;');
+    MemoPascalCode.Lines.Add('MyControl.ColorRGB := Vector3(' + RText + ', ' + GText +
+      ', ' + BText + ');');
+    MemoPascalCode.Lines.Add('MyControl.Color := Vector3(HsvToRgb(' + HText +
+      ', ' + SText + ', ' + VText + '));');
+    MemoPascalCode.Lines.Add('HexToColorRGB(' + ColorRGBToHex(CurrentCastleColorRGB) + ');');
+  end;
 end;
 
 function TCastleColorPickerForm.CurrentCastleColor: TCastleColor;
@@ -679,8 +701,19 @@ begin
   Result := Vector4(ColorByte);
 end;
 
+function TCastleColorPickerForm.CurrentCastleColorRGB: TCastleColorRGB;
+var
+  CurrentColor: TCastleColor;
+begin
+  CurrentColor := CurrentCastleColor;
+  Result.X := CurrentColor.X;
+  Result.Y := CurrentColor.Y;
+  Result.Z := CurrentColor.Z;
+end;
+
 procedure TCastleColorPickerForm.Init(
-  const ColorPropEditor: TCastleAbstractColorPropertyEditor; InitColor: TCastleColor);
+  const ColorPropEditor: TCastleAbstractColorPropertyEditor;
+  InitColor: TCastleColor);
 begin
   ColorPrecision := -3;
   ColorEpsilon := 0.0009;
@@ -690,6 +723,19 @@ begin
   SetColorInRgbTab(InitColor);
   SetColorInHsvTab(InitColor);
   SetAlphaValue(InitColor.W);
+end;
+
+procedure TCastleColorPickerForm.Init(
+  const ColorPropEditor: TCastleAbstractColorPropertyEditor;
+  InitColorRGB: TCastleColorRGB);
+var
+  InitColor: TCastleColor;
+begin
+  InitColor := Vector4(InitColorRGB, 1.0);
+  Init(ColorPropEditor, InitColor);
+
+  AlphaColorPicker.Enabled := false;
+  AlphaSpinEdit.Enabled := false;
 end;
 
 end.

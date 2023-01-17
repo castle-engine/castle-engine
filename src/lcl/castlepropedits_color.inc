@@ -183,7 +183,7 @@ begin
 end;
 
 procedure TCastleColorRGBPropertyEditor.Edit;
-var
+{var
   Dialog: TColorDialog;
   ColorPersistent: TCastleColorRGBPersistent;
   Color: TCastleColorRGB;
@@ -202,7 +202,42 @@ begin
       SetAllValues(Color);
     end;
   finally FreeAndNil(Dialog) end;
+end;}
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+  Color: TCastleColorRGB;
+  ColorPicker: TCastleColorPickerForm;
+  InspectorArea: TRect;
+  CastlePropertyHook: TCastlePropertyEditorHook;
+begin
+  ColorPicker := TCastleColorPickerForm.Create(nil);
+  try
+    ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+    Color := ColorPersistent.Value;
+    TCastleColorPickerForm(ColorPicker).Init(Self, Color);
+
+    if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
+    begin
+      CastlePropertyHook := PropertyHook as TCastlePropertyEditorHook;
+      ColorPicker.Position := poDefaultPosOnly;
+      InspectorArea := CastlePropertyHook.InspectorAreaOnScreen;
+      ColorPicker.Left := InspectorArea.Left -
+        (ColorPicker.Width - InspectorArea.Width);
+      if InspectorArea.Height > ColorPicker.Height then
+        ColorPicker.Top := InspectorArea.Top +
+          Round((InspectorArea.Height - ColorPicker.Height) / 2)
+      else
+        ColorPicker.Top := InspectorArea.Top;
+    end else
+      ColorPicker.Position := poOwnerFormCenter;
+
+    ColorPicker.ShowModal;
+    SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColorRGB);
+  finally
+    FreeAndNil(ColorPicker);
+  end;
 end;
+
 
 function TCastleColorRGBPropertyEditor.GetName: shortstring;
 begin
