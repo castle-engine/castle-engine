@@ -437,7 +437,7 @@ begin
     RegisterPackage('packages/castle_indy.lpk');
 
     // packages used by castle-editor (which is also important for users who create custom components, https://castle-engine.io/custom_components )
-    RegisterPackage('tools/castle-editor/contrib/xxx.lpk');
+    RegisterPackage('tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except

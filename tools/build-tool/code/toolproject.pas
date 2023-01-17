@@ -1456,7 +1456,7 @@ begin
     RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
-    RunLazbuild(Path, [CgePath + 'tools/castle-editor/contrib/xxx.lpk']);
+    RunLazbuild(Path, [CgePath + 'tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
   end;
