@@ -101,6 +101,8 @@ type
 
     procedure SetVertexes(const Vertexes: packed array of TVector4;
       const UsageDynamic: Boolean); overload;
+    procedure SetVertexes(const Vertexes: TVector4List;
+      const UsageDynamic: Boolean); overload;
     procedure SetVertexes(const Vertexes: PVector4; const VertexesCount: Cardinal;
       const UsageDynamic: Boolean); overload;
 
@@ -302,6 +304,12 @@ procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: array of TVector4;
   const UsageDynamic: Boolean);
 begin
   SetVertexes(@Vertexes[0], High(Vertexes) + 1, UsageDynamic);
+end;
+
+procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: TVector4List;
+  const UsageDynamic: Boolean);
+begin
+  SetVertexes(Vertexes.L, Vertexes.Count, UsageDynamic);
 end;
 
 {$endif read_implementation}
