@@ -537,4 +537,11 @@ object CastleColorPickerForm: TCastleColorPickerForm
     OnClick = ButtonRevertClick
     TabOrder = 3
   end
+  object TimerMousePos: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerMousePosTimer
+    Left = 23
+    Top = 217
+  end
 end
