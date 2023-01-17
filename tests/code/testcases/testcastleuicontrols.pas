@@ -1,7 +1,7 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUIControls" -*-
 
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,6 +30,7 @@ type
     procedure TestRectEffective;
     procedure TestRecursiveSize;
     procedure TestForIn;
+    procedure TestDetachParent;
   end;
 
 implementation
@@ -147,6 +148,25 @@ begin
     end;
     AssertSameValue(Y, 4);
   finally FreeAndNil(Owner) end;
+end;
+
+procedure TTestCastleUIControls.TestDetachParent;
+var
+  Container: TCastleContainer;
+  U1, U2, U3: TCastleUserInterface;
+begin
+  Container := nil;
+  U1 := nil;
+  U2 := nil;
+  U3 := nil;
+  try
+    // TODO
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(U3);
+  end;
 end;
 
 initialization
