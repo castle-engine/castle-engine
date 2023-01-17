@@ -17,7 +17,6 @@
 unit CastleRenderPrimitives;
 
 {$I castleconf.inc}
-{$I openglmac.inc}
 
 interface
 
