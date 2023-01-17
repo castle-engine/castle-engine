@@ -51,34 +51,12 @@ end;
 
 procedure TCastleColorPropertyEditor.Edit;
 var
-  Dialog: TColorDialog;
   ColorPersistent: TCastleColorPersistent;
   Color: TCastleColor;
-  ColorByte: TVector3Byte;
   ColorPicker: TCastleColorPickerForm;
   CastleEditorInspectorData: TCastleEditorInspectorData;
   InspectorArea: TRect;
 begin
-  {Dialog := TColorDialog.Create(nil);
-  try
-    ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-    Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color.XYZ); // edit only Color RGB
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
-    begin
-      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      // keep Color alpha unchanged ...
-      Color := Vector4(Vector3(ColorByte), Color.W);
-      // ... unless it is zero, then change to 1.
-      { This makes changing TCastleUserInterface.BorderColor changing more natural,
-        setting it using dialog turns color from transparent -> opaque. }
-      if Color.W = 0 then
-        Color.W := 1;
-      SetAllValues(Color);
-    end;
-  finally FreeAndNil(Dialog) end;}
-
   ColorPicker := TCastleColorPickerForm.Create(nil);
   try
     ColorPersistent := (GetObjectValue as TCastleColorPersistent);
