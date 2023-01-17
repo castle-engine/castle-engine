@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2078,7 +2078,7 @@ class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
 begin
   Result :=
     (RenderOptions.ShadowSampling = ssVarianceShadowMaps) and
-    (GLFeatures.Shaders <> gsNone) and
+    GLFeatures.Shaders and
     GLFeatures.TextureFloat;
 end;
 
@@ -2094,11 +2094,12 @@ begin
 
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.RenderOptions);
 
-  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
-    [ BoolToStr(VarianceShadowMaps, true),
-      ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
-      GLSupportNames[GLFeatures.Shaders],
-      BoolToStr(GLFeatures.TextureFloat, true) ]));
+  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)', [
+    BoolToStr(VarianceShadowMaps, true),
+    ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
+    BoolToStr(GLFeatures.Shaders, true),
+    BoolToStr(GLFeatures.TextureFloat, true)
+  ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;

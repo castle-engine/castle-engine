@@ -2044,10 +2044,10 @@ end;
 function TGLRenderer.BumpMapping: TBumpMapping;
 begin
   if (RenderOptions.BumpMapping <> bmNone) and
-    RenderOptions.Textures and
-    (RenderOptions.Mode = rmFull) and
-    GLFeatures.UseMultiTexturing and
-    (GLFeatures.Shaders <> gsNone) then
+     RenderOptions.Textures and
+     (RenderOptions.Mode = rmFull) and
+     GLFeatures.UseMultiTexturing and
+     GLFeatures.Shaders then
     Result := RenderOptions.BumpMapping else
     Result := bmNone;
 end;

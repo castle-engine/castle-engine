@@ -167,7 +167,7 @@ begin
   FUseColor := AUseColor;
   FColor := White;
 
-  if GLFeatures.Shaders <> gsNone then
+  if GLFeatures.Shaders then
   begin
     Shader := TGLSLProgram.Create;
     Shader.AttachShader(stVertex, SimplestVS);

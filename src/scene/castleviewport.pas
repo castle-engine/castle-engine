@@ -2844,7 +2844,7 @@ begin
   // SSAOShaderInitialized = false implies SSAOShader = nil
   Assert(SSAOShader = nil);
 
-  if GLFeatures.Shaders <> gsNone then
+  if GLFeatures.Shaders then
   begin
     try
       SSAOShader := TSSAOScreenEffect.Create;
@@ -2873,7 +2873,7 @@ begin
 
   // SSAOShaderInitialized = false implies SSRShader = nil
   Assert(SSRShader = nil);
-  if GLFeatures.Shaders <> gsNone then
+  if GLFeatures.Shaders then
   begin
     try
       SSRShader := TSSRScreenEffect.Create;

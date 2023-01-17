@@ -233,7 +233,7 @@ begin
 
     '---------' + NL +
     'Features:' + NL +
-    '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] + NL +
+    '  Shaders (GLSL) support: ' + BoolToStr(GLFeatures.Shaders, true) + NL +
     '  => Enable deprecated (fixed-function) support: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] + NL +

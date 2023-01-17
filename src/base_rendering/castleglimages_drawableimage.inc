@@ -171,7 +171,6 @@
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
-    class function UseShaders: Boolean; static;
   public
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -820,11 +819,6 @@ begin
   FImage := AImage;
 end;
 
-class function TDrawableImage.UseShaders: Boolean;
-begin
-  Result := GLFeatures.Shaders <> gsNone;
-end;
-
 class procedure TDrawableImage.StaticGLContextOpen;
 var
   AlphaTestShader, ClipLineShader: boolean;
@@ -845,7 +839,7 @@ begin
     end;
   end;
 
-  if UseShaders then
+  if GLFeatures.Shaders then
   begin
     { create programs }
     for AlphaTestShader := Low(boolean) to High(boolean) do
@@ -893,9 +887,11 @@ begin
     VboStorage[I].IndexesVboSize := 0;
   end;
 
-  { free below regardless of UseShaders,
-    to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
-  // if UseShaders then
+  { free below regardless of GLFeatures.Shaders.
+    For now it doesn't matter, as GLFeatures.Shaders is read-only,
+    but soon this condition will change to GLFeatures.EnableFixedFunction,
+    and then we have to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
+  //if GLFeatures.Shaders then
   for AlphaTestShader := Low(boolean) to High(boolean) do
     for ClipLineShader := Low(boolean) to High(boolean) do
       for ColorTreatment := Low(TColorTreatment) to High(TColorTreatment) do
@@ -986,7 +982,7 @@ procedure TDrawableImage.Draw(
     case FinalAlpha of
       {$ifndef OpenGLES}
       acTest:
-        if not UseShaders then
+        if not GLFeatures.Shaders then
         begin
           glAlphaFunc(GL_GEQUAL, 0.5);
           glEnable(GL_ALPHA_TEST);
@@ -1019,7 +1015,7 @@ procedure TDrawableImage.Draw(
   begin
     case FinalAlpha of
       {$ifndef OpenGLES}
-      acTest: if not UseShaders then glDisable(GL_ALPHA_TEST);
+      acTest: if not GLFeatures.Shaders then glDisable(GL_ALPHA_TEST);
       {$endif not OpenGLES}
       acBlending: RenderContext.BlendingDisable;
       else ;
@@ -1162,7 +1158,7 @@ begin
 
   AlphaBegin;
 
-  if UseShaders then
+  if GLFeatures.Shaders then
   begin
     if TextureHasOnlyAlpha then
       ColorTreatment := ctColorMultipliesTextureAlpha else
@@ -1241,7 +1237,7 @@ begin
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-  if UseShaders then
+  if GLFeatures.Shaders then
   begin
     // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TDrawableImage
     { attribute arrays are enabled independent from GLSL program, so we need

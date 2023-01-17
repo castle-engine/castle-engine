@@ -665,7 +665,7 @@ procedure Open(Container: TCastleContainer);
 var
   FragmentShader, VertexShader: string;
 begin
-  if GLFeatures.Shaders = gsNone then
+  if not GLFeatures.Shaders then
   begin
     Error('This GPU cannot handle dynamic ambient occlusion. GLSL shaders not supported.');
     Exit;

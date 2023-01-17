@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -336,58 +336,8 @@
     - or split the shapes (but this would complicate the rendering code)
   }
   {$define GLIndexesShort}
-
-  { Define ForceStandardGLSLApi to only use GLSL shaders when included in OpenGL core
-    (or not use GLSL shaders at all),
-    and never use GLSL ARB extensions available on some OpenGL 1.x implementations. }
-  {$define ForceStandardGLSLApi}
 {$else}
   {$define CastleGL := GL, GLExt}
-{$endif}
-
-{$ifdef DARWIN}
-  {$ifdef CPU64}
-    (*Apple did something really weird, and defined GLhandleARB to be
-      a pointer-size (not an GLint-size) type.
-
-      See the (correct) definition in fpc/trunk/packages/opengl/src/glext.pp:
-        {$ifdef DARWIN}
-        GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
-        {$else}
-        GLhandleARB = Cardinal;
-        {$endif}
-      This is correct, i.e. this is consistent with C OpenGL header,
-      and (apparently, if you believe the Internet) with what binary code expects:
-      on macOS 64-bit, GLhandleARB is 8 bytes, not 4.
-
-      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
-      for example glGetProgramivARB (that takes GLEnum).
-      So I'm unsure whether everything will really work correctly then -- one has to be extra
-      careful when the GLhandleARB and GLint are (binary) different things *only on this one
-      specific OS + architecture*.
-
-      See others being baffled by this:
-      - https://www.opengl.org/discussion_boards/showthread.php/175353-Scared-of-ARB-s-glext-h
-      - http://irrlicht.sourceforge.net/forum/viewtopic.php?t=44069
-      - http://trac.wildfiregames.com/ticket/1197
-
-      This makes things uncomfortable in CastleGLShaders, as we cannot cast "ProgramId: TGLuint"
-      to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
-      and whole family of ARB functions, on macOS 64-bit.
-      They should not be needed in practice --- modern OpenGL versions
-      don't need the ARB extensions to access the shaders. *)
-    {$define ForceStandardGLSLApi}
-  {$endif}
-{$endif}
-
-{$ifndef FPC}
-  { Delphi cannot compile related constructs like
-      GLhandleARB(ProgramId) := glCreateProgramObjectARB();
-    on Windows-64.
-    TODO: Maybe they are bad with FPC too?
-    What are GLhandleARB, ProgramId sizes?
-  }
-  {$define ForceStandardGLSLApi}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

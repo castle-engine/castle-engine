@@ -112,7 +112,7 @@ type
     FBlendConstant: Boolean;
     FTextureFloat: Boolean;
     FTextureDepth: Boolean;
-    FShaders: TGLSupport;
+    FShaders: Boolean;
     FEnableFixedFunction: Boolean;
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
@@ -301,12 +301,8 @@ type
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
 
-    { GLSL shaders support.
-
-      Note: Setting it is allowed for now, as a simple way to force non-shader
-      rendering, to test it.
-      You should not use this or rely it will be available in future versions. }
-    property Shaders: TGLSupport read FShaders write FShaders;
+    { Are GLSL shaders supported. }
+    property Shaders: Boolean read FShaders;
 
     { Enable OpenGL fixed-function rendering on desktops.
 
@@ -720,26 +716,15 @@ begin
     {$endif};
 
   {$ifdef OpenGLES}
-  FShaders := gsStandard;
+  FShaders := true;
   {$else}
-  if Version_2_0 then
-    FShaders := gsStandard
-  else
-  {$ifndef ForceStandardGLSLApi}
-  if Load_GL_ARB_shader_objects and
-     Load_GL_ARB_vertex_shader and
-     Load_GL_ARB_fragment_shader and
-     Load_GL_ARB_shading_language_100 then
-    FShaders := gsExtension
-  else
-  {$endif not ForceStandardGLSLApi}
-    FShaders := gsNone;
+  FShaders := Version_2_0;
   {$endif}
 
   FEnableFixedFunction :=
     {$ifdef OpenGLES} false
     {$else}
-    (Shaders <> gsStandard) or
+    (not Shaders) or
     // checking for VertexBufferObject also makes sure that BuggyVBO = false
     (not VertexBufferObject) or
     GLVersion.BuggyPureShaderPipeline
