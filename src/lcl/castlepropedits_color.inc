@@ -114,7 +114,6 @@ begin
     ColorPersistent := GetObjectValueAt(I) as TCastleColorPersistent;
     ColorPersistent.Value := NewValue;
   end;
-  //SetStrValue(ColorToHex(NewValue));
   Modified;
 end;
 
@@ -183,26 +182,6 @@ begin
 end;
 
 procedure TCastleColorRGBPropertyEditor.Edit;
-{var
-  Dialog: TColorDialog;
-  ColorPersistent: TCastleColorRGBPersistent;
-  Color: TCastleColorRGB;
-  ColorByte: TVector3Byte;
-begin
-  Dialog := TColorDialog.Create(nil);
-  try
-    ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-    Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color);
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
-    begin
-      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      Color := Vector3(ColorByte);
-      SetAllValues(Color);
-    end;
-  finally FreeAndNil(Dialog) end;
-end;}
 var
   ColorPersistent: TCastleColorRGBPersistent;
   Color: TCastleColorRGB;
