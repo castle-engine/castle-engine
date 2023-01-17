@@ -404,6 +404,7 @@ clean: cleanexamples
 			       -not -iwholename '*/vampyre_imaginglib/*' -and \
 			       -not -iwholename '*/examples/delphi/*' ')' \
 			       -or \
+			   '(' -iname '*.res' -and -not -iwholename '*/vampyre_imaginglib/*' -and -not -iwholename '*/mbColorLib/*' ')' -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.lps' -or \
