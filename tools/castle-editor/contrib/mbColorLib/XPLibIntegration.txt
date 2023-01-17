@@ -1,0 +1,3 @@
+mbXP Lib Integration
+
+If you want to use mbXP Lib for the mbColor Lib open the file mxs.inc and remove the dot (.) from {.$DEFINE mbXP_Lib}.
