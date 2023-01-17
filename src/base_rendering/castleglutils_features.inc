@@ -304,27 +304,31 @@ type
     { Are GLSL shaders supported. }
     property Shaders: Boolean read FShaders;
 
-    { Enable OpenGL fixed-function rendering on desktops.
+    { Use OpenGL fixed-function rendering for ancient OpenGL versions on desktops.
 
       @unorderedList(
-        @item(This makes Gouraud-shaded shapes rendered using OpenGL
-          fixed-function pipeline on desktops.)
-        @item(It also makes TDrawableImage.Draw, DrawPrimitive2D (and consequently
-          most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
-          on desktops.)
-        @item(It also allows you to use fixed-function pipeline calls in the
+        @item(This forces Gouraud shading.)
+        @item(It makes TDrawableImage.Draw, DrawPrimitive2D, TCastleRenderUnlitMesh
+          use OpenGL fixed-function pipeline.)
+        @item(It allows you to use fixed-function pipeline calls in the
           @link(TCastleWindow.OnRender) callback, @link(TCastleUserInterface.Render)
           override and related places.)
         @item(It also allows some deprecated rendering features like WindowPos
           to continue to work.)
       )
 
-      This is @false by default on modern GPUs (that have good GLSL support).
+      This is @false by default on modern GPUs (that have good GLSL and VBO support).
 
       On OpenGLES, it must be @false always, since OpenGLES >= 2
       has no fixed-function pipeline.
     }
-    property EnableFixedFunction: Boolean read FEnableFixedFunction write FEnableFixedFunction;
+    property EnableFixedFunction: Boolean read FEnableFixedFunction;
+
+    {$ifndef OpenGLES}
+    { Set EnableFixedFunction and some other routines, to force testing rendering
+      using old pipeline. }
+    procedure ForceFixedFunction;
+    {$endif}
 
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
@@ -775,6 +779,15 @@ begin
   else
     Result := MaxTextureUnitsShaders;
 end;
+
+{$ifndef OpenGLES}
+procedure TGLFeatures.ForceFixedFunction;
+begin
+  FEnableFixedFunction := true;
+  FShaders := false;
+  FVertexBufferObject := false;
+end;
+{$endif}
 
 { TGLMemoryInfo -------------------------------------------------------------- }
 
