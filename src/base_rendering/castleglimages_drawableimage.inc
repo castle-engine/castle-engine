@@ -1009,8 +1009,7 @@ procedure TDrawableImage.Draw(
               BlendingConstantColor[3]);
           end;
 
-          GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
-          glEnable(GL_BLEND);
+          RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
         end;
       else ;
     end;
@@ -1022,7 +1021,7 @@ procedure TDrawableImage.Draw(
       {$ifndef OpenGLES}
       acTest: if not UseShaders then glDisable(GL_ALPHA_TEST);
       {$endif not OpenGLES}
-      acBlending: glDisable(GL_BLEND);
+      acBlending: RenderContext.BlendingDisable;
       else ;
     end;
   end;

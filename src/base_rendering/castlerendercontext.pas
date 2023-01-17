@@ -22,7 +22,8 @@ interface
 
 uses SysUtils, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors;
+  CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
+  CastleRenderOptions;
 
 type
   TClearBuffer = (cbColor, cbDepth, cbStencil);
@@ -114,6 +115,9 @@ type
       FViewportDelta: TVector2Integer;
       WarningViewportTooLargeDone: Boolean;
       FCurrentProgram: TGLSLProgram;
+      FBlendingSourceFactor: TBlendingSourceFactor;
+      FBlendingDestinationFactor: TBlendingDestinationFactor;
+      FBlendingEnabled: Boolean;
 
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
@@ -270,6 +274,16 @@ type
     { Does the current color buffer have any alpha channel.
       Some blending features depend on storing alpha in the color channel. }
     function ColorBufferHasAlpha: Boolean;
+
+    { Enable blending, sets also blending function.
+      See https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml
+      for blending equations.
+      You @italic(must) use this to change blending parameters, this class
+      assumes it knows the blending state always. }
+    procedure BlendingEnable(
+      const SourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+      const DestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha);
+    procedure BlendingDisable;
   end;
 
 var
@@ -317,6 +331,10 @@ begin
   FDepthTest := false;
   FDepthFunc := dfLess;
   FViewport := TRectangle.Empty;
+  FBlendingEnabled := false;
+  // initial blending factors, see https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml
+  FBlendingSourceFactor := bsOne;
+  FBlendingDestinationFactor := bdZero;
 end;
 
 destructor TRenderContext.Destroy;
@@ -633,7 +651,38 @@ end;
 
 function TRenderContext.ColorBufferHasAlpha: Boolean;
 begin
+  // TODO: cache the result, it only needs to be calculated once for context
   Result := glGetInteger(GL_ALPHA_BITS) > 0;
+end;
+
+procedure TRenderContext.BlendingEnable(
+  const SourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const DestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha);
+begin
+  if not FBlendingEnabled then
+  begin
+    FBlendingEnabled := true;
+    glEnable(GL_BLEND);
+  end;
+
+  if (FBlendingSourceFactor <> SourceFactor) or
+     (FBlendingDestinationFactor <> DestinationFactor) then
+  begin
+    FBlendingSourceFactor := SourceFactor;
+    FBlendingDestinationFactor := DestinationFactor;
+    {$warnings off} // using deprecated routine that should be internal here
+    GLBlendFunction(SourceFactor, DestinationFactor);
+    {$warnings on}
+  end;
+end;
+
+procedure TRenderContext.BlendingDisable;
+begin
+  if FBlendingEnabled then
+  begin
+    FBlendingEnabled := false;
+    glDisable(GL_BLEND);
+  end;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

@@ -232,7 +232,7 @@ procedure GLBlendRectangle(const Rect: TRectangle;
   glBlendFunc anyway). }
 procedure GLBlendFunction(
   SourceFactor: TBlendingSourceFactor;
-  DestinationFactor: TBlendingDestinationFactor);
+  DestinationFactor: TBlendingDestinationFactor); deprecated 'use RenderContext.BlendingEnable';
 
 {$endif read_interface}
 
@@ -375,10 +375,7 @@ begin
 
   Blending := ForceBlending or (Color.W < 1);
   if Blending then
-  begin
-    GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
-    glEnable(GL_BLEND);
-  end;
+    RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
 
   if (Primitive2DRes.Vbo = 0) and GLFeatures.VertexBufferObject then
     glGenBuffers(1, @Primitive2DRes.Vbo);
@@ -463,7 +460,7 @@ begin
   end;
 
   if Blending then
-    glDisable(GL_BLEND);
+    RenderContext.BlendingDisable;
 end;
 
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
