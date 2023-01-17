@@ -20,10 +20,10 @@
 {$ifdef read_interface}
 type
 
-  TCastleEditorInspectorData = class(TComponent)
-    public
-      { Used by Colour picker to specify the position to show the window. }
-      InspectorAreaOnScreen: TRect;
+  TCastlePropertyEditorHook = class (TPropertyEditorHook)
+  public
+    { Used by Colour picker to specify the position to show the window. }
+    InspectorAreaOnScreen: TRect;
   end;
 
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
@@ -54,8 +54,8 @@ var
   ColorPersistent: TCastleColorPersistent;
   Color: TCastleColor;
   ColorPicker: TCastleColorPickerForm;
-  CastleEditorInspectorData: TCastleEditorInspectorData;
   InspectorArea: TRect;
+  CastlePropertyHook: TCastlePropertyEditorHook;
 begin
   ColorPicker := TCastleColorPickerForm.Create(nil);
   try
@@ -63,20 +63,19 @@ begin
     Color := ColorPersistent.Value;
     TCastleColorPickerForm(ColorPicker).Init(Self, Color);
 
-    CastleEditorInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
-    if CastleEditorInspectorData <> nil then
+    if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
+      CastlePropertyHook := PropertyHook as TCastlePropertyEditorHook;
       ColorPicker.Position := poDefaultPosOnly;
-      InspectorArea := CastleEditorInspectorData.InspectorAreaOnScreen;
+      InspectorArea := CastlePropertyHook.InspectorAreaOnScreen;
       ColorPicker.Left := InspectorArea.Left -
         (ColorPicker.Width - InspectorArea.Width);
       if InspectorArea.Height > ColorPicker.Height then
-        ColorPicker.Top := CastleEditorInspectorData.InspectorAreaOnScreen.Top +
+        ColorPicker.Top := InspectorArea.Top +
           Round((InspectorArea.Height - ColorPicker.Height) / 2)
       else
-        ColorPicker.Top := CastleEditorInspectorData.InspectorAreaOnScreen.Top;
-    end
-    else
+        ColorPicker.Top := InspectorArea.Top;
+    end else
       ColorPicker.Position := poOwnerFormCenter;
 
     ColorPicker.ShowModal;

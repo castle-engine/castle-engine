@@ -226,7 +226,7 @@ type
     var
       Inspector: array [TInspectorType] of TCastleObjectInspector;
       FUndoSystem: TUndoSystem;
-      PropertyEditorHook: TPropertyEditorHook;
+      PropertyEditorHook: TCastlePropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
       { Viewport created for editing design with FDesignRoot being TCastleTransform. }
@@ -1419,7 +1419,7 @@ begin
 
   LastSelected := TComponentList.Create(false);
 
-  PropertyEditorHook := TPropertyEditorHook.Create(Self);
+  PropertyEditorHook := TCastlePropertyEditorHook.Create(Self);
 
   FComponentEditorDesigner := TConcreteEditorDesigner.Create(Self, PropertyEditorHook);
 
@@ -3656,25 +3656,16 @@ begin
 end;
 
 procedure TDesignFrame.UpdateEditorDataForPropertyEditors;
-var
-  CastleInspectorData: TCastleEditorInspectorData;
-  {E: TCastleComponentEditorDesigner;}
 begin
-  CastleInspectorData := TCastleEditorInspectorData(Application.FindComponent('CastleEditorInspectorData'));
-  if CastleInspectorData = nil then
-    CastleInspectorData := TCastleEditorInspectorData.Create(Application);
-
-  CastleInspectorData.InspectorAreaOnScreen.Left := ProjectForm.Left + Left + PanelRight.Left;
-  CastleInspectorData.InspectorAreaOnScreen.Top := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
-  CastleInspectorData.InspectorAreaOnScreen.Width := ControlProperties.Width;
-  CastleInspectorData.InspectorAreaOnScreen.Height := ControlProperties.Height;
-  CastleInspectorData.Name := 'CastleEditorInspectorData';
-  {if FComponentEditorDesigner is TCastleComponentEditorDesigner then
+  if PropertyEditorHook <> nil then
   begin
-    E := FComponentEditorDesigner as TCastleComponentEditorDesigner;
-    E.ForPopup.X := ProjectForm.Left + Left + PanelRight.Left;
-    E.ForPopup.Y := ProjectForm.Top + Top + PanelRight.Top + ControlProperties.Top  + 10;
-  end;}
+    PropertyEditorHook.InspectorAreaOnScreen.Left := ProjectForm.Left +
+      Left + PanelRight.Left;
+    PropertyEditorHook.InspectorAreaOnScreen.Top := ProjectForm.Top +
+      Top + PanelRight.Top + ControlProperties.Top  + 10;
+    PropertyEditorHook.InspectorAreaOnScreen.Width := ControlProperties.Width;
+    PropertyEditorHook.InspectorAreaOnScreen.Height := ControlProperties.Height;
+  end;
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
