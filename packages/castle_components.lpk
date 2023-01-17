@@ -167,11 +167,11 @@ See https://castle-engine.io/license.php for details.
       </Item28>
       <Item29>
         <Filename Value="../src/lcl/formcastlecolorpicker.pas"/>
-        <UnitName Value="formcastlecolorpicker"/>
+        <UnitName Value="FormCastleColorPicker"/>
       </Item29>
       <Item30>
-        <Filename Value="../src/lcl/formcastlecolorpicker.lfm"/>
-        <Type Value="LFM"/>
+        <Filename Value="../src/lcl/formcastlecolorpicker.lrs"/>
+        <Type Value="LRS"/>
       </Item30>
     </Files>
     <CompatibilityMode Value="True"/>

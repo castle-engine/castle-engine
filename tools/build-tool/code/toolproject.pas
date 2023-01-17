@@ -1454,9 +1454,9 @@ begin
     // use lazbuild to compile CGE packages and CGE editor
     RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk']);
     RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk']);
+    RunLazbuild(Path, [CgePath + 'tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
-    RunLazbuild(Path, [CgePath + 'tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
   end;

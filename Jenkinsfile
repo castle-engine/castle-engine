@@ -293,11 +293,11 @@ pipeline {
               steps {
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk'
+                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk'
-                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk'
               }
             }
             stage('(macOS) Build Editor') {
