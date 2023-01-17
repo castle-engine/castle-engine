@@ -43,14 +43,17 @@ Usage in short:
 - You can also use [Lazarus](https://www.lazarus-ide.org/). Be sure to register Lazarus packages using the button in CGE editor _"Preferences -> FPC and Lazarus -> Register Lazarus Packages"_.
 
     Register in Lazarus our packages, by clicking _"Register Lazarus Packages"_ from CGE editor preferences (see https://castle-engine.io/install ).
-- You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
 
     You can install the `castle_components.lpk` in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
-Documentation
--------
+
+- You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
 
 - You can also use FPC fpmake / fppkg.
   See https://castle-engine.io/fpmake
+    
+Documentation
+-------
+
 - [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
 
 - [API reference](https://castle-engine.io/apidoc/html/index.html).
