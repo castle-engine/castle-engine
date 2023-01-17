@@ -48,7 +48,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="30">
+    <Files Count="29">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -169,10 +169,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/lcl/formcastlecolorpicker.pas"/>
         <UnitName Value="FormCastleColorPicker"/>
       </Item29>
-      <Item30>
-        <Filename Value="../src/lcl/formcastlecolorpicker.lrs"/>
-        <Type Value="LRS"/>
-      </Item30>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="5">
