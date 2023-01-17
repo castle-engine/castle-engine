@@ -42,6 +42,14 @@ type
     mesh as TIndexedTriangleSetNode or TIndexedFaceSetNode, see
     https://castle-engine.io/viewport_and_scenes_from_code#_building_a_mesh_using_code .
 
+    The things you really have to set before rendering are:
+
+    @unorderedList(
+      @item(Vertexes, using @link(SetVertexes).)
+      @item(Matrix (combined projection * camera * model transformation) @link(ModelViewProjection).)
+      @item(That's it, the rest has sensible defaults. You can just call @link(Render).)
+    )
+
     For shading this uses a simple shader:
 
     @unorderedList(
@@ -49,6 +57,8 @@ type
         to the color buffer. Effectively this makes unlit rendering.
 
         Note: This class does not set up blending if @link(Color) alpha is less than 1.
+        If you want blending, set it yourself using @link(TCastleRenderContext.BlendingEnable)
+        and disable using @link(TCastleRenderContext.BlendingDisable).
       )
 
       @link(If @link(UseColor) is @false then the shader writes undefined
@@ -75,6 +85,22 @@ type
         this will use built-in shader based on @link(UseColor).
       )
     )
+
+    Example usage:
+
+    @longCode(#
+      Mesh := TCastleRenderUnlitMesh.Create(true);
+      try
+        Mesh.Color := Yellow;
+        Mesh.ModelViewProjection := RenderContext.ProjectionMatrix * RenderingCamera.CurrentMatrix;
+        Mesh.SetVertexes([
+          Vector3(0, 0, 0, 1),
+          Vector3(10, 0, 0, 1),
+          Vector3(0, 10, 0, 1)
+        ]);
+        Mesh.Render(pmTriangles);
+      finally FreeAndNil(Mesh) end;
+    #)
   }
   TCastleRenderUnlitMesh = class
   strict private
