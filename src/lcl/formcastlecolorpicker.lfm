@@ -9,8 +9,6 @@ object CastleColorPickerForm: TCastleColorPickerForm
   DesignTimePPI = 120
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnMouseLeave = FormMouseLeave
-  OnMouseMove = FormMouseMove
   Position = poOwnerFormCenter
   LCLVersion = '2.2.0.4'
   object PanelCirclePicker: TPanel

@@ -57,8 +57,6 @@ type
     procedure ButtonRevertClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormMouseLeave(Sender: TObject);
-    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure GSpinEditRgbChange(Sender: TObject);
     procedure GTabColorPickerRgbChange(Sender: TObject);
     procedure HSPanelCirclePickerChange(Sender: TObject);
@@ -181,21 +179,6 @@ end;
 procedure TCastleColorPickerForm.FormDestroy(Sender: TObject);
 begin
   TimerMousePos.Enabled := false;
-end;
-
-procedure TCastleColorPickerForm.FormMouseLeave(Sender: TObject);
-begin
-  if ClientRect.Contains(ScreenToClient(Mouse.CursorPos)) then
-    MouseWasInForm := true
-//  else
-//    Close;
-end;
-
-procedure TCastleColorPickerForm.FormMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  WritelnLog('Mouse move ' + IntToStr(X) + IntToStr(Y));
-  MouseWasInForm := true;
 end;
 
 procedure TCastleColorPickerForm.BSpinEditRgbChange(Sender: TObject);
