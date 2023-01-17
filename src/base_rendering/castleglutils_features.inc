@@ -757,6 +757,9 @@ begin
     FVertexBufferObject := false;
   end;
 
+  Assert(EnableFixedFunction = (not Shaders));
+  Assert(EnableFixedFunction = (not VertexBufferObject));
+
   { Calculate MaxClipPlanes.
     The logic follows various approaches to clip planes in TShader.EnableClipPlane.
     TODO: If you later switch EnableFixedFunction to true,
@@ -809,6 +812,9 @@ begin
   FEnableFixedFunction := true;
   FShaders := false;
   FVertexBufferObject := false;
+
+  Assert(EnableFixedFunction = (not Shaders));
+  Assert(EnableFixedFunction = (not VertexBufferObject));
 end;
 {$endif}
 
