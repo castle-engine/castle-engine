@@ -79,7 +79,6 @@ type
     { A flag to not close window when mouse is outside of form but never
       was inside }
     MouseWasInForm: Boolean;
-
     procedure SetColorInCirclePickerPanel(NewColor: TCastleColor); overload;
     procedure SetColorInCirclePickerPanel(NewColor: TColor); overload;
     { Sets Hue the value should be in range from 0 to 6 }
@@ -115,11 +114,8 @@ type
     { Used to get current color value from HSV circle, We need function like
       this because updating all controls is too expensive. }
     procedure UpdateCurrentTabFromPanel;
-
     procedure SetAlphaValue(const NewValue: Single);
-
     procedure UpdatePropertyEditorValue;
-
     procedure GeneratePascalCode;
   public
     ColorPropertyEditor: TCastleAbstractColorPropertyEditor;
@@ -258,10 +254,9 @@ begin
 
   if TestRect.Contains(ScreenToClient(Mouse.CursorPos)) then
     MouseWasInForm := true
-  else if MouseWasInForm then
+  else
+  if MouseWasInForm then
     Close;
-
-  //WritelnLog('Mouse check');
 end;
 
 procedure TCastleColorPickerForm.VPanelColorPickerChange(Sender: TObject);
@@ -312,7 +307,8 @@ var
 begin
   NewValueRounded := RoundTo(NewValue, ColorPrecision);
   NewValueForControl := RoundTo(NewValue / 6, ColorPrecision);
-  if not SameValue(RoundTo(HSPanelCirclePicker.RelHue, ColorPrecision), NewValueForControl, ColorEpsilon) then
+  if not SameValue(RoundTo(HSPanelCirclePicker.RelHue, ColorPrecision),
+      NewValueForControl, ColorEpsilon) then
     HSPanelCirclePicker.RelHue := NewValueForControl;
 end;
 
@@ -695,9 +691,7 @@ var
   ColorByte: TVector4Byte;
 begin
   RedGreenBlue(HSPanelCirclePicker.SelectedColor, ColorByte.X, ColorByte.Y, ColorByte.Z);
-
   ColorByte.W := AlphaColorPicker.Value;
-
   Result := Vector4(ColorByte);
 end;
 
@@ -732,6 +726,7 @@ var
   InitColor: TCastleColor;
 begin
   InitColor := Vector4(InitColorRGB, 1.0);
+
   Init(ColorPropEditor, InitColor);
 
   AlphaColorPicker.Enabled := false;
