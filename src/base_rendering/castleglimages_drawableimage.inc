@@ -1857,8 +1857,8 @@ begin
   begin
     Assert(BatchingLastImageRects.Count = BatchingLastScreenRects.Count);
     BatchingLastImage.DrawNoBatch(
-      BatchingLastScreenRects.List,
-      BatchingLastImageRects.List,
+      PFloatRectangleArray(BatchingLastScreenRects.List),
+      PFloatRectangleArray(BatchingLastImageRects.List),
       BatchingLastImageRects.Count);
     BatchingLastScreenRects.Clear;
     BatchingLastImageRects.Clear;
