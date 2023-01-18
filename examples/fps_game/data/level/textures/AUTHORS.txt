@@ -18,3 +18,26 @@ concrete:
   from http://opengameart.org/content/p0sss-texture-pack-1
   by http://opengameart.org/users/p0ss
   license: CC-BY 3.0, GPL 3.0 or above
+
+Furniture
+   Modelled in Blender, textured in Gimp.
+   Questi modelli sono rilasciati sotto Creative Commons Licence, Attribution 2.0
+   per maggiori informazioni su questa licenza:
+   http://creativecommons.org/licenses/by/2.0/it/
+   Puoi utilizzarli liberamente, modificarli e migliorarli.
+    By Tiziana aka TiZeta.
+    http://www.unbruco.it/offcircle/index.html
+    unbrucom1@unbruco.it
+    tialo@tiscali.it
+
+Pallet
+    https://opengameart.org/content/wood-pallet-v1-pack
+    Provided by Nobiax.
+    Absolutely free to use or to modify in any kind of work (personal, commercial or else).
+    Give me a link of the result at nobiax.deviantart.com or my other account on OpenGameArt.com or ShareCG.com
+    ( watch my journal on deviantart ) 
+
+WinBoTexture
+    https://opengameart.org/content/free-metal-texture-creation-set-08
+
+
