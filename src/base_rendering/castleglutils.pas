@@ -42,7 +42,8 @@ implementation
 
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleApplicationProperties, CastleRenderContext, CastleInternalGLUtils;
+  CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
+  CastleInternalGLUtils;
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features.inc}

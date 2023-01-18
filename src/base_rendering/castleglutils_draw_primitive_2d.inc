@@ -352,6 +352,8 @@ var
   I, RequiredPointPtrSize: Integer;
   TargetPointPtr: PVector2;
 begin
+  TDrawableImage.BatchingFlush;
+
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 

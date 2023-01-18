@@ -323,10 +323,12 @@ end;
 
 function GLInformationStringSummary: String;
 begin
-  Result := Format('%s %d.%d', [
+  Result := Format('%s %d.%d (%s) (modern rendering: %s)', [
     {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif},
     GLVersion.Major,
-    GLVersion.Minor
+    GLVersion.Minor,
+    VendorTypeToStr(GLVersion.VendorType),
+    BoolToStr(not GLFeatures.EnableFixedFunction, true)
   ]);
 end;
 

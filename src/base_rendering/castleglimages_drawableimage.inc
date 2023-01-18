@@ -165,9 +165,32 @@
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
     procedure SetURL(const Value: String);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetRotation(const Value: Single);
+    procedure SetRotationCenter(const Value: TVector2);
+    { If this image state affects current batching operation, flush batching. }
+    procedure BatchingFlushIfNeeded;
+    procedure DrawNoBatch(
+      const ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
   private
     class var
-      StaticResourcesReady: boolean;
+      StaticResourcesReady: Boolean;
+
+      { 0 means we're not in batching mode, > 1 means we are between BatchingBegin and BatchingEnd. }
+      BatchingLevel: Cardinal;
+
+      { Pending image to draw with BatchingLastScreenRects, BatchingLastImageRects.
+        Conditions:
+        - May be @nil if none.
+        - Always @nil if BatchingLevel = 0. }
+      BatchingLastImage: TDrawableImage;
+
+      { Pending rectangles to draw.
+        Conditions:
+        - Always @nil if BatchingLevel = 0, never @nil otherwise.
+        - Always empty (count = 0) and non-@nil if (BatchingLevel > 0) and (BatchingLastImage = @nil).  }
+      BatchingLastScreenRects, BatchingLastImageRects: TFloatRectangleList;
+
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
@@ -176,6 +199,44 @@
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
       DefaultBlendingConstantColor: TVector4 = (X: 1; Y: 1; Z: 1; W: 1);
+
+    { Start batching that optimizes further @link(TDrawableImage.Draw) calls by grouping them.
+
+      All subsequent calls to @link(TDrawableImage.Draw) are delayed, to be grouped in case
+      you execute @link(TDrawableImage.Draw) multiple times on the same image,
+      in which case it is more efficient to draw multiple rectangles in one "draw call" for OpenGL.
+
+      The images are actually drawn only when you try to draw a different image,
+      or when you execute @link(BatchingEnd). Rendering using @link(DrawPrimitive2D) and friends
+      also forces the last batch to be "flushed" to screen.
+
+      Assumptions (in the future, implementation may safeguard from this by automatically flushing):
+
+      @unorderedList(
+        @item(
+          We assume that between BatchingBegin and BatchingEnd you will not free
+          the @link(TDrawableImage) that was possibly used last.)
+
+        @item(
+          We assume that between BatchingBegin and BatchingEnd you will not change
+          image or blending.
+
+          Changing @link(TDrawableImage.Color) @link(TDrawableImage.Rotation)
+          is allowed, it forces flushing the currently collected batch.)
+      )
+
+      Calling BatchingBegin with matching BatchingEnd when the batching is already in progress
+      is gracefully handled, i.e. we assume you just continue larger-scope batching.
+      So the "inner" BatchingBegin + BatchingEnd calls are ignored, but you always must match
+      one BatchingBegin with one BatchingEnd.
+    }
+    class procedure BatchingBegin;
+    class procedure BatchingEnd;
+
+    { If we are during batching, then flush the pending drawing now.
+      You should never need to call this, unless you do direct rendering outside of TDrawableImage
+      or DrawPrimitive2D (and friends in CastleGLUtils). }
+    class procedure BatchingFlush;
 
     { Prepare image for drawing.
 
@@ -399,7 +460,7 @@
     procedure Draw(const ScreenRect, ImageRect: TRectangle); overload;
 
     procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
-      const Count: Integer); overload; virtual;
+      Count: Integer); overload; virtual;
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRect: TRectangle;
@@ -472,7 +533,7 @@
       Note that if you use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
-    property Color: TCastleColor read FColor write FColor;
+    property Color: TCastleColor read FColor write SetColor;
 
     { Load the given image contents.
       Use this to efficiently replace the image contents on GPU.
@@ -539,13 +600,13 @@
       Expressed as a fraction within the drawn ScreenRectangle,
       (0,0) means bottom-left corner, (1,1) means top-right corner.
       Default (0.5,0.5). }
-    property RotationCenter: TVector2 read FRotationCenter write FRotationCenter;
+    property RotationCenter: TVector2 read FRotationCenter write SetRotationCenter;
 
     { Rotation in radians. Increase to rotate in a counter-clockwise direction.
       Hint: use function like ArcTan2 from Math unit to convert 2D direction
       into a rotation angle. }
     property Rotation: Single
-      read FRotation write FRotation {$ifdef FPC}default 0{$endif};
+      read FRotation write SetRotation {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
     property Clip: boolean read FClip write FClip;
@@ -745,6 +806,8 @@ end;
 
 destructor TDrawableImage.Destroy;
 begin
+  BatchingFlushIfNeeded;
+
   if FOwnsImage then
     FreeAndNil(FImage)
   else
@@ -972,7 +1035,36 @@ begin
 end;
 
 procedure TDrawableImage.Draw(
-  ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
+  ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
+begin
+  if BatchingLevel <> 0 then
+  begin
+    if (BatchingLastImage <> nil) and (BatchingLastImage <> Self) then
+      BatchingFlush; // will change BatchingLastImage to nil
+    if BatchingLastImage = nil then
+    begin
+      Assert(BatchingLastScreenRects.Count = 0);
+      Assert(BatchingLastImageRects.Count = 0);
+      BatchingLastImage := Self;
+    end;
+    // add to last batch
+    if BatchingLastImage = Self then
+    begin
+      while Count > 0 do
+      begin
+        BatchingLastScreenRects.Add(ScreenRects^[0]);
+        BatchingLastImageRects.Add(ImageRects^[0]);
+        Inc(ScreenRects);
+        Inc(ImageRects);
+        Dec(Count);
+      end;
+    end;
+  end else
+    DrawNoBatch(ScreenRects, ImageRects, Count);
+end;
+
+procedure TDrawableImage.DrawNoBatch(
+  const ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
 
   procedure AlphaBegin;
   begin
@@ -1575,18 +1667,19 @@ end;
 
 procedure TDrawableImage.SetCenterX(const Value: Single);
 begin
-  FRotationCenter.X := Value;
+  RotationCenter := Vector2(Value, RotationCenter.Y);
 end;
 
 procedure TDrawableImage.SetCenterY(const Value: Single);
 begin
-  FRotationCenter.Y := Value;
+  RotationCenter := Vector2(RotationCenter.X, Value);
 end;
 
 procedure TDrawableImage.SetRepeatS(const Value: Boolean);
 begin
   if FRepeatS <> Value then
   begin
+    BatchingFlushIfNeeded;
     FRepeatS := Value;
     if FTexture <> 0 then
     begin
@@ -1600,6 +1693,7 @@ procedure TDrawableImage.SetRepeatT(const Value: Boolean);
 begin
   if FRepeatT <> Value then
   begin
+    BatchingFlushIfNeeded;
     FRepeatT := Value;
     if FTexture <> 0 then
     begin
@@ -1615,6 +1709,7 @@ var
 begin
   if FURL <> Value then
   begin
+    BatchingFlushIfNeeded;
     if Value = '' then
     begin
       // following CGE conventions, we allow to set URL to '' to clear loaded contentds
@@ -1628,6 +1723,87 @@ begin
       Load(NewImage);
       FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
     end;
+  end;
+end;
+
+procedure TDrawableImage.SetColor(const Value: TCastleColor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FColor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetRotation(const Value: Single);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FRotation <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FRotation := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetRotationCenter(const Value: TVector2);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TVector2.PerfectlyEquals(FRotationCenter, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FRotationCenter := Value;
+  end;
+end;
+
+procedure TDrawableImage.BatchingFlushIfNeeded;
+begin
+  if (BatchingLevel <> 0) and (BatchingLastImage = Self) then
+    BatchingFlush;
+end;
+
+class procedure TDrawableImage.BatchingBegin;
+begin
+  if BatchingLevel = 0 then
+  begin
+    Assert(BatchingLastImage = nil);
+    Assert(BatchingLastImageRects = nil);
+    Assert(BatchingLastScreenRects = nil);
+
+    BatchingLastImageRects := TFloatRectangleList.Create;
+    BatchingLastScreenRects := TFloatRectangleList.Create;
+  end;
+
+  Inc(BatchingLevel);
+end;
+
+class procedure TDrawableImage.BatchingEnd;
+begin
+  case BatchingLevel of
+    0: raise Exception.Create('Calling BatchingEnd without matching BatchingBegin');
+    1: begin
+         BatchingFlush;
+         Assert(BatchingLastImage = nil);
+         FreeAndNil(BatchingLastImageRects);
+         FreeAndNil(BatchingLastScreenRects);
+       end;
+    else ; // no nothing
+  end;
+  Dec(BatchingLevel);
+end;
+
+class procedure TDrawableImage.BatchingFlush;
+begin
+  if BatchingLastImage <> nil then
+  begin
+    Assert(BatchingLastImageRects.Count = BatchingLastScreenRects.Count);
+    BatchingLastImage.DrawNoBatch(
+      BatchingLastScreenRects.List,
+      BatchingLastImageRects.List,
+      BatchingLastImageRects.Count);
+    BatchingLastScreenRects.Clear;
+    BatchingLastImageRects.Clear;
+    BatchingLastImage := nil;
   end;
 end;
 

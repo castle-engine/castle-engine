@@ -345,6 +345,12 @@ type
     procedure ForceFixedFunction;
     {$endif}
 
+    {$ifndef OpenGLES}
+    { Set EnableFixedFunction and some other routines, to force testing rendering
+      using old pipeline. }
+    procedure ForceFixedFunction;
+    {$endif}
+
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
     property Memory: TGLMemoryInfo read FMemory;
