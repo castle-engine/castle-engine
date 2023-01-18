@@ -36,8 +36,8 @@ type
     It limits rendering to 16-bit indexes, and always passed vectors as 4D (in homogeneous
     coordinates).
     It follows some current @link(RenderContext) state,
-    like @link(TCastleRenderContext.DepthTest),
-    @link(TCastleRenderContext.LineWidth) -- it doesn't control this state.
+    like @link(TRenderContext.DepthTest),
+    @link(TRenderContext.LineWidth) -- it doesn't control this state.
     For a full-featured mesh rendering, just use TCastleScene, and construct your
     mesh as TIndexedTriangleSetNode or TIndexedFaceSetNode, see
     https://castle-engine.io/viewport_and_scenes_from_code#_building_a_mesh_using_code .
@@ -53,15 +53,15 @@ type
     For shading this uses a simple shader:
 
     @unorderedList(
-      @link(If @link(UseColor) (default @true) then the shader writes @link(Color)
+      @item(If @link(UseColor) (default @true) then the shader writes @link(Color)
         to the color buffer. Effectively this makes unlit rendering.
 
         Note: This class does not set up blending if @link(Color) alpha is less than 1.
-        If you want blending, set it yourself using @link(TCastleRenderContext.BlendingEnable)
-        and disable using @link(TCastleRenderContext.BlendingDisable).
+        If you want blending, set it yourself using @link(TRenderContext.BlendingEnable)
+        and disable using @link(TRenderContext.BlendingDisable).
       )
 
-      @link(If @link(UseColor) is @false then the shader writes undefined
+      @item(If @link(UseColor) is @false then the shader writes undefined
         value to the color buffer.
 
         But it still writes proper values to depth and stencil.
@@ -76,7 +76,7 @@ type
         this has on the color buffer.
       )
 
-      @link(
+      @item(
         TODO: Maybe in the future it will be extended to optionally use a provided Shader.
         Potential docs:
 
