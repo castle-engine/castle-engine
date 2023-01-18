@@ -1,4 +1,5 @@
-﻿{
+﻿{%MainUnit castletiledmap.pas}
+{
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -455,7 +456,14 @@ var
       Spr.DrawingWidth, // corresponds to Tileset.TileWidth
       Spr.DrawingHeight // corresponds to Tileset.TileHeight
     );
-    Spr.Draw(SpriteRenderRect);
+
+    { Don't render off-screen images, this makes big difference for huge maps where
+      most content if off-screen,
+      testcase: examples/tiled/map_viewer/data/maps/desert_big.tmx .
+      We rely on ClipChildren = true here: Tiled map rendering is always
+      limited to RR. }
+    if RR.Collides(SpriteRenderRect) then
+      Spr.Draw(SpriteRenderRect);
   end;
 
 var
