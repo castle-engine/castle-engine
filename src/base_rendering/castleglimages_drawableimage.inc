@@ -168,6 +168,12 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetRotation(const Value: Single);
     procedure SetRotationCenter(const Value: TVector2);
+    procedure SetAlpha(const Value: TAutoAlphaChannel);
+    procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
+    procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
+    procedure SetBlendingConstantColor(const Value: TVector4);
+    procedure SetClip(const Value: Boolean);
+    procedure SetClipLine(const Value: TVector3);
     { If this image state affects current batching operation, flush batching. }
     procedure BatchingFlushIfNeeded;
     procedure DrawNoBatch(
@@ -207,23 +213,14 @@
       in which case it is more efficient to draw multiple rectangles in one "draw call" for OpenGL.
 
       The images are actually drawn only when you try to draw a different image,
-      or when you execute @link(BatchingEnd). Rendering using @link(DrawPrimitive2D) and friends
-      also forces the last batch to be "flushed" to screen.
+      or when you execute @link(BatchingEnd).
 
-      Assumptions (in the future, implementation may safeguard from this by automatically flushing):
-
-      @unorderedList(
-        @item(
-          We assume that between BatchingBegin and BatchingEnd you will not free
-          the @link(TDrawableImage) that was possibly used last.)
-
-        @item(
-          We assume that between BatchingBegin and BatchingEnd you will not change
-          image or blending.
-
-          Changing @link(TDrawableImage.Color) @link(TDrawableImage.Rotation)
-          is allowed, it forces flushing the currently collected batch.)
-      )
+      Some other operations also flush the last batch to to the screen:
+      rendering using @link(DrawPrimitive2D) and friends like @link(DrawRectangle),
+      changing the parameters or last image that affect rendering (like image contents,
+      @link(TDrawableImage.Color) or @link(TDrawableImage.Rotation)), freeing last image.
+      This fact should be transparent to you, we try to flush as seldom as possible
+      to have as big groups (and thus effective batching) as possible.
 
       Calling BatchingBegin with matching BatchingEnd when the batching is already in progress
       is gracefully handled, i.e. we assume you just continue larger-scope batching.
@@ -387,19 +384,19 @@
       an alpha channel (e.g. use LoadAsClass=[TRGBImage]
       to force RGB image without alpha, use LoadAsClass=[TRGBAlphaImage]
       to force alpha channel). }
-    property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
+    property Alpha: TAutoAlphaChannel read FAlpha write SetAlpha
       default acAuto;
 
     { Blending source factor, if we use blending (see @link(Alpha)). }
     property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor
-      write FBlendingSourceFactor
+      write SetBlendingSourceFactor
       default DefaultBlendingSourceFactor;
 
     { Blending destination factor, if we use blending (see @link(Alpha)). }
     property BlendingDestinationFactor: TBlendingDestinationFactor
       read FBlendingDestinationFactor
-      write FBlendingDestinationFactor
+      write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
 
     { For some blending source or destination factors (see
@@ -407,9 +404,9 @@
       this constant color (or it's alpha value) take part
       in the blending equation. Used only if blending (see @link(Alpha)).
       By default, opaque white. }
-    property BlendingConstantColor: TVector4
+    property BlendingConstantColor: TCastleColor
       read FBlendingConstantColor
-      write FBlendingConstantColor;
+      write SetBlendingConstantColor;
 
     { Draw the image as 2D on screen.
 
@@ -609,7 +606,7 @@
       read FRotation write SetRotation {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read FClip write FClip;
+    property Clip: Boolean read FClip write SetClip;
 
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
@@ -623,7 +620,7 @@
       where @code(1 * x + 0 * y - 0.5 < 0). In other words,
       we reject pixels where @code(x < 0.5), so we reject
       the left half of the image. }
-    property ClipLine: TVector3 read FClipLine write FClipLine;
+    property ClipLine: TVector3 read FClipLine write SetClipLine;
 
     { Get the image contents from GPU to CPU.
       @raises(ECannotSaveTextureContents If we cannot get texture contents
@@ -850,6 +847,8 @@ end;
 
 procedure TDrawableImage.Load(const AImage: TEncodedImage);
 begin
+  BatchingFlushIfNeeded;
+
   if FOwnsImage and (FImage <> AImage) then
     FreeAndNil(FImage)
   else
@@ -1558,6 +1557,7 @@ procedure TDrawableImage.SetSmoothScaling(const Value: boolean);
 begin
   if FSmoothScaling <> Value then
   begin
+    BatchingFlushIfNeeded;
     FSmoothScaling := Value;
     if FTexture <> 0 then
     begin
@@ -1709,7 +1709,6 @@ var
 begin
   if FURL <> Value then
   begin
-    BatchingFlushIfNeeded;
     if Value = '' then
     begin
       // following CGE conventions, we allow to set URL to '' to clear loaded contentds
@@ -1753,6 +1752,66 @@ begin
   begin
     BatchingFlushIfNeeded;
     FRotationCenter := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetAlpha(const Value: TAutoAlphaChannel);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FAlpha <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FAlpha := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FBlendingSourceFactor <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingSourceFactor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FBlendingDestinationFactor <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingDestinationFactor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingConstantColor(const Value: TCastleColor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TCastleColor.PerfectlyEquals(FBlendingConstantColor, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingConstantColor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetClip(const Value: Boolean);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FClip <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FClip := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetClipLine(const Value: TVector3);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TVector3.PerfectlyEquals(FClipLine, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FClipLine := Value;
   end;
 end;
 
