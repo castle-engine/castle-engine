@@ -1,0 +1,17 @@
+# Files ignored by GIT version control
+
+*~
+*.log
+*.lps
+*.dbg
+*.res
+castle-engine-output
+lib
+backup
+
+*.exe
+*.apk
+*.tar.gz
+*.zip
+*.deb
+
