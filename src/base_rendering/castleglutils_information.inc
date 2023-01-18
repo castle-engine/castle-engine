@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -322,10 +322,12 @@ end;
 
 function GLInformationStringSummary: String;
 begin
-  Result := Format('%s %d.%d', [
+  Result := Format('%s %d.%d (%s) (modern rendering: %s)', [
     {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif},
     GLVersion.Major,
-    GLVersion.Minor
+    GLVersion.Minor,
+    VendorTypeToStr(GLVersion.VendorType),
+    BoolToStr(not GLFeatures.EnableFixedFunction, true)
   ]);
 end;
 
