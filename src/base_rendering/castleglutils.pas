@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,7 +49,7 @@ implementation
 
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleApplicationProperties, CastleRenderContext;
+  CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages;
 
 {$I castleglutils_types.inc}
 {$I castleglutils_errors.inc}

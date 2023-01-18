@@ -465,32 +465,38 @@ begin
   inherited Render;
   if Map = nil then Exit;
 
-  RR := RenderRect;
+  { This routine benefits a lot from TDrawableImage automatic batching,
+    testcase: examples/tiled/map_viewer/data/maps/desert_big.tmx }
+  TDrawableImage.BatchingBegin;
+  try
+    RR := RenderRect;
 
-  if Map.BackgroundColor[3] <> 0 then
-    DrawRectangle(RR, Map.BackgroundColor);
+    if Map.BackgroundColor[3] <> 0 then
+      DrawRectangle(RR, Map.BackgroundColor);
 
-  for Layer in Map.Layers do
-  begin
-    if not Layer.Visible then Continue;
-    if (Layer is TTiledMap.TObjectGroupLayer) or  // TODO: See below, it would be better to render TObjectGroupLayer here, instead of special RenderObjects call
-       (Layer is TTiledMap.TImageLayer) then
-      Continue;
+    for Layer in Map.Layers do
+    begin
+      if not Layer.Visible then Continue;
+      if (Layer is TTiledMap.TObjectGroupLayer) or  // TODO: See below, it would be better to render TObjectGroupLayer here, instead of special RenderObjects call
+         (Layer is TTiledMap.TImageLayer) then
+        Continue;
 
-    // TODO: use Map.RenderOrder
+      // TODO: use Map.RenderOrder
 
-    for Y := Map.Height - 1 downto 0 do
-      for X := 0 to Map.Width - 1 do
-        RenderTile(Layer, X, Y);
-  end;
+      for Y := Map.Height - 1 downto 0 do
+        for X := 0 to Map.Width - 1 do
+          RenderTile(Layer, X, Y);
+    end;
 
-  { TODO: This is Redundant? Better to render the layer at cond. above at
-    (Layer is TTiledMap.TObjectGroupLayer). Would make redundant property
-    ObjectsVisible obsolete. This property is not found in the tmx tile specs.,
-    but covered by TLayer.Visible already. See:
-    https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#objectgroup }
-  if FObjectsVisible then
-    RenderObjects;
+    { TODO: This is Redundant? Better to render the layer at cond. above at
+      (Layer is TTiledMap.TObjectGroupLayer). Would make redundant property
+      ObjectsVisible obsolete. This property is not found in the tmx tile specs.,
+      but covered by TLayer.Visible already. See:
+      https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#objectgroup }
+    if FObjectsVisible then
+      RenderObjects;
+
+  finally TDrawableImage.BatchingEnd end;
 end;
 
 procedure TCastleTiledMapControl.SetOrigin(const Value: TVector2);
