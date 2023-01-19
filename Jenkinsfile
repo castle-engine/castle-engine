@@ -177,9 +177,9 @@ pipeline {
         /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
         stage('Raspberry Pi') {
           when {
-            and {
-              not { expression { return params.jenkins_fast } }
-              { branch "master" }
+            allOf {
+              expression { return not params.jenkins_fast };
+              branch "master"
             }
           }
           agent {
