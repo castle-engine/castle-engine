@@ -657,17 +657,38 @@ begin
     aField := Viewport.Items.MainScene.Field(PChar(szNodeName), PChar(szFieldName));
     if aField = nil then Exit;
 
+    if aField is TSFVec2f then
+      TSFVec2f(aField).Send(Vector2(fVal1, fVal2))
+    else
     if aField is TSFVec3f then
       TSFVec3f(aField).Send(Vector3(fVal1, fVal2, fVal3))
     else
     if aField is TSFVec4f then
       TSFVec4f(aField).Send(Vector4(fVal1, fVal2, fVal3, fVal4))
     else
+    if aField is TSFVec2d then
+      TSFVec2d(aField).Send(Vector2Double(fVal1, fVal2))
+    else
     if aField is TSFVec3d then
       TSFVec3d(aField).Send(Vector3Double(fVal1, fVal2, fVal3))
     else
     if aField is TSFVec4d then
-      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4));
+      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4))
+    else
+    if aField is TSFFloat then
+      TSFFloat(aField).Send(fVal1)
+    else
+    if aField is TSFDouble then
+      TSFDouble(aField).Send(fVal1)
+    else
+    if aField is TSFLong then
+      TSFLong(aField).Send(Round(fVal1))
+    else
+    if aField is TSFInt32 then
+      TSFInt32(aField).Send(Round(fVal1))
+    else
+    if aField is TSFBool then
+      TSFBool(aField).Send(Round(fVal1)=1);
 
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
