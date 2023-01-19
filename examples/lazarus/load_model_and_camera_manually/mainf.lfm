@@ -1,21 +1,31 @@
-object Form1: TForm1
-  Left = 507
-  Height = 367
-  Top = 225
-  Width = 433
-  Caption = 'Form1'
-  ClientHeight = 367
-  ClientWidth = 433
-  DesignTimePPI = 120
+object MainForm: TMainForm
+  Left = 699
+  Height = 517
+  Top = 254
+  Width = 890
+  Caption = 'Castle Game Engine components on LCL'
+  ClientHeight = 517
+  ClientWidth = 890
+  DesignTimePPI = 115
   OnCreate = FormCreate
-  LCLVersion = '2.0.12.0'
+  LCLVersion = '2.2.2.0'
   object Control1: TCastleControl
     Left = 0
-    Height = 367
-    Top = 0
-    Width = 433
+    Height = 476
+    Top = 41
+    Width = 890
     Align = alClient
     Options = []
     TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 10
+    Height = 21
+    Top = 10
+    Width = 870
+    Align = alTop
+    BorderSpacing.Around = 10
+    Caption = 'Demo of 3D scene, camera, navigation, background created by code'
+    ParentColor = False
   end
 end

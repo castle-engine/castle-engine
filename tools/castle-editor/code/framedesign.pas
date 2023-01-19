@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -218,7 +218,7 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
+      TTreeNodeSide = (tnsInside, tnsBottom, tnsTop);
 
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
@@ -4505,13 +4505,13 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
     R: TRect;
   begin
     R := Node.DisplayRect(false);
-    if X > R.SplitRect(srRight, 0.33).Left then
-      Result := tnsRight
+    if Y < Lerp(0.75, R.Bottom, R.Top) then
+      Result := tnsTop
     else
-    if Y > R.CenterPoint.Y then
+    if Y > Lerp(0.25, R.Bottom, R.Top) then
       Result := tnsBottom
     else
-      Result := tnsTop;
+      Result := tnsInside;
   end;
 
 var
@@ -4701,6 +4701,12 @@ end;
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 
+  { Preserve UI or TCastleTransform transformation when changing parent. }
+  function PreserveTransformation: Boolean;
+  begin
+    Result := not (ssCtrl in GetKeyShiftState);
+  end;
+
   procedure MoveOnlyTreeNodes; forward;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -4740,14 +4746,15 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     OldRect := Src.RenderRectWithBorder;
 
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
             if Src.Parent <> nil then
               Src.Parent.RemoveControl(Src);
             Dst.InsertFront(Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4763,7 +4770,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.InsertControl(Index, Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4774,23 +4782,28 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
-    SrcHasWorld: Boolean;
+    FinalPreserveTransformation: Boolean;
     WorldPos, WorldDir, WorldUp: TVector3;
   begin
-    // TODO: Available only with Ctrl, to test this feature
-    SrcHasWorld := (ssCtrl in GetKeyShiftState) and Src.HasWorldTransform;
-    if SrcHasWorld then
+    FinalPreserveTransformation := PreserveTransformation and
+      Src.HasWorldTransform and
+      { Do it only when scale is identity, otherwise GetWorldView/SetWorldView would
+        not preserve scale. }
+      TVector3.Equals(ScaleFromMatrix(Src.WorldTransform), NoScale) and
+      Dst.HasWorldTransform and
+      TVector3.Equals(ScaleFromMatrix(Dst.WorldTransform), NoScale);
+    if FinalPreserveTransformation then
       Src.GetWorldView(WorldPos, WorldDir, WorldUp);
 
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
-            if SrcHasWorld then
+            if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
@@ -4807,7 +4820,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
-            if SrcHasWorld then
+            if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
@@ -4819,7 +4832,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           Src.Parent.RemoveBehavior(Src);
           Dst.AddBehavior(Src);
@@ -4836,7 +4849,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     const Dst: TCastleComponent);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           SrcParentComponent.RemoveNonVisualComponent(Src);
           Dst.AddNonVisualComponent(Src);
@@ -4878,10 +4891,10 @@ var
     DestinationName: String;
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           { Special treatment when inserting UI into TCastleViewport,
-            testcase: try to drag some UI into TCastleViewport (with tnsRight),
+            testcase: try to drag some UI into TCastleViewport (with tnsInside),
             it should be added right before "Items" node. }
           if (DstComponent is TCastleViewport) and
              (SrcComponent is TCastleUserInterface) then
@@ -5010,7 +5023,7 @@ var
     C.Brush.Style := bsClear;
     C.Rectangle(NodeRect);
 
-    if ControlsTreeNodeUnderMouseSide = tnsRight then
+    if ControlsTreeNodeUnderMouseSide = tnsInside then
     begin
       R := NodeRect.SplitRect(srRight, NodeRect.Height);
       R.Inflate(-5, -5);

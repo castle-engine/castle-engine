@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,7 @@ type
     procedure SetTop(const AValue: Single);
   public
     constructor Create(const AOnChange: TNotifyEvent);
+    procedure Assign(Source: TPersistent); override;
 
     { Total top border (Top + AllSides). }
     function TotalTop: Single;
@@ -150,6 +151,24 @@ begin
     (This may change some day if we'll use TBorder as subcomponent
     and will want to customize it's default value in parent.) }
   Result := not Exists;
+end;
+
+procedure TBorder.Assign(Source: TPersistent);
+var
+  SourceBorder: TBorder;
+begin
+  if Source is TBorder then
+  begin
+    SourceBorder := TBorder(Source);
+    Top      := SourceBorder.Top;
+    Right    := SourceBorder.Right;
+    Bottom   := SourceBorder.Bottom;
+    Left     := SourceBorder.Left;
+    AllSides := SourceBorder.AllSides;
+  end else
+    { Since TBorder is a direct TPersistent descendant,
+      it calls inherited ONLY when it cannot handle Source class. }
+    inherited Assign(Source);
 end;
 
 {$endif read_implementation}

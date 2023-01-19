@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -883,9 +883,8 @@ var
 begin
   if C = FTooltipParent then
   begin
-    if (FTooltipParent <> nil) and
-       (FTooltipParent.TooltipControl <> nil) then
-      FTooltipParent.TooltipControl.Exists := false;
+    if FTooltipParent <> nil then
+      FTooltipParent.InternalSetTooltipExists(false);
     FTooltipParent := nil;
   end;
 
@@ -1090,7 +1089,7 @@ begin
       for I := 0 to FFocus.Count - 1 do
         if FNewFocus.IndexOf(FFocus[I]) = -1 then
           FFocus[I].Focused := false;
-    end;
+    end
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
@@ -1283,12 +1282,9 @@ procedure TCastleContainer.EventUpdate;
 
     if FTooltipParent <> NewTooltipParent then
     begin
+      { hide tooltip }
       if FTooltipParent <> nil then
-      begin
-        { hide TooltipControl }
-        if FTooltipParent.TooltipControl <> nil then
-          FTooltipParent.TooltipControl.Exists := false;
-      end;
+        FTooltipParent.InternalSetTooltipExists(false);
 
       FTooltipParent := NewTooltipParent;
 
@@ -1298,9 +1294,8 @@ procedure TCastleContainer.EventUpdate;
         LastPositionForTooltip := MousePosition;
         { also update TooltipPosition }
         FTooltipPosition := MousePosition;
-        { show TooltipControl }
-        if FTooltipParent.TooltipControl <> nil then
-          FTooltipParent.TooltipControl.Exists := true;
+        { show tooltip }
+        FTooltipParent.InternalSetTooltipExists(true);
       end;
 
       Invalidate;

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -194,12 +194,12 @@ procedure ApplicationInitialize;
     for I := 0 to 2 do
     begin
       FilmGrain.RootNodes[I] := LoadNode('castle-data:/screen_effects/film_grain.x3dv');
-      FilmGrain.EffectNodes[I] := FilmGrain.RootNodes[I].FindNodeByName(TScreenEffectNode,
-        'FilmGrainScreenEffect', true) as TScreenEffectNode;
+      FilmGrain.EffectNodes[I] := FilmGrain.RootNodes[I].FindNode(TScreenEffectNode,
+        'FilmGrainScreenEffect') as TScreenEffectNode;
 
       Pixelate.RootNodes[I] := LoadNode('castle-data:/screen_effects/pixelate.x3dv');
-      Pixelate.EffectNodes[I] := Pixelate.RootNodes[I].FindNodeByName(TScreenEffectNode,
-        'PixelateScreenEffect', true) as TScreenEffectNode;
+      Pixelate.EffectNodes[I] := Pixelate.RootNodes[I].FindNode(TScreenEffectNode,
+        'PixelateScreenEffect') as TScreenEffectNode;
 
       { In case of "edge detect" node,
         the EdgeDetect.EffectNodes[I] equals EdgeDetect.RootNodes[I].
@@ -295,14 +295,13 @@ begin
   Example2DScene := TCastleScene.Create(Application);
   Example2DScene.Setup2D;
   Example2DScene.Load('castle-data:/example_2d_scene/dragon/dragon.json');
-  Example2DScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Example2DScene.PreciseCollisions := true;
   Example2DScene.ProcessEvents := true;
   Example2DScene.PlayAnimation('flying', true);
   Viewport2D.Items.Add(Example2DScene);
-  Viewport2D.Items.MainScene := Example2DScene;
+  Viewport2D.AssignDefaultCamera;
 
   Viewport3D := TCastleViewport.Create(Application);
-  Viewport3D.AutoCamera := true;
   Viewport3D.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport3D.Anchor(hpMiddle, 300 + 50);
   Viewport3D.Anchor(vpMiddle);
@@ -314,11 +313,12 @@ begin
 
   Example3DScene := TCastleScene.Create(Application);
   Example3DScene.Load('castle-data:/example_3d_scene.x3dv');
-  Example3DScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Example3DScene.PreciseCollisions := true;
   Example3DScene.ProcessEvents := true;
   Example3DScene.PlayAnimation('AnimateRotation', true);
   Viewport3D.Items.Add(Example3DScene);
-  Viewport3D.Items.MainScene := Example3DScene;
+  Viewport3D.Camera.Add(TCastleDirectionalLight.Create(Application)); // headlight
+  Viewport3D.AssignDefaultCamera;
 
   Label1 := TCastleLabel.Create(Application);
   Label1.Caption := 'Example button and image';
@@ -344,7 +344,6 @@ begin
   BottomControls := TCastleHorizontalGroup.Create(Application);
   BottomControls.Anchor(hpMiddle);
   BottomControls.Anchor(vpBottom, 10);
-  BottomControls.Frame := true;
   BottomControls.Padding := 10;
   BottomControls.Spacing := 10;
   Window.Controls.InsertFront(BottomControls);
@@ -357,19 +356,19 @@ begin
   FilmGrain.Button := TCastleButton.Create(Application);
   FilmGrain.Button.Caption := 'Film Grain';
   FilmGrain.Button.Toggle := true;
-  FilmGrain.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ToggleFilmGrain;
+  FilmGrain.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.ToggleFilmGrain;
   BottomControls.InsertFront(FilmGrain.Button);
 
   Pixelate.Button := TCastleButton.Create(Application);
   Pixelate.Button.Caption := 'Pixelate';
   Pixelate.Button.Toggle := true;
-  Pixelate.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.TogglePixelate;
+  Pixelate.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.TogglePixelate;
   BottomControls.InsertFront(Pixelate.Button);
 
   EdgeDetect.Button := TCastleButton.Create(Application);
   EdgeDetect.Button.Caption := 'Edge Detect';
   EdgeDetect.Button.Toggle := true;
-  EdgeDetect.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ToggleEdgeDetect;
+  EdgeDetect.Button.OnClick := {$ifdef FPC}@{$endif} TEventsHandler.ToggleEdgeDetect;
   BottomControls.InsertFront(EdgeDetect.Button);
 
   InitializeScreenEffects;

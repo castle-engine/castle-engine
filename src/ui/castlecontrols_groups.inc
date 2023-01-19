@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,7 @@
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    procedure Loaded; override;
   public
     const
       DefaultPadding = 0;
@@ -54,8 +55,11 @@
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
+      {$ifdef FPC}deprecated 'display frame around label using Border or parent UI control';{$endif}
   published
     property Frame: boolean read FFrame write SetFrame default false;
+      {$ifdef FPC}deprecated 'display frame around label using Border or parent UI control';{$endif}
+
     property Padding: Single read FPadding write SetPadding {$ifdef FPC}default DefaultPadding{$endif};
     property Spacing: Single read FSpacing write SetSpacing {$ifdef FPC}default DefaultSpacing{$endif};
 
@@ -81,9 +85,11 @@
     property AutoSizeHeight: Boolean
       read FAutoSizeHeight write SetAutoSizeHeight default true;
 
+  {$warnings off} // silence the fact that FrameColor is deprecated
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
   {$undef read_interface_class}
+  {$warnings on}
   end;
 
   { Container that packs the children horizontally.
@@ -153,9 +159,11 @@ begin
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;
 
+  {$warnings off} // silence the fact that FrameColor is deprecated
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+  {$warnings on}
 end;
 
 destructor TCastlePackedGroup.Destroy;
@@ -202,8 +210,11 @@ end;
 procedure TCastlePackedGroup.Render;
 begin
   inherited;
+
+  {$warnings off} // using deprecated just to keep it working
   if Frame then
     Theme.Draw(RenderRect, tiGroup, UIScale, FrameColor);
+  {$warnings on}
 end;
 
 procedure TCastlePackedGroup.PackChildren;
@@ -337,9 +348,20 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+procedure TCastlePackedGroup.Loaded;
+begin
+  inherited;
+  {$warnings off} // using deprecated just to make a warning
+  if Frame or (not TVector4.PerfectlyEquals(White, FrameColor)) then
+    WritelnWarning('TCastleLabel.Frame and FrameColor are deprecated. Instead: Use TCastleLabel.Border, or place TCastleLabel under a component like TCastleRectangleControl or TCastleImageControl that defines a background.');
+  {$warnings on}
+end;
+
+{$warnings off} // silence the fact that FrameColor is deprecated
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
 {$undef read_implementation_methods}
+{$warnings on}
 
 { TCastleHorizontalGroup ----------------------------------------------------- }
 

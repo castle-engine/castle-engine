@@ -379,7 +379,7 @@ object DesignFrame: TDesignFrame
     object ControlsTree: TTreeView
       Left = 0
       Height = 491
-      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
+      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10#10'Drag the component to move it to the front, back or change the parent.'#10'Hold "Ctrl" when dropping to not preserve the world transformation when changing parent.'
       Top = 31
       Width = 255
       Align = alClient

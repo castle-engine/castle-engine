@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,39 +21,33 @@ unit mainf;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   CastleControl, CastleCameras, CastleScene, CastleViewport;
 
 type
-  TForm1 = class(TForm)
+  TMainForm = class(TForm)
     Control1: TCastleControl;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
   private
     Viewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
+    Background: TCastleBackground;
     Scene: TCastleScene;
   public
     { public declarations }
   end;
 
 var
-  Form1: TForm1;
+  MainForm: TMainForm;
 
 implementation
 
 {$R *.lfm}
 
-uses CastleVectors, CastleSceneCore;
+uses CastleVectors, CastleColors;
 
-{ Simple demo how to load 3D scene, and set camera and navigation explicitly.
-
-  Note: we do this by code, just for demo.
-  The setup here could be also just designed in CGE editor,
-  and loaded by TCastleControl.DesignUrl -- this is generally better than doing it by code,
-  as it means you can visually see what you're doing at development.
-}
-
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TMainForm.FormCreate(Sender: TObject);
 begin
   Viewport := TCastleViewport.Create(Self);
   Viewport.FullSize := true;
@@ -61,10 +55,8 @@ begin
 
   Scene := TCastleScene.Create(Self);
   Scene.Load('castle-data:/bridge_level/bridge_final.x3dv');
-  Scene.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
-  Scene.ProcessEvents := true; // if you use VRML/X3D events
+  Scene.PreciseCollisions := true;
 
-  Viewport.Items.MainScene := Scene;
   Viewport.Items.Add(Scene);
 
   WalkNavigation := TCastleWalkNavigation.Create(Self);
@@ -72,14 +64,19 @@ begin
   WalkNavigation.Radius := 0.1;
   WalkNavigation.MoveSpeed := 10.0; // default is 1
   WalkNavigation.Gravity := true;
-  Viewport.Navigation := WalkNavigation;
+  Viewport.InsertFront(WalkNavigation);
 
-  Viewport.Camera.Init(
-    Vector3(0, 0, 0), // position
-    Vector3(1, 0, 0), // direction
-    Vector3(0, 1, 0), // up
-    Vector3(0, 1, 0)); // gravity up
+  // Set camera vectors using Castle Game Engine.
+  Viewport.Camera.SetWorldView(
+    Vector3(-46.30, -4.49, 4.89), // position
+    Vector3(0.96, 0.03, -0.27), // direction
+    Vector3(-0.03, 1.00, 0.01)  // up (current)
+  );
   Viewport.Camera.ProjectionNear := WalkNavigation.Radius / 2;
+
+  Background := TCastleBackground.Create(Self);
+  Background.SkyTopColor := RedRGB;
+  Viewport.Background := Background;
 end;
 
 end.

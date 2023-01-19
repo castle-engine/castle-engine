@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -242,6 +242,10 @@ type
       (or equivalent ARB extension), additionally preventing redundant glUseProgram
       calls. }
     property CurrentProgram: TGLSLProgram read FCurrentProgram write SetCurrentProgram;
+
+    { Does the current color buffer have any alpha channel.
+      Some blending features depend on storing alpha in the color channel. }
+    function ColorBufferHasAlpha: Boolean;
   end;
 
 var
@@ -575,6 +579,11 @@ begin
     FCurrentProgram := Value;
     InternalSetCurrentProgram(Value);
   end;
+end;
+
+function TRenderContext.ColorBufferHasAlpha: Boolean;
+begin
+  Result := glGetInteger(GL_ALPHA_BITS) > 0;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

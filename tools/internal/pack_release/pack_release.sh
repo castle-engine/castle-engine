@@ -343,7 +343,10 @@ pack_platform_dir ()
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
-  rm -Rf doc/pasdoc/cache/
+  # Remove pasdoc leftovers,
+  # including pasdoc dir and zip/tar.gz left after tasks like '(Windows) Get PasDoc' and '(macOS) Get PasDoc'.
+  # Otherwise they'd get packaged.
+  rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
@@ -405,11 +408,16 @@ pack_windows_installer ()
   fi
 
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
+  # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
   "${INNO_SETUP_CLI}" \
     "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
     "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine"
+    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \
+    "/DMyAppVersion=${CGE_VERSION}"
+
+  # cleanup to save disk space
+  rm -Rf "${TEMP_PATH}"
 }
 
 # ----------------------------------------------------------------------------

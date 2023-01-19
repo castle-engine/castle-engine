@@ -37,6 +37,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
     change: chGeometry
+    setter-before: SetTexCoordBefore
   SFBool []       ccw             TRUE
     change: chGeometry
   SFBool []       colorPerVertex  TRUE

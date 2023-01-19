@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -495,6 +495,8 @@
 
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
+  strict private
+    procedure SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -1162,6 +1164,12 @@ begin
 end;
 
 { TAbstractComposedGeometryNode ------------------------------------------------------ }
+
+procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(FdTexCoord.Value, Value, InternalSceneShape);
+end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
 begin

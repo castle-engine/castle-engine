@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,6 +48,10 @@ CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleI
 {$ifdef read_window_interface}
 private
   NativeWindow: EGLNativeWindowType; //< must be set before Window.Open
+  function HandleOnScreenKeyboard(const Received: TCastleStringList;
+    const ReceivedStream: TMemoryStream): boolean;
+
+  function AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -467,6 +471,127 @@ end;
 
 procedure TCastleWindow.CreateBackend;
 begin
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif}HandleOnScreenKeyboard);
+end;
+
+function TCastleWindow.HandleOnScreenKeyboard(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
+var
+  KeyCode: Integer;
+  KeyString: String;
+  UserInterface: TCastleUserInterface;
+begin
+  if (Received.Count = 3) and (Received[0] = 'castle-key-down') then
+  begin
+    // WritelnLog('key down - code ' + Received[1]);
+    // WritelnLog('key down - ' + Received[2]);
+    if TryStrToInt(Received[1], KeyCode) then
+    begin
+      KeyString := Received[2];
+      DoKeyDown(AndroidKeyCodeToKey(KeyCode), KeyString);
+      // WritelnLog('was DoKeyDown');
+    end;
+    Exit(true);
+  end;
+
+  if (Received.Count = 3) and (Received[0] = 'castle-key-up') then
+  begin
+    // WritelnLog('key up - code ' + Received[1]);
+    // WritelnLog('key up - ' + Received[2]);
+
+    if TryStrToInt(Received[1], KeyCode) then
+    begin
+      DoKeyUp(AndroidKeyCodeToKey(KeyCode));
+      // WritelnLog('was DoKeyUp');
+    end;
+    Exit(true);
+  end;
+
+  { Remove ForceCaptureInput when keyboard was closed from java code }
+  if (Received.Count = 1) and
+     (Received[0] = 'castle-keyboard-hide-remove-force-capture-input') then
+  begin
+    UserInterface := Container.ForceCaptureInput;
+    Container.ForceCaptureInput := nil;
+    if UserInterface <> nil then
+      UserInterface.Focused := false;
+
+    WritelnLog('castle-keyboard-hide-remove-force-capture-input');
+    Exit(true);
+  end;
+end;
+
+function TCastleWindow.AndroidKeyCodeToKey(const AndroidKeyCode: Integer): TKey;
+begin
+  // http://www.temblast.com/ref/akeyscode.htm
+  case AndroidKeyCode of
+    0: Result := keyNone;
+    1: Result := keyArrowLeft;
+    2: Result := keyArrowRight;
+    3: Result := keyHome;
+    4: Result := keyEnd;
+
+    7: Result := key0;
+    8: Result := key1;
+    9: Result := key2;
+    10: Result := key3;
+    11: Result := key4;
+    12: Result := key5;
+    13: Result := key6;
+    14: Result := key7;
+    15: Result := key8;
+    16: Result := key9;
+
+    17: Result := key8; // keyStar in android - we use simply key8
+
+    29: Result := keyA;
+    30: Result := keyB;
+    31: Result := keyC;
+    32: Result := keyD;
+    33: Result := keyE;
+    34: Result := keyF;
+    35: Result := keyG;
+    36: Result := keyH;
+    37: Result := keyI;
+    38: Result := keyJ;
+    39: Result := keyK;
+    40: Result := keyL;
+    41: Result := keyM;
+    42: Result := keyN;
+    43: Result := keyO;
+    44: Result := keyP;
+    45: Result := keyQ;
+    46: Result := keyR;
+    47: Result := keyS;
+    48: Result := keyT;
+    49: Result := keyU;
+    50: Result := keyV;
+    51: Result := keyW;
+    52: Result := keyX;
+    53: Result := keyY;
+    54: Result := keyZ;
+
+    55: Result := keyComma;
+    56: Result := keyPeriod;
+
+    61: Result := keyTab;
+    62: Result := keySpace;
+    66: Result := keyEnter;
+    67: Result := keyBackSpace;
+    68: Result := keyBackQuote;
+    69: Result := keyMinus;
+    70: Result := keyEqual;
+    71: Result := keyLeftBracket;
+    72: Result := keyRightBracket;
+    73: Result := keyBackSlash;
+    74: Result := keySemicolon;
+    75: Result := keyApostrophe;
+    76: Result := keySlash;
+    77: Result := key2; // keyAt in android we use simply 2
+    81: Result := keyPlus;
+
+    else Result := keyNone;
+  end;
 end;
 
 { It would be nice to update Android's app menu based on MainMenu contents.

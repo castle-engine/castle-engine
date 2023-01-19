@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

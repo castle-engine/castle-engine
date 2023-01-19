@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis and Jan Adamec.
+  Copyright 2017-2023 Michalis Kamburelis and Jan Adamec.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 
 {$ifdef read_interface}
 
-  { Touch-friendly checkbox control with representing on/off state. }
+  { Touch-friendly checkbox control representing on/off state. }
   TCastleSwitchControl = class(TCastleUserInterface)
   strict private
     FChecked: boolean;
@@ -57,6 +57,12 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{
+  TODO:
+  - Default UI design of this has to change to look more modern
+  - Name may change -- "Control" suffix is likely unnecessary
+}
 
 { TCastleSwitchControl ---------------------------------------------------------- }
 
