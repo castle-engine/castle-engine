@@ -1601,7 +1601,6 @@
     },
     {
       "$$ClassName" : "TCastleDesign",
-      "AutoSizeToChildren" : true,
       "FullSize" : true,
       "Height" : 7.8000000000000000E+002,
       "Name" : "DesignHud",
