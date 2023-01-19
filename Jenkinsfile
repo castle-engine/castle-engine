@@ -178,7 +178,7 @@ pipeline {
         stage('Raspberry Pi') {
           when {
             allOf {
-              expression { return not params.jenkins_fast };
+              not { expression { return params.jenkins_fast } };
               branch "master"
             }
           }
