@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -119,7 +119,7 @@ end;
 procedure TViewMain.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 const
-  MinScale = 0.1;
+  MinScale = 0.05; //< this MinScale allows to view whole data/maps/desert_big.tmx
   MaxScale = 10;
 begin
   if Event.IsMouseWheel(mwUp) then
