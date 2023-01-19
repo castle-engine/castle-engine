@@ -591,6 +591,11 @@ begin
            Viewport.Items.MainScene.RenderOptions.OcclusionQuery := (nValue > 0);
       end;
 
+      10: begin    // ecgevarPhongShading
+        if Viewport.Items.MainScene <> nil then
+           Viewport.Items.MainScene.RenderOptions.PhongShading := (nValue > 0);
+      end;
+
     end;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -671,6 +676,12 @@ begin
           Result := 0;
       end;
 
+      10: begin    // ecgevarPhongShading
+        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.PhongShading then
+          Result := 1 else
+          Result := 0;
+      end;
+
       else Result := -1; // unsupported variable
     end;
   except
@@ -721,7 +732,7 @@ begin
       TSFInt32(aField).Send(Round(fVal1))
     else
     if aField is TSFBool then
-      TSFBool(aField).Send(Round(fVal1)=1);
+      TSFBool(aField).Send(fVal1 <> 0.0);
 
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));

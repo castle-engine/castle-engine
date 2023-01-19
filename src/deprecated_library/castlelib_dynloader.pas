@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2023 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,6 +61,7 @@ const
   ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
   ecgevarOcclusionQuery  = 9;   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
+  ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;
