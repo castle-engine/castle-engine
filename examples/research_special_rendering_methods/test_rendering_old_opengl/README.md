@@ -1,4 +1,4 @@
-# Test Rendeing With Old OpenGL
+# Test Rendering With Old OpenGL
 
 This example uses `GLFeatures.ForceFixedFunction`, to force treating the current OpenGL version as if it was an ancient OpenGL version, without some modern features (like VBO and shaders).
 

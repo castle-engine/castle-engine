@@ -9,7 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="test_rendering_old_opengl_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.test.rendering.old.opengl"
-  caption="Test Rendeing With Old OpenGL"
+  caption="Test Rendering With Old OpenGL"
 >
   <compiler_options>
     <search_paths>

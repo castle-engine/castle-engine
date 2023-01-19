@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'test_rendering_old_opengl';
-  ApplicationProperties.Caption := 'Test Rendeing With Old OpenGL';
+  ApplicationProperties.Caption := 'Test Rendering With Old OpenGL';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

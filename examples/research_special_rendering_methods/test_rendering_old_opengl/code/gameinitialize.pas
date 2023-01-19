@@ -40,7 +40,7 @@ begin
 
   // CGE build tool will define OpenGLES symbol when necessary
   {$ifndef OpenGLES}
-  //GLFeatures.ForceFixedFunction;
+  GLFeatures.ForceFixedFunction;
   {$endif}
 
   { Create views (see https://castle-engine.io/views ). }
