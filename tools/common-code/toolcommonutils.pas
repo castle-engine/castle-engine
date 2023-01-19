@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -134,7 +134,8 @@ procedure RunCommandSimple(
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: string;
@@ -777,7 +778,8 @@ end;
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 var
   P: TProcess;
   I: Integer;
@@ -827,6 +829,8 @@ begin
     P.ShowWindow := swoShow;
     if rcNoConsole in Flags then
       P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
 
     WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
     WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);

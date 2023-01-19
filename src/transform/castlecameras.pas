@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -4311,7 +4311,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
   R.Caption := ['Navigation', 'Fly (Walk with Gravity=false)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation.CreateComponentFly;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleWalkNavigation, ['Navigation', 'Walk']);

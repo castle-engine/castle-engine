@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -84,13 +84,13 @@
       Note that, in order to register clicks, TCastleScene must
       be configured to process events (@link(TCastleSceneCore.ProcessEvents))
       and be able to detect clicks on particular shapes
-      (@link(TCastleSceneCore.Spatial) should contain ssDynamicCollisions).
+      (@link(TCastleSceneCore.PreciseCollisions)).
       Usually you will initialize scene like this:
 
       @longCode(#
         MyScene := TCastleScene.Create(...);
         MyScene.Load(...); // load X3D graph with TouchSensor node
-        MyScene.Spatial := [ssRendering, ssDynamicCollisions];
+        MyScene.PreciseCollisions := true;
         MyScene.ProcessEvents := true;
       #)
     }

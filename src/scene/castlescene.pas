@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2430,7 +2430,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
   R.Caption := ['Scene (Optimal Blending for 2D Models)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleBox, 'Box');

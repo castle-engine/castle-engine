@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,7 +91,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleRigidBody;
   R.Caption := ['Physics', 'Rigid Body (2D)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleRigidBody{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleRigidBody.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleBoxCollider, ['Physics', 'Collider', 'Box']);
@@ -99,7 +99,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleBoxCollider;
   R.Caption := ['Physics', 'Collider 2D', 'Box'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleBoxCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleBoxCollider.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleCapsuleCollider, ['Physics', 'Collider', 'Capsule']);
@@ -107,7 +107,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleCapsuleCollider;
   R.Caption := ['Physics', 'Collider 2D', 'Capsule'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleCapsuleCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleCapsuleCollider.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastlePlaneCollider, ['Physics', 'Collider', 'Plane']);
@@ -115,7 +115,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastlePlaneCollider;
   R.Caption := ['Physics', 'Collider 2D', 'Plane'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastlePlaneCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastlePlaneCollider.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleSphereCollider, ['Physics', 'Collider', 'Sphere']);
@@ -123,7 +123,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleSphereCollider;
   R.Caption := ['Physics', 'Collider 2D', 'Sphere'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleMeshCollider, ['Physics', 'Collider', 'Mesh']);
@@ -131,7 +131,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleMeshCollider;
   R.Caption := ['Physics', 'Collider 2D', 'Mesh'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleMeshCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleMeshCollider.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleRopeJoint, ['Physics', 'Joint', 'Rope']);

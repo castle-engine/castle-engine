@@ -329,6 +329,12 @@ type
     }
     property EnableFixedFunction: Boolean read FEnableFixedFunction write FEnableFixedFunction;
 
+    {$ifndef OpenGLES}
+    { Set EnableFixedFunction and some other routines, to force testing rendering
+      using old pipeline. }
+    procedure ForceFixedFunction;
+    {$endif}
+
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
     property Memory: TGLMemoryInfo read FMemory;
@@ -789,6 +795,15 @@ begin
   else
     Result := MaxTextureUnitsShaders;
 end;
+
+{$ifndef OpenGLES}
+procedure TGLFeatures.ForceFixedFunction;
+begin
+  FEnableFixedFunction := true;
+  FShaders := gsNone;
+  FVertexBufferObject := false;
+end;
+{$endif}
 
 { TGLMemoryInfo -------------------------------------------------------------- }
 

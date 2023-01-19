@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -351,6 +351,8 @@ var
   I, RequiredPointPtrSize: Integer;
   TargetPointPtr: PVector2;
 begin
+  TDrawableImage.BatchingFlush;
+
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 

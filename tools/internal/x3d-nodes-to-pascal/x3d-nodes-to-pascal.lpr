@@ -1,5 +1,6 @@
+// -*- compile-command: "castle-engine compile && ./run.sh" -*-
 {
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

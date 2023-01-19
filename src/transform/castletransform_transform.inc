@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2014,7 +2014,31 @@ end;
 procedure TCastleTransform.BeforeDestruction;
 var
   I: Integer;
+  PreviousCount: SizeInt;
 begin
+  { Remove Self from children, so that in each child we
+
+    - decrease FWorldReferences
+    - set FParent to nil (if it matched Self)
+    - set FWorld to nil (if it matched Self.FWorld)
+
+    Note that this has to be done before "ChangeWorld(nil)",
+    as RemoveParent in child compares "World = OldParent.World".
+    That is also why we don't depend on TCastleTransformList.Notify
+    to call RemoveParent on all children when parent is freed,
+    as it would be too late, when our World is already nil. }
+  while FList.Count <> 0 do
+  begin
+    PreviousCount := FList.Count;
+    Remove(FList[0]);
+    if FList.Count >= PreviousCount then
+    begin
+      WritelnWarning('During TCastleTransform.BeforeDestruction, the number of children does not decrease -- this means that some TCastleTransform destructor adds new TCastleTransform instances. ' +
+        'We break infinite loop by aborting normal destruction, but expect further problems. To avoid this warning, make sure your TCastleTransform destructor does not create new TCastleTransform instances.');
+      Break;
+    end;
+  end;
+
   { set to nil, to detach free notification }
   ChangeWorld(nil);
 
