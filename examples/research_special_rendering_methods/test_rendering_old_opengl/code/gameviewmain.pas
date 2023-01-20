@@ -50,7 +50,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLoadGltf, CastleGLUtils, CastleRectangles,
+  CastleLoadGltf, CastleGLUtils, CastleRectangles, CastleImages,
   CastleBoxes, CastleColors, CastleRenderContext,
   GameMyMesh;
 
@@ -74,7 +74,7 @@ begin
   ScenePhong.Url := 'castle-data:/sample_3d.gltf';
   GltfForcePhongMaterials := false;
 
-  DrawableImage := TDrawableImage.Create('castle-data:/test_texture.png');
+  DrawableImage := TDrawableImage.Create('castle-data:/texture_alpha.png');
 
   MyMesh := TMyMesh.Create(FreeAtStop);
   UnlitMeshParent.Add(MyMesh);
@@ -102,7 +102,13 @@ begin
   { Do some direct drawing, to test this API works with ForceFixedFunction too. }
   DrawRectangle(FloatRectangle(10, 10, 50, 50), Green);
   DrawableImage.Draw(100, 10);
-  FallbackFont.Print(400, 10, Red, 'Another sample text');
+
+  { Render DrawableImage again, forcing alpha testing }
+  DrawableImage.Alpha := acTest;
+  DrawableImage.Draw(400, 10);
+  DrawableImage.Alpha := acAuto;
+
+  FallbackFont.Print(700, 10, Red, 'Another sample text');
 end;
 
 end.
