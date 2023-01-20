@@ -118,6 +118,8 @@ type
       FBlendingSourceFactor: TBlendingSourceFactor;
       FBlendingDestinationFactor: TBlendingDestinationFactor;
       FBlendingEnabled: Boolean;
+      FFixedFunctionAlphaTest: Boolean;
+      FFixedFunctionAlphaCutoff: Single;
 
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
@@ -284,6 +286,11 @@ type
       const SourceFactor: TBlendingSourceFactor = bsSrcAlpha;
       const DestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha);
     procedure BlendingDisable;
+
+    { Enable alpha test with old/buggy OpenGL implementations that use deprecated fixed-function pipeline.
+      This is simply ignored on modern GPUs when "not GLFeatures.EnableFixedFunction". }
+    procedure FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
+    procedure FixedFunctionAlphaTestDisable;
   end;
 
 var
@@ -335,6 +342,9 @@ begin
   // initial blending factors, see https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml
   FBlendingSourceFactor := bsOne;
   FBlendingDestinationFactor := bdZero;
+  { the initial glAlphaFunc state is (GL_ALWAYS, 0), see https://docs.gl/gl3/glAlphaFunc,
+    so be sure to call glAlphaFunc in 1st FixedFunctionAlphaTestEnable. }
+  FFixedFunctionAlphaCutoff := -1;
 end;
 
 destructor TRenderContext.Destroy;
@@ -683,6 +693,40 @@ begin
     FBlendingEnabled := false;
     glDisable(GL_BLEND);
   end;
+end;
+
+procedure TRenderContext.FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+  begin
+    if not FFixedFunctionAlphaTest then
+    begin
+      FFixedFunctionAlphaTest := true;
+      glEnable(GL_ALPHA_TEST);
+    end;
+
+    if FFixedFunctionAlphaCutoff <> AlphaCutoff then
+    begin
+      FFixedFunctionAlphaCutoff := AlphaCutoff;
+      glAlphaFunc(GL_GEQUAL, AlphaCutoff);
+    end;
+  end;
+  {$endif}
+end;
+
+procedure TRenderContext.FixedFunctionAlphaTestDisable;
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+  begin
+    if FFixedFunctionAlphaTest then
+    begin
+      FFixedFunctionAlphaTest := false;
+      glDisable(GL_ALPHA_TEST);
+    end;
+  end;
+  {$endif}
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

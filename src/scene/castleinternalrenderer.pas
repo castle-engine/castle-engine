@@ -530,8 +530,6 @@ type
 
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
-    FFixedFunctionAlphaTest: Boolean;
-    FFixedFunctionAlphaCutoff: Single;
     FLineType: TLineType;
 
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
@@ -558,19 +556,12 @@ type
 
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
-    procedure SetFixedFunctionAlphaTest(const Value: Boolean);
-    procedure SetFixedFunctionAlphaCutoff(const Value: Single);
     procedure SetLineType(const Value: TLineType);
 
     { Change glShadeModel by this property. }
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
-    { Change GL_ALPHA_TEST enabled by this property. }
-    property FixedFunctionAlphaTest: Boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
-    { Change glAlphaFunc(GL_GEQUAL, ...) parameter by this property.
-      Note that we always use GL_GEQUAL comparison. }
-    property FixedFunctionAlphaCutoff: Single read FFixedFunctionAlphaCutoff write SetFixedFunctionAlphaCutoff;
     property LineType: TLineType read FLineType write SetLineType;
 
     {$I castleinternalrenderer_surfacetextures.inc}
@@ -2161,15 +2152,13 @@ begin
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
     {$endif}
-
-    { Initialize FFixedFunctionAlphaTest/Cutoff, make sure OpenGL state is appropriate }
-    FFixedFunctionAlphaTest := false;
-    FFixedFunctionAlphaCutoff := 0.5;
-    {$ifndef OpenGLES}
-    glDisable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
-    {$endif}
   end;
+
+  if RenderOptions.Mode in [rmDepth, rmFull] then
+    { Both at begin and end, disable fixed-function alpha test.
+      During rendering, scenes may freely enable it.
+      TODO: In the future, we should just save/restore it. }
+    RenderContext.FixedFunctionAlphaTestDisable;
 
   if GLFeatures.EnableFixedFunction and (RenderOptions.Mode = rmFull) then
   begin
@@ -3074,6 +3063,15 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
+    { This test also means that we don't do FixedFunctionAlphaTestEnable /
+      FixedFunctionAlphaTestDisable (lower in this routine)
+      when RenderOptions.Mode are not [rmFull, rmDepth].
+
+      And that's good, because RenderCleanState only resets FixedFunctionAlphaTest
+      when RenderOptions.Mode is [rmFull, rmDepth].
+      And it should reset them only (and always) if RenderOptions.Mode says
+      it's possible we'll change them. }
+
     if RenderOptions.Mode = rmSolidColor then
       Exit;
 
@@ -3130,15 +3128,14 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     end;
 
     { Set alpha test state (shader and fixed-function) }
-    FixedFunctionAlphaTest := AlphaTest;
     if AlphaTest then
     begin
       { only calculate AlphaCutoff when AlphaTest, otherwise it is useless }
       AlphaCutoff := GetAlphaCutoff(Shape);
-      FixedFunctionAlphaCutoff := AlphaCutoff;
-
+      RenderContext.FixedFunctionAlphaTestEnable(AlphaCutoff);
       Shader.EnableAlphaTest(AlphaCutoff);
-    end;
+    end else
+      RenderContext.FixedFunctionAlphaTestDisable;
 
     { Make active texture 0. This is helpful for rendering code of
       some primitives that do not support multitexturing now
@@ -3528,34 +3525,6 @@ begin
     {$ifndef OpenGLES}
     GLSetEnabled(GL_LIGHTING, FixedFunctionLighting);
     {$endif}
-  end;
-end;
-
-procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: Boolean);
-begin
-  if FFixedFunctionAlphaTest <> Value then
-  begin
-    FFixedFunctionAlphaTest := Value;
-    { Modify GL_ALPHA_TEST only under the same conditions that reset it in RenderCleanState.
-      Otherwise we could modify it, but not reset in RenderCleanState,
-      leaving other rendering (like TDrawableImage) be unexpectedly done with alpha test
-      even when not desired. }
-    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
-      {$ifndef OpenGLES}
-      GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
-      {$endif}
-  end;
-end;
-
-procedure TGLRenderer.SetFixedFunctionAlphaCutoff(const Value: Single);
-begin
-  if FFixedFunctionAlphaCutoff <> Value then
-  begin
-    FFixedFunctionAlphaCutoff := Value;
-    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
-      {$ifndef OpenGLES}
-      glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
-      {$endif}
   end;
 end;
 

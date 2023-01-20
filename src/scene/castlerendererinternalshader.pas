@@ -426,6 +426,7 @@ type
     NeedsNormalsForTexGen: Boolean;
     FPhongShading: boolean;
     FLightingModel: TLightingModel;
+    FAlphaTest: Boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -666,6 +667,9 @@ type
 
     { Current shape bbox, in world coordinates. }
     function ShapeBoundingBoxInWorld: TBox3D;
+
+    { Is alpha testing enabled by EnableAlphaTest. }
+    property AlphaTest: Boolean read FAlphaTest;
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -2057,6 +2061,7 @@ begin
   MainTextureMapping := -1;
   ColorSpaceLinear := false;
   MultiTextureColor := White;
+  FAlphaTest := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -3473,6 +3478,8 @@ procedure TShader.EnableAlphaTest(const AlphaCutoff: Single);
 var
   AlphaCutoffStr: String;
 begin
+  FAlphaTest := true;
+
   { Convert float to be a valid GLSL constant.
     Make sure to use dot, and a fixed notation. }
   AlphaCutoffStr := FloatToStrFDot(AlphaCutoff, ffFixed, { ignored } 0, 4);

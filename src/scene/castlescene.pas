@@ -1620,24 +1620,16 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
-      {$ifdef FPC}
-      {$warnings off}
-      SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
-      SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
-      RenderOptions.CustomShader          := NewShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      SavedShaders.Shader          := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
+      SavedShaders.ShaderAlphaTest := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase;
+      RenderOptions.InternalCustomShader          := NewShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
 
       RenderWithWireframeEffect;
 
       RenderOptions.Mode := SavedMode;
-      {$ifdef FPC}
-      {$warnings off}
-      RenderOptions.CustomShader          := SavedShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      RenderOptions.InternalCustomShader          := SavedShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end else
     begin
       RenderWithWireframeEffect;

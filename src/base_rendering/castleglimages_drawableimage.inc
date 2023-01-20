@@ -1068,14 +1068,7 @@ procedure TDrawableImage.DrawNoBatch(
   procedure AlphaBegin;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest:
-        if GLFeatures.EnableFixedFunction then
-        begin
-          glAlphaFunc(GL_GEQUAL, 0.5);
-          glEnable(GL_ALPHA_TEST);
-        end;
-      {$endif not OpenGLES}
+      acTest: RenderContext.FixedFunctionAlphaTestEnable;
       acBlending:
         begin
           if GLFeatures.BlendConstant and
@@ -1102,9 +1095,7 @@ procedure TDrawableImage.DrawNoBatch(
   procedure AlphaEnd;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest: if GLFeatures.EnableFixedFunction then glDisable(GL_ALPHA_TEST);
-      {$endif not OpenGLES}
+      acTest: RenderContext.FixedFunctionAlphaTestDisable;
       acBlending: RenderContext.BlendingDisable;
       else ;
     end;

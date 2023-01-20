@@ -1,7 +1,7 @@
 {%MainUnit castlerenderoptions.pas}
 
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ type
     FLineWidth: Single;
     FBumpMapping: TBumpMapping;
     FBumpMappingParallaxHeight: Single;
-    FCustomShader, FCustomShaderAlphaTest: TObject;
+    FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
@@ -163,7 +163,6 @@ type
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     {$ifdef FPC}
-    { @deprecated @exclude Old name for @link(Textures). }
     property EnableTextures: boolean
       read FTextures write SetTextures default true; deprecated 'use Textures';
 
@@ -174,31 +173,40 @@ type
       particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
       and GLFeatures.EnableFixedFunction. }
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
+    {$endif}
 
     { Custom GLSL shader to use for the whole scene.
       It must be a @link(TX3DShaderProgramBase) instance.
       When this is assigned, @link(Shaders) value is ignored.
 
-      @italic(Avoid using this.) It's not easy to create portable shaders,
-      that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
-      https://castle-engine.io/compositing_shaders.php which still allow you
-      to write GLSL effects, but they are integrated into standard shader code.
+      @italic(Internal, do not use this.)
+      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+
+      Use nodes instead, to override shaders or to enhance shaders.
+      See examples/viewport_and_scenes/shader_effects/ ,
+      examples/viewport_and_scenes/shader_override/ .
 
       @exclude }
-    property CustomShader: TObject read FCustomShader write FCustomShader;
-      deprecated 'use Effect node to define GLSL shaders that are more flexible';
+    property InternalCustomShader: TObject
+      read FInternalCustomShader write FInternalCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       It must be a @link(TX3DShaderProgramBase) instance.
       Relevant only if CustomShader <> nil.
 
-      @italic(Do not use this.) This is a temporary hack to enable VSM working
+      @italic(Internal, do not use this.)
+      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+
+      Use nodes instead, to override shaders or to enhance shaders.
+      See examples/viewport_and_scenes/shader_effects/ ,
+      examples/viewport_and_scenes/shader_override/ .
+
+      This is in practice an internal solution to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else.
 
       @exclude }
-    property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
-      deprecated 'use Effect node to define GLSL shaders that are more flexible';
-    {$endif FPC}
+    property InternalCustomShaderAlphaTest: TObject
+      read FInternalCustomShaderAlphaTest write FInternalCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;

@@ -295,14 +295,10 @@ var
     end;
 
   begin
-    {$ifdef FPC}
-    {$warnings off}
-    if RenderOptions.CustomShader <> nil then
-    {$warnings on}
+    if RenderOptions.InternalCustomShader <> nil then
       // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
-    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       { In case of rmSolidColor, force using unlit with RenderOptions.SolidColor.
         Note that castlerenderer_materials.inc made sure that Lightning = false
@@ -1001,13 +997,9 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
-    {$ifdef FPC}
-    {$warnings off}
-    if RenderOptions.CustomShader <> nil then
+    if RenderOptions.InternalCustomShader <> nil then
       Shader.LightingModel := lmUnlit
     else
-    {$warnings on}
-    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
@@ -1037,18 +1029,14 @@ begin
 
   InitializeLightingModel;
 
-  {$ifdef FPC}
-  {$warnings off}
-  if RenderOptions.CustomShader <> nil then
+  if RenderOptions.InternalCustomShader <> nil then
   begin
-    if (RenderOptions.CustomShaderAlphaTest <> nil) and
-       Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase
+    if (RenderOptions.InternalCustomShaderAlphaTest <> nil) and
+       Shader.AlphaTest then
+      CurrentMeshShader := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase
     else
-      CurrentMeshShader := RenderOptions.CustomShader as TX3DShaderProgramBase;
+      CurrentMeshShader := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
   end else
-  {$warnings on}
-  {$endif}
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and

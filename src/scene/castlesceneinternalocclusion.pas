@@ -118,31 +118,14 @@ begin
     SavedCullFace := RenderContext.CullFace;
     RenderContext.CullFace := false;
 
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
+    { Do not alpha test.
+      This also means that texture enabled for fixed-function will be meaningless,
+      it will not affect occlusion result, which is good.
 
-      { A lot of state should be disabled. Remember that this is done
-        in the middle of TGLRenderer rendering, between
-        RenderBegin/End, and TGLRenderer doesn't need to
-        restore state after each shape render. So e.g. texturing
-        and alpha test may be enabled, which could lead to very
-        strange effects (box would be rendered with random texel,
-        possibly alpha tested and rejected...).
-
-        Also, some state should be disabled just to speed up
-        rendering. E.g. lighting is totally not needed here. }
-
-      glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
-      glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
-      glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
-      glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
-      GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
-
-      glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
-      {$endif}
-    end;
+      Note that we don't care to save/restore this state,
+      as each state will reenable alpha test by RenderContext.FixedFunctionAlphaTestEnable
+      if necessary. }
+    RenderContext.FixedFunctionAlphaTestDisable;
 
     OcclusionBoxState := true;
   end;
@@ -152,13 +135,6 @@ procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(const RestoreDefault
 begin
   if OcclusionBoxState then
   begin
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      glPopAttrib;
-      {$endif}
-    end;
-
     if RestoreDefaults then
     begin
       RenderContext.DepthBufferUpdate := true;
