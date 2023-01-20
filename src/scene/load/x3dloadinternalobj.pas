@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,7 +101,7 @@ var
       NewSeekPos := SeekPos;
       Token := NextToken(S, NewSeekPos);
       try
-        Value.Data[I] := StrToFloatDefDot(Token, Value.Data[I]);
+        Value.InternalData[I] := StrToFloatDefDot(Token, Value.InternalData[I]);
         // update SeekPos if this is a successfull float, as Y and Z vector values are optional in MTL
         SeekPos := NewSeekPos;
       except
@@ -266,9 +266,9 @@ begin
     on E: EConvertError do
     begin
       SPosition := 1;
-      Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[2] := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
+      Result.X := StrToFloatDot(NextToken(S, SPosition));
+      Result.Y := StrToFloatDot(NextToken(S, SPosition));
+      Result.Z := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
       if NextToken(S, SPosition) <> '' then
         raise EConvertError.Create('Expected end of data when reading vector from string');
       WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
