@@ -15,11 +15,7 @@
 
 { X3D shapes rendering (TGLRenderer).
   Normal user code does not use this directly,
-  instead users always render through TCastleScene that wraps this renderer.
-
-  The overview of the renderer can also be found in engine documentation
-  [https://castle-engine.io/engine_doc.php]
-  in chapter "OpenGL rendering", section "Basic OpenGL rendering".
+  instead always render through TCastleScene that wraps this renderer.
 
   @bold(Usage:)
 
@@ -57,11 +53,43 @@
     )
 
     @item(
-      To start actual rendering, call TGLRenderer.RenderBegin. To end rendering, call
-      TGLRenderer.RenderEnd. Between these calls, you should not touch OpenGL state
-      yourself --- the renderer may depend that every state change goes
-      through it. At the end of TGLRenderer.RenderEnd, the OpenGL state is restored
-      just as it was before TGLRenderer.RenderBegin.
+      Surround rendering of multiple scenes with TGLRenderer.ViewportRenderBegin,
+      TGLRenderer.ViewportRenderEnd.
+
+      Notes below are for things that render manually inside TCastleTransform.LocalRender
+      (and thus are part of TCastleViewport), but are not TCastleScene.
+      This affects e.g. TMyMesh that does rendering using TCastleRenderUnlitMesh
+      in ../../examples/research_special_rendering_methods/test_rendering_old_opengl/code/gameinitialize.pas .
+
+      1. See TGLRenderer.ViewportRenderEnd for the up-to-date list of state
+         (some managed using RenderContext, some using direct OpenGL(ES) calls)
+         that is reset at the end of viewport rendering,
+         because before each scene or before each shape it may change and *not*
+         be reset.
+
+         When you render manually inside TCastleTransform.LocalRender,
+         this state is undefined when you start,
+         and you can change it carelessly (since next scene or shape
+         will adjust it), though we advise you save/restore it (in case it will matter
+         in the future, e.g. the state will move to ViewportRenderBegin and shapes
+         will assume it).
+
+      2. See TGLRenderer.ViewportRenderBegin for the up-to-date list of state
+         (some managed using RenderContext, some using direct OpenGL(ES) calls)
+         that is initialized at the beginning of viewport rendering,
+         because each shape may assume it is such.
+
+         When you render manually inside TCastleTransform.LocalRender,
+         you can also assume the state is set to this value,
+         and if you change it -- make sure to save/restore it.
+    )
+
+    @item(
+      Surround shapes rendering between TGLRenderer.RenderBegin and TGLRenderer.RenderEnd.
+
+      Between these calls, you should not touch OpenGL state or RenderContext
+      yourself at all.
+      The renderer may depend that every state change goes through it.
     )
 
     @item(
@@ -82,20 +110,24 @@
 
   @bold(OpenGL state affecting X3D rendering:)
 
-  Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
+  Some OpenGL state is unconditionally set by rendering (TGLRenderer.ViewportRenderBegin,
+  TGLRenderer.RenderBegin, or just each shape rendering).
 
-  There's also some OpenGL state that we let affect our rendering.
-  This allows you to customize rendering by using normal OpenGL commands.
+  But there's also some OpenGL state that we let affect our rendering.
+  This allows you to customize rendering by using normal OpenGL commands
+  or RenderContext settings.
 
   @unorderedList(
     @item(Current glPolygonMode.
       This is used by @link(TCastleScene) to optionally render wireframe.
     )
 
-    @item(Blending settings (GL_BLEND enabled state, glBlendFunc),
-      and glDepthMask (RenderContext.DepthBufferUpdate).
+    @item(Blending settings, controlled using RenderContext.BlendingBegin,
+      RenderContext.BlendingEnd.
 
-      This is used by @link(TCastleScene) to render
+      Also RenderContext.DepthBufferUpdate.
+
+      These are used by @link(TCastleScene) to render
       scenes with a mix of tranparent and opaque objects.
       Only @link(TCastleScene) deals with it (not this renderer),
       as doing it correctly requires ordering the shapes.
@@ -2192,7 +2224,7 @@ begin
 
     These state things are adjusted by each shape,
     and shape rendering assumes that at the beginning it is undefined
-    (so we don't care to set it in ViewportRenderBegin or ViewportRenderBeginEndCommon),
+    (so we don't care to set it in ViewportRenderBegin),
     and shape doesn't restore it (because next shape will adjust it anyway).
     So we reset them at the end to not affect other objects rendered outside of TGLRenderer.
 
