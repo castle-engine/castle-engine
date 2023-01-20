@@ -416,6 +416,16 @@ type
   { Render layer for @link(TCastleTransform.RenderLayer). }
   TRenderLayer = (rlParent, rlBack, rlFront);
 
+  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType)
+    or @link(TRenderContext.LineType). }
+  TLineType = (
+    ltSolid,
+    ltDashed,
+    ltDotted,
+    ltDashedDotted,
+    ltDashDotDot
+  );
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );

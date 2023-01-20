@@ -528,9 +528,6 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
 
-    FFixedFunctionLighting: boolean;
-    FLineType: TLineType;
-
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
     {$ifndef OpenGLES}
@@ -552,13 +549,6 @@ type
     { Check RenderOptions (like RenderOptions.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
-
-    procedure SetFixedFunctionLighting(const Value: boolean);
-    procedure SetLineType(const Value: TLineType);
-
-    { Change GL_LIGHTING enabled by this property. }
-    property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
-    property LineType: TLineType read FLineType write SetLineType;
 
     {$I castleinternalrenderer_surfacetextures.inc}
   private
@@ -603,12 +593,12 @@ type
       FreeGLTexturesCount.
       Everything else (multitexturing availability, GL_TEXTURE0)
       is taken care of inside here. }
-    procedure ActiveTexture(const TextureUnit: Cardinal);
+    class procedure ActiveTexture(const TextureUnit: Cardinal);
 
     { Disable any (fixed-function) texturing (2D, 3D, cube map, and so on)
       on given texture unit. }
-    procedure DisableTexture(const TextureUnit: Cardinal);
-    procedure DisableCurrentTexture;
+    class procedure DisableTexture(const TextureUnit: Cardinal);
+    class procedure DisableCurrentTexture;
 
     procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
       const Shader: TShader);
@@ -645,12 +635,6 @@ type
       const Lighting: boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
-
-    { Reset various OpenGL state parameters, done at RenderBegin
-      (to prepare state for following RenderShape calls) and at RenderEnd
-      (to leave *somewhat* defined state afterwards). }
-    procedure RenderCleanState(const Beginning: boolean);
-
   public
     type
       TRenderMode = (
@@ -697,6 +681,14 @@ type
       call UnprepareAll or destroy this renderer
       when your OpenGL context is still active. }
     procedure UnprepareAll;
+
+    { Surround all TGLRenderer usage in ViewportRenderBegin / ViewportRenderEnd calls.
+
+      The idea is that outer component, like TCastleViewport,
+      uses these only once for whole TCastleViewport.Render,
+      and then you don't need to repeat this in each TCastleScene.LocalRender. }
+    class procedure ViewportRenderBegin;
+    class procedure ViewportRenderEnd;
 
     procedure RenderBegin(const AGlobalLights: TLightInstancesList;
       const ARenderingCamera: TRenderingCamera;
@@ -2041,13 +2033,13 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
-procedure TGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
+class procedure TGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
 end;
 
-procedure TGLRenderer.DisableTexture(const TextureUnit: Cardinal);
+class procedure TGLRenderer.DisableTexture(const TextureUnit: Cardinal);
 begin
   if GLFeatures.EnableFixedFunction then
   begin
@@ -2058,7 +2050,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.DisableCurrentTexture;
+class procedure TGLRenderer.DisableCurrentTexture;
 begin
   GLEnableTexture(etNone);
 end;
@@ -2089,138 +2081,148 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
-
-  procedure DisabeAllTextureUnits;
-  var
-    I: Integer;
-  begin
-    for I := 0 to GLFeatures.MaxTextureUnits - 1 do
-      DisableTexture(I);
-  end;
-
+class procedure TGLRenderer.ViewportRenderBegin;
 {$ifndef OpenGLES}
 var
   I: Integer;
 {$endif}
 begin
-  DisabeAllTextureUnits;
-
-  { Restore active texture unit to 0 }
-  if GLFeatures.UseMultiTexturing then
-  begin
-    ActiveTexture(0);
-    {$ifndef OpenGLES}
-    glClientActiveTexture(GL_TEXTURE0);
-    {$endif}
-  end;
-
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    {$ifndef OpenGLES}
-    glMatrixMode(GL_MODELVIEW);
+    { ------------------------------------------------------------------------
 
-    { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
-      after rendering X3D model using MultiTexture. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    {$endif}
-  end;
+      Set fixed-function state that can be assumed by TGLRenderer,
+      and may change during rendering but will always be restored later.
+      So this secures from other rendering code (outside of TGLRenderer)
+      setting this OpenGL state to something unexpected.
 
-  RenderContext.PointSize := RenderOptions.PointSize;
-  RenderContext.LineWidth := RenderOptions.LineWidth;
+      E.g. shape may assume that GL_COLOR_MATERIAL is disabled.
+      If a shape does glEnable(GL_COLOR_MATERIAL), then it will for sure also do glDisable(GL_COLOR_MATERIAL)
+      at the end, so that state after shape rendering stays as it was.
 
-  if Beginning then
-  begin
-    FLineType := ltSolid;
-    {$ifndef OpenGLES}
-    glDisable(GL_LINE_STIPPLE);
-    {$endif}
-  end else
-    LineType := ltSolid;
+      This generally sets "typical" OpenGL state, and can be saved/restored during TCastleScene rendering.
+    }
 
-  RenderContext.DepthTest := Beginning and RenderOptions.DepthTest;
-
-  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
-  begin
-    {$ifndef OpenGLES}
+    // set texture unit to 0, this determines what is affected by glDisable(GL_TEXTURE_GEN_xxx)
+    if GLFeatures.UseMultiTexturing then
+    begin
+      ActiveTexture(0);
+      glClientActiveTexture(GL_TEXTURE0);
+    end;
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
-    {$endif}
-  end;
 
-  if RenderOptions.Mode in [rmDepth, rmFull] then
-    { Both at begin and end, disable fixed-function alpha test.
-      During rendering, scenes may freely enable it.
-      TODO: In the future, we should just save/restore it. }
-    RenderContext.FixedFunctionAlphaTestDisable;
-
-  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode = rmFull) then
-  begin
-    {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
 
-    { We don't really need to enable GL_NORMALIZE.
-      We always provide normalized normals (that's how arraysgenerator.pas
-      and vrmlmeshrenderer.inc always calculate them, and when provided
-      in VRML/X3D they should also be already normalized).
-      However, turning GL_NORMALIZE off doesn't give us *any* performance
-      benefit as far as I tested (with castle gate, on high-end GPUs
-      like Radeon X1600 and low-end like Intel).
+    for I := 0 to GLFeatures.MaxTextureUnits - 1 do
+      DisableTexture(I);
 
-      So leave GL_NORMALIZE enabled, it's still useful:
-      - for invalid VRML/X3D files that have unnomalized normals.
-      - in case caller loaded a scaling matrix
-        (for example, Examine camera may allow user to scale the object). }
-    GLSetEnabled(GL_NORMALIZE, Beginning);
+    { ------------------------------------------------------------------------
 
-    if not GLVersion.BuggyLightModelTwoSide then
-      glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
-    WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
+      Set fixed-function state that can be assumed by TGLRenderer,
+      and is constant for all shapes and for all scenes (so it doesn't even depend on RenderOptions),
+      and we don't care that we just changed it also
+      for stuff outside of TGLRenderer (so we make no attempt to restore
+      it at ViewportRenderEnd or even track previous state).
 
-    glShadeModel(GL_SMOOTH);
-    {$endif}
+      This generally sets "typical" OpenGL state, and remains constant during TCastleScene rendering. }
 
-    if Beginning then
-    begin
-      { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := RenderOptions.Lighting;
-      {$ifndef OpenGLES}
-      GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
-      {$endif}
-    end else
-      {$ifndef OpenGLES}
-      glDisable(GL_LIGHTING);
-      {$endif}
-
-    {$ifndef OpenGLES}
-
-    { No need to disable lights at the beginning.
-      LightsRenderer already assumes that state of lights is initially unknown,
-      and handles it. }
-    if not Beginning then
-      for I := 0 to GLFeatures.MaxLights - 1 do
-        glDisable(GL_LIGHT0 + I);
-
-    glDisable(GL_FOG);
-
-    { - We always set diffuse material component from the color.
+    { About using color material (what does glColor mean for materials):
+      - We always set diffuse material component from the color.
         This satisfies all cases.
       - TColorPerVertexCoordinateRenderer.RenderCoordinateBegin
         takes care of actually enabling COLOR_MATERIAL, it assumes that
         the state is as set below.
       - We never change glColorMaterial during rendering,
         so no need to call this in RenderEnd. }
-    if Beginning then
-      glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-    {$endif}
-  end else
-  begin
-    if Beginning then
-      { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := RenderOptions.Lighting;
+    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+
+    glShadeModel(GL_SMOOTH);
+
+    { While we don't *really need* to enable GL_NORMALIZE,
+      as we always try to provide normalized normals,
+      but avoiding GL_NORMALIZE doesn't give us *any* performance benefits.
+
+      And enabling GL_NORMALIZE:
+      - make us correct even when glTF/X3D files provided unnormalized normals.
+      - in case the object is scaled.
+      - it is also consistent with what shader pipeline is doing, it is always
+        normalizing normals. }
+    glEnable(GL_NORMALIZE);
+
+    if not GLVersion.BuggyLightModelTwoSide then
+      glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE)
+    else
+      WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
   end;
+  {$endif}
+end;
+
+class procedure TGLRenderer.ViewportRenderEnd;
+{$ifndef OpenGLES}
+var
+  I: Integer;
+{$endif}
+begin
+  { Restore defaults, for other rendering code outside of TGLRenderer.
+
+    These RenderContext properties are always set before rendering every shape,
+    so ViewportRenderBegin doesn't care to set them to any value,
+    and we just reset them in ViewportRenderEnd. }
+  RenderContext.CullFace := false;
+  RenderContext.FrontFaceCcw := true;
+  RenderContext.CurrentProgram := nil;
+  RenderContext.FixedFunctionAlphaTestDisable;
+
+  { Restore defaults, for other rendering code outside of TGLRenderer.
+
+    These RenderContext properties are always set in RenderBegin,
+    so they are constant for scene shapes.
+    So ViewportRenderBegin doesn't care to set them to any value,
+    and we just reset them in ViewportRenderEnd. }
+  RenderContext.PointSize := 1;
+  RenderContext.LineWidth := 1;
+  RenderContext.DepthTest := false;
+  RenderContext.FixedFunctionLighting := false;
+
+  { Restore default fixed-function state, for other rendering code outside of TGLRenderer.
+
+    These state things are adjusted by each shape,
+    and shape rendering assumes that at the beginning it is undefined
+    (so we don't care to set it in ViewportRenderBegin or ViewportRenderBeginEndCommon),
+    and shape doesn't restore it (because next shape will adjust it anyway).
+    So we reset them at the end to not affect other objects rendered outside of TGLRenderer.
+
+    This generally sets "typical" OpenGL state,
+    for things that may have non-standard values during TCastleScene rendering,
+    and each shape is prepared that it has non-standard value (but rendering outside
+    of TGLRenderer may not be prepared for it). }
+
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+  begin
+    for I := 0 to GLFeatures.MaxLights - 1 do
+      glDisable(GL_LIGHT0 + I);
+    glDisable(GL_FOG);
+
+    { Restore active texture unit to 0.
+      This also sets texture unit for subsequent glTexEnvi call. }
+    if GLFeatures.UseMultiTexturing then
+    begin
+      ActiveTexture(0);
+      {$ifndef OpenGLES}
+      glClientActiveTexture(GL_TEXTURE0);
+      {$endif}
+    end;
+
+    { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
+      after rendering X3D model using MultiTexture. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+  end;
+  {$endif}
 end;
 
 procedure TGLRenderer.RenderBegin(
@@ -2264,24 +2266,33 @@ begin
     [     AInternalPass,       AInternalScenePass,       AUserPass ],
     [High(AInternalPass), High(AInternalScenePass), High(AUserPass)]);
 
-  RenderCleanState(true);
-
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    { push matrix after RenderCleanState, to be sure we're in modelview mode }
-    {$ifndef OpenGLES}
     glPushMatrix;
 
     if RenderOptions.Mode = rmSolidColor then
       glColorv(RenderOptions.SolidColor);
-    {$endif}
   end;
+  {$endif}
 
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
   LightsRenderer := TLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
+
+  { Set RenderContext properties, constant for all shapes within this scene.
+    Note that all TCastleTransform rendering code that is not inside TCastleScene
+    (e.g. custom TCastleTransform descendant using TCastleRenderUnlitMesh)
+    must be prepared that this state may be whatever, and so it must save, set and restore this state.
+
+    ViewportRenderEnd resets these things, so that this state does not "leak"
+    for stuff rendered outside of TCastleViewport. }
+  RenderContext.PointSize := RenderOptions.PointSize;
+  RenderContext.LineWidth := RenderOptions.LineWidth;
+  RenderContext.DepthTest := RenderOptions.DepthTest;
+  RenderContext.FixedFunctionLighting := RenderOptions.Lighting and (RenderOptions.Mode = rmFull);
 end;
 
 procedure TGLRenderer.RenderEnd;
@@ -2296,19 +2307,13 @@ begin
   FogFunctionality := nil;
   FogEnabled := false;
 
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    {$ifndef OpenGLES}
     glPopMatrix;
-    {$endif}
   end;
+  {$endif}
 
-  RenderCleanState(false);
-
-  { restore defaults }
-  RenderContext.CullFace := false;
-  RenderContext.FrontFaceCcw := true;
-  RenderContext.CurrentProgram := nil;
   RenderingCamera := nil;
 end;
 
@@ -2415,11 +2420,11 @@ begin
   if (LP <> nil) and LP.FdApplied.Value then
   begin
     RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
-    LineType := LP.LineType;
+    RenderContext.LineType := LP.LineType;
   end else
   begin
     RenderContext.LineWidth := RenderOptions.LineWidth;
-    LineType := ltSolid;
+    RenderContext.LineType := ltSolid;
   end;
 
   RenderShapeMaterials(Shape, Shader);
@@ -2536,9 +2541,9 @@ begin
     RenderFog(FogFunctionality, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
+    {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction then
     begin
-      {$ifndef OpenGLES}
       { Set fixed-function fog parameters. }
       if FogEnabled then
       begin
@@ -2565,8 +2570,8 @@ begin
         glEnable(GL_FOG);
       end else
         glDisable(GL_FOG);
-      {$endif}
     end;
+    {$endif}
   end;
 
   if FogEnabled then
@@ -2599,12 +2604,12 @@ begin
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
+    {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction then
     begin
-      {$ifndef OpenGLES}
       glMatrixMode(GL_TEXTURE);
-      {$endif}
     end;
+    {$endif}
 
     { We work assuming that texture matrix before RenderShape was identity.
       Texture transform encoded in VRML/X3D will be multiplied by this.
@@ -2721,13 +2726,13 @@ begin
       end;
     end;
 
+    {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction then
     begin
-      {$ifndef OpenGLES}
       { restore GL_MODELVIEW }
       glMatrixMode(GL_MODELVIEW);
-      {$endif}
     end;
+    {$endif}
   end;
 
   RenderShapeClipPlanes(Shape, Shader, Lighting);
@@ -3053,17 +3058,14 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    { This test also means that we don't do FixedFunctionAlphaTestEnable /
-      FixedFunctionAlphaTestDisable (lower in this routine)
-      when RenderOptions.Mode are not [rmFull, rmDepth].
-
-      And that's good, because RenderCleanState only resets FixedFunctionAlphaTest
-      when RenderOptions.Mode is [rmFull, rmDepth].
-      And it should reset them only (and always) if RenderOptions.Mode says
-      it's possible we'll change them. }
-
     if RenderOptions.Mode = rmSolidColor then
+    begin
+      { Make sure each shape sets fixed-function alpha test,
+        regardless of RenderOptions.Mode (code for other RenderOptions.Mode values
+        is lower in this routine), otherwise it is undefined. }
+      RenderContext.FixedFunctionAlphaTestDisable;
       Exit;
+    end;
 
     AlphaTest := false;
 
@@ -3492,37 +3494,6 @@ begin
   else
   if TextureNode is TRenderedTextureNode then
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
-end;
-
-procedure TGLRenderer.SetFixedFunctionLighting(const Value: boolean);
-begin
-  if FFixedFunctionLighting <> Value then
-  begin
-    FFixedFunctionLighting := Value;
-    {$ifndef OpenGLES}
-    GLSetEnabled(GL_LIGHTING, FixedFunctionLighting);
-    {$endif}
-  end;
-end;
-
-procedure TGLRenderer.SetLineType(const Value: TLineType);
-begin
-  if FLineType <> Value then
-  begin
-    FLineType := Value;
-    {$ifndef OpenGLES}
-    case LineType of
-      ltSolid: glDisable(GL_LINE_STIPPLE);
-      ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
-      ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
-      ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
-      ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('LineType?');
-      {$endif}
-    end;
-    {$endif}
-  end;
 end;
 
 initialization

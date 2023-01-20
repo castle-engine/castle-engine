@@ -3346,18 +3346,18 @@ end;
 
 procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     { Disable for fixed-function pipeline }
     if GLFeatures.UseMultiTexturing then
       glActiveTexture(GL_TEXTURE0 + TextureUnit);
-    {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
-    {$endif}
   end;
+  {$endif}
 end;
 
 procedure TShader.EnableTextureTransform(const TextureUnit: Cardinal;

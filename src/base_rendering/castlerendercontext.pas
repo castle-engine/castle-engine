@@ -120,26 +120,30 @@ type
       FBlendingEnabled: Boolean;
       FFixedFunctionAlphaTest: Boolean;
       FFixedFunctionAlphaCutoff: Single;
+      FFixedFunctionLighting: boolean;
+      FLineType: TLineType;
 
-      procedure SetLineWidth(const Value: Single);
-      procedure SetPointSize(const Value: Single);
-      procedure SetGlobalAmbient(const Value: TCastleColorRGB);
-      procedure WarnContextNotCurrent;
-      procedure SetProjectionMatrix(const Value: TMatrix4);
-      procedure SetDepthRange(const Value: TDepthRange);
-      procedure SetCullFace(const Value: boolean);
-      procedure SetFrontFaceCcw(const Value: boolean);
-      procedure SetDepthTest(const Value: Boolean);
-      procedure SetDepthFunc(const Value: TDepthFunction);
-      function GetColorMask: boolean;
-      procedure SetColorMask(const Value: boolean);
-      procedure SetColorChannels(const Value: TColorChannels);
-      procedure SetDepthBufferUpdate(const Value: boolean);
-      procedure SetViewport(const Value: TRectangle);
-      procedure SetViewportDelta(const Value: TVector2Integer);
-      procedure UpdateViewport;
-      procedure WarningViewportTooLarge;
-      procedure SetCurrentProgram(const Value: TGLSLProgram);
+    procedure SetLineWidth(const Value: Single);
+    procedure SetPointSize(const Value: Single);
+    procedure SetGlobalAmbient(const Value: TCastleColorRGB);
+    procedure WarnContextNotCurrent;
+    procedure SetProjectionMatrix(const Value: TMatrix4);
+    procedure SetDepthRange(const Value: TDepthRange);
+    procedure SetCullFace(const Value: boolean);
+    procedure SetFrontFaceCcw(const Value: boolean);
+    procedure SetDepthTest(const Value: Boolean);
+    procedure SetDepthFunc(const Value: TDepthFunction);
+    function GetColorMask: boolean;
+    procedure SetColorMask(const Value: boolean);
+    procedure SetColorChannels(const Value: TColorChannels);
+    procedure SetDepthBufferUpdate(const Value: boolean);
+    procedure SetViewport(const Value: TRectangle);
+    procedure SetViewportDelta(const Value: TVector2Integer);
+    procedure UpdateViewport;
+    procedure WarningViewportTooLarge;
+    procedure SetCurrentProgram(const Value: TGLSLProgram);
+    procedure SetFixedFunctionLighting(const Value: boolean);
+    procedure SetLineType(const Value: TLineType);
   private
     FEnabledScissors: TScissorList;
   public
@@ -291,6 +295,15 @@ type
       This is simply ignored on modern GPUs when "not GLFeatures.EnableFixedFunction". }
     procedure FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
     procedure FixedFunctionAlphaTestDisable;
+
+    { Fixed-function GL_LIGHTING state.
+      This is simply ignored on modern GPUs when "not GLFeatures.EnableFixedFunction". }
+    property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
+
+    { Line type determines OpenGL glLineStipple, GL_LINE_STIPPLE enable state.
+      Note: This is not supported on OpenGLES. }
+    property LineType: TLineType read FLineType write SetLineType;
+
   end;
 
 var
@@ -727,6 +740,38 @@ begin
     end;
   end;
   {$endif}
+end;
+
+procedure TRenderContext.SetFixedFunctionLighting(const Value: boolean);
+begin
+  if FFixedFunctionLighting <> Value then
+  begin
+    FFixedFunctionLighting := Value;
+    {$ifndef OpenGLES}
+    if GLFeatures.EnableFixedFunction then
+      GLSetEnabled(GL_LIGHTING, Value);
+    {$endif}
+  end;
+end;
+
+procedure TRenderContext.SetLineType(const Value: TLineType);
+begin
+  if FLineType <> Value then
+  begin
+    FLineType := Value;
+    {$ifndef OpenGLES}
+    case LineType of
+      ltSolid: glDisable(GL_LINE_STIPPLE);
+      ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
+      ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
+      ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
+      ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('LineType?');
+      {$endif}
+    end;
+    {$endif}
+  end;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

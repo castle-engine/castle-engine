@@ -1202,7 +1202,7 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
+  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -2323,12 +2323,16 @@ end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 begin
+  TGLRenderer.ViewportRenderBegin;
+
   {$warnings off} // keep deprecated working
   Render3D(Params);
   {$warnings on}
 
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
+
+  TGLRenderer.ViewportRenderEnd;
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
