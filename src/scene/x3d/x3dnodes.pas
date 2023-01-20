@@ -263,9 +263,6 @@ type
 
 implementation
 
-// Silence warnings about using CastleNURBS (that will soon be renamed CastleInternalNurbs)
-{$warnings off}
-
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
   CastleTextureFont_DjvSans_20,
@@ -288,10 +285,8 @@ uses
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, {$ifdef CASTLE_SCRIPT}CastleScriptParser,{$endif} CastleInternalDataUri, URIParser, CastleDownload,
-  CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
+  CastleInternalNurbs, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
-
-{$warnings on}
 
 {$define read_implementation}
 
