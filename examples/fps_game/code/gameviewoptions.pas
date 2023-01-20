@@ -61,8 +61,6 @@ begin
 end;
 
 procedure TViewOptions.Start;
-var
-  I: Integer;
 begin
   inherited;
   ButtonBackMenu.OnClick := {$ifdef FPC}@{$endif} ClickBackMenu;
