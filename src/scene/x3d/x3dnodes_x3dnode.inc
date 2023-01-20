@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2964,6 +2964,7 @@ begin
   end;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
 var
   SN: TVRML1StateNode;
@@ -2979,6 +2980,7 @@ begin
     end;
   Result := false;
 end;
+{$warnings on}
 
 class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin

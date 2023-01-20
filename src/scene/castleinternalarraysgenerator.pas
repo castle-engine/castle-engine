@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1659,6 +1659,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 constructor TAbstractMaterial1Generator.Create(AShape: TShape);
 begin
   inherited;
@@ -1702,6 +1703,7 @@ begin
   { TODO: we handle all material bindings, but we handle BIND_PER_PART
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
+{$warnings on}
 
 procedure TAbstractMaterial1Generator.PrepareAttributes(var AllowIndexed: boolean);
 begin
@@ -1885,6 +1887,7 @@ begin
     AllowIndexed := false;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TAbstractNormalGenerator.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
 begin
@@ -1918,6 +1921,7 @@ begin
   if Normals.Count = 0 then
     Result := niNone;
 end;
+{$warnings on}
 
 function TAbstractNormalGenerator.NormalsSafe(const Index: Integer): TVector3;
 begin

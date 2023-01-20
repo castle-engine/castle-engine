@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,33 +34,33 @@ const
     @link(TMaterialBindingNode_1.FdValue).Value and
     @link(TNormalBindingNode_1.FdValue).Value.
     @groupBegin }
-  BIND_DEFAULT = 0;
-  BIND_OVERALL = 1;
-  BIND_PER_PART = 2;
-  BIND_PER_PART_INDEXED = 3;
-  BIND_PER_FACE = 4;
-  BIND_PER_FACE_INDEXED = 5;
-  BIND_PER_VERTEX = 6;
-  BIND_PER_VERTEX_INDEXED = 7;
+  BIND_DEFAULT = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_OVERALL = 1 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_PART = 2 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_PART_INDEXED = 3 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_FACE = 4 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_FACE_INDEXED = 5 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_VERTEX = 6 deprecated 'use X3D instead of VRML 1 nodes';
+  BIND_PER_VERTEX_INDEXED = 7 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   { Constants for @link(TShapeHintsNode_1.FdVertexOrdering).Value.
     @groupBegin }
-  VERTORDER_UNKNOWN = 0;
-  VERTORDER_CLOCKWISE = 1;
-  VERTORDER_COUNTERCLOCKWISE = 2;
+  VERTORDER_UNKNOWN = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  VERTORDER_CLOCKWISE = 1 deprecated 'use X3D instead of VRML 1 nodes';
+  VERTORDER_COUNTERCLOCKWISE = 2 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   { Constants for @link(TShapeHintsNode_1.FdShapeType).Value.
     @groupBegin }
-  SHTYPE_UNKNOWN = 0;
-  SHTYPE_SOLID = 1;
+  SHTYPE_UNKNOWN = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  SHTYPE_SOLID = 1 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   { Constants for @link(TShapeHintsNode_1.FdFaceType).Value.
     @groupBegin }
-  FACETYPE_UNKNOWN = 0;
-  FACETYPE_CONVEX = 1;
+  FACETYPE_UNKNOWN = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  FACETYPE_CONVEX = 1 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   { Constants for @link(TFontStyleNode.FdFamily).Value.
@@ -78,15 +78,15 @@ const
 
   { Constants for TConeNode.FdParts.Flags.
     @groupBegin }
-  CONE_PARTS_SIDES = 0;
-  CONE_PARTS_BOTTOM = 1;
+  CONE_PARTS_SIDES = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  CONE_PARTS_BOTTOM = 1 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   { Constants for TCylinderNode.FdParts.Flags.
     @groupBegin }
-  CYLINDER_PARTS_SIDES = 0;
-  CYLINDER_PARTS_TOP = 1;
-  CYLINDER_PARTS_BOTTOM = 2;
+  CYLINDER_PARTS_SIDES = 0 deprecated 'use X3D instead of VRML 1 nodes';
+  CYLINDER_PARTS_TOP = 1 deprecated 'use X3D instead of VRML 1 nodes';
+  CYLINDER_PARTS_BOTTOM = 2 deprecated 'use X3D instead of VRML 1 nodes';
   { @groupEnd }
 
   DefaultHeightMapScale = 0.01;
@@ -129,7 +129,7 @@ const
     TTexture2Node_1,
     TTextureCoordinate2Node_1
     { additions here must be synchronized with additions to TVRML1State }
-  );
+  ) deprecated 'use X3D instead of VRML 1 nodes';
 
   { Convert Boolean meaning "repeat" into TBoundaryMode.
     Useful to convert e.g. TImageTextureNode.RepeatS value
