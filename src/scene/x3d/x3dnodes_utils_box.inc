@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -242,6 +242,7 @@ begin
     BoxFilled;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -308,3 +309,4 @@ begin
     IFS.FdTextureCoordIndex.Items.Assign(IFS.FdCoordIndex.Items);
   except FreeAndNil(Result); raise end;
 end;
+{$warnings on}
