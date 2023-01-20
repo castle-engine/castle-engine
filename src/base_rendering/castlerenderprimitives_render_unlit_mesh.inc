@@ -267,7 +267,7 @@ begin
   end;
 end;
 
-procedure TCastleRenderUnlitMesh.SetIndexes(const Indexes: array of UInt16);
+procedure TCastleRenderUnlitMesh.SetIndexes(const Indexes: packed array of UInt16);
 begin
   SetIndexes(@Indexes[0], High(Indexes) + 1);
 end;
@@ -326,7 +326,7 @@ begin
     glBufferSubData(GL_ARRAY_BUFFER, 0, NewSize, Vertexes);
 end;
 
-procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: array of TVector4;
+procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: packed array of TVector4;
   const UsageDynamic: Boolean);
 begin
   SetVertexes(@Vertexes[0], High(Vertexes) + 1, UsageDynamic);
