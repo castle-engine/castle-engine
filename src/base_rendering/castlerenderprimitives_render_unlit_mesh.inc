@@ -341,7 +341,7 @@ end;
 procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: TVector4List;
   const UsageDynamic: Boolean);
 begin
-  SetVertexes(Vertexes.L, Vertexes.Count, UsageDynamic);
+  SetVertexes(PVector4(Vertexes.L), Vertexes.Count, UsageDynamic);
 end;
 
 {$endif read_implementation}
