@@ -1184,7 +1184,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
   procedure ChangeDraggedUI(var UI: TCastleUserInterface);
   begin
     if (UiDraggingMode in [dmResize, dmTranslate]) and
-       UI.FullSize and
+       UI.EffectiveFullSize and
        (UI.Parent <> nil) then
     begin
       UI := UI.Parent;
@@ -1344,7 +1344,7 @@ begin
 
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
-    if not UI.FullSize then
+    if not UI.EffectiveFullSize then
     begin
       // show desired Width / Height, useful e.g. for TCastleImageControl
       R.Width  := UI.Width  * UI.UIScale;
