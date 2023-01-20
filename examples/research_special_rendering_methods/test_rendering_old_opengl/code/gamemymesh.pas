@@ -90,10 +90,13 @@ procedure TMyMesh.LocalRender(const Params: TRenderParams);
 
 var
   SavedDepthTest: Boolean;
+  SavedLineWidth: Single;
 begin
   inherited;
   SavedDepthTest := RenderContext.DepthTest;
+  SavedLineWidth := RenderContext.LineWidth;
   RenderContext.DepthTest := true;
+  RenderContext.LineWidth := 5;
 
   if Mesh = nil then
     CreateMesh;
@@ -102,6 +105,7 @@ begin
   Mesh.Render(pmLines);
 
   RenderContext.DepthTest := SavedDepthTest;
+  RenderContext.LineWidth := SavedLineWidth;
 end;
 
 procedure TMyMesh.GLContextClose;
