@@ -317,21 +317,6 @@ end;
 procedure TTriangleSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
@@ -464,24 +449,6 @@ end;
 procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is NOT correct
-      (as vertexes are shared between triangles; so in smooth shading,
-      face normals will be incorrectly distributed among vertexes).
-
-    Which means that colors mixed with per-face normals simply don't work.
-    Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-  if (NorImplementation = niNone) and (Color = nil) then
-    Arrays.ForceFlatShading := true else
-  begin
-    Arrays.ForceFlatShading := false;
-    if NorImplementation = niNone then
-      WarningShadingProblems(true, false);
-  end;
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesPrimitives;
@@ -693,29 +660,6 @@ begin
     { Already calculated in constructor, pass to Arrays now }
     Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
     Arrays.CullFace := VRML1CullFace;
-
-    { When generating, we always generate flat normals for IndexedTriangleMesh
-      (I don't know if I should use anything like "creaseAngle"?) }
-    Arrays.ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
-  end else
-  begin
-    { About shading:
-      - we have to use smooth shading if we have colors
-        (colors are always per vertex for triangle sets).
-      - we have to use smooth shading if we have normals per vertex
-      - if we have normals per face, smooth shading is NOT correct
-        (as vertexes are shared between triangles; so in smooth shading,
-        face normals will be incorrectly distributed among vertexes).
-
-      Which means that colors mixed with per-face normals simply don't work.
-      Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-    if (NorImplementation = niNone) and (Color = nil) then
-      Arrays.ForceFlatShading := true else
-    begin
-      Arrays.ForceFlatShading := false;
-      if NorImplementation = niNone then
-        WarningShadingProblems(true, false);
-    end;
   end;
 end;
 
@@ -888,21 +832,6 @@ end;
 procedure TQuadSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for quad sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;

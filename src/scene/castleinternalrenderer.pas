@@ -528,7 +528,6 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
 
-    FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
     FLineType: TLineType;
 
@@ -554,12 +553,9 @@ type
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
-    procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
 
-    { Change glShadeModel by this property. }
-    property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
     property LineType: TLineType read FLineType write SetLineType;
@@ -2183,11 +2179,6 @@ begin
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
     WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
-    {$endif}
-
-    { Initialize FSmoothShading, make sure OpenGL state is appropriate }
-    FSmoothShading := true;
-    {$ifndef OpenGLES}
     glShadeModel(GL_SMOOTH);
     {$endif}
 
@@ -2226,7 +2217,6 @@ begin
     {$endif}
   end else
   begin
-    FSmoothShading := true;
     if Beginning then
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
       FFixedFunctionLighting := RenderOptions.Lighting;
@@ -3502,19 +3492,6 @@ begin
   else
   if TextureNode is TRenderedTextureNode then
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
-end;
-
-procedure TGLRenderer.SetSmoothShading(const Value: boolean);
-begin
-  if FSmoothShading <> Value then
-  begin
-    FSmoothShading := Value;
-    {$ifndef OpenGLES} //TODO-es
-    if Value then
-      glShadeModel(GL_SMOOTH) else
-      glShadeModel(GL_FLAT);
-    {$endif}
-  end;
 end;
 
 procedure TGLRenderer.SetFixedFunctionLighting(const Value: boolean);

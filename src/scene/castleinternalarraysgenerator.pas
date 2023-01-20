@@ -113,9 +113,6 @@ type
     property Geometry: TAbstractGeometryNode read FGeometry;
     { @groupEnd }
 
-    procedure WarningShadingProblems(
-      const ColorPerVertex, NormalPerVertex: boolean);
-
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
       If @nil then nothing will be rendered.
@@ -768,17 +765,6 @@ begin
   Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
   FCoordIndex := Geometry.CoordIndexField;
-end;
-
-procedure TArraysGenerator.WarningShadingProblems(
-  const ColorPerVertex, NormalPerVertex: boolean);
-const
-  SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
-begin
-  WritelnWarning('X3D', Format(
-    'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
-    [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
-      Geometry.X3DType]));
 end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;

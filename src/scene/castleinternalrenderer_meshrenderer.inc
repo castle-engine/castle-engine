@@ -541,8 +541,6 @@ begin
     RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
   else
     RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
-  if Renderer.RenderOptions.Mode = rmFull then
-    Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateEnd;

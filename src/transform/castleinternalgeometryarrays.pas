@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,7 +153,6 @@ type
 
     FCullFace: boolean;
     FFrontFaceCcw: boolean;
-    FForceFlatShading: boolean;
 
     FFaces: TFaceIndexesList;
 
@@ -367,10 +366,6 @@ type
       and for normals data (see @link(Normal)). }
     property FrontFaceCcw: boolean
       read FFrontFaceCcw write FFrontFaceCcw default false;
-
-    { Make the whole rendering with flat shading. }
-    property ForceFlatShading: boolean
-      read FForceFlatShading write FForceFlatShading default false;
 
     { Release the allocated memory for arrays (CoordinateArray, AttributeArray,
       Indexes). Further calls to IndexesPtr, Normal, Color and such will
