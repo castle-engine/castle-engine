@@ -35,7 +35,8 @@ type
 
   TFrustumPointsSingle = TFrustumPoints deprecated 'use TFrustumPoints';
 
-  TFrustumPointsDouble = packed array [0..7] of TVector4Double deprecated 'use Single-precision TFrustumPoints';
+  TFrustumPointsDouble = packed array [0..7] of TVector4Double
+    {$ifdef FPC}deprecated 'use Single-precision TFrustumPoints'{$endif};
 
 const
   FrustumPointsQuadsIndexes: packed array [TFrustumPlane, 0..3] of UInt16 =
