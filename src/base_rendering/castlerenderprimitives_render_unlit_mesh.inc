@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleInternalGLImages unit: drawing 2D images on screen (TDrawableImage class). }
+{ TCastleRenderUnlitMesh class. }
 
 {$ifdef read_interface}
 
