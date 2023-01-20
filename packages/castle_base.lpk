@@ -3805,9 +3805,9 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalSphericalHarmonics"/>
       </Item927>
       <Item928>
-        <Filename Value="../src/transform/castlenurbs.pas"/>
+        <Filename Value="../src/transform/castleinternalnurbs.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleNURBS"/>
+        <UnitName Value="CastleInternalNurbs"/>
       </Item928>
       <Item929>
         <Filename Value="../src/base/castlequaternions.pas"/>

@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,8 +14,7 @@
 }
 
 { Common utilities for NURBS curves and surfaces. }
-unit CastleNURBS
-  deprecated 'soon this unit will be renamed to CastleInternalNurbs; you should use NURBS only through the X3D nodes, like TNurbsCurveNode or TNurbsPatchSurfaceNode';
+unit CastleInternalNurbs;
 
 {$I castleconf.inc}
 

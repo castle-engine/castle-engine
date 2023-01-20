@@ -174,8 +174,14 @@ pipeline {
             }
           }
         }
+        /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
         stage('Raspberry Pi') {
-          when { not { expression { return params.jenkins_fast } } }
+          when {
+            allOf {
+              not { expression { return params.jenkins_fast } };
+              branch "master"
+            }
+          }
           agent {
             label 'raspberry-pi-cge-builder'
           }

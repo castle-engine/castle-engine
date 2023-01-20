@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -608,14 +608,17 @@ constructor TTriangleStripSetGenerator.Create(AShape: TShape);
 
     SH := State.VRML1State.ShapeHints;
 
-    { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
-      (a autorzy VRMLi w ogole nie powinni podawac normali jesli
-      nie podadza vertexOrdering innego niz UNKNOWN) }
+    {$warnings off} // using deprecated to keep supporting VRML 1
+    { At this place, we assume that VERTORDER_UNKNOWN_ORDERING is actually
+      VERTORDER_COUNTERCLOCKWISE.
+      (VRML 1 authors should not provide explicit normals at all if ordering
+      is unknown.) }
     VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
     VRML1CullFace :=
       (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
       (SH.FdShapeType.Value = SHTYPE_SOLID);
+    {$warnings on}
 
     NormalIndex := ANode.FdNormalIndex;
     Normals := State.VRML1State.Normal.FdVector.Items;
@@ -1098,8 +1101,10 @@ begin
 
   NormalIndex := Node.FdNormalIndex;
   Normals := State.VRML1State.Normal.FdVector.Items;
+  {$warnings off} // using deprecated to keep supporting VRML 1
   NormalsCcw :=
     State.VRML1State.ShapeHints.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  {$warnings on}
   NorImplementation := NorImplementationFromVRML1Binding(
     State.VRML1State.NormalBinding.FdValue.Value);
 end;

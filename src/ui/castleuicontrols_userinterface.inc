@@ -1198,6 +1198,12 @@
       be done in the future releases. }
     property OnInternalMouseLeave: TUiNotifyEvent
       read FOnInternalMouseLeave write FOnInternalMouseLeave;
+
+    { Is the @link(FullSize) actually active.
+      Checks @link(FullSize) and not @link(AutoSizeToChildren),
+      i.e. it accounts that AutoSizeToChildren overrides FullSize
+      (since they cannot both work at the same time). }
+    function EffectiveFullSize: Boolean;
   published
     { Mouse cursor over this control.
       When user moves mouse over the Container, the currently focused
@@ -2448,6 +2454,11 @@ begin
     Result := RectWithoutAnchors;
 end;
 
+function TCastleUserInterface.EffectiveFullSize: Boolean;
+begin
+  Result := FullSize and not AutoSizeToChildren;
+end;
+
 function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
   PR: TFloatRectangle;
@@ -2462,7 +2473,7 @@ begin
   Result := FastRectWithoutAnchors;
 
   { apply my Anchors and parent Border }
-  if not FullSize then
+  if not EffectiveFullSize then
   begin
     PR := ParentRect;
     Result.Left := Result.Left +

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -263,9 +263,6 @@ type
 
 implementation
 
-// Silence warnings about using CastleNURBS (that will soon be renamed CastleInternalNurbs)
-{$warnings off}
-
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
   CastleTextureFont_DjvSans_20,
@@ -288,10 +285,8 @@ uses
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, {$ifdef CASTLE_SCRIPT}CastleScriptParser,{$endif} CastleInternalDataUri, URIParser, CastleDownload,
-  CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
+  CastleInternalNurbs, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
-
-{$warnings on}
 
 {$define read_implementation}
 
@@ -462,7 +457,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_fog.inc}
 {$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
-{$I auto_generated_node_helpers/x3dnodes_fontstyle_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
 {$I auto_generated_node_helpers/x3dnodes_generatedcubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
@@ -521,7 +515,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_logger.inc}
 {$I auto_generated_node_helpers/x3dnodes_material.inc}
 {$I auto_generated_node_helpers/x3dnodes_material_1.inc}
-{$I auto_generated_node_helpers/x3dnodes_materialbinding_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc}
 {$I auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc}
 {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
@@ -540,7 +533,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
 {$I auto_generated_node_helpers/x3dnodes_normal.inc}
-{$I auto_generated_node_helpers/x3dnodes_normalbinding_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
@@ -607,7 +599,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
 {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_shape.inc}
-{$I auto_generated_node_helpers/x3dnodes_shapehints_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
 {$I auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_sliderjoint.inc}
@@ -741,6 +732,13 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
+
+{$warnings off} // uses deprecated constants like FSFAMILY_SERIF, we don't really plan to update it -- whole VRML 1 is deprecated
+{$I auto_generated_node_helpers/x3dnodes_fontstyle_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_materialbinding_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_normalbinding_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_shapehints_1.inc}
+{$warnings on}
 
 { unit init/fini ------------------------------------------------------------ }
 

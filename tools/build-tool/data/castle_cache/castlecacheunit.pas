@@ -14,7 +14,7 @@ uses
   castleboxes,
   castlecameras,
   castlefrustum,
-  castlenurbs,
+  castleinternalnurbs,
   castlequaternions,
   castlesectors,
   castletransform,

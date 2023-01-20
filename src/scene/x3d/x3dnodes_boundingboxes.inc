@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -376,6 +376,7 @@ begin
    Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transformation.Transform);
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TConeNode_1.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -383,6 +384,7 @@ begin
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], false);
 end;
+{$warnings on}
 
 function TConeNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -392,6 +394,7 @@ begin
     FdSide.Value, FdBottom.Value, false);
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TConeNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -399,6 +402,7 @@ begin
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], true);
 end;
+{$warnings on}
 
 function TConeNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -465,6 +469,7 @@ begin
   result := TBox3D.Empty;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TCylinderNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -474,6 +479,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_SIDES],
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
+{$warnings on}
 
 function TCylinderNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;

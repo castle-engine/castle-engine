@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,6 +66,7 @@ begin
     Result := Result + Slices;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
@@ -73,6 +74,7 @@ begin
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM],
     DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
+{$warnings on}
 
 function TConeNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
@@ -110,6 +112,7 @@ begin
     Result := Result + Slices;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
@@ -119,6 +122,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP],
     DefaultTriangulationSlices, 1 { no stacks used for cylinder });
 end;
+{$warnings on}
 
 function TCylinderNode.TrianglesCount(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
