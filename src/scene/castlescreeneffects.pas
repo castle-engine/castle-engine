@@ -450,7 +450,7 @@ var
     { all the checks below should pass on a modern GPU }
     SR := RenderRect.Round;
     RenderScreenEffects :=
-      GLFeatures.VertexBufferObject { for screen quad } and
+      (not GLFeatures.EnableFixedFunction) and
       GLFeatures.UseMultiTexturing and
       { check IsTextureSized, to gracefully work (without screen effects)
         on old desktop OpenGL that does not support NPOT textures. }
@@ -746,50 +746,8 @@ var
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      RenderContext.DepthTest := false;
-
-      glActiveTexture(GL_TEXTURE0);
-      glDisable(GL_TEXTURE_2D);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glEnable(ScreenEffectTextureTarget);
-
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        glDisable(GL_TEXTURE_2D);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glEnable(ScreenEffectTextureTarget);
-      end;
-      {$endif}
-    end;
-
     OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
     RenderWithScreenEffectsCore;
-
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-      end;
-
-      glActiveTexture(GL_TEXTURE0);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-
-      { at the end, we left active texture as default GL_TEXTURE0 }
-
-      glPopAttrib;
-      {$endif}
-    end;
   end;
 
 begin

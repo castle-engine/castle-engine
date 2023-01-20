@@ -307,19 +307,28 @@ type
     { Use OpenGL fixed-function rendering for ancient OpenGL versions on desktops.
       This rules whole rendering approach.
 
-      When this is @false, you can be sure that shaders and VBO are supported (OpenGL
-      API exposes them, they are not detected as "buggy").
-      In particular Shaders and VertexBufferObject are @true.
+      When this is @false, you can be sure that these features are supported
+      (OpenGL API exposes them, they are not detected as "buggy"):
+
+      @unorderedList(
+        @item(Multi-texturing (@link(UseMultiTexturing) is guaranteed to be @true))
+        @item(VBO (@link(VertexBufferObject) is guaranteed to be @true))
+        @item(Shaders (@link(Shaders) is guaranteed to be @true))
+      )
 
       When this is @true, you should use ancient fixed-function pipeline for all rendering,
       without shaders or VBO.
       In fact, to make it easier, we set Shaders and VertexBufferObject to @false
       in this case (even if in theory one of them could be used, at least in some cases...
       we don't want to maintain too many alternatives for ancient systems,
-      we want only want one path for ancient systems: all modern stuff disabled).
+      we want only one path for ancient systems: all modern stuff disabled).
       This makes Shaders and VertexBufferObject practically useless now:
       they are always negation of EnabledFixedFunction. And this is OK, it means we have
       2 clear approaches to rendering, not a lot of possible combinations to test.
+
+      Note that @link(UseMultiTexturing) may be @true or @false when
+      EnableFixedFunction is @true. So we still allow the option to support fixed-function
+      with or without multi-texturing.
 
       When this is @true:
 
@@ -743,6 +752,7 @@ begin
   FEnableFixedFunction :=
     {$ifdef OpenGLES} false
     {$else}
+    (not UseMultiTexturing) or
     (not Shaders) or
     // checking for VertexBufferObject also makes sure that BuggyVBO = false
     (not VertexBufferObject) or
