@@ -122,10 +122,10 @@ type
     { Define indexes for all future rendering.
       Note: Passing indexes that do not exist in vertexes you define in SetVertexes
       may result in crashes, neither CGE nor rendering API necessarily check it. }
-    procedure SetIndexes(const Indexes: packed array of UInt16); overload;
+    procedure SetIndexes(const Indexes: array of UInt16); overload;
     procedure SetIndexes(const Indexes: PUInt16; const IndexesCount: Cardinal); overload;
 
-    procedure SetVertexes(const Vertexes: packed array of TVector4;
+    procedure SetVertexes(const Vertexes: array of TVector4;
       const UsageDynamic: Boolean); overload;
     procedure SetVertexes(const Vertexes: TVector4List;
       const UsageDynamic: Boolean); overload;
@@ -267,8 +267,11 @@ begin
   end;
 end;
 
-procedure TCastleRenderUnlitMesh.SetIndexes(const Indexes: packed array of UInt16);
+procedure TCastleRenderUnlitMesh.SetIndexes(const Indexes: array of UInt16);
 begin
+  { Note: This assumes that Indexes is actually a "packed array of UInt16",
+    but it cannot be declared as such in Delphi.
+    We verify it by test TTestCompiler.TestPackedOpenArray in CGE tests/ projects. }
   SetIndexes(@Indexes[0], High(Indexes) + 1);
 end;
 
@@ -326,9 +329,12 @@ begin
     glBufferSubData(GL_ARRAY_BUFFER, 0, NewSize, Vertexes);
 end;
 
-procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: packed array of TVector4;
+procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: array of TVector4;
   const UsageDynamic: Boolean);
 begin
+  { Note: This assumes that Vertexes is actually a "packed array of TVector4",
+    but it cannot be declared as such in Delphi.
+    We verify it by test TTestCompiler.TestPackedOpenArray in CGE tests/ projects. }
   SetVertexes(@Vertexes[0], High(Vertexes) + 1, UsageDynamic);
 end;
 
