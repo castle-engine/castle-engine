@@ -196,7 +196,7 @@ type
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
-  TCubicBezier3DPointsArray=array of TCubicBezier3DPoints;
+  TCubicBezier3DPointsArray = array of TCubicBezier3DPoints;
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
     is a cubic Bezier curve (Bezier with 4 control points,
@@ -218,7 +218,7 @@ type
   strict protected
     function CreateConvexHullPoints: TVector3List; override;
     procedure DestroyConvexHullPoints(Points: TVector3List); override;
-    {Calculating additional points}
+    { Calculating additional points. }
     procedure UpdateBezierCurves(var ABezierCurves: TCubicBezier3DPointsArray); virtual;
   public
     constructor Create;
@@ -732,6 +732,7 @@ begin
 end;
 
 procedure TPiecewiseCubicBezier.UpdateControlPoints;
+
   procedure UpdateConvexHullPoints;
   var
     I: Integer;
