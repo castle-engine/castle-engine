@@ -294,8 +294,10 @@
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 7.0000000000000000E+002,
-        "Y" : 9.4000000000000000E+002
-      }
+        "Y" : -2.1882324218750000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
     }
   ]
 }
