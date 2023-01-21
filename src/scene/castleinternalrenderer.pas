@@ -2208,6 +2208,7 @@ begin
   RenderContext.FrontFaceCcw := true;
   RenderContext.CurrentProgram := nil;
   RenderContext.FixedFunctionAlphaTestDisable;
+  RenderContext.FixedFunctionLighting := false;
 
   { Restore defaults, for other rendering code outside of TGLRenderer.
 
@@ -2218,7 +2219,6 @@ begin
   RenderContext.PointSize := 1;
   RenderContext.LineWidth := 1;
   RenderContext.DepthTest := false;
-  RenderContext.FixedFunctionLighting := false;
 
   { Restore default fixed-function state, for other rendering code outside of TGLRenderer.
 
@@ -2324,7 +2324,6 @@ begin
   RenderContext.PointSize := RenderOptions.PointSize;
   RenderContext.LineWidth := RenderOptions.LineWidth;
   RenderContext.DepthTest := RenderOptions.DepthTest;
-  RenderContext.FixedFunctionLighting := RenderOptions.Lighting and (RenderOptions.Mode = rmFull);
 end;
 
 procedure TGLRenderer.RenderEnd;
