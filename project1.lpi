@@ -105,7 +105,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="6">
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -133,6 +133,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleInternalSteamApi"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="castlesteam\steamcallback.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
