@@ -86,6 +86,12 @@ unit PasGLTF;
  {$endif}
  {$define CAN_INLINE}
  {$define HAS_ADVANCED_RECORDS}
+
+ { CGE: disable FPC warnings at range check errors in constants here.
+   Note that we need to include more than affected lines in warnings off/on
+   section, to effectively disable warnings -- the affected lines are in generic
+   class and it seems they are reported at specialization. }
+ {$warnings off}
 {$else}
  {$warn COMBINING_SIGNED_UNSIGNED off} // CGE added
  {$warn COMBINING_SIGNED_UNSIGNED64 off} // CGE added
@@ -2183,7 +2189,6 @@ begin
 end;
 
 function TPasGLTFUTF8StringHashMap<TPasGLTFHashMapValue>.HashData(const Data:TPasGLTFPointer;const DataLength:TPasGLTFSizeUInt):TPasGLTFUInt32;
-{$warnings off} // CGE disable warnings
 // xxHash32
 const PRIME32_1=TPasGLTFUInt32(2654435761);
       PRIME32_2=TPasGLTFUInt32(2246822519);
@@ -2196,7 +2201,6 @@ const PRIME32_1=TPasGLTFUInt32(2654435761);
       v3Initialization=TPasGLTFUInt32(TPasGLTFUInt64(TPasGLTFUInt64(Seed)+TPasGLTFUInt64(0)));
       v4Initialization=TPasGLTFUInt32(TPasGLTFUInt64(TPasGLTFInt64(TPasGLTFInt64(Seed)-TPasGLTFInt64(PRIME32_1))));
       HashInitialization=TPasGLTFUInt32(TPasGLTFUInt64(TPasGLTFUInt64(Seed)+TPasGLTFUInt64(PRIME32_5)));
-{$warnings on}
 var v1,v2,v3,v4:TPasGLTFUInt32;
     p,e:PPasGLTFUInt8;
 begin
