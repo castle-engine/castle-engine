@@ -86,6 +86,12 @@ unit PasGLTF;
  {$endif}
  {$define CAN_INLINE}
  {$define HAS_ADVANCED_RECORDS}
+
+ { CGE: disable FPC warnings at range check errors in constants here.
+   Note that we need to include more than affected lines in warnings off/on
+   section, to effectively disable warnings -- the affected lines are in generic
+   class and it seems they are reported at specialization. }
+ {$warnings off}
 {$else}
  {$warn COMBINING_SIGNED_UNSIGNED off} // CGE added
  {$warn COMBINING_SIGNED_UNSIGNED64 off} // CGE added
