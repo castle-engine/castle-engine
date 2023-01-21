@@ -116,6 +116,8 @@ type
     FEnableFixedFunction: Boolean;
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
+    class var
+      FForceFixedFunction: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -349,9 +351,27 @@ type
     property EnableFixedFunction: Boolean read FEnableFixedFunction;
 
     {$ifndef OpenGLES}
-    { Set EnableFixedFunction and some other routines, to force testing rendering
-      using old pipeline. }
-    procedure ForceFixedFunction;
+    { Force EnableFixedFunction to be @true, to test rendering
+      using old pipeline even if you work on modern GPU.
+
+      This is a class routine and it must be called before OpenGL(ES)
+      context is initialized, which means before TCastleWindow.Open
+      occurs, which means before @link(GLFeatures) instance is initialized.
+
+      This is necessary, as otherwise creating OpenGL context could
+      initialize early some resources for modern pipeline,
+      e.g. RenderLoadingBackground would initialize TDrawableImage shaders.
+      Setting EnableFixedFunction to true later, and disabling shaders,
+      would put us in a weird state -- some TDrawableImage
+      shader could be enabled,
+      and it couldn't be disabled (because InternalSetCurrentProgram
+      now thinks that shaders are not available).
+
+      It is more reliable to guarantee that EnableFixedFunction
+      is constant once OpenGL(ES) context is open.
+      So e.g. if EnableFixedFunction=true, you can be 100% certain
+      that no shaders are enabled, because they are disabled from the start. }
+    class procedure ForceFixedFunction;
     {$endif}
 
     { Total and current memory available.
@@ -767,6 +787,14 @@ begin
     FVertexBufferObject := false;
   end;
 
+  // FForceFixedFunction overrides above detection
+  if FForceFixedFunction then
+  begin
+    FEnableFixedFunction := true;
+    FShaders := false;
+    FVertexBufferObject := false;
+  end;
+
   Assert(EnableFixedFunction = (not Shaders));
   Assert(EnableFixedFunction = (not VertexBufferObject));
 
@@ -817,14 +845,11 @@ begin
 end;
 
 {$ifndef OpenGLES}
-procedure TGLFeatures.ForceFixedFunction;
+class procedure TGLFeatures.ForceFixedFunction;
 begin
-  FEnableFixedFunction := true;
-  FShaders := false;
-  FVertexBufferObject := false;
-
-  Assert(EnableFixedFunction = (not Shaders));
-  Assert(EnableFixedFunction = (not VertexBufferObject));
+  if GLFeatures <> nil then
+    raise Exception.Create('It is not allowed to call TGLFeatures.ForceFixedFunction when rendering context is already initialized. You have to call it before TCastleWindow.Open, before TCastleApplication.OnInitialize.');
+  FForceFixedFunction := true;
 end;
 {$endif}
 

@@ -38,11 +38,6 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  // CGE build tool will define OpenGLES symbol when necessary
-  {$ifndef OpenGLES}
-  GLFeatures.ForceFixedFunction;
-  {$endif}
-
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
@@ -66,6 +61,11 @@ initialization
 
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
+
+  // CGE build tool will define OpenGLES symbol when necessary
+  {$ifndef OpenGLES}
+  TGLFeatures.ForceFixedFunction;
+  {$endif}
 
   { Optionally, adjust window fullscreen state and size at this point.
     Examples:
