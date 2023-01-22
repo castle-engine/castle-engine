@@ -11,7 +11,7 @@
         "Green" : 1.0196078568696976E-001,
         "Red" : 1.0196078568696976E-001
       },
-      "Camera" : "Camera1",
+      "Camera" : "MapCamera",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
@@ -21,15 +21,10 @@
         "$Children" : [
           {
             "$$ClassName" : "TCastleCamera",
-            "Name" : "Camera1",
+            "Name" : "MapCamera",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 1.0000000000000000E+003,
-              "OriginPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.0000000000000000E-001,
-                "Y" : 5.0000000000000000E-001
-              }
+              "Height" : 1.0000000000000000E+003
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
@@ -68,7 +63,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.0858049316406250E+003,
+          "Height" : 1.7901895751953125E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -85,8 +80,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -5.8346786499023438E+000,
-          "Y" : 2.0491622924804688E+001,
+          "X" : 3.6218325805664062E+002,
+          "Y" : 3.4440820312500000E+002,
           "Z" : 6.0000000000000000E+002
         }
       },

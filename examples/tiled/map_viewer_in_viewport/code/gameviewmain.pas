@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleTransform,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleScene;
 
 type
@@ -32,9 +32,11 @@ type
     TiledScene: TCastleScene;
     ButtonOpen: TCastleButton;
     CheckboxSmoothScaling: TCastleCheckbox;
+    MapCamera: TCastleCamera;
   private
     procedure ClickOpen(Sender: TObject);
     procedure CheckboxSmoothScalingChange(Sender: TObject);
+    procedure OpenMap(const MapUrl: String);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -70,9 +72,15 @@ begin
 
   { Load the map from parameter or default. }
   if Parameters.High = 1 then
-    TiledScene.URL := Parameters[1]
+    OpenMap(Parameters[1])
   else
-    TiledScene.URL := 'castle-data:/maps/desert.tmx';
+    OpenMap('castle-data:/maps/desert.tmx');
+end;
+
+procedure TViewMain.OpenMap(const MapUrl: String);
+begin
+  TiledScene.Url := MapUrl;
+  MapCamera.Translation := TVector3.Zero;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -87,7 +95,7 @@ var
 begin
   Url := TiledScene.Url;
   if Application.MainWindow.FileDialog('Open Map', Url, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
-    TiledScene.Url := Url;
+    OpenMap(Url);
 end;
 
 procedure TViewMain.CheckboxSmoothScalingChange(Sender: TObject);
