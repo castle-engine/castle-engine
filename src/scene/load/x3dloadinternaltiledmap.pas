@@ -186,14 +186,6 @@ begin
 
     if Assigned(Tileset.Image) then
     begin
-      { Fix Tileset.Columns if necessary, testcase: examples/tiled/map_viewer/data/maps/desert.tmx }
-      { TODO: This code is also done by TCastleTiledMapControl.LoadTilesetsImages.
-        Move the logic to TTiledMap? }
-      if Tileset.Columns = 0 then
-        Tileset.Columns := Tileset.Image.Width div Tileset.TileWidth;
-      if Tileset.TileCount = 0 then
-        Tileset.TileCount := (Tileset.Image.Height div Tileset.TileHeight) * Tileset.Columns;
-
       { Prepare texture node of tileset. }
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);

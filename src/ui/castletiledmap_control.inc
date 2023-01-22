@@ -339,11 +339,6 @@ begin
   if Map <> nil then
     for Tileset in Map.Tilesets do
     begin
-      //todo: use transparent color (implement in TSprite?)
-      if Tileset.Columns = 0 then
-        Tileset.Columns := Tileset.Image.Width div Tileset.TileWidth;
-      if Tileset.TileCount = 0 then
-        Tileset.TileCount := (Tileset.Image.Height div Tileset.TileHeight) * Tileset.Columns;
       if (Tileset.TileCount = 0) or (Tileset.Columns = 0) then
       begin
         WriteLnWarning('Empty Tileset');

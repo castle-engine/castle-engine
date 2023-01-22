@@ -1111,13 +1111,13 @@ begin
     end;
   finally FreeAndNil(I) end;
 
-  { Fallback: TileCount determination if is not found in (old) tsx-files prior
-    to version 0.13 (Aug 2015). }
+  { Fix Columns if necessary, testcase: examples/tiled/map_viewer/data/maps/desert.tmx }
+  if Columns = 0 then
+    Columns := Image.Width div TileWidth;
+
+  { Fix TileCount, if it is not found in (old) tsx-files prior to version 0.13 (Aug 2015). }
   if TileCount = 0 then
-  begin
-    Image.DetermineSize;
-    TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
-  end;
+    TileCount := (Image.Height div TileHeight) * Columns;
 
   CompleteTiles;
 end;
