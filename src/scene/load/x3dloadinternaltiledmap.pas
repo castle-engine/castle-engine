@@ -277,6 +277,8 @@ var
     Result := Tileset.TileCount div Tileset.Columns;
   end;
 
+var
+  TexProperties: TTexturePropertiesNode;
 begin
   TilesetTexCoordOrigin := TVector2.Zero;
   GhostNode := TX3DRootNode.Create;
@@ -302,13 +304,17 @@ begin
       { Prepare texture node of tileset. }
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
-      TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
-      TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
-      TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
 
-      { Set S,T boundary modes. }
-      TilesetTextureNode.TextureProperties.BoundaryModeS := bmMirroredRepeat;
-      TilesetTextureNode.TextureProperties.BoundaryModeT := bmMirroredRepeat;
+      TexProperties := TTexturePropertiesNode.Create;
+      TexProperties.MagnificationFilter := magDefault;
+      TexProperties.MinificationFilter := minDefault;
+      TexProperties.BoundaryModeS := bmMirroredRepeat;
+      TexProperties.BoundaryModeT := bmMirroredRepeat;
+      { Do not force "power of 2" size, which may prevent mipmaps.
+        Not resizing is consistent with X3DLoadInternalImage, LoadCastleSpriteSheet,
+        users may use it with pixel-art and don't expect images to be resized. }
+      TexProperties.GuiTexture := true;
+      TilesetTextureNode.TextureProperties := TexProperties;
     end;
 
     if (Tileset.TileCount = 0) or (Tileset.Columns = 0) then
