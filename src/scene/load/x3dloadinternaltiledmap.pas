@@ -25,26 +25,6 @@
     @item Tiled image layers
     @item Tiled object ellipsoids
   )
-
-  @bold X3D Hierarchy of a converted Tiled Map
-
-  @preformatted(
-    Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
-                                                   --> [1] Layer Node 2 --> ...
-                                                   ...
-                                                   --> [n] Layer Node n+1 --> ...
-                                  --> [1] Ghost Node --> [0] Tileset Shape Node 1
-                                                     --> [1] Tileset Shape Node 2
-                                                     ...
-                                                     --> [m] Tileset Shape Node m+1
-  )
-  The "Map Node" contains the map as a scene graph.
-
-  The "Ghost Node"
-  holds all the nodes from which the "Map Node" is composed. It actually holds
-  even all tiles (as ready to use shape nodes) provided by the tileset(s).
-  From the outside you usually work on the "Map Node" and ignore
-  the "Ghost Node".
 }
 unit X3DLoadInternalTiledMap;
 
@@ -83,11 +63,13 @@ type
     FMapNode: TTransformNode;
     FRootNode: TX3DRootNode;
 
-    { Load tiles to nodes.
-      Fills TTile.RendererData with TShapeNode to render this. }
-    procedure ConvertTilesets;
-    { Tries to construct X3D nodes for each layer. }
+    { Fills every TTileset.RendererData with TAppearanceNode with texture of this tileset. }
+    procedure PrepareTilesets;
+
+    { Constructs X3D nodes for each layer. }
     procedure ConvertLayers;
+
+    procedure FreeUnusedTilesetsRendererData;
 
     procedure BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
       const ALayer: TTiledMap.TLayer);
@@ -104,10 +86,12 @@ type
     constructor Create(ATiledMap: TTiledMap);
     destructor Destroy; override;
 
-    { Tries to construct X3D representation from TTiledMap data. }
+    { Constructs X3D representation from TTiledMap data. }
     procedure ConvertMap;
+
     { The Tiled map is loaded from stream and NOT free'd automatically. }
     property Map: TTiledMap read FMap write FMap;
+
     { Holds the X3D representation of the Tiled map. It is NOT free'd
       automatically. Usually the X3D representation is added to a scene
       by Scene.Load(). The scene which will care about freeing. }
@@ -117,31 +101,32 @@ type
 
 procedure TTiledMapConverter.ConvertMap;
 begin
-  ConvertTilesets;
+  PrepareTilesets;
   ConvertLayers;
+  FreeUnusedTilesetsRendererData;
 end;
 
-procedure TTiledMapConverter.ConvertTilesets;
+procedure TTiledMapConverter.FreeUnusedTilesetsRendererData;
 var
-  Tile: TTiledMap.TTile;
+  Appearance: TAppearanceNode;
   Tileset: TTiledMap.TTileset;
-  TilesetTextureNode: TImageTextureNode;
-  TileGeometryNode: TQuadSetNode;
-  TileShapeNode: TShapeNode;
-
-  { The ghost node holds all shape nodes of all tilesets and is added
-    to the map node.
-    If the map node is free'd, all tiles of the tilesets are free'd via
-    the ghost node, even if they were not used as actual map tiles. }
-  GhostNode: TGroupNode;
-
-  TexProperties: TTexturePropertiesNode;
-  Coord: TCoordinateNode;
-  TexCoord: TTextureCoordinateNode;
-  TexRect: TFloatRectangle;
 begin
-  GhostNode := TGroupNode.Create;
+  for Tileset in Map.Tilesets do
+  begin
+    Appearance := Tileset.RendererData as TAppearanceNode;
+    FreeIfUnusedAndNil(Appearance);
+    Tileset.RendererData := nil;
+  end;
+end;
 
+procedure TTiledMapConverter.PrepareTilesets;
+var
+  Texture: TImageTextureNode;
+  TexProperties: TTexturePropertiesNode;
+  Appearance: TAppearanceNode;
+var
+  Tileset: TTiledMap.TTileset;
+begin
   for Tileset in Map.Tilesets do
   begin
     if Tileset.Image = nil then
@@ -156,9 +141,8 @@ begin
       Continue;
     end;
 
-    { Prepare texture node of tileset. }
-    TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
-    TilesetTextureNode.SetUrl([Tileset.Image.URL]);
+    Texture := TImageTextureNode.Create;
+    Texture.SetUrl([Tileset.Image.URL]);
 
     TexProperties := TTexturePropertiesNode.Create;
     TexProperties.MagnificationFilter := magDefault;
@@ -167,58 +151,11 @@ begin
       Not resizing is consistent with X3DLoadInternalImage, LoadCastleSpriteSheet,
       users may use it with pixel-art and don't expect images to be resized. }
     TexProperties.GuiTexture := true;
-    TilesetTextureNode.TextureProperties := TexProperties;
+    Texture.TextureProperties := TexProperties;
 
-    for Tile in Tileset.Tiles do
-    begin
-      { Make tiles of tileset rectangular and with correct dimensions. }
-      TileGeometryNode := TQuadSetNode.CreateWithShape(TileShapeNode);
-
-      Coord := TCoordinateNode.Create;
-      Coord.SetPoint([
-        Vector3(0, 0, 0),
-        Vector3(Tileset.TileWidth, 0, 0),
-        Vector3(Tileset.TileWidth, Tileset.TileHeight, 0),
-        Vector3(0, Tileset.TileHeight, 0)
-      ]);
-      TileGeometryNode.Coord := Coord;
-
-      TexRect := FloatRectangle(
-        (Tile.Id mod Tileset.Columns) * (Tileset.TileWidth + Tileset.Spacing)
-        + Tileset.Margin,
-        (Tile.Id div Tileset.Columns) * (Tileset.TileHeight + Tileset.Spacing)
-        + Tileset.Margin,
-        Tileset.TileWidth,
-        Tileset.TileHeight
-      );
-
-      { fix TexRect to be in 0..1 range }
-      TexRect.Left := TexRect.Left / Tileset.Image.Width;
-      TexRect.Width := TexRect.Width / Tileset.Image.Width;
-      TexRect.Bottom := TexRect.Bottom / Tileset.Image.Height;
-      TexRect.Height := TexRect.Height / Tileset.Image.Height;
-
-      // account that Tiled logic for texture coords assumes Y goes down
-      TexRect.Bottom := 1 - TexRect.Bottom - TexRect.Height;
-
-      TexCoord := TTextureCoordinateNode.Create;
-      TexCoord.SetPoint([
-        Vector2(TexRect.Left , TexRect.Bottom),
-        Vector2(TexRect.Right, TexRect.Bottom),
-        Vector2(TexRect.Right, TexRect.Top),
-        Vector2(TexRect.Left , TexRect.Top)
-      ]);
-      TileGeometryNode.TexCoord := TexCoord;
-
-      TileShapeNode.Appearance := TAppearanceNode.Create;
-      TileShapeNode.Appearance.Texture := TilesetTextureNode;
-
-      Tile.RendererData := TileShapeNode;
-      GhostNode.AddChildren(TileShapeNode);
-    end;
-
-    { Add ghost nodes to switch node. }
-    (RootNode.FdChildren.Items[0] as TSwitchNode).AddChildren(GhostNode);
+    Appearance := TAppearanceNode.Create(Tileset.Name, '');
+    Appearance.Texture := Texture;
+    Tileset.RendererData := Appearance;
   end;
 end;
 
@@ -356,26 +293,79 @@ end;
 procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
   const ALayer: TTiledMap.TLayer);
 
-  procedure RenderTile(const X, Y: Integer);
+  function GetTileCoordRect(const TilePosition: TVector2Integer;
+    const Tileset: TTiledMap.TTileset): TFloatRectangle;
+  begin
+    Result := FloatRectangle(
+      Map.TileRenderPosition(TilePosition),
+      Tileset.TileWidth,
+      Tileset.TileHeight
+    );
+  end;
+
+  function GetTileTexCoordRect(const Tile: TTiledMap.TTile; const Tileset: TTiledMap.TTileset): TFloatRectangle;
+  begin
+    Result := FloatRectangle(
+      (Tile.Id mod Tileset.Columns) * (Tileset.TileWidth + Tileset.Spacing)
+      + Tileset.Margin,
+      (Tile.Id div Tileset.Columns) * (Tileset.TileHeight + Tileset.Spacing)
+      + Tileset.Margin,
+      Tileset.TileWidth,
+      Tileset.TileHeight
+    );
+
+    { fix Result to be in 0..1 range }
+    Result.Left := Result.Left / Tileset.Image.Width;
+    Result.Width := Result.Width / Tileset.Image.Width;
+    Result.Bottom := Result.Bottom / Tileset.Image.Height;
+    Result.Height := Result.Height / Tileset.Image.Height;
+
+    // account that Tiled logic for texture coords assumes Y goes down
+    Result.Bottom := 1 - Result.Bottom - Result.Height;
+  end;
+
+  procedure RenderTile(const TilePosition: TVector2Integer);
   var
     Tileset: TTiledMap.TTileset;
-    TileNode: TTransformNode;
-    TileShapeNode: TShapeNode;
-    HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
     Frame: Integer;
+    HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+    CoordRect, TexCoordRect: TFloatRectangle;
+    Geometry: TQuadSetNode;
+    Shape: TShapeNode;
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
   begin
-    if Map.TileRenderData(Vector2Integer(X, Y), ALayer,
+    if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      TileNode := TTransformNode.Create;
-      TileNode.Translation := Vector3(Map.TileRenderPosition(Vector2Integer(X, Y)), 0);
+      Geometry := TQuadSetNode.CreateWithShape(Shape);
 
-      TileShapeNode := Tileset.Tiles[Frame].RendererData as TShapeNode;
+      CoordRect := GetTileCoordRect(TilePosition, Tileset);
+      TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset);
 
-      // TODO: apply HorizontalFlip, VerticalFlip, DiagonalFlip for this instance
+      Coord := TCoordinateNode.Create;
+      Coord.SetPoint([
+        Vector3(CoordRect.Left , CoordRect.Bottom, 0),
+        Vector3(CoordRect.Right, CoordRect.Bottom, 0),
+        Vector3(CoordRect.Right, CoordRect.Top   , 0),
+        Vector3(CoordRect.Left , CoordRect.Top   , 0)
+      ]);
+      Geometry.Coord := Coord;
 
-      TileNode.AddChildren(TileShapeNode);
-      LayerNode.AddChildren(TileNode);
+      TexCoord := TTextureCoordinateNode.Create;
+      TexCoord.SetPoint([
+        Vector2(TexCoordRect.Left , TexCoordRect.Bottom),
+        Vector2(TexCoordRect.Right, TexCoordRect.Bottom),
+        Vector2(TexCoordRect.Right, TexCoordRect.Top),
+        Vector2(TexCoordRect.Left , TexCoordRect.Top)
+      ]);
+      Geometry.TexCoord := TexCoord;
+
+      // TODO: apply HorizontalFlip, VerticalFlip, DiagonalFlip to TexCoord
+
+      Shape.Appearance := Tileset.RendererData as TAppearanceNode;
+
+      LayerNode.AddChildren(Shape);
     end;
   end;
 
@@ -384,7 +374,7 @@ var
 begin
   for Y := Map.Height - 1 downto 0 do
     for X := 0 to Map.Width - 1 do
-      RenderTile(X, Y);
+      RenderTile(Vector2Integer(X, Y));
 end;
 
 constructor TTiledMapConverter.Create(ATiledMap: TTiledMap);
