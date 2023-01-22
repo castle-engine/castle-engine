@@ -18,11 +18,13 @@
   Underneath, the map is loaded using @link(TTiledMap) class,
   thus the map-reading logic is shared with TCastleTiledMapControl.
 
-  @bold Unsupported features
+  TODO:
 
   @orderedList(
-    @item Tiled image layers
-    @item Tiled object ellipsoids
+    @item(Tiled image layers)
+    @item(Tiled object ellipsoids)
+    @item(At extreme zooms, seams when rendering may appear (regardless of smooth or not filtering,
+      regardless of doing Round() on final coords).)
   )
 }
 unit X3DLoadInternalTiledMap;
@@ -51,11 +53,7 @@ uses
   CastleImages;
 
 type
-  { Converter class to convert Tiled map into X3D representations.
-
-    TODO:
-    - SmoothScalingSafeBorder, similar to TCastleTiledMapControl, to fix borders on desert example
-  }
+  { Converter class to convert Tiled map into X3D representations. }
   TTiledMapConverter = class
   strict private
     FMap: TTiledMap;
