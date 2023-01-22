@@ -219,6 +219,9 @@ type
         { ObjectGroup since 0.10. }
         ObjectGroup: TObjectGroupLayer;
         Animation: TAnimation;
+        { Use to render the tile. Not a part of the file format.
+          In case of X3DLoadInternalTiledMap, this is always TShapeNode. }
+        RendererData: TObject;
         constructor Create;
         destructor Destroy; override;
       end;
