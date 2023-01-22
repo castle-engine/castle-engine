@@ -324,6 +324,25 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
     Result.Bottom := 1 - Result.Bottom - Result.Height;
   end;
 
+type
+  { 4 texture coordinates, in order:
+    - left-bottom
+    - right-bottom
+    - right-top
+    - left-top }
+  TQuadTexCoords = array [0..3] of TVector2;
+
+  { Flip rendering of the tile by changing texture coordinates. }
+  procedure ApplyFlips(var TexCoord: TQuadTexCoords;
+    const HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean);
+  begin
+    // TODO
+    if HorizontalFlip then
+    begin
+
+    end;
+  end;
+
 var
   LastTileTileset: TTiledMap.TTileset;
   LastTileCoord: TCoordinateNode;
@@ -339,6 +358,7 @@ var
     Shape: TShapeNode;
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
+    TexCoordArray: TQuadTexCoords;
   begin
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
@@ -374,14 +394,11 @@ var
         Vector3(CoordRect.Left , CoordRect.Top   , 0)
       ]);
 
-      TexCoord.FdPoint.Items.AddRange([
-        Vector2(TexCoordRect.Left , TexCoordRect.Bottom),
-        Vector2(TexCoordRect.Right, TexCoordRect.Bottom),
-        Vector2(TexCoordRect.Right, TexCoordRect.Top),
-        Vector2(TexCoordRect.Left , TexCoordRect.Top)
-      ]);
-
-      // TODO: apply HorizontalFlip, VerticalFlip, DiagonalFlip to TexCoord
+      TexCoordArray[0] := Vector2(TexCoordRect.Left , TexCoordRect.Bottom);
+      TexCoordArray[1] := Vector2(TexCoordRect.Right, TexCoordRect.Bottom);
+      TexCoordArray[2] := Vector2(TexCoordRect.Right, TexCoordRect.Top);
+      TexCoordArray[3] := Vector2(TexCoordRect.Left , TexCoordRect.Top);
+      TexCoord.FdPoint.Items.AddRange(TexCoordArray);
     end;
   end;
 
