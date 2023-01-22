@@ -324,6 +324,11 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
     Result.Bottom := 1 - Result.Bottom - Result.Height;
   end;
 
+var
+  LastTileTileset: TTiledMap.TTileset;
+  LastTileCoord: TCoordinateNode;
+  LastTileTexCoord: TTextureCoordinateNode;
+
   procedure RenderTile(const TilePosition: TVector2Integer);
   var
     Tileset: TTiledMap.TTileset;
@@ -338,40 +343,53 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      Geometry := TQuadSetNode.CreateWithShape(Shape);
+      if LastTileTileset = Tileset then
+      begin
+        { Append tile to last geometry node }
+        Coord := LastTileCoord;
+        TexCoord := LastTileTexCoord;
+      end else
+      begin
+        { Create new geometry node for this tile }
+        Geometry := TQuadSetNode.CreateWithShape(Shape);
+        Coord := TCoordinateNode.Create;
+        Geometry.Coord := Coord;
+        TexCoord := TTextureCoordinateNode.Create;
+        Geometry.TexCoord := TexCoord;
+        Shape.Appearance := Tileset.RendererData as TAppearanceNode;
+        LayerNode.AddChildren(Shape);
+
+        LastTileTileset := Tileset;
+        LastTileCoord := Coord;
+        LastTileTexCoord := TexCoord;
+      end;
 
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
       TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset);
 
-      Coord := TCoordinateNode.Create;
-      Coord.SetPoint([
+      Coord.FdPoint.Items.AddRange([
         Vector3(CoordRect.Left , CoordRect.Bottom, 0),
         Vector3(CoordRect.Right, CoordRect.Bottom, 0),
         Vector3(CoordRect.Right, CoordRect.Top   , 0),
         Vector3(CoordRect.Left , CoordRect.Top   , 0)
       ]);
-      Geometry.Coord := Coord;
 
-      TexCoord := TTextureCoordinateNode.Create;
-      TexCoord.SetPoint([
+      TexCoord.FdPoint.Items.AddRange([
         Vector2(TexCoordRect.Left , TexCoordRect.Bottom),
         Vector2(TexCoordRect.Right, TexCoordRect.Bottom),
         Vector2(TexCoordRect.Right, TexCoordRect.Top),
         Vector2(TexCoordRect.Left , TexCoordRect.Top)
       ]);
-      Geometry.TexCoord := TexCoord;
 
       // TODO: apply HorizontalFlip, VerticalFlip, DiagonalFlip to TexCoord
-
-      Shape.Appearance := Tileset.RendererData as TAppearanceNode;
-
-      LayerNode.AddChildren(Shape);
     end;
   end;
 
 var
   X, Y: Integer;
 begin
+  LastTileTileset := nil;
+
   for Y := Map.Height - 1 downto 0 do
     for X := 0 to Map.Width - 1 do
       RenderTile(Vector2Integer(X, Y));
