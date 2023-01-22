@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert Tiled map (see https://www.mapeditor.org/) loaded by
-  @link(CastleTiledMap) unit into X3D representation.
+{ Convert Tiled map (tmx file, see https://www.mapeditor.org/) into X3D representation.
 
-  This unit allows to use the Scene.Load mechanism to load Tiled map files.
-  Tiled map files usually carry the extension "tmx".
+  Underneath, the map is loaded using @link(TTiledMap) class,
+  thus the map-reading logic is shared with TCastleTiledMapControl.
 
   @bold Unsupported features
+
   @orderedList(
     @item 90° rotated tiles (= vertical/horizontal flip + diagonal flip)
     @item Tiled image layers
@@ -27,6 +27,7 @@
   )
 
   @bold X3D Hierarchy of a converted Tiled Map
+
   @preformatted(
     Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
                                                    --> [1] Layer Node 2 --> ...
@@ -56,25 +57,14 @@ uses
   X3DNodes, CastleLog, CastleTiledMap;
 
 var
-  { When @true, loading Tiled map will add extra nodes with debug information. }
+  { Add extra nodes with debug information to LoadTiledMap2d output. }
   TiledDebugMode: Boolean = false;
 
-{ This function carries out three major steps and is usually triggered by
-  the Scene.Load mechanism.
+{ Load Tiled map into X3D node.
+  This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
 
-  The major steps carried out by this function are as follows:
-
-  @orderedList(
-    @item(Create Tiled map instance (@link(TTiledMap)) from tmx file
-      via @link(TStream).)
-    @item(Create X3D scene from that instance by the
-      @link(TTiledMapConverter) class.)
-    @item(Return the generated @link(TX3DRootNode) of the X3D scene.)
-  )
-
-  The debug mode needs considerably more ressources. By default it is turned
-  off and can only be turned on in code in this function.
-}
+  Underneath, this loads Tiled map using TTiledMap,
+  then uses internal conversion class to generate X3D node from it. }
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
@@ -90,7 +80,7 @@ const
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
-  { These @link(TTransformNode) types can be useful to find the desired
+  { These @link(TTransformNode) aliases can be useful to find the desired
     node more reliably in event routines. }
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
@@ -101,43 +91,42 @@ type
 
   { Converter class to convert Tiled map into X3D representations.
 
-  @bold(Developer Remarks)
-  @orderedList(
-    @item(
-       @bold(Coordinate systems:)
-       The Tiled editor uses a classical coordinate system
-       with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
-       system with origin (0,0) at bottom-left. The conversion of coordinates
-       works as follows: The top-left position of the Tiled map is placed at the
-       origin of the CGE coordinate system. In short: the origins are placed onto
-       each other.
+    @orderedList(
+      @item(
+         @bold(Coordinate systems:)
 
-       A simple translation of the Map node by the map height allows it to follow
-       CGE/OpenGL convention.
-    )
-    @item(
-      @bold(Naming convention:)
-       Objects that derive from @link(TTiledMap) (@link(TTile), @link(TLayer), ...)
-       are called accordingly. Nodes which are derived/converted from these
-       objects should explicitly have the name-suffix "Node" in it. To make these
-       destinctions easier, new node types (usually derived from @link(TTransformNode))
-       are introduced.
+         The Tiled editor uses a classical coordinate system
+         with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
+         system with origin (0,0) at bottom-left. The conversion of coordinates
+         works as follows:
 
-       Ex. for layers:
-       @preformatted(
-           var
-             ALayer, Layer, TiledLayer, ... : TTiledMap.TLayer;
-       )
-       but
-       @preformatted(
-             ALayerNode, LayerNode, TiledLayerNode, ... : TTiledLayerNode;
-       )
-    @item(
-      @orderedList(
-        @item Update topPoint (see there)
-        @item Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
-        @item How to handle overlapping tiles of the same layer (Z-buffer fighting)?
-        @item Refine spacing/margin calculations, still borders in desert example.
+         @orderedList(
+           @item(The top-left position of the Tiled map is placed at the
+             origin of the CGE coordinate system. So the origins are placed onto
+             each other.)
+
+           @item(Then we translate the Map node by the map height.)
+         )
+      )
+      @item(
+        @bold(Naming convention:)
+
+        We use type aliases for node types:
+
+        - TTiledLayerNode for nodes representing @link(TTiledMap.TLayer)
+        - TTiledObjectNode for nodes representing @link(TTiledMap.TTiledObject)
+        - TTiledTileNode for nodes representing @link(TTiledMap.TTile)
+      )
+
+      @item(
+        TODO:
+
+        @orderedList(
+          @item Update topPoint (see there)
+          @item Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
+          @item How to handle overlapping tiles of the same layer (Z-buffer fighting)?
+          @item Refine spacing/margin calculations, still borders in desert example.
+        )
       )
     )
   }
@@ -296,9 +285,8 @@ begin
   begin
     { Make sure for each tileset there is a shape node list created
       for consistency and retrieving of correct item-indices later. }
-    { False arg. at Create: Very important!
-      Competes otherweise with access of X3D node list. }
-    TilesetShapeNodeList := TShapeNodeList.Create(False);
+    { Using false argument below, to not own (free) nodes. }
+    TilesetShapeNodeList := TShapeNodeList.Create(False); // do not own
     TilesetTextureNode := nil;
 
     if Assigned(Tileset.Image) then
@@ -862,7 +850,7 @@ var
     GetTilesetAndTileByGID(GID, Tileset, Tile);
     if Assigned(Tileset) and Assigned(Tile) then
     begin
-      TileNode := TTiledTileNode.Create('Tile node');
+      TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
         LayerZDistance);
 
