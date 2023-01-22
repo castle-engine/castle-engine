@@ -219,6 +219,9 @@ type
         { ObjectGroup since 0.10. }
         ObjectGroup: TObjectGroupLayer;
         Animation: TAnimation;
+        { Use to render the tile. Not a part of the file format.
+          In case of X3DLoadInternalTiledMap, this is always TShapeNode. }
+        RendererData: TObject;
         constructor Create;
         destructor Destroy; override;
       end;
@@ -607,6 +610,14 @@ var
 begin
   if (Width = 0) and (Height = 0) then
   begin
+    { Note: While we could store Image to use it loader, e.g.
+
+        TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.URL);
+
+      ... but this would be an optimization that complicates code for a seldom use-case
+      (because new Tiled files should include size).
+      So we don't do it, and just load + free image only to read size. }
+
     WritelnLog('Determining image size by loading it. It is more efficient to store image size in TMX file.');
     ImageData := LoadEncodedImage(URL);
     try
@@ -1021,7 +1032,14 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
     { place existing tiles in NewTiles, making sure they are at proper index }
     for Tile in Tiles do
     begin
-      Check(Between(Tile.Id, 0, TileCount - 1), 'Tile id is outside of allowed range');
+      if not Between(Tile.Id, 0, TileCount - 1) then
+      begin
+        WritelnWarning('Tile id %d is outside of allowed range 0..%d', [
+          Tile.Id,
+          TileCount - 1
+        ]);
+        Continue;
+      end;
       Check(NewTiles[Tile.Id] = nil, 'Multiple tiles have the same id');
       NewTiles[Tile.Id] := Tile;
     end;
@@ -1111,13 +1129,17 @@ begin
     end;
   finally FreeAndNil(I) end;
 
-  { Fallback: TileCount determination if is not found in (old) tsx-files prior
-    to version 0.13 (Aug 2015). }
+  { In case tileset doesn't specify image size,
+    testcase: examples/tiled/map_viewer/data/maps/perspective_walls.tmx }
+  Image.DetermineSize;
+
+  { Fix Columns if necessary, testcase: examples/tiled/map_viewer/data/maps/desert.tmx }
+  if Columns = 0 then
+    Columns := Image.Width div TileWidth;
+
+  { Fix TileCount, if it is not found in (old) tsx-files prior to version 0.13 (Aug 2015). }
   if TileCount = 0 then
-  begin
-    Image.DetermineSize;
-    TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
-  end;
+    TileCount := (Image.Height div TileHeight) * Columns;
 
   CompleteTiles;
 end;

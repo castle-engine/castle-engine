@@ -173,6 +173,7 @@ castle-game-engine-*.fpm
 /examples/test_local_filename_chars/test_local_filename_chars
 /examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer
+/examples/tiled/map_viewer_in_viewport/map_viewer_in_viewport
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/custom_cursor/custom_cursor
 /examples/user_interface/dragging_test/dragging_test

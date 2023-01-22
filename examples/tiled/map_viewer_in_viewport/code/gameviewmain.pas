@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2023-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,8 +19,8 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleControls, CastleWindow, CastleUIControls,
-  CastleTiledMap, CastleKeysMouse;
+  CastleVectors, CastleComponentSerialize, CastleTransform,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -29,18 +29,15 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    TiledMap: TCastleTiledMapControl;
+    TiledScene: TCastleScene;
     ButtonOpen: TCastleButton;
-    CheckboxSmoothScaling: TCastleCheckbox;
-    CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
+    CheckboxSmoothScaling, CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
+    MapCamera: TCastleCamera;
   private
     procedure ClickOpen(Sender: TObject);
-    procedure MapMotion(const Sender: TCastleUserInterface;
-      const Event: TInputMotion; var Handled: Boolean);
-    procedure MapPress(const Sender: TCastleUserInterface;
-      const Event: TInputPressRelease; var Handled: Boolean);
     procedure CheckboxSmoothScalingChange(Sender: TObject);
     procedure CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
+    procedure OpenMap(const MapUrl: String);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -53,8 +50,9 @@ var
 implementation
 
 uses SysUtils,
-  CastleComponentSerialize, CastleApplicationProperties, CastleParameters,
-  CastleUtils;
+  CastleParameters, CastleRenderOptions, CastleWindow, CastleUriUtils;
+
+{ TViewMain ----------------------------------------------------------------- }
 
 constructor TViewMain.Create(AOwner: TComponent);
 begin
@@ -68,20 +66,24 @@ begin
 
   { Assign events }
   ButtonOpen.OnClick := {$ifdef FPC}@{$endif} ClickOpen;
-  TiledMap.OnMotion := {$ifdef FPC}@{$endif} MapMotion;
-  TiledMap.OnPress := {$ifdef FPC}@{$endif} MapPress;
   CheckboxSmoothScaling.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingChange;
   CheckboxSmoothScalingSafeBorder.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingSafeBorderChange;
 
-  { synchronize initial checkbox state with TiledMap state }
-  CheckboxSmoothScaling.Checked := TiledMap.SmoothScaling;
-  CheckboxSmoothScalingSafeBorder.Checked := TiledMap.SmoothScalingSafeBorder;
+  { Synchronize TiledScene.RenderOptions.XxxFilter with initial checkbox state }
+  CheckboxSmoothScalingChange(nil);
 
   { Load the map from parameter or default. }
   if Parameters.High = 1 then
-    TiledMap.URL := Parameters[1]
+    OpenMap(Parameters[1])
   else
-    TiledMap.URL := 'castle-data:/maps/desert.tmx';
+    OpenMap('castle-data:/maps/desert.tmx');
+end;
+
+procedure TViewMain.OpenMap(const MapUrl: String);
+begin
+  TiledScene.Url := MapUrl;
+  MapCamera.Translation := TVector3.Zero;
+  MapCamera.Orthographic.Height := 1000; // resets zoom in/out
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -94,48 +96,39 @@ procedure TViewMain.ClickOpen(Sender: TObject);
 var
   Url: String;
 begin
-  Url := TiledMap.Url;
+  Url := TiledScene.Url;
   if Application.MainWindow.FileDialog('Open Map', Url, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
-    TiledMap.Url := Url;
-end;
-
-procedure TViewMain.MapMotion(const Sender: TCastleUserInterface;
-  const Event: TInputMotion; var Handled: Boolean);
-begin
-  if buttonLeft in Event.Pressed then
   begin
-    TiledMap.Origin := TiledMap.Origin -
-      (Event.Position - Event.OldPosition) / TiledMap.Scale;
-    Handled := true;
-  end;
-end;
-
-procedure TViewMain.MapPress(const Sender: TCastleUserInterface;
-  const Event: TInputPressRelease; var Handled: Boolean);
-const
-  MinScale = 0.05; //< this MinScale allows to view whole data/maps/desert_big.tmx
-  MaxScale = 10;
-begin
-  if Event.IsMouseWheel(mwUp) then
-  begin
-    TiledMap.Scale := Clamped(TiledMap.Scale * 1.1, MinScale, MaxScale);
-    Handled := true;
-  end else
-  if Event.IsMouseWheel(mwDown) then
-  begin
-    TiledMap.Scale := Clamped(TiledMap.Scale / 1.1, MinScale, MaxScale);
-    Handled := true;
+    if CheckboxSmoothScalingSafeBorder.Checked then
+      Url := Url + '#smooth-scaling-safe-border:true';
+    OpenMap(Url);
   end;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingChange(Sender: TObject);
 begin
-  TiledMap.SmoothScaling := CheckboxSmoothScaling.Checked;
+  if CheckboxSmoothScaling.Checked then
+  begin
+    TiledScene.RenderOptions.MinificationFilter := minLinear;
+    TiledScene.RenderOptions.MagnificationFilter := magLinear;
+  end else
+  begin
+    TiledScene.RenderOptions.MinificationFilter := minNearest;
+    TiledScene.RenderOptions.MagnificationFilter := magNearest;
+  end;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
+var
+  NewUrl: String;
 begin
-  TiledMap.SmoothScalingSafeBorder := CheckboxSmoothScalingSafeBorder.Checked;
+  { The setting of SmoothScalingSafeBorder is right now passed through URL anchor
+    to the Tiled map loaded in X3DLoadInternalTiledMap.
+    So we just modify URL, adding or removing the special anchor. }
+  NewUrl := URIDeleteAnchor(TiledScene.Url);
+  if CheckboxSmoothScalingSafeBorder.Checked then
+    NewUrl := NewUrl + '#smooth-scaling-safe-border:true';
+  TiledScene.Url := NewUrl; // not using OpenMap, to not reset camera
 end;
 
 end.

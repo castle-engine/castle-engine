@@ -5,10 +5,11 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="map_viewer"
-  standalone_source="map_viewer_standalone.dpr"
+<project name="map_viewer_in_viewport"
+  standalone_source="map_viewer_in_viewport_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.map.viewer"
+  qualified_name="io.castleengine.map.viewer.in.viewport"
+  caption="View Tiled map as TCastleScene in TCastleViewport"
 >
   <compiler_options>
     <search_paths>
