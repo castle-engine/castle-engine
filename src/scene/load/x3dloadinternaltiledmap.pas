@@ -106,13 +106,6 @@ type
     procedure BuildTileLayerNode(const LayerNode: TTransformNode;
       const ALayer: TTiledMap.TLayer);
 
-    { Get the dimensions of the tileset image in pixels.
-      TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols)
-      @groupBegin }
-    function TilesetWidthPx(const AImageTextureNode: TImageTextureNode): Cardinal;
-    function TilesetHeightPx(const AImageTextureNode: TImageTextureNode): Cardinal;
-    { @groupEnd }
-
     { Convert Tiled coordinates to CGE.
       @groupBegin }
     function ConvY(const TiledCoord: TVector2): TVector2; overload;
@@ -148,12 +141,11 @@ type
   TTileFlip = (tfNoFlip, tfHFlip, tfVFlip, tfDFlip);
 var
   Tile: TTiledMap.TTile;
-  Tileset: TTiledMap.TTileset;            // A tileset
-  TilesetTextureNode: TImageTextureNode;  // A tileset node
-  TileGeometryNode: TRectangle2DNode;     // A tile geometry node (of tileset)
-  TileShapeNode: TShapeNode;              // A shape node (of tileset)
-  TilesetTextureTransformNode: TTextureTransformNode; // A transform node for
-                                                      // the tileset texture
+  Tileset: TTiledMap.TTileset;
+  TilesetTextureNode: TImageTextureNode;
+  TileGeometryNode: TQuadSetNode;
+  TileShapeNode: TShapeNode;
+  TilesetTextureTransformNode: TTextureTransformNode;
   TilesetShapeNodeList: TShapeNodeList;
 
   { The ghost node holds all shape nodes of all tilesets and is added
@@ -172,6 +164,8 @@ var
 
 var
   TexProperties: TTexturePropertiesNode;
+  Coord: TCoordinateNode;
+  TexCoord: TTextureCoordinateNode;
 begin
   TilesetTexCoordOrigin := TVector2.Zero;
   GhostNode := TX3DRootNode.Create;
@@ -225,20 +219,37 @@ begin
 
       { Horizontal flip }
       if TileFlip = tfHFlip then
-        TilesetTexCoordOrigin := Vector2(TilesetWidthPx(TilesetTextureNode) / Tileset.TileWidth, 0);
+        TilesetTexCoordOrigin := Vector2(Tileset.Image.Width / Tileset.TileWidth, 0);
       { Vertical flip }
       if TileFlip = tfVFlip then
-        TilesetTexCoordOrigin := Vector2(0, TilesetHeightPx(TilesetTextureNode) / Tileset.Tileheight);
+        TilesetTexCoordOrigin := Vector2(0, Tileset.Image.Height / Tileset.Tileheight);
       { Diagonal flip }
       if TileFlip = tfDFlip then
-        TilesetTexCoordOrigin := Vector2(TilesetWidthPx(TilesetTextureNode) / Tileset.TileWidth,
-          TilesetHeightPx(TilesetTextureNode) / Tileset.Tileheight);
+        TilesetTexCoordOrigin := Vector2(Tileset.Image.Width / Tileset.TileWidth,
+          Tileset.Image.Height / Tileset.Tileheight);
 
       for Tile in Tileset.Tiles do
       begin
         { Make tiles of tileset rectangular and with correct dimensions. }
-        TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
-        TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+        TileGeometryNode := TQuadSetNode.CreateWithShape(TileShapeNode);
+
+        Coord := TCoordinateNode.Create;
+        Coord.SetPoint([
+          Vector3(0, 0, 0),
+          Vector3(Tileset.TileWidth, 0, 0),
+          Vector3(Tileset.TileWidth, Tileset.TileHeight, 0),
+          Vector3(0, Tileset.TileHeight, 0)
+        ]);
+        TileGeometryNode.Coord := Coord;
+
+        TexCoord := TTextureCoordinateNode.Create;
+        TexCoord.SetPoint([
+          Vector2(0, 0),
+          Vector2(1, 0),
+          Vector2(1, 1),
+          Vector2(0, 1)
+        ]);
+        TileGeometryNode.TexCoord := TexCoord;
 
         { Make tiles textured and find correct texture coordinates. }
         TileShapeNode.Appearance := TAppearanceNode.Create;
@@ -252,8 +263,8 @@ begin
             Divide Tileset Tile width/height by full Tileset width/height.
             The latter is extracted from the texture node. }
           TilesetTextureTransformNode.Scale := Vector2(
-            Tileset.TileWidth / TilesetWidthPx(TilesetTextureNode),
-            Tileset.TileHeight / TilesetHeightPx(TilesetTextureNode)
+            Tileset.TileWidth / Tileset.Image.Width,
+            Tileset.TileHeight / Tileset.Image.Height
           );
 
           { Get all tile textures from tileset texture as shape nodes:
@@ -572,29 +583,6 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
     end;
   end;
 
-  { Determines the position of a tile in the map. }
-  function PositionOfTileByIndex(
-    const X, Y: Integer;
-    const ATileset: TTiledMap.TTileset): TVector2;
-  begin
-    { "The Rectangle2D node specifies a rectangle centred at (0, 0)
-      in the current local 2D coordinate system and aligned with
-      the local coordinate axes. By default, the box measures 2 units
-      in each dimension, from -1 to +1.0"
-      (https://www.web3d.org/specifications/X3Dv4Draft/
-       ISO-IEC19775-1v4-CD/Part01/components/geometry2D.html#Rectangle2D) }
-    Result := Vector2(0, 0);
-    if not Assigned(ATileset) then
-      Exit;
-
-    Result := Vector2(
-      X * Map.TileWidth
-      + ATileset.TileWidth div 2,         // Compensate centring of rect. 2d node (see quote above)
-      Y * Map.TileHeight
-      - ATileset.TileHeight * 0.5         // Tileset tiles are "anchored" bottom-left and compensate centring
-    );
-  end;
-
   procedure RenderTile(const X, Y: Integer);
   var
     Tileset: TTiledMap.TTileset;
@@ -607,7 +595,7 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
       TileNode := TTransformNode.Create;
-      TileNode.Translation := Vector3(PositionOfTileByIndex(X, Y, Tileset), 0);
+      TileNode.Translation := Vector3(Map.TileRenderPosition(Vector2Integer(X, Y)), 0);
 
       TileShapeNode := GetResolvedTileShapeNode(Tileset, Tileset.Tiles[Frame],
         HorizontalFlip, VerticalFlip, DiagonalFlip);
@@ -649,26 +637,6 @@ begin
   FreeAndNil(FTilesetShapeNodeListList);
 
   inherited Destroy;
-end;
-
-function TTiledMapConverter.TilesetWidthPx(
-  const AImageTextureNode: TImageTextureNode): Cardinal;
-begin
-  Result := 0;
-  if (AImageTextureNode <> nil) and
-     // image is nil when it could not be loaded
-     (AImageTextureNode.TextureImage <> nil) then
-    Result :=  AImageTextureNode.TextureImage.Width;
-end;
-
-function TTiledMapConverter.TilesetHeightPx(
-  const AImageTextureNode: TImageTextureNode): Cardinal;
-begin
-  Result := 0;
-  if (AImageTextureNode <> nil) and
-     // image is nil when it could not be loaded
-     (AImageTextureNode.TextureImage <> nil) then
-    Result :=  AImageTextureNode.TextureImage.Height;
 end;
 
 function TTiledMapConverter.ConvY(const TiledCoord: TVector2): TVector2;
