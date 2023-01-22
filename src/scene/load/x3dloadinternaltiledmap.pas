@@ -21,7 +21,6 @@
   @bold Unsupported features
 
   @orderedList(
-    @item 90° rotated tiles (= vertical/horizontal flip + diagonal flip)
     @item Tiled image layers
     @item Tiled object ellipsoids
   )
@@ -335,11 +334,33 @@ type
   { Flip rendering of the tile by changing texture coordinates. }
   procedure ApplyFlips(var TexCoord: TQuadTexCoords;
     const HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean);
+
+    procedure SwapValues(var V1, V2: TVector2);
+    var
+      Tmp: TVector2;
+    begin
+      Tmp := V1;
+      V1 := V2;
+      V2 := Tmp;
+    end;
+
   begin
-    // TODO
+    { Following https://doc.mapeditor.org/en/latest/reference/global-tile-ids/#gid-tile-flipping :
+      When rendering an orthographic or isometric tile, the order of operations matters.
+      The diagonal flip is done first, followed by the horizontal and vertical flips.
+      The diagonal flip should flip the bottom left and top right corners of the tile,
+      and can be thought of as an x/y axis swap. For hexagonal tiles, the order does not matter. }
+    if DiagonalFlip then
+      SwapValues(TexCoord[0], TexCoord[2]);
     if HorizontalFlip then
     begin
-
+      SwapValues(TexCoord[0], TexCoord[1]);
+      SwapValues(TexCoord[2], TexCoord[3]);
+    end;
+    if VerticalFlip then
+    begin
+      SwapValues(TexCoord[0], TexCoord[3]);
+      SwapValues(TexCoord[1], TexCoord[2]);
     end;
   end;
 
@@ -398,6 +419,7 @@ var
       TexCoordArray[1] := Vector2(TexCoordRect.Right, TexCoordRect.Bottom);
       TexCoordArray[2] := Vector2(TexCoordRect.Right, TexCoordRect.Top);
       TexCoordArray[3] := Vector2(TexCoordRect.Left , TexCoordRect.Top);
+      ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
       TexCoord.FdPoint.Items.AddRange(TexCoordArray);
     end;
   end;
