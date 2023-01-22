@@ -81,7 +81,7 @@ type
         { Embedded image data (since 0.9). }
         Data: TData;
         destructor Destroy; override;
-        //procedure DetermineSize;
+        procedure DetermineSize;
       end;
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
@@ -604,20 +604,20 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-{ Not used anymore.
-  If we will ever get back to doing this, we should store loaded Image,
-  so that we can later use it (e.g. X3D loader could use
-
-    TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.URL);
-
-  ) to just copy loaded image.
-
 procedure TTiledMap.TImage.DetermineSize;
 var
  ImageData: TEncodedImage;
 begin
   if (Width = 0) and (Height = 0) then
   begin
+    { Note: While we could store Image to use it loader, e.g.
+
+        TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.URL);
+
+      ... but this would be an optimization that complicates code for a seldom use-case
+      (because new Tiled files should include size).
+      So we don't do it, and just load + free image only to read size. }
+
     WritelnLog('Determining image size by loading it. It is more efficient to store image size in TMX file.');
     ImageData := LoadEncodedImage(URL);
     try
@@ -626,7 +626,6 @@ begin
     finally FreeAndNil(ImageData) end;
   end;
 end;
-}
 
 { TFrame --------------------------------------------------------------------- }
 
@@ -1033,7 +1032,14 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
     { place existing tiles in NewTiles, making sure they are at proper index }
     for Tile in Tiles do
     begin
-      Check(Between(Tile.Id, 0, TileCount - 1), 'Tile id is outside of allowed range');
+      if not Between(Tile.Id, 0, TileCount - 1) then
+      begin
+        WritelnWarning('Tile id %d is outside of allowed range 0..%d', [
+          Tile.Id,
+          TileCount - 1
+        ]);
+        Continue;
+      end;
       Check(NewTiles[Tile.Id] = nil, 'Multiple tiles have the same id');
       NewTiles[Tile.Id] := Tile;
     end;
@@ -1122,6 +1128,10 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+
+  { In case tileset doesn't specify image size,
+    testcase: examples/tiled/map_viewer/data/maps/perspective_walls.tmx }
+  Image.DetermineSize;
 
   { Fix Columns if necessary, testcase: examples/tiled/map_viewer/data/maps/desert.tmx }
   if Columns = 0 then
