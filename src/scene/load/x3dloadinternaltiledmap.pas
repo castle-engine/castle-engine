@@ -56,10 +56,6 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
-var
-  { Add extra nodes with debug information to LoadTiledMap2d output. }
-  TiledDebugMode: Boolean = false;
-
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
 
@@ -75,73 +71,19 @@ uses
   CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages;
 
-const
-  LayerZDistanceDefault: Single = 0.1;
-  OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
-
 type
-  { These @link(TTransformNode) aliases can be useful to find the desired
-    node more reliably in event routines. }
-  TTiledLayerNode = TTransformNode;
-  TTiledObjectNode = TTransformNode;
-  TTiledTileNode = TTransformNode;
-
   TShapeNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
   { Converter class to convert Tiled map into X3D representations.
 
-    @orderedList(
-      @item(
-         @bold(Coordinate systems:)
-
-         The Tiled editor uses a classical coordinate system
-         with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
-         system with origin (0,0) at bottom-left. The conversion of coordinates
-         works as follows:
-
-         @orderedList(
-           @item(The top-left position of the Tiled map is placed at the
-             origin of the CGE coordinate system. So the origins are placed onto
-             each other.)
-
-           @item(Then we translate the Map node by the map height.)
-         )
-      )
-      @item(
-        @bold(Naming convention:)
-
-        We use type aliases for node types:
-
-        - TTiledLayerNode for nodes representing @link(TTiledMap.TLayer)
-        - TTiledObjectNode for nodes representing @link(TTiledMap.TTiledObject)
-        - TTiledTileNode for nodes representing @link(TTiledMap.TTile)
-      )
-
-      @item(
-        TODO:
-
-        @orderedList(
-          @item Update topPoint (see there)
-          @item Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
-          @item How to handle overlapping tiles of the same layer (Z-buffer fighting)?
-          @item Refine spacing/margin calculations, still borders in desert example.
-        )
-      )
-    )
+    TODO:
+    - SmoothScalingSafeBorder, similar to TCastleTiledMapControl, to fix borders on desert example
   }
   TTiledMapConverter = class
   strict private
-    FDebugMode: Boolean;
-    FDebugNode: TX3DRootNode;
-    FDebugMaterialNode: TUnlitMaterialNode;
-    FDebugLinePropertiesNode: TLinePropertiesNode;
-    FDebugAppearanceNode: TAppearanceNode;
-    FDebugFontStyleNode: TFontStyleNode;
-
     FMap: TTiledMap;
     FMapNode: TTransformNode;
-    FLayerZDistance: Single;
     FRootNode: TX3DRootNode;
     FTilesetShapeNodeListList: TShapeNodeListList;
 
@@ -157,66 +99,31 @@ type
     procedure ConvertTilesets;
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
-    { Builds Object Group layer node from @link(TTiledMap) data. }
-    function BuildObjectGroupLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
-    { Builds Tile layer node from @link(TTiledMap) data. }
-    function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 
-    {   HELPER FUNCTIONS   }
+    procedure BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
+      const ALayer: TTiledMap.TLayer);
 
-    { Map width in pixels. }
-    function MapWidthPx: Cardinal;
-    { Map height in pixels. }
-    function MapHeightPx: Cardinal;
+    procedure BuildTileLayerNode(const LayerNode: TTransformNode;
+      const ALayer: TTiledMap.TLayer);
+
     { Get the dimensions of the tileset image in pixels.
       TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols)
       @groupBegin }
     function TilesetWidthPx(const AImageTextureNode: TImageTextureNode): Cardinal;
     function TilesetHeightPx(const AImageTextureNode: TImageTextureNode): Cardinal;
     { @groupEnd }
-    { Tile width of map tile (not necessarily tileset tile!) in pixels. }
-    function TileWidthPx: Cardinal;
-    { Tile height of map tile (not necessarily tileset tile!) in pixels. }
-    function TileHeightPx: Cardinal;
+
     { Convert Tiled coordinates to CGE.
       @groupBegin }
     function ConvY(const TiledCoord: TVector2): TVector2; overload;
     function ConvY(const X, Y: Single): TVector2; overload;
     { @groupEnd }
 
-    {   DEBUG FUNCTIONS    }
-
-    { Build a label which displays a lot of useful information about the map
-      data for debugging. }
-    procedure BuildDebugInformationLabel;
-    { Build a reference 3d coordinate system with description of axis and
-      origin. It is slightly moved along Z-axis to be infront of everything. }
-    procedure BuildDebugCoordinateSystem;
-    { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
-    procedure BuildDebugObject(const X, Y, W, H: Integer; const AName: String);
-
-    {   DEBUG PROPERTIES   }
-
-    { The DebugNode holds all debug nodes and is added to MapNode if debug mode is
-      on. This is important for automatic free'ing of all debug objects.
-
-      The other "global" nodes are shared by most debug objects.
-
-      @groupBegin }
-    property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
-    property DebugMaterialNode: TUnlitMaterialNode read FDebugMaterialNode write FDebugMaterialNode;
-    property DebugLinePropertiesNode: TLinePropertiesNode read FDebugLinePropertiesNode write FDebugLinePropertiesNode;
-    property DebugAppearanceNode: TAppearanceNode read FDebugAppearanceNode write FDebugAppearanceNode;
-    property DebugFontStyleNode: TFontStyleNode read FDebugFontStyleNode write FDebugFontStyleNode;
-    { @groupEnd }
-
-    {   MAP PROPERTIES   }
-
     { The elements of this list are themselves lists which contain
       the shape node of a tileset each. }
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
-    constructor Create(ATiledMap: TTiledMap; ADebugMode: Boolean = False);
+    constructor Create(ATiledMap: TTiledMap);
     destructor Destroy; override;
 
     { Tries to construct X3D representation from TTiledMap data. }
@@ -228,24 +135,12 @@ type
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
-    { The different layers are rendered in a certain order (last to first).
-      This effect is achieved in x3d model by shifting these layers by
-      this distance along the Z-axis. }
-    property LayerZDistance: Single read FLayerZDistance write FLayerZDistance;
-
-    { If true, all objects are represented in debug mode. }
-    property DebugMode: Boolean read FDebugMode;
   end;
 
 procedure TTiledMapConverter.ConvertMap;
 begin
   ConvertTilesets;
   ConvertLayers;
-  if DebugMode then
-  begin
-    BuildDebugInformationLabel;
-    BuildDebugCoordinateSystem;
-  end;
 end;
 
 procedure TTiledMapConverter.ConvertTilesets;
@@ -409,52 +304,46 @@ end;
 
 procedure TTiledMapConverter.ConvertLayers;
 var
-  Layer: TTiledMap.TLayer;             // A (tile, object, image) layer
-  LayerNode: TTiledLayerNode;          // Node of a (tile, object, image) layer.
+  Layer: TTiledMap.TLayer;
+  LayerNode: TTransformNode;
+  LayerZ: Single;
+const
+  LayerZDistanceIncrease: Single = 10; //< Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx
 begin
+  LayerZ := 0;
 
   for Layer in Map.Layers do
   begin
-    if DebugMode then
-      BuildDebugObject(Round(Layer.OffsetX), Round(Layer.OffsetY), MapWidthPx,
-        MapHeightPx, Layer.Name);
-
     if not Layer.Visible then
       Continue;
 
-    { Every Layer has an individual layer node. }
-    LayerNode := nil;
+    LayerNode := TTransformNode.Create;
 
-    if (Layer is TTiledMap.TObjectGroupLayer) then
-    begin
-      LayerNode := BuildObjectGroupLayerNode(Layer);
-    end else
-    if (Layer is TTiledMap.TImageLayer) then
-    begin
-      { TODO : Implement!
-        LayerTransformNode := BuildImageLayer(Layer); }
-    end else
-    begin
-      LayerNode := BuildTileLayerNode(Layer);
-    end;
+    if Layer is TTiledMap.TObjectGroupLayer then
+      BuildObjectGroupLayerNode(LayerNode, Layer)
+    else
+    { TODO:
+    if Layer is TTiledMap.TImageLayer then
+      BuildImageLayer(Layer, LayerNode)
+    else }
+      BuildTileLayerNode(LayerNode, Layer);
 
-    if Assigned(LayerNode) then
-    begin
-      MapNode.AddChildren(LayerNode);
-      LayerZDistance := LayerZDistance + LayerZDistanceDefault;
-    end;
+    MapNode.AddChildren(LayerNode);
+    // flip -Layer.OffsetY, as Tiled Y goes down
+    LayerNode.Translation := Vector3(Layer.OffsetX, -Layer.OffsetY, LayerZ);
+    LayerZ := LayerZ + LayerZDistanceIncrease;
   end;
 end;
 
-function TTiledMapConverter.BuildObjectGroupLayerNode(
-  const ALayer: TTiledMap.TLayer): TTiledLayerNode;
+procedure TTiledMapConverter.BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
+  const ALayer: TTiledMap.TLayer);
 var
   // Material node of a Tiled obj.
   TiledObjectMaterial: TMaterialNode;
   // A Tiled object instance (as saved in TTiledMap).
   TiledObject: TTiledMap.TTiledObject;
   // Node of a Tiled object.
-  TiledObjectNode: TTiledObjectNode;
+  TiledObjectNode: TTransformNode;
   // Geometry node of a TiledObject primitive.
   TiledObjectGeometry: TPolyline2DNode;
   // Shape node of a TiledObject.
@@ -462,7 +351,6 @@ var
   // Helper list.
   AVector2List: TVector2List;
   I: Cardinal;
-
 begin
   TiledObjectMaterial := nil;
   TiledObjectNode := nil;
@@ -470,16 +358,10 @@ begin
   TiledObjectShape := nil;
   AVector2List := nil;
 
-  Result := TTiledLayerNode.Create;   // Tiled object group layer node.
-
-  { Move layer node according to layer offset }
-  Result.Translation := Vector3(ConvY(ALayer.OffsetX, ALayer.OffsetY), 0);
-
   AVector2List := TVector2List.Create;
 
   for TiledObject in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
   begin
-
     if not TiledObject.Visible then
       Continue;
 
@@ -492,8 +374,12 @@ begin
     end;
 
     { Every Tiled object is based on a transform node. }
-    TiledObjectNode := TTiledObjectNode.Create;
-    TiledObjectNode.Translation := Vector3(ConvY(TiledObject.Position), 0);
+    TiledObjectNode := TTransformNode.Create;
+    TiledObjectNode.Translation := Vector3(
+      TiledObject.Position.X,
+      Map.Height * Map.TileHeight - TiledObject.Position.Y, // Tiled Y goes down, CGE Y goes up
+      0
+    );
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
@@ -524,7 +410,7 @@ begin
         end;
       topPoint:
         begin
-          { TODO : Use rectangle as representation of point. }
+          { TODO: Render points a X3D/OpenGL points, not rectangles. }
           AVector2List.Clear;
           { Construct a rectangle around position of point. }
           AVector2List.Add(ConvY(-1, -1));
@@ -542,68 +428,28 @@ begin
     end;
     TiledObjectShape.Material := TiledObjectMaterial;
     TiledObjectNode.AddChildren(TiledObjectShape);
-    Result.AddChildren(TiledObjectNode);
+    LayerNode.AddChildren(TiledObjectNode);
   end;
     FreeAndNil(AVector2List);
 end;
 
-function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
-  ): TTiledLayerNode;
-var
-  DebugTile: TTiledMap.TTile;              // A tile for debugging.
-  DebugTileset: TTiledMap.TTileset;        // A tileset for debuggin.
-  I: Cardinal;
+procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
+  const ALayer: TTiledMap.TLayer);
 
-  { Resolves the GID consdering potential horizontal, vertical and/or
-    diagonal bits. Returns the resolved GID.
+  { Get shape node textured correctly considering
+    all the flipping bits (horizontal, vertical, diagonal bit).
 
-    Only the resolved GID can be used to detect the correct tileset/tiles
-    if these bits are set.
-
-    See also:
-    "The highest three bits of the gid store the flipped states. Bit 32 is
-    used for storing whether the tile is horizontally flipped, bit 31 is used
-    for the vertically flipped tiles and bit 30 indicates whether the tile is
-    flipped (anti) diagonally, enabling tile rotation. These bits have to be
-    read and cleared before you can find out which tileset a tile belongs to."
-    https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
-  function GetResolvedGID(const ATileGID: Cardinal;
-    out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Cardinal; overload;
-  const
-    HorizontalFlag = $80000000;
-    VerticalFlag   = $40000000;
-    DiagonalFlag   = $20000000;
-    ClearFlag      = $1FFFFFFF;
-  begin
-    { Check which flags are set. }
-    HorizontalFlip := ATileGID and HorizontalFlag > 0;
-    VerticalFlip := ATileGID and VerticalFlag > 0;
-    DiagonalFlip := ATileGID and DiagonalFlag > 0;
-
-    { Clear GID }
-    Result := ATileGID and ClearFlag;
-  end;
-
-  function GetResolvedGID(const ATileGID: Cardinal): Cardinal; overload;
-  var
-    Trash: Boolean;  // Just there to call overloaded function.
-  begin
-    Result := GetResolvedGID(ATileGID, Trash, Trash, Trash);
-  end;
-
-  { The resolved tile shape node is textured correctly considering
-    all the flipping bits (horizontal, vertical, diagonal bit). }
+    Tiled manual about flipping:
+    ( https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer ) says:
+    "When rendering a tile, the order of operation matters.
+    The diagonal flip (x/y axis swap) is done first, followed
+    by the horizontal and vertical flips." }
   function GetResolvedTileShapeNode(const ATileset: TTiledMap.TTileset;
-    const ATile: TTiledMap.TTile; const ATileGID: Cardinal): TShapeNode;
+    const ATile: TTiledMap.TTile;
+    const HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): TShapeNode;
   var
-    HFlip: Boolean;
-    VFlip: Boolean;
-    DFlip: Boolean;
     ATilesetShapeNodeList: TShapeNodeList;
   begin
-    HFlip := false;
-    VFlip := false;
-    DFlip := false;
     Result := nil;
 
     { Get tileset's shape node list. }
@@ -612,26 +458,15 @@ var
     if not Assigned(ATilesetShapeNodeList) then
       Exit;
 
-    { Get flip mode of tile }
-    { Important:
-      "When rendering an orthographic or isometric tile, the order of
-       operations matters. The diagonal flip is done first, followed
-       by the horizontal and vertical flips. The diagonal flip should
-       flip the bottom left and top right corners of the tile, and can
-       be thought of as an x/y axis swap. For hexagonal tiles,
-       the order does not matter."
-       https://doc.mapeditor.org/en/stable/reference/global-tile-ids/#tile-flipping }
-    GetResolvedGID(ATileGID, HFlip, VFlip, DFlip);
-
     { Get shape node from tileset list if no flip flags are set. }
-    if not (HFlip or VFlip or DFlip) then
+    if not (HorizontalFlip or VerticalFlip or DiagonalFlip) then
     begin
       Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
       Exit;
     end;
 
     { Get shape node from tileset list if exclusivly the horizontal flip flag is set. }
-    if HFlip and not (VFlip or DFlip) then
+    if HorizontalFlip and not (VerticalFlip or DiagonalFlip) then
     begin
       { Calc. of correct horizontally flipped tile:
 
@@ -670,7 +505,7 @@ var
     end;
 
     { Get shape node from tileset list if exclusivly the vertical flip flag is set. }
-    if VFlip and not (HFlip or DFlip) then
+    if VerticalFlip and not (HorizontalFlip or DiagonalFlip) then
     begin
       { Calc. of correct vertically flipped tile:
 
@@ -699,10 +534,10 @@ var
       Exit;
     end;
 
-    { Ignore all flip flags if DFlip and additionally
-      HFlip/VFlip is set (results in rotation).
+    { Ignore all flip flags if DiagonalFlip and additionally
+      HorizontalFlip/VerticalFlip is set (results in rotation).
       TODO: Implement rotation. }
-    if DFlip and (HFlip or VFlip) then
+    if DiagonalFlip and (HorizontalFlip or VerticalFlip) then
     begin
       WritelnWarning('Not supported yet: Combination of diagonal- with other flips and rotations. Flags are ignored.');
       Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
@@ -711,7 +546,8 @@ var
 
     { Get shape node from tileset list if exclusivly the diagonal flip flag is set
       or if horizontal and vertical flip flags (= diagonal flip) are set. }
-    if (DFlip and not (HFlip or VFlip)) xor ((HFlip and VFlip) and not DFlip) then
+    if (DiagonalFlip and not (HorizontalFlip or VerticalFlip)) xor
+       ((HorizontalFlip and VerticalFlip) and not DiagonalFlip) then
     begin
       { Calc. of correct diagonally flipped tile:
 
@@ -744,83 +580,10 @@ var
     end;
   end;
 
-  { Get the associated tileset of a specific tile by the tileset's FirstGID.
-
-    Hint: A map tile isn't always associated with a tileset tile, e. g.
-          if the tileset tile is larger than the tiles of the map an therefore
-          covers several map tiles. For these tiles the is GID = 0. This
-          function evaluates to nil for these tiles.
-
-    Note: The lowest real GID starts with GID = 1. }
-  function GetTilesetOfTile(ATileGID: Cardinal): TTiledMap.TTileset;
-  var
-    Tileset: TTiledMap.TTileset;
-  begin
-    Result := nil;
-    { GID = 0 means there is no tileset associated with the tile. }
-    if ATileGID = 0 then
-      Exit;
-
-    { "In order to find out from which tileset the tile is you need to find
-      the tileset with the highest firstgid that is still lower or equal
-      than the gid.The tilesets are always stored with increasing
-      firstgids."
-      (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
-    for Tileset in Map.Tilesets do
-    begin
-      if GetResolvedGID(ATileGID) >= Tileset.FirstGID then
-        Result := Tileset;
-    end;
-
-    //Writeln('  GetTilesetOfTile(GID: ' + IntToStr(ATileGID) + ') --> ', Result.Name, ' (FirstGID = ', Result.FirstGID, ')');
-  end;
-
-  { Get a specific tile obj. by its global ID from a specific tileset. }
-  function GetTileFromTileset(const ATileGID: Cardinal;
-    const ATileset: TTiledMap.TTileset): TTiledMap.TTile;
-  var
-    Tile: TTiledMap.TTile;
-  begin
-    Result := nil;
-    if not Assigned(ATileset) then
-      Exit;
-
-    for Tile in ATileset.Tiles do
-    begin
-      if (ATileset.FirstGID + Tile.Id) = GetResolvedGID(ATileGID) then
-      begin
-        Result := Tile;
-        Exit;
-      end;
-    end;
-  end;
-
-  { Returns the tile and the associated tileset of a certain tile GID.
-    Returns nil respectively, if not found. }
-  procedure GetTilesetAndTileByGID(const ATileGID: Cardinal;
-    out ATileset: TTiledMap.TTileset; out ATile: TTiledMap.TTile);
-  begin
-    ATileset := GetTilesetOfTile(ATileGID);
-    ATile := GetTileFromTileset(ATileGID, ATileset);
-  end;
-
-  { Zero-based. }
-  function RowOfTileInMap: Cardinal;
-  begin
-    Result := Floor(I / Map.Width);
-    //Writeln('RowOfTileInMap: ', Result);
-  end;
-
-  { Zero-based. }
-  function ColumnOfTileInMap: Cardinal;
-  begin
-    Result := I mod Map.Width;
-    //Writeln('ColumnOfTileInMap: ', Result);
-  end;
-
-  { Determines the position of a tile in the map
-    by index (the index is used in Column-/Row-function). }
-  function PositionOfTileByIndex(const ATileset: TTiledMap.TTileset): TVector2;
+  { Determines the position of a tile in the map. }
+  function PositionOfTileByIndex(
+    const X, Y: Integer;
+    const ATileset: TTiledMap.TTileset): TVector2;
   begin
     { "The Rectangle2D node specifies a rectangle centred at (0, 0)
       in the current local 2D coordinate system and aligned with
@@ -832,80 +595,45 @@ var
     if not Assigned(ATileset) then
       Exit;
 
-    Result := ConvY(
-      ColumnOfTileInMap * TileWidthPx       // X
+    Result := Vector2(
+      X * Map.TileWidth
       + ATileset.TileWidth div 2,         // Compensate centring of rect. 2d node (see quote above)
-      (RowOfTileInMap + 1) * TileHeightPx   // Y
+      Y * Map.TileHeight
       - ATileset.TileHeight * 0.5         // Tileset tiles are "anchored" bottom-left and compensate centring
-       );
+    );
   end;
 
-  { The actual conversion of a tile. }
-  procedure ConvertTile;
+  procedure RenderTile(const X, Y: Integer);
   var
-    Tile: TTiledMap.TTile;                  // A Tile.
-    Tileset: TTiledMap.TTileset;            // A Tileset.
-    GID: Cardinal;
-
-    { Tile nodes. }
-    TileNode: TTiledTileNode;
+    Tileset: TTiledMap.TTileset;
+    TileNode: TTransformNode;
     TileShapeNode: TShapeNode;
+    HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+    Frame: Integer;
   begin
-    { Try to get tileset. Only if it exists for this tile,
-      an actual tile node is created. }
-    GID := ALayer.Data.Data[I];
-    GetTilesetAndTileByGID(GID, Tileset, Tile);
-    if Assigned(Tileset) and Assigned(Tile) then
+    if Map.TileRenderData(Vector2Integer(X, Y), ALayer,
+      Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      TileNode := TTiledTileNode.Create;
-      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
-        LayerZDistance);
+      TileNode := TTransformNode.Create;
+      TileNode.Translation := Vector3(PositionOfTileByIndex(X, Y, Tileset), 0);
 
-      { Consider horizontal-, vertical-, diagonal flipping.
-
-      "When rendering a tile, the order of operation matters.
-       The diagonal flip (x/y axis swap) is done first, followed
-       by the horizontal and vertical flips."
-      (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer)
-      }
-      TileShapeNode := GetResolvedTileShapeNode(Tileset, Tile, GID);
+      TileShapeNode := GetResolvedTileShapeNode(Tileset, Tileset.Tiles[Frame],
+        HorizontalFlip, VerticalFlip, DiagonalFlip);
 
       TileNode.AddChildren(TileShapeNode);
-      Result.AddChildren(TileNode);
+      LayerNode.AddChildren(TileNode);
     end;
   end;
 
+var
+  X, Y: Integer;
 begin
-  Result := TTiledLayerNode.Create;        // The resulting layer node.
-
-  { Move layer node according to layer offset }
-  Result.Translation := Vector3(ConvY(ALayer.OffsetX, ALayer.OffsetY), 0);
-
-  if DebugMode then
-  begin
-    for I := 0 to High(ALayer.Data.Data) do
-    begin
-      GetTilesetAndTileByGID(ALayer.Data.Data[I], DebugTileset, DebugTile);
-      if Assigned(DebugTileset) and Assigned(DebugTile) then
-      begin
-        BuildDebugObject(
-          ColumnOfTileInMap * TileWidthPx,
-          (RowOfTileInMap + 1) * TileHeightPx - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
-          DebugTileset.TileWidth,
-          DebugTileset.TileHeight, 'GID: ' + IntToStr(DebugTile.Id + 1));
-      end;
-    end;
-  end;
-
-  { Run through tile GIDs of this tile layer. }
-  for I := 0 to High(ALayer.Data.Data) do
-  begin
-    ConvertTile;
-  end;
+  for Y := Map.Height - 1 downto 0 do
+    for X := 0 to Map.Width - 1 do
+      RenderTile(X, Y);
 end;
 
-constructor TTiledMapConverter.Create(ATiledMap: TTiledMap; ADebugMode: Boolean
-  );
+constructor TTiledMapConverter.Create(ATiledMap: TTiledMap);
 var
   SwitchNode: TSwitchNode;
 begin
@@ -921,31 +649,7 @@ begin
   SwitchNode.AddChildren(MapNode);
   SwitchNode.WhichChoice := 0;
 
-  LayerZDistance := 0.0; // The first layer is at Z = 0.0.
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
-
-  FDebugMode := ADebugMode;
-  DebugNode := nil;
-  DebugMaterialNode := nil;
-  DebugLinePropertiesNode := nil;
-  DebugAppearanceNode := nil;
-  DebugFontStyleNode := nil;
-  if DebugMode then
-  begin
-    DebugNode := TX3DRootNode.Create;
-    MapNode.AddChildren(DebugNode);
-
-    DebugMaterialNode := TUnlitMaterialNode.Create;
-    DebugMaterialNode.EmissiveColor := OrangeRedRGB;
-    DebugLinePropertiesNode := TLinePropertiesNode.Create;
-    DebugLinePropertiesNode.LinewidthScaleFactor := 1.0;
-    DebugAppearanceNode := TAppearanceNode.Create;
-    DebugAppearanceNode.Material := DebugMaterialNode;
-    DebugAppearanceNode.LineProperties := DebugLinePropertiesNode;
-
-    DebugFontStyleNode := TFontStyleNode.Create;
-    DebugFontStyleNode.Size := 0.5 * (MapWidthPx + MapHeightPx) / 25;
-  end;
 end;
 
 destructor TTiledMapConverter.Destroy;
@@ -953,16 +657,6 @@ begin
   FreeAndNil(FTilesetShapeNodeListList);
 
   inherited Destroy;
-end;
-
-function TTiledMapConverter.MapWidthPx: Cardinal;
-begin
-  Result := TileWidthPx * Map.Width;
-end;
-
-function TTiledMapConverter.MapHeightPx: Cardinal;
-begin
-  Result := TileHeightPx * Map.Height;
 end;
 
 function TTiledMapConverter.TilesetWidthPx(
@@ -985,19 +679,9 @@ begin
     Result :=  AImageTextureNode.TextureImage.Height;
 end;
 
-function TTiledMapConverter.TileWidthPx: Cardinal;
-begin
-  Result := Map.TileWidth;
-end;
-
-function TTiledMapConverter.TileHeightPx: Cardinal;
-begin
-  Result := Map.TileHeight;
-end;
-
 function TTiledMapConverter.ConvY(const TiledCoord: TVector2): TVector2;
 begin
-  Result := Vector2(TiledCoord.X, -TiledCoord.Y);
+  Result := Vector2(TiledCoord.X, - TiledCoord.Y);
 end;
 
 function TTiledMapConverter.ConvY(const X, Y: Single): TVector2;
@@ -1005,193 +689,7 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-procedure TTiledMapConverter.BuildDebugInformationLabel;
-var
-  { Label objects. }
-  DebugInfoLabel: TTransformNode;
-  DebugInfoLabelGeom: TTextNode;
-  DebugInfoLabelShape: TShapeNode;
-  InfoLabelStringList: TCastleStringList;
-  I: Cardinal;
-begin
-  DebugInfoLabelGeom := TTextNode.CreateWithShape(DebugInfoLabelShape);
-  DebugInfoLabelGeom.FontStyle := DebugFontStyleNode;
-  DebugInfoLabelShape.Appearance := DebugAppearanceNode;
-  DebugInfoLabel := TTransformNode.Create;
-  DebugInfoLabel.AddChildren(DebugInfoLabelShape);
-  DebugInfoLabel.Translation := Vector3(MapWidthPx + 20.0, 0.0, 0.1);
-  InfoLabelStringList := TCastleStringList.Create;
-  try
-    InfoLabelStringList.Add('Map width/height (in tiles | in px): ' +
-      IntToStr(Map.Width) + '/' + IntToStr(Map.Height) + ' | ' +
-      IntToStr(MapWidthPx) + '/' + IntToStr(MapHeightPx));
-    InfoLabelStringList.Add(' ');
-
-    InfoLabelStringList.Add('Tilesets (GIDs):');
-    for I := 0 to Map.Tilesets.Count - 1 do
-      InfoLabelStringList.Add('  ' + IntToStr(I) + ': ' +
-        (Map.Tilesets.Items[I] as TTiledMap.TTileset).Name + ' (' +
-        IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID) +
-        ' - ' + IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID
-        + (Map.Tilesets.Items[I] as TTiledMap.TTileset).TileCount - 1) +
-        ')');
-    InfoLabelStringList.Add(' ');
-
-    InfoLabelStringList.Add('Layers:');
-    for I := 0 to Map.Layers.Count - 1 do
-    begin
-      InfoLabelStringList.Add('  ' + IntToStr(I) + ': ' +
-        (Map.Layers.Items[I] as TTiledMap.TLayer).Name);
-    end;
-
-    DebugInfoLabelGeom.SetText(InfoLabelStringList);
-  finally
-    FreeAndNil(InfoLabelStringList);
-  end;
-  DebugNode.AddChildren(DebugInfoLabel);
-
-end;
-
-procedure TTiledMapConverter.BuildDebugCoordinateSystem;
-var
-  { Axis objects. }
-  DebugAxisGeom: array[0..2] of TLineSetNode;
-  DebugAxisCoord: array[0..2] of TCoordinateNode;
-  DebugAxisShape: array[0..2] of TShapeNode;
-
-  { Naming objects. }
-  DebugAxisName: array[0..3] of TTransformNode;
-  DebugAxisNameGeom: array[0..3] of TTextNode;
-  DebugAxisNameShape: array[0..3] of TShapeNode;
-
-  { General objects (and vars.) }
-  DebugAxisMaterial: TUnlitMaterialNode;
-  DebugAxisLineProperties: TLinePropertiesNode;
-  I: Byte;
-  OriginVector: TVector3;
-  AxisLength, AxisNameGap: Single;
-begin
-  OriginVector := Vector3(0.0, 0.0, 0.1); // Z = 0.1 to be visible against layer
-  AxisLength := 0.5 * (MapWidthPx + MapHeightPx) / 3;
-  AxisNameGap := 0.5 * (MapWidthPx + MapHeightPx) / 10;
-
-  DebugAxisMaterial := TUnlitMaterialNode.Create;
-  DebugAxisMaterial.EmissiveColor := WhiteRGB;
-
-  DebugAxisLineProperties := TLinePropertiesNode.Create;
-  DebugAxisLineProperties.LinewidthScaleFactor := 2.0;
-
-  for I := 0 to 2 do
-  begin
-    { Construct three axis at origin along X, Y and Z. }
-    DebugAxisGeom[I] := TLineSetNode.CreateWithShape(DebugAxisShape[I]);
-    DebugAxisShape[I].Appearance := TAppearanceNode.Create;
-    DebugAxisShape[I].Appearance.Material := DebugAxisMaterial;
-    DebugAxisShape[I].Appearance.LineProperties := DebugAxisLineProperties;
-    DebugAxisCoord[I] := TCoordinateNode.Create;
-    case I of
-      0: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(AxisLength, 0.0, 0.1)
-           ]); // X-Axis
-      1: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(0.0, AxisLength, 0.1)
-           ]); // Y-Axis
-      2: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(0.0, 0.0,
-           0.1 + AxisLength)]); // Z-Axis
-    end;
-    DebugAxisGeom[I].SetVertexCount([DebugAxisCoord[I].CoordCount]);
-    DebugAxisGeom[I].Coord := DebugAxisCoord[I];
-    DebugNode.AddChildren(DebugAxisShape[I]);
-  end;
-
-  for I := 0 to 3 do
-  begin
-    { Construct axis description for X-, Y- and Z-axis and origin. }
-    DebugAxisNameGeom[I] := TTextNode.CreateWithShape(DebugAxisNameShape[I]);
-    DebugAxisNameShape[I].Appearance := TAppearanceNode.Create;
-    DebugAxisNameShape[I].Appearance.Material := DebugAxisMaterial;
-    case I of
-      0: DebugAxisNameGeom[I].SetText(['X']);
-      1: DebugAxisNameGeom[I].SetText(['Y']);
-      2: DebugAxisNameGeom[I].SetText(['Z']);
-      3: DebugAxisNameGeom[I].SetText(['O']);
-    end;
-    DebugAxisNameGeom[I].FontStyle := DebugFontStyleNode;
-    DebugAxisName[I] := TTransformNode.Create;
-    case I of
-      0: DebugAxisName[I].Translation := Vector3(AxisLength + AxisNameGap, 0.0,
-           0.1);
-      1: DebugAxisName[I].Translation := Vector3(0.0, AxisLength + AxisNameGap,
-           0.1);
-      2: DebugAxisName[I].Translation := Vector3(0.0, 0.0, AxisLength +
-           AxisNameGap);
-      3: DebugAxisName[I].Translation := Vector3(-AxisNameGap, -AxisNameGap,
-           0.1);
-    end;
-    DebugAxisName[I].AddChildren(DebugAxisNameShape[I]);
-    DebugNode.AddChildren(DebugAxisName[I]);
-  end;
-end;
-
-procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Integer;
-  const AName: String);
-var
-  { All Debug objects are based on a Transform node. }
-  DebugObject: TTransformNode;
-  { Outline-Debug object. }
-  { Hint: TRectangle2DNode is always filled, even if TFillPropertiesNode has
-    property filled set to false. }
-  DebugGeometryOutline: TPolyline2DNode;
-  DebugShapeOutline: TShapeNode;
-  { Name-Debug object. }
-  DebugGeometryName: TTextNode;
-  DebugShapeName: TShapeNode;
-  DebugNameGap: Single;
-begin
-  DebugObject := nil;
-  DebugGeometryOutline := nil;
-  DebugShapeOutline := nil;
-  DebugGeometryName := nil;
-  DebugShapeName := nil;
-
-  { Build Outline-Debug object. }
-  DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
-  DebugShapeOutline.Appearance := DebugAppearanceNode;
-  { Create anti-clockwise rectangle. }
-  DebugGeometryOutline.SetLineSegments([
-    ConvY(0.0, 0.0),
-    ConvY(W, 0.0),
-    ConvY(W, H),
-    ConvY(0.0, H),
-    ConvY(0.0, 0.0)
-  ]);
-
-  { Build Name-Debug object. }
-  DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
-  DebugGeometryName.SetText(AName);
-  DebugGeometryName.FontStyle := DebugFontStyleNode;
-  DebugShapeName.Appearance := DebugAppearanceNode;
-  DebugNameGap := 0.5 * (W + H) / 10;
-
-  { Create Debug transform node for Outline- and NameDebug nodes. Add them to
-    the Debug node. }
-  DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(
-    ConvY(X, Y),
-    LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
-                                                   //    (esp. important for tile layers).
-  DebugObject.AddChildren(DebugShapeOutline);
-  DebugNode.AddChildren(DebugObject);
-
-  DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(
-    ConvY(X, Y) + Vector2(DebugNameGap, DebugNameGap),
-    LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
-                                                   //    (esp. important for tile layers).
-  DebugObject.AddChildren(DebugShapeName);
-  DebugNode.AddChildren(DebugObject);
-end;
-
-function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String
-  ): TX3DRootNode;
+function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   TiledMapFromStream: TTiledMap;
   TiledMapConverter: TTiledMapConverter;
@@ -1200,7 +698,7 @@ begin
     hence create one. }
   TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
   try
-    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream, TiledDebugMode);
+    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream);
     try
       TiledMapConverter.ConvertMap;
       Result := TiledMapConverter.RootNode;
