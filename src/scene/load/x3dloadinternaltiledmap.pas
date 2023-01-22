@@ -139,13 +139,6 @@ var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
   TexRect: TFloatRectangle;
-
-  { Calculate the number of rows (of tiles) of a tileset. }
-  function RowsInTileset: Cardinal;
-  begin
-    Result := Tileset.TileCount div Tileset.Columns;
-  end;
-
 begin
   GhostNode := TGroupNode.Create;
 
