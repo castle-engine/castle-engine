@@ -81,7 +81,7 @@ type
         { Embedded image data (since 0.9). }
         Data: TData;
         destructor Destroy; override;
-        procedure DetermineSize;
+        //procedure DetermineSize;
       end;
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
@@ -601,6 +601,14 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+{ Not used anymore.
+  If we will ever get back to doing this, we should store loaded Image,
+  so that we can later use it (e.g. X3D loader could use
+
+    TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.URL);
+
+  ) to just copy loaded image.
+
 procedure TTiledMap.TImage.DetermineSize;
 var
  ImageData: TEncodedImage;
@@ -615,6 +623,7 @@ begin
     finally FreeAndNil(ImageData) end;
   end;
 end;
+}
 
 { TFrame --------------------------------------------------------------------- }
 
