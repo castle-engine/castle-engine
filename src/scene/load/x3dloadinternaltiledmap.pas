@@ -50,7 +50,7 @@ uses
   SysUtils, Math, Generics.Collections,
   CastleVectors, CastleTransform, CastleColors, CastleRectangles,
   CastleRenderOptions, CastleControls, CastleStringUtils,
-  CastleImages;
+  CastleImages, CastleURIUtils;
 
 type
   { Converter class to convert Tiled map into X3D representations. }
@@ -59,6 +59,7 @@ type
     FMap: TTiledMap;
     FMapNode: TTransformNode;
     FRootNode: TX3DRootNode;
+    SmoothScalingSafeBorder: Boolean;
 
     { Fills every TTileset.RendererData with TAppearanceNode with texture of this tileset. }
     procedure PrepareTilesets;
@@ -79,12 +80,6 @@ type
     function ConvY(const TiledCoord: TVector2): TVector2; overload;
     function ConvY(const X, Y: Single): TVector2; overload;
     { @groupEnd }
-  public
-    constructor Create(ATiledMap: TTiledMap);
-    destructor Destroy; override;
-
-    { Constructs X3D representation from TTiledMap data. }
-    procedure ConvertMap;
 
     { The Tiled map is loaded from stream and NOT free'd automatically. }
     property Map: TTiledMap read FMap write FMap;
@@ -93,6 +88,15 @@ type
       automatically. Usually the X3D representation is added to a scene
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
+  public
+    constructor Create(const ATiledMap: TTiledMap);
+    destructor Destroy; override;
+
+    procedure GetSettingsFromAnchor(const BaseUrl: String);
+
+    { Constructs RootNode from TTiledMap data. }
+    procedure ConvertMap;
+
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
   end;
 
@@ -311,6 +315,9 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
       Tileset.TileHeight
     );
 
+    if SmoothScalingSafeBorder then
+      Result := Result.Grow(-0.51);
+
     { fix Result to be in 0..1 range }
     Result.Left := Result.Left / Tileset.Image.Width;
     Result.Width := Result.Width / Tileset.Image.Width;
@@ -432,21 +439,15 @@ begin
       RenderTile(Vector2Integer(X, Y));
 end;
 
-constructor TTiledMapConverter.Create(ATiledMap: TTiledMap);
-var
-  SwitchNode: TSwitchNode;
+constructor TTiledMapConverter.Create(const ATiledMap: TTiledMap);
 begin
   inherited Create;
 
   Map := ATiledMap;
 
-  { Create scene's initial node structure: Root --> Switch --> Map }
   RootNode := TX3DRootNode.Create;
-  SwitchNode := TSwitchNode.Create;
-  RootNode.AddChildren(SwitchNode);
   MapNode := TTransformNode.Create;
-  SwitchNode.AddChildren(MapNode);
-  SwitchNode.WhichChoice := 0;
+  RootNode.AddChildren(MapNode);
 end;
 
 destructor TTiledMapConverter.Destroy;
@@ -464,6 +465,29 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
+procedure TTiledMapConverter.GetSettingsFromAnchor(const BaseUrl: String);
+var
+  SettingsMap: TStringStringMap;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
+begin
+  SettingsMap := TStringStringMap.Create;
+  try
+    URIGetSettingsFromAnchor(BaseUrl, SettingsMap);
+    for Setting in SettingsMap do
+    begin
+      if LowerCase(Setting.Key) = 'smooth-scaling-safe-border' then
+        SmoothScalingSafeBorder := StrToBool(Setting.Value)
+      else
+        WritelnWarning('LoadNode(TiledMap)', 'Unknown setting (%s) in "%s" anchor.', [
+          Setting.Key,
+          URIDisplay(BaseUrl)
+        ]);
+    end;
+  finally
+    FreeAndNil(SettingsMap);
+  end;
+end;
+
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   TiledMapFromStream: TTiledMap;
@@ -475,6 +499,7 @@ begin
   try
     TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream);
     try
+      TiledMapConverter.GetSettingsFromAnchor(BaseUrl);
       TiledMapConverter.ConvertMap;
       Result := TiledMapConverter.RootNode;
     finally FreeAndNil(TiledMapConverter) end;

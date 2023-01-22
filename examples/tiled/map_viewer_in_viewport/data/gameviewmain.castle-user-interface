@@ -208,13 +208,62 @@
               "VerticalAnchorSelf" : "vpTop"
             },
             {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Smooth Scaling Safe Border",
+              "CheckboxColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "CheckboxSmoothScalingSafeBorder",
+              "TextColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -1.2900000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 1.5000000000000000E+001,
+              "Name" : "Label1",
+              "PaddingHorizontal" : 4.0000000000000000E+001,
+              "Text" : [
+                "\"Safe Border\" workarounds scaling artifacts ",
+                "on Tileset images that don't have correct spacing and \"color bleeding\".",
+                "It should only be used when \"Smooth Scaling\" is on ",
+                "(it is useless when \"Smooth Scaling\" = false and in fact may cause subtle artifacts)."
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -1.6300000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
               "$$ClassName" : "TCastleHorizontalGroup",
               "Name" : "HorizontalGroup1",
               "Spacing" : 1.0000000000000000E+001,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 1.0000000000000000E+001,
-                "Y" : -1.2900000000000000E+002
+                "Y" : -2.3825000000000000E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
