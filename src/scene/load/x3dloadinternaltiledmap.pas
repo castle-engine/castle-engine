@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2022 Matthias J. Molski.
+  Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -178,11 +178,9 @@ type
     function TileWidthPx: Cardinal;
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
     function TileHeightPx: Cardinal;
-    { Convert Tiled Y-values (CY: Convert Y) to Y-values according to
-      definition. Mirrors 2d-vector at X-axis in XY-plane.
-      See remarks at head of unit file.
+    { Convert Tiled coordinates to CGE.
       @groupBegin }
-    function ConvY(const TiledYVector2: TVector2): TVector2; overload;
+    function ConvY(const TiledCoord: TVector2): TVector2; overload;
     function ConvY(const X, Y: Single): TVector2; overload;
     { @groupEnd }
 
@@ -506,7 +504,7 @@ begin
           AVector2List.Clear;
           AVector2List.Assign(TiledObject.Points);
           for I := 0 to AVector2List.Count-1 do
-            AVector2List.Items[I] :=  ConvY(AVector2List.Items[I]);
+            AVector2List.Items[I] := ConvY(AVector2List.Items[I]);
 
           { Polygon: Add point with index 0 to points list to get a closed polygon }
           if TiledObject.Primitive = topPolygon then
@@ -516,10 +514,13 @@ begin
         end;
       topRectangle:
         begin
-          TiledObjectGeometry.SetLineSegments([ConvY(0.0, 0.0), ConvY(
-            TiledObject.Width, 0.0), ConvY(
-            TiledObject.Width, TiledObject.Height), ConvY(
-            0.0, TiledObject.Height), ConvY(0.0, 0.0)]);
+          TiledObjectGeometry.SetLineSegments([
+            ConvY(0.0, 0.0),
+            ConvY(TiledObject.Width, 0.0),
+            ConvY(TiledObject.Width, TiledObject.Height),
+            ConvY(0.0, TiledObject.Height),
+            ConvY(0.0, 0.0)
+          ]);
         end;
       topPoint:
         begin
@@ -994,11 +995,9 @@ begin
   Result := Map.TileHeight;
 end;
 
-function TTiledMapConverter.ConvY(const TiledYVector2: TVector2): TVector2;
-const
-  ConvYMatrix: TMatrix2 = (Data: ((1, 0), (0, -1)));
+function TTiledMapConverter.ConvY(const TiledCoord: TVector2): TVector2;
 begin
-  Result :=  ConvYMatrix * TiledYVector2;
+  Result := Vector2(TiledCoord.X, -TiledCoord.Y);
 end;
 
 function TTiledMapConverter.ConvY(const X, Y: Single): TVector2;
@@ -1157,9 +1156,13 @@ begin
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
   DebugShapeOutline.Appearance := DebugAppearanceNode;
   { Create anti-clockwise rectangle. }
-  DebugGeometryOutline.SetLineSegments([ConvY(0.0, 0.0),
-  ConvY(Single(W), 0.0), ConvY(Single(W), Single(H)),
-  ConvY(0.0, Single(H)), ConvY(0.0, 0.0)]);
+  DebugGeometryOutline.SetLineSegments([
+    ConvY(0.0, 0.0),
+    ConvY(W, 0.0),
+    ConvY(W, H),
+    ConvY(0.0, H),
+    ConvY(0.0, 0.0)
+  ]);
 
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
@@ -1172,7 +1175,7 @@ begin
     the Debug node. }
   DebugObject := TTransformNode.Create;
   DebugObject.Translation := Vector3(
-    ConvY(Single(X), Single(Y)),
+    ConvY(X, Y),
     LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
                                                    //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeOutline);
@@ -1180,7 +1183,7 @@ begin
 
   DebugObject := TTransformNode.Create;
   DebugObject.Translation := Vector3(
-    ConvY(Single(X), Single(Y)) + Vector2(DebugNameGap, DebugNameGap),
+    ConvY(X, Y) + Vector2(DebugNameGap, DebugNameGap),
     LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
                                                    //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeName);
