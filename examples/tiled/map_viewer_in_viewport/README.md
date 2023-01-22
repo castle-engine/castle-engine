@@ -12,6 +12,14 @@ You can
 
 Our `data` subdirectory contains a number of Tiled maps. You can also go ahead and download [Tiled, free map editor](https://www.mapeditor.org/) to edit these maps or create new ones.
 
+Note about using `TCastleScene` for Tiled:
+
+- It works most sensible in orthographic view with camera direction along Z. Otherwise the distance in Z between each layer may be visible.
+
+- The best `BlendingSort` is `bsNone`, not `bs3D` or `bs2D`.
+
+    IOW the tiles are already provided in the correct rendering order, blending sorting should not mess with it. Testcase: `data/maps/isometric_grass_and_water.tmx` .
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

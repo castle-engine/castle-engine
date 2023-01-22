@@ -51,9 +51,8 @@
             "Name" : "TiledScene",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "BlendingSort" : "bs2D"
-            },
-            "URL" : "castle-data:/maps/desert.tmx"
+              "BlendingSort" : "bsNone"
+            }
           }
         ]
       },
@@ -69,7 +68,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.2000000000000000E+003,
+          "Height" : 1.0858049316406250E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -86,6 +85,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -5.8346786499023438E+000,
+          "Y" : 2.0491622924804688E+001,
           "Z" : 6.0000000000000000E+002
         }
       },
