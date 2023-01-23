@@ -87,8 +87,6 @@ type
     constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
 
-    procedure GetSettingsFromAnchor(const BaseUrl: String);
-
     { Constructs RootNode from TCastleTiledMapData data. }
     procedure ConvertMap;
 
@@ -169,7 +167,12 @@ var
   LayerNode: TTransformNode;
   LayerZ: Single;
 const
-  LayerZDistanceIncrease: Single = 10; //< Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx
+  { Distance between Tiled layers in Z. Layers are rendered as 3D objects
+    and need some distance to avoid Z-fighting.
+    TODO: The need for this may be avoided in the future using RenderContext.DepthFunc := fdAlways.
+
+    Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
+  LayerZDistanceIncrease: Single = 10;
 begin
   LayerZ := 0;
 
@@ -468,29 +471,6 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-procedure TCastleTiledMapConverter.GetSettingsFromAnchor(const BaseUrl: String);
-var
-  SettingsMap: TStringStringMap;
-  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
-begin
-  SettingsMap := TStringStringMap.Create;
-  try
-    URIGetSettingsFromAnchor(BaseUrl, SettingsMap);
-    for Setting in SettingsMap do
-    begin
-      if LowerCase(Setting.Key) = 'smooth-scaling-safe-border' then
-        SmoothScalingSafeBorder := StrToBool(Setting.Value)
-      else
-        WritelnWarning('LoadNode(TiledMap)', 'Unknown setting (%s) in "%s" anchor.', [
-          Setting.Key,
-          URIDisplay(BaseUrl)
-        ]);
-    end;
-  finally
-    FreeAndNil(SettingsMap);
-  end;
-end;
-
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   TiledMapFromStream: TCastleTiledMapData;
@@ -502,7 +482,6 @@ begin
   try
     TiledMapConverter := TCastleTiledMapConverter.Create(TiledMapFromStream);
     try
-      TiledMapConverter.GetSettingsFromAnchor(BaseUrl);
       TiledMapConverter.ConvertMap;
       Result := TiledMapConverter.RootNode;
     finally FreeAndNil(TiledMapConverter) end;

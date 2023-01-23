@@ -83,6 +83,11 @@ begin
 
   FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
+  { This is the best BlendingSort.
+    IOW we assume the tiles are already provided in the correct rendering order,
+    blending sorting should not mess with it.
+    Testcase: data/maps/isometric_grass_and_water.tmx . }
+  FScene.RenderOptions.BlendingSort := bsNone;
   Add(FScene);
 
   FSmoothScaling := false;

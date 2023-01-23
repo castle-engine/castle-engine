@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleTransform,
+  CastleVectors, CastleComponentSerialize, CastleTransform, CastleTiledMap,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleScene;
 
 type
@@ -29,7 +29,7 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    TiledScene: TCastleScene;
+    TiledMap: TCastleTiledMap;
     ButtonOpen: TCastleButton;
     CheckboxSmoothScaling, CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
     MapCamera: TCastleCamera;
@@ -69,8 +69,9 @@ begin
   CheckboxSmoothScaling.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingChange;
   CheckboxSmoothScalingSafeBorder.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingSafeBorderChange;
 
-  { Synchronize TiledScene.RenderOptions.XxxFilter with initial checkbox state }
-  CheckboxSmoothScalingChange(nil);
+  { Synchronize initial checkbox state with map properties }
+  CheckboxSmoothScaling.Checked := TiledMap.SmoothScaling ;
+  CheckboxSmoothScalingSafeBorder.Checked := TiledMap.SmoothScalingSafeBorder;
 
   { Load the map from parameter or default. }
   if Parameters.High = 1 then
@@ -81,7 +82,7 @@ end;
 
 procedure TViewMain.OpenMap(const MapUrl: String);
 begin
-  TiledScene.Url := MapUrl;
+  TiledMap.Url := MapUrl;
   MapCamera.Translation := TVector3.Zero;
   MapCamera.Orthographic.Height := 1000; // resets zoom in/out
 end;
@@ -96,39 +97,19 @@ procedure TViewMain.ClickOpen(Sender: TObject);
 var
   Url: String;
 begin
-  Url := TiledScene.Url;
+  Url := TiledMap.Url;
   if Application.MainWindow.FileDialog('Open Map', Url, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
-  begin
-    if CheckboxSmoothScalingSafeBorder.Checked then
-      Url := Url + '#smooth-scaling-safe-border:true';
     OpenMap(Url);
-  end;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingChange(Sender: TObject);
 begin
-  if CheckboxSmoothScaling.Checked then
-  begin
-    TiledScene.RenderOptions.MinificationFilter := minLinear;
-    TiledScene.RenderOptions.MagnificationFilter := magLinear;
-  end else
-  begin
-    TiledScene.RenderOptions.MinificationFilter := minNearest;
-    TiledScene.RenderOptions.MagnificationFilter := magNearest;
-  end;
+  TiledMap.SmoothScaling := CheckboxSmoothScaling.Checked;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
-var
-  NewUrl: String;
 begin
-  { The setting of SmoothScalingSafeBorder is right now passed through URL anchor
-    to the Tiled map loaded in X3DLoadInternalTiledMap.
-    So we just modify URL, adding or removing the special anchor. }
-  NewUrl := URIDeleteAnchor(TiledScene.Url);
-  if CheckboxSmoothScalingSafeBorder.Checked then
-    NewUrl := NewUrl + '#smooth-scaling-safe-border:true';
-  TiledScene.Url := NewUrl; // not using OpenMap, to not reset camera
+  TiledMap.SmoothScalingSafeBorder := CheckboxSmoothScalingSafeBorder.Checked;
 end;
 
 end.
