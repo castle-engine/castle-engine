@@ -15,7 +15,7 @@
 
 { Convert Tiled map (tmx file, see https://www.mapeditor.org/) into X3D representation.
 
-  Underneath, the map is loaded using @link(TTiledMap) class,
+  Underneath, the map is loaded using @link(TCastleTiledMapData) class,
   thus the map-reading logic is shared with TCastleTiledMapControl.
 
   TODO:
@@ -40,7 +40,7 @@ uses
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
 
-  Underneath, this loads Tiled map using TTiledMap,
+  Underneath, this loads Tiled map using TCastleTiledMapData,
   then uses internal conversion class to generate X3D node from it. }
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
@@ -54,9 +54,9 @@ uses
 
 type
   { Converter class to convert Tiled map into X3D representations. }
-  TTiledMapConverter = class
+  TCastleTiledMapConverter = class
   strict private
-    FMap: TTiledMap;
+    FMap: TCastleTiledMapData;
     FMapNode: TTransformNode;
     FRootNode: TX3DRootNode;
     SmoothScalingSafeBorder: Boolean;
@@ -70,10 +70,10 @@ type
     procedure FreeUnusedTilesetsRendererData;
 
     procedure BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
-      const ALayer: TTiledMap.TLayer);
+      const ALayer: TCastleTiledMapData.TLayer);
 
     procedure BuildTileLayerNode(const LayerNode: TTransformNode;
-      const ALayer: TTiledMap.TLayer);
+      const ALayer: TCastleTiledMapData.TLayer);
 
     { Convert Tiled coordinates to CGE.
       @groupBegin }
@@ -82,35 +82,35 @@ type
     { @groupEnd }
 
     { The Tiled map is loaded from stream and NOT free'd automatically. }
-    property Map: TTiledMap read FMap write FMap;
+    property Map: TCastleTiledMapData read FMap write FMap;
 
     { Holds the X3D representation of the Tiled map. It is NOT free'd
       automatically. Usually the X3D representation is added to a scene
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
   public
-    constructor Create(const ATiledMap: TTiledMap);
+    constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
 
     procedure GetSettingsFromAnchor(const BaseUrl: String);
 
-    { Constructs RootNode from TTiledMap data. }
+    { Constructs RootNode from TCastleTiledMapData data. }
     procedure ConvertMap;
 
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
   end;
 
-procedure TTiledMapConverter.ConvertMap;
+procedure TCastleTiledMapConverter.ConvertMap;
 begin
   PrepareTilesets;
   ConvertLayers;
   FreeUnusedTilesetsRendererData;
 end;
 
-procedure TTiledMapConverter.FreeUnusedTilesetsRendererData;
+procedure TCastleTiledMapConverter.FreeUnusedTilesetsRendererData;
 var
   Appearance: TAppearanceNode;
-  Tileset: TTiledMap.TTileset;
+  Tileset: TCastleTiledMapData.TTileset;
 begin
   for Tileset in Map.Tilesets do
   begin
@@ -120,13 +120,13 @@ begin
   end;
 end;
 
-procedure TTiledMapConverter.PrepareTilesets;
+procedure TCastleTiledMapConverter.PrepareTilesets;
 var
   Texture: TImageTextureNode;
   TexProperties: TTexturePropertiesNode;
   Appearance: TAppearanceNode;
 var
-  Tileset: TTiledMap.TTileset;
+  Tileset: TCastleTiledMapData.TTileset;
 begin
   for Tileset in Map.Tilesets do
   begin
@@ -160,9 +160,9 @@ begin
   end;
 end;
 
-procedure TTiledMapConverter.ConvertLayers;
+procedure TCastleTiledMapConverter.ConvertLayers;
 var
-  Layer: TTiledMap.TLayer;
+  Layer: TCastleTiledMapData.TLayer;
   LayerNode: TTransformNode;
   LayerZ: Single;
 const
@@ -177,11 +177,11 @@ begin
 
     LayerNode := TTransformNode.Create;
 
-    if Layer is TTiledMap.TObjectGroupLayer then
+    if Layer is TCastleTiledMapData.TObjectGroupLayer then
       BuildObjectGroupLayerNode(LayerNode, Layer)
     else
     { TODO:
-    if Layer is TTiledMap.TImageLayer then
+    if Layer is TCastleTiledMapData.TImageLayer then
       BuildImageLayer(Layer, LayerNode)
     else }
       BuildTileLayerNode(LayerNode, Layer);
@@ -193,13 +193,13 @@ begin
   end;
 end;
 
-procedure TTiledMapConverter.BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
-  const ALayer: TTiledMap.TLayer);
+procedure TCastleTiledMapConverter.BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
+  const ALayer: TCastleTiledMapData.TLayer);
 var
   // Material node of a Tiled obj.
   TiledObjectMaterial: TMaterialNode;
-  // A Tiled object instance (as saved in TTiledMap).
-  TiledObject: TTiledMap.TTiledObject;
+  // A Tiled object instance (as saved in TCastleTiledMapData).
+  TiledObject: TCastleTiledMapData.TTiledObject;
   // Node of a Tiled object.
   TiledObjectNode: TTransformNode;
   // Geometry node of a TiledObject primitive.
@@ -218,7 +218,7 @@ begin
 
   AVector2List := TVector2List.Create;
 
-  for TiledObject in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
+  for TiledObject in (ALayer as TCastleTiledMapData.TObjectGroupLayer).Objects do
   begin
     if not TiledObject.Visible then
       Continue;
@@ -291,11 +291,11 @@ begin
     FreeAndNil(AVector2List);
 end;
 
-procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
-  const ALayer: TTiledMap.TLayer);
+procedure TCastleTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
+  const ALayer: TCastleTiledMapData.TLayer);
 
   function GetTileCoordRect(const TilePosition: TVector2Integer;
-    const Tileset: TTiledMap.TTileset): TFloatRectangle;
+    const Tileset: TCastleTiledMapData.TTileset): TFloatRectangle;
   begin
     Result := FloatRectangle(
       Map.TileRenderPosition(TilePosition),
@@ -304,7 +304,7 @@ procedure TTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransformNode;
     );
   end;
 
-  function GetTileTexCoordRect(const Tile: TTiledMap.TTile; const Tileset: TTiledMap.TTileset): TFloatRectangle;
+  function GetTileTexCoordRect(const Tile: TCastleTiledMapData.TTile; const Tileset: TCastleTiledMapData.TTileset): TFloatRectangle;
   begin
     Result := FloatRectangle(
       (Tile.Id mod Tileset.Columns) * (Tileset.TileWidth + Tileset.Spacing)
@@ -370,13 +370,13 @@ type
   end;
 
 var
-  LastTileTileset: TTiledMap.TTileset;
+  LastTileTileset: TCastleTiledMapData.TTileset;
   LastTileCoord: TCoordinateNode;
   LastTileTexCoord: TTextureCoordinateNode;
 
   procedure RenderTile(const TilePosition: TVector2Integer);
   var
-    Tileset: TTiledMap.TTileset;
+    Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;
     HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
     CoordRect, TexCoordRect: TFloatRectangle;
@@ -439,7 +439,7 @@ begin
       RenderTile(Vector2Integer(X, Y));
 end;
 
-constructor TTiledMapConverter.Create(const ATiledMap: TTiledMap);
+constructor TCastleTiledMapConverter.Create(const ATiledMap: TCastleTiledMapData);
 begin
   inherited Create;
 
@@ -450,22 +450,22 @@ begin
   RootNode.AddChildren(MapNode);
 end;
 
-destructor TTiledMapConverter.Destroy;
+destructor TCastleTiledMapConverter.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TTiledMapConverter.ConvY(const TiledCoord: TVector2): TVector2;
+function TCastleTiledMapConverter.ConvY(const TiledCoord: TVector2): TVector2;
 begin
   Result := Vector2(TiledCoord.X, - TiledCoord.Y);
 end;
 
-function TTiledMapConverter.ConvY(const X, Y: Single): TVector2;
+function TCastleTiledMapConverter.ConvY(const X, Y: Single): TVector2;
 begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-procedure TTiledMapConverter.GetSettingsFromAnchor(const BaseUrl: String);
+procedure TCastleTiledMapConverter.GetSettingsFromAnchor(const BaseUrl: String);
 var
   SettingsMap: TStringStringMap;
   Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
@@ -490,14 +490,14 @@ end;
 
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  TiledMapFromStream: TTiledMap;
-  TiledMapConverter: TTiledMapConverter;
+  TiledMapFromStream: TCastleTiledMapData;
+  TiledMapConverter: TCastleTiledMapConverter;
 begin
-  { The Tiled converter unit expects a TTiledMap object instance,
+  { The Tiled converter unit expects a TCastleTiledMapData object instance,
     hence create one. }
-  TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
+  TiledMapFromStream := TCastleTiledMapData.Create(Stream, BaseUrl);
   try
-    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream);
+    TiledMapConverter := TCastleTiledMapConverter.Create(TiledMapFromStream);
     try
       TiledMapConverter.GetSettingsFromAnchor(BaseUrl);
       TiledMapConverter.ConvertMap;

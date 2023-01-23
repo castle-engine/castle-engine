@@ -22,7 +22,7 @@ type
   { Display a map created in Tiled (https://www.mapeditor.org/). }
   TCastleTiledMapControl = class(TCastleUserInterface)
   strict private
-    FMap: TTiledMap;
+    FMap: TCastleTiledMapData;
     FURL: String;
     FObjectsVisible: Boolean;
     FOrigin: TVector2;
@@ -55,7 +55,7 @@ type
 
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
-    property Map: TTiledMap read FMap;
+    property Map: TCastleTiledMapData read FMap;
 
     { Detect tile under given position.
 
@@ -91,7 +91,7 @@ type
 
       This method returns @false if the position is outside of the map.
       Valid map tiles are from (0, 0) (lower-left) to
-      (@link(TTiledMap.Width) - 1, @link(TTiledMap.Height) - 1) (upper-right). }
+      (@link(TCastleTiledMapData.Width) - 1, @link(TCastleTiledMapData.Height) - 1) (upper-right). }
     function PositionToTile(const Position: TVector2; const ContainerCoordinates: Boolean;
       out TilePosition: TVector2Integer): Boolean;
 
@@ -134,11 +134,11 @@ type
       Returns TFloatRectangle.Empty is @link(Map) not loaded (@link(URL) not set).
 
       Some maps may use tilesets in which image size is different
-      than map tile size. That is, TTiledMap.TTileset.TileWidth may be different
-      than TTiledMap.TileWidth for some tilesets.
+      than map tile size. That is, TCastleTiledMapData.TTileset.TileWidth may be different
+      than TCastleTiledMapData.TileWidth for some tilesets.
       The simpler version of this method,
       without ForceTileWidth/Height, just returns the size of the map tile looking at
-      (TTiledMap.TileWidth, TTiledMap.TileHeight), since it doesn't know
+      (TCastleTiledMapData.TileWidth, TCastleTiledMapData.TileHeight), since it doesn't know
       the tileset you use.
 
       You can pass ForceTileWidth and ForceTileHeight to set particular size.
@@ -222,8 +222,8 @@ end;
 
 procedure TCastleTiledMapControl.RenderObjects;
 var
-  Lay: TTiledMap.TLayer;              // ObjectGroupLayer
-  TiledObj: TTiledMap.TTiledObject;   // one TiledObject
+  Lay: TCastleTiledMapData.TLayer;              // ObjectGroupLayer
+  TiledObj: TCastleTiledMapData.TTiledObject;   // one TiledObject
   TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
 
   { Transform point from Tiled position to our render position.
@@ -312,9 +312,9 @@ begin
   { Object groups. }
   for Lay in Map.Layers do
   begin
-    if (Lay is TTiledMap.TObjectGroupLayer) and Lay.Visible then
+    if (Lay is TCastleTiledMapData.TObjectGroupLayer) and Lay.Visible then
     begin
-      for TiledObj in (Lay as TTiledMap.TObjectGroupLayer).Objects do
+      for TiledObj in (Lay as TCastleTiledMapData.TObjectGroupLayer).Objects do
       begin
         if TiledObj.Visible then
         begin
@@ -333,7 +333,7 @@ end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
 var
-  Tileset: TTiledMap.TTileset;
+  Tileset: TCastleTiledMapData.TTileset;
   Spr: TSprite;
 begin
   if Map <> nil then
@@ -368,7 +368,7 @@ end;
 
 procedure TCastleTiledMapControl.FreeTilesetsImages;
 var
-  Tileset: TTiledMap.TTileset;
+  Tileset: TCastleTiledMapData.TTileset;
 begin
   if Map <> nil then
     for Tileset in Map.Tilesets do
@@ -393,7 +393,7 @@ begin
     FURL := Value;
     Close;
     if Value <> '' then
-      FMap := TTiledMap.Create(Value);
+      FMap := TCastleTiledMapData.Create(Value);
     LoadTilesetsImages;
   end;
 end;
@@ -405,9 +405,9 @@ var
   { Return TSprite to render this tile,
     with sprite's Frame, HorizontalFlip, VerticalFlip, DiagonalFlip already set.
     May return @nil if nothing to render. }
-  function TileSprite(const Layer: TTiledMap.TLayer; const X, Y: Integer): TSprite;
+  function TileSprite(const Layer: TCastleTiledMapData.TLayer; const X, Y: Integer): TSprite;
   var
-    Tileset: TTiledMap.TTileset;
+    Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;
     HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
   begin
@@ -436,7 +436,7 @@ var
     end;
   end;
 
-  procedure RenderTile(const Layer: TTiledMap.TLayer; const X, Y: Integer);
+  procedure RenderTile(const Layer: TCastleTiledMapData.TLayer; const X, Y: Integer);
   var
     Spr: TSprite;
     SpriteRenderRect: TFloatRectangle;
@@ -463,7 +463,7 @@ var
 
 var
   X, Y: Integer;
-  Layer: TTiledMap.TLayer;
+  Layer: TCastleTiledMapData.TLayer;
 begin
   inherited Render;
   if Map = nil then Exit;
@@ -480,8 +480,8 @@ begin
     for Layer in Map.Layers do
     begin
       if not Layer.Visible then Continue;
-      if (Layer is TTiledMap.TObjectGroupLayer) or  // TODO: See below, it would be better to render TObjectGroupLayer here, instead of special RenderObjects call
-         (Layer is TTiledMap.TImageLayer) then
+      if (Layer is TCastleTiledMapData.TObjectGroupLayer) or  // TODO: See below, it would be better to render TObjectGroupLayer here, instead of special RenderObjects call
+         (Layer is TCastleTiledMapData.TImageLayer) then
         Continue;
 
       // TODO: use Map.RenderOrder
@@ -492,7 +492,7 @@ begin
     end;
 
     { TODO: This is Redundant? Better to render the layer at cond. above at
-      (Layer is TTiledMap.TObjectGroupLayer). Would make redundant property
+      (Layer is TCastleTiledMapData.TObjectGroupLayer). Would make redundant property
       ObjectsVisible obsolete. This property is not found in the tmx tile specs.,
       but covered by TLayer.Visible already. See:
       https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#objectgroup }
@@ -524,7 +524,7 @@ procedure TCastleTiledMapControl.SetSmoothScaling(const Value: Boolean);
 
   procedure ChangeExistingImages;
   var
-    Tileset: TTiledMap.TTileset;
+    Tileset: TCastleTiledMapData.TTileset;
   begin
     if Map <> nil then
       for Tileset in Map.Tilesets do
@@ -545,7 +545,7 @@ procedure TCastleTiledMapControl.SetSmoothScalingSafeBorder(const Value: Boolean
 
   procedure ChangeExistingImages;
   var
-    Tileset: TTiledMap.TTileset;
+    Tileset: TCastleTiledMapData.TTileset;
   begin
     if Map <> nil then
       for Tileset in Map.Tilesets do
