@@ -35,7 +35,7 @@ interface
 
 uses
   Classes,
-  X3DNodes, CastleLog, CastleTiledMap;
+  X3DNodes, CastleLog, CastleTiledMap, CastleVectors;
 
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
@@ -44,22 +44,13 @@ uses
   then uses internal conversion class to generate X3D node from it. }
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-implementation
-
-uses
-  SysUtils, Math, Generics.Collections,
-  CastleVectors, CastleTransform, CastleColors, CastleRectangles,
-  CastleRenderOptions, CastleControls, CastleStringUtils,
-  CastleImages, CastleURIUtils;
-
 type
-  { Converter class to convert Tiled map into X3D representations. }
+  { Convert Tiled map into X3D node. }
   TCastleTiledMapConverter = class
   strict private
     FMap: TCastleTiledMapData;
     FMapNode: TTransformNode;
     FRootNode: TX3DRootNode;
-    SmoothScalingSafeBorder: Boolean;
 
     { Fills every TTileset.RendererData with TAppearanceNode with texture of this tileset. }
     procedure PrepareTilesets;
@@ -89,6 +80,10 @@ type
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
   public
+    { Workaround rendering artifacts for tilesets without alpha bleeding.
+      Set before @link(ConvertMap). }
+    SmoothScalingSafeBorder: Boolean;
+
     constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
 
@@ -99,6 +94,14 @@ type
 
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
   end;
+
+implementation
+
+uses
+  SysUtils, Math, Generics.Collections,
+  CastleTransform, CastleColors, CastleRectangles,
+  CastleRenderOptions, CastleControls, CastleStringUtils,
+  CastleImages, CastleURIUtils;
 
 procedure TCastleTiledMapConverter.ConvertMap;
 begin

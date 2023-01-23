@@ -103,9 +103,8 @@ begin
     'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
-  // TODO: TCastleTiledMap
-  // RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
-  //   'URL', TTiledMapURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
+    'URL', TTiledMapURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
     'URL', TSoundURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
