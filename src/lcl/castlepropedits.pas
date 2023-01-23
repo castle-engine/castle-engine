@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -103,6 +103,9 @@ begin
     'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
+  // TODO: TCastleTiledMap
+  // RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
+  //   'URL', TTiledMapURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
     'URL', TSoundURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
