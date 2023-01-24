@@ -233,7 +233,7 @@ var
   AVector2List: TVector2List;
   I: Cardinal;
 begin
-  if not Assigned(ALayer as TCastleTiledMapData.TObjectGroupLayer).Objects then Exit;
+  if not Assigned((ALayer as TCastleTiledMapData.TObjectGroupLayer).Objects) then Exit;
 
   TiledObjectMaterial := nil;
   TiledObjectNode := nil;
