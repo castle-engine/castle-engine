@@ -35,25 +35,37 @@ uses
   {$ifdef FPC} zstream {$else} { from Vampyre } DZLib {$endif},
   Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
-  CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages,
-  CastleRectangles, CastleClassUtils, CastleRenderOptions;
+  CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
+  CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene;
 
 {$define read_interface}
-{$I castletiledmap_map.inc}
+{$I castletiledmap_data.inc}
 {$I castletiledmap_control.inc}
+{$I castletiledmap_scene.inc}
 {$undef read_interface}
 
 implementation
 
 uses Math,
   CastleComponentSerialize, CastleImages,
-  CastleGLUtils, CastleDownload;
+  X3DLoadInternalTiledMap, CastleGLUtils, CastleDownload;
 
 {$define read_implementation}
-{$I castletiledmap_map.inc}
+{$I castletiledmap_data.inc}
 {$I castletiledmap_control.inc}
+{$I castletiledmap_scene.inc}
 {$undef read_implementation}
 
+var
+  R: TRegisteredComponent;
 initialization
-  RegisterSerializableComponent(TCastleTiledMapControl, 'Tiled Map');
+  R := TRegisteredComponent.Create;
+  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
+  R.ComponentClass := TCastleTiledMapControl;
+  {$warnings on}
+  R.Caption := ['Tiled Map Control'];
+  R.IsDeprecated := true;
+  RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleTiledMap, 'Tiled Map');
 end.

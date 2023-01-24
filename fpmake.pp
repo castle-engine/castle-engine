@@ -451,7 +451,6 @@ begin
     P.Targets.AddUnit('castlejoysticks.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
-    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
@@ -514,6 +513,7 @@ begin
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleterrain.pas');
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');

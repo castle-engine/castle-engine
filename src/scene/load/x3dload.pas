@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -329,7 +329,7 @@ var
   Gzipped: boolean;
 begin
   { We always download stripping anchor.
-    Spine, sprite sheets (Starling, Cocos2d), images except such anchor.
+    Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
   URLWithoutAnchor := URIDeleteAnchor(URL, true);
 
