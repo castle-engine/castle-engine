@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,10 @@
 unit Castle2DSceneManager deprecated 'use CastleViewport';
 
 {$I castleconf.inc}
+
+// This whole unit is deprecated and refers to some deprecated items, don't warn about it
+{$warn symbol_deprecated off}
+{$warn unit_deprecated off}
 
 interface
 
