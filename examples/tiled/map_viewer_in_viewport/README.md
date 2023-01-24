@@ -1,6 +1,6 @@
-# View Tiled map as TCastleScene in TCastleViewport
+# View Tiled map as TCastleTiledMap in TCastleViewport
 
-Load and view any Tiled map using `TCastleScene` in `TCastleViewport`.
+Load and view any Tiled map using `TCastleTiledMap` component in `TCastleViewport`.
 
 You can
 
@@ -12,13 +12,9 @@ You can
 
 Our `data` subdirectory contains a number of Tiled maps. You can also go ahead and download [Tiled, free map editor](https://www.mapeditor.org/) to edit these maps or create new ones.
 
-Note about using `TCastleScene` for Tiled:
+Note about using `TCastleTiledMap` in a viewport:
 
-- It works most sensible in orthographic view with camera direction along Z. Otherwise the distance in Z between each layer may be visible.
-
-- The best `BlendingSort` is `bsNone`, not `bs3D` or `bs2D`.
-
-    IOW the tiles are already provided in the correct rendering order, blending sorting should not mess with it. Testcase: `data/maps/isometric_grass_and_water.tmx` .
+- It works most sensible in orthographic view with camera direction along Z. (This is our default 2D camera.) Otherwise the distance in Z between each layer may be visible.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

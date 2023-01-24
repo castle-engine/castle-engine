@@ -40,14 +40,8 @@
             }
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "TiledScene",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "BlendingSort" : "bsNone"
-            }
+            "$$ClassName" : "TCastleTiledMap",
+            "Name" : "TiledMap"
           }
         ]
       },

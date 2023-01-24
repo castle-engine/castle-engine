@@ -137,7 +137,7 @@ type
         Name: string;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
-        { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+        { Whether the layer is shown or hidden. Defaults to true. }
         Visible: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
         OffsetX: Single;
@@ -365,10 +365,10 @@ type
 
     { Detect tile under given position.
 
-      Similar to @link(TCastleTiledMapControl.PositionToTile).
-      Given TilePosition must be in local map coordinates,
-      where each map piece has size (TileWidth, TileHeight),
-      and map bottom-left corner is in (0, 0).
+      Input Position is in local map coordinates.
+
+      Output TilePosition must is a tile coordinate,
+      where map bottom-left corner is (0, 0).
 
       This method returns @false if the position is outside of the map.
       Valid map tiles are defined as by @link(TilePositionValid). }

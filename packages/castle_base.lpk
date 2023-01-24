@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1052">
+    <Files Count="1053">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -3935,7 +3935,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item958>
       <Item959>
-        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item959>
       <Item960>
@@ -4113,15 +4113,15 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleNotifications"/>
       </Item1002>
       <Item1003>
-        <Filename Value="../src/ui/castletiledmap.pas"/>
+        <Filename Value="../src/scene/castletiledmap.pas"/>
         <UnitName Value="CastleTiledMap"/>
       </Item1003>
       <Item1004>
-        <Filename Value="../src/ui/castletiledmap_control.inc"/>
+        <Filename Value="../src/scene/castletiledmap_control.inc"/>
         <Type Value="Include"/>
       </Item1004>
       <Item1005>
-        <Filename Value="../src/ui/castletiledmap_map.inc"/>
+        <Filename Value="../src/scene/castletiledmap_data.inc"/>
         <Type Value="Include"/>
       </Item1005>
       <Item1006>
@@ -4315,6 +4315,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1052>
+      <Item1053>
+        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
+        <Type Value="Include"/>
+      </Item1053>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

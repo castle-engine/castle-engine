@@ -35,7 +35,7 @@ interface
 
 uses
   Classes,
-  X3DNodes, CastleLog, CastleTiledMap;
+  X3DNodes, CastleLog, CastleTiledMap, CastleVectors;
 
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
@@ -44,22 +44,13 @@ uses
   then uses internal conversion class to generate X3D node from it. }
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-implementation
-
-uses
-  SysUtils, Math, Generics.Collections,
-  CastleVectors, CastleTransform, CastleColors, CastleRectangles,
-  CastleRenderOptions, CastleControls, CastleStringUtils,
-  CastleImages, CastleURIUtils;
-
 type
-  { Converter class to convert Tiled map into X3D representations. }
+  { Convert Tiled map into X3D node. }
   TCastleTiledMapConverter = class
   strict private
     FMap: TCastleTiledMapData;
     FMapNode: TTransformNode;
     FRootNode: TX3DRootNode;
-    SmoothScalingSafeBorder: Boolean;
 
     { Fills every TTileset.RendererData with TAppearanceNode with texture of this tileset. }
     procedure PrepareTilesets;
@@ -89,16 +80,35 @@ type
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
   public
+    type
+      TLayerIndex = 0..30;
+      TLayers = set of TLayerIndex;
+    const
+      AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
+    var
+      { Workaround rendering artifacts for tilesets without alpha bleeding.
+        Set before @link(ConvertMap). }
+      SmoothScalingSafeBorder: Boolean;
+
+      { Layers to load.  }
+      Layers: TLayers;
+
     constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
-
-    procedure GetSettingsFromAnchor(const BaseUrl: String);
 
     { Constructs RootNode from TCastleTiledMapData data. }
     procedure ConvertMap;
 
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
   end;
+
+implementation
+
+uses
+  SysUtils, Math, Generics.Collections,
+  CastleTransform, CastleColors, CastleRectangles,
+  CastleRenderOptions, CastleControls, CastleStringUtils,
+  CastleImages, CastleURIUtils;
 
 procedure TCastleTiledMapConverter.ConvertMap;
 begin
@@ -162,17 +172,30 @@ end;
 
 procedure TCastleTiledMapConverter.ConvertLayers;
 var
+  LayerIndex: Integer;
   Layer: TCastleTiledMapData.TLayer;
   LayerNode: TTransformNode;
   LayerZ: Single;
 const
-  LayerZDistanceIncrease: Single = 10; //< Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx
+  { Distance between Tiled layers in Z. Layers are rendered as 3D objects
+    and need some distance to avoid Z-fighting.
+    TODO: The need for this may be avoided in the future using RenderContext.DepthFunc := fdAlways.
+
+    Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
+  LayerZDistanceIncrease: Single = 10;
 begin
   LayerZ := 0;
 
-  for Layer in Map.Layers do
+  for LayerIndex := 0 to Map.Layers.Count - 1 do
   begin
-    if not Layer.Visible then
+    Layer := Map.Layers[LayerIndex];
+    if not (
+         Layer.Visible and
+         (
+           (LayerIndex > High(TLayerIndex)) or
+           (LayerIndex in Layers)
+         )
+       ) then
       Continue;
 
     LayerNode := TTransformNode.Create;
@@ -443,6 +466,8 @@ constructor TCastleTiledMapConverter.Create(const ATiledMap: TCastleTiledMapData
 begin
   inherited Create;
 
+  Layers := AllLayers;
+
   Map := ATiledMap;
 
   RootNode := TX3DRootNode.Create;
@@ -465,29 +490,6 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-procedure TCastleTiledMapConverter.GetSettingsFromAnchor(const BaseUrl: String);
-var
-  SettingsMap: TStringStringMap;
-  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
-begin
-  SettingsMap := TStringStringMap.Create;
-  try
-    URIGetSettingsFromAnchor(BaseUrl, SettingsMap);
-    for Setting in SettingsMap do
-    begin
-      if LowerCase(Setting.Key) = 'smooth-scaling-safe-border' then
-        SmoothScalingSafeBorder := StrToBool(Setting.Value)
-      else
-        WritelnWarning('LoadNode(TiledMap)', 'Unknown setting (%s) in "%s" anchor.', [
-          Setting.Key,
-          URIDisplay(BaseUrl)
-        ]);
-    end;
-  finally
-    FreeAndNil(SettingsMap);
-  end;
-end;
-
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   TiledMapFromStream: TCastleTiledMapData;
@@ -499,7 +501,6 @@ begin
   try
     TiledMapConverter := TCastleTiledMapConverter.Create(TiledMapFromStream);
     try
-      TiledMapConverter.GetSettingsFromAnchor(BaseUrl);
       TiledMapConverter.ConvertMap;
       Result := TiledMapConverter.RootNode;
     finally FreeAndNil(TiledMapConverter) end;
