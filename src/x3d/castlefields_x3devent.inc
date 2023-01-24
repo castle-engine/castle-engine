@@ -32,6 +32,7 @@
     { To avoid allocating memory for FNotifications list in the most-common case
       when 0 or 1 notification is enough, store 1st notification in special
       field instead. }
+    //ATest: Integer;
     FFirstNotification: TX3DEventReceive;
     FNotifications: TX3DEventReceiveList;
     FParentExposedField: TX3DField;
