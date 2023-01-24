@@ -19,7 +19,8 @@
 {$ifdef read_interface}
 
 type
-  { Display a map created in (https://www.mapeditor.org/ Tiled) in a viewport. }
+  { Display a map created in @url(https://www.mapeditor.org/ Tiled) in a viewport.
+    See https://castle-engine.io/tiled_maps for a documentation. }
   TCastleTiledMap = class(TCastleTransform)
   public
     { These types and consts are synchronized with X3DLoadInternalTiledMap }
@@ -64,7 +65,7 @@ type
       around each tile must have at least 1-pixel margin
       filled with the same color and alpha,
       otherwise bad colors will creep in because of bilinear filtering.
-      See https://castle-engine.io/manual_alpha_bleeding.php .
+      See @url(https://castle-engine.io/manual_alpha_bleeding.php alpha bleeding).
       Alternatively, you can use @link(SmoothScalingSafeBorder).
     }
     property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling default false;
@@ -75,9 +76,8 @@ type
       See @link(TSprite.SmoothScalingSafeBorder).
 
       It is better to prepare the sprite (tileset) images
-      with some spacing between tiles, and alpha bleeding
-      (see https://castle-engine.io/manual_alpha_bleeding.php )
-      instead of using this property.
+      with some spacing between tiles, and @url(https://castle-engine.io/manual_alpha_bleeding.php
+      alpha bleeding) instead of using this property.
       This property workarounds the fact that some sprite (tileset) images
       lack proper spacing and color bleeding, but it distorts the image
       a bit, so it's no longer pixel-perfect. }
