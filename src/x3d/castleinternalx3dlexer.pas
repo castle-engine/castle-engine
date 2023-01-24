@@ -383,7 +383,8 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog;
+uses CastleLog,
+  X3DLoadInternalUtils;
 
 const
   { utf8 specific constants below }
