@@ -21,16 +21,28 @@
 type
   { Display a map created in (https://www.mapeditor.org/ Tiled) in a viewport. }
   TCastleTiledMap = class(TCastleTransform)
+  public
+    { These types and consts are synchronized with X3DLoadInternalTiledMap }
+    type
+      { Layer index that can be used with @link(Layers). }
+      TLayerIndex = 0..30;
+      { Type for @link(Layers), set of visible layers. }
+      TLayers = set of TLayerIndex;
+    const
+      { Indicates that all @link(Layers) should be visible. }
+      AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
     FMap: TCastleTiledMapData;
     FURL: String;
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     FScene: TCastleScene;
+    FLayers: TLayers;
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
+    procedure SetLayers(const Value: TLayers);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -71,6 +83,9 @@ type
       a bit, so it's no longer pixel-perfect. }
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
+
+    { Layers to include when loading this map. }
+    property Layers: TLayers read FLayers write SetLayers default AllLayers;
   end;
 
 {$endif read_interface}
@@ -93,6 +108,8 @@ begin
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
 
+  FLayers := AllLayers;
+
   UpdateSmoothScaling;
 end;
 
@@ -106,7 +123,7 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers'
      ]) then
     Result := [psBasic]
   else
@@ -135,6 +152,7 @@ begin
     Converter := TCastleTiledMapConverter.Create(FMap);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
+      Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
     finally FreeAndNil(Converter) end;
@@ -168,6 +186,15 @@ begin
   if FSmoothScalingSafeBorder <> Value then
   begin
     FSmoothScalingSafeBorder := Value;
+    ReloadMap;
+  end;
+end;
+
+procedure TCastleTiledMap.SetLayers(const Value: TLayers);
+begin
+  if FLayers <> Value then
+  begin
+    FLayers := Value;
     ReloadMap;
   end;
 end;

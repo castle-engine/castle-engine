@@ -48,7 +48,8 @@ uses // FPC and LCL units
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
-  CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
+  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
@@ -66,6 +67,7 @@ uses // FPC and LCL units
 {$I castlepropedits_protectedsides.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
+{$I castlepropedits_tiledlayers.inc}
 {$I castlepropedits_rangeset.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
@@ -170,6 +172,8 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleTiledMap.TLayers), TCastleTiledMap, 'Layers',
+    TTiledLayersPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);

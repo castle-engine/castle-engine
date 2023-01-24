@@ -80,9 +80,18 @@ type
       by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
   public
-    { Workaround rendering artifacts for tilesets without alpha bleeding.
-      Set before @link(ConvertMap). }
-    SmoothScalingSafeBorder: Boolean;
+    type
+      TLayerIndex = 0..30;
+      TLayers = set of TLayerIndex;
+    const
+      AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
+    var
+      { Workaround rendering artifacts for tilesets without alpha bleeding.
+        Set before @link(ConvertMap). }
+      SmoothScalingSafeBorder: Boolean;
+
+      { Layers to load.  }
+      Layers: TLayers;
 
     constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
@@ -163,6 +172,7 @@ end;
 
 procedure TCastleTiledMapConverter.ConvertLayers;
 var
+  LayerIndex: Integer;
   Layer: TCastleTiledMapData.TLayer;
   LayerNode: TTransformNode;
   LayerZ: Single;
@@ -176,9 +186,16 @@ const
 begin
   LayerZ := 0;
 
-  for Layer in Map.Layers do
+  for LayerIndex := 0 to Map.Layers.Count - 1 do
   begin
-    if not Layer.Visible then
+    Layer := Map.Layers[LayerIndex];
+    if not (
+         Layer.Visible and
+         (
+           (LayerIndex > High(TLayerIndex)) or
+           (LayerIndex in Layers)
+         )
+       ) then
       Continue;
 
     LayerNode := TTransformNode.Create;
@@ -448,6 +465,8 @@ end;
 constructor TCastleTiledMapConverter.Create(const ATiledMap: TCastleTiledMapData);
 begin
   inherited Create;
+
+  Layers := AllLayers;
 
   Map := ATiledMap;
 

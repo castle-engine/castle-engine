@@ -137,7 +137,7 @@ type
         Name: string;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
-        { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+        { Whether the layer is shown or hidden. Defaults to true. }
         Visible: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
         OffsetX: Single;
