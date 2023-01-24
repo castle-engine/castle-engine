@@ -179,7 +179,12 @@ var
 const
   { Distance between Tiled layers in Z. Layers are rendered as 3D objects
     and need some distance to avoid Z-fighting.
-    TODO: The need for this may be avoided in the future using RenderContext.DepthFunc := fdAlways.
+
+    This could be avoided when using RenderContext.DepthFunc := fdAlways,
+    but it comes with it's own disadvantages,
+    see TCastleTiledMap.AssumePerfectRenderingOrder docs.
+    So we always apply this layer Z distance, to work regardless
+    of AssumePerfectRenderingOrder.
 
     Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
   LayerZDistanceIncrease: Single = 10;

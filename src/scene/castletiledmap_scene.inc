@@ -33,17 +33,26 @@ type
       { Indicates that all @link(Layers) should be visible. }
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
-    FMap: TCastleTiledMapData;
-    FURL: String;
-    FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
-    FScene: TCastleScene;
-    FLayers: TLayers;
+    type
+      TMyScene = class(TCastleScene)
+      public
+        AssumePerfectRenderingOrder: Boolean;
+        procedure LocalRender(const Params: TRenderParams); override;
+      end;
+    var
+      FMap: TCastleTiledMapData;
+      FURL: String;
+      FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
+      FScene: TMyScene;
+      FLayers: TLayers;
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+    function GetAssumePerfectRenderingOrder: Boolean;
+    procedure SetAssumePerfectRenderingOrder(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -86,17 +95,53 @@ type
 
     { Layers to include when loading this map. }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
+
+    { When @true, rendering will assume that all shapes are in correct order.
+
+      This fixes rendering of some Tiled layers where otherwise we could have issues
+      due to multiple objects being present at the same Z order.
+      Testcases:
+      examples/tiled/map_viewer_in_viewport/data/maps/perspective_walls.tmx
+      examples/tiled/map_viewer_in_viewport/data/maps/multiple_tilesets_desert/desert2tilesets.tmx
+
+      The downside is that this assumes that really everything, including other things
+      that could be behind / in front of this Tiled map, are arranged in the TCastleViewport.Items
+      tree in the correct order. That is, things behind the Tiled map must be earlier than
+      the TCastleTiledMap component in the transformation tree. And things in front of Tiled map must
+      be after the TCastleTiledMap component in the transformation tree.
+      This assumption must be preserved by blending sorting done
+      by @link(TCastleAbstractRootTransform.BlendingSort), if any. }
+    property AssumePerfectRenderingOrder: Boolean
+      read GetAssumePerfectRenderingOrder write SetAssumePerfectRenderingOrder default false;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
+{ TMyScene ------------------------------------------------------------------- }
+
+procedure TCastleTiledMap.TMyScene.LocalRender(const Params: TRenderParams);
+var
+  SavedDepthFunc: TDepthFunction;
+begin
+  if AssumePerfectRenderingOrder then
+  begin
+    SavedDepthFunc := RenderContext.DepthFunc;
+    RenderContext.DepthFunc := dfAlways;
+    inherited;
+    RenderContext.DepthFunc := SavedDepthFunc;
+  end else
+    inherited;
+end;
+
+{ TCastleTiledMap ------------------------------------------------------------ }
+
 constructor TCastleTiledMap.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FScene := TCastleScene.Create(nil);
+  FScene := TMyScene.Create(nil);
   FScene.SetTransient;
   { This is the best BlendingSort.
     IOW we assume the tiles are already provided in the correct rendering order,
@@ -123,7 +168,7 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'AssumePerfectRenderingOrder'
      ]) then
     Result := [psBasic]
   else
@@ -197,6 +242,16 @@ begin
     FLayers := Value;
     ReloadMap;
   end;
+end;
+
+function TCastleTiledMap.GetAssumePerfectRenderingOrder: Boolean;
+begin
+  Result := FScene.AssumePerfectRenderingOrder;
+end;
+
+procedure TCastleTiledMap.SetAssumePerfectRenderingOrder(const Value: Boolean);
+begin
+  FScene.AssumePerfectRenderingOrder := Value;
 end;
 
 {$endif read_implementation}
