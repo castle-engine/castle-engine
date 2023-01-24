@@ -190,7 +190,7 @@ type
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
   {$undef read_interface_class}
-  end deprecated 'use TCastleTiledMap in a viewport';
+  end {$ifdef FPC}deprecated 'use TCastleTiledMap in a viewport'{$endif};
 
 {$endif read_interface}
 
