@@ -56,7 +56,16 @@ uses Math,
 {$I castletiledmap_scene.inc}
 {$undef read_implementation}
 
+var
+  R: TRegisteredComponent;
 initialization
-  RegisterSerializableComponent(TCastleTiledMapControl, 'Tiled Map (Deprecated)');
+  R := TRegisteredComponent.Create;
+  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
+  R.ComponentClass := TCastleTiledMapControl;
+  {$warnings on}
+  R.Caption := ['Tiled Map Control'];
+  R.IsDeprecated := true;
+  RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastleTiledMap, 'Tiled Map');
 end.
