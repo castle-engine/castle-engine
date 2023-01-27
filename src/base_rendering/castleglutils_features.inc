@@ -87,11 +87,20 @@ type
 
       Using this guarantees you always have GLFeatures.EnableFixedFunction = @false.
 
-      The exact specifics what it does are a bit complicated.
-      Basically we try to initialize "core" profile of OpenGL >= 3.2.
-      On macOS, we also request forward-compatible context.
+      On platforms where we honor this flag at context creation (using glX etc.):
+      This even guarantees more: that at least OpenGL 3.2 is available.
+      In exchange, it really prohibits using any older deprecated OpenGL API.
+
+      The specifics what it does:
+      We try to initialize "core" profile of OpenGL >= 3.2.
+
+      TODO: On macOS, we will also request forward-compatible context.
       See https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types ,
-      https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) . }
+      https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) .
+
+      TODO: For now, this only really affects context creation on glX,
+      on other platforms we just check that we got context with
+      EnableFixedFunction = false. }
     rcForceModern
   );
 
@@ -489,7 +498,7 @@ var
   SupportedExt: AnsiString;
   I: Integer;
 begin
-  if RequestCapabilities = rcForceModern then
+  if Version_3_2 then
   begin
     { With new OpenGL, one should use glGetStringi to enumerate over extensions,
       see https://www.khronos.org/opengl/wiki/GLAPI/glGetString }
@@ -517,7 +526,7 @@ var
   SupportedExt: AnsiString;
   I: Integer;
 begin
-  if RequestCapabilities = rcForceModern then
+  if Version_3_2 then
   begin
     { Output in this case is a bit richer, since it was natural to implement using
       new OpenGL way to query for extensions. }
@@ -766,7 +775,7 @@ begin
     {$else} LoadExtensions and Load_GL_EXT_packed_depth_stencil
     {$endif};
 
-  if RequestCapabilities = rcForceModern then
+  if Version_3_2 then
   begin
     { Based on https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer
       how to read stencil size with OpenGL core. }
