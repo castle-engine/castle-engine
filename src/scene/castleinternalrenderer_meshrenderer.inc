@@ -1022,7 +1022,6 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
   end;
 
 var
-  UseShaderRendering: boolean;
   CurrentX3DProgram: TX3DShaderProgram;
 begin
   inherited;
@@ -1059,12 +1058,7 @@ begin
       ((ColorSpace = csLinearWhenPhysicalMaterial) and
        (Shader.Material is TPhysicalMaterialInfo));
 
-    UseShaderRendering := {$ifdef OpenGLES} true {$else}
-      (not GLFeatures.EnableFixedFunction) or
-      ((RenderOptions.Mode = rmFull) and Shader.ShapeRequiresShaders)
-      {$endif};
-
-    if UseShaderRendering then
+    if not GLFeatures.EnableFixedFunction then
     begin
       { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
       if (Shape.ProgramCache[Renderer.Pass] = nil) or
