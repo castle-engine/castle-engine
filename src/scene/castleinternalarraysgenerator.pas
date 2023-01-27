@@ -1603,7 +1603,7 @@ begin
 
     I considered optimizing tcTexIndexed, but it would hurt the common case.
 
-    - We would need to extend AssignAttributeOrCoordinate to handle "IndexForSource: TLongIntList".
+    - We would need to extend AssignAttributeOrCoordinate to handle "IndexForSource: TInt32List".
 
     - To implement IndexForSource, we must know how indexes (from coordIndex) map
       to vertexes. This information is no longer present in IndexesFromCoordIndex,

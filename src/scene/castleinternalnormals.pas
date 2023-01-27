@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -161,7 +161,7 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        PLongIntArray(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
+        PInt32Array(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
         PVector3Array(Vertices.List), Vertices.Count,
         Vector3(0, 0, 1), Convex);
 
@@ -279,7 +279,7 @@ begin
       StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex.List^[I] >= 0) do Inc(I);
       Result.List^[FaceNumber] := IndexedPolygonNormal(
-        PLongIntArray(CoordIndex.Ptr(StartIndex)), I - StartIndex,
+        PInt32Array(CoordIndex.Ptr(StartIndex)), I - StartIndex,
         PVector3Array(Vertices.List), Vertices.Count, Vector3(0, 0, 0), Convex);
       Inc(FaceNumber);
 
@@ -298,7 +298,7 @@ type
   TCoordinateNormalsCalculator = class
   public
     Normals: TVector3List;
-    CoordIndex: TLongIntList;
+    CoordIndex: TInt32List;
     Coord: TVector3List;
     Convex: boolean;
     procedure Polygon(const Indexes: array of Cardinal);
@@ -308,11 +308,11 @@ procedure TCoordinateNormalsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
   FaceNormal: TVector3;
-  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+  { DirectIndexes is Int32, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
-  DirectIndexes: array of LongInt;
+  DirectIndexes: array of Int32;
   I: Integer;
-  Index: LongInt;
+  Index: Int32;
 begin
   SetLength(DirectIndexes, Length(Indexes));
   if CoordIndex <> nil then
@@ -326,7 +326,7 @@ begin
   end;
 
   FaceNormal := IndexedPolygonNormal(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
     PVector3Array(Coord.List), Coord.Count, Vector3(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do

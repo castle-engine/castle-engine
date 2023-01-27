@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,8 +70,8 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
 
   var
     J: Integer;
-    BoundValue: LongInt;
-    UniformValue: TLongIntList;
+    BoundValue: Int32;
+    UniformValue: TInt32List;
     AUniformMissing: TUniformMissing;
   begin
     AUniformMissing := UniformMissingFromNode(TextureField.ParentNode as TX3DNode);
@@ -85,7 +85,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
     begin
       Assert(TextureField is TMFNode);
 
-      UniformValue := TLongIntList.Create;
+      UniformValue := TInt32List.Create;
       try
         UniformValue.Count := TMFNode(TextureField).Count;
         for J := 0 to TMFNode(TextureField).Count - 1 do

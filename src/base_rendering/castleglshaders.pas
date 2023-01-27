@@ -122,7 +122,7 @@ type
     procedure SetValue(const Value: TMatrix4       ); overload;
 
     procedure SetValue(const Value: TBooleanList); overload;
-    procedure SetValue(const Value: TLongIntList); overload;
+    procedure SetValue(const Value: TInt32List  ); overload;
     procedure SetValue(const Value: TSingleList ); overload;
     procedure SetValue(const Value: TVector2List); overload;
     procedure SetValue(const Value: TVector3List); overload;
@@ -402,7 +402,7 @@ type
     procedure SetUniform(const Name: string; const Value: TMatrix3 ; const AUniformMissing: TUniformMissing); overload;
     procedure SetUniform(const Name: string; const Value: TMatrix4 ; const AUniformMissing: TUniformMissing); overload;
     procedure SetUniform(const Name: string; const Value: TBooleanList; const AUniformMissing: TUniformMissing); overload;
-    procedure SetUniform(const Name: string; const Value: TLongIntList; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TInt32List  ; const AUniformMissing: TUniformMissing); overload;
     procedure SetUniform(const Name: string; const Value: TSingleList ; const AUniformMissing: TUniformMissing); overload;
     procedure SetUniform(const Name: string; const Value: TVector2List; const AUniformMissing: TUniformMissing); overload;
     procedure SetUniform(const Name: string; const Value: TVector3List; const AUniformMissing: TUniformMissing); overload;
@@ -423,7 +423,7 @@ type
     procedure SetUniform(const Name: string; const Value: TMatrix3 ); overload;
     procedure SetUniform(const Name: string; const Value: TMatrix4 ); overload;
     procedure SetUniform(const Name: string; const Value: TBooleanList); overload;
-    procedure SetUniform(const Name: string; const Value: TLongIntList); overload;
+    procedure SetUniform(const Name: string; const Value: TInt32List  ); overload;
     procedure SetUniform(const Name: string; const Value: TSingleList ); overload;
     procedure SetUniform(const Name: string; const Value: TVector2List); overload;
     procedure SetUniform(const Name: string; const Value: TVector3List); overload;
@@ -752,7 +752,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TBooleanList);
 var
-  Ints: TLongIntList;
+  Ints: TInt32List;
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
 
@@ -764,7 +764,7 @@ begin
     Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
 
     So convert to longints. }
-  Ints := Value.ToLongInt;
+  Ints := Value.ToInt32;
   try
     Owner.Enable;
     if GLFeatures.Shaders then
@@ -772,10 +772,10 @@ begin
   finally FreeAndNil(Ints) end;
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TLongIntList);
+procedure TGLSLUniform.SetValue(const Value: TInt32List);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  Assert(SizeOf(LongInt) = SizeOf(TGLint));
+  Assert(SizeOf(Int32) = SizeOf(TGLint));
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1iv(Location, Value.Count, PGLInt(Value.L));
@@ -1636,7 +1636,7 @@ begin
   Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const AUniformMissing: TUniformMissing);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TInt32List; const AUniformMissing: TUniformMissing);
 begin
   Uniform(Name, AUniformMissing).SetValue(Value);
 end;
@@ -1736,7 +1736,7 @@ begin
   SetUniform(Name, Value, UniformMissing);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TInt32List);
 begin
   SetUniform(Name, Value, UniformMissing);
 end;

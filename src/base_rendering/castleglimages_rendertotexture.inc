@@ -293,7 +293,7 @@ var
 
     It's important in such cases that we should restore at the end
     previously bound FBO --- not necessarily just FBO number 0. }
-  BoundFboStack: TLongWordList;
+  BoundFboStack: TUInt32List;
 
   { The FBO id meaning "the screen".
     This is 0 in usual circumstances, except on iOS and iPhone Simulator it can be non-zero
@@ -309,7 +309,7 @@ begin
   Assert(Fbo <> 0);
   Assert(Fbo <> ScreenFbo);
   if BoundFboStack = nil then
-    BoundFboStack := TLongWordList.Create;
+    BoundFboStack := TUInt32List.Create;
   { See the ScreenFbo documentation for reason why we need to query it now.
     We use ScreenFboQueried to
     1. optimize (no need for glGetIntegerv every time we do BindFramebuffer)
