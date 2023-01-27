@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -127,7 +127,7 @@ begin
      FieldClass.InheritsFrom(TSFLong) then
     Result := TCasScriptInteger.Create(true) else
   if FieldClass.InheritsFrom(TMFLong) then
-    Result := TCasScriptLongIntArray.Create(true) else
+    Result := TCasScriptInt32Array.Create(true) else
   if FieldClass.InheritsFrom(TSFFloat) or
      FieldClass.InheritsFrom(TSFDouble) then
     Result := TCasScriptFloat.Create(true) else
@@ -208,7 +208,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
     if Field is TSFLong then
       TCasScriptInteger(Value).Value := TSFLong(Field).Value else
     if Field is TMFLong then
-      TCasScriptLongIntArray(Value).Value := TMFLong(Field).Items else
+      TCasScriptInt32Array(Value).Value := TMFLong(Field).Items else
 
     if Field is TSFFloat then
       TCasScriptFloat(Value).Value := TSFFloat(Field).Value else
@@ -354,7 +354,7 @@ begin
     if Field is TSFLong then
       TSFLong(Field).Value := TCasScriptInteger(Value).Value else
     if Field is TMFLong then
-      TMFLong(Field).Items := TCasScriptLongIntArray(Value).Value else
+      TMFLong(Field).Items := TCasScriptInt32Array(Value).Value else
 
     if Field is TSFFloat then
       TSFFloat(Field).Value := TCasScriptFloat(Value).Value else

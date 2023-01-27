@@ -558,7 +558,7 @@ type
       in addition to 0..TextureTransformUnitsUsed - 1.
       Cleared by RenderShapeBegin, added by PushTextureUnit,
       used by RenderShapeEnd. }
-    TextureTransformUnitsUsedMore: TLongIntList;
+    TextureTransformUnitsUsedMore: TInt32List;
 
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
@@ -1699,7 +1699,7 @@ begin
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
-  TextureTransformUnitsUsedMore := TLongIntList.Create;
+  TextureTransformUnitsUsedMore := TInt32List.Create;
 
   PreparedShader := TShader.Create;
 

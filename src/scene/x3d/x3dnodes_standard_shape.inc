@@ -1084,7 +1084,7 @@ procedure TShapeNode.GenerateTangents;
     const TexCoords: TVector2List;
     const Tangents: TVector3List);
   var
-    TriangleIndexes: TLongIntList;
+    TriangleIndexes: TInt32List;
     Tangent: TVector3;
     I, Index0, Index1, Index2: Integer;
     TriangleCoord: TTriangle3;

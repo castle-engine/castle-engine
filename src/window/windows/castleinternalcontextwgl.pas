@@ -66,7 +66,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     SetPixelFormat_ClassicChoose. }
   procedure SetPixelFormat_ClassicChoose;
   var
-    PixelFormat: LongInt;
+    PixelFormat: Int32;
     pfd: Tpixelformatdescriptor;
   begin
     FillChar(pfd, SizeOf(pfd), 0);
@@ -136,7 +136,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
 
     procedure CreateTemporaryWindow;
     var
-      PixelFormat: LongInt;
+      PixelFormat: Int32;
       pfd: Tpixelformatdescriptor;
     begin
       Temp_h_Wnd := 0;
@@ -218,9 +218,9 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     end;
 
   var
-    PixelFormat: LongInt;
+    PixelFormat: Int32;
     ReturnedFormats: UINT;
-    VisualAttr: TLongIntList;
+    VisualAttr: TInt32List;
     VisualAttrFloat: array [0..1] of Single;
     Success: WINBOOL;
   begin
@@ -247,7 +247,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
         begin
           { Ok, wglChoosePixelFormatARB is available }
 
-          VisualAttr := TLongIntList.Create;
+          VisualAttr := TInt32List.Create;
           try
             VisualAttr.AddRange([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,

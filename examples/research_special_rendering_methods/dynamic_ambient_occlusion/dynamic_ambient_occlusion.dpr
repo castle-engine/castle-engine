@@ -84,7 +84,7 @@ var
 type
   TElementsCalculator = class
   public
-    CoordIndex: TLongIntList;
+    CoordIndex: TInt32List;
     Coord: TVector3List;
     ShapeElements: PAOElement;
 
@@ -95,9 +95,9 @@ procedure TElementsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
   FaceNormal: TVector3;
-  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+  { DirectIndexes is Int32, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
-  DirectIndexes: array of LongInt;
+  DirectIndexes: array of Int32;
   I: Integer;
   FaceArea: Single;
 begin
@@ -113,7 +113,7 @@ begin
   end;
 
   FaceNormal := IndexedConvexPolygonNormal(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
@@ -124,7 +124,7 @@ begin
     have to be. But this will be a good approximation anyway, usually. }
 
   FaceArea := IndexedConvexPolygonArea(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }

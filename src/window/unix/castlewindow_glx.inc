@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,7 +57,7 @@ private
 
 procedure TCastleWindow.ContextCreateBegin;
 var
-  Attribs: TLongIntList;
+  Attribs: TInt32List;
   FBConfigs: PGLXFBConfig;
   FBConfigsCount: Integer;
 {$ifdef CASTLE_CONTEXT_FORWARD_3}
@@ -77,7 +77,7 @@ begin
     http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
   UseFBConfig := GLX_version_1_3(Application.XDisplay);
 
-  Attribs := TLongIntList.Create;
+  Attribs := TInt32List.Create;
   try
     { constant Attribs part }
     if UseFBConfig then

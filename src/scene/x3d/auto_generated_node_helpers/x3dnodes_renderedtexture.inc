@@ -80,9 +80,9 @@
     { Internal wrapper for property @link(Dimensions). This wrapper API may change, we advise to access simpler @link(Dimensions) instead. }
     public property FdDimensions: TMFInt32 read FFdDimensions;
     {  }
-    procedure SetDimensions(const Value: array of LongInt); overload;
+    procedure SetDimensions(const Value: array of Int32); overload;
     {  }
-    procedure SetDimensions(const Value: TLongIntList); overload;
+    procedure SetDimensions(const Value: TInt32List); overload;
 
     strict private FFdUpdate: TSFStringEnum;
     { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
@@ -130,9 +130,9 @@
     { Internal wrapper for property @link(ZOffset). This wrapper API may change, we advise to access simpler @link(ZOffset) instead. }
     public property FdZOffset: TMFInt32 read FFdZOffset;
     {  }
-    procedure SetZOffset(const Value: array of LongInt); overload;
+    procedure SetZOffset(const Value: array of Int32); overload;
     {  }
-    procedure SetZOffset(const Value: TLongIntList); overload;
+    procedure SetZOffset(const Value: TInt32List); overload;
 
     strict private FFdTargets: TMFNode;
     { Internal wrapper for property @link(Targets). This wrapper API may change, we advise to access simpler @link(Targets) instead. }
@@ -223,12 +223,12 @@ begin
   FdScene.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetDimensions(const Value: array of LongInt);
+procedure TRenderedTextureNode.SetDimensions(const Value: array of Int32);
 begin
   FdDimensions.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
+procedure TRenderedTextureNode.SetDimensions(const Value: TInt32List);
 begin
   FdDimensions.Send(Value);
 end;
@@ -296,12 +296,12 @@ begin
   FdDepthMap.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetZOffset(const Value: array of LongInt);
+procedure TRenderedTextureNode.SetZOffset(const Value: array of Int32);
 begin
   FdZOffset.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetZOffset(const Value: TLongIntList);
+procedure TRenderedTextureNode.SetZOffset(const Value: TInt32List);
 begin
   FdZOffset.Send(Value);
 end;

@@ -19,9 +19,9 @@
     material binding per part. Will be used with
     material binding BIND_PER_FACE_INDEXED. Pass @nil if you don't
     need it.) }
-procedure Box_Proxy(CoordIndex: TLongIntList;
+procedure Box_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Normal: TVector3List;
-  TexCoord: TVector2List; MaterialIndex: TLongIntList;
+  TexCoord: TVector2List; MaterialIndex: TInt32List;
   Sizes: TVector3);
 
 var
@@ -144,7 +144,7 @@ begin
 end;
 
 { Make a wireframe box. }
-procedure BoxWireframe_Proxy(CoordIndex: TLongIntList;
+procedure BoxWireframe_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Sizes: TVector3);
 begin
   Sizes := Sizes / 2;
@@ -251,7 +251,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   ShapeHints: TShapeHintsNode_1;
   MaterialBinding: TMaterialBindingNode_1;
-  MaterialIndex: TLongIntList;
+  MaterialIndex: TInt32List;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
   IFS := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);

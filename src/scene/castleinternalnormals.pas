@@ -64,7 +64,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
   @param(Convex Set this to @true if you know the faces are convex.
     This makes calculation faster (but may yield incorrect results
     for concave polygons).) }
-function CreateNormals(CoordIndex: TLongintList;
+function CreateNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
   const FromCcw, Convex: boolean): TVector3List;
@@ -75,7 +75,7 @@ function CreateNormals(CoordIndex: TLongintList;
   as it's Count is the number of @italic(faces). For each face, a single
   normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
-function CreateFlatNormals(coordIndex: TLongintList;
+function CreateFlatNormals(coordIndex: TInt32List;
   vertices: TVector3List;
   const FromCcw, Convex: boolean): TVector3List;
 
@@ -110,7 +110,7 @@ type
 
   TFaceList = {$ifdef FPC}specialize{$endif} TStructList<TFace>;
 
-function CreateNormals(CoordIndex: TLongintList;
+function CreateNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
   const FromCcw, Convex: boolean): TVector3List;
@@ -260,7 +260,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function CreateFlatNormals(CoordIndex: TLongintList;
+function CreateFlatNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   const FromCcw, Convex: boolean): TVector3List;
 var

@@ -72,9 +72,9 @@
     { Internal wrapper for property @link(VertexCount). This wrapper API may change, we advise to access simpler @link(VertexCount) instead. }
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
     {  }
-    procedure SetVertexCount(const Value: array of LongInt); overload;
+    procedure SetVertexCount(const Value: array of Int32); overload;
     {  }
-    procedure SetVertexCount(const Value: TLongIntList); overload;
+    procedure SetVertexCount(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -137,12 +137,12 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
-procedure TLineSetNode.SetVertexCount(const Value: array of LongInt);
+procedure TLineSetNode.SetVertexCount(const Value: array of Int32);
 begin
   FdVertexCount.Send(Value);
 end;
 
-procedure TLineSetNode.SetVertexCount(const Value: TLongIntList);
+procedure TLineSetNode.SetVertexCount(const Value: TInt32List);
 begin
   FdVertexCount.Send(Value);
 end;
