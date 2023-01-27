@@ -110,8 +110,10 @@ type
     FUseColor: Boolean;
     FColor: TCastleColor;
     VboVertex, VboIndex: TGLuint;
-    VboVertexAllocatedBytes, VboIndexAllocatedBytes,
-      VboVertexAllocatedItems, VboIndexAllocatedItems: Cardinal;
+    VertexAllocatedBytes, IndexAllocatedBytes,
+      VertexAllocatedItems, IndexAllocatedItems: Cardinal;
+    FixedFunctionVertexes: TVector4List;
+    FixedFunctionIndexes: TUInt16List;
   public
     { By default all zeros, you must set this before any rendering. }
     ModelViewProjection: TMatrix4;
@@ -155,8 +157,6 @@ const
     GL_TRIANGLES
   );
 
-// TODO: Prepare for EnableFixedFunction = false
-
 constructor TCastleRenderUnlitMesh.Create(const AUseColor: Boolean);
 const
   SimplestVS = {$I simplest.vs.inc};
@@ -167,8 +167,10 @@ begin
   FUseColor := AUseColor;
   FColor := White;
 
-  if GLFeatures.Shaders then
+  if not GLFeatures.EnableFixedFunction then
   begin
+    Assert(GLFeatures.Shaders); // EnableFixedFunction and Shaders are now synchronized
+
     Shader := TGLSLProgram.Create;
     Shader.AttachShader(stVertex, SimplestVS);
 
@@ -202,68 +204,79 @@ begin
 end;
 
 procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
+var
+  SavedFixedFunctionLighting: Boolean;
+  IndexPtr: Pointer;
 begin
-  if VboVertex = 0 then
-    raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
-
-  if GLFeatures.VertexBufferObject then
+  if not GLFeatures.EnableFixedFunction then
   begin
+    if VboVertex = 0 then
+      raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
+
     glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
     // do this even if VboIndex = 0, to set this to 0
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
-  end;
 
-  RenderContext.CurrentProgram := Shader;
-
-  if Shader <> nil then
-  begin
+    RenderContext.CurrentProgram := Shader;
     if FUseColor then
       UniformColor.SetValue(Color);
-
     UniformModelViewProjectionMatrix.SetValue(ModelViewProjection);
-
     AttributeVertex.EnableArrayVector4(SizeOf(TVector4), 0);
   end else
   begin
     {$ifndef OpenGLES}
     if FUseColor then
-      {$warnings off}
-      glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
-      {$warnings on}
+      glColorv(Color);
 
-    // TODO: make sure GL_PROJECTION is identity here
+    { We load as GL_MODELVIEW the complete matrix projection * modelview.
+      This keeps our API simple (we just need 1 matrix, ModelViewProjection, already multiplied)
+      and is good enough for rendering unlit stuff.
+      So for GL_PROJECTION, we make sure to load identity. }
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix;
+    glLoadIdentity;
+    glMatrixMode(GL_MODELVIEW);
     glLoadMatrix(ModelViewProjection);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    if GLFeatures.VertexBufferObject then
-      glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), nil)
-    else
-      glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), {Primitive2DRes.PointPtr}nil{TODO});
+    glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), @(FixedFunctionVertexes.List^[0]));
+
+    SavedFixedFunctionLighting := RenderContext.FixedFunctionLighting;
+    RenderContext.FixedFunctionLighting := false;
     {$endif}
   end;
 
-  if VboIndex <> 0 then
-    glDrawElements(PrimitiveModeToGL[Mode], VboIndexAllocatedItems, GL_UNSIGNED_SHORT, nil)
-  else
-    glDrawArrays(PrimitiveModeToGL[Mode], 0, VboVertexAllocatedItems);
+  if IndexAllocatedItems <> 0 then
+  begin
+    if not GLFeatures.EnableFixedFunction then
+      IndexPtr := nil
+    else
+      IndexPtr := @(FixedFunctionIndexes.List^[0]);
+    glDrawElements(PrimitiveModeToGL[Mode], IndexAllocatedItems, GL_UNSIGNED_SHORT, IndexPtr);
+  end else
+    glDrawArrays(PrimitiveModeToGL[Mode], 0, VertexAllocatedItems);
 
-  if Shader <> nil then
+  if not GLFeatures.EnableFixedFunction then
   begin
     AttributeVertex.DisableArray;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end else
   begin
     {$ifndef OpenGLES}
+    { Restore GL_PROJECTION matrix value, other drawing code may depend on it.
+      Don't restore GL_MODELVIEW, no need, other drawing code has to be prepared
+      to always initialize GL_MODELVIEW. }
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
+
     glDisableClientState(GL_VERTEX_ARRAY);
+
+    RenderContext.FixedFunctionLighting := SavedFixedFunctionLighting;
     {$endif}
-  end;
-
-  // TODO: Do not reset everything (CurrentProgram, both vbo) after every rendering
-  RenderContext.CurrentProgram := nil;
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;
 end;
 
@@ -280,21 +293,32 @@ var
   NewVbo: Boolean;
   NewSize: Cardinal;
 begin
-  NewVbo := VboIndex = 0;
-  if NewVbo then
-    glGenBuffers(1, @VboIndex);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
-
-  NewSize := IndexesCount * SizeOf(UInt16);
-  if NewVbo or (NewSize <> VboIndexAllocatedBytes) then
+  if not GLFeatures.EnableFixedFunction then
   begin
-    // always GL_STATIC_DRAW for indexes, we assume we will not modify indexes very often
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, NewSize, Indexes, GL_STATIC_DRAW);
-    VboIndexAllocatedBytes := NewSize;
-    VboIndexAllocatedItems := IndexesCount;
+    NewVbo := VboIndex = 0;
+    if NewVbo then
+      glGenBuffers(1, @VboIndex);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+
+    NewSize := IndexesCount * SizeOf(UInt16);
+    if NewVbo or (NewSize <> IndexAllocatedBytes) then
+    begin
+      // always GL_STATIC_DRAW for indexes, we assume we will not modify indexes very often
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, NewSize, Indexes, GL_STATIC_DRAW);
+      IndexAllocatedBytes := NewSize;
+      IndexAllocatedItems := IndexesCount;
+    end else
+      glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, NewSize, Indexes);
   end else
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, NewSize, Indexes);
+  begin
+    IndexAllocatedItems := IndexesCount;
+    IndexAllocatedBytes := SizeOf(UInt16) * IndexesCount;
+    if FixedFunctionIndexes = nil then
+      FixedFunctionIndexes := TUInt16List.Create;
+    FixedFunctionIndexes.Count := IndexesCount;
+    Move(Indexes^, FixedFunctionIndexes.List^, IndexAllocatedBytes);
+  end;
 end;
 
 procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: PVector4; const VertexesCount: Cardinal;
@@ -304,29 +328,40 @@ var
   NewSize: Cardinal;
   DataUsage: TGLEnum;
 begin
-  NewVbo := VboVertex = 0;
-  if NewVbo then
-    glGenBuffers(1, @VboVertex);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
-
-  NewSize := VertexesCount * SizeOf(TVector4);
-  if NewVbo or (NewSize <> VboVertexAllocatedBytes) then
+  if not GLFeatures.EnableFixedFunction then
   begin
-    if UsageDynamic then
-        { GL_STREAM_DRAW is most suitable if we will modify this every frame,
-          according to
-          https://www.khronos.org/opengl/wiki/Buffer_Object
-          https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
-        }
-        DataUsage := GL_STREAM_DRAW
-      else
-        DataUsage := GL_STATIC_DRAW;
-      glBufferData(GL_ARRAY_BUFFER, NewSize, Vertexes, DataUsage);
-    VboVertexAllocatedBytes := NewSize;
-    VboVertexAllocatedItems := VertexesCount;
+    NewVbo := VboVertex = 0;
+    if NewVbo then
+      glGenBuffers(1, @VboVertex);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+
+    NewSize := VertexesCount * SizeOf(TVector4);
+    if NewVbo or (NewSize <> VertexAllocatedBytes) then
+    begin
+      if UsageDynamic then
+          { GL_STREAM_DRAW is most suitable if we will modify this every frame,
+            according to
+            https://www.khronos.org/opengl/wiki/Buffer_Object
+            https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
+          }
+          DataUsage := GL_STREAM_DRAW
+        else
+          DataUsage := GL_STATIC_DRAW;
+        glBufferData(GL_ARRAY_BUFFER, NewSize, Vertexes, DataUsage);
+      VertexAllocatedBytes := NewSize;
+      VertexAllocatedItems := VertexesCount;
+    end else
+      glBufferSubData(GL_ARRAY_BUFFER, 0, NewSize, Vertexes);
   end else
-    glBufferSubData(GL_ARRAY_BUFFER, 0, NewSize, Vertexes);
+  begin
+    VertexAllocatedItems := VertexesCount;
+    VertexAllocatedBytes := SizeOf(TVector4) * VertexesCount;
+    if FixedFunctionVertexes = nil then
+      FixedFunctionVertexes := TVector4List.Create;
+    FixedFunctionVertexes.Count := VertexesCount;
+    Move(Vertexes^, FixedFunctionVertexes.List^, VertexAllocatedBytes);
+  end;
 end;
 
 procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: array of TVector4;
