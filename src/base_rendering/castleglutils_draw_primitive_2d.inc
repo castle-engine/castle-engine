@@ -357,16 +357,25 @@ begin
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 
-  if (not GLFeatures.EnableFixedFunction) and (Primitive2DRes.Prog = nil) then
+  if not GLFeatures.EnableFixedFunction then
   begin
-    Primitive2DRes.Prog := TGLSLProgram.Create;
-    Primitive2DRes.Prog.AttachVertexShader({$I primitive_2.vs.inc});
-    Primitive2DRes.Prog.AttachFragmentShader({$I primitive_2.fs.inc});
-    Primitive2DRes.Prog.Link;
+    if Primitive2DRes.Prog = nil then
+    begin
+      Primitive2DRes.Prog := TGLSLProgram.Create;
+      Primitive2DRes.Prog.AttachVertexShader({$I primitive_2.vs.inc});
+      Primitive2DRes.Prog.AttachFragmentShader({$I primitive_2.fs.inc});
+      Primitive2DRes.Prog.Link;
 
-    Primitive2DRes.UniformViewportSize := Primitive2DRes.Prog.Uniform('viewport_size');
-    Primitive2DRes.UniformColor := Primitive2DRes.Prog.Uniform('color');
-    Primitive2DRes.AttribVertex := Primitive2DRes.Prog.Attribute('vertex');
+      Primitive2DRes.UniformViewportSize := Primitive2DRes.Prog.Uniform('viewport_size');
+      Primitive2DRes.UniformColor := Primitive2DRes.Prog.Uniform('color');
+      Primitive2DRes.AttribVertex := Primitive2DRes.Prog.Attribute('vertex');
+    end;
+
+    if Primitive2DRes.Vbo = 0 then
+    begin
+      Assert(GLFeatures.VertexBufferObject);
+      glGenBuffers(1, @Primitive2DRes.Vbo);
+    end;
   end;
 
   { apply LineWidth, PointSize.
@@ -378,9 +387,6 @@ begin
   Blending := ForceBlending or (Color.W < 1);
   if Blending then
     RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
-
-  if (Primitive2DRes.Vbo = 0) and GLFeatures.VertexBufferObject then
-    glGenBuffers(1, @Primitive2DRes.Vbo);
 
   { make Primitive2DRes.PointPtr have necessary size }
   RequiredPointPtrSize := SizeOf(TVector2) * (High(Points) + 1);
@@ -402,16 +408,13 @@ begin
     Inc(TargetPointPtr);
   end;
 
-  if GLFeatures.VertexBufferObject then
+  if not GLFeatures.EnableFixedFunction then
   begin
     glBindBuffer(GL_ARRAY_BUFFER, Primitive2DRes.Vbo);
     { load only RequiredPointPtrSize, not Primitive2DRes.PointPtrAllocated which may be larger }
     Assert(Primitive2DRes.PointPtrAllocated >= RequiredPointPtrSize);
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_DYNAMIC_DRAW);
-  end;
 
-  if not GLFeatures.EnableFixedFunction then
-  begin
     RenderContext.CurrentProgram := Primitive2DRes.Prog;
     Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
 
@@ -429,14 +432,10 @@ begin
     {$ifndef OpenGLES}
     RenderContext.CurrentProgram := nil;
     glLoadIdentity();
-    {$warnings off}
-    glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
-    {$warnings on}
+    glColorv(Color);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    if GLFeatures.VertexBufferObject then
-      glVertexPointer(2, GL_FLOAT, SizeOf(TVector2), nil) else
-      glVertexPointer(2, GL_FLOAT, SizeOf(TVector2), Primitive2DRes.PointPtr);
+    glVertexPointer(2, GL_FLOAT, SizeOf(TVector2), Primitive2DRes.PointPtr);
     {$endif}
   end;
 
@@ -448,17 +447,14 @@ begin
     { attribute arrays are enabled independent from GLSL program, so we need
       to disable them separately }
     Primitive2DRes.AttribVertex.DisableArray;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end else
   begin
     {$ifndef OpenGLES}
     glDisableClientState(GL_VERTEX_ARRAY);
     {$endif}
-  end;
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;
 
   if Blending then
