@@ -885,7 +885,7 @@ begin
       finally GenerateCoordinateEnd; end;
     except
       on E: EAssignInterleavedRangeError do
-        WritelnWarning('X3D', Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
+        WritelnWarning('X3D', Format('Invalid number of items in an attribute array for shape "%s": %s',
           [Shape.NiceName, E.Message]));
     end;
   finally
