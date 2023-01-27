@@ -430,7 +430,7 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    RenderContext.CurrentProgram := nil;
+    Assert(RenderContext.CurrentProgram = nil); // when EnableFixedFunction, this should always stay nil
     glLoadIdentity();
     glColorv(Color);
 
