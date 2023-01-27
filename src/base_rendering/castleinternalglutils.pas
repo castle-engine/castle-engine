@@ -27,7 +27,7 @@ uses
   SysUtils, Math, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
-  CastleColors, CastleProjection, CastleRenderOptions,
+  CastleColors, CastleProjection, CastleRenderOptions, CastleGLShaders,
   CastleGLUtils;
 
 {$define read_interface}
@@ -37,6 +37,7 @@ uses
 {$I castleinternalglutils_mipmaps.inc}
 {$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
+{$I castleinternalglutils_render_unlit_mesh.inc}
 
 {$undef read_interface}
 
@@ -45,7 +46,7 @@ implementation
 {$define read_implementation}
 
 uses
-  CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
+  CastleFilesUtils, CastleStringUtils, CastleGLVersion,
   CastleLog, CastleApplicationProperties, CastleRenderContext;
 
 {$I castleinternalglutils_errors.inc}
@@ -53,5 +54,6 @@ uses
 {$I castleinternalglutils_mipmaps.inc}
 {$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
+{$I castleinternalglutils_render_unlit_mesh.inc}
 
 end.

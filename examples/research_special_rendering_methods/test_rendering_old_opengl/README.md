@@ -8,15 +8,15 @@ Note that `GLFeatures.ForceFixedFunction` is only used for OpenGL rendering, on 
 
 The rendering methods tested:
 
-- `DrawRectangle` (doing `DrawPrimitive2D` under the hood)
+- `TCastleScene`
 
 - `TDrawableImage`
 
+- `DrawRectangle` (doing `DrawPrimitive2D` under the hood)
+
 - `TCastleFont.Print` (uses `TDrawableImage` under the hood)
 
-- `TCastleRenderUnlitMesh`
-
-- `TCastleScene`
+- `TCastleRenderUnlitMesh` (internal CGE utility in `CastleInternalGLRenderer` right now)
 
 Everything else in CGE is in some way rendered on top of above methods.
 

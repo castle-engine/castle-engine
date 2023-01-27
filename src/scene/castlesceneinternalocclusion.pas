@@ -25,7 +25,7 @@ uses
   CastleVectors, CastleSceneCore, CastleSceneInternalShape,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleRenderContext, CastleFrustum, CastleGLShaders,
-  CastleBoxes, CastleTransform, CastleRenderPrimitives;
+  CastleBoxes, CastleTransform, CastleInternalGLUtils;
 
 type
   TShapeProcedure = procedure (const Shape: TGLShape) of object;
@@ -76,7 +76,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleRenderOptions,
-  CastleUtils, CastleInternalGLUtils;
+  CastleUtils;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 

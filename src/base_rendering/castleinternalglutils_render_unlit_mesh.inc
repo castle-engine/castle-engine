@@ -1,4 +1,4 @@
-{%MainUnit castlerenderprimitives.pas}
+{%MainUnit castleinternalglutils.pas}
 {
   Copyright 2001-2023 Michalis Kamburelis.
 
@@ -89,6 +89,9 @@ type
     Example usage:
 
     @longCode(#
+      SavedDepthTest := RenderContext.DepthTest;
+      RenderContext.DepthTest := true;
+
       Mesh := TCastleRenderUnlitMesh.Create(true);
       try
         Mesh.Color := Yellow;
@@ -100,6 +103,8 @@ type
         ]);
         Mesh.Render(pmTriangles);
       finally FreeAndNil(Mesh) end;
+
+      RenderContext.DepthTest := SavedDepthTest;
     #)
   }
   TCastleRenderUnlitMesh = class
@@ -145,7 +150,10 @@ type
 
 {$ifdef read_implementation}
 
-// TODO: Duplicated from castleglutils_draw_primitive_2d.inc, that should joing CastleRenderPrimitives
+{ TODO: Constants duplicated from castleglutils_draw_primitive_2d.inc,
+  maybe one day we'll join DrawPrimitive2D and TCastleRenderUnlitMesh into one unit
+  (CastleRenderPrimitives?) which would make it natural to define this in one place. }
+
 const
   PrimitiveModeToGL: array [TPrimitiveMode] of TGLEnum = (
     GL_POINTS,
