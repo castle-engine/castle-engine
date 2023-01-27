@@ -62,10 +62,9 @@ initialization
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-  // CGE build tool will define OpenGLES symbol when necessary
-  {$ifndef OpenGLES}
-  TGLFeatures.ForceFixedFunction;
-  {$endif}
+  LogGLInformationVerbose := true;
+
+  TGLFeatures.RequestCapabilities := rcForceFixedFunction;
 
   { Optionally, adjust window fullscreen state and size at this point.
     Examples:

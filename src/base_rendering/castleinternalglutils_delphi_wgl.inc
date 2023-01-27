@@ -102,8 +102,6 @@ function Load_GL_ARB_shader_objects: Boolean;
 function Load_GL_ARB_vertex_shader: Boolean;
 function Load_GL_ARB_fragment_shader: Boolean;
 function Load_GL_ARB_shading_language_100: Boolean;
-function Load_GL_ARB_window_pos: Boolean;
-function Load_GL_MESA_window_pos: Boolean;
 function Load_GL_ARB_shadow: Boolean;
 function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
@@ -773,116 +771,6 @@ begin
 
   if glext_ExtensionSupported('GL_ARB_shading_language_100', extstring) then
   begin
-    Result := TRUE;
-  end;
-
-end;
-
-function Load_GL_ARB_window_pos: Boolean;
-var
-  extstring: AnsiString;
-begin
-
-  Result := FALSE;
-  extstring := glGetString(GL_EXTENSIONS);
-
-  if glext_ExtensionSupported('GL_ARB_window_pos', extstring) then
-  begin
-    glWindowPos2dARB := wglGetProcAddress('glWindowPos2dARB');
-    if not Assigned(glWindowPos2dARB) then Exit;
-    glWindowPos2fARB := wglGetProcAddress('glWindowPos2fARB');
-    if not Assigned(glWindowPos2fARB) then Exit;
-    glWindowPos2iARB := wglGetProcAddress('glWindowPos2iARB');
-    if not Assigned(glWindowPos2iARB) then Exit;
-    glWindowPos2sARB := wglGetProcAddress('glWindowPos2sARB');
-    if not Assigned(glWindowPos2sARB) then Exit;
-    glWindowPos2dvARB := wglGetProcAddress('glWindowPos2dvARB');
-    if not Assigned(glWindowPos2dvARB) then Exit;
-    glWindowPos2fvARB := wglGetProcAddress('glWindowPos2fvARB');
-    if not Assigned(glWindowPos2fvARB) then Exit;
-    glWindowPos2ivARB := wglGetProcAddress('glWindowPos2ivARB');
-    if not Assigned(glWindowPos2ivARB) then Exit;
-    glWindowPos2svARB := wglGetProcAddress('glWindowPos2svARB');
-    if not Assigned(glWindowPos2svARB) then Exit;
-    glWindowPos3dARB := wglGetProcAddress('glWindowPos3dARB');
-    if not Assigned(glWindowPos3dARB) then Exit;
-    glWindowPos3fARB := wglGetProcAddress('glWindowPos3fARB');
-    if not Assigned(glWindowPos3fARB) then Exit;
-    glWindowPos3iARB := wglGetProcAddress('glWindowPos3iARB');
-    if not Assigned(glWindowPos3iARB) then Exit;
-    glWindowPos3sARB := wglGetProcAddress('glWindowPos3sARB');
-    if not Assigned(glWindowPos3sARB) then Exit;
-    glWindowPos3dvARB := wglGetProcAddress('glWindowPos3dvARB');
-    if not Assigned(glWindowPos3dvARB) then Exit;
-    glWindowPos3fvARB := wglGetProcAddress('glWindowPos3fvARB');
-    if not Assigned(glWindowPos3fvARB) then Exit;
-    glWindowPos3ivARB := wglGetProcAddress('glWindowPos3ivARB');
-    if not Assigned(glWindowPos3ivARB) then Exit;
-    glWindowPos3svARB := wglGetProcAddress('glWindowPos3svARB');
-    if not Assigned(glWindowPos3svARB) then Exit;
-    Result := TRUE;
-  end;
-
-end;
-
-function Load_GL_MESA_window_pos: Boolean;
-var
-  extstring: AnsiString;
-begin
-
-  Result := FALSE;
-  extstring := glGetString(GL_EXTENSIONS);
-
-  if glext_ExtensionSupported('GL_MESA_window_pos', extstring) then
-  begin
-    glWindowPos2dMESA := wglGetProcAddress('glWindowPos2dMESA');
-    if not Assigned(glWindowPos2dMESA) then Exit;
-    glWindowPos2fMESA := wglGetProcAddress('glWindowPos2fMESA');
-    if not Assigned(glWindowPos2fMESA) then Exit;
-    glWindowPos2iMESA := wglGetProcAddress('glWindowPos2iMESA');
-    if not Assigned(glWindowPos2iMESA) then Exit;
-    glWindowPos2sMESA := wglGetProcAddress('glWindowPos2sMESA');
-    if not Assigned(glWindowPos2sMESA) then Exit;
-    glWindowPos2ivMESA := wglGetProcAddress('glWindowPos2ivMESA');
-    if not Assigned(glWindowPos2ivMESA) then Exit;
-    glWindowPos2svMESA := wglGetProcAddress('glWindowPos2svMESA');
-    if not Assigned(glWindowPos2svMESA) then Exit;
-    glWindowPos2fvMESA := wglGetProcAddress('glWindowPos2fvMESA');
-    if not Assigned(glWindowPos2fvMESA) then Exit;
-    glWindowPos2dvMESA := wglGetProcAddress('glWindowPos2dvMESA');
-    if not Assigned(glWindowPos2dvMESA) then Exit;
-    glWindowPos3iMESA := wglGetProcAddress('glWindowPos3iMESA');
-    if not Assigned(glWindowPos3iMESA) then Exit;
-    glWindowPos3sMESA := wglGetProcAddress('glWindowPos3sMESA');
-    if not Assigned(glWindowPos3sMESA) then Exit;
-    glWindowPos3fMESA := wglGetProcAddress('glWindowPos3fMESA');
-    if not Assigned(glWindowPos3fMESA) then Exit;
-    glWindowPos3dMESA := wglGetProcAddress('glWindowPos3dMESA');
-    if not Assigned(glWindowPos3dMESA) then Exit;
-    glWindowPos3ivMESA := wglGetProcAddress('glWindowPos3ivMESA');
-    if not Assigned(glWindowPos3ivMESA) then Exit;
-    glWindowPos3svMESA := wglGetProcAddress('glWindowPos3svMESA');
-    if not Assigned(glWindowPos3svMESA) then Exit;
-    glWindowPos3fvMESA := wglGetProcAddress('glWindowPos3fvMESA');
-    if not Assigned(glWindowPos3fvMESA) then Exit;
-    glWindowPos3dvMESA := wglGetProcAddress('glWindowPos3dvMESA');
-    if not Assigned(glWindowPos3dvMESA) then Exit;
-    glWindowPos4iMESA := wglGetProcAddress('glWindowPos4iMESA');
-    if not Assigned(glWindowPos4iMESA) then Exit;
-    glWindowPos4sMESA := wglGetProcAddress('glWindowPos4sMESA');
-    if not Assigned(glWindowPos4sMESA) then Exit;
-    glWindowPos4fMESA := wglGetProcAddress('glWindowPos4fMESA');
-    if not Assigned(glWindowPos4fMESA) then Exit;
-    glWindowPos4dMESA := wglGetProcAddress('glWindowPos4dMESA');
-    if not Assigned(glWindowPos4dMESA) then Exit;
-    glWindowPos4ivMESA := wglGetProcAddress('glWindowPos4ivMESA');
-    if not Assigned(glWindowPos4ivMESA) then Exit;
-    glWindowPos4svMESA := wglGetProcAddress('glWindowPos4svMESA');
-    if not Assigned(glWindowPos4svMESA) then Exit;
-    glWindowPos4fvMESA := wglGetProcAddress('glWindowPos4fvMESA');
-    if not Assigned(glWindowPos4fvMESA) then Exit;
-    glWindowPos4dvMESA := wglGetProcAddress('glWindowPos4dvMESA');
-    if not Assigned(glWindowPos4dvMESA) then Exit;
     Result := TRUE;
   end;
 

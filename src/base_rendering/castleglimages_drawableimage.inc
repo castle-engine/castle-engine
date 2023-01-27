@@ -948,8 +948,10 @@ begin
     VboStorage[I].IndexesVboSize := 0;
   end;
 
-  { free below regardless of GLFeatures.EnableFixedFunction,
-    in case user toggles GLFeatures.EnableFixedFunction at runtime using GLFeatures.ForceFixedFunction. }
+  { Free below regardless of GLFeatures.EnableFixedFunction,
+    in case user toggles GLFeatures.EnableFixedFunction at runtime.
+    Note: This robustness is not really unnecessary now, as TGLFeatures.RequestCapabilities
+    cannot change once GL context is initialized. }
   //if not GLFeatures.EnableFixedFunction then
   for AlphaTestShader := Low(boolean) to High(boolean) do
     for ClipLineShader := Low(boolean) to High(boolean) do

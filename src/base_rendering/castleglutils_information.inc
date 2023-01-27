@@ -249,67 +249,78 @@ begin
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
     NL +
-    '  All extensions: ' +PAnsiChar(glGetString(GL_EXTENSIONS)) + NL +
-    NL +
+    '  All extensions: ' + GLFeatures.AllExtensions + NL +
+    NL;
 
-    '---------------------------' + NL +
-    'Current buffers bit depths:' + NL +
-    '  Color (red / green / blue / alpha): '
-      +GetInteger(GL_RED_BITS) +' / '
-      +GetInteger(GL_GREEN_BITS) +' / '
-      +GetInteger(GL_BLUE_BITS) +' / '
-      +GetInteger(GL_ALPHA_BITS) + NL +
-    '  Depth: ' +GetInteger(GL_DEPTH_BITS) + NL +
-    {$ifndef OpenGLES}
-    '  Index: ' +GetInteger(GL_INDEX_BITS) + NL +
-    {$endif}
-    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) + NL +
-    {$ifndef OpenGLES}
-    '  Accumulation (red / green / blue / alpha): '
-      +GetInteger(GL_ACCUM_RED_BITS) +' / '
-      +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
-      +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-      +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
-    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
-    {$endif}
-    '  Multi-sampling (full-screen anti-aliasing) possible: ' +
-    BoolToStr(GLFeatures.Multisample, true) + NL +
-    '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
-    NL +
+  if GLFeatures.RequestCapabilities <> rcForceModern then
+  begin
+    { TODO: Some of these queries make sense also in new OpenGL core,
+      but should use different API, e.g. to get stencil bits
+      https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer
+    }
 
-    {$ifndef OpenGLES}
-    '-------------' + NL +
-    'Stack depths:' + NL +
-    '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) + NL +
-    '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) + NL +
-    '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) + NL +
-    '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) + NL +
-    '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) + NL +
-    '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) + NL +
-    NL +
-    {$endif}
+    Result := Result +
+      '---------------------------' + NL +
+      'Current buffers bit depths:' + NL +
+      '  Color (red / green / blue / alpha): '
+        +GetInteger(GL_RED_BITS) +' / '
+        +GetInteger(GL_GREEN_BITS) +' / '
+        +GetInteger(GL_BLUE_BITS) +' / '
+        +GetInteger(GL_ALPHA_BITS) + NL +
+      '  Depth: ' +GetInteger(GL_DEPTH_BITS) + NL +
+      {$ifndef OpenGLES}
+      '  Index: ' +GetInteger(GL_INDEX_BITS) + NL +
+      {$endif}
+      '  Stencil: ' +GetInteger(GL_STENCIL_BITS) + NL +
+      {$ifndef OpenGLES}
+      '  Accumulation (red / green / blue / alpha): '
+        +GetInteger(GL_ACCUM_RED_BITS) +' / '
+        +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
+        +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
+        +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
+      '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
+      {$endif}
+      '  Multi-sampling (full-screen anti-aliasing) possible: ' +
+      BoolToStr(GLFeatures.Multisample, true) + NL +
+      '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
+      NL +
 
-    '-------' + NL +
-    'Limits:' + NL +
-    '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
-    '  Max lights (fixed-function limit): ' + IntToStr(GLFeatures.MaxLights) + NL +
-    {$ifndef OpenGLES}
-    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) + NL +
-    '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) + NL +
-    '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) + NL +
-    {$endif}
-    '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) + NL +
-    '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
-    '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
-    '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) + NL +
-    '  Max cube map texture size: ' + GetMaxCubeMapTextureSize + NL +
-    '  Max 3d texture size: ' + GetMaxTexture3DSize + NL +
-    '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
-    '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
-      GetQueryCounterBits + NL +
-    '  Max renderbuffer size: ' + GetMaxRenderbufferSize + NL +
-    '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
-    NL +
+      {$ifndef OpenGLES}
+      '-------------' + NL +
+      'Stack depths:' + NL +
+      '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) + NL +
+      '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) + NL +
+      '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) + NL +
+      '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) + NL +
+      '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) + NL +
+      '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) + NL +
+      NL +
+      {$endif}
+
+      '-------' + NL +
+      'Limits:' + NL +
+      '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
+      '  Max lights (fixed-function limit): ' + IntToStr(GLFeatures.MaxLights) + NL +
+      {$ifndef OpenGLES}
+      '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) + NL +
+      '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) + NL +
+      '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) + NL +
+      {$endif}
+      '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) + NL +
+      '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
+      '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
+      '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) + NL +
+      '  Max cube map texture size: ' + GetMaxCubeMapTextureSize + NL +
+      '  Max 3d texture size: ' + GetMaxTexture3DSize + NL +
+      '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
+      '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
+        GetQueryCounterBits + NL +
+      '  Max renderbuffer size: ' + GetMaxRenderbufferSize + NL +
+      '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
+      NL;
+  end;
+
+  Result := Result +
     '-------' + NL +
     'Memory (in Kb):' + NL +
     '  Total: ' + IntToStrUnknown(GLFeatures.Memory.Total) + NL +

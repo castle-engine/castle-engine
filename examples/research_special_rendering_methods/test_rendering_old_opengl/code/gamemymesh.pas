@@ -19,13 +19,13 @@ unit GameMyMesh;
 interface
 
 uses SysUtils,
-  CastleInternalGLRenderer, CastleBoxes, CastleTransform;
+  CastleInternalGLUtils, CastleBoxes, CastleTransform;
 
 type
   { Mesh rendered using TCastleRenderUnlitMesh, not using TCastleScene.
     This is not generally advised, TCastleScene has much more features
     and is easier to use than TCastleRenderUnlitMesh.
-    We do this only to test TCastleRenderUnlitMesh with ForceFixedFunction here. }
+    We do this only to test TCastleRenderUnlitMesh with rcForceFixedFunction here. }
   TMyMesh = class(TCastleTransform)
   strict private
     Mesh: TCastleRenderUnlitMesh;

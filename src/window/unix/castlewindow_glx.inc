@@ -60,16 +60,6 @@ var
   Attribs: TInt32List;
   FBConfigs: PGLXFBConfig;
   FBConfigsCount: Integer;
-{$ifdef CASTLE_CONTEXT_FORWARD_3}
-const
-  { Used with glXCreateContextAttribsARB to select 3.0 forward-compatible context }
-  Context30Forward: array [0..6] of Integer =
-  ( GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-    GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-    None
-  );
-{$endif}
 begin
   { Use new glX 1.3 functions to create context, that take TGLXFBConfig?
     About modern GLX context selection, see
@@ -142,6 +132,20 @@ begin
 end;
 
 procedure TCastleWindow.ContextCreateEnd(WndPtr: TWindow);
+const
+  { Used with glXCreateContextAttribsARB to select 3.2 core context.
+    See https://registry.khronos.org/OpenGL/extensions/ARB/GLX_ARB_create_context.txt }
+  Context30Modern: array [0..6] of CInt =
+  ( GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+    GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+    GLX_CONTEXT_PROFILE_MASK_ARB , GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+    { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
+      forward-compatible really only makes sense on macOS.
+      The "core" profile is what should be just used with new OpenGLs on sane
+      (non-macOS) platforms. }
+    //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+    None
+  );
 var
   ShareContext: GLXContext;
 begin
@@ -152,21 +156,21 @@ begin
 
   if UseFBConfig then
   begin
-    {$ifdef CASTLE_CONTEXT_FORWARD_3}
-    { For now, we just use GLX_ARB_create_context for testing
-      "how much can we render with forward-compatible context".
-      TODO:
-      - The ability to change Context30Forward version is not available.
-        Or not request compatibility, or debug, etc.
-      - We also don't properly catch errors: we should catch X errors
-        (see XSync and XSetErrorHandler inside
-        http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29).
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      { TODO:
+
+        We should catch X errors (see XSync and XSetErrorHandler inside
+        http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 )
+        and fallback on non-modern context if it is impossible to get modern one.
+
         Right now, our XLibUtils catches X errors, but without XSync
         it's not known where they occur anyway. }
-    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
-      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, Context30Forward)
-    else
-    {$endif}
+
+      if not GLX_ARB_create_context_profile(Application.XDisplay, Application.XScreen) then
+        raise EGLContextNotPossible.Create('GLX_ARB_create_context_profile not available, cannot initialize modern OpenGL context');
+      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, Context30Modern);
+    end else
       Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContext, true);
   end else
     Context := glXCreateContext(Application.XDisplay, XVisual, ShareContext, true);

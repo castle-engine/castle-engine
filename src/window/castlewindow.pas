@@ -2684,7 +2684,8 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 
 implementation
 
-uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+uses CTypes,
+  CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
   CastleRenderContext, CastleInternalGLUtils,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}

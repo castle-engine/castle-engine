@@ -51,6 +51,50 @@ type
     function LessTextureMemoryThan(const RequiredMemoryKb: Integer): Boolean;
   end;
 
+  { OpenGL(ES) capabilities to request at context creation.
+    Use with @link(TGLFeatures.RequestCapabilities). }
+  TGLRequestCapabilities = (
+    { Use modern GPU code (shaders, VBO etc.) unless it is not possible
+      (not supported by GPU).
+      This is the default mode.
+
+      GLFeatures.EnableFixedFunction may be @false (preferred) or @true (fallback).
+
+      TODO: At some point, when it will have a practical benefit (measurable speedup /
+      functionality boost), rcAutomatic will automatically require modern context
+      with deprecated functionality removed (just like rcForceModern)
+      and only fallback on non-modern context. For now, rcAutomatic initializes
+      always context with compatibility entry points too. We use flag rcForceModern
+      to test whether the "modern (core) context with deprecated stuff removed"
+      is worth the hassle. }
+    rcAutomatic,
+
+    { Force using deprecated fixed-function even on modern GPUs.
+      Should only be used to test our fixed-function code,
+      never use this in production code -- you should always strive to use
+      modern GPU code.
+
+      GLFeatures.EnableFixedFunction will be always @true. }
+    rcForceFixedFunction,
+
+    { Force initializing modern OpenGL context, with deprecated functionality
+      not available.
+
+      Modern context requires support for modern functionality (like shaders)
+      and may actually remove support for deprecated functionality (like fixed-function).
+      This may provide some additional speedup / functionality at some point
+      (but nothing you can really observe in practice, for now, in my experience).
+
+      Using this guarantees you always have GLFeatures.EnableFixedFunction = @false.
+
+      The exact specifics what it does are a bit complicated.
+      Basically we try to initialize "core" profile of OpenGL >= 3.2.
+      On macOS, we also request forward-compatible context.
+      See https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types ,
+      https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) . }
+    rcForceModern
+  );
+
   { OpenGL(ES) features, analyzed based on extensions and version.
     A single instance of this class is assigned to @link(GLFeatures)
     after the first rendering context was created.
@@ -83,8 +127,6 @@ type
     FEXT_framebuffer_blit: Boolean;
     {$ifndef OpenGLES}
     FEXT_fog_coord: Boolean;
-    FARB_window_pos: Boolean;
-    FMESA_window_pos: Boolean;
     {$endif}
     FCLAMP_TO_EDGE: TGLenum;
     FMaxTextureSize: Cardinal;
@@ -116,8 +158,13 @@ type
     FEnableFixedFunction: Boolean;
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
+    SupportedExtensions: AnsiString;
     class var
-      FForceFixedFunction: Boolean;
+      FRequestCapabilities: TGLRequestCapabilities;
+    class procedure SetRequestCapabilities(const Value: TGLRequestCapabilities); static;
+  private
+    function HasExtension(const Extension: String): Boolean;
+    function AllExtensions: String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -168,8 +215,6 @@ type
     property EXT_framebuffer_blit: Boolean read FEXT_framebuffer_blit;
     {$ifndef OpenGLES}
     property EXT_fog_coord: Boolean read FEXT_fog_coord;
-    property ARB_window_pos: Boolean read FARB_window_pos;
-    property MESA_window_pos: Boolean read FMESA_window_pos;
     {$endif}
 
     { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
@@ -350,29 +395,12 @@ type
     }
     property EnableFixedFunction: Boolean read FEnableFixedFunction;
 
-    {$ifndef OpenGLES}
-    { Force EnableFixedFunction to be @true, to test rendering
-      using old pipeline even if you work on modern GPU.
+    { Request specific OpenGL(ES) capabilities at context creation.
 
-      This is a class routine and it must be called before OpenGL(ES)
+      This is a class property and it can only change before OpenGL(ES)
       context is initialized, which means before TCastleWindow.Open
-      occurs, which means before @link(GLFeatures) instance is initialized.
-
-      This is necessary, as otherwise creating OpenGL context could
-      initialize early some resources for modern pipeline,
-      e.g. RenderLoadingBackground would initialize TDrawableImage shaders.
-      Setting EnableFixedFunction to true later, and disabling shaders,
-      would put us in a weird state -- some TDrawableImage
-      shader could be enabled,
-      and it couldn't be disabled (because InternalSetCurrentProgram
-      now thinks that shaders are not available).
-
-      It is more reliable to guarantee that EnableFixedFunction
-      is constant once OpenGL(ES) context is open.
-      So e.g. if EnableFixedFunction=true, you can be 100% certain
-      that no shaders are enabled, because they are disabled from the start. }
-    class procedure ForceFixedFunction;
-    {$endif}
+      occurs, which means before @link(GLFeatures) instance is initialized. }
+    class property RequestCapabilities: TGLRequestCapabilities read FRequestCapabilities write SetRequestCapabilities;
 
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
@@ -415,45 +443,98 @@ begin
       ' (for more info: LogGLInformationVerbose:=true)');
 end;
 
-{$ifdef OpenGLES}
-{ Based on GLExt unit in FPC. This function is missing from GLES header,
-  which does not check for extensions presence at all. }
-function glext_ExtensionSupported(const extension: String;
-  const searchIn: String): Boolean;
-var
-  extensions: PChar;
-  start: PChar;
-  where, terminator: PChar;
-begin
-  if (Pos(' ', extension) <> 0) or (extension = '') then
-  begin
-    Result := FALSE;
-    Exit;
-  end;
+function TGLFeatures.HasExtension(const Extension: String): Boolean;
 
-  if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
-  else extensions := PChar(searchIn);
-  start := extensions;
-  while TRUE do
+  {$ifdef OpenGLES}
+  { Based on GLExt unit in FPC. This function is missing from GLES header,
+    which does not check for extensions presence at all. }
+  function glext_ExtensionSupported(const extension: String;
+    const searchIn: String): Boolean;
+  var
+    extensions: PChar;
+    start: PChar;
+    where, terminator: PChar;
   begin
-    where := StrPos(start, PChar(extension));
-    if where = nil then Break;
-    terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
-    {$warnings off} { Stop warning about unportable PtrUInt conversions }
-    if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
-    {$warnings on}
+    if (Pos(' ', extension) <> 0) or (extension = '') then
     begin
-      if (terminator^ = ' ') or (terminator^ = #0) then
+      Result := FALSE;
+      Exit;
+    end;
+
+    if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
+    else extensions := PChar(searchIn);
+    start := extensions;
+    while TRUE do
+    begin
+      where := StrPos(start, PChar(extension));
+      if where = nil then Break;
+      terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
+      {$warnings off} { Stop warning about unportable PtrUInt conversions }
+      if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
+      {$warnings on}
       begin
-        Result := TRUE;
-        Exit;
+        if (terminator^ = ' ') or (terminator^ = #0) then
+        begin
+          Result := TRUE;
+          Exit;
+        end;
+      end;
+      start := terminator;
+    end;
+    Result := FALSE;
+  end;
+  {$endif}
+
+var
+  SupportedExt: AnsiString;
+  I: Integer;
+begin
+  if RequestCapabilities = rcForceModern then
+  begin
+    { With new OpenGL, one should use glGetStringi to enumerate over extensions,
+      see https://www.khronos.org/opengl/wiki/GLAPI/glGetString }
+    for I := 0 to glGetInteger(GL_NUM_EXTENSIONS) - 1 do
+    begin
+      SupportedExt := PChar(glGetStringi(GL_EXTENSIONS, I));
+      if SupportedExt = Extension then
+      begin
+        WritelnLog('Detected extension as supported: ' + Extension);
+        Exit(true);
       end;
     end;
-    start := terminator;
+    Result := false;
+  end else
+  begin
+    if SupportedExtensions = '' then
+      SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
+    Result := glext_ExtensionSupported(Extension, SupportedExtensions);
   end;
-  Result := FALSE;
 end;
-{$endif}
+
+function TGLFeatures.AllExtensions: String;
+var
+  NumExtensions: TGLint;
+  SupportedExt: AnsiString;
+  I: Integer;
+begin
+  if RequestCapabilities = rcForceModern then
+  begin
+    { Output in this case is a bit richer, since it was natural to implement using
+      new OpenGL way to query for extensions. }
+    NumExtensions := glGetInteger(GL_NUM_EXTENSIONS);
+    Result := Format('%d extensions: ', [NumExtensions]);
+    for I := 0 to glGetInteger(GL_NUM_EXTENSIONS) - 1 do
+    begin
+      SupportedExt := PChar(glGetStringi(GL_EXTENSIONS, I));
+      Result := Result + Format('(%d) %s ', [I, SupportedExt]);
+    end;
+  end else
+  begin
+    if SupportedExtensions = '' then
+      SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
+    Result := SupportedExtensions;
+  end;
+end;
 
 constructor TGLFeatures.Create;
 
@@ -467,23 +548,54 @@ constructor TGLFeatures.Create;
   end;
 
 var
-  SupportedExtensions: AnsiString;
+  LoadExtensions: Boolean;
+  StencilSize: TGLint;
 begin
   inherited;
 
+  { TODO: We cannot load extensions with rcForceModern, as FPC GLExt then uses
+    glGetString(GL_EXTENSIONS) which is not available.
+    With new OpenGL, one should use glGetStringi to enumerate over extensions,
+    see our HasExtension. }
+  LoadExtensions := RequestCapabilities <> rcForceModern;
+
   {$ifndef OpenGLES}
   {$ifdef FPC}
-  FVersion_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
-  FVersion_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
-  FVersion_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
-  FVersion_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
-  FVersion_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-  FVersion_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
-  FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
-  FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
-  FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
-  FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
-  FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
+  if RequestCapabilities = rcForceModern then
+  begin
+    { Do not load non-core OpenGL entry points in this case.
+      We define still all Version_X_Y booleans, because this is easier for
+      backward compatibility, as most code used them like "at least X.Y".
+
+      In the long run, we should probably just remove these Version_X_Y
+      with unclear meaning now -- since having core/forward-compatible context
+      means we may have version > X.Y, but still not have entry points for X.Y.
+    }
+    FVersion_1_2 := GLVersion.AtLeast(1, 2);
+    FVersion_1_3 := GLVersion.AtLeast(1, 3);
+    FVersion_1_4 := GLVersion.AtLeast(1, 4);
+    FVersion_1_5 := GLVersion.AtLeast(1, 5);
+    FVersion_2_0 := GLVersion.AtLeast(2, 0);
+    FVersion_2_1 := GLVersion.AtLeast(2, 1);
+    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_VERSION_3_0_CORE();
+    FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1_CORE();
+    FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2_CORE();
+    FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3_CORE();
+    FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0_CORE();
+  end else
+  begin
+    FVersion_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
+    FVersion_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
+    FVersion_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
+    FVersion_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
+    FVersion_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
+    FVersion_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
+    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
+    FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
+    FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
+    FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
+    FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
+  end;
   {$else}
   // TODO: Delphi OpenGLext has only InitOpenGLext
   FVersion_1_2 := GLVersion.AtLeast(1, 2);
@@ -499,12 +611,10 @@ begin
   FVersion_4_0 := GLVersion.AtLeast(4, 0);
   InitOpenGLext; // TODO: check that later
   {$endif}
-  FARB_window_pos := Load_GL_ARB_window_pos;
-  FMESA_window_pos := Load_GL_MESA_window_pos;
 
-  FARB_shadow := Load_GL_ARB_shadow;
-  FEXT_fog_coord := Load_GL_EXT_fog_coord;
-  FNV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
+  FARB_shadow := LoadExtensions and Load_GL_ARB_shadow;
+  FEXT_fog_coord := LoadExtensions and Load_GL_EXT_fog_coord;
+  FNV_multisample_filter_hint := LoadExtensions and Load_GL_NV_multisample_filter_hint;
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
@@ -549,7 +659,7 @@ begin
   if Version_1_3 then
     FTextureCubeMap := gsStandard
   else
-  if Load_GL_ARB_texture_cube_map then
+  if LoadExtensions and Load_GL_ARB_texture_cube_map then
     FTextureCubeMap := gsExtension
   else
     FTextureCubeMap := gsNone;
@@ -561,7 +671,7 @@ begin
   if Version_1_2 then
     FTexture3D := gsStandard
   else
-  if Load_GL_EXT_texture3D then
+  if LoadExtensions and Load_GL_EXT_texture3D then
     FTexture3D := gsExtension
   else
   {$endif}
@@ -581,7 +691,7 @@ begin
 
   // TODO: there is also such extension for OpenGL ES
   FEXT_texture_filter_anisotropic := {$ifdef OpenGLES} false {$else}
-    Load_GL_EXT_texture_filter_anisotropic {$endif};
+    LoadExtensions and Load_GL_EXT_texture_filter_anisotropic {$endif};
   if EXT_texture_filter_anisotropic then
     FMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
   else
@@ -590,7 +700,7 @@ begin
   FARB_occlusion_query := false;
   FQueryCounterBits := 0;
   {$ifndef OpenGLES}
-  FARB_occlusion_query := Load_GL_ARB_occlusion_query;
+  FARB_occlusion_query := LoadExtensions and Load_GL_ARB_occlusion_query;
   if FARB_occlusion_query then
     glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @FQueryCounterBits);
   {$endif}
@@ -599,10 +709,10 @@ begin
   {$ifdef OpenGLES}
   FFramebuffer := gsStandard;
   {$else}
-  if Version_3_0 or Load_GL_ARB_framebuffer_object then
+  if Version_3_0 or (LoadExtensions and Load_GL_ARB_framebuffer_object) then
     FFramebuffer := gsStandard
   else
-  if Load_GL_EXT_framebuffer_object then
+  if LoadExtensions and Load_GL_EXT_framebuffer_object then
     FFramebuffer := gsExtension
   else
     FFramebuffer := gsNone;
@@ -619,7 +729,7 @@ begin
   end else
     FMaxRenderbufferSize := 0;
 
-  FEXT_framebuffer_blit := Load_GL_EXT_framebuffer_blit;
+  FEXT_framebuffer_blit := LoadExtensions and Load_GL_EXT_framebuffer_blit;
 
   { calculate UseMultiTexturing: check extensions required for multitexturing.
 
@@ -634,10 +744,11 @@ begin
   FFBOMultiSampling := {$ifdef OpenGLES} false {$else}
     { Is GL_ARB_framebuffer_object available? }
     (Framebuffer = gsStandard) and
+    LoadExtensions and
     Load_GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling) {$endif};
 
-  FMultisample := {$ifdef OpenGLES} true {$else} Load_GL_ARB_multisample {$endif};
+  FMultisample := {$ifdef OpenGLES} true {$else} LoadExtensions and Load_GL_ARB_multisample {$endif};
   if FMultisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
   begin
     FCurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
@@ -650,67 +761,74 @@ begin
   end else
     FCurrentMultiSampling := 1;
 
-  SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
-
   FPackedDepthStencil :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
-    {$else} Load_GL_EXT_packed_depth_stencil
+    {$ifdef OpenGLES} HasExtension('GL_OES_packed_depth_stencil')
+    {$else} LoadExtensions and Load_GL_EXT_packed_depth_stencil
     {$endif};
 
-  FShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
+  if RequestCapabilities = rcForceModern then
+  begin
+    { Based on https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer
+      how to read stencil size with OpenGL core. }
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @StencilSize);
+  end else
+    StencilSize := glGetInteger(GL_STENCIL_BITS);
+
+  FShadowVolumesPossible := StencilSize >= 4;
 
   FTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
+    LoadExtensions and Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
 
   FTextureCompression := [];
 
   {$ifndef OpenGLES}
   { on non-OpenGLES, we require ARB_texture_compression for *any* compression
     format, to have the necessary glCompressedTexImage2DARB call available }
-  if Load_GL_ARB_texture_compression then
+  if LoadExtensions and Load_GL_ARB_texture_compression then
   {$endif}
   begin
     { See http://stackoverflow.com/questions/9148795/android-opengl-texture-compression
       and http://developer.android.com/guide/topics/graphics/opengl.html
       for possible GPU extensions for compression formats. }
 
-    if glext_ExtensionSupported('GL_OES_texture_compression_S3TC', SupportedExtensions) or
-       glext_ExtensionSupported('GL_EXT_texture_compression_s3tc', SupportedExtensions) or
-       glext_ExtensionSupported('GL_NV_texture_compression_s3tc', SupportedExtensions) then
+    if HasExtension('GL_OES_texture_compression_S3TC') or
+       HasExtension('GL_EXT_texture_compression_s3tc') or
+       HasExtension('GL_NV_texture_compression_s3tc') then
       FTextureCompression := TextureCompression + [
         tcDxt1_RGB, tcDxt1_RGBA, tcDxt3, tcDxt5];
 
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt1', SupportedExtensions) then
+    if HasExtension('GL_EXT_texture_compression_dxt1') then
       FTextureCompression := TextureCompression + [tcDxt1_RGB, tcDxt1_RGBA];
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt3', SupportedExtensions) then
+    if HasExtension('GL_EXT_texture_compression_dxt3') then
       FTextureCompression := TextureCompression + [tcDxt3];
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt5', SupportedExtensions) then
+    if HasExtension('GL_EXT_texture_compression_dxt5') then
       FTextureCompression := TextureCompression + [tcDxt5];
 
-    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) then
+    if HasExtension('GL_IMG_texture_compression_pvrtc') then
       FTextureCompression := TextureCompression + [
         tcPvrtc1_4bpp_RGB,
         tcPvrtc1_2bpp_RGB,
         tcPvrtc1_4bpp_RGBA,
         tcPvrtc1_2bpp_RGBA];
 
-    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc2', SupportedExtensions) then
+    if HasExtension('GL_IMG_texture_compression_pvrtc2') then
       FTextureCompression := TextureCompression + [
         tcPvrtc2_4bpp,
         tcPvrtc2_2bpp];
 
-    if glext_ExtensionSupported('GL_AMD_compressed_ATC_texture', SupportedExtensions) or
-       glext_ExtensionSupported('GL_ATI_texture_compression_atitc', SupportedExtensions) then
+    if HasExtension('GL_AMD_compressed_ATC_texture') or
+       HasExtension('GL_ATI_texture_compression_atitc') then
       FTextureCompression := TextureCompression + [
         tcATITC_RGB,
         tcATITC_RGBA_ExplicitAlpha,
         tcATITC_RGBA_InterpolatedAlpha];
 
-    if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
+    if HasExtension('GL_OES_compressed_ETC1_RGB8_texture') then
       FTextureCompression := TextureCompression + [tcETC1];
 
-    if glext_ExtensionSupported('GL_KHR_texture_compression_astc_ldr', SupportedExtensions) or
-       glext_ExtensionSupported('GL_KHR_texture_compression_astc_hdr', SupportedExtensions) then
+    if HasExtension('GL_KHR_texture_compression_astc_ldr') or
+       HasExtension('GL_KHR_texture_compression_astc_hdr') then
       FTextureCompression := TextureCompression + [
         tcASTC_4x4_RGBA,
         tcASTC_5x4_RGBA,
@@ -751,16 +869,16 @@ begin
   FBlendConstant := {$ifdef OpenGLES} true {$else}
     { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
       as standard. glBlendColor is available since 1.2 as standard. }
-    ((Version_1_2 and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
+    ((Version_1_2 and LoadExtensions and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
 
   FTextureFloat :=
     {$ifdef OpenGLES} false
-    {$else} Load_GL_ATI_texture_float or Load_GL_ARB_texture_float
+    {$else} LoadExtensions and (Load_GL_ATI_texture_float or Load_GL_ARB_texture_float)
     {$endif};
 
   FTextureDepth :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', SupportedExtensions)
-    {$else} Load_GL_ARB_depth_texture
+    {$ifdef OpenGLES} HasExtension('GL_OES_depth_texture')
+    {$else} LoadExtensions and Load_GL_ARB_depth_texture
     {$endif};
 
   {$ifdef OpenGLES}
@@ -787,8 +905,8 @@ begin
     FVertexBufferObject := false;
   end;
 
-  // FForceFixedFunction overrides above detection
-  if FForceFixedFunction then
+  // RequestCapabilities = rcForceFixedFunction overrides above detection
+  if RequestCapabilities = rcForceFixedFunction then
   begin
     FEnableFixedFunction := true;
     FShaders := false;
@@ -821,10 +939,13 @@ begin
 
   FMaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
 
-  // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
+  // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;
 
   FMemory := TGLMemoryInfo.Create;
+
+  if (RequestCapabilities = rcForceModern) and EnableFixedFunction then
+    raise Exception.Create('Requested modern context, but it was detected that we have to use fixed-function. We failed to really get modern context.');
 end;
 
 destructor TGLFeatures.Destroy;
@@ -845,24 +966,40 @@ begin
 end;
 
 {$ifndef OpenGLES}
-class procedure TGLFeatures.ForceFixedFunction;
+class procedure TGLFeatures.SetRequestCapabilities(const Value: TGLRequestCapabilities);
 begin
-  if GLFeatures <> nil then
-    raise Exception.Create('It is not allowed to call TGLFeatures.ForceFixedFunction when rendering context is already initialized. You have to call it before TCastleWindow.Open, before TCastleApplication.OnInitialize.');
-  FForceFixedFunction := true;
+  if FRequestCapabilities <> Value then
+  begin
+    { Reason why you cannot change it after context is initialized:
+
+      Otherwise creating OpenGL context could
+      initialize early some resources for modern pipeline,
+      e.g. RenderLoadingBackground would initialize TDrawableImage shaders.
+      Setting EnableFixedFunction to true later, and disabling shaders,
+      would put us in a weird state -- some TDrawableImage
+      shader could be enabled,
+      and it couldn't be disabled (because InternalSetCurrentProgram
+      now thinks that shaders are not available).
+
+      It is more reliable to guarantee that EnableFixedFunction
+      is constant once OpenGL(ES) context is open.
+      So e.g. if EnableFixedFunction=true, you can be 100% certain
+      that no shaders are enabled, because they are disabled from the start. }
+
+    if GLFeatures <> nil then
+      raise Exception.Create('It is not allowed to change TGLFeatures.RequestCapabilities once rendering context is already initialized. You can only change TGLFeatures.RequestCapabilities before TCastleWindow.Open, before TCastleApplication.OnInitialize.');
+    FRequestCapabilities := Value;
+  end;
 end;
 {$endif}
 
 { TGLMemoryInfo -------------------------------------------------------------- }
 
 constructor TGLMemoryInfo.Create;
-var
-  SupportedExtensions: AnsiString;
 begin
   inherited;
-  SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
-  ExtensionNVidia := glext_ExtensionSupported('GL_NVX_gpu_memory_info', SupportedExtensions);
-  ExtensionATI := glext_ExtensionSupported('GL_ATI_meminfo', SupportedExtensions);
+  ExtensionNVidia := GLFeatures.HasExtension('GL_NVX_gpu_memory_info');
+  ExtensionATI := GLFeatures.HasExtension('GL_ATI_meminfo');
   Refresh;
 end;
 

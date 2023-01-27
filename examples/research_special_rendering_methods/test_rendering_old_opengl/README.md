@@ -1,10 +1,10 @@
 # Test Rendering With Old OpenGL
 
-This example uses `GLFeatures.ForceFixedFunction`, to force treating the current OpenGL version as if it was an ancient OpenGL version, without some modern features (like VBO and shaders).
+This example uses `TGLFeatures.RequestCapabilities := rcForceFixedFunction`, to force treating the current OpenGL version as if it was an ancient OpenGL version, without some modern features (like VBO and shaders). Once OpenGL context is initialized, it is guaranteed it will have `GLFeatures.EnableFixedFunction = true`.
 
-Then it exercises a few things in CGE that do rendering to make sure they all support `GLFeatures.ForceFixedFunction` case nicely, and thus will work even on ancient systems with old OpenGL. Note that CGE also uses this mode for GPUs we detect as "too buggy" with regards to their VBO or shaders support. So it is important that this case works reliably, even though it should not be used on new systems with modern GPU.
+Then it exercises a few things in CGE that do rendering to make sure they all support `GLFeatures.EnableFixedFunction = true` case nicely, and thus will work even on ancient systems with old OpenGL. Note that CGE also uses this mode for GPUs we detect as "too buggy" with regards to their VBO or shaders support. So it is important that this case works reliably, even though it should not be used on new systems with modern GPU.
 
-Note that `GLFeatures.ForceFixedFunction` is only used for OpenGL rendering, on desktops. For OpenGLES, we require OpenGLES >= 2 where support for VBO and shaders is just mandatory (and this is present on all modern mobile devices).
+Note that fixed-function is only used for OpenGL rendering, on desktops. For OpenGLES, we require OpenGLES >= 2 where support for VBO and shaders is just mandatory (and this is present on all modern mobile devices).
 
 The rendering methods tested:
 
