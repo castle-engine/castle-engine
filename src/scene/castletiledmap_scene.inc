@@ -160,6 +160,7 @@ end;
 
 destructor TCastleTiledMap.Destroy;
 begin
+  FreeAndNil(FScene);
   FreeAndNil(FMap);
   inherited;
 end;

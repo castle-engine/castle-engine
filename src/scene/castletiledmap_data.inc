@@ -165,6 +165,7 @@ type
           ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
         DrawOrder: TObjectsDrawOrder;
         Objects: TTiledObjectList;
+        constructor Create;
         destructor Destroy; override;
       end;
 
@@ -906,6 +907,12 @@ end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }
 
+constructor TCastleTiledMapData.TObjectGroupLayer.Create;
+begin
+  inherited;
+  Objects := TTiledObjectList.Create;
+end;
+
 destructor TCastleTiledMapData.TObjectGroupLayer.Destroy;
 begin
   FreeAndNil(Objects);
@@ -939,8 +946,6 @@ begin
       begin
         NewObject := TTiledObject.Create;
         NewObject.Load(I.Current, BaseUrl);
-        if not Assigned(Objects) then
-          Objects := TTiledObjectList.Create;
         Objects.Add(NewObject);
       end;
     end;
