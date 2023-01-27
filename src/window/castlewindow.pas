@@ -304,7 +304,7 @@ uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
   { FPC units }
-  SysUtils, Classes, Generics.Collections, CustApp,
+  SysUtils, Classes, Generics.Collections, CustApp, CTypes,
   { Castle Game Engine units }
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
@@ -2684,7 +2684,7 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 
 implementation
 
-uses CTypes,
+uses
   CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
   CastleRenderContext, CastleInternalGLUtils,
   {$define read_implementation_uses}

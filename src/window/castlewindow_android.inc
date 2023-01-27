@@ -36,7 +36,7 @@ CastleAndroidNativeAppGlue,
 {$endif}
 
 {$ifdef read_implementation_uses}
-JNI, ctypes,
+JNI,
 CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 CastleAndroidInternalConfiguration,
