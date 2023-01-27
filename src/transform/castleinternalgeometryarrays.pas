@@ -21,7 +21,8 @@ unit CastleInternalGeometryArrays;
 interface
 
 uses Generics.Collections,
-  CastleUtils, CastleVectors, CastleTriangles, CastleRenderOptions;
+  CastleUtils, CastleVectors, CastleTriangles, CastleRenderOptions,
+  CastleInternalGLUtils;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
@@ -103,8 +104,8 @@ type
     function Find(const Name: string): TGeometryAttrib;
   end;
 
-  TGeometryIndex = {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
-  TGeometryIndexList = {$ifdef GLIndexesShort} TWordList {$else} TLongWordList {$endif};
+  TGeometryIndex = TGLIndex;
+  TGeometryIndexList = TGLIndexList;
 
   { Geometry represented as arrays of indexes, vertex positions,
     texture coordinates and such. Many (eventually, all) geometry nodes

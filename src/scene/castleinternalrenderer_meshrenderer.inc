@@ -494,17 +494,19 @@ begin
 
         if Arrays.Counts = nil then
           glDrawElements(Mode, Arrays.IndexesCount,
-            {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First))) else
+            GLIndexConst, Pointer(Arrays.IndexesPtr(First)))
+        else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawElements(Mode, Arrays.Counts[I],
-              {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
+              GLIndexConst, Pointer(Arrays.IndexesPtr(First)));
             First := First + Arrays.Counts[I];
           end;
       end else
       begin
         if Arrays.Counts = nil then
-          glDrawArrays(Mode, First, Arrays.Count) else
+          glDrawArrays(Mode, First, Arrays.Count)
+        else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawArrays(Mode, First, Arrays.Counts[I]);

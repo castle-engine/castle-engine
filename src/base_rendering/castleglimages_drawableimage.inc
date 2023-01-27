@@ -110,7 +110,7 @@
       VboStorageNext: Cardinal;
       { Point VBO contents, reused in every Draw. }
       Points: array of TPoint;
-      Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
+      Indexes: array of TGLIndex;
 
       { Used only in shader pipeline }
       Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram;
@@ -1177,6 +1177,7 @@ var
   Prog: TImageProgram;
   I: Integer;
   Vbo: PVboStorage;
+  IndexPtr: Pointer;
 begin
   if (Count = 0) or
      ((Count = 1) and
@@ -1296,15 +1297,10 @@ begin
   if Count <> 1 then
   begin
     if not GLFeatures.EnableFixedFunction then
-    begin
-      { No need to call glBindBuffer below, it is already bound by
-        LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, ...) above. }
-      //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
-    end else
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, @Indexes[0]);
+      IndexPtr := nil
+    else
+      IndexPtr := @Indexes[0];
+    glDrawElements(GL_TRIANGLES, Length(Indexes), GLIndexConst, IndexPtr);
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
