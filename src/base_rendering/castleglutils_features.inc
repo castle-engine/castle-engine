@@ -60,13 +60,14 @@ type
 
       GLFeatures.EnableFixedFunction may be @false (preferred) or @true (fallback).
 
-      TODO: At some point, when it will have a practical benefit (measurable speedup /
-      functionality boost), rcAutomatic will automatically require modern context
+      TODO: At some point, rcAutomatic will automatically require modern context
       with deprecated functionality removed (just like rcForceModern)
-      and only fallback on non-modern context. For now, rcAutomatic initializes
-      always context with compatibility entry points too. We use flag rcForceModern
-      to test whether the "modern (core) context with deprecated stuff removed"
-      is worth the hassle. }
+      and only fallback on non-modern context if that is not possible.
+      For now, rcAutomatic still initializes context with compatibility entry points
+      too, although it will not use them.
+      We use flag rcForceModern to test whether the "modern (core) context with
+      deprecated stuff removed" is worth the hassle, i.e. is there a practical benefit
+      (measurable speedup / functionality boost) of not having compatibility entry points. }
     rcAutomatic,
 
     { Force using deprecated fixed-function even on modern GPUs.
@@ -74,7 +75,12 @@ type
       never use this in production code -- you should always strive to use
       modern GPU code.
 
-      GLFeatures.EnableFixedFunction will be always @true. }
+      GLFeatures.EnableFixedFunction will be always @true.
+
+      We will keep OpenGL API usage at 1.x, for large things (no shaders,
+      no VBO) and small things (like querying OpenGL extensions).
+      The goal is to really simulate ancient GPU, before shaders were part
+      of the OpenGL standard. }
     rcForceFixedFunction,
 
     { Force initializing modern OpenGL context, with deprecated functionality
@@ -90,6 +96,7 @@ type
       On platforms where we honor this flag at context creation (using glX etc.):
       This even guarantees more: that at least OpenGL 3.2 is available.
       In exchange, it really prohibits using any older deprecated OpenGL API.
+      So the code must, when Version_3_2, use new OpenGL API (and not any deprecated API).
 
       The specifics what it does:
       We try to initialize "core" profile of OpenGL >= 3.2.
@@ -586,7 +593,7 @@ begin
     FVersion_1_5 := GLVersion.AtLeast(1, 5);
     FVersion_2_0 := GLVersion.AtLeast(2, 0);
     FVersion_2_1 := GLVersion.AtLeast(2, 1);
-    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_VERSION_3_0_CORE();
+    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0_CORE();
     FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1_CORE();
     FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2_CORE();
     FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3_CORE();
@@ -597,13 +604,16 @@ begin
     FVersion_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
     FVersion_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
     FVersion_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
-    FVersion_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-    FVersion_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
-    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
-    FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
-    FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
-    FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
-    FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
+    if RequestCapabilities <> rcForceFixedFunction then
+    begin
+      FVersion_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
+      FVersion_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
+      FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
+      FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
+      FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
+      FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
+      FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
+    end;
   end;
   {$else}
   // TODO: Delphi OpenGLext has only InitOpenGLext
