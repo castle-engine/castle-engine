@@ -48,6 +48,7 @@ type
   PtrUInt = NativeUInt;
   WINBOOL = longbool;
   PUInt16 = ^UInt16;
+  PInt32 = ^Int32;
   TGetVendorNameEvent  = function: string;
   TGetAppNameEvent  = function: string;
   TEventType = (etCustom, etInfo, etWarning, etError, etDebug);
