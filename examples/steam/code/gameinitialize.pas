@@ -1,10 +1,3 @@
-{ Game initialization.
-  This unit is cross-platform.
-  It will be used by the platform-specific program or library file.
-
-  Feel free to use this code as a starting point for your own projects.
-  This template code is in public domain, unlike most other CGE code which
-  is covered by BSD or LGPL (see https://castle-engine.io/license). }
 unit GameInitialize;
 
 interface
@@ -12,7 +5,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls
+  CastleWindow, CastleLog, CastleUIControls, CastleSteam
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -21,11 +14,16 @@ uses SysUtils,
 var
   Window: TCastleWindow;
 
+const
+  AppId = UInt32(480);
+
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  InitSteam(AppId);
 
   { Create TViewMain that will handle "main" view of the game.
     Larger games may use multiple views,
