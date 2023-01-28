@@ -47,6 +47,7 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
+    MainFog: TCastleFog;
   private
     { Always synchronized with MainViewport.Camera.Direction. }
     Direction: TDirection;
@@ -81,6 +82,9 @@ begin
   { Make sure Dir and MainViewport.Camera.Direction are initially synchronized. }
   Direction := dirNorth;
   MainViewport.Camera.Direction := DirectionVector[Direction];
+  { At design-time, we keep MainFog.VisibilityRange larger,
+    otherwise it makes it hard to actually see level at design-time from top. }
+  MainFog.VisibilityRange := 5;
 end;
 
 procedure TViewPlay.Stop;

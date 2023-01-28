@@ -7,7 +7,7 @@
       "$$ClassName" : "TCastleViewport",
       "Background" : "Background1",
       "Camera" : "Camera1",
-      "Fog" : "Fog1",
+      "Fog" : "MainFog",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
@@ -103,11 +103,11 @@
           "$$ClassName" : "TCastleFog",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorRGBPersistent",
-            "Blue" : 2.3921568691730499E-001,
-            "Green" : 2.3921568691730499E-001,
-            "Red" : 2.3921568691730499E-001
+            "Blue" : 5.4901963472366333E-001,
+            "Green" : 5.4901963472366333E-001,
+            "Red" : 5.8039218187332153E-001
           },
-          "Name" : "Fog1",
+          "Name" : "MainFog",
           "VisibilityRange" : 2.0000000000000000E+001
         }
       ],
@@ -122,16 +122,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 4.1014261245727539E+000,
-          "X" : 5.8873081207275391E-001,
-          "Y" : 5.3567814826965332E-001,
-          "Z" : 6.0534691810607910E-001
+          "W" : 6.0364264249801636E-001,
+          "X" : -5.3579884767532349E-001,
+          "Y" : -8.3351045846939087E-001,
+          "Z" : -1.3483308255672455E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -9.2167550325393677E-001,
-          "Y" : 4.6778593063354492E+000,
-          "Z" : -1.2599136829376221E+000
+          "X" : -2.6193964481353760E+000,
+          "Y" : 2.1634073257446289E+000,
+          "Z" : 2.2408311367034912E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
