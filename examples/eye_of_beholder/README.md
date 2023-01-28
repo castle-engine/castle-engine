@@ -2,12 +2,21 @@
 
 Demo of a game like "Eye of the Beholder":
 
-- first-person view
-- movement on a grid (AWSD keys)
+- First-person view
+
+- Movement on a grid (AWSD keys)
     - walking in a labirynth designed in Blender
-    - we prevent walking on a tile if we detect collision
-- rotations by 90 degrees (QE keys)
+    - we prevent walking if we detect collision between current and target position
+
+- Rotations by 90 degrees (QE keys)
+
+- 6 buttons to perform movement and rotation, to be able to move/rotate using mouse (or touch on mobile)
+
+- Label shows current view direction
+
 - UI with stats for a band of 6 heroes (not functional, just a demo)
+
+Compare this with real "Eye of the Beholder" UI on https://thekingofgrabs.files.wordpress.com/2019/05/eye-of-the-beholder-3-pc-084.png :)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
