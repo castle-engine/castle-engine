@@ -18,6 +18,8 @@ Demo of a game like "Eye of the Beholder":
 
 Compare this with real "Eye of the Beholder" UI on https://thekingofgrabs.files.wordpress.com/2019/05/eye-of-the-beholder-3-pc-084.png :)
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
