@@ -136,6 +136,7 @@
       <Unit5>
         <Filename Value="castlesteam\steamcallback.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="SteamCallback"/>
       </Unit5>
     </Units>
   </ProjectOptions>

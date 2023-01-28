@@ -17,7 +17,7 @@ type
   HSteamPipe = Int32;
   HSteamUser = Int32;
   CSteamId = UInt64; // It's a struct but passed as UInt64
-  //CGameID = UInt64;
+  CGameID = UInt64;
   EResult = UInt32;
 
 type

@@ -21,7 +21,12 @@ function GetAchievement(const AchievementId: String): Boolean;
 procedure ClearAchievement(const AchievementId: String);
 implementation
 uses
-  CastleInternalSteamApi, CastleInternalSteamConstantsAndTypes;
+  CastleInternalSteamApi, CastleInternalSteamConstantsAndTypes, SteamCallback;
+
+type
+  TTemporary = class(TObject)
+    procedure OnUserStatsReceived(P:Pointer);
+  end;
 
 var
   SteamClient: Pointer;
@@ -72,7 +77,8 @@ begin
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
 
-  SteamAPI_RegisterCallback(@OnUserStatsReceived, UserStatsReceived_t.k_iCallback);
+  //SteamAPI_RegisterCallback(@OnUserStatsReceived, UserStatsReceived_t.k_iCallback);
+  SteamCallbackDispatcher.Create(SteamStatsCallbackID , TTemporary(nil).OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
 
   Exit(true);
 end;
@@ -100,6 +106,13 @@ end;
 procedure ShutdownSteam;
 begin
   SteamAPI_Shutdown();
+end;
+
+{ TTemporary }
+
+procedure TTemporary.OnUserStatsReceived(P: Pointer);
+begin
+  WriteLn('OnUserStatsReceived');
 end;
 
 end.
