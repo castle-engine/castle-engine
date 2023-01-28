@@ -27,8 +27,8 @@ function SteamInternal_CreateInterface(SteamClientInterfaceVersion: PAnsiChar): 
 function SteamAPI_GetHSteamUser(): HSteamUser; CDecl; external SteamLib;
 function SteamAPI_GetHSteamPipe(): HSteamPipe; CDecl; external SteamLib;
 
-procedure SteamAPI_RegisterCallback(pCallback: UserStatsReceivedCallback; iCallback: Integer); CDecl; external SteamLib;
-procedure SteamAPI_UnregisterCallback(pCallback: UserStatsReceivedCallback); CDecl; external SteamLib;
+procedure SteamAPI_RegisterCallback(pCallback: Pointer; iCallback: Integer); CDecl; external SteamLib;
+procedure SteamAPI_UnregisterCallback(pCallback: Pointer); CDecl; external SteamLib;
 
 { steam_api_flat.h : contains all available functions in one place
   Weird enough not all of them seem to do what they look like they're supposed to do

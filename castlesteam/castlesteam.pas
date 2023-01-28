@@ -78,7 +78,7 @@ begin
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
 
   //SteamAPI_RegisterCallback(@OnUserStatsReceived, UserStatsReceived_t.k_iCallback);
-  SteamCallbackDispatcher.Create(SteamStatsCallbackID , TTemporary(nil).OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
+  SteamCallbackDispatcher.Create(SteamStatsCallbackID , @TTemporary(nil).OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
 
   Exit(true);
 end;

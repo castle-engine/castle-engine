@@ -2,7 +2,8 @@ Unit SteamCallback;
 
 Interface
 
-Uses SteamAPI;
+Uses //SteamAPI;
+  CastleInternalSteamConstantsAndTypes;
 
 Const
   SteamStatsCallbackID = k_iSteamUserStatsCallbacks + 1;
@@ -11,17 +12,17 @@ Const
 Type
   PSteam_UserStatsReceived = ^Steam_UserStatsReceived;
   Steam_UserStatsReceived = Packed Record
-		GameID:SteamGameID;		      // Game these stats are for
-		Result:SteamResult;	  // Success / error fetching the stats
-		steamID:SteamID;	// The user for whom the stats are retrieved for
+		GameID:CGameID;		      // Game these stats are for
+		Result:EResult;	  // Success / error fetching the stats
+		steamID:CSteamId;	// The user for whom the stats are retrieved for
 	End;
 
-  PSteam_LeaderboardScoresDownloaded = ^Steam_LeaderboardScoresDownloaded;
+ { PSteam_LeaderboardScoresDownloaded = ^Steam_LeaderboardScoresDownloaded;
 	Steam_LeaderboardScoresDownloaded = Packed Record
 		LeaderboardID:SteamLeaderboard;
 		LeaderboardEntries:SteamLeaderboardEntries;	// the handle to pass into GetDownloadedLeaderboardEntries()
 		EntryCount:Integer; // the number of entries downloaded
-  End;
+  End; }
 
   PCCallbackBaseVTable = ^TCCallbackBaseVTable;
   TCCallbackBaseVTable = Record
@@ -50,12 +51,14 @@ Type
       _CallbackID:Integer;
 
     Public
-      Constructor Create(iCallback:integer; CallbackProc:SteamCallbackDelegate; _propsize:integer); Reintroduce;
+      Constructor Create(iCallback:integer; CallbackProc:SteamCallbackDelegate; a_propsize:integer); Reintroduce;
       Destructor Destroy; Override;
   End;
 
 
 Implementation
+uses
+  CastleInternalSteamApi;
 
 { TSteamCallback }
 
@@ -65,17 +68,17 @@ Var
 {$IFDEF CPU64}
 Procedure MySteamCallback_Run(pvParam: Pointer; pSelf: PCCallbackInt);
 Begin
-  pSelf._Dispatcher._Callback(Pointer(pvParam));
+  pSelf^._Dispatcher._Callback(Pointer(pvParam));
 End;
 
 Procedure MySteamCallback_Run_2(myself, pvParam: PCCallbackInt);
 Begin
-  Myself._Dispatcher._Callback(Pointer(pvParam));
+  Myself^._Dispatcher._Callback(Pointer(pvParam));
 End;
 
 Function MySteamCallback_GetCallbackSizeBytes(myself: PCCallbackInt):Integer;
 Begin
-  Result := Myself._Dispatcher._PropSize;
+  Result := Myself^._Dispatcher._PropSize;
 End;
 {$ELSE}
 {$IFDEF LINUX}
@@ -106,11 +109,11 @@ Begin
 End;
 {$ENDIF}
 
-Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; _propsize: integer);
+Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer);
 Begin
   _CallbackID := iCallback;
   _Callback := callbackProc;
-  _PropSize := _propsize;
+  _PropSize := a_propsize;
 
   _SteamInterface.vtable := @MyCallbackVTable;
   _SteamInterface._nCallbackFlags := 0;
