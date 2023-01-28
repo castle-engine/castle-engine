@@ -86,6 +86,7 @@ end;
 procedure SetAchievement(const AchievementId: String);
 begin
   SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId));
+  SteamAPI_ISteamUserStats_StoreStats(SteamUserStats);
 end;
 
 function GetAchievement(const AchievementId: String): Boolean;
@@ -96,6 +97,7 @@ end;
 procedure ClearAchievement(const AchievementId: String);
 begin
   SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId));
+  SteamAPI_ISteamUserStats_StoreStats(SteamUserStats);
 end;
 
 procedure UpdateSteam;
