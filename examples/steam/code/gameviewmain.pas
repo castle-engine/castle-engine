@@ -4,13 +4,19 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleSteam;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleColors,
+  CastleSteam;
 
 type
   TViewMain = class(TCastleView)
+  private
+    procedure ClickAddAchievement1(Sender: TObject);
   published
     LabelFps: TCastleLabel;
+    ButtonAddAchievement1: TCastleButton;
+    VerticalGroupLog: TCastleVerticalGroup;
   public
+    procedure Log(const Message: String);
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -25,6 +31,29 @@ uses SysUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
+procedure TViewMain.ClickAddAchievement1(Sender: TObject);
+begin
+  if GetAchievement('ACH_WIN_ONE_GAME') then
+  begin
+    Log('Achievement set, clearing');
+    ClearAchievement('ACH_WIN_ONE_GAME');
+  end else
+  begin
+    Log('Achievement not set, adding');
+    SetAchievement('ACH_WIN_ONE_GAME');
+  end;
+end;
+
+procedure TViewMain.Log(const Message: String);
+var
+  NewLabel: TCastleLabel;
+begin
+  NewLabel := TCastleLabel.Create(VerticalGroupLog);
+  NewLabel.Caption := Message;
+  NewLabel.Color := CastleColors.White;
+  VerticalGroupLog.InsertFront(NewLabel);
+end;
+
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
@@ -34,14 +63,15 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+  ButtonAddAchievement1.OnClick := @ClickAddAchievement1;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
-  { This virtual method is executed every frame (many times per second). }
-  Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  { Some Steam features (like callbacks) require calling Update often, usually every frame }
   UpdateSteam;
 end;
 
