@@ -39,6 +39,13 @@ const
     (X: -1; Y: 0; Z:  0)
   );
 
+  DirectionName: array [TDirection] of String = (
+    'North',
+    'East',
+    'South',
+    'West'
+  );
+
   { Time, in seconds, to perform move or rotation. }
   ActionDuration = 0.25;
 
@@ -57,6 +64,7 @@ type
     ButtonMoveForward: TCastleButton;
     ButtonRotateLeft: TCastleButton;
     ButtonRotateRight: TCastleButton;
+    LabelDirection: TCastleLabel;
   private
     { Always synchronized with MainViewport.Camera.Direction. }
     Direction: TDirection;
@@ -102,9 +110,12 @@ end;
 procedure TViewPlay.Start;
 begin
   inherited;
-  { Make sure Dir and MainViewport.Camera.Direction are initially synchronized. }
+
+  { Make sure Dir, MainViewport.Camera.Direction and LabelDirection are initially synchronized. }
   Direction := dirNorth;
   MainViewport.Camera.Direction := DirectionVector[Direction];
+  LabelDirection.Caption := 'Looking at: ' + DirectionName[Direction];
+
   { At design-time, we keep MainFog.VisibilityRange larger,
     otherwise it makes it hard to actually see level at design-time from top. }
   MainFog.VisibilityRange := 5;
@@ -168,6 +179,7 @@ begin
     Exit;
   MainViewport.Camera.GetWorldView(Pos, Dir, Up);
   Direction := IncreaseDirection(Direction, RotationChange);
+  LabelDirection.Caption := 'Looking at: ' + DirectionName[Direction];
   Dir := DirectionVector[Direction];
   MainViewport.Camera.AnimateTo(Pos, Dir, Up, ActionDuration);
 end;
