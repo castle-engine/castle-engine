@@ -42,6 +42,7 @@ type
 
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
+      const AttributeName: String;
       const TargetPtr: Pointer; const TargetItemSize: SizeInt;
       const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean);
@@ -215,7 +216,8 @@ type
       so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
       in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
       or it is not indexed. }
-    procedure AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+    procedure AssignAttribute(const AttributeName: String;
+      const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean = false);
 
     { Fill some attribute inside Arrays (in the Arrays.CoordinateArray, Arrays.CoordinateSize).
@@ -223,8 +225,11 @@ type
       Suitable for use when the SourceCount corresponds to the original shape Coordinate count,
       so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
       in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
-      or it is not indexed. }
-    procedure AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      or it is not indexed.
+
+      AttributeName is only for debug (to display nice logs / warnings). }
+    procedure AssignCoordinate(const AttributeName: String;
+      const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean = false);
   public
     { Assign these before calling GenerateArrays.
@@ -278,14 +283,18 @@ type
 
   @raises EAssignInterleavedRangeError When Count < CopyCount. }
 procedure AssignToInterleaved(
+  const AttributeName: String;
   Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
   Source: Pointer; const SourceItemSize, SourceCount: SizeInt);
 var
   I: Integer;
 begin
   if SourceCount < CopyCount then
-    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
-      [SourceCount, CopyCount]);
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items in %s: %d, but at least %d required', [
+      AttributeName,
+      SourceCount,
+      CopyCount
+    ]);
 
   for I := 0 to CopyCount - 1 do
   begin
@@ -313,6 +322,7 @@ end;
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(
+  const AttributeName: String;
   Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
   Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
   const Indexes: TGeometryIndexList);
@@ -321,16 +331,22 @@ var
   Index: TGeometryIndex;
 begin
   if Indexes.Count < CopyCount then
-    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
-      [Indexes.Count, CopyCount]);
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items in %s: %d, but at least %d required', [
+      AttributeName,
+      Indexes.Count,
+      CopyCount
+    ]);
 
   {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to CopyCount - 1 do
   begin
     Index := Indexes.L[I];
     if Index >= SourceCount then
-      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
-        [Index, SourceCount]);
+      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
+        Index,
+        SourceCount,
+        AttributeName
+      ]);
 
     { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
       This would cause noticeable slowdown when using AssignToInterleavedIndexed
@@ -850,7 +866,7 @@ begin
         Assert(Arrays.Indexes = nil); // leaving Arrays.Indexes empty
       end;
 
-      AssignCoordinate(Arrays.Position, Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count);
+      AssignCoordinate('coordinates', Arrays.Position, Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count);
 
       if LogShapes then
         WritelnLog('Renderer', Format('Shape %s rendered:' + NL +
@@ -869,7 +885,7 @@ begin
       finally GenerateCoordinateEnd; end;
     except
       on E: EAssignInterleavedRangeError do
-        WritelnWarning('X3D', Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
+        WritelnWarning('X3D', Format('Invalid number of items in an attribute array for shape "%s": %s',
           [Shape.NiceName, E.Message]));
     end;
   finally
@@ -879,6 +895,7 @@ begin
 end;
 
 procedure TArraysGenerator.AssignAttributeOrCoordinate(
+  const AttributeName: String;
   const TargetPtr: Pointer; const TargetItemSize: SizeInt;
   const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
   const TrivialIndex: Boolean);
@@ -913,24 +930,26 @@ begin
   begin
     Assert(not Arrays.CoordinatePreserveGeometryOrder, 'Set AllowIndexed := false when there''s a possibility to call with TrivialIndex');
     Assert(TrivialIndexesFromCoordIndex <> nil, 'Generate TrivialIndexesFromCoordIndex for all geometries that may call with TrivialIndex');
-    AssignToInterleavedIndexed(TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, TrivialIndexesFromCoordIndex);
+    AssignToInterleavedIndexed(AttributeName, TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, TrivialIndexesFromCoordIndex);
   end else
   if Arrays.CoordinatePreserveGeometryOrder then
-    AssignToInterleaved       (TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount)
+    AssignToInterleaved       (AttributeName, TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount)
   else
-    AssignToInterleavedIndexed(TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, IndexesFromCoordIndex);
+    AssignToInterleavedIndexed(AttributeName, TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, IndexesFromCoordIndex);
 end;
 
-procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+procedure TArraysGenerator.AssignAttribute(const AttributeName: String;
+  const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
   const TrivialIndex: Boolean);
 begin
-  AssignAttributeOrCoordinate(TargetPtr, Arrays.AttributeSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
+  AssignAttributeOrCoordinate(AttributeName, TargetPtr, Arrays.AttributeSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
 end;
 
-procedure TArraysGenerator.AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+procedure TArraysGenerator.AssignCoordinate(const AttributeName: String;
+  const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
   const TrivialIndex: Boolean);
 begin
-  AssignAttributeOrCoordinate(TargetPtr, Arrays.CoordinateSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
+  AssignAttributeOrCoordinate(AttributeName, TargetPtr, Arrays.CoordinateSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
 end;
 
 procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
@@ -1475,9 +1494,9 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
     for I := 0 to Arrays.TexCoords.Count - 1 do
       if Arrays.TexCoords[I].Generation = tgExplicit then
         case Arrays.TexCoords[I].Dimensions of
-          2: AssignAttribute(Arrays.TexCoord(I), TexCoordArray2d[I].Items.L, TexCoordArray2d[I].Items.ItemSize, TexCoordArray2d[I].Items.Count);
-          3: AssignAttribute(Arrays.TexCoord(I), TexCoordArray3d[I].Items.L, TexCoordArray3d[I].Items.ItemSize, TexCoordArray3d[I].Items.Count);
-          4: AssignAttribute(Arrays.TexCoord(I), TexCoordArray4d[I].Items.L, TexCoordArray4d[I].Items.ItemSize, TexCoordArray4d[I].Items.Count);
+          2: AssignAttribute('2D texture coordinates', Arrays.TexCoord(I), TexCoordArray2d[I].Items.L, TexCoordArray2d[I].Items.ItemSize, TexCoordArray2d[I].Items.Count);
+          3: AssignAttribute('3D texture coordinates', Arrays.TexCoord(I), TexCoordArray3d[I].Items.L, TexCoordArray3d[I].Items.ItemSize, TexCoordArray3d[I].Items.Count);
+          4: AssignAttribute('4D texture coordinates', Arrays.TexCoord(I), TexCoordArray4d[I].Items.L, TexCoordArray4d[I].Items.ItemSize, TexCoordArray4d[I].Items.Count);
         end;
   end;
 
@@ -1803,7 +1822,7 @@ begin
     if ColorPerVertex then
     begin
       if not UseColorIndex then
-        AssignAttribute(Arrays.ColorRgb, Color.Items.L, Color.Items.ItemSize, Color.Items.Count);
+        AssignAttribute('colors', Arrays.ColorRgb, Color.Items.L, Color.Items.ItemSize, Color.Items.Count);
     end;
   end else
   if ColorRGBA <> nil then
@@ -1811,7 +1830,7 @@ begin
     if ColorPerVertex then
     begin
       if not UseColorIndex then
-        AssignAttribute(Arrays.ColorRgbAlpha, ColorRGBA.Items.L, ColorRGBA.Items.ItemSize, ColorRGBA.Items.Count);
+        AssignAttribute('RGB colors', Arrays.ColorRgbAlpha, ColorRGBA.Items.L, ColorRGBA.Items.ItemSize, ColorRGBA.Items.Count);
     end;
   end;
 end;
@@ -2000,9 +2019,9 @@ begin
 
   case NorImplementation of
     niPerVertexCoordIndexed:
-      AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count);
+      AssignCoordinate('normals', Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count);
     niPerVertexNonIndexed:
-      AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count, CoordIndex <> nil);
+      AssignCoordinate('normals', Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count, CoordIndex <> nil);
     niOverall: SetAllNormals(NormalsSafe(0));
     niUnlit: SetAllNormals(TVector3.Zero);
     else ;
@@ -2226,18 +2245,23 @@ end;
 
 procedure TAbstractShaderAttribGenerator.GenerateCoordinateBegin;
 
-  procedure SetAttrib(const TargetAttrib: TGeometryAttrib; const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  procedure SetAttrib(const AttributeName: String;
+    const TargetAttrib: TGeometryAttrib; const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
   begin
-    AssignAttribute(Pointer(Arrays.GLSLAttribute(TargetAttrib)), SourcePtr, SourceItemSize, SourceCount);
+    AssignAttribute(AttributeName,
+      Pointer(Arrays.GLSLAttribute(TargetAttrib)), SourcePtr, SourceItemSize, SourceCount);
   end;
 
 var
   I: Integer;
   NumComponents: Integer;
+  AttributeName: String;
 begin
   inherited;
   for I := 0 to High(Attribs) do
   begin
+    AttributeName := TAbstractVertexAttributeNode(Attribs[I].Node).NameField;
+
     { Note we don't do some warnings here, that were already done
       in PrepareAttributes (and set Attribs[I].Node = nil). }
     if Attribs[I].Node is TFloatVertexAttributeNode then
@@ -2248,19 +2272,19 @@ begin
         Vector attributes in X3D are expressed using TFloatVertexAttributeNode,
         with each vector component one after another.
         We copy them fast, knowing that memory layout of TSingleList is the same as TVectorXxxList. }
-      SetAttrib(Attribs[I].GeometryAttrib,
+      SetAttrib(AttributeName, Attribs[I].GeometryAttrib,
         TFloatVertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(Single) * NumComponents,
         TFloatVertexAttributeNode(Attribs[I].Node).FdValue.Items.Count div NumComponents);
     end else
     if Attribs[I].Node is TMatrix3VertexAttributeNode then
     begin
-      SetAttrib(Attribs[I].GeometryAttrib,
+      SetAttrib(AttributeName, Attribs[I].GeometryAttrib,
         TMatrix3VertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(TMatrix3),
         TMatrix3VertexAttributeNode(Attribs[I].Node).FdValue.Items.Count);
     end else
     if Attribs[I].Node is TMatrix4VertexAttributeNode then
     begin
-      SetAttrib(Attribs[I].GeometryAttrib,
+      SetAttrib(AttributeName, Attribs[I].GeometryAttrib,
         TMatrix4VertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(TMatrix4),
         TMatrix4VertexAttributeNode(Attribs[I].Node).FdValue.Items.Count);
     end;
@@ -2286,7 +2310,7 @@ begin
     if (TangentsFromNode <> nil) and
        (NorImplementation in [niPerVertexCoordIndexed, niPerVertexNonIndexed]) then
     begin
-      AssignCoordinate(Arrays.Tangent, TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
+      AssignCoordinate('tangents', Arrays.Tangent, TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
     end else
     begin
       { If ShapeBumpMappingUsed, but we cannot use TangentsFromNode, then we need
