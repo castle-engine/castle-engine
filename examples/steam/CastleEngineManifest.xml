@@ -8,8 +8,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="SteamTest"
   standalone_source="SteamTest_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.SteamTest"
-  caption="SteamTest"
+  qualified_name="io.castleengine.steam.test"
+  caption="Steam Test"
 >
   <compiler_options>
     <search_paths>
