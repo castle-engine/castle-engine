@@ -171,6 +171,215 @@
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.0000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Height" : 2.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "RectangleControl1",
+      "Width" : 3.1300000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/arrow-left.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonMoveLeft",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : 1.0000000000000000E+001
+          }
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/arrow-down.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonMoveBackward",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.1000000000000000E+002,
+            "Y" : 1.0000000000000000E+001
+          }
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/arrow-right.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonMoveRight",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.1000000000000000E+002,
+            "Y" : 1.0000000000000000E+001
+          }
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/corner-up-right.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonRotateRight",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.1000000000000000E+002,
+            "Y" : 1.0000000000000000E+002
+          }
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/arrow-up.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonMoveForward",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.1000000000000000E+002,
+            "Y" : 1.0000000000000000E+002
+          }
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/button_icons/corner-up-left.png"
+          },
+          "ImageScale" : 5.0000000000000000E-001,
+          "Name" : "ButtonRotateLeft",
+          "TintDisabledPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 6.8627452850341797E-001,
+            "Green" : 6.8627452850341797E-001,
+            "Red" : 6.8627452850341797E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : 1.0000000000000000E+002
+          }
+        }
+      ]
     }
   ]
 }
