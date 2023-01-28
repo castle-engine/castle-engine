@@ -1,0 +1,23 @@
+<!-- This will be inserted inside the larger xxx-Info.plist file
+     by the Castle Game Engine build tool. -->
+
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+  <key>CFBundleURLSchemes</key>
+  <array>
+    <string>fb${IOS.FACEBOOK.APP_ID}</string>
+  </array>
+  </dict>
+</array>
+<key>FacebookAppID</key>
+<string>${IOS.FACEBOOK.APP_ID}</string>
+<key>FacebookDisplayName</key>
+<string>${IOS.FACEBOOK.APP_TITLE}</string>
+<key>LSApplicationQueriesSchemes</key>
+<array>
+  <string>fbapi</string>
+  <string>fb-messenger-api</string>
+  <string>fbauth2</string>
+  <string>fbshareextension</string>
+</array>

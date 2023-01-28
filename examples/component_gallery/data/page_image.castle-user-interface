@@ -1,0 +1,343 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "GroupRoot",
+  "VerticalAnchorParent" : "vpTop",
+  "VerticalAnchorSelf" : "vpTop",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "ImageControlOriginal",
+      "VerticalAnchorDelta" : -3.7448303222656250E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "Clip" : true,
+        "ClipLinePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.0000000000000000E+000,
+          "Z" : -5.0000000000000000E-001
+        },
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 5.9000000000000000E+002,
+      "Name" : "ImageControlClipLine",
+      "VerticalAnchorDelta" : -6.3000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "ColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent",
+          "Blue" : 7.8431377187371254E-003,
+          "Red" : 9.2549020051956177E-001
+        },
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "ImageControlColor",
+      "VerticalAnchorDelta" : -3.3744830322265625E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "Rotation" : 5.0000000000000000E-001,
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "ImageControlRoatet",
+      "VerticalAnchorDelta" : -6.2744824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "FlipHorizontal" : true,
+        "FlipVertical" : true,
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 3.1000000000000000E+002,
+      "Name" : "ImageControlFlip",
+      "VerticalAnchorDelta" : -6.3744824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "ProtectedSides" : {
+          "$$ClassName" : "TBorder",
+          "AllSides" : 2.0000000000000000E+001
+        },
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "Height" : 2.4000000000000000E+002,
+      "HorizontalAnchorDelta" : 5.9000000000000000E+002,
+      "Name" : "ImageControlProtectedSides",
+      "Stretch" : true,
+      "VerticalAnchorDelta" : -3.5344824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 5.4000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "AlphaChannel" : "acNone",
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "HorizontalAnchorDelta" : 3.1000000000000000E+002,
+      "Name" : "ImageControlAlphaChannel",
+      "VerticalAnchorDelta" : -3.2744830322265625E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "Height" : 2.0000000000000000E+002,
+      "HorizontalAnchorDelta" : 5.0000000000000000E+002,
+      "Name" : "ImageControlStretchNonProportional",
+      "Stretch" : true,
+      "VerticalAnchorDelta" : -8.3448242187500000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.4000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/cge_icon_256.png"
+      },
+      "Height" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 3.2000000000000000E+002,
+      "Name" : "ImageControlStretchProportional",
+      "ProportionalScaling" : "psEnclose",
+      "Stretch" : true,
+      "VerticalAnchorDelta" : -8.3448242187500000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.5000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 1.9999996185302734E+001,
+      "Name" : "LabelOriginal",
+      "Text" : [
+        "Image Original:"
+      ],
+      "VerticalAnchorDelta" : -1.1448303222656250E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 5.9000000000000000E+002,
+      "Name" : "LabelClipLine",
+      "Text" : [
+        "Clip By Any Line:"
+      ],
+      "VerticalAnchorDelta" : -6.0144824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 1.9999996185302734E+001,
+      "Name" : "LabelColor",
+      "Text" : [
+        "Multiply with RGBA Color:"
+      ],
+      "VerticalAnchorDelta" : -3.1144830322265625E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 1.9999996185302734E+001,
+      "Name" : "LabelRotate",
+      "Text" : [
+        "Rotate image:"
+      ],
+      "VerticalAnchorDelta" : -6.0144824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 3.1000000000000000E+002,
+      "Name" : "LabelFlip",
+      "Text" : [
+        "Flip image horizontally ",
+        "and/or vertically:"
+      ],
+      "VerticalAnchorDelta" : -5.9044824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 3.1000000000000000E+002,
+      "Name" : "LabelAlphaChannel",
+      "Text" : [
+        "Control alpha channel:"
+      ],
+      "VerticalAnchorDelta" : -3.0144830322265625E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 5.9000000000000000E+002,
+      "Name" : "LabelProtectedSides",
+      "Text" : [
+        "Use ProtectedSides for 9-slices resizing, ",
+        "that scales borders differently than inside:"
+      ],
+      "VerticalAnchorDelta" : -3.1044824218750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 3.1000000000000000E+002,
+      "Name" : "LabelStretch",
+      "Text" : [
+        "Use Stretch to scale the image, ",
+        "Choose ProportionalScaling ",
+        "to preserve or ignore proportions."
+      ],
+      "VerticalAnchorDelta" : -9.4482421875000000E+000,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Height" : 2.9000000000000000E+002,
+      "HorizontalAnchorDelta" : 6.5000000000000000E+002,
+      "Name" : "GroupSmoothScaling",
+      "VerticalAnchorDelta" : -1.3448242187500000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 4.6000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleImageControl",
+          "Content" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/cge_icon_cut_small_piece.png"
+          },
+          "Height" : 2.1000000000000000E+002,
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "ImageControlSmoothScalingTrue",
+          "ProportionalScaling" : "psEnclose",
+          "Stretch" : true,
+          "VerticalAnchorDelta" : 1.0000000000000000E+001,
+          "Width" : 2.1000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleImageControl",
+          "Content" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "SmoothScaling" : false,
+            "URL" : "castle-data:/cge_icon_cut_small_piece.png"
+          },
+          "Height" : 2.1000000000000000E+002,
+          "HorizontalAnchorDelta" : 2.3000000000000000E+002,
+          "Name" : "ImageControlSmoothScalingFalse",
+          "ProportionalScaling" : "psEnclose",
+          "Stretch" : true,
+          "VerticalAnchorDelta" : 1.0000000000000000E+001,
+          "Width" : 2.1000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "LabelSmoothScaling",
+          "Text" : [
+            "Set SmoothScaling to scale smootly ",
+            "or (for pixel-art) preserving blocky pixels:"
+          ],
+          "VerticalAnchorDelta" : 2.3000000000000000E+002
+        }
+      ]
+    }
+  ]
+}

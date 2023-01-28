@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>JPEG 2000 Format</title>
+  <chapter>
+    <title>JPEG 2000 Format</title>
+    <par>
+      <b>JPEG 2000</b> is a wavelet-based image compression standard.
+      It was created by the <b>Joint Photographic Experts Group</b> committee
+      as a replacement for their own DCT based JPEG standard.
+      JPEG 2000 can operate at higher compression
+      ratios without generating 'blocky and blurry'
+      artifacts of the older JPEG standard.
+      Nowadays JPEG 2000 is not as widely supported as its predecessor.
+      Common file name extensions are <b>.jp2</b>, <b>.j2c</b>, and <b>.j2k</b> (for code stream only).
+    </par>
+    <par>
+      As of version 0.24.2 Imaging uses <b>OpenJPEG</b> library
+      compiled to object files (Delphi) or static libraries (FPC)
+      and linked to Object Pascal program.
+      Therefore, JPEG 2000 support is not a part of core library
+      (not native Pascal) now
+      and is located in <keyword>Extras</keyword> package.
+      Currently Imaging supports JPEG 2000 on Win32
+      (for Delphi and FPC) and Linux systems (FPC only - no Kylix support).
+      For Linux there are precompiled objects for x86 and x86_64 architectures.
+    </par>
+    <par>
+      JPEG 2000 supports wide variety of data formats. You can have arbitrary number
+      of components/channels, each with different bitdepth and optional
+      "signedness". JPEG 2000 images can be lossy or lossless compressed.
+      Imaging can load most data formats (except multichannel images
+      with component bitdepth > 16 => no Imaging data format equivalents).
+      Components with sample separation are loaded correctly, ICC profiles
+      or palettes are not used, YCbCr images are translated to RGB.
+    </par>
+
+    <table>
+      <title>JPEG 2000 File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit grayscale</td>
+        <td><icode>ifGray32</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA16Gray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>48 bit RGB</td>
+        <td><icode>ifR16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>64 bit ARGB</td>
+        <td><icode>ifA16R16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+    </table>
+    
+    <note>
+      JPEG 2000 offers vast amount of channel count and bitdepth combinations
+      but formats listed in table are the most common ones.
+    </note>
+    
+    <par>
+      When working with JPEG 2000 files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TJpeg2000FileFormat</ref>
+      class.
+    </par>
+    <table>
+      <title>Options Related to JPEG 2000 Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingJpeg2000Quality</ref></td>
+        <td><b>1</b> to <b>100</b></td>
+        <td>
+          JPEG 2000 compression quality used when saving images.
+          Higher value means worse compression/better image quality/larger file size.
+          Default value is <b>80</b>.
+        </td>
+      </row>
+      <row>
+        <td><ref>ImagingJpeg2000CodeStreamOnly</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>
+          Controls whether JPEG 2000 image is saved with full file headers or just
+          as code stream. Default value is <b>False (0)</b>.
+        </td>
+      </row>
+      <row>
+        <td><ref>ImagingJpeg2000LosslessCompression</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>
+          Specifies JPEG 2000 image compression type. If True (1), saved JPEG 2000 files
+          will be losslessly compressed. Otherwise lossy compression is used.
+          Default value is <b>False (0)</b>.
+        </td>
+      </row>
+    </table>
+
+
+  </chapter>
+</doc>

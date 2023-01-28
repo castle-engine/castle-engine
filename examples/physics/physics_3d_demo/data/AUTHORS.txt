@@ -1,0 +1,6 @@
+house.blend (used on level_complex.blend) adapted from:
+
+  http://www.blendswap.com/blends/view/61673
+  Realistic Cartoon House
+  by izuzf
+  License: CC-0 (public domain)

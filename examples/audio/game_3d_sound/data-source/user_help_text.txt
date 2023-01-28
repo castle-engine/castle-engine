@@ -1,0 +1,15 @@
+Game instructions:
+
+F1 key gives detailed help.
+Fire up the TNT with left mouse button.
+There is no "game objective" but you
+  can investigate many things:
+- you can try to piss off that rat by
+  firing TNTs near him,
+- there is also a "mute area" inside the
+  transparent cylinder
+
+Exit with Escape.
+
+And don't ask me why the rat sounds
+like a duck.

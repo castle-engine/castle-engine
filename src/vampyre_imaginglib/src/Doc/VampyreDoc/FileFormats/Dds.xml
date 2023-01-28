@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>DirectDraw Surface File Format</title>
+  <chapter>
+    <title>DirectDraw Surface File Format</title>
+    <par>
+      The Microsoft DirectDraw Surface (.dds)
+      file format is used to store textures and
+      cubic environment maps, both with and
+      without mipmap levels. This format can
+      store uncompressed and compressed formats, and is the preferred file format
+      for storing DXTn compressed data.
+      This format was introduced with DirectX 7.0.
+      In DirectX 8.0, support for volume textures was added.
+      Many new games use DDS files to store their textures.
+      More information on DDS files can be found in DirectX SDK documentation.
+    </par>
+    <par>
+      Imaging supports loading and saving of all three types of DDS files -
+      standard textures, cube maps and volume textures. Each of these types can
+      be with or without mipmaps and compressed with DXTC.
+      Pixel formats of DDS files supported by Imaging can be found in the table below.
+    </par>
+
+    <table>
+      <title>DirectDraw Surface File Format Support</title>
+      <row>
+        <th>D3DFORMAT</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>D3DFMT_R3G3B2</td>
+        <td><icode>ifR3G3B2</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_R5G6B5</td>
+        <td><icode>ifR5G6B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_X1R5G5B5</td>
+        <td><icode>ifX1R5G5B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_X4R4G4B4</td>
+        <td><icode>ifX4R4G4B4</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_R8G8B8</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_X8R8G8B8</td>
+        <td><icode>ifX8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A1R5G5B5</td>
+        <td><icode>ifA1R5G5B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A4R4G4B4</td>
+        <td><icode>ifA4R4G4B4</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A8R8G8B8</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A16B16G16R16</td>
+        <td><icode>ifA16B16G16R16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_L8</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A8L8</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_L16</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_R32F</td>
+        <td><icode>ifR32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_A32B32G32R32F</td>
+        <td><icode>ifA32B32G32R32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_X8B8G8R8</td>
+        <td><icode>ifX8R8G8B8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_A8B8G8R8</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_X8L8V8U8</td>
+        <td><icode>ifX8R8G8B8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_Q8W8V8U8</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_Q16W16V16U16</td>
+        <td><icode>ifA16B16G16R16</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_V8U8</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>D3DFMT_DXT1</td>
+        <td><icode>ifDXT1</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_DXT3</td>
+        <td><icode>ifDXT3</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>D3DFMT_DXT5</td>
+        <td><icode>ifDXT5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+    </table>
+
+
+    <par>
+      When working with DDS files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TDDSFileFormat</ref>
+      class.
+      Options are divided into two groups - loading options and saving options.
+      Loading options have prefix <icode>ImagingDDSLoaded</icode> and
+      they store some properties of the last loaded DDS file.
+      You can use saving options with prefix <icode>ImagingDDSSave</icode>
+      to tell Imaging how to save the next DDS file (save settings persist
+      until they are changed by <ref>SetOption</ref> call) - ordinary texture
+      or volume texture with mipmaps or other?
+      You can learn how to use these options and how to load and save DDS files
+      in <link url="../Procedures/DdsFiles.xml">Loading and Saving DDS Files</link>
+      section.
+    </par>
+
+    <table>
+      <title>Options Related to DDS Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingDDSLoadedCubeMap</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether the last loaded DDS file contained cube
+        environment map or not. </td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSLoadedVolume</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether the last loaded DDS file contained
+        volume texture or not. </td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSLoadedMipMapCount</ref></td>
+        <td><b>1</b> to <b>N</b></td>
+        <td>Number of mip map levels of the last loaded DDS file.</td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSLoadedDepth</ref></td>
+        <td><b>1</b> to <b>N</b></td>
+        <td>Depth (slices of volume texture or faces of
+        cube map) of the last loaded DDS file.</td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSSaveCubeMap</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether DDS files will be saved as cube
+        environment map or not. Default value is <b>0 (false)</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSSaveVolume</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether DDS files will be saved as
+        volume texture or not. Default value is <b>0 (false)</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSSaveMipMapCount</ref></td>
+        <td><b>1</b> to <b>N</b></td>
+        <td>Number of mip map levels to be saved to the next saved DDS file.
+        Default value is <b>1</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingDDSSaveDepth</ref></td>
+        <td><b>1</b> to <b>N</b></td>
+        <td>Depth (slices of volume texture or faces of
+        cube map) of the next saved DDS file.
+        Default value is <b>1</b>.</td>
+      </row>
+
+    </table>
+ 
+  </chapter>
+</doc>

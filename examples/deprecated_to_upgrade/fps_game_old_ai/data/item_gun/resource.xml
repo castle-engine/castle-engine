@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!--
+  Define item "Gun".
+
+  We use type="Weapon", which indicates TItemWeaponResource class,
+  that includes everything you need for a typical weapon (immediate (short-range
+  or shooting) or firing missiles).
+-->
+
+<resource
+  name="Gun"
+  type="Weapon"
+  caption="Gun"
+  image="render.png"
+>
+  <model url="plasma.gltf">
+    <base   animation_name="lying_on_ground" />
+    <attack animation_name="primary" />
+    <ready  animation_name="idle" />
+    <reload animation_name="reload" />
+  </model>
+  <attack time="0.0" shoot="True" sound_start="shoot" knockback_distance="4.0" ammo_capacity="6">
+    <damage const="30" random="10" />
+  </attack>
+</resource>

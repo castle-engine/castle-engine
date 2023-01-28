@@ -1,0 +1,4 @@
+camera:
+  by Aybige
+  from https://thenounproject.com/icon/camera-1560248/
+  license CCBY

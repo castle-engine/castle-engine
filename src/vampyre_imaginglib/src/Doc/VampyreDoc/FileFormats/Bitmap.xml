@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Windows Bitmap File Format</title>
+  <chapter>
+    <title>Windows Bitmap File Format</title>
+    <par>
+      Windows bitmap files are stored in a device-independent bitmap (DIB)
+      format
+      that allows Windows to display the bitmap on any type of display device. The
+      term "device independent" means that the bitmap specifies pixel color in a
+      form independent of the method used by a display to represent color.
+      Bitmaps can store 1, 4 and 8 bit indexed images and 16, 24
+      and 32 RGB images. 4 and 8 bit images can also be compressed with RLE.
+      Imaging can also read OS/2 bitmaps but can not save them.
+    </par>
+
+    <table>
+      <title>Windows Bitmap File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>1 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>4 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>4 bit indexed RLE compressed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>8 bit indexed RLE compressed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit 555 RGB</td>
+        <td><icode>ifX1R5G5B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit 565 RGB (note 1)</td>
+        <td><icode>ifR5G6B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit 444 RGB (note 1)</td>
+        <td><icode>ifX4R4G4B4</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit RGB</td>
+        <td><icode>ifX8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit 1555 ARGB (note 2)</td>
+        <td><icode>ifA1R5G5B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit 4444 ARGB (note 2)</td>
+        <td><icode>ifA4R4G4B4</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB (note 2)</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+    </table>
+
+    <note>
+      1) Many image viewers and image editing programs do not support
+      these 16 bit formats and treat them as X1R5G5B5 format.<br/>
+      2) Alpha channels in BMP files are often ignored by some (many) viewers/editors.
+    </note>
+
+    <par>
+      When working with Bitmap files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TBitmapFileFormat</ref>
+      class.
+    </par>
+    <table>
+      <title>Options Related to Bitmap Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingBitmapRLE</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether 8 bit Bitmap images will be saved with or without
+        RLE compression (efficient only for images
+        with large areas of the same color).
+        Default value is <b>1 (true)</b>. </td>
+      </row>
+    </table>
+
+  </chapter>
+</doc>

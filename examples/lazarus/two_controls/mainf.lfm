@@ -1,0 +1,64 @@
+object Main: TMain
+  Left = 434
+  Height = 585
+  Top = 173
+  Width = 1142
+  Caption = 'Main'
+  ClientHeight = 585
+  ClientWidth = 1142
+  DesignTimePPI = 120
+  LCLVersion = '2.2.0.4'
+  object CastleControl2: TCastleControl
+    AnchorSideLeft.Control = CastleControl1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = LabelFps2
+    Left = 547
+    Height = 536
+    Top = 7
+    Width = 586
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 7
+    BorderSpacing.Bottom = 7
+    Options = [ocoRenderAtDesignTime]
+    TabOrder = 0
+    DesignUrl = 'castle-data:/main.castle-user-interface'
+  end
+  object CastleControl1: TCastleControl
+    AnchorSideBottom.Control = LabelFps1
+    Left = 7
+    Height = 536
+    Top = 7
+    Width = 533
+    Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Bottom = 7
+    Options = [ocoRenderAtDesignTime]
+    TabOrder = 1
+    DesignUrl = 'castle-data:/main.castle-user-interface'
+  end
+  object LabelFps1: TLabel
+    Left = 8
+    Height = 22
+    Top = 550
+    Width = 157
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 7
+    Caption = 'FPS: 123 (real: 456)'
+  end
+  object LabelFps2: TLabel
+    AnchorSideLeft.Control = CastleControl1
+    AnchorSideLeft.Side = asrBottom
+    Left = 547
+    Height = 22
+    Top = 550
+    Width = 157
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 7
+    BorderSpacing.Bottom = 7
+    Caption = 'FPS: 123 (real: 456)'
+  end
+  object Timer: TTimer
+    OnTimer = TimerTimer
+    Left = 39
+    Top = 31
+  end
+end

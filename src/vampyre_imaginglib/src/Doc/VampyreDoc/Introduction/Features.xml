@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Features</title>
+  <chapter>
+    <title>Features</title>
+    <blist>
+    <li>
+      Native <b>Object Pascal</b> open source crossplatform library with no dependencies
+      on any dynamically linked libraries or other platform specific binaries.
+      Supported platforms are:
+      <blist>
+        <li><b>Windows</b> x86/AMD64</li>
+        <li><b>Linux</b> x86/AMD64</li>
+        <li><b>FreeBSD</b> x86/AMD64</li>
+        <li><b>Mac OS X</b> on Intel</li>
+      </blist>
+    </li>
+    <li>
+      Loading and saving of these image file formats:
+      <blist>
+        <li> <b>BMP</b></li>
+        <li> <b>JPEG</b>, <b>JPEG2000</b></li>
+        <li> <b>PNG/APNG</b>, <b>MNG</b>, <b>JNG</b></li>
+        <li> <b>GIF</b></li>
+        <li> <b>TGA</b></li>
+        <li> <b>DDS</b></li>
+        <li> <b>PBM</b>, <b>PGM</b>, <b>PPM</b>, <b>PAM</b>, <b>PFM</b></li>
+        <li> <b>TIFF</b></li>
+        <li> <b>PSD</b></li>
+        <li> <b>PCX</b></li>
+        <li> <b>XPM</b></li>
+        <li> and more</li>
+      </blist>
+    </li>
+    <li>
+      Many internal image data formats:
+      <blist>
+        <li> 8, 16, 24, 32, 48 and 64 bit <b>RGB</b> and <b>ARGB</b> formats</li>
+        <li> indexed formats</li>
+        <li> grayscale formats</li>
+        <li> floating point formats (<b>IEEE754</b> and <b>half</b> precision)</li>
+        <li> compressed formats like <b>DXT1</b>/<b>3</b>/<b>5</b>, <b>3Dc</b>, and <b>BTC</b></li>
+       </blist>
+    </li>
+    <li>
+      Basic image manipulation functions working for all supported data formats and
+      conversions between them (bilinear/bicubic resizing, mipmap generation,
+      color reduction, ...).
+    </li>
+    <li>
+      Low level library interface (accessible by other programming languages)
+      and high level OOP one.
+    </li>
+    <li>
+      Extensions for creating <b>OpenGL</b>, <b>Direct3D</b>, and <b>SDL</b> textures/surfaces.
+    </li>
+    <li>
+      <b>VCL</b> and <b>LCL</b> graphic classes and functions.
+    </li>
+    <li>
+      Image drawing with blending, linear and nonlinear filters, point transforms,
+      binary morphology, drawing lines, ellipses, rectangles, etc.
+    </li>
+    <li>
+      Support for mipmaps, multiimages, direct access to image data,
+      user-specified file formats, overriding default read and write functions,
+      and more.
+    </li>
+  </blist>
+
+  </chapter>
+</doc>

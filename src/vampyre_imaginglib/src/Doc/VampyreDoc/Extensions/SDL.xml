@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>SDL Surfaces</title>
+  <chapter>
+    <title>SDL Surfaces</title>
+    <par>
+      This extension provides functions for loading/saving
+      <keyword>SDL</keyword> surfaces using Imaging and for converting
+      images to <keyword>SDL</keyword> surfaces and vice versa.
+      You need <keyword>SDL</keyword> headers for <keyword>Object Pascal</keyword>
+      (<keyword>JEDI-SDL</keyword>) to compile this extension.
+      It is implemented in <ref>ImagingSDL.pas</ref> unit located
+      in <keyword>(ImagingRoot)\Source\Extensions</keyword> directory.
+      To use it simply add this unit to <icode>uses</icode> list of your program.
+      Imaging library with this extension can be used as a replacement
+      for <keyword>SDL_image</keyword> library if you don't want your
+      application to be dependent on four C dll/so libraries
+      (<keyword>SDL_image</keyword> + jpeglib + libpng + zlib).
+    </par>
+    
+    <par>
+      Here is the table with <keyword>SDL</keyword> functions
+      currently available.
+      There is also Imaging <keyword>SDL</keyword> demo you can look at
+      for inspiration <link url="../Demos/Pascal.xml#sdldemo">Object Pascal SDL Demo</link>.
+    </par>
+
+    <table>
+      <title>Imaging SDL extension functions</title>
+      <row><th>Loading Functions</th></row>
+      <row><td><ref>LoadSDLSurfaceFromFile</ref></td></row>
+      <row><td><ref>LoadSDLSurfaceFromStream</ref></td></row>
+      <row><td><ref>LoadSDLSurfaceFromMemory</ref></td></row>
+      <row><th>Saving Functions</th></row>
+      <row><td><ref>SaveSDLSurfaceToFile</ref></td></row>
+      <row><td><ref>SaveSDLSurfaceToStream</ref></td></row>
+      <row><td><ref>SaveSDLSurfaceToMemory</ref></td></row>
+      <row><th>Conversion Functions</th></row>
+      <row><td><ref>CreateSDLSurfaceFromImage</ref></td></row>
+      <row><td><ref>CreateImageFromSDLSurface</ref></td></row>
+    </table>
+    
+    <note>
+      <ref>LoadSDLSurfaceFromFile</ref> and similar functions use
+      <icode>SDL_SWSURFACE</icode> as <icode>Flags</icode> when creating
+      <keyword>SDL</keyword> surface. If you want other
+      <icode>Flags</icode> to be used load image by standard
+      <ref>LoadImageFromFile</ref> and similar functions and then call
+      <ref>CreateSDLSurfaceFromImage</ref> which has more options.
+    </note>
+
+  </chapter>
+</doc>

@@ -1,0 +1,153 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+NavigationInfo {
+  type ["EXAMINE", "WALK", "ANY"]
+  headlight FALSE
+}
+
+PROTO SimpleText [
+  inputOutput MFString string ""
+  inputOutput SFColor color 1 1 1
+] {
+  Shape {
+    appearance Appearance { material Material { diffuseColor IS color } }
+    geometry Text { string IS string }
+  }
+}
+
+PROTO PressedText [
+  inputOutput MFString string ""
+] {
+  SimpleText {
+    string IS string
+    color 1 1 0
+  }
+}
+
+PROTO ReleasedText [
+  inputOutput MFString string ""
+] {
+  SimpleText {
+    string IS string
+    color 0.4 0.4 1
+  }
+}
+
+Transform {
+  translation 0 +1.2 0
+  children [
+    Transform {
+      translation 0 1 0
+      children PressedText { string "Pressed:" }
+    }
+
+    DEF SPressed Switch {
+      children [
+        PressedText { string "zero" }
+        PressedText { string "F1" }
+        PressedText { string "F2" }
+        PressedText { string "F3" }
+        PressedText { string "F4" }
+        PressedText { string "F5" }
+        PressedText { string "F6" }
+        PressedText { string "F7" }
+        PressedText { string "F8" }
+        PressedText { string "F9" }
+        PressedText { string "F10" }
+        PressedText { string "F11" }
+        PressedText { string "F12" }
+        PressedText { string "Home" }
+        PressedText { string "End" }
+        PressedText { string "PgUp" }
+        PressedText { string "PgDown" }
+        PressedText { string "Up" }
+        PressedText { string "Down" }
+        PressedText { string "Left" }
+        PressedText { string "Right" }
+      ]
+    }
+
+    DirectionalLight { }
+  ]
+}
+
+Transform {
+  translation 0 -1.2 0
+  children [
+    Transform {
+      translation 0 1 0
+      children ReleasedText { string "Released:" }
+    }
+
+    DEF SReleased Switch {
+      whichChoice 30
+      children [
+        ReleasedText { string "zero" }
+        ReleasedText { string "F1" }
+        ReleasedText { string "F2" }
+        ReleasedText { string "F3" }
+        ReleasedText { string "F4" }
+        ReleasedText { string "F5" }
+        ReleasedText { string "F6" }
+        ReleasedText { string "F7" }
+        ReleasedText { string "F8" }
+        ReleasedText { string "F9" }
+        ReleasedText { string "F10" }
+        ReleasedText { string "F11" }
+        ReleasedText { string "F12" }
+        ReleasedText { string "Home" }
+        ReleasedText { string "End" }
+        ReleasedText { string "PgUp" }
+        ReleasedText { string "PgDown" }
+        ReleasedText { string "Up" }
+        ReleasedText { string "Down" }
+        ReleasedText { string "Left" }
+        ReleasedText { string "Right" }
+      ]
+    }
+
+    DirectionalLight { }
+  ]
+}
+
+Transform {
+  translation 0 -2 0
+  children [
+    Shape {
+      appearance Appearance { material Material { diffuseColor 1 0 0 } }
+      geometry Text { string "alt" }
+    }
+    DEF LightAlt DirectionalLight { on FALSE }
+  ]
+}
+
+Transform {
+  translation 0 -3 0
+  children [
+    Shape {
+      appearance Appearance { material Material { diffuseColor 0 1 0 } }
+      geometry Text { string "control" }
+    }
+    DEF LightControl DirectionalLight { on FALSE }
+  ]
+}
+
+Transform {
+  translation 0 -4 0
+  children [
+    Shape {
+      appearance Appearance { material Material { diffuseColor 0 0 1 } }
+      geometry Text { string "shift" }
+    }
+    DEF LightShift DirectionalLight { on FALSE }
+  ]
+}
+DEF K KeySensor { }
+
+ROUTE K.actionKeyPress TO SPressed.whichChoice
+ROUTE K.actionKeyRelease TO SReleased.whichChoice
+ROUTE K.altKey TO LightAlt.on
+ROUTE K.controlKey TO LightControl.on
+ROUTE K.shiftKey TO LightShift.on
+

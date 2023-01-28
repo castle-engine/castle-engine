@@ -1,0 +1,247 @@
+[Config]
+Compilator.SaveAll=0
+Compilator.Capture=0
+Compilator.HideOutput=0
+Compilator.LogType=0
+DefaultCPIndex=0
+LogtoEnd=1
+DontOpen=0
+AbsolutePath=0
+FileFormat=0
+ProjectFilesOnly=0
+[Project tree]
+VampyreDoc
+	+VampyreDoc
+		+DataFormats
+			DataFormats\DataFormats.xml
+		+Demos
+			Demos\Cpp.xml
+			Demos\Delphi.NET.xml
+			Demos\Demos.xml
+			Demos\Pascal.xml
+		+Extensions
+			Extensions\Direct3D.xml
+			Extensions\Extensions.xml
+			Extensions\ExtFileFormats.xml
+			Extensions\OpenGL.xml
+			Extensions\SDL.xml
+		+FileFormats
+			FileFormats\Bitmap.xml
+			FileFormats\Dds.xml
+			FileFormats\FileFormats.xml
+			FileFormats\Jng.xml
+			FileFormats\Jpeg.xml
+			FileFormats\Mng.xml
+			FileFormats\Png.xml
+			FileFormats\Targa.xml
+			FileFormats\ElderImagery.xml
+			FileFormats\Jpeg2000.xml
+			FileFormats\Pcx.xml
+			FileFormats\Pnm.xml
+			FileFormats\Tiff.xml
+			FileFormats\Psd.xml
+			FileFormats\Gif.xml
+			FileFormats\Xpm.xml
+		+Introduction
+			Introduction\About.xml
+			Introduction\Credits.xml
+			Introduction\Features.xml
+			Introduction\Future.xml
+			Introduction\History.xml
+			Introduction\Introduction.xml
+			Introduction\LGPL.xml
+			Introduction\License.xml
+			Introduction\MPL.xml
+			Introduction\Contrib.xml
+			Introduction\Faq.xml
+		+Procedures
+			+Components
+				Procedures\Components\ProcComp.xml
+			+High
+				Procedures\High\High.xml
+			+Low
+				Procedures\Low\DdsFiles.xml
+				Procedures\Low\Loading.xml
+				Procedures\Low\Low.xml
+				Procedures\Low\Manipulating.xml
+				Procedures\Low\Saving.xml
+				Procedures\Low\UsingDll.xml
+			Procedures\Procedures.xml
+			Procedures\Canvas.xml
+		+Usage
+			Usage\Components.xml
+			Usage\HighLevel.xml
+			Usage\Install.xml
+			Usage\LibUsage.xml
+			Usage\LowLevel.xml
+			Usage\Supported.xml
+			Usage\CanvasUsage.xml
+		-Misc
+		-VampyreDoc
+			VampyreDoc\TagReference.xml
+			VampyreDoc\Usage.xml
+			VampyreDoc\VampyreDoc.xml
+		+Xsl
+			Xsl\doc2html.xsl
+			Xsl\proj2hhp.xsl
+			Xsl\proj2html.xsl
+			Xsl\toc2hhc.xsl
+			Xsl\toc2html.xsl
+		Contents.xml
+		Documentation.xml
+		Imaging.vdocproj
+		Reference.xml
+		Root.xml
+		Template.xml
+[Open project files]
+0=Introduction\History.xml
+1=Extensions\Extensions.xml
+2=Extensions\ExtFileFormats.xml
+3=Usage\Install.xml
+4=Extensions\Direct3D.xml
+5=Contents.xml
+6=Root.xml
+7=Introduction\Contrib.xml
+8=Introduction\Faq.xml
+9=Introduction\Credits.xml
+10=Introduction\About.xml
+11=Introduction\Features.xml
+12=Introduction\Future.xml
+13=Introduction\Introduction.xml
+14=Introduction\LGPL.xml
+15=Introduction\License.xml
+16=Usage\CanvasUsage.xml
+17=FileFormats\Xpm.xml
+18=FileFormats\Psd.xml
+19=FileFormats\Pnm.xml
+20=FileFormats\Jpeg2000.xml
+21=FileFormats\ElderImagery.xml
+22=FileFormats\Png.xml
+23=DataFormats\DataFormats.xml
+24=Demos\Cpp.xml
+25=Demos\Demos.xml
+26=Demos\Pascal.xml
+27=FileFormats\FileFormats.xml
+28=Procedures\Components\ProcComp.xml
+29=Procedures\Low\Loading.xml
+30=Procedures\Canvas.xml
+31=Usage\Components.xml
+32=Usage\HighLevel.xml
+33=Usage\LibUsage.xml
+34=Usage\LowLevel.xml
+35=Usage\Supported.xml
+36=Extensions\OpenGL.xml
+[Selected Project Files]
+Main=
+Selected=Extensions\OpenGL.xml
+[Introduction\History.xml]
+TopLine=1
+Caret=37,14
+[Extensions\Extensions.xml]
+TopLine=1
+Caret=1,1
+[Extensions\ExtFileFormats.xml]
+TopLine=1
+Caret=7,26
+[Usage\Install.xml]
+TopLine=25
+Caret=61,25
+[Extensions\Direct3D.xml]
+TopLine=1
+Caret=1,1
+[Contents.xml]
+TopLine=1
+Caret=37,18
+[Root.xml]
+TopLine=1
+Caret=1,1
+[Introduction\Contrib.xml]
+TopLine=1
+Caret=1,1
+[Introduction\Faq.xml]
+TopLine=21
+Caret=47,21
+[Introduction\Credits.xml]
+TopLine=1
+Caret=30,20
+[Introduction\About.xml]
+TopLine=1
+Caret=56,26
+[Introduction\Features.xml]
+TopLine=17
+Caret=1,17
+[Introduction\Future.xml]
+TopLine=13
+Caret=1,55
+[Introduction\Introduction.xml]
+TopLine=1
+Caret=1,1
+[Introduction\LGPL.xml]
+TopLine=1
+Caret=1,1
+[Introduction\License.xml]
+TopLine=1
+Caret=1,1
+[Usage\CanvasUsage.xml]
+TopLine=1
+Caret=39,12
+[FileFormats\Xpm.xml]
+TopLine=1
+Caret=43,17
+[FileFormats\Psd.xml]
+TopLine=91
+Caret=53,125
+[FileFormats\Pnm.xml]
+TopLine=1
+Caret=1,1
+[FileFormats\Jpeg2000.xml]
+TopLine=22
+Caret=16,22
+[FileFormats\ElderImagery.xml]
+TopLine=37
+Caret=1,73
+[FileFormats\Png.xml]
+TopLine=131
+Caret=5,131
+[DataFormats\DataFormats.xml]
+TopLine=33
+Caret=24,33
+[Demos\Cpp.xml]
+TopLine=1
+Caret=1,1
+[Demos\Demos.xml]
+TopLine=1
+Caret=1,1
+[Demos\Pascal.xml]
+TopLine=1
+Caret=35,24
+[FileFormats\FileFormats.xml]
+TopLine=1
+Caret=15,20
+[Procedures\Components\ProcComp.xml]
+TopLine=29
+Caret=1,29
+[Procedures\Low\Loading.xml]
+TopLine=13
+Caret=1,13
+[Procedures\Canvas.xml]
+TopLine=23
+Caret=28,23
+[Usage\Components.xml]
+TopLine=2
+Caret=10,28
+[Usage\HighLevel.xml]
+TopLine=1
+Caret=1,1
+[Usage\LibUsage.xml]
+TopLine=1
+Caret=1,1
+[Usage\LowLevel.xml]
+TopLine=1
+Caret=1,1
+[Usage\Supported.xml]
+TopLine=14
+Caret=13,56
+[Extensions\OpenGL.xml]
+TopLine=1
+Caret=50,16

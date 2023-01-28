@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  This file is used when CGE build tool is called to package an application for iOS,
+  and "archive" it using Xcode, like
+    castle-engine package ~~target=iOS ~~package-format=archive-ad-hoc
+
+  See
+  - https://www.matrixprojects.net/p/xcodebuild-export-options-plist/ for a syntax of this file
+  - "xcodebuild ~~help" (at the end, it lists various options allowed in this file)
+
+  Note: In this comment, ~~ means two dashes. We cannot write two dashes
+  explicitly in XML.
+-->
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>${IOS_EXPORT_METHOD}</string>
+</dict>
+</plist>

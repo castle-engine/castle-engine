@@ -1,0 +1,5 @@
+## google_in_app_purchases
+
+This service enables the _In-App Purchases_ through _Google Play_. This is the most popular way to purchase stuff on Android.
+
+Use https://castle-engine.io/apidoc/html/CastleInAppPurchases.TInAppPurchases.html[TInAppPurchases] class from the https://castle-engine.io/apidoc/html/CastleInAppPurchases.html[CastleInAppPurchases] unit to handle the purchases from your Pascal code. See https://castle-engine.io/in_app_purchases[manual about implementing in-app purchases].

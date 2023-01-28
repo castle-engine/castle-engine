@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="fog_and_distance_culling"
+  standalone_source="fog_and_distance_culling_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.fog.and.distance.culling"
+  caption="Fog and Distance Culling"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="hero_low_fps.png">
+  <SubTexture x="0" y="1571" fps="23" name="walk_1" width="291" height="477"/>
+  <SubTexture x="291" y="1571" name="walk_2" width="291" height="477"/>
+  <SubTexture x="582" y="1571" name="walk_3" width="291" height="477"/>
+  <SubTexture x="873" y="1571" name="walk_4" width="291" height="477"/>
+  <SubTexture x="1164" y="1571" name="walk_5" width="291" height="477"/>
+  <SubTexture x="1455" y="1571" name="walk_6" width="291" height="477"/>
+  <SubTexture x="1746" y="1571" name="walk_7" width="291" height="477"/>
+  <SubTexture x="0" y="1094" name="walk_8" width="291" height="477"/>
+  <SubTexture x="291" y="1094" name="walk_9" width="291" height="477"/>
+  <SubTexture x="582" y="1094" name="walk_10" width="291" height="477"/>
+  <SubTexture x="873" y="1094" name="walk_11" width="291" height="477"/>
+  <SubTexture x="1164" y="1094" name="walk_12" width="291" height="477"/>
+  <SubTexture x="1455" y="1094" name="walk_13" width="291" height="477"/>
+  <SubTexture x="1746" y="1094" name="walk_14" width="291" height="477"/>
+  <SubTexture x="0" y="617" name="walk_15" width="291" height="477"/>
+  <SubTexture x="291" y="617" name="walk_16" width="291" height="477"/>
+  <SubTexture x="582" y="617" name="walk_17" width="291" height="477"/>
+  <SubTexture x="873" y="617" name="walk_18" width="291" height="477"/>
+  <SubTexture x="1164" y="617" name="walk_19" width="291" height="477"/>
+  <SubTexture x="1455" y="617" name="walk_20" width="291" height="477"/>
+  <SubTexture x="1746" y="617" name="walk_21" width="291" height="477"/>
+  <SubTexture x="0" y="140" name="walk_22" width="291" height="477"/>
+  <SubTexture x="291" y="140" name="walk_23" width="291" height="477"/>
+</TextureAtlas>

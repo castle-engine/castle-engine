@@ -1,0 +1,136 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Content" : {
+        "URL" : "castle-data:/background/colored_grass.png",
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Exists" : false,
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "ImageControl1",
+      "ProportionalScaling" : "psEnclose",
+      "Stretch" : true,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "WidthFraction" : 1.0000000000000000E+000,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleImageControl"
+    },
+    {
+      "Alignment" : "hpMiddle",
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "VerticalGroup1",
+      "Spacing" : 1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$Children" : [
+        {
+          "ColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 1.0000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelTitle",
+          "Outline" : 2,
+          "OutlineColorPersistent" : {
+            "Blue" : 6.6666670143604279E-002,
+            "Green" : 6.6666670143604279E-002,
+            "Red" : 4.7843137383460999E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "OutlineHighQuality" : true,
+          "Text" : [
+            "Pause"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        },
+        {
+          "Height" : 5.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Group1",
+          "VerticalAnchorDelta" : -7.4000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleUserInterface"
+        },
+        {
+          "Caption" : "Resume",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonResume",
+          "PaddingHorizontal" : 3.0000000000000000E+001,
+          "PaddingVertical" : 3.0000000000000000E+001,
+          "VerticalAnchorDelta" : -1.3400000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        },
+        {
+          "Caption" : "Menu",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonMenu",
+          "PaddingHorizontal" : 3.0000000000000000E+001,
+          "PaddingVertical" : 3.0000000000000000E+001,
+          "VerticalAnchorDelta" : -2.3600000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        }
+      ],
+      "$ClassName" : "TCastleVerticalGroup"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

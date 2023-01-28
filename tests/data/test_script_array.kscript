@@ -1,0 +1,29 @@
+function main()
+  a_int := array(1, 2, 3);
+  for (my_int, 0, array_get_count(a_int) - 1,
+    array_set(a_int, my_int, sqr(array_get(a_int, my_int))));
+  array_set_count(a_int, 6);
+  array_set(a_int, 3, 1);
+  array_set(a_int, 4, 1);
+  array_set(a_int, 5, 1);
+
+  { sum the array items, using string to make it weirder }
+  my_string := '0';
+  for (my_int, 0, array_get_count(a_int) - 1,
+    my_string := string(int(my_string) + array_get(a_int, my_int)));
+  my_int := int(my_string)
+
+function main_array_d_test()
+  my_float := array_get(array_d(1.0, 2.0, 3.0), 2)
+
+function main_test_invalid_index_get()
+  a_int := array(1, 2, 3);
+  array_get(a_int, 100)
+
+function main_test_invalid_index_get_2()
+  a_int := array(1, 2, 3);
+  array_get(a_int, -1)
+
+function main_test_invalid_index_set()
+  a_int := array(1, 2, 3);
+  array_set(a_int, -1, 666)

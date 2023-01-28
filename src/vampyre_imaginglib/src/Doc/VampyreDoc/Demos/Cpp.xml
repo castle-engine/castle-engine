@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>C/C++ Demos</title>
+  <chapter>
+    <title>C/C++ Demos</title>
+    <par>These C/C++ demos currently exist:</par>
+    <blist>
+      <li><link url="#benchmark">Benchmark</link></li>
+      <li><link url="#test">Small Test</link></li>
+    </blist>
+    <note>
+    If you want to use Imaging in C/C++ you must include
+    <icode>ImagingImport.h</icode> header and link compiled
+    <icode>ImagingImport.c</icode> file (both located in
+    <keyword>Source\Wrappers\Cpp</keyword> directory)
+    and for C++ use namespace
+    <icode>Imaging</icode>. You must call <ref>ImLoadLibrary</ref>
+    before usage of any Imaging functions and you must call
+    <ref>ImFreeLibrary</ref> when you don't want to use library anymore.
+    </note>
+    <note>
+    All non-Object Pascal programs using Imaging require <b>VampyreImaging.dll</b>
+    (Windows) or <b>libVampyreImaging.so</b> (Linux) to run.
+    Compiled Imaging library must be located somewhere on system's
+    search path for these demos to work.
+    </note>
+
+
+    <!-- BENCHMARK DEMO   ****************************** -->
+    <lcap><anchor name="benchmark">Benchmark</anchor></lcap>
+    <par>
+    This is not actually benchmark like Object Pascal
+    <link url="Pascal.xml#benchmark">version</link> because
+    all measured functions are called from external library, but it
+    shows how to use Imaging dll from C/C++ at least.
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>Benchmark</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>C++</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\Cpp\Benchmark</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\BenchCpp.exe</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>MSVC 8.0 <b>W</b>, GCC 3.4.2 <b>W</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level (using dyn. library wrapper)</td>
+      </row>
+    </table>
+
+    <par>
+    For details look at Object Pascal
+    <link url="Pascal.xml#benchmark">version</link>. There are only two
+    differences:    </par>
+    <olist>
+    <li> Log file with result is called Results.Cpp.</li>
+    <li>
+    Executable must be located
+    in Demos\Bin or anywhere in the subdirectories of Demos\Cpp dir to
+    be able to find used data files.</li>
+    </olist>
+    <!-- SMALL TEST DEMO   ****************************** -->
+    <lcap><anchor name="test">Small Test</anchor></lcap>
+    <par>
+    Simple test program that shows how to use Imaging library from C/C++
+    environment.</par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>Small Test</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>C/C++</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\Cpp\Test</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\test[.exe]</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32, <b>L</b>inux</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>MSVC 8.0 <b>W</b>, GCC 3.4.2 <b>WL</b></td>
+      </row>
+      <row>
+        <td><b>Imaging interface</b></td>
+        <td>low level (using dyn. library wrapper)</td>
+      </row>
+    </table>
+
+    <par>
+    Test image is created and diagonal line is drawn across it.
+    Then it is saved to <b>ctestimage.png</b> file.</par>
+  </chapter>
+</doc>

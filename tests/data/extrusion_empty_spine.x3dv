@@ -1,0 +1,11 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# This used to cause errors, fixed by r11374
+
+Shape { geometry Extrusion {
+  crossSection [
+    0.068 0.227 0.233 0.122 0.471 0.056 0.828 0.000 1.000 0.334 0.269 1.000 0.000 0.540 0.068 0.227 0.068 0.227
+  ]
+  spine [] }
+}

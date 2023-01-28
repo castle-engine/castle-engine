@@ -1,0 +1,4 @@
+dwarven_gauntlet_0.png
+  from https://opengameart.org/content/dwarven-cursor
+  by Jinn for Wyrmsun
+  License(s): CC-BY-SA 3.0, GPL 2.0

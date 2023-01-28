@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="tentacles.png">
+  <SubTexture x="0" y="934" fps="8" name="spawn_1" width="25" height="90"/>
+  <SubTexture x="25" y="934" name="spawn_2" width="25" height="90"/>
+  <SubTexture x="50" y="934" name="spawn_3" width="25" height="90"/>
+  <SubTexture x="75" y="934" name="spawn_4" width="25" height="90"/>
+  <SubTexture x="100" y="934" name="spawn_5" width="25" height="90"/>
+  <SubTexture x="125" y="934" name="spawn_6" width="25" height="90"/>
+  <SubTexture x="150" y="934" name="spawn_7" width="25" height="90"/>
+  <SubTexture x="175" y="934" name="spawn_8" width="25" height="90"/>
+  <SubTexture x="200" y="934" name="spawn_9" width="25" height="90"/>
+  <SubTexture x="225" y="934" name="spawn_10" width="25" height="90"/>
+  <SubTexture x="250" y="934" name="spawn_11" width="25" height="90"/>
+  <SubTexture x="275" y="934" name="spawn_12" width="25" height="90"/>
+  <SubTexture x="300" y="934" name="spawn_13" width="25" height="90"/>
+  <SubTexture x="325" y="934" fps="8" name="idle_1" width="25" height="90"/>
+  <SubTexture x="350" y="934" name="idle_2" width="25" height="90"/>
+  <SubTexture x="375" y="934" name="idle_3" width="25" height="90"/>
+  <SubTexture x="400" y="934" name="idle_4" width="25" height="90"/>
+  <SubTexture x="425" y="934" name="idle_5" width="25" height="90"/>
+  <SubTexture x="450" y="934" name="idle_6" width="25" height="90"/>
+  <SubTexture x="475" y="934" name="idle_7" width="25" height="90"/>
+  <SubTexture x="500" y="934" name="idle_8" width="25" height="90"/>
+</TextureAtlas>

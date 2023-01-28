@@ -1,0 +1,22 @@
+function main()
+  my_int := 12;
+  my_bool := false;
+  my_float := 0;
+  if (my_int > 23, my_float := 13, my_bool := true)
+
+function main_alt()
+  my_int := 44;
+  my_bool := false;
+  my_float := 0;
+  if (my_int > 23, my_float := 13, my_bool := true)
+
+function main_alt_while()
+  my_int := 0;
+  my_string := 'foo';
+  while(my_int := my_int + 1; my_int <= 12,
+    my_string := my_string + ' ' + string(my_int))
+
+{ just a test of for() loop }
+function main_alt_for()
+  my_string := 'foo';
+  for(my_int, 4, 14, my_string := 'x' + my_string + 'x')

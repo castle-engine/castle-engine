@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Created with Free texture packer v0.5.9 http://free-tex-packer.com
+-->
+<TextureAtlas imagePath="character_zombie_atlas.png" width="1024" height="2048">
+  <SubTexture name="character_zombie_attack_0.png" x="1" y="1"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_attack_1.png" x="1" y="259"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_attack_2.png" x="195" y="1"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_climb_0.png" x="1" y="517"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_climb_1.png" x="195" y="259"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_0.png" x="389" y="1"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_1.png" x="1" y="775"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_2.png" x="195" y="517"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_3.png" x="389" y="259"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_4.png" x="583" y="1"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_5.png" x="1" y="1033"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_6.png" x="195" y="775"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+  <SubTexture name="character_zombie_walk_7.png" x="389" y="517"  width="192" height="256" frameX="-0" frameY="-0" frameWidth="192" frameHeight="256"/>
+</TextureAtlas>

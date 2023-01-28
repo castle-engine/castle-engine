@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Direct3D Textures</title>
+  <chapter>
+    <title>Direct3D Textures</title>
+    <par>
+      This extensions contains functions for loading and saving
+      <keyword>Direct3D</keyword> textures
+      using Imaging and for converting images to textures and vice versa.
+      Currently supported <keyword>Direct3D</keyword> version is 9.0.
+      You need <keyword>Direct3D</keyword> headers for
+      <keyword>Object Pascal</keyword> to be able to compile this extension.
+      They can be found at <link url="http://www.clootie.ru">http://www.clootie.ru</link>.
+      Extension does not require D3DX library so if you use it
+      only for loading or saving textures you can replace it by Imaging
+      and remove dependency on 2+ MiB dll file.
+      It is implemented in <ref>ImagingDirect3D9.pas</ref> unit located
+      in <keyword>(ImagingRoot)\Source\Extensions</keyword> directory.
+      To use it simply add this unit to <icode>uses</icode> list of your program.
+      Currently only 2D textures are supported, DXTC/S3TC and 3Dc compressed, and
+      floating point textures are created if supported by hardware.
+    </par>
+
+    <par>
+      Here is the table with <keyword>Direct3D</keyword> functions
+      currently available.
+      There is also Imaging <keyword>Direct3D</keyword> demo you can look at
+      for inspiration <link url="../Demos/Pascal.xml#d3ddemo">Object Pascal Direct3D Demo</link>.
+    </par>
+
+    <table>
+      <title>Imaging Direct3D extension functions</title>
+      <row><th>Loading Functions</th></row>
+      <row><td><ref>LoadD3DTextureFromFile</ref></td></row>
+      <row><td><ref>LoadD3DTextureFromStream</ref></td></row>
+      <row><td><ref>LoadD3DTextureFromMemory</ref></td></row>
+      <row><th>Saving Functions</th></row>
+      <row><td><ref>SaveD3DTextureToFile</ref></td></row>
+      <row><td><ref>SaveD3DTextureToStream</ref></td></row>
+      <row><td><ref>SaveD3DTextureToMemory</ref></td></row>
+      <row><th>Conversion Functions</th></row>
+      <row><td><ref>CreateD3DTextureFromImage</ref></td></row>
+      <row><td><ref>CreateD3DTextureFromMultiImage</ref></td></row>
+      <row><td><ref>CreateD3DSurfaceFromImage</ref></td></row>
+      <row><td><ref>CreateImageFromD3DTexture</ref></td></row>
+      <row><td><ref>CreateMultiImageFromD3DTexture</ref></td></row>
+      <row><td><ref>CreateImageFromD3DSurface</ref></td></row>
+      <row><th>Other Functions</th></row>
+      <row><td><ref>GetDeviceTextureCaps</ref></td></row>
+      <row><td><ref>IsD3DFormatSupported</ref></td></row>
+      <row><td><ref>ImageFormatToD3DFormat</ref></td></row>
+      <row><td><ref>D3DFormatToImageFormat</ref></td></row>
+    </table>
+    
+    <note>
+      <ref>LoadD3DTextureFromFile</ref> and similar functions use
+      these default values: All mipmap levels are created, Pool
+      is D3DPOOL_MANAGED, Usage is 0, Format and size are taken from image.
+      If you want to set those parameters to other values use
+      <ref>CreateD3DTextureFromImage</ref> or <ref>CreateD3DTextureFromMultiImage</ref>
+      instead.
+    </note>
+    
+  </chapter>
+</doc>

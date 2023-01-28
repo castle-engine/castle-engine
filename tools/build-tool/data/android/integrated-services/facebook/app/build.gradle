@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- https://developers.facebook.com/docs/android/componentsdks -->
+  <dependencies>
+    <dependency>implementation 'com.facebook.android:facebook-core:latest.release'</dependency>
+  </dependencies>
+</build_gradle_merge>

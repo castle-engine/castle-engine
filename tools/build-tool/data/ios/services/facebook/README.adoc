@@ -1,0 +1,30 @@
+## facebook
+
+Integration with https://developers.facebook.com/docs/ios/[Facebook SDK for iOS]. Right now this integration:
+
+* Notifies Facebook when users run your application on iOS. This may be useful to see installation statistics inside _Facebook analytics_.
+* The Facebook SDK may also log in-app purchases done by users, if you set appropriate option in the Facebook application config.
+* In Pascal, right now you can only call `TFacebook.LoginButton` (use `CastleFacebook` unit) to show the Facebook login button. Users can click it to login/logout from the Facebook application. It does not serve much purpose now except checking that the integration actually works (e.g. you pointed to the correct Facebook app).
+
+When adding this to the `CastleEngineManifest.xml`, set also parameters describing application id and name for Facebook:
+
+[,xml]
+----
+<service name="facebook">
+  <parameter key="app_id" value="11223344" />
+  <parameter key="app_title" value="My Application Name" />
+</service>
+----
+
+To use this:
+
+* You will need to create a new application on Facebook: https://developers.facebook.com/apps or you can follow the link from https://developers.facebook.com/docs/ios/getting-started .
++
+In Facebook application, configure at least the _Bundle ID_. It must match the `qualified_name` / `override_qualified_name` you set in `CastleEngineManifest.xml` for iOS. The https://developers.facebook.com/docs/ios/getting-started[getting started guide] also advices to turn on _Single Sign On_.
++
+In `CastleEngineManifest.xml`, set the `app_id` and `app_title` for the `facebook` service to match your Facebook application.
+
+* We use CocoaPods to download the Facebook frameworks, so make sure you have CocoaPods installed. See https://castle-engine.io/ios_services .
+* Everything else mentioned on https://developers.facebook.com/docs/ios/getting-started[getting started guide] is done for you automatically -- the project is out-of-the-box integrated with Facebook, using proper declarations in `Info.plist` and Objective-C code.
++
+Note that compiling the Facebook SDK in latest Xcode will produce a large number of warnings (64, last time I checked...). That's a problem of Facebook SDK -- we cannot help it. You can just ignore them (or submit them to Facebook devs).

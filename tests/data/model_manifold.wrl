@@ -1,0 +1,40 @@
+#VRML V2.0 utf8
+
+# This model uses VRML primitives that should always be detected
+# as perfect 2-manifold.
+
+Shape {
+  geometry Sphere { }
+}
+
+Shape {
+  geometry Box { }
+}
+
+# from de-panther land1.wrl
+Shape {
+  geometry Extrusion {
+   creaseAngle 0.524
+   crossSection [
+    -.5 -.9
+    -1 0
+    -.5 .9
+    .5 .9
+    1 0
+    .5 -.9
+    -.5 -.9
+   ]
+   spine [
+    0 0 0
+    0 1 0
+   ]
+  }
+}
+
+Shape {
+  geometry Cone { }
+}
+
+Shape {
+  geometry Cylinder { }
+}

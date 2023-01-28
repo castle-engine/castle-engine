@@ -1,0 +1,39 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TImageGrid",
+      "Columns" : 10,
+      "HorizontalAnchorDelta" : 3.9000000000000000E+002,
+      "Name" : "ImageGrid1",
+      "Rows" : 6,
+      "URL" : "castle-data:/small_castle_game_engine_icon.png",
+      "VerticalAnchorDelta" : 1.3000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/small_castle_game_engine_icon.png"
+      },
+      "HorizontalAnchorDelta" : 1.5000000000000000E+002,
+      "Name" : "ImageControl1",
+      "VerticalAnchorDelta" : 4.4000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/small_castle_game_engine_icon.png"
+      },
+      "Height" : 2.3000000000000000E+002,
+      "HorizontalAnchorDelta" : 1.9000000000000000E+002,
+      "Name" : "ImageControl2",
+      "Stretch" : true,
+      "VerticalAnchorDelta" : 6.1000000000000000E+002,
+      "Width" : 2.4000000000000000E+002
+    }
+  ]
+}

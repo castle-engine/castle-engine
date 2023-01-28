@@ -1,0 +1,24 @@
+textures/dirtfrancecornergrass.jpg
+textures/water2.jpg
+
+    From Golgotha project.
+    The resources were hosted on various websites throughout the years, like
+    http://jonathanclark.com/golgotha/browse.html
+    http://jonathanclark.com/textures/
+    http://www.wolfiesden.com/golgotha/golgotha.asp
+
+    The current one alive is http://opengameart.org/content/golgotha-textures ,
+    although it only contains a subset of the original images.
+    There is also http://sourceforge.net/projects/golgotha/ ,
+    but it doesn't seem to contain textures (at least not in any normal format).
+
+    License: public domain.
+
+textures/006bois.jpg
+textures/059_plombieresgbr.jpg
+
+    From LeMog - 3d Textures:
+    http://www.lemog.fr/lemog_textures/index.php
+
+    License: TODO: unknown. The license is not explicitly stated on the website,
+    site merely says "Free Tiled Textures".

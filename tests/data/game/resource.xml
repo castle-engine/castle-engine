@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<resource
+  name="TestCreature"
+  type="WalkAttack"
+  knockback_speed="1.2"
+  knockback_distance="3.4"
+  flying="True"
+  sound_die_tied_to_creature="True"
+  default_max_life="5.6"
+  radius="7.8"
+  middle_height="6.7"
+  sound_sudden_pain="test_sound_6"
+  sound_die="test_sound_7"
+  move_speed="1.2"
+  min_life_loss_to_hurt="3.4"
+  chance_to_hurt="0.56"
+  max_height_acceptable_to_fall="5.6"
+  random_walk_distance="7.8"
+  remove_dead="True"
+  preferred_distance="9.1"
+  always_prepared="True"
+  fall_speed="1.2"
+  grow_speed="3.4"
+  receive_shadow_volumes="False"
+  cast_shadow_volumes="False">
+
+  <model url="main.x3d">
+    <idle         url="idle.x3d"         animation_name="TimeSensorIdle" />
+    <idle_to_walk url="idle_to_walk.x3d" animation_name="TimeSensorIdleToWalk" />
+    <walk         url="walk.x3d"         animation_name="TimeSensorWalk" />
+    <fire_missile url="fire_missile.x3d" animation_name="TimeSensorFireMissile" />
+    <attack       url="attack.x3d"       animation_name="TimeSensorAttack" />
+    <die          url="die.x3d"          animation_name="TimeSensorDie" />
+    <die_back     url="die_back.x3d"     animation_name="TimeSensorDieBack" />
+    <hurt         url="hurt.x3d"         animation_name="TimeSensorHurt" />
+  </model>
+
+  <attack
+    knockback_distance="4.5"
+    time="7.8"
+    max_distance="9.1"
+    max_angle="2.3"
+    min_delay="4.5"
+    sound_hit="test_sound_6"
+    sound_start="test_sound_7" >
+    <damage
+      const="9.1"
+      random="2.3" />
+  </attack>
+
+  <fire_missile
+    time="1.2"
+    max_distance="3.4"
+    max_angle="5.6"
+    min_delay="7.8"
+    sound="test_sound_8"
+    name="TestMissileCreature"
+    height="0.12" />
+
+  <fall>
+    <sound
+      min_height="7.8"
+      name="test_sound_5" />
+    <damage
+      min_height="1.2"
+      scale_min="3.4"
+      scale_max="5.6" />
+  </fall>
+
+  <run_away
+    life="1.2"
+    distance="3.4" />
+
+  <visibility
+    angle="5.6" />
+</resource>

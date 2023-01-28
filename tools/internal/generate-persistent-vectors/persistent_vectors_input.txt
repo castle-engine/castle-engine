@@ -1,0 +1,135 @@
+../../../src/base/ TCastleRenderOptions WireframeColor TCastleColorRGB
+
+../../../src/ui/ TCastleUserInterface BorderColor TCastleColor
+../../../src/ui/ TCastleUserInterface Translation TVector2
+
+../../../src/ui/ TCastleRectangleControl Color TCastleColor
+../../../src/ui/ TViewDialog BackgroundColor TCastleColor
+../../../src/ui/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
+
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
+
+../../../src/ui/ TCastleButton TintPressed  TCastleColor
+../../../src/ui/ TCastleButton TintDisabled TCastleColor
+../../../src/ui/ TCastleButton TintFocused  TCastleColor
+../../../src/ui/ TCastleButton TintNormal   TCastleColor
+../../../src/ui/ TCastleButton CustomTextColor TCastleColor
+../../../src/ui/ TCastleButton CustomColorPressed TCastleColor
+../../../src/ui/ TCastleButton CustomColorDisabled TCastleColor
+../../../src/ui/ TCastleButton CustomColorFocused TCastleColor
+../../../src/ui/ TCastleButton CustomColorNormal TCastleColor
+
+../../../src/ui/ TCastleImageControl Color TCastleColor no-store
+../../../src/ui/ TCastleImageControl ClipLine TVector3 no-store
+../../../src/ui/ TCastleImageControl RotationCenter TVector2 no-store
+
+../../../src/base_rendering/ TCastleImagePersistent Color TCastleColor
+../../../src/base_rendering/ TCastleImagePersistent ClipLine TVector3
+../../../src/base_rendering/ TCastleImagePersistent RotationCenter TVector2
+
+../../../src/ui/ TCastleUserInterfaceFont OutlineColor TCastleColor
+
+../../../src/ui/ TCastleNotifications Color TCastleColor
+
+../../../src/ui/ TCastlePackedGroup FrameColor TCastleColor
+
+../../../src/ui/ TCastleLabel Color TCastleColor
+../../../src/ui/ TCastleLabel FrameColor TCastleColor
+
+../../../src/ui/ TCastleShape Color TCastleColor
+
+../../../src/ui/ TCastleEdit FocusedColor TCastleColor
+../../../src/ui/ TCastleEdit UnfocusedColor TCastleColor
+../../../src/ui/ TCastleEdit PlaceholderColor TCastleColor
+../../../src/ui/ TCastleEdit BackgroundColor TCastleColor
+
+../../../src/ui/ TCastleCheckbox TextColor TCastleColor
+../../../src/ui/ TCastleCheckbox CheckboxColor TCastleColor
+
+../../../src/ui/ TCastleCrosshair Color TCastleColor
+
+../../../src/ui/ TCastleAbstractSlider TextColor TCastleColor
+
+../../../src/transform/ TCastleTransform Center TVector3
+../../../src/transform/ TCastleTransform Rotation TVector4 rotation
+../../../src/transform/ TCastleTransform Scale TVector3
+../../../src/transform/ TCastleTransform ScaleOrientation TVector4
+../../../src/transform/ TCastleTransform Translation TVector3
+../../../src/transform/ TCastleTransform Direction TVector3 no-store
+../../../src/transform/ TCastleTransform Up TVector3 no-store
+
+../../../src/transform/ TCastleCollider Translation TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleCollider Rotation TVector4 store=StoredWithAutoSize rotation
+
+../../../src/transform/ TCastlePlaneCollider Normal TVector3 store=StoredWithAutoSize
+../../../src/transform/ TCastleBoxCollider Size TVector3 store=StoredWithAutoSize
+
+../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
+../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
+
+../../../src/transform/ TCastleHingeJoint Anchor TVector3
+../../../src/transform/ TCastleHingeJoint Axis TVector3
+../../../src/transform/ TCastleRopeJoint Anchor TVector3
+../../../src/transform/ TCastleRopeJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleFixedJoint Anchor TVector3
+../../../src/transform/ TCastleBallJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleDistanceJoint ConnectedAnchor TVector3
+../../../src/transform/ TCastleGrabJoint Anchor TVector3
+../../../src/transform/ TCastleGrabJoint TargetWorld TVector3
+
+../../../src/transform/ TCastlePulleyJoint WorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint WorldGroundAnchor TVector3
+../../../src/transform/ TCastlePulleyJoint ConnectedWorldGroundAnchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint Anchor TVector3
+../../../src/transform/ TCastleWorldPlaneDistanceJoint PlaneNormal TVector3
+../../../src/transform/ TCastleSliderJoint WorldAnchor TVector3
+../../../src/transform/ TCastleSliderJoint WorldSliderAxis TVector3
+
+../../../src/transform/ TCastleCamera GravityUp TVector3
+
+../../../src/transform/ TCastleOrthographic Origin TVector2
+
+../../../src/transform/ TCastleBillboard AxisOfRotation TVector3
+
+../../../src/transform/ TCastleStickToSurface Direction TVector3
+
+../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
+../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
+../../../src/scene/ TCastleBox Size TVector3
+../../../src/scene/ TCastlePlane Size TVector2
+../../../src/scene/ TCastleThirdPersonNavigation AvatarTarget TVector3
+
+../../../src/scene/ TCastleImageTransform Pivot TVector2
+../../../src/scene/ TCastleImageTransform Size TVector2
+../../../src/scene/ TCastleImageTransform RepeatImage TVector2
+../../../src/scene/ TCastleImageTransform Shift TVector2
+../../../src/scene/ TCastleImageTransform Color TCastleColor
+
+../../../src/scene/ TCastleBackground SkyTopColor TCastleColorRGB
+../../../src/scene/ TCastleBackground SkyEquatorColor TCastleColorRGB
+../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
+../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
+../../../src/scene/ TCastleBackground Rotation TVector4 rotation
+
+../../../src/scene/ TCastleFog Color TCastleColorRGB
+
+../../../src/scene/ TCastlePointLight Color TCastleColorRGB
+../../../src/scene/ TCastlePointLight Attenuation TVector3
+
+../../../src/scene/ TCastleDirectionalLight Color TCastleColorRGB
+
+../../../src/scene/ TCastleSpotLight Color TCastleColorRGB
+../../../src/scene/ TCastleSpotLight Attenuation TVector3
+
+../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
+
+../../../src/scene/ TCastleTerrain Size TVector2
+../../../src/scene/ TCastleTerrain Subdivisions TVector2
+
+../../../src/scene/ TCastleTiledMapControl Origin TVector2

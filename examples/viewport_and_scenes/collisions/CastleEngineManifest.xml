@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="collisions"
+  standalone_source="collisions_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.collisions"
+  caption="Collisions Test"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

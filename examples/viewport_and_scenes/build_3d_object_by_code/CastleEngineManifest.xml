@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="build_3d_object_by_code"
+  standalone_source="build_3d_object_by_code.dpr"
+  caption="Build 3D Object By Code"
+>
+  <data exists="false" />
+</project>

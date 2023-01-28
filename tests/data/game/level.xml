@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<level
+  name="my_level"
+  type="Level"
+  scene="scene.x3d"
+  title="My Level"
+  number="123"
+  demo="True"
+  title_hint="Title Hint"
+  default_played="True"
+  placeholders="blender"
+  loading_image="loading_image.png"
+  loading_image_bar_y_position="1.2"
+  placeholder_reference_direction="1 2 3"
+  music_sound="test_sound_2">
+
+  <prepare_resources>
+    <resource name="TestCreature" />
+  </prepare_resources>
+</level>

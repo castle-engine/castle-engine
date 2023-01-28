@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="VampyreImagingPackage_GR32"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\..\Source"/>
+        <OtherUnitFiles Value="..\..\Extensions"/>
+        <UnitOutputDirectory Value="..\..\Bin\Dcu\$(TargetCPU)-$(TargetOS)\pkg-gr32"/>
+      </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Vampyre Imaging Library Package for Lazarus - Addon for Graphics32. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
+    <Files Count="1">
+      <Item1>
+        <Filename Value="..\..\Extensions\ImagingGraphics32.pas"/>
+        <UnitName Value="ImagingGraphics32"/>
+      </Item1>
+    </Files>
+    <CompatibilityMode Value="True"/>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="VampyreImagingPackage"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="GR32_Lazarus"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

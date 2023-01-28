@@ -1,0 +1,59 @@
+X3DSequencerNode : X3DChildNode {
+  SFBool       [in]     next
+  SFBool       [in]     previous
+  SFFloat      [in]     set_fraction
+    range: (-Inf,Inf)
+  MFFloat      [in,out] key           []
+    range: (-Inf,Inf)
+  SFBool       [in,out] forceContinuousValue_changed  FALSE
+    doc: Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_forceContinuousValue_Changed .
+}
+
+X3DTriggerNode : X3DChildNode  {
+}
+
+BooleanFilter : X3DChildNode {
+  SFBool [in]     set_boolean
+  SFBool [out]    inputFalse
+  SFBool [out]    inputNegate
+  SFBool [out]    inputTrue
+}
+
+BooleanSequencer : X3DSequencerNode {
+  MFBool  [in,out] keyValue      []
+  SFBool  [out]    value_changed
+}
+
+BooleanToggle : X3DChildNode {
+  SFBool [in]     set_boolean
+  SFBool [in,out] toggle      FALSE
+}
+
+BooleanTrigger : X3DTriggerNode {
+  SFTime [in]     set_triggerTime
+  SFBool [out]    triggerTrue
+}
+
+IntegerSequencer : X3DSequencerNode {
+  MFInt32 [in,out] keyValue      []
+    range: (-Inf,Inf)
+  SFInt32 [out]    value_changed
+}
+
+IntegerTrigger : X3DTriggerNode {
+  SFBool  [in]     set_boolean
+  SFInt32 [in,out] integerKey     -1
+    range: (-Inf,Inf)
+  SFInt32 [out]    triggerValue
+}
+
+TimeTrigger : X3DTriggerNode {
+  SFBool [in]     set_boolean
+  SFTime [out]    triggerTime
+}
+
+# InstantReality extension http://doc.instantreality.org/documentation/nodetype/ValueTrigger/
+ValueTrigger : X3DTriggerNode {
+  SFBool  [in,out]  enabled  TRUE
+  SFBool  [in]      trigger
+}

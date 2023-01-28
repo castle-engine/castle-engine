@@ -1,0 +1,3 @@
+The dragon animation/image data is licensed on the GNU GPL >= 2 terms,
+sources are provided here.
+Copyright Paweł Wojciechowicz.

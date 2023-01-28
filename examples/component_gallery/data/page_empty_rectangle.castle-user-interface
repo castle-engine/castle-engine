@@ -1,0 +1,551 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Height" : 2.5000000000000000E+002,
+      "HorizontalAnchorDelta" : 4.4000000000000000E+002,
+      "Name" : "Group2",
+      "VerticalAnchorDelta" : -1.2095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 4.2000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 0.0000000000000000E+000,
+            "Green" : 0.0000000000000000E+000
+          },
+          "FullSize" : true,
+          "Name" : "RectangleControl1",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "MaxWidth" : 4.0000000000000000E+002,
+              "Name" : "Label3",
+              "Text" : [
+                "Every UI control may set FullSize=true, which means that it fills the parent control size.",
+                "",
+                "This example shows TCastleRectangleControl (red rectangle) with FullSize=true, so it adjusts to the size of parent TCastleUserInterface."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label1",
+      "Text" : [
+        "The base UI class is TCastleUserInterface.",
+        "It is an empty rectangle, so it is just completely invisible by default.",
+        "It can serve as a container for children components.",
+        "It also defines some basic features shared by all other UI controls."
+      ],
+      "VerticalAnchorDelta" : -1.6955993652343750E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 4.0000000000000000E+000
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Height" : 2.6000000000000000E+002,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Group3",
+      "VerticalAnchorDelta" : -1.2095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 3.8000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "MaxWidth" : 3.0000000000000000E+002,
+          "Name" : "Label2",
+          "Text" : [
+            "By default, the UI control just has an explicit Width and Height (drag it to resize in the editor) and is anchored to the left-bottom of the parent. Some controls have AutoSize by default, when they have some \"natural\" content, like labels."
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001,
+        "Bottom" : 2.0000000000000000E+001
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Height" : 1.9000000000000000E+002,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Group15",
+      "VerticalAnchorDelta" : -5.2095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 9.8000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Label7",
+          "Text" : [
+            "Every UI control may define a Border.",
+            "Border may have different thickness on all sides.",
+            "Border can have any color and any opacity.",
+            "By default the border is completley opaque (and thus can serve as a padding) and has 0 size.",
+            "",
+            "This example defines opaque yellow border, thicker at the bottom."
+          ],
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label4",
+      "Text" : [
+        "Anchors allow to ailgn to parent."
+      ],
+      "VerticalAnchorDelta" : -4.0895599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleHorizontalGroup",
+      "HorizontalAnchorDelta" : 3.6000000000000000E+002,
+      "Name" : "HorizontalGroup1",
+      "VerticalAnchorDelta" : -4.1095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "Name" : "Group4",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "Name" : "RectangleControl2",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+002,
+          "Name" : "Group5",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "Name" : "RectangleControl3",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 2.0000000000000000E+002,
+          "Name" : "Group6",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "Name" : "RectangleControl4",
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 3.0000000000000000E+002,
+          "Name" : "Group7",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "RectangleControl5",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 4.0000000000000000E+002,
+          "Name" : "Group8",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "RectangleControl6",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+002,
+          "Name" : "Group9",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "RectangleControl7",
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 6.0000000000000000E+002,
+          "Name" : "Group10",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "RectangleControl8",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 7.0000000000000000E+002,
+          "Name" : "Group11",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "RectangleControl9",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 8.0000000000000000E+002,
+          "Name" : "Group12",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleRectangleControl",
+              "Height" : 2.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "RectangleControl10",
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 2.0000000000000000E+001
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 4.0000000000000000E+000
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000
+      },
+      "Height" : 2.5000000000000000E+002,
+      "HorizontalAnchorDelta" : 9.0000000000000000E+002,
+      "Name" : "Group13",
+      "VerticalAnchorDelta" : -1.3095605468750000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 3.5000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "HeightFraction" : 7.5000000000000000E-001,
+          "Name" : "RectangleControl11",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "MaxWidth" : 3.0000000000000000E+002,
+              "Name" : "Label5",
+              "Text" : [
+                "Setting width and height as a fraction (WidthFraction, HeghtFraction) allows to adjust to parent size.",
+                "This white bar has exactly 3/4 of the width it would take to fill the parent."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+001
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Height" : 1.4000000000000000E+002,
+      "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+      "Name" : "Group14",
+      "VerticalAnchorDelta" : -7.5095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 2.2000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "MaxWidth" : 3.0000000000000000E+002,
+          "Name" : "Label6",
+          "Text" : [
+            "By default, children are rendered even outside of the parent (although they will not receive click events outside the parent). You can use ClipChildren to not render things outside the parent."
+          ],
+          "VerticalAnchorDelta" : 1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+001
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "ClipChildren" : true,
+      "Height" : 1.4000000000000000E+002,
+      "HorizontalAnchorDelta" : 4.2000000000000000E+002,
+      "Name" : "Group16",
+      "VerticalAnchorDelta" : -7.5095599365234375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 2.2000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "MaxWidth" : 3.0000000000000000E+002,
+          "Name" : "Label8",
+          "Text" : [
+            "By default, children are rendered even outside of the parent (although they will not receive click events outside the parent). You can use ClipChildren to not render things outside the parent."
+          ],
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
+    }
+  ]
+}

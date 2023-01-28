@@ -1,0 +1,66 @@
+{
+  "FullSize" : true,
+  "Name" : "Root",
+  "$Children" : [
+    {
+      "AutoSizeToChildren" : true,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Group2",
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$Children" : [
+        {
+          "Alignment" : "hpMiddle",
+          "Name" : "VerticalGroup1",
+          "Spacing" : 2.0000000000000000E+001,
+          "$Children" : [
+            {
+              "Content" : {
+                "URL" : "castle-data:/castle_game_engine_icon.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Height" : 5.1200000000000000E+002,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "ImageControl1",
+              "Stretch" : true,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 5.1200000000000000E+002,
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            },
+            {
+              "Alignment" : "hpMiddle",
+              "ColorPersistent" : {
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "FontSize" : 4.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Label1",
+              "Text" : [
+                "Castle Game Engine",
+                "Component Gallery"
+              ],
+              "VerticalAnchorDelta" : -5.3200000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        }
+      ],
+      "$ClassName" : "TCastleUserInterface"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

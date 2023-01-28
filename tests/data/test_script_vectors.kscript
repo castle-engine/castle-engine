@@ -1,0 +1,44 @@
+function test_2()
+  my_int := 0;
+  my_vec2 := vector(44, 10);
+  if( my_vec2 = vector(44, 10),
+
+    my_float := vector_dot(my_vec2, vector(666, 777));
+    vector_set(my_vec2, 0, vector_get(my_vec2, my_int) + 456);
+    { now my_vec2 should be (456 + 44, 10) }
+    my_vec2 := my_vec2 + vector(0, 13);
+    { now my_vec2 should be (456 + 44, 10 + 13) }
+    vector_set(my_vec2, vector_get_count(my_vec2) - 1, vector_length(my_vec2)),
+
+    { else - should not happen } my_float := 666)
+
+function test_3()
+  my_int := 0;
+  my_vec3 := vector(44, 10, 33);
+  if( my_vec3 = vector(44, 10, 33),
+
+    my_float := vector_dot(my_vec3, vector(666, 777, 91));
+    vector_set(my_vec3, 0, vector_get(my_vec3, my_int) + 456);
+    { now my_vec3 should be (456 + 44, 10, 33) }
+    my_vec3 := my_vec3 + vector(0, 13, 0);
+    { now my_vec3 should be (456 + 44, 10 + 13, 33) }
+    vector_set(my_vec3, vector_get_count(my_vec3) - 1, vector_length(my_vec3)),
+
+    { else - should not happen } my_float := 666)
+
+function test_4()
+  my_int := 0;
+  my_vec4 := vector(44, 10, 33, 123);
+  if( my_vec4 = vector(44, 10, 33, 123),
+
+    my_float := vector_dot(my_vec4, vector(666, 777, 91, 890));
+    vector_set(my_vec4, 0, vector_get(my_vec4, my_int) + 456);
+    { now my_vec4 should be (456 + 44, 10, 33, 123) }
+    my_vec4 := my_vec4 + vector(0, 13, 0, 0);
+    { now my_vec4 should be (456 + 44, 10 + 13, 33, 123) }
+    vector_set(my_vec4, vector_get_count(my_vec4) - 1, vector_length(my_vec4)),
+
+    { else - should not happen } my_float := 666)
+
+function test_cross()
+  my_vec3 := vector_cross(vector(1, 0, 0), vector(0, 1, 0))

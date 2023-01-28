@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="test_was_visible"
+  standalone_source="test_was_visible_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.test.was.visible"
+  caption="Test WasVisible method"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

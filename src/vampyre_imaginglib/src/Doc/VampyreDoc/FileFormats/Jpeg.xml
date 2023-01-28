@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>JPEG File Format</title>
+  <chapter>
+    <title>JPEG File Format</title>
+    <par>
+      JPEG (Joint Photographic Experts Group) format
+      is good choice for storing images with large number of colors
+      and without sharp edges. It uses lossy compression which can greatly
+      reduce size of image file. Imaging uses Independent JPEG Group's <b>jpeglib</b>
+      library to load and save JPEG files. It was translated to Pascal by
+      Jacques Nomssi Nzali. As stated in jpeglib's documentation this library
+      can read and write <b>JFIF</b> format which is most widely used JPEG
+      format. But there are also some proprietary and other JPEG formats
+      which can not be read/written by jpeglib thus Imaging can not
+      read/write them also.
+    </par>
+
+    <table>
+      <title>JPEG File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td>
+        <td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td>
+        <td>Yes</td>
+      </row>
+    </table>
+
+    <par>
+      When working with JPEG files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TJpegFileFormat</ref>
+      class.
+    </par>
+    
+    <table>
+      <title>Options Related to JPEG Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingJpegQuality</ref></td>
+        <td><b>1</b> to <b>100</b></td>
+        <td>JPEG compression quality used when saving images.
+        Higher value means worse compression/better image quality/larger file size.
+        Default value is <b>90</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingJpegProgressive</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>Indicates whether JPEG is saved as progressive or not.
+        Progressive JPEG rearranges the stored data into a series of scans of
+        increasing quality.  In situations where a JPEG file is transmitted across a
+        slow communications link, a decoder can generate a low-quality image very
+        quickly from the first scan, then gradually improve the displayed quality as
+        more scans are received. Default value is <b>0 (False)</b>. </td>
+      </row>
+    </table>
+
+  </chapter>
+</doc>

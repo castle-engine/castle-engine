@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="VampyreImagingPackageExt"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\Source"/>
+        <Libraries Value="..\Extensions\J2KObjects;..\Extensions\LibTiff\Compiled"/>
+        <OtherUnitFiles Value="..\Extensions;..\Extensions\LibTiff"/>
+        <UnitOutputDirectory Value="..\Bin\Dcu\$(TargetCPU)-$(TargetOS)\pkg-ext"/>
+      </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <CustomOptions Value="-dFULL_FEATURE_SET"/>
+        <OtherDefines Count="1">
+          <Define0 Value="FULL_FEATURE_SET"/>
+        </OtherDefines>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Vampyre Imaging Library Package for Lazarus - Extensions. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
+    <Files Count="20">
+      <Item1>
+        <Filename Value="..\Extensions\ElderImagery.pas"/>
+        <UnitName Value="ElderImagery"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\Extensions\ElderImageryBsi.pas"/>
+        <UnitName Value="ElderImageryBsi"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\Extensions\ElderImageryCif.pas"/>
+        <UnitName Value="ElderImageryCif"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\Extensions\ElderImageryImg.pas"/>
+        <UnitName Value="ElderImageryImg"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\Extensions\ElderImagerySky.pas"/>
+        <UnitName Value="ElderImagerySky"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\Extensions\ElderImageryTexture.pas"/>
+        <UnitName Value="ElderImageryTexture"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\Extensions\ImagingBinary.pas"/>
+        <UnitName Value="ImagingBinary"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\Extensions\ImagingCompare.pas"/>
+        <UnitName Value="ImagingCompare"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\Extensions\ImagingExtFileFormats.pas"/>
+        <UnitName Value="ImagingExtFileFormats"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\Extensions\ImagingJpeg2000.pas"/>
+        <UnitName Value="ImagingJpeg2000"/>
+      </Item10>
+      <Item11>
+        <Filename Value="..\Extensions\ImagingPcx.pas"/>
+        <UnitName Value="ImagingPcx"/>
+      </Item11>
+      <Item12>
+        <Filename Value="..\Extensions\ImagingPsd.pas"/>
+        <UnitName Value="ImagingPsd"/>
+      </Item12>
+      <Item13>
+        <Filename Value="..\Extensions\ImagingTiff.pas"/>
+        <UnitName Value="ImagingTiff"/>
+      </Item13>
+      <Item14>
+        <Filename Value="..\Extensions\ImagingXpm.pas"/>
+        <UnitName Value="ImagingXpm"/>
+      </Item14>
+      <Item15>
+        <Filename Value="..\Extensions\LibTiff\ImagingTiffLib.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="ImagingTiffLib"/>
+      </Item15>
+      <Item16>
+        <Filename Value="..\Extensions\LibTiff\LibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="LibDelphi"/>
+      </Item16>
+      <Item17>
+        <Filename Value="..\Extensions\LibTiff\LibJpegDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="LibJpegDelphi"/>
+      </Item17>
+      <Item18>
+        <Filename Value="..\Extensions\LibTiff\LibTiffDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="LibTiffDelphi"/>
+      </Item18>
+      <Item19>
+        <Filename Value="..\Extensions\LibTiff\ZLibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="ZLibDelphi"/>
+      </Item19>
+      <Item20>
+        <Filename Value="VampyreImagingPackageExtRegister.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="VampyreImagingPackageExtRegister"/>
+      </Item20>
+    </Files>
+    <CompatibilityMode Value="True"/>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="VampyreImagingPackage"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <LibraryPath Value="..\Extensions\J2KObjects;..\Extensions\LibTiff\Compiled"/>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

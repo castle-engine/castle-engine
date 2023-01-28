@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Saving Images</title>
+  <chapter>
+    <title>Saving Images</title>
+    <par>Images can be saved to the files on disk, to the streams or
+    to a memory referenced by a pointer.
+    The following table lists functions which can be used for saving images.
+    These are low level functions operating on <ref>TImageData</ref> structure.</par>
+    <table>
+      <row>
+        <header>Function name</header>
+        <header>Usage</header>
+      </row>
+      <row>
+        <cell><ref>SaveImageToFile</ref></cell>
+        <cell>Save single image to file</cell>
+      </row>
+      <row>
+        <cell><ref>SaveImageToStream</ref></cell>
+        <cell>Save single image to stream
+        (<icode>TStream</icode> descendants, <b>Object Pascal only</b>)</cell>
+      </row>
+      <row>
+        <cell><ref>SaveImageToMemory</ref></cell>
+        <cell>Save single image to memory</cell>
+      </row>
+      <row>
+        <cell><ref>SaveMultiImageToFile</ref></cell>
+        <cell>Save multiple images to file</cell>
+      </row>
+      <row>
+        <cell><ref>SaveMultiImageToStream</ref></cell>
+        <cell>Save multiple images to stream
+        (<icode>TStream</icode> descendants, <b>Object Pascal only</b>)</cell>
+      </row>
+      <row>
+        <cell><ref>SaveMultiImageToMemory</ref></cell>
+        <cell>Save multiple images to memory</cell>
+      </row>
+    </table>
+    <par>You can learn how to use these functions from the
+    following code fragments.</par>
+
+    <par>This example creates empty image and draws diagonal line from
+    left-top to right-bottom corner. Finally, image is saved to the file.</par>
+    <code>
+uses
+  SysUtils, Classes, ImagingTypes, Imaging;
+var
+  Img: <ref>TImageData</ref>;
+  I: LongInt;
+begin
+  // call this before using any TImageData record
+  <ref>InitImage</ref>(Img);
+  // create 8 bit grayscale image
+  <ref>NewImage</ref>(1024, 1024, ifGray8, Img);
+  // draw diagonal line by direct writing to image's memory
+  for I := 0 to Img.Width - 1 do
+    PByteArray(@PByteArray(Img.Bits)[I * Img.Width])[I] := 128;
+  // save image to file
+  <ref>SaveImageToFile</ref>('/home/galfar/images/line.tga', Img);
+  // memory occupied by image is freed
+  <ref>FreeImage</ref>(Img);
+end.
+    </code>
+
+    <par>In this example DDS image is loaded from stream. All contained
+    subimages are then compressed to DXT5 format and written to output stream.</par>
+    <code>
+procedure LoadAndSaveSomethingInDXT5(InStream, OutStream: TStream);
+var
+  Images: <ref>TDynImageDataArray</ref>;
+  I: LongInt;
+begin
+  // load DDS multiimage from stream to Images array
+  <ref>LoadMultiImageFromStream</ref>(InStream, Images);
+  // convert all loaded images to DXT5 format
+  for I := 0 to Length(Images) - 1 do
+    <ref>ConvertImage</ref>(Images[I], ifDXT5);
+  // save converted images to output stream in DDS format
+  <ref>SaveMultiImageToStream</ref>('dds', OutStream, Images);
+  // all images are freed
+  <ref>FreeImagesInArray</ref>(Images);
+end;
+    </code>
+
+
+  </chapter>
+</doc>

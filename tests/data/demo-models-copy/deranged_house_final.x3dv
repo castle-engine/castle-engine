@@ -1,0 +1,218 @@
+#X3D V3.2 utf8
+PROFILE Interactive
+
+# Demo of ProximitySensor used to open/close doors automatically.
+
+Transform {
+  translation 5.9366340637207031 6.2475004196166992 1.5750000476837158
+  rotation 1 0 -0 1.5707963705062866
+  children [
+    Viewpoint {
+      position 0 0 0 # camera position is expressed by translation
+      orientation -1.0220850299447193E-006 0.9999999403953552 0 3.0978422164916992
+    }
+
+    Transform {
+      translation 0.4 0.3 1
+      rotation -1.0220850299447193E-006 0.9999999403953552 0 3.0978422164916992
+      scale 0.06 0.06 0.06
+      children Collision {
+        enabled FALSE
+        children Shape {
+          appearance Appearance { material Material { diffuseColor 0.5 0.5 0.5 } }
+          geometry Text { string [
+            "Simple ProximitySensor demo."
+            "Pressing 'b' toggles displaying"
+            "of the yellow (non-collidable) boxes"
+            "that visualize ProximitySensors."
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
+
+NavigationInfo {
+  headlight TRUE
+  type ["FLY", "ANY"]
+  # "WALK" would be better, but for Castle Game Engine you may be forced
+  # to temporarily turn collision detection off, which means that you
+  # fall on the ground with gravity=on...
+  avatarSize [0.25, 1.75, 0.75]
+  speed 10
+}
+
+Inline { url "deranged_house.wrl" }
+
+PROTO Door [ ] {
+  Group {
+    children [
+      DEF TimerOpen TimeSensor { }
+      DEF OrientOpen OrientationInterpolator {
+        key [ 0 1 ]
+        keyValue [ 0 0 1 0, 0 0 1 1.57 ]
+      }
+
+      DEF TimerClose TimeSensor { }
+      DEF OrientClose OrientationInterpolator {
+        key [ 0 1 ]
+        keyValue [ 0 0 1 1.57, 0 0 1 0 ]
+      }
+
+      DEF DoorTransform Transform {
+        center 0 -1 0
+        children Inline { url "deranged_house_door.wrl" }
+      }
+
+      Transform {
+        translation -1 0 1.3
+        children [
+          DEF ProxSens ProximitySensor {
+            center 0 0 0
+            size 5 2 2.5
+          }
+          DEF ProxSensVisualize Switch {
+            whichChoice -1
+            children Collision {
+              enabled FALSE
+              children Shape {
+                appearance Appearance { material Material {
+                  transparency 0.5
+                  diffuseColor 2 2 0
+                } }
+                geometry Box { size 5 2 2.5 } # same size of ProxSens
+              }
+            }
+          }
+        ]
+      }
+
+      DEF K KeySensor { }
+
+      # Script in CastleScript to open/close doors.
+      #
+      # While it's possible to express in simple VRML routes
+      # to open/close doors automatically,
+      # this causes bad artifact when doors is in the middle of opening/closing,
+      # and yet it's again caused to close/open. Then naive mechanism
+      # done without scripting with produce ugly jump to the beginning
+      # of open/close animation. With script, I can check and eventually
+      # adjust startTime to start close/open exactly when the door currently is.
+      DEF Scr Script {
+        inputOutput SFBool open_plays FALSE
+        inputOutput SFBool close_plays FALSE
+        inputOutput SFTime open_elapsedTime 0
+        inputOutput SFTime close_elapsedTime 0
+
+        inputOnly SFTime start_open
+        inputOnly SFTime start_close
+
+        outputOnly SFTime open_start_time
+        outputOnly SFTime close_start_time
+
+        inputOnly SFString key_press
+        inputOutput SFInt32 prox_sensor_visualize -1
+
+        url "castlescript:
+          function start_open(value, timestamp)
+            if(open_plays, 1 { do nothing, return anything },
+              if(close_plays,
+                close_start_time := -1000;
+                open_start_time := timestamp - (1-close_elapsedTime),
+                open_start_time := timestamp))
+
+          function start_close(value, timestamp)
+            if(close_plays, 1 { do nothing, return anything },
+              if(open_plays,
+                { The crucial point: you want to start closing
+                  ih the middle of opening.
+
+                  The door is already partially opened, by open_elapsedTime,
+                  so cycleInterval-open_elapsedTime time already passed
+                  from closing. cycleInterval = always 1 in this case.
+
+                  Also, you want to actually stop opening, this can be done
+                  by just setting open_start_time to some negative value. }
+                open_start_time := -1000;
+                close_start_time := timestamp - (1-open_elapsedTime),
+                close_start_time := timestamp))
+
+          function key_press(value, timestamp)
+            when (value = 'b',
+              { On each 'b' press, toggle prox_sensor_visualize between -1 and 0 }
+              prox_sensor_visualize := - prox_sensor_visualize - 1)
+        "
+      }
+    ]
+
+    # Routes for opening/closing animation with script
+
+    # pass TimerOpen/Close properties to script
+    ROUTE TimerOpen.isActive TO Scr.open_plays
+    ROUTE TimerOpen.elapsedTime TO Scr.open_elapsedTime
+    ROUTE TimerClose.isActive TO Scr.close_plays
+    ROUTE TimerClose.elapsedTime TO Scr.close_elapsedTime
+
+    # link ProxSens -> script -> Timer -> interpolator -> DoorTransform.rotation
+    ROUTE ProxSens.enterTime TO Scr.start_open
+    ROUTE Scr.open_start_time TO TimerOpen.set_startTime
+    ROUTE TimerOpen.fraction_changed TO OrientOpen.set_fraction
+    ROUTE OrientOpen.value_changed TO DoorTransform.rotation
+
+    ROUTE ProxSens.exitTime TO Scr.start_close
+    ROUTE Scr.close_start_time TO TimerClose.set_startTime
+    ROUTE TimerClose.fraction_changed TO OrientClose.set_fraction
+    ROUTE OrientClose.value_changed TO DoorTransform.rotation
+
+    # Routes to control visualization by 'b' key
+    ROUTE K.keyPress TO Scr.key_press
+    ROUTE Scr.prox_sensor_visualize TO ProxSensVisualize.whichChoice
+  }
+}
+
+Transform {
+  translation 3.1 4 0
+  children Door { }
+}
+
+Transform {
+  translation 3.1 -4 0
+  children Door { }
+}
+
+Transform {
+  translation -11.8 -4 0
+  children Door { }
+}
+
+Transform {
+  translation 5.1 -8 0
+  rotation 0 0 1 1.5707963268 # Pi/2 = 90 degrees
+  children Door { }
+}
+
+Transform {
+  translation 9.1 -8 0
+  rotation 0 0 1 1.5707963268 # Pi/2 = 90 degrees
+  children Door { }
+}
+
+Transform {
+  translation 11.3 -6.2 0
+  rotation 0 0 1 3.1415926536 # Pi
+  children Door { }
+}
+
+Transform {
+  translation 10.55 -3.1 0
+  rotation 0 0 1 3.1415926536 # Pi
+  children Door { }
+}
+
+DirectionalLight {
+  intensity 0
+  # just a hack to add pure ambient light in the scene
+  # (using global light ambient would be better for OpenGL, but not standard VRML...)
+  ambientIntensity 1
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="detect_scene_hit"
+  standalone_source="detect_scene_hit_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.detect.scene.hit"
+  caption="Detect Scene Hits"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

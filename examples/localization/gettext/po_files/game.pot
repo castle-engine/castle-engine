@@ -1,0 +1,4 @@
+#: game:messagetext
+msgid "I am a message!"
+msgstr ""
+

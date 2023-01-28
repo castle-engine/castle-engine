@@ -1,0 +1,8 @@
+## startapp
+
+Enable the http://startapp.com/[StartApp] ads. Use https://castle-engine.io/apidoc/html/CastleAds.TAds.html[TAds] class from the https://castle-engine.io/apidoc/html/CastleAds.html[CastleAds] unit to show and control the ads from your Pascal code, with `AdNetwork` set to `anStartApp`.
+
+* The core of this service is a closed-source library distributed by StartApp.
+ ** Download the SDK from http://s3.startapp.com.s3.amazonaws.com/Resource/SDK_TEMP/Android-InApp%20SDK-InApp-3.2.2.zip . The original page where this is linked is in your https://portal.startapp.com/[StartApp publisher panel] in the _Resource Center_ section.
+ ** Unzip the StartApp SDK to a temporary location.
+ ** Copy the file `StartAppInApp-3.2.2.jar` from the SDK into `castle_game_engine/tools/build-tool/data/android/integrated-services/startapp/app/libs/`.

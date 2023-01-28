@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="use_designed_curve"
+  standalone_source="use_designed_curve_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.use.designed.curve"
+  caption="Use Designed Curve"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

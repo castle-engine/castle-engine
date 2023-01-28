@@ -1,0 +1,4 @@
+character/soldier based on
+  https://opengameart.org/content/soldier-10
+  by killyoverdrive
+  License(s): CC-BY-SA 3.0

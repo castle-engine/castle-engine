@@ -1,0 +1,522 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.3743752241134644E+000,
+              "X" : -6.5210092067718506E-001,
+              "Y" : 6.7017143964767456E-001,
+              "Z" : 3.5444992780685425E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.1106569290161133E+001,
+              "Y" : 3.7732131958007812E+001,
+              "Z" : 2.0785570144653320E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "HingeSeparate",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneDoor",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_door.glb",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Name" : "RigidBody1"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider1",
+                    "SizeScale" : 8.0000001192092896E-001
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneRest",
+                "PreciseCollisions" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_rest.glb",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleTransform",
+                    "Name" : "HingeAnchorStatic",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3784155845642090E+000,
+                      "Y" : 2.7395107746124268E+000,
+                      "Z" : -1.1247442960739136E+000
+                    },
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "Dynamic" : false,
+                        "Name" : "RigidBody3"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider2"
+                      },
+                      {
+                        "$$ClassName" : "TCastleHingeJoint",
+                        "AnchorPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Z" : 5.0883054733276367E-001
+                        },
+                        "BreakThresholdForce" : 1.0000000000000000E+003,
+                        "BreakThresholdTorque" : 1.0000000000000000E+003,
+                        "Connected" : "SceneDoor",
+                        "Name" : "JointHinge1"
+                      }
+                    ]
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody2"
+                  },
+                  {
+                    "$$ClassName" : "TCastleMeshCollider",
+                    "DoubleSided" : true,
+                    "Mesh" : "SceneRest",
+                    "Name" : "MeshCollider1"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleSphere",
+                "CollisionSphereRadius" : 1.0000000000000000E+000,
+                "Name" : "Bullet1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.5116134643554688E+001,
+                  "Y" : 1.2844938039779663E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LinearVelocityPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -3.0000000000000000E+001
+                    },
+                    "Name" : "RigidBody4"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Name" : "SphereCollider1"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 3.0000000000000000E+000,
+                "Name" : "PointLight1",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.5547828674316406E+000,
+                  "Y" : 1.2766785621643066E+001,
+                  "Z" : -4.2011947631835938E+000
+                }
+              },
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000
+                },
+                "Name" : "Text1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5819438695907593E+000,
+                  "Y" : 9.9999898672103882E-001
+                },
+                "Text" : [
+                  "Joint on empty transform"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 7.2540330886840820E+000
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "HingeSeparateBreakable",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -3.0544996261596680E-001,
+              "Z" : -2.3410577774047852E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneDoor2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_door.glb",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Name" : "RigidBody6"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider4",
+                    "SizeScale" : 8.0000001192092896E-001
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneRest2",
+                "PreciseCollisions" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_rest.glb",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleTransform",
+                    "Name" : "HingeAnchorStatic1",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3690214157104492E+000,
+                      "Y" : 2.7395107746124268E+000,
+                      "Z" : -6.1081337928771973E-001
+                    },
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "Dynamic" : false,
+                        "Name" : "RigidBody9"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider5"
+                      },
+                      {
+                        "$$ClassName" : "TCastleHingeJoint",
+                        "BreakThresholdForce" : 5.0000000000000000E+001,
+                        "BreakThresholdTorque" : 5.0000000000000000E+001,
+                        "Breakable" : true,
+                        "Connected" : "SceneDoor2",
+                        "Name" : "JointHinge3"
+                      }
+                    ]
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody10"
+                  },
+                  {
+                    "$$ClassName" : "TCastleMeshCollider",
+                    "DoubleSided" : true,
+                    "Mesh" : "SceneRest2",
+                    "Name" : "MeshCollider3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleSphere",
+                "CollisionSphereRadius" : 1.0000000000000000E+000,
+                "Name" : "Bullet2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.3669596672058105E+001,
+                  "Y" : 1.2844938039779663E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LinearVelocityPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -3.0000000000000000E+001
+                    },
+                    "Name" : "RigidBody11"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Name" : "SphereCollider3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 3.0000000000000000E+000,
+                "Name" : "PointLight5",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.5547828674316406E+000,
+                  "Y" : 4.8770923614501953E+000,
+                  "Z" : -4.2011947631835938E+000
+                }
+              },
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000
+                },
+                "Name" : "Text3",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5819438695907593E+000,
+                  "Y" : 9.9999898672103882E-001
+                },
+                "Text" : [
+                  "Joint on empty transform",
+                  "+ breakable!"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 7.2540330886840820E+000
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "HingeSameTransformAsSceneRest",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 2.3741495132446289E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneDoor1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_door.glb",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Name" : "RigidBody5"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider3",
+                    "SizeScale" : 8.0000001192092896E-001
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneRest1",
+                "PreciseCollisions" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/hinge_prettier/joint_hinge_rest.glb",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Name" : "RigidBody7"
+                  },
+                  {
+                    "$$ClassName" : "TCastleMeshCollider",
+                    "DoubleSided" : true,
+                    "Mesh" : "SceneRest1",
+                    "Name" : "MeshCollider2"
+                  },
+                  {
+                    "$$ClassName" : "TCastleHingeJoint",
+                    "AnchorPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3758351802825928E+000,
+                      "Y" : 2.7400000095367432E+000,
+                      "Z" : -7.1633571386337280E-001
+                    },
+                    "Connected" : "SceneDoor1",
+                    "Name" : "JointHinge2"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 3.0000000000000000E+000,
+                "Name" : "PointLight3",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.5547828674316406E+000,
+                  "Y" : 4.8770923614501953E+000,
+                  "Z" : -4.2011947631835938E+000
+                }
+              },
+              {
+                "$$ClassName" : "TCastleSphere",
+                "CollisionSphereRadius" : 1.0000000000000000E+000,
+                "Name" : "Bullet3",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2956862449645996E+001,
+                  "Y" : 1.2844938039779663E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "LinearVelocityPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -3.0000000000000000E+001
+                    },
+                    "Name" : "RigidBody8"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Name" : "SphereCollider2"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000
+                },
+                "Name" : "Text2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5819438695907593E+000,
+                  "Y" : 9.9999898672103882E-001
+                },
+                "Text" : [
+                  "Joint on wall scene",
+                  "(similar to joint on independent transform, ",
+                  "but also makes ConnectedCollide useful)"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 7.2540330886840820E+000
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 1.3743752241134644E+000,
+          "X" : -6.5210092067718506E-001,
+          "Y" : 6.7017143964767456E-001,
+          "Z" : 3.5444992780685425E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 2.1106569290161133E+001,
+          "Y" : 3.7732131958007812E+001,
+          "Z" : 2.0785570144653320E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 2.5118865966796875E+001,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    }
+  ]
+}

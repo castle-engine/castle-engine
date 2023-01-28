@@ -1,0 +1,21 @@
+function main()
+  array_set_count(my_string, 10);
+  for (my_int, 0, 9, array_set(my_string, my_int, 'b'));
+  { now my_string should be 'bbbbbbbbbb' }
+  my_string := my_string + array_get(my_string, 5) + array_get(my_string, 5) +
+    character_from_code(123);
+  { now my_string should be 'bbbbbbbbbbbb' + #123 }
+  my_string := my_string + string(array_get_count(my_string))
+  { now my_string should be 'bbbbbbbbbbbb' + #123 + '13' }
+
+function error1()
+  my_string := '';
+  array_set(my_string, 0 { incorrect - index outside string length }, 'b')
+
+function error2()
+  my_string := 'sdfulwehruhwurhui23h4uioh2uio34';
+  array_set(my_string, 10, 'blah' { incorrect - this must be 1 single character })
+
+function error3()
+  my_string := '';
+  my_string := array_get('blah', 10 { incorrect - index outside string length })

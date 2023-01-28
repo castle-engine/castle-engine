@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Extensions</title>
+  <chapter>
+    <title>Extensions</title>
+    <par>
+      Imaging's functionality can be extended by so called
+      extensions. These provide additional file format support,
+      interaction between Imaging and various graphics APIs and
+      libraries (<b>OpenGL</b>, <b>Direct3D</b>, <b>SDL</b>)
+      and other functionality.
+    </par>
+    <par>
+      Extensions can be divided into two categories. One that is used
+      automatically by Imaging core like image file format extensions.
+      Imaging will register all these extensions on startup.
+    </par>
+    <par>
+      Second category extensions provide user interface to some
+      extended functions like <b>OpenGL</b> texture creation.
+      These extensions are ordinary Pascal units. If you want to use them
+      simply add these units to your project's uses list and call their functions.
+      Those extensions are currently not accessible using DLL/SO interface.
+    </par>
+    <par>
+      There is also another extension classification.
+      Extensions that meet Imaging's crossplatform and/or other requirements are
+      located in <keyword>Source</keyword> directory (<b>core</b> extensions).
+      Extensions that do not meet them are located in <keyword>Extras</keyword>
+      directory (<b>extras</b>).
+    </par>
+
+    <linklist>
+      <title>Currently available file format extensions (core + extras)</title>
+      <lslink url="ExtFileFormats.xml">File Format Extensions</lslink>
+    </linklist>
+    
+    <linklist>
+      <title>Currently available core extensions</title>
+      <lslink url="OpenGL.xml">OpenGL Textures</lslink>
+      <lslink url="Direct3D.xml">Direct3D Textures</lslink>
+      <lslink url="SDL.xml">SDL Surfaces</lslink>
+    </linklist>
+
+  </chapter>
+</doc>

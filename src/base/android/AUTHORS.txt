@@ -1,0 +1,12 @@
+Many units here are a simple translation of Android NDK C headers to Pascal,
+copies from Lazarus and cleaned up a little,
+see trunk/lcl/interfaces/customdrawn/android/ in Lazarus sources.
+
+Note that castleandroidinternalnativeactivity.pas needed a fix:
+{$linklib android}, otherwise it cannot be loaded (unresolved symbols,
+resulting in enigmatic messages in logcat:
+java.lang.RuntimeException: Unable to start activity ComponentInfo{net.sourceforge.castleengine.cgeandroidtest/android.app.NativeActivity}: java.lang.IllegalArgumentException: Unable to load native library: /data/data/net.sourceforge.castleengine.cgeandroidtest/lib/libcge_android_lib.so
+).
+
+For information about the Android NDK API, see
+http://developer.android.com/tools/sdk/ndk/index.html

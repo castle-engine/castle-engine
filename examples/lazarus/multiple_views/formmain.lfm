@@ -1,0 +1,52 @@
+object MainForm: TMainForm
+  Left = 466
+  Height = 406
+  Top = 154
+  Width = 601
+  Caption = 'MainForm'
+  ClientHeight = 406
+  ClientWidth = 601
+  DesignTimePPI = 115
+  OnCreate = FormCreate
+  LCLVersion = '2.2.2.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 406
+    Top = 0
+    Width = 204
+    Align = alLeft
+    ClientHeight = 406
+    ClientWidth = 204
+    TabOrder = 0
+    object ButtonTest2D: TButton
+      Left = 30
+      Height = 37
+      Top = 31
+      Width = 139
+      AutoSize = True
+      Caption = 'Test 2D Physics'
+      OnClick = ButtonTest2DClick
+      TabOrder = 0
+    end
+    object ButtonTest3D: TButton
+      Left = 30
+      Height = 37
+      Top = 75
+      Width = 139
+      AutoSize = True
+      Caption = 'Test 3D Physics'
+      OnClick = ButtonTest3DClick
+      TabOrder = 1
+    end
+  end
+  object CastleControl1: TCastleControl
+    Left = 214
+    Height = 386
+    Top = 10
+    Width = 377
+    Align = alClient
+    BorderSpacing.Around = 10
+    Options = []
+    TabOrder = 1
+  end
+end

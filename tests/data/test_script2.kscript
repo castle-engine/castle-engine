@@ -1,0 +1,5 @@
+function main() 
+  my_int := 12 + my_int; 
+  my_float := sqrt(my_float + 2.0); 
+  my_bool := or(my_bool, my_int > 24); 
+  my_string := 'bar' + my_string + 'xyz'

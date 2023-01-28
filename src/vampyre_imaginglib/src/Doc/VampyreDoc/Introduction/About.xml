@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>About</title>
+  <chapter>
+    <title>About</title>
+    <par>
+      <b>Imaging</b> is native <b>Object Pascal</b> image loading, saving and
+      manipulation library. It is available for several platforms
+      and does not require any third party dynamic libraries or other compiled binaries.
+    </par>
+    <par>
+      Main development language is <b>Object Pascal</b>
+      (<b>Delphi</b> and <b>Free Pascal</b> compilers are supported) 
+      and there are interfaces to the library
+      (compiled into dll/so) for other languages like <b>C/C++</b> and
+      <b>Delphi.NET</b>. Currently supported operating systems are <b>Windows</b>,
+      <b>Linux</b>, <b>FreeBSD</b> (and some other Unixes), and <b>Mac OS X</b> (on Intel).
+      Supported CPU architectures are <b>x86</b> and <b>AMD64</b>.
+    </par>
+    <par>
+      Currently supported image file formats
+      are: (loading and saving) <b>BMP</b>, <b>JPEG</b>, <b>PNG/APNG</b>, <b>GIF</b>,
+        <b>TGA</b>, <b>DDS</b>, <b>MNG</b>, <b>JNG</b>,
+        <b>JPEG2000</b>, <b>PSD</b>, <b>TIFF</b>, <b>PGM</b>,
+        <b>PPM</b>, <b>PAM</b>, <b>PFM</b>, <b>XPM</b>,
+      (loading only) <b>PCX</b>, and <b>PBM</b>.
+      Many internal image data formats are supported:
+      8/16/24/32/48/64 bit <b>RGB</b> and <b>ARGB</b> formats, indexed formats,
+      grayscale formats, half/single precision <b>floating point</b> formats,
+      and compressed formats  <b>DXT1/3/5</b>, <b>3Dc</b>, and <b>BTC</b>.
+    </par>
+  </chapter>
+</doc>

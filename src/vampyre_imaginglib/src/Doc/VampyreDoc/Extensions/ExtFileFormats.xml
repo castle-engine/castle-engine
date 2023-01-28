@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>File Format Extensions</title>
+  <chapter>
+    <title>File Format Extensions</title>
+    <par>
+      These extensions allow Imaging to load and save images from/to
+      files in various formats.
+      File formats included in Imaging core (that is in
+      <keyword>Source</keyword> directory) must satisfy these requirements:
+      both loading and saving support, native crossplatform
+      Object Pascal implementation, support as many data formats as possible,
+      be stream safe (you have multiple images in one stream and you load them
+      one by one without exactly knowing where they start - after loading one
+      stream position must be precisely at the beginning of another - some
+      file formats (e.g. Daggerfall images) need to know exact file size during loading so
+      they are inherently unsafe).
+      File format loaders/savers that do not meet these requirements are
+      located in Extras package (<keyword>Extras\Extensions</keyword> directory).
+    </par>
+    
+    <par>
+      Some complex file formats make compiled binaries significantly larger.
+      Most notably <b>TIFF</b> (around 400 KiB),
+      <b>JPEG</b> (around 100 KiB), <b>JPEG2000</b> (around 150 KiB), and <b>PNG</b>
+      (around 50 KiB). Some formats use others internally - <b>MNG</b> and <b>JNG</b> use
+      PNG and JPEG. If you know you won't be needing some of those formats
+      and you don't want large binaries you can disable them at compile stage.
+      
+      This is done by uncommenting <icode>DONT_LINK_*</icode> (where * is file format
+      identifier) symbols in 
+      <icode>ImagingOptions.inc</icode> include file
+      located in <keyword>Source</keyword> directory.
+      All core file formats have corresponding symbols here and all
+      are enabled by default in this include file.
+      
+      There is also <icode>DONT_LINK_EXTRAS</icode> symbol that controls
+      automatic linking with file formats declared in Extras package
+      (individual <icode>DONT_LINK_*</icode> symbols for these file format can be turned 
+      on/off in <ref>ImagingExtras.pas</ref>
+      unit located in <keyword>Extras\Extensions</keyword> directory).
+    </par>
+    
+    <warn>
+      In Imaging 0.26.2 file format linking symbols were changed 
+      from <icode>LINK_*</icode> to <icode>DONT_LINK_*</icode>.
+      So if you used these symbols somewhere in you projects 
+      please check your code if it still works as intended 
+      after 0.26.2 installation.
+      <br/>
+      Why did it change?<br/>    
+      Since all formats are enabled by default in Imaging releases, 
+      if you wanted to disable one format you had to manually edit 
+      <icode>ImagingOptions.inc</icode> and comment out appropriate 
+      <icode>$DEFINE</icode> statement.
+      So there was a problem when you had more projects using the same 
+      Imaging installation and each wanting to use different subset of file formats.
+      With new symbols you don't have to edit the include file at all, 
+      just add <icode>DONT_LINK_*</icode> to "Conditional defines" (or its Lazarus equivalent)
+      in compiler options of each project.
+    </warn>
+    
+    <linklist>
+      <title>More on supported file formats</title>
+      <lslink url="../FileFormats/FileFormats.xml">Supported File Formats</lslink>
+    </linklist>
+
+  </chapter>
+</doc>

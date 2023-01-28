@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <Name Value="VampyreImagingPackage"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <IncludeFiles Value="../Source;../Source/JpegLib;../Source/ZLib"/>
+        <OtherUnitFiles Value="../Source;../Source/JpegLib;../Source/ZLib"/>
+        <UnitOutputDirectory Value="../Bin/Dcu/$(TargetCPU)-$(TargetOS)/pkg"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+          <IncludeAssertionCode Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+          <VariablesInRegisters Value="True"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <CustomOptions Value="-dDONT_LINK_EXTRAS"/>
+        <OtherDefines Count="1">
+          <Define0 Value="DONT_LINK_EXTRAS"/>
+        </OtherDefines>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Vampyre Imaging Library Package for Lazarus. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
+    <Files Count="18">
+      <Item1>
+        <Filename Value="../Source/Imaging.pas"/>
+        <UnitName Value="Imaging"/>
+      </Item1>
+      <Item2>
+        <Filename Value="../Source/ImagingBitmap.pas"/>
+        <UnitName Value="ImagingBitmap"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../Source/ImagingCanvases.pas"/>
+        <UnitName Value="ImagingCanvases"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../Source/ImagingClasses.pas"/>
+        <UnitName Value="ImagingClasses"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../Source/ImagingComponents.pas"/>
+        <UnitName Value="ImagingComponents"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../Source/ImagingDds.pas"/>
+        <UnitName Value="ImagingDds"/>
+      </Item6>
+      <Item7>
+        <Filename Value="../Source/ImagingFormats.pas"/>
+        <UnitName Value="ImagingFormats"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../Source/ImagingIO.pas"/>
+        <UnitName Value="ImagingIO"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../Source/ImagingJpeg.pas"/>
+        <UnitName Value="ImagingJpeg"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../Source/ImagingNetworkGraphics.pas"/>
+        <UnitName Value="ImagingNetworkGraphics"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../Source/ImagingOptions.inc"/>
+        <Type Value="Include"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../Source/ImagingTarga.pas"/>
+        <UnitName Value="ImagingTarga"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../Source/ImagingTypes.pas"/>
+        <UnitName Value="ImagingTypes"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../Source/ImagingUtility.pas"/>
+        <UnitName Value="ImagingUtility"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../Source/ImagingPortableMaps.pas"/>
+        <UnitName Value="ImagingPortableMaps"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../Source/ImagingGif.pas"/>
+        <UnitName Value="ImagingGif"/>
+      </Item16>
+      <Item17>
+        <Filename Value="../Source/ImagingColors.pas"/>
+        <UnitName Value="ImagingColors"/>
+      </Item17>
+      <Item18>
+        <Filename Value="../Source/ImagingRadiance.pas"/>
+        <UnitName Value="ImagingRadiance"/>
+      </Item18>
+    </Files>
+    <CompatibilityMode Value="True"/>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

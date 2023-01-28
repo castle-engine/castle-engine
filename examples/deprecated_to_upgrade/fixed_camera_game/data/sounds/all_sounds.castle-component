@@ -1,0 +1,28 @@
+{
+  "$$ClassName" : "TCastleComponent",
+  "Name" : "Component1",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundIntroMusic",
+      "Stream" : true,
+      "URL" : "castle-data:/sounds/music/among_us.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundMainMenuMusic",
+      "Stream" : true,
+      "URL" : "castle-data:/sounds/music/cool_grove.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundMenuCurrentItemChanged",
+      "URL" : "castle-data:/sounds/menu_current_item_changed.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundMenuClick",
+      "URL" : "castle-data:/sounds/menu_click.wav"
+    }
+  ]
+}

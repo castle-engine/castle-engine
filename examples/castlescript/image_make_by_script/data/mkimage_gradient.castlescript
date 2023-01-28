@@ -1,0 +1,19 @@
+{ Make a simple image with radial gradient (middle of the image is yellow,
+  borders are blue). }
+
+function main()
+  result := image(100, 100, 3);
+
+  { y = maximum distance of image pixel from the middle of the image. }
+  y := sqrt(sqr(image_width(result)/2) +
+            sqr(image_height(result)/2));
+
+  for (i, 0, image_width(result) - 1,
+    for (j, 0, image_height(result) - 1,
+      { x = number between 0...1 corresponding to distance of (i, j)
+        from image middle. }
+      x := sqrt(sqr(i - image_width(result)/2) +
+                sqr(j - image_height(result)/2)) / y;
+      image_set_color(result, i, j,
+        vector(1, 1, 0) * x +
+        vector(0, 0, 1) * (1-x))))

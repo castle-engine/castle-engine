@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<strings>
+  <element>Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!, Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!</element>
+
+  <element_with_multiline_content>
+Chinese: 你好世界,
+Greek: Γεια σου κόσμε!,
+Russian: Здравствуй, мир!
+Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!
+</element_with_multiline_content>
+
+  <element_with_attributes
+    value="Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!, Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+    value_with_multiline_content="Chinese: 你好世界,&#xA;Greek: Γεια σου κόσμε!,&#xA;Russian: Здравствуй, мир!&#xA;Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+  />
+</strings>

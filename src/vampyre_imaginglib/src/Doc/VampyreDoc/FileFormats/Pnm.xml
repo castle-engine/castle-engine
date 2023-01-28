@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Portable Maps</title>
+  <chapter>
+    <title>Portable Maps</title>
+    <par>
+      <b>Portable Maps</b> or <b>AnyMaps</b> (<b>PNM</b>) is collective
+      name refering to family
+      of very similar raster file formats. Their format is very simple
+      and most of them contain just two-byte Id, Width, Height, and raster data.
+      Data can be stored in binary format or in text format (whick produces
+      very large files). Most formats can store images with 8 or 16 bit channels
+      but not all viewer and editor programs support 16 bit PNMs (or binary ones).
+      Imaging supports five PNM formats where <b>PBM</b>, <b>PGM</b>, and <b>PPM</b>
+      are quite common
+      but <b>PAM</b> and <b>PFM</b> are somewhat rare.
+    </par>
+    
+    <blist>
+      <li>
+        <par>
+          <keyword>PBM - Portable Bit Map</keyword>
+          stores monochrome 1bit images. Raster data
+          can be saved as text or binary data. Either way value of 0 represents white
+          and 1 is black. As Imaging does not have support for 1bit data formats
+          PBM images can be loaded but not saved. Loaded images are returned in
+          ifGray8 format (witch pixel values scaled from 1bit to 8bit).
+        </par>
+      </li>
+      <li>
+        <par>
+          <keyword>PBM - Portable Gray Map</keyword>
+          stores grayscale 8bit or 16bit images. Raster data can be
+          saved as text or binary data.
+        </par>
+      </li>
+      <li>
+        <par>
+          <keyword>PPM - Portable Pixel Map</keyword>
+          stores RGB images with 8bit or 16bit channels.
+          Raster data can be saved as text or binary data.
+        </par>
+      </li>
+      <li>
+        <par>
+          <keyword>PAM - Portable Arbitrary Map</keyword>
+          is more complex format that can store image data formats
+          of PBM, PGM, and PPM formats with optional alpha channel. Raster data
+          can be stored only in binary format.
+        </par>
+      </li>
+      <li>
+        <par>
+          <keyword>PFM - Portable Float Map</keyword>
+          is unofficial extension of PNM format family which
+          can store images with floating point pixels. Raster data is saved in
+          binary format as array of IEEE 32 bit floating point numbers. One channel
+          or RGB images are supported by PFM format (so no alpha).
+        </par>
+      </li>
+    </blist>
+    
+    <par>
+      There is a complete list of data formats supported by PNM file formats,
+      their Imaging equivalents, and load/cave capability.
+    </par>
+
+    <table>
+      <title>Portable Maps File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+        <th>Supported By Map Format</th>
+      </row>
+      <row>
+        <td>1 bit mono</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>No</td>
+        <td>PBM, PAM</td>
+      </row>
+      <row>
+        <td>1bit mono + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>No</td>
+        <td>PAM</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PGM, PAM</td>
+      </row>
+      <row>
+        <td>16 bit grayscale</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PGM, PAM</td>
+      </row>
+      <row>
+        <td>8 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PAM</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA16Gray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PAM</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PPM, PAM</td>
+      </row>
+      <row>
+        <td>48 bit RGB</td>
+        <td><icode>ifR16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PPM, PAM</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PAM</td>
+      </row>
+      <row>
+        <td>64 bit ARGB</td>
+        <td><icode>ifA16R16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PAM</td>
+      </row>
+      <row>
+        <td>32 bit R FP32</td>
+        <td><icode>ifR32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PFM</td>
+      </row>
+      <row>
+        <td>96 bit RGB FP32</td>
+        <td><icode>ifA32R32G32B32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+        <td>PFM</td>
+      </row>
+    </table>
+    
+    <par>
+      When working with PNM files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TPGMFileFormat</ref>
+      and <ref>TPPMFileFormat</ref> classes.
+    </par>
+    <table>
+      <title>Options Related to PNM Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingPGMSaveBinary</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>If set to True PGM images will be saved in binary format, otherwise
+        they will be saved in text format (which could result in 5-10x bigger file).
+        Default value is <b>1 (true)</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingPPMSaveBinary</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>If set to True PPM images will be saved in binary format, otherwise
+        they will be saved in text format (which could result in 5-10x bigger file).
+        Default value is <b>1 (true)</b>. </td>
+      </row>
+    </table>
+    
+  </chapter>
+</doc>

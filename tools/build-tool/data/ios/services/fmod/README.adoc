@@ -1,0 +1,31 @@
+## fmod
+
+This service links your project with https://castle-engine.io/fmod[FMOD] on iOS.
+
+### Declare in CastleEngineManifest.xml
+
+Declare it like this in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="..." game_units="...">
+  <ios>
+    <services>
+      <service name="fmod">
+        <parameter key="library_path" value="fmod-ios-library" />
+      </service>
+    </services>
+  </ios>
+</project>
+----
+
+The `library_path` parameter is the location of the FMOD for iOS library. You need to download it from https://www.fmod.com/ yourself. We expect to find in this directory a file `libfmod_iphoneos.a`.
+
+### Use FMOD sound backend from Pascal
+
+Use `CastleFMODSoundBackend` unit and call `UseFMODSoundBackend`.
+
+That's it, now all our sound API (see https://castle-engine.io/manual_sound.php[manual about sound]) uses FMOD under the hood.
+
+See https://castle-engine.io/fmod[FMOD docs] for more details.

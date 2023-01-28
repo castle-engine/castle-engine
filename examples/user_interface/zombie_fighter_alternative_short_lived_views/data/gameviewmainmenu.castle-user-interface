@@ -1,0 +1,128 @@
+{
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "ColorPersistent" : {
+        "Green" : 9.0980392694473267E-001,
+        "Red" : 0.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1",
+      "$Children" : [
+        {
+          "Alignment" : "hpMiddle",
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "VerticalGroup1",
+          "Spacing" : 2.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "Caption" : "New game",
+              "CustomBackground" : true,
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomColorFocusedPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "CustomColorNormalPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 9.5294117927551270E-001,
+                "Green" : 9.5294117927551270E-001,
+                "Red" : 9.5294117927551270E-001,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "CustomColorPressedPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 8.7058824300765991E-001,
+                "Green" : 8.7058824300765991E-001,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonNewGame",
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Quit",
+              "CustomBackground" : true,
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomColorFocusedPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "CustomColorNormalPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 9.5294117927551270E-001,
+                "Green" : 9.5294117927551270E-001,
+                "Red" : 9.5294117927551270E-001,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "CustomColorPressedPersistent" : {
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 8.7058824300765991E-001,
+                "Green" : 8.7058824300765991E-001,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonQuit",
+              "VerticalAnchorDelta" : -5.9000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

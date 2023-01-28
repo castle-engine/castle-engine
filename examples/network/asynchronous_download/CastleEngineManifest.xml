@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="asynchronous_download"
+  standalone_source="asynchronous_download_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.asynchronous.download"
+>
+  <dependencies>
+    <dependency name="Https" /> <!-- read https links -->
+  </dependencies>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

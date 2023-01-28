@@ -1,0 +1,47 @@
+------------------------------------------------------------------------------
+character/soldier based on
+  https://opengameart.org/content/soldier-10
+  by killyoverdrive
+  License(s): CC-BY-SA 3.0
+
+------------------------------------------------------------------------------
+level/dungeon-tileset-extended based on
+  https://opengameart.org/content/3d-castle-dungeon-tileset-extended
+  by rubberduck
+  License(s): CC0
+
+  Which in turn used (comments from author):
+
+    concrete01*.jpg from http://opengameart.org/content/pietextureset
+
+    platform.jpg, made from concrete
+
+    gate.jpg,gate-2.png, ground*.jpg, wall-window.jpg from me
+
+    torch model, torch*.jpg from my torch pack (http://opengameart.org/content/fantasy-torch-pack-2)
+
+    wall-tex-*.jpg based on wall_breezeblock1.png from http://opengameart.org/content/free-urban-textures-walls-brick-stone-part-1 by scouser
+
+    tile_tantiles from BMacZero (http://opengameart.org/node/27679)
+
+    shield and sword model/texture from yd (http://opengameart.org/content/shield-sword)
+
+    wall-to-depth.jpg made from wall-tex
+
+    mug2.png, model and texture both edited based on my mug pack (http://opengameart.org/content/free-mug-pack-1)
+
+    switch.png and decorative.png made by me, used some cc0 textures from scouser and some from me
+
+    tile-ground2.jpg from yughues (http://opengameart.org/content/free-tiling-textures-pack-54)
+
+------------------------------------------------------------------------------
+audio/flaunch.wav from
+  https://opengameart.org/content/dark-fallout
+  by Michel Baradari
+  License(s): CC-BY 3.0
+
+------------------------------------------------------------------------------
+audio/dark fallout.ogg
+  https://opengameart.org/content/4-projectile-launches
+  by remaxim
+  License(s): CC-BY-SA 3.0

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Supported File Formats</title>
+  <chapter>
+    <title>Supported File Formats</title>
+    <par>
+      Image file format is device independent representation of image data.
+      Images in these formats are usually stored as external
+      files on hard disk. Many different file formats
+      have been created but majority of the images stored anywhere
+      are saved in one of a few most widely used formats.
+      Main goal of Imaging's file format support is to fully support
+      these widely used formats. This means
+      successful loading and saving of all images stored in these formats.
+      So if you have some image in one of supported formats and it can not
+      be loaded by Imaging, please send it to me so I will be able to fix it.
+    </par>
+
+    <linklist>
+      <title>Core File Formats</title>
+      <lslink url="Bitmap.xml">BMP Windows Bitmap File Format</lslink>
+      <lslink url="Jpeg.xml">JPEG File Format</lslink>
+      <lslink url="Png.xml">PNG Portable Network Graphics File Format</lslink>
+      <lslink url="Gif.xml">GIF Graphics Interchange Format</lslink>
+      <lslink url="Targa.xml">TGA Targa File Format</lslink>
+      <lslink url="Dds.xml">DDS DirectDraw Surface File Format</lslink>
+      <lslink url="Mng.xml">MNG Multiple Network Graphics File Format</lslink>
+      <lslink url="Jng.xml">JNG JPEG Network Graphics File Format</lslink>
+      <lslink url="Pnm.xml">Portable Maps: PBM, PGM, PPM, PAM, and PFM File Formats</lslink>
+    </linklist>
+    
+    <linklist>
+      <title>Extras File Formats</title>
+      <lslink url="Jpeg2000.xml">JPEG2000 File Format</lslink>
+      <lslink url="Psd.xml">PSD Photoshop Document File Format</lslink>
+      <lslink url="Tiff.xml">TIFF Tagged Image File Format</lslink>
+      <lslink url="Pcx.xml">PCX ZSoft PaintBrush File Format</lslink>
+      <lslink url="Xpm.xml">X Window Pixmap File Format</lslink>
+      <lslink url="ElderImagery.xml">Elder Imagery Extension</lslink>
+    </linklist>
+    
+    <note>
+      What are <b>Core and Extras File Formats</b>? Look at
+      <link url="../Extensions/ExtFileFormats.xml">Extensions - File Formats</link> section for information.
+    </note>
+
+  </chapter>
+</doc>

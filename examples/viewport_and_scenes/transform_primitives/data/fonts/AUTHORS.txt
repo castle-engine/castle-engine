@@ -1,0 +1,10 @@
+DejaVuSans*.ttf
+  from Debian ttf-dejavu package.
+  License: http://dejavu-fonts.org/wiki/License
+    May also be found in /usr/share/doc/ttf-dejavu/copyright
+    on a Debian system with ttf-dejavu installed.
+
+PARPG.ttf
+  from http://opengameart.org/content/old-typewriter-font
+  by Q_x http://opengameart.org/users/qx
+  License(s): CC0

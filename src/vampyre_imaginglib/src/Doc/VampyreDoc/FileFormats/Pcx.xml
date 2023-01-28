@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>ZSoft Paintbrush Image</title>
+  <chapter>
+    <title>ZSoft Paintbrush Image</title>
+    <par>
+      <b>PCX</b> was the native file format for <b>ZSoft PC Paintbrush</b> graphics editor
+      which was popular in old DOS days.
+      Most PCX files use a color palette, but the format has also been extended
+      to support true color images. It uses a simple run-length
+      encoding as compression.
+      PCX was quite popular on early DOS and Windows systems (it is
+      native texture file format of Unreal 1 engine)
+      but it has been largely replaced by more powerful formats like
+      PNG and JPEG. Imaging supports only loading of PCX files
+      (I don't wont this venerable format to spread).
+    </par>
+    
+    <table>
+      <title>PCX File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+      </row>
+      <row>
+        <td>1 bit mono</td>
+        <td><icode>ifIndex8</icode></td>
+      </row>
+      <row>
+        <td>2 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+      </row>
+      <row>
+        <td>4 bit indexed (rare)</td>
+        <td><icode>ifIndex8</icode></td>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+      </row>
+      <row>
+        <td>32 bit ARGB (rare)</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+      </row>
+    </table>
+
+  </chapter>
+</doc>

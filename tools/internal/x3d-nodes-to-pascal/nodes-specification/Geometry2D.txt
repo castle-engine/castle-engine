@@ -1,0 +1,60 @@
+Arc2D : X3DGeometryNode {
+  SFFloat []       endAngle   Pi/2
+    range: [-2Pi,2Pi]
+  SFFloat []       radius     1
+    range: (0,Inf)
+  SFFloat []       startAngle 0
+    range: [-2Pi,2Pi]
+}
+
+ArcClose2D : X3DGeometryNode {
+  SFString []       closureType "PIE"
+    range: ["PIE"|"CHORD"]
+    enumerated-type: TArcClosureType ArcClosureTypeNames acPie
+  SFFloat  []       endAngle    Pi/2
+    range: [-2Pi,2Pi]
+  SFFloat  []       radius      1
+    range: (0,Inf)
+  SFBool   []       solid       FALSE
+  SFFloat  []       startAngle  0
+    range: [-2Pi,2Pi]
+}
+
+Circle2D : X3DGeometryNode {
+  SFFloat []       radius   1
+    range: (0,Inf)
+
+  # CASTLE GAME ENGINE EXTENSIONS:
+  SFInt32    [in,out]      slices      -1
+    range: {-1} + [3, infinity)
+}
+
+Disk2D : X3DGeometryNode {
+  SFFloat []       innerRadius 0
+    range: [0,Inf)
+  SFFloat []       outerRadius 1
+    range: (0,Inf)
+  SFBool  []       solid       FALSE
+}
+
+Polyline2D : X3DGeometryNode {
+  MFVec2f []       lineSegments []
+    range: (-Inf,Inf)
+}
+
+Polypoint2D : X3DGeometryNode {
+  MFVec2f [in,out] point    []
+    range: (-Inf,Inf)
+}
+
+Rectangle2D : X3DGeometryNode {
+  SFVec2f []       size     2 2
+    range: (0,Inf)
+  SFBool  []       solid    FALSE
+}
+
+TriangleSet2D : X3DGeometryNode {
+  MFVec2f [in,out] vertices []
+    range: (-Inf,Inf)
+  SFBool  []       solid    FALSE
+}

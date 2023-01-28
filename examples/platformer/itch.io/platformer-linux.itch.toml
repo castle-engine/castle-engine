@@ -1,0 +1,11 @@
+[[actions]]
+name = "play"
+path = "./platformer"
+
+[[actions]]
+name = "manual"
+path = "https://github.com/castle-engine/castle-engine/blob/master/examples/platformer/README.md"
+
+[[actions]]
+name = "forums"
+path = "https://castle-engine.io/talk.php"

@@ -1,0 +1,19 @@
+## helpshift
+
+Enable the https://www.helpshift.com/[Helpshift], a mobile-friendly support system (submitting issues, chat with support, FAQ). Use the trivial https://castle-engine.io/apidoc/html/CastleHelpshift.THelpshift.html[THelpshift] class from the https://castle-engine.io/apidoc/html/CastleHelpshift.html[CastleHelpshift] unit to show the Helpshift activities from your application.
+
+Requires:
+
+* Create an account on http://helpshift.com/ , to get the necessary keys for your project. Use them when declaring the service parameters in link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml]:
++
+[,xml]
+----
+<service name="helpshift">
+  <parameter key="api_key" value="xxx" />
+  <parameter key="domain" value="xxx.helpshift.com" />
+  <parameter key="app_id" value="xxx_platform_xxx" />
+</service>
+----
+
+* The Helpshift library is automatically downloaded at the first build using _Gradle_, so you don't have to do anything yourself.
+* Make sure you compile with Android SDK platform 23 or higher (already the default now) and have `min_sdk_version` >= 14 in your link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml]. See the https://developers.helpshift.com/android/getting-started/ . This page also says you need the `target_sdk_version` >= 23, but I found that older versions work too.

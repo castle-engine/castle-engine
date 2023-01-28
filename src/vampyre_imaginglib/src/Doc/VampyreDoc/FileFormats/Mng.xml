@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Multiple Network Graphics File Format</title>
+  <chapter>
+    <title>Multiple Network Graphics File Format</title>
+
+    <par>
+      MNG is a multiple-image member of the Network Graphics
+      format family. It can contain animations, slide shows,
+      or complex still frames, comprised of multiple
+      PNG or JNG single-image datastreams.
+      This format has complex animation capabilities but Imaging only
+      extracts frames. Individual frames are stored as standard PNG or JNG
+      images.
+    </par>
+    <par>
+      Imaging saves MNG files as MNG-VLC (very low complexity) so it is basically
+      an array of image frames without MNG animation chunks. Frames can be saved
+      as lossless PNG or lossy JNG images.
+      Every frame can be in different data format.
+    </par>
+    
+    <par>
+      For information about supported data formats of individual frames look
+      at PNG and JNG file formats, which are internally used to store frames.
+    </par>
+
+    <linklist>
+      <title>MNG frame formats</title>
+      <lslink url="Png.xml">PNG File Format</lslink>
+      <lslink url="Jng.xml">JNG File Format</lslink>
+    </linklist>
+
+    <par>
+      When working with MNG files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TMNGFileFormat</ref>
+      class.
+    </par>
+
+    <table>
+      <title>Options Related to MNG Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      
+      <row>
+        <td><ref>ImagingMNGLossyCompression</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>Specifies whether MNG animation frames are saved with lossy or lossless
+          compression. Lossless frames are saved as PNG images and lossy frames are
+          saved as JNG images.
+          Default value is <b>0</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingMNGLossyAlpha</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td> Defines whether alpha channel of lossy compressed MNG frames
+          (when ImagingMNGLossyCompression is 1) is lossy compressed too.
+          Default value is <b>0</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingMNGPreFilter</ref></td>
+        <td><b>0, 1, 2, 3, 4, 5, 6</b></td>
+        <td>Sets precompression filter used when saving MNG frames as PNG images.
+          Allowed values are:
+          <list>
+            <li>0 - None Filter</li>
+            <li>1 - Sub Filter</li>
+            <li>2 - Up Filter</li>
+            <li>3 - Average Filter</li>
+            <li>4 - Paeth Filter</li>
+            <li>5 - Use 0 for indexed/gray images and 4 for RGB/ARGB images</li>
+            <li>6 - Adaptive filtering - use best filter for each scanline - very slow</li>
+          </list>
+          Note that filters 3 and 4 are much slower than filters 1 and 2.
+          Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingMNGCompressLevel</ref></td>
+        <td><b>0 (no compression)</b> to <b>9 (best compression)</b></td>
+        <td>Sets ZLib compression level used when saving MNG frames as PNG images.
+          Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingMNGQuality</ref></td>
+        <td><b>1</b> to <b>100</b></td>
+        <td>Specifies compression quality used when saving MNG frames as JNG images.
+        Higher value means worse compression/better image quality/larger file size.
+        Default value is <b>90</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingMNGProgressive</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>Specifies whether images are saved in progressive format when saving MNG
+        frames as JNG images.
+        Progressive JPEG rearranges the stored data into a series of scans of
+        increasing quality.  In situations where a JPEG file is transmitted across a
+        slow communications link, a decoder can generate a low-quality image very
+        quickly from the first scan, then gradually improve the displayed quality as
+        more scans are received. Default value is <b>0 (False)</b>. </td>
+      </row>
+      
+    </table>
+    
+  </chapter>
+</doc>

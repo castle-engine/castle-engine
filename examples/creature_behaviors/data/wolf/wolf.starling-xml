@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="wolf.png">
+	<SubTexture name="attack_20.png" x="129" y="192" width="60" height="31"/>
+	<SubTexture name="attack_21.png" x="0" y="198" width="63" height="32"/>
+	<SubTexture name="attack_22.png" x="65" y="95" width="63" height="31"/>
+	<SubTexture name="attack_23.png" x="129" y="128" width="62" height="31"/>
+	<SubTexture name="run_14.png" x="65" y="63" width="63" height="30"/>
+	<SubTexture name="run_15.png" x="129" y="161" width="60" height="29"/>
+	<SubTexture name="run_16.png" x="65" y="194" width="62" height="31"/>
+	<SubTexture name="run_17.png" x="65" y="128" width="62" height="31"/>
+	<SubTexture name="run_18.png" x="65" y="161" width="62" height="31"/>
+	<SubTexture name="run_19.png" x="0" y="165" width="63" height="31"/>
+	<SubTexture name="sit_01.png" x="66" y="0" width="63" height="31"/>
+	<SubTexture name="sit_02.png" x="65" y="33" width="63" height="28"/>
+	<SubTexture name="sit_03.png" x="65" y="227" width="61" height="25"/>
+	<SubTexture name="sit_04.png" x="0" y="232" width="60" height="21"/>
+	<SubTexture name="walk_09.png" x="0" y="132" width="63" height="31"/>
+	<SubTexture name="walk_10.png" x="0" y="0" width="64" height="31"/>
+	<SubTexture name="walk_11.png" x="0" y="66" width="63" height="31"/>
+	<SubTexture name="walk_12.png" x="0" y="99" width="63" height="31"/>
+	<SubTexture name="walk_13.png" x="0" y="33" width="63" height="31"/>
+</TextureAtlas>

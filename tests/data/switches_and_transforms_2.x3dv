@@ -1,0 +1,122 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Transform, Switch, and Transform inside a Switch...
+# Test of Transform fields optimization with Switch.whichChoice optimization
+# (when they all change through events).
+#
+# Keys 1,2,3,4 change switches whichChoice values.
+# Horizontal arrow should always move only horizontally,
+# vertical arrow --- only vertically.
+#
+# (Transforms of both left arrows are deliberately the different nodes,
+# to test the harder case --- see Castle Game Engine vrmlscene.pas
+# Transform optimization for details.)
+
+PROTO ArrowVertical [ ] {
+  Shape {
+    geometry Extrusion {
+      spine [ 0 0 0, 0 1.5 0, 0 1.5 0  ,   0 4.5 0, 0 4.5 0, 0 6 0 ]
+      scale [ 0 0  , 1 1    , 0.75 0.75, 0.75 0.75, 1 1    , 0 0   ]
+      }
+    appearance Appearance { material Material { } }
+  }
+}
+
+PROTO ArrowHorizontal [ ] {
+  Transform {
+    rotation 0 0 1 1.5707963268
+    center 0 3 0 # to rotate around arrow center
+    children ArrowVertical { }
+  }
+}
+
+DEF Left Transform {
+  translation -4 0 0
+  children DEF LeftSwitch Switch {
+    whichChoice 1
+    children [
+      DEF LeftHoriz Transform {
+        children ArrowHorizontal { }
+      }
+      DEF LeftVert Transform {
+        children ArrowVertical { }
+      }
+    ]
+  }
+}
+
+DEF Right Transform {
+  translation 4 0 0
+  children DEF RightSwitch Switch {
+    whichChoice 0
+    children [
+      DEF RightHoriz Transform {
+        children ArrowHorizontal { }
+      }
+      DEF RightVert Transform {
+        children ArrowVertical { }
+      }
+    ]
+  }
+}
+
+# animate left horiz arrow --------------------------------------------------
+
+DEF TimerLeftHoriz TimeSensor { loop TRUE }
+DEF InterpLeftHoriz PositionInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ -0.5 0 0, 0.5 0 0, -0.5 0 0 ]
+}
+ROUTE TimerLeftHoriz.fraction_changed TO InterpLeftHoriz.set_fraction
+ROUTE InterpLeftHoriz.value_changed TO LeftHoriz.translation
+
+# animate right horiz arrow --------------------------------------------------
+
+DEF TimerRightHoriz TimeSensor { loop TRUE }
+DEF InterpRightHoriz PositionInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ -0.5 0 0, 0.5 0 0, -0.5 0 0 ]
+}
+ROUTE TimerRightHoriz.fraction_changed TO InterpRightHoriz.set_fraction
+ROUTE InterpRightHoriz.value_changed TO RightHoriz.translation
+
+# animate left vert arrow --------------------------------------------------
+
+DEF TimerLeftVert TimeSensor { loop TRUE }
+DEF InterpLeftVert PositionInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ 0 -0.5 0, 0 0.5 0, 0 -0.5 0 ]
+}
+ROUTE TimerLeftVert.fraction_changed TO InterpLeftVert.set_fraction
+ROUTE InterpLeftVert.value_changed TO LeftVert.translation
+
+# animate right vert arrow --------------------------------------------------
+
+DEF TimerRightVert TimeSensor { loop TRUE }
+DEF InterpRightVert PositionInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ 0 -0.5 0, 0 0.5 0, 0 -0.5 0 ]
+}
+ROUTE TimerRightVert.fraction_changed TO InterpRightVert.set_fraction
+ROUTE InterpRightVert.value_changed TO RightVert.translation
+
+# Script with key sensor to change switches values ---------------------------
+
+DEF Scr Script {
+  inputOutput SFInt32 leftChoice 0
+  inputOutput SFInt32 rightChoice 0
+  inputOnly SFString keyPress
+  url "castlescript:
+
+function keyPress(value, time)
+  when(value = '1', leftChoice := 0);
+  when(value = '2', leftChoice := 1);
+  when(value = '3', rightChoice := 0);
+  when(value = '4', rightChoice := 1)
+"
+}
+DEF K KeySensor { }
+ROUTE K.keyPress TO Scr.keyPress
+ROUTE Scr.leftChoice TO LeftSwitch.whichChoice
+ROUTE Scr.rightChoice TO RightSwitch.whichChoice

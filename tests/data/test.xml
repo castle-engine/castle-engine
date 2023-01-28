@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root
+  some_string="some_string_value"
+  some_int="123"
+  some_bool="true">
+</root>

@@ -1,0 +1,53 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Simple demo of a generated cube map
+Transform {
+  translation -2 0 0
+  rotation 1 0 0 1.4
+  children Shape {
+    appearance Appearance {
+      material Material { }
+      texture DEF GenTex1 GeneratedCubeMapTexture {
+        update "ALWAYS"
+        #size 256
+      }
+    }
+    geometry Teapot {
+      solid FALSE
+      texCoord TextureCoordinateGenerator {
+        mode "WORLDSPACEREFLECTIONVECTOR"
+      }
+    }
+  }
+}
+
+# Generated cube map rotating
+DEF Timer TimeSensor { loop TRUE cycleInterval 2.0 }
+DEF Interp OrientationInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ 1 0 0 0,
+             1 0 0 3.14
+             1 0 0 6.28
+           ]
+}
+DEF RotatingCubeMap Transform {
+  translation 2 0 0
+  children Shape {
+    appearance Appearance {
+      material Material { }
+      texture DEF GenTex1 GeneratedCubeMapTexture {
+        update "ALWAYS"
+        #size 256
+      }
+    }
+    geometry Teapot {
+      solid FALSE
+      texCoord TextureCoordinateGenerator {
+        mode "WORLDSPACEREFLECTIONVECTOR"
+      }
+    }
+  }
+}
+ROUTE Timer.fraction_changed TO Interp.set_fraction
+ROUTE Interp.value_changed TO RotatingCubeMap.set_rotation

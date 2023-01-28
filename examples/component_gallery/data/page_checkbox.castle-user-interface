@@ -1,0 +1,123 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "GroupRoot",
+  "VerticalAnchorParent" : "vpTop",
+  "VerticalAnchorSelf" : "vpTop",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleCheckbox",
+      "Caption" : "Checkbox",
+      "CheckboxColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "Checkbox1",
+      "TextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "VerticalAnchorDelta" : -1.5999938964843750E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCheckbox",
+      "Caption" : "Larger text and checkbox",
+      "CheckboxColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CheckboxSize" : 4.2000000000000000E+001,
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "Checkbox5",
+      "TextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "VerticalAnchorDelta" : -2.0600012207031250E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCheckbox",
+      "Caption" : "Checkbox, custom colors",
+      "CheckboxColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "Checkbox4",
+      "TextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000
+      },
+      "VerticalAnchorDelta" : -1.5599993896484375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCheckbox",
+      "Caption" : "Checkbox, initially checked",
+      "CheckboxColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Checked" : true,
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "Checkbox2",
+      "TextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "VerticalAnchorDelta" : -5.5999938964843750E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCheckbox",
+      "Caption" : "Checkbox, custom font",
+      "CheckboxColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "Font1",
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Name" : "Checkbox3",
+      "TextColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "VerticalAnchorDelta" : -1.0599993896484375E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "Font1",
+          "URL" : "castle-data:/fonts/PARPG.ttf"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="advanced_loading_designs"
+  standalone_source="advanced_loading_designs_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.advanced.loading.designs"
+  caption="Advanced Loading Of Designs"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

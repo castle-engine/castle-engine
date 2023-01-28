@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="image_display"
+  standalone_source="image_display_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.image.display"
+  caption="Test Image Loading and Displaying"
+>
+  <compiler_options>
+    <custom_options>
+      <!-- Without Vampyre, XPM reading will fail -->
+      <!-- Using Vampyre is the default now -->
+      <!-- <option>-dUSE_VAMPYRE_IMAGING</option> -->
+    </custom_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

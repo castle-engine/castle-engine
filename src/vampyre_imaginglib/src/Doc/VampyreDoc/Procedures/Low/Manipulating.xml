@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Manipulating Images</title>
+  <chapter>
+    <title>Manipulating Images</title>
+    <par>Imaging offers some image manipulation functions which work
+    with all supported image data formats. Conversions, resizing,
+    color reduction and other are available.
+    You can find list of all low level image manipulation and drawing/pixel
+    functions in <link url="../../Usage/LowLevel.xml">Low Level Interface</link> section.
+    You can look at usage of many of these functions in the
+    <link url="../../Demos/Pascal.xml#vampconvert">VampConvert</link>
+    and
+    <link url="../../Demos/Pascal.xml#benchmark">Benchmark</link> Object Pascal demos
+    and <link url="../../Demos/Cpp.xml#benchmark">C++ Benchmark</link> demo.</par>
+
+    <par>In the following code listing you can see typical usage of Imaging's
+    manipulation functions.</par>
+
+    <code>
+uses
+  ImagingTypes, Imaging;
+var
+  Img, ImgClone: <ref>TImageData</ref>;
+begin
+  ...
+  // image is now initialized and loaded
+  // now we want image to be mirrored
+  <ref>MirrorImage</ref>(Img);
+  // and flipped
+  <ref>FlipImage</ref>(Img);
+  // conversion to 32bit ARGB format
+  <ref>ConvertImage</ref>(Img, ifA8R8G8B8);
+  // swap alpha channel with green channel
+  <ref>SwapChannels</ref>(Img, ChannelAlpha, ChannelGreen);
+  // now we make clone of image
+  <ref>InitImage</ref>(ImgClone);
+  <ref>CloneImage</ref>(Img, ImgClone);
+  // reduce colors of clone to 1024
+  <ref>ReduceColors</ref>(ImgClone, 1024);
+  // and resize original image
+  <ref>ResizeImage</ref>(Img, Img.Width * 2, Image.Height div 2, rfBicubic);
+  // finally convert clone to DXT5
+  <ref>ConvertImage</ref>(ImgClone, ifDXT5);
+  // do something else with image
+  ...
+end.
+    </code>
+    
+    <par>In this example you can find how to pass fill color parameters to 
+    functions like <ref>FillRect</ref>. These functions work for all possible image 
+    data format so fill color is defined as pointer to pixel in image's format.
+    You can also use <ref>GetPixel32</ref>, <ref>SetPixel32</ref>,
+    <ref>GetPixelFP</ref>, and <ref>SetPixelFP</ref> to set/get pixel colors
+    which are automatically converted to native color format of each data format.
+
+    </par>
+
+    <code>
+var
+  Img: <ref>TImageData</ref>;
+  Pix32: <ref>TColor32Rec</ref>
+  Pix24: <ref>TColor24Rec</ref>
+  Pix64: <ref>TColor64Rec</ref>
+  Pix48: <ref>TColor48Rec</ref>
+  PixWord: Word;
+  PixByte: Byte;
+begin
+  ...
+  // image is now initialized and loaded
+  // now we set pixel colors 
+  Pix32.Color := $FFFF0000; // opaque red
+  Pix64.Color := $FFFF0000FFFF0000; // opaque green 
+  with Pix24 do begin R := $FF; G := $FF; B := 0; end; // yellow 
+  with Pix48 do begin R := $FF00; G := $00FF; B := $0800; end; // something redish
+  PixWord := (31 shl 10) or (15 shl 5) or 25; // something violetish in R5G5B5
+  PixByte := 111; 
+ 
+  // image is then converted between various formats
+  // and rectangle is filled with appropriate pixels
+  
+  <ref>ConvertImage</ref>(Img, ifA16R16G16B16);
+  <ref>FillRect</ref>(Img, 20, 20, 60, 40, @Pix64);
+  
+  ConvertImage(Img, ifA8R8G8B8);
+  FillRect(Img, 20, 20, 60, 40, @Pix32);
+  
+  ConvertImage(Img, ifR16G16B16);
+  FillRect(Img, 20, 20, 60, 40, @Pix48);
+  
+  ConvertImage(Img, ifR8G8B8);
+  FillRect(Img, 20, 20, 60, 40, @Pix24);
+  
+  ConvertImage(Img, ifX1R5G5B5);
+  FillRect(Img, 20, 20, 60, 40, @PixWord);
+  
+  ConvertImage(Img, ifGray8);
+  FillRect(Img, 20, 20, 60, 40, @PixByte);
+ 
+  ...
+end.    
+    </code>
+  
+
+  </chapter>
+</doc>

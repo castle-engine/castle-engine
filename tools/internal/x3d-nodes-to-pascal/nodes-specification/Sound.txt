@@ -1,0 +1,45 @@
+X3DSoundNode : X3DChildNode {
+  default-container-field: children
+}
+
+X3DSoundSourceNode : X3DTimeDependentNode {
+  default-container-field: children
+
+  SFString [in,out] description      ""
+  SFFloat  [in,out] pitch            1.0
+    range: (0,Inf)
+  SFTime   [out]    duration_changed
+}
+
+AudioClip : X3DSoundSourceNode, X3DUrlObject {
+  # Although X3D XML encoding spec says that "children" is default
+  # containerField, common sense says it should be "source".
+  # Sound.source field is where AudioClip should be placed, always.
+  # Testcase: FISH.x3d
+  default-container-field: source
+
+  MFString [in,out] url              []
+    range: [urn]
+}
+
+Sound : X3DSoundNode {
+  SFVec3f [in,out] direction  0 0 1
+    range: (-Inf,Inf)
+  SFFloat [in,out] intensity  1
+    range: [0,1]
+  SFVec3f [in,out] location   0 0 0
+    range: (-Inf,Inf)
+  SFFloat [in,out] maxBack    10
+    range: [0,Inf)
+  SFFloat [in,out] maxFront   10
+    range: [0,Inf)
+  SFFloat [in,out] minBack    1
+    range: [0,Inf)
+  SFFloat [in,out] minFront   1
+    range: [0,Inf)
+  SFFloat [in,out] priority   0
+    range: [0,1]
+  SFNode  [in,out] source     NULL
+    range: X3DSoundSourceNode
+  SFBool  []       spatialize TRUE
+}

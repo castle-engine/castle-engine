@@ -1,0 +1,13 @@
+IndexedTriangleMesh : TIndexedFacesOrTrianglesNode_1 {
+  vrml1
+}
+
+RotationXYZ : AbstractVrml1Transformation {
+  vrml1
+  SFEnum [in,out] axis 0
+    enumerated-type-vrml1: AxisNames
+    change: chEverything
+  SFFloat [in,out] angle 0
+    change: chEverything
+    angle
+}

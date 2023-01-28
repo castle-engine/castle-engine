@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="cge-component-gallery"
+  standalone_source="cge_component_gallery_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.component.gallery"
+  caption="Castle Game Engine Components"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="view_3d_model_advanced"
+  standalone_source="view_3d_model_advanced.dpr"
+  qualified_name="io.castleengine.view.model.advanced"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

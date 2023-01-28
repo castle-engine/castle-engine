@@ -1,0 +1,9 @@
+## write_extenal_storage
+
+This service asks user for permissions to write Android _"external storage"_.
+
+_"External storage"_ includes normal files, which can be accessed in _Castle Game Engine_ and Pascal through the standard file API (like `TFileStream` from `Classes` unit or `URLSaveStream` from `CastleDownload` unit). In case of _Castle Game Engine_, files can be accessed using the URLs with `file` protocol (like `file:///storage/emulated/0/my_file.txt`) or an explicit Unix file path (like `/storage/emulated/0/my_file.txt`).
+
+These are e.g. files in your internal memory and SD cards.
+
+Note: Writing permission also implicitly includes reading permission. So if you use this service, you no longer need service "read_external_storage".

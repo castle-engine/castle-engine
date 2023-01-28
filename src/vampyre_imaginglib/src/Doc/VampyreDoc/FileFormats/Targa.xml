@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Truevision Targa File Format</title>
+  <chapter>
+    <title>Truevision Targa File Format</title>
+    <par>
+      Truevision defined the TGA file format in 1984 for use with its
+      first videographics products. It was the first truecolor
+      file format widely available. They are still widely used for
+      images with alpha channels.
+      It can store indexed, grayscale, RGB and ARGB images.
+      Targas can be uncompressed or compressed with RLE (run length encoding)
+      algorithm.
+    </par>
+
+    <table>
+      <title>Targa File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit ARGB</td>
+        <td><icode>ifA1R5G5B5</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>All above but RLE compressed</td>
+        <td><icode>-</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit indexed Huffman, Delta, RLE</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>No</td><td>No</td>
+      </row>
+      <row>
+        <td>8 bit indexed Huffman, Delta, RLE, 4-pass</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>No</td><td>No</td>
+      </row>
+    </table>
+
+    <note>
+      If anyone has some information about two last formats (TGA image type
+      codes 32 and 33) please tell me.
+    </note>
+
+    <par>
+      When working with Targa files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TTargaFileFormat</ref>
+      class.
+    </par>
+
+    <table>
+      <title>Options Related to Targa Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingTargaRLE</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Indicates whether Targa image will be saved with or without
+        RLE compression (efficient only for images
+        with large areas of the same color).
+        Default value is <b>0 (false)</b>. </td>
+      </row>
+    </table>
+
+  </chapter>
+</doc>

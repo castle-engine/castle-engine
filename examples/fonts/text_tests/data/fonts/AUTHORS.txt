@@ -1,0 +1,20 @@
+sonic_asalga_0.png font
+  from http://opengameart.org/content/sonic-font
+  by Andor Salga, http://opengameart.org/users/asalga
+  License(s): CC-BY-SA 3.0
+
+null_terminator_0.png font
+  from http://opengameart.org/content/null-terminator
+  by Andor Salga, http://opengameart.org/users/asalga
+  License(s): CC0
+
+DejaVuSans.ttf
+  from Debian ttf-dejavu package.
+  License: http://dejavu-fonts.org/wiki/License
+    May also be found in /usr/share/doc/ttf-dejavu/copyright
+    on a Debian system with ttf-dejavu installed.
+
+PARPG.ttf
+  from http://opengameart.org/content/old-typewriter-font
+  by Q_x http://opengameart.org/users/qx
+  License(s): CC0

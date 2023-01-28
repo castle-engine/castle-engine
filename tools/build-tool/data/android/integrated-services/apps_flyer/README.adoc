@@ -1,0 +1,12 @@
+## apps_flyer
+
+Integration with https://www.appsflyer.com/[AppsFlyer].
+
+You need to declare in `CastleEngineManifest.xml` the "dev key" you have from AppsFlyer, like this:
+
+[,xml]
+----
+<service name="apps_flyer">
+  <parameter key="dev_key" value="..." />
+</service>
+----

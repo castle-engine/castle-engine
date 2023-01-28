@@ -1,0 +1,20 @@
+## sound
+
+Enable the sound service on Android. _There is no need to include this service explicitly_, it is automatically added if your game depends on a sound library. Which in turn may be done by declaring `<dependency name="Sound" />` in link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml], but usually it's automatically detected when the build tool notices a sound file inside your data.
+
+### OpenAL source code
+
+The exact source code of this library is on https://github.com/castle-engine/android-openal .
+
+Forked from http://repo.or.cz/w/openal-soft/android.git .
+Note that all the workarounds and tweaks mentioned on
+http://pielot.org/2010/12/openal-on-android/
+seem to be already fixed in the latest version of this repo :)
+
+Update the library files (SO) like this:
+
+----
+git clone https://github.com/castle-engine/android-openal
+cd android-openal/
+make build
+----

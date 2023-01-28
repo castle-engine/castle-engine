@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Delphi.NET Demos</title>
+  <chapter>
+    <title>Delphi.NET Demos</title>
+    <par>These Delphi.NET demos currently exist:</par>
+    <blist>
+      <li><link url="#demo01">Demo 01</link></li>
+    </blist>
+
+    <note>
+    If you want to use Imaging in Delphi.NET you must include
+    <icode>ImagingNET.pas</icode> (located in
+    <keyword>Source\Wrappers\Delphi.NET</keyword> directory)
+    unit to your uses clause.
+    You can use <icode>Imaging</icode> class which encapsulates
+    imported functions and uses more dotNET-like names and types or
+    functions directly imported from dll. There are also some
+    dotNET only functions and extensions (for example color records like
+    <ref>TColor32Rec</ref> and others have various conversion methods and
+    some overloaded operators).
+    Only tested compiler for dotNET demos is Delphi 2006 but
+    Delphi 8/2005/Turbo.NET should work too. Imaging .NET demos work
+    in Mono too.
+    </note>
+    <note>
+    All non-Object Pascal programs using Imaging require <b>VampyreImaging.dll</b>
+    (Windows) or <b>libVampyreImaging.so</b> (Linux) to run.
+    Compiled Imaging library must be located somewhere on system's
+    search path for these demos to work.
+    </note>
+
+
+    <!-- DEMO01   ****************************** -->
+    <lcap><anchor name="demo01">Demo 01</anchor></lcap>
+    <par>
+    Simple image viewer program demonstrating usage of Imaging library
+    in Delphi.NET.
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>Demo 01</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Delphi.NET</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\Delphi.NET\Demo01</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\Demo01.exe</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>.NET</b> on Win32</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 2006 (<b>.NET</b>)</td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level (using dyn. library wrapper)</td>
+      </row>
+    </table>
+
+    It loads image stored in one of file formats
+    supported by Imaging library and assigns it to PictureBox component.
+    You can get some information about loaded image by clicking on PictureBox.
+    <image url="dotnetdemo01.png"/>
+  </chapter>
+</doc>

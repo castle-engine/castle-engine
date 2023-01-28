@@ -1,0 +1,11 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF Box1 Shape {
+  appearance Appearance { material Material { } }
+  geometry Box { size 1 10 1 }
+}
+
+DEF Box2Transform Transform { translation 2 0 0 rotation 1 0 0 0 children USE Box1 }
+DEF Box3Transform Transform { translation 4 0 0 rotation 1 0 0 0 children USE Box1 }
+DEF Box4Transform Transform { translation 6 0 0 rotation 1 0 0 0 children USE Box1 }

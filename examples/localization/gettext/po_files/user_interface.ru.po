@@ -1,0 +1,36 @@
+msgctxt "castle-components"
+msgid "gameviewmain.Text3d.Caption"
+msgstr "Это - трёхмерный текст"
+
+msgctxt "castle-components"
+msgid "gameviewmain.Label1.Caption"
+msgstr "Это - метка"
+
+msgctxt "castle-components"
+msgid "gameviewmain.Edit.Text"
+msgstr "Содержимое редактора"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonMessage.Caption"
+msgstr "Показать сообщение"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchEnglish.Caption"
+msgstr "Английский"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchGerman.Caption"
+msgstr "Немецкий"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchPolish.Caption"
+msgstr "Польский"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchRussian.Caption"
+msgstr "Русский"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchUkrainian.Caption"
+msgstr "Украинский"
+

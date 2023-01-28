@@ -1,0 +1,87 @@
+#VRML V2.0 utf8
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction -0.0009229449206031 0.0199630595743656 -0.0007901740609668
+# up -0.0017572878859937 0.0394696220755577 0.9992192983627319
+# gravityUp 0 0 1
+Transform {
+  translation 0.2157837897539138 -4.3772482872009277 1.1591906547546387
+  rotation 1 0 0 1.5707963705062866
+  children Viewpoint {
+    position 0 0 0 # camera position is expressed by translation
+    orientation -0.6499277353286743 0.7597975134849548 0.0139061501249671 0.0607967898249626
+  }
+}
+
+DirectionalLight {
+  direction 0 1 0
+  intensity 0.5
+}
+
+EXTERNPROTO KambiNavigationInfo [
+  eventIn      SFBool   set_bind
+  exposedField MFFloat  avatarSize
+  exposedField SFBool   headlight
+  exposedField SFFloat  speed
+  exposedField MFString type
+  exposedField SFFloat  visibilityLimit
+  eventOut     SFBool   isBound
+  field        SFBool   timeOriginAtLoad
+  field SFNode  octreeRendering
+  field SFNode  octreeDynamicCollisions
+  field SFNode  octreeVisibleTriangles
+  field SFNode  octreeStaticCollisions
+] [ "urn:castle-engine.sourceforge.net:node:KambiNavigationInfo",
+    "http://castle-engine.sourceforge.net/fallback_prototypes.wrl#KambiNavigationInfo"
+]
+
+KambiNavigationInfo {
+	headlight FALSE
+	type ["FLY", "ANY"]
+        timeOriginAtLoad TRUE
+}
+
+Background {
+	groundColor [ 0.0255309 0.0996698 0.1805486, 	0.0627654 0.0998349 0.1402743 ]
+	groundAngle [ 1.57 ]
+	skyColor [ 0.1 0.1 0.1, 	0.0627654 0.0998349 0.1402743 ]
+	skyAngle [ 1.57 ]
+}
+
+KambiInline {
+  url "fireplace.wrl"
+  replaceNames [
+    "_0003_png"
+    "_0002_png"
+    "_0001_png" ]
+  replaceNodes [
+    MovieTexture {
+
+      # PNG version gives best quality video, loaded from a sequence of PNG images.
+      # It also has alpha channel (which is kinda essential in this case.)
+      # But this will be handled only by Castle Game Engine,
+      # [http://castle-engine.sourceforge.net/].
+      #
+      # For general compatibility, there's an AVI version.
+
+      url [ "flame/seamless/@counter(4).png" "flame/flame_seamless_compressed.avi" ]
+      loop TRUE
+    }
+
+    MovieTexture {
+      url [ "flame/seamless/@counter(4).png" "flame/flame_seamless_compressed.avi" ]
+      loop TRUE
+      startTime -0.5
+      stopTime -0.5
+      speed 1.5
+    }
+
+    MovieTexture {
+      url [ "flame/seamless/@counter(4).png" "flame/flame_seamless_compressed.avi" ]
+      loop TRUE
+      startTime -1.0
+      stopTime -1.0
+      speed 1.2
+    }
+  ]
+}

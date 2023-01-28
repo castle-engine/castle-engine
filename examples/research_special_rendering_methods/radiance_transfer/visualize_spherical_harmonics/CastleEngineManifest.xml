@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="visualize_spherical_harmonics"
+  standalone_source="visualize_spherical_harmonics.dpr"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+      <path value="../../common_code/" />
+    </search_paths>
+  </compiler_options>
+</project>

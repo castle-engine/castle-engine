@@ -1,0 +1,39 @@
+object Console: TConsole
+  Left = 290
+  Height = 559
+  Top = 208
+  Width = 824
+  ActiveControl = Memo1
+  Caption = 'Console'
+  ClientHeight = 559
+  ClientWidth = 824
+  DesignTimePPI = 115
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poDefault
+  LCLVersion = '2.2.2.0'
+  object Button1: TButton
+    Left = 756
+    Height = 37
+    Top = 508
+    Width = 60
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Memo1: TMemo
+    Left = 10
+    Height = 490
+    Top = 10
+    Width = 806
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      ''
+    )
+    ScrollBars = ssVertical
+    TabOrder = 1
+  end
+end

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="simple_3d_demo"
+  caption="Simple 3D Demo"
+  qualified_name="io.castleengine.simple.threed.demo"
+  standalone_source="simple_3d_demo_standalone.dpr"
+  game_units="GameInitialize"
+>
+  <version value="1.0" code="1" />
+  <package>
+    <include path="README.txt" />
+  </package>
+  <android project_type="integrated">
+    <services>
+      <service name="vibrate" />
+    </services>
+  </android>
+  <ios uses_non_exempt_encryption="false">
+    <services>
+      <service name="vibrate" />
+    </services>
+  </ios>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

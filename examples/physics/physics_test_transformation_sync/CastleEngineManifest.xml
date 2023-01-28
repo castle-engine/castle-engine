@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="physics_test_transformation_sync"
+  standalone_source="physics_test_transformation_sync_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.physics.test.transformation.sync"
+  caption="Physics Test Transformation Sync"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

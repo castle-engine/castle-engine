@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:hardwareAccelerated="true">
+        <!-- AdColony -->
+        <activity android:name="com.jirbo.adcolony.AdColonyOverlay"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+        <activity android:name="com.jirbo.adcolony.AdColonyFullscreen"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        <activity android:name="com.jirbo.adcolony.AdColonyBrowser"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+        <!-- AdMob -->
+        <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
+
+        <!-- Chartboost -->
+        <activity android:name="com.chartboost.sdk.CBImpressionActivity"
+          android:excludeFromRecents="true"
+          android:hardwareAccelerated="true"
+          android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+          android:configChanges="keyboardHidden|orientation|screenSize" />
+
+        <!-- Facebook Audience Network -->
+        <activity android:name="com.facebook.ads.InterstitialAdActivity" android:configChanges="keyboardHidden|orientation|screenSize" />
+
+        <!-- UnityAds -->
+        <activity android:name="com.unity3d.ads.android.view.UnityAdsFullscreenActivity"  android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen" android:hardwareAccelerated="true" />
+
+        <!-- Heyzap Ad Network -->
+        <activity android:name="com.heyzap.sdk.ads.HeyzapInterstitialActivity" android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize" />
+        <activity android:name="com.heyzap.sdk.ads.HeyzapVideoActivity" android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize" />
+        <activity android:name="com.heyzap.sdk.ads.HeyzapProxyActivity" />
+        <activity android:name="com.heyzap.sdk.ads.VASTActivity" android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize" />
+        <activity android:name="com.heyzap.sdk.ads.MediationTestActivity" />
+        <receiver android:name="com.heyzap.sdk.ads.PackageAddedReceiver">
+          <intent-filter>
+            <data android:scheme="package"/>
+            <action android:name="android.intent.action.PACKAGE_ADDED"/>
+          </intent-filter>
+        </receiver>
+    </application>
+
+    <!-- Required by AdColony, AdMob, Chartboost, Facebook Audience Network, Heyzap Ad Network, and UnityAds -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Required by Chartboost -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Required by AdColony, AdMob, Chartboost, Facebook Audience Network, Heyzap Ad Network, and UnityAds -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Required by Chartboost -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- Required by AdColony, Chartboost, and UnityAds -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+</manifest>

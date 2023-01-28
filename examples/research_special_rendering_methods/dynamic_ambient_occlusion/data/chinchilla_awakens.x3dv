@@ -1,0 +1,65 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+KambiNavigationInfo {
+  type "EXAMINE"
+  timeOriginAtLoad TRUE
+}
+
+Inline { url "plane.wrl" }
+
+DEF ChinTrans Transform {
+  translation 0 0 0.2
+  children Inline { url "chinchilla_02k.wrl.gz" }
+}
+
+DEF Timer1 TimeSensor { cycleInterval 4.0 }
+DEF Interp PositionInterpolator {
+  key      [ 0 0.2 0.4 0.6 0.8 1 ]
+  keyValue [    0    0 0.2
+             -0.6 -0.6 0
+              0.6 -0.6 0
+              0.6  0.6 0
+             -0.6  0.6 0
+                0    0 0.2 ]
+}
+
+ROUTE Timer1.fraction_changed TO Interp.set_fraction
+ROUTE Interp.value_changed TO ChinTrans.set_translation
+
+DEF Timer2 TimeSensor {
+  cycleInterval 2
+  startTime -1 stopTime -0.5 # don't play at start
+}
+DEF Orient OrientationInterpolator {
+  key [ 0 0.5 1 ]
+  keyValue [ 0.3 0.4 0.5 0.1,
+             0.5 0.4 0.3 1.5,
+             0.3 0.4 0.5 6.2831853072, # 2*pi
+           ]
+}
+
+ROUTE Timer2.fraction_changed TO Orient.set_fraction
+ROUTE Orient.value_changed TO ChinTrans.rotation
+
+# trivial script, just run timer2 when timer1 sends isActive = false
+# and the other way around
+DEF Scr Script {
+  inputOnly SFBool timer_1_active
+  inputOnly SFBool timer_2_active
+  outputOnly SFTime timer_1_start
+  outputOnly SFTime timer_2_start
+  url "castlescript:
+
+function timer_1_active(value, time)
+  when ( not(value), timer_2_start := time)
+
+function timer_2_active(value, time)
+  when ( not(value), timer_1_start := time)
+"
+}
+
+ROUTE Timer1.isActive TO Scr.timer_1_active
+ROUTE Scr.timer_2_start TO Timer2.startTime
+ROUTE Timer2.isActive TO Scr.timer_2_active
+ROUTE Scr.timer_1_start TO Timer1.startTime

@@ -1,0 +1,109 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "FullSize" : true,
+      "Name" : "RectangleControl1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Exit",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonExit",
+          "VerticalAnchorDelta" : 1.0000000000000000E+001
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "Bottom" : 1.0000000000000000E+002
+          },
+          "FullSize" : true,
+          "Name" : "Group2",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "HeightFraction" : 1.0000000000000000E+000,
+              "Name" : "LeftColumn",
+              "WidthFraction" : 5.0000000000000000E-001,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                  "Name" : "Label1",
+                  "Text" : [
+                    "Loaded sounds:"
+                  ],
+                  "VerticalAnchorDelta" : -1.0000000000000000E+001,
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleVerticalGroup",
+                  "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                  "Name" : "GroupSoundBuffers",
+                  "Spacing" : 1.0000000000000000E+001,
+                  "VerticalAnchorDelta" : -4.0000000000000000E+001,
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "HeightFraction" : 1.0000000000000000E+000,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "RightColumn",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "WidthFraction" : 5.0000000000000000E-001,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "HorizontalAnchorDelta" : 2.8000000000000000E+001,
+                  "Name" : "LabelPlayingSounds",
+                  "Text" : [
+                    "Currently playing sounds (max XX):"
+                  ],
+                  "VerticalAnchorDelta" : -2.0000000000000000E+001,
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleVerticalGroup",
+                  "HorizontalAnchorDelta" : 2.8000000000000000E+001,
+                  "Name" : "GroupPlayingSounds",
+                  "Spacing" : 1.0000000000000000E+001,
+                  "VerticalAnchorDelta" : -5.0000000000000000E+001,
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

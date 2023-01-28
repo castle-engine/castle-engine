@@ -1,0 +1,4 @@
+Chinese: 你好世界,
+Greek: Γεια σου κόσμε!,
+Russian: Здравствуй, мир!
+Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!

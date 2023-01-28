@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.2 (1.0.2+r75+1)"
+   sodipodi:docname="logo.svg">
+  <defs
+     id="defs2">
+    <defs
+       id="defs7">
+      <circle
+         r="220.97"
+         cy="240.07001"
+         cx="310.47"
+         id="SVGID_1_" />
+    </defs>
+    <clipPath
+       id="SVGID_2_">
+      <use
+         height="100%"
+         width="100%"
+         y="0"
+         x="0"
+         id="use13"
+         style="overflow:visible"
+         xlink:href="#SVGID_1_" />
+    </clipPath>
+    <circle
+       r="220.97"
+       cy="240.07001"
+       cx="310.47"
+       id="circle954" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="274.76946"
+     inkscape:cy="-23.930977"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="false" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="opacity:1;fill:#d0f4f7;fill-opacity:1;stroke:none;stroke-width:1.37565"
+       id="rect875"
+       width="233.10638"
+       height="105.29905"
+       x="-27.949375"
+       y="127.79209" />
+    <g
+       id="g998"
+       transform="translate(-30.65823,60.183218)">
+      <g
+         id="g1165"
+         inkscape:export-filename="/home/and3md/fpc/cge_platformer/examples/platformer/data/logo/logo.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96">
+        <rect
+           style="fill:#80be1f;fill-opacity:1;stroke:#639318;stroke-width:1.05833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect879"
+           width="217.5224"
+           height="46.522667"
+           x="-20.358244"
+           y="39.244976"
+           ry="9.2372751"
+           rx="9.2372751"
+           transform="translate(30.65823,-60.183218)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           x="16.796938"
+           y="50.40929"
+           id="text835"
+           transform="translate(30.65823,-60.183218)"><tspan
+             sodipodi:role="line"
+             id="tspan833"
+             x="16.796938"
+             y="50.40929"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">CASTLE GAME ENGINe</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           x="16.796938"
+           y="70.44381"
+           id="text865"
+           transform="translate(30.65823,-60.183218)"><tspan
+             sodipodi:role="line"
+             id="tspan863"
+             x="16.796938"
+             y="70.44381"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">PLATFORMER</tspan></text>
+        <g
+           id="g1003"
+           transform="translate(30.65823,-60.183218)">
+          <rect
+             style="fill:#d91d1d;fill-opacity:1;stroke:#7a1111;stroke-width:1.05833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="rect877"
+             width="63.184177"
+             height="22.550192"
+             x="142.06093"
+             y="74.112617"
+             ry="9.2372751"
+             rx="9.2372751" />
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             x="147.11243"
+             y="91.428246"
+             id="text869"><tspan
+               sodipodi:role="line"
+               x="147.11243"
+               y="91.428246"
+               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:0.79375;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="tspan871">DEMO</tspan></text>
+        </g>
+        <circle
+           style="opacity:1;fill:#feff83;fill-opacity:1;stroke:#639318;stroke-width:2.64583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="path976"
+           cx="29.024078"
+           cy="2.3230915"
+           r="12.964583" />
+        <g
+           id="g974"
+           transform="matrix(0.10335286,0,0,0.10335286,15.794913,-10.906074)">
+          <g
+             id="Background_xA0_Obraz_1_"
+             style="display:none"
+             transform="translate(-89.5,-205.04002)">
+            <image
+               transform="scale(0.24)"
+               id="Background_xA0_Obraz"
+               height="9130"
+               width="7200"
+               style="display:inline;overflow:visible" />
+          </g>
+          <circle
+             clip-path="url(#SVGID_2_)"
+             id="circle16"
+             r="220.97"
+             cy="240.07001"
+             cx="309.97"
+             style="opacity:0.97;fill:#d9fef6;stroke:none"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <g
+             clip-path="url(#SVGID_2_)"
+             id="Warstwa_7"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 164,122.934 -6.10349,24.73411 22.30349,5.36908 V 127.267"
+             id="polyline32"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <circle
+             clip-path="url(#SVGID_2_)"
+             id="circle18"
+             r="106.587"
+             cy="196.60001"
+             cx="371.5"
+             style="fill:#ffffff"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             inkscape:connector-curvature="0"
+             clip-path="url(#SVGID_2_)"
+             id="path20"
+             d="m 391.75,298.51 -141.5,-46.5 -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+             style="fill:#c6f4e7"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             inkscape:connector-curvature="0"
+             clip-path="url(#SVGID_2_)"
+             id="path22"
+             d="M 544.5,301.1 403,254.6 l -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+             style="fill:#ade7db"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline24"
+             points="402,492.1 103.5,414.1 34,324.1 162,255.1 425,369.6  "
+             style="fill:#9acbc1"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline26"
+             points="558.5,384.1 424.5,332.6 172.5,442.6 338.5,483.6  "
+             style="fill:#7ba99f"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 292,98.6 8.62118,24.84679 -26.54118,4.09454 V 108.6"
+             id="polyline36"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc"
+             inkscape:export-filename="/home/michalis/ownCloud/dev/castle-engine/polyline36.png"
+             inkscape:export-xdpi="384"
+             inkscape:export-ydpi="384" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="M 324,118.266 V 136.1 L 352.20006,148.17131 343.333,108.6"
+             id="polyline30"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#f9a65a;fill-opacity:1"
+             clip-path="url(#SVGID_2_)"
+             d="M 260.667,106.934 V 79.6 l -25,-9 -15.25873,95.95356 L 366,188.267 l -2.667,-71.333 -20,-8.334 v 25.667 l -29,-9.667 V 106.267 L 292,98.6 v 18.667 z"
+             id="polygon40"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccccccccccccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 197,106.267 -6.90531,37.18577 25.06731,-13.65649 V 110.933"
+             id="polyline34"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#f37e58"
+             clip-path="url(#SVGID_2_)"
+             d="M 235.667,70.6 218.333,83.267 V 110.6 L 197,123.6 v -17.333 l -15,10.667 v 18 L 164,146.6 v -23.666 l -13.667,9.666 v 69 l 85.334,-36.87749 V 70.6"
+             id="polyline38"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccccccccccccc" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline28"
+             points="150.333,201.6 235.667,151.6 366,188.267 262.667,229.599  "
+             style="fill:#f15e56"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#c34056;stroke:none"
+             clip-path="url(#SVGID_2_)"
+             d="m 240.333,169.263 -58.121,32.285 -3.879,245.713 81.53117,40.58392"
+             id="polyline42"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#e54858;stroke:none"
+             clip-path="url(#SVGID_2_)"
+             d="m 240.333,470.592 90.334,-4 -7.279,-272.631 -83.055,-24.698"
+             id="polyline44" />
+        </g>
+      </g>
+    </g>
+    <rect
+       style="opacity:1;fill:#80be1f;fill-opacity:1;stroke:#639318;stroke-width:2.82924;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1005"
+       width="217.5224"
+       height="46.522667"
+       x="-20.385696"
+       y="138.53705"
+       ry="9.2372751"
+       rx="9.2372751" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       x="16.769485"
+       y="149.70135"
+       id="text1009"><tspan
+         sodipodi:role="line"
+         id="tspan1007"
+         x="16.769485"
+         y="149.70135"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">CASTLE GAME ENGINe</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       x="16.769485"
+       y="169.73587"
+       id="text1013"><tspan
+         sodipodi:role="line"
+         id="tspan1011"
+         x="16.769485"
+         y="169.73587"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">PLATFORMER</tspan></text>
+    <g
+       id="g1021"
+       transform="translate(-0.0274531,99.292066)"
+       style="stroke-width:1.00013;stroke-miterlimit:4;stroke-dasharray:none">
+      <rect
+         style="fill:#d91d1d;fill-opacity:1;stroke:#7a1111;stroke-width:1.00013;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect1015"
+         width="63.184177"
+         height="22.550192"
+         x="142.06093"
+         y="74.112617"
+         ry="9.2372751"
+         rx="9.2372751" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:1.00013;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="147.11243"
+         y="91.428246"
+         id="text1019"><tspan
+           sodipodi:role="line"
+           x="147.11243"
+           y="91.428246"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:1.00013;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="tspan1017">DEMO</tspan></text>
+    </g>
+    <g
+       id="g1063"
+       transform="translate(-30.685683,159.47528)">
+      <circle
+         style="opacity:1;fill:#feff83;fill-opacity:1;stroke:#639318;stroke-width:2.64583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle1023"
+         cx="29.024078"
+         cy="2.3230915"
+         r="14.2875" />
+      <g
+         id="g1061"
+         transform="matrix(0.10335286,0,0,0.10335286,15.794913,-10.906074)">
+        <g
+           id="g1027"
+           style="display:none"
+           transform="translate(-89.5,-205.04002)">
+          <image
+             transform="scale(0.24)"
+             id="image1025"
+             height="9130"
+             width="7200"
+             style="display:inline;overflow:visible" />
+        </g>
+        <circle
+           clip-path="url(#SVGID_2_)"
+           id="circle1029"
+           r="220.97"
+           cy="240.07001"
+           cx="309.97"
+           style="opacity:0.97;fill:#d9fef6;stroke:none"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <g
+           clip-path="url(#SVGID_2_)"
+           id="g1031"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#ab3a58"
+           clip-path="url(#SVGID_2_)"
+           d="m 164,122.934 -6.10349,24.73411 22.30349,5.36908 V 127.267"
+           id="path1033"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccc" />
+        <circle
+           clip-path="url(#SVGID_2_)"
+           id="circle1035"
+           r="106.587"
+           cy="196.60001"
+           cx="371.5"
+           style="fill:#ffffff"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <path
+           inkscape:connector-curvature="0"
+           clip-path="url(#SVGID_2_)"
+           id="path1037"
+           d="m 391.75,298.51 -141.5,-46.5 -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+           style="fill:#c6f4e7"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <path
+           inkscape:connector-curvature="0"
+           clip-path="url(#SVGID_2_)"
+           id="path1039"
+           d="M 544.5,301.1 403,254.6 l -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+           style="fill:#ade7db"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <polyline
+           clip-path="url(#SVGID_2_)"
+           id="polyline1041"
+           points="402,492.1 103.5,414.1 34,324.1 162,255.1 425,369.6  "
+           style="fill:#9acbc1"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <polyline
+           clip-path="url(#SVGID_2_)"
+           id="polyline1043"
+           points="558.5,384.1 424.5,332.6 172.5,442.6 338.5,483.6  "
+           style="fill:#7ba99f"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#ab3a58"
+           clip-path="url(#SVGID_2_)"
+           d="m 292,98.6 8.62118,24.84679 -26.54118,4.09454 V 108.6"
+           id="path1045"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccc"
+           inkscape:export-filename="/home/michalis/ownCloud/dev/castle-engine/polyline36.png"
+           inkscape:export-xdpi="384"
+           inkscape:export-ydpi="384" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#ab3a58"
+           clip-path="url(#SVGID_2_)"
+           d="M 324,118.266 V 136.1 L 352.20006,148.17131 343.333,108.6"
+           id="path1047"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccc" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#f9a65a;fill-opacity:1"
+           clip-path="url(#SVGID_2_)"
+           d="M 260.667,106.934 V 79.6 l -25,-9 -15.25873,95.95356 L 366,188.267 l -2.667,-71.333 -20,-8.334 v 25.667 l -29,-9.667 V 106.267 L 292,98.6 v 18.667 z"
+           id="path1049"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccccccccc" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#ab3a58"
+           clip-path="url(#SVGID_2_)"
+           d="m 197,106.267 -6.90531,37.18577 25.06731,-13.65649 V 110.933"
+           id="path1051"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccc" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#f37e58"
+           clip-path="url(#SVGID_2_)"
+           d="M 235.667,70.6 218.333,83.267 V 110.6 L 197,123.6 v -17.333 l -15,10.667 v 18 L 164,146.6 v -23.666 l -13.667,9.666 v 69 l 85.334,-36.87749 V 70.6"
+           id="path1053"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccccccccc" />
+        <polyline
+           clip-path="url(#SVGID_2_)"
+           id="polyline1055"
+           points="150.333,201.6 235.667,151.6 366,188.267 262.667,229.599  "
+           style="fill:#f15e56"
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#c34056;stroke:none"
+           clip-path="url(#SVGID_2_)"
+           d="m 240.333,169.263 -58.121,32.285 -3.879,245.713 81.53117,40.58392"
+           id="path1057"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccc" />
+        <path
+           transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+           style="fill:#e54858;stroke:none"
+           clip-path="url(#SVGID_2_)"
+           d="m 240.333,470.592 90.334,-4 -7.279,-272.631 -83.055,-24.698"
+           id="path1059" />
+      </g>
+    </g>
+    <g
+       id="g1227"
+       transform="translate(-32.715969,-18.953909)"
+       inkscape:export-filename="/home/and3md/fpc/cge_platformer/examples/platformer/data/logo/logo.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <g
+         id="g1225"
+         inkscape:export-filename="/home/and3md/fpc/cge_platformer/examples/platformer/data/logo/logo.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96">
+        <rect
+           style="fill:#80be1f;fill-opacity:1;stroke:#639318;stroke-width:1.05833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect1167"
+           width="217.5224"
+           height="46.522667"
+           x="-20.358244"
+           y="39.244976"
+           ry="2.6458333"
+           rx="2.6458333"
+           transform="translate(30.65823,-60.183218)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           x="16.796938"
+           y="50.40929"
+           id="text1171"
+           transform="translate(30.65823,-60.183218)"><tspan
+             sodipodi:role="line"
+             id="tspan1169"
+             x="16.796938"
+             y="50.40929"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.58234px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">CASTLE GAME ENGINe</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           x="16.796938"
+           y="70.44381"
+           id="text1175"
+           transform="translate(30.65823,-60.183218)"><tspan
+             sodipodi:role="line"
+             id="tspan1173"
+             x="16.796938"
+             y="70.44381"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#639318;stroke-width:0.79375;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">PLATFORMER</tspan></text>
+        <g
+           id="g1183"
+           transform="translate(30.65823,-60.183218)">
+          <rect
+             style="fill:#d91d1d;fill-opacity:1;stroke:#7a1111;stroke-width:1.05833;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="rect1177"
+             width="63.184177"
+             height="22.550192"
+             x="142.06093"
+             y="74.112617"
+             ry="2.6458333"
+             rx="2.6458333" />
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;line-height:125%;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             x="147.11243"
+             y="91.428246"
+             id="text1181"><tspan
+               sodipodi:role="line"
+               x="147.11243"
+               y="91.428246"
+               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:19.3297px;font-family:'KenVector Future Thin';-inkscape-font-specification:'KenVector Future Thin, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#7a1111;stroke-width:0.79375;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="tspan1179">DEMO</tspan></text>
+        </g>
+        <circle
+           style="opacity:1;fill:#feff83;fill-opacity:1;stroke:#639318;stroke-width:2.64583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="circle1185"
+           cx="29.024078"
+           cy="2.3230915"
+           r="12.964583" />
+        <g
+           id="g1223"
+           transform="matrix(0.10335286,0,0,0.10335286,15.794913,-10.906074)">
+          <g
+             id="g1189"
+             style="display:none"
+             transform="translate(-89.5,-205.04002)">
+            <image
+               transform="scale(0.24)"
+               id="image1187"
+               height="9130"
+               width="7200"
+               style="display:inline;overflow:visible" />
+          </g>
+          <circle
+             clip-path="url(#SVGID_2_)"
+             id="circle1191"
+             r="220.97"
+             cy="240.07001"
+             cx="309.97"
+             style="opacity:0.97;fill:#d9fef6;stroke:none"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <g
+             clip-path="url(#SVGID_2_)"
+             id="g1193"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 164,122.934 -6.10349,24.73411 22.30349,5.36908 V 127.267"
+             id="path1195"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <circle
+             clip-path="url(#SVGID_2_)"
+             id="circle1197"
+             r="106.587"
+             cy="196.60001"
+             cx="371.5"
+             style="fill:#ffffff"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             inkscape:connector-curvature="0"
+             clip-path="url(#SVGID_2_)"
+             id="path1199"
+             d="m 391.75,298.51 -141.5,-46.5 -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+             style="fill:#c6f4e7"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             inkscape:connector-curvature="0"
+             clip-path="url(#SVGID_2_)"
+             id="path1201"
+             d="M 544.5,301.1 403,254.6 l -248,146 101,65 c 0,0 165,8.5 166.5,7.5 1.5,-1 122,-172 122,-172 z"
+             style="fill:#ade7db"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline1203"
+             points="402,492.1 103.5,414.1 34,324.1 162,255.1 425,369.6  "
+             style="fill:#9acbc1"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline1205"
+             points="558.5,384.1 424.5,332.6 172.5,442.6 338.5,483.6  "
+             style="fill:#7ba99f"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 292,98.6 8.62118,24.84679 -26.54118,4.09454 V 108.6"
+             id="path1207"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc"
+             inkscape:export-filename="/home/michalis/ownCloud/dev/castle-engine/polyline36.png"
+             inkscape:export-xdpi="384"
+             inkscape:export-ydpi="384" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="M 324,118.266 V 136.1 L 352.20006,148.17131 343.333,108.6"
+             id="path1209"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#f9a65a;fill-opacity:1"
+             clip-path="url(#SVGID_2_)"
+             d="M 260.667,106.934 V 79.6 l -25,-9 -15.25873,95.95356 L 366,188.267 l -2.667,-71.333 -20,-8.334 v 25.667 l -29,-9.667 V 106.267 L 292,98.6 v 18.667 z"
+             id="path1211"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccccccccccccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#ab3a58"
+             clip-path="url(#SVGID_2_)"
+             d="m 197,106.267 -6.90531,37.18577 25.06731,-13.65649 V 110.933"
+             id="path1213"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#f37e58"
+             clip-path="url(#SVGID_2_)"
+             d="M 235.667,70.6 218.333,83.267 V 110.6 L 197,123.6 v -17.333 l -15,10.667 v 18 L 164,146.6 v -23.666 l -13.667,9.666 v 69 l 85.334,-36.87749 V 70.6"
+             id="path1215"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccccccccccccc" />
+          <polyline
+             clip-path="url(#SVGID_2_)"
+             id="polyline1217"
+             points="150.333,201.6 235.667,151.6 366,188.267 262.667,229.599  "
+             style="fill:#f15e56"
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#c34056;stroke:none"
+             clip-path="url(#SVGID_2_)"
+             d="m 240.333,169.263 -58.121,32.285 -3.879,245.713 81.53117,40.58392"
+             id="path1219"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             transform="matrix(0.57926415,0,0,0.57926412,-51.844141,-11.063948)"
+             style="fill:#e54858;stroke:none"
+             clip-path="url(#SVGID_2_)"
+             d="m 240.333,470.592 90.334,-4 -7.279,-272.631 -83.055,-24.698"
+             id="path1221" />
+        </g>
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-38.395679"
+       y="-75.591583"
+       id="text1231"><tspan
+         sodipodi:role="line"
+         id="tspan1229"
+         x="-38.395679"
+         y="-75.591583"
+         style="stroke-width:0.264583px">This logo uses KenVector Future Thin font by Kenney</tspan></text>
+  </g>
+</svg>

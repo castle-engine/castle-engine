@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Portable Network Graphics File Format</title>
+  <chapter>
+    <title>Portable Network Graphics File Format</title>
+    
+    <par>
+      PNG is extensible file format for the lossless, portable, well-compressed
+      storage of raster images. PNG provides a patent-free replacement for GIF and can also
+      replace many common uses of TIFF. Indexed-color, grayscale, and truecolor images
+      are supported, plus an optional alpha channel. Sample depths range from 1 to 16 bits.
+    </par>
+    
+    <par>
+      Images can also be filtered using different lossless filter for each scanline so that
+      subsequent compression can produce even smaller images. PNG also supports interlaced
+      images to allow progressive display.
+      Imaging can load all possible PNG data formats but cannot save 1, 2, and 4 bit or
+      interlaced images. It supports all filters when loading or saving images.
+      Imaging uses <b>ZLib</b> library written by Jean-loup Gailly and Mark Adler
+      to compress and decompress PNG image data.
+      It was translated to Pascal by Jacques Nomssi Nzali.
+    </par>
+    
+    <par>
+      As of version 0.26.4, Imaging also supports APNG format.
+      APNG is unofficial extension of PNG image file format created by two guys from Mozilla Corporation.
+      The point of APNG is to allow storing simple animations in PNG files (hence the "A" for "Animated").
+      There is already PNG-like chunk based format for animations called MNG 
+      (already supported by Imaging - at least the basic features). 
+      However, MNG is quite complex format and its support among browsers and image viewers/editors is lacking. 
+      Code library supporting all MNG features is huge.
+      APNG on the other hand is just an extension of PNG and its implementation is not so complex.        Imaging can load APNG files, animate them (optional - put frames 
+      at desired positions, blend frames, apply disposal methods),
+      and also save multiple images as single APNG file.      
+    </par>     
+
+    <table>
+      <title>Portable Network Graphics File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>1 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>2 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>4 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>48 bit RGB</td>
+        <td><icode>ifR16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>64 bit ARGB</td>
+        <td><icode>ifA16R16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>1 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>2 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>4 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit grayscale + alpha</td>
+        <td><icode>ifA16Gray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+    </table>
+    
+    <par>
+      When working with PNG files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TPNGFileFormat</ref>
+      class.
+    </par>
+    
+    <table>
+      <title>Options Related to PNG Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingPNGPreFilter</ref></td>
+        <td><b>0, 1, 2, 3, 4, 5, 6</b></td>
+        <td>Sets precompression filter used when saving PNG images. Allowed values
+          are:
+          <list>
+            <li>0 - None Filter</li>
+            <li>1 - Sub Filter</li>
+            <li>2 - Up Filter</li>
+            <li>3 - Average Filter</li>
+            <li>4 - Paeth Filter</li>
+            <li>5 - Use 0 for indexed/gray images and 4 for RGB/ARGB images</li>
+            <li>6 - Adaptive filtering - use best filter for each scanline - very slow</li>
+          </list>
+          Note that filters 3 and 4 are much slower than filters 1 and 2.
+          Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingPNGCompressLevel</ref></td>
+        <td><b>0 (no compression)</b> to <b>9 (best compression)</b></td>
+        <td>Sets ZLib compression level used when saving PNG images.
+        Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingPNGLoadAnimated</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Boolean option that specifies whether PNG images with more frames (APNG format)
+            are animated by Imaging (according to frame disposal/blend methods) or just
+            raw frames are loaded and sent to user (if you want to animate APNG yourself).
+            Default value is <b>1</b>. </td>
+      </row>
+      
+      
+    </table>
+    
+  </chapter>
+</doc>

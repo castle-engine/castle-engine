@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>FAQ</title>
+  <chapter>
+    <title>FAQ</title>
+    <par>Here are answers to some user questions that showed up in the forums/mails and
+      some made up (but maybe useful) questions too :</par>
+    
+    <olist>
+      <li>
+        <b>I'm using Delphi XYZ or Lazarus ABC and I want to install Imaging package
+           into IDE. Where do I find the right package?</b>
+        <par>Package projects are located in <keyword>(Imaging Root)\Source\Projects</keyword>
+           directory:
+          <blist>
+            <li><keyword>VampyreImagingPackage.D2009.dproj</keyword> package for Delphi 2009 and 2010.</li>
+            <li><keyword>VampyreImagingPackage.D2007.dproj</keyword> package for Delphi 2007 (Codegear RAD Studio).</li>
+            <li><keyword>VampyreImagingPackage.D2006.bdsproj</keyword> package for Delphi 2006 (Borland Developer Studio),
+              should work for Turbo Delphi too.</li>
+            <li><keyword>VampyreImagingPackageD7.dpkw</keyword> package for Delphi 7, should work for Delphi 6 too.</li>
+            <li><keyword>vampyreimagingpackage.lpk</keyword> package for latest Lazarus.</li>
+          </blist>
+        </par>
+      </li>
+      <li>
+        <b>Imaging doesn't compile in Lazarus, there are errors in ImagingComponents.pas unit! </b>
+        <par>Lazarus is still beta and breaking changes in LCL occur from time to time.
+          Imaging release always compiles with latest official Lazarus release.
+          Fixes are sometimes already in SVN repository but they are commented out
+          until new Lazarus version is released.
+          If you get errors in this unit it can be one of these cases:
+          <olist>
+            <li>You are using latest official Lazarus release that was released
+              after latest Imaging release: Check Imaging's SVN repository,
+              LCL version conflicts will probably already be fixed (or fixes would be there
+              but commented out - so just uncomment them).
+            </li>
+            <li>You are using some working Lazarus SVN revision: Check Imaging's SVN repository,
+              fixes could already be there but commented out. If they're not
+              please let me know and I'll add them.
+            </li>
+          </olist>
+          So basically if you get the latest Imaging from SVN and problem is still there
+          with no commented fix please let me know, better yet send the diff patch of
+          the unit (my thanks to those who did).
+        </par>
+      </li>
+      <li>
+        <b>Imaging won't compile in Linux, error while linking: "cannot find library stdc++"</b>
+        <par>This library was needed for JPEG 2000 support but as of Imaging 0.26.2
+          it is no longer the case (replaced by libc and few Pascal functions).</par>
+      </li>
+      <li>
+        <b>My compiled programs are very very large!</b>
+        <par><i>Delphi:</i> With all file formats enabled your binary can be about ~900KiB bigger than
+          without Imaging. If you don't like this you can disable some file formats.
+          Best candidates are: TIFF ~400KiB!, JPEG 2000 ~150KiB, JPEG ~100KiB,
+          PNG ~50KiB. Info about how to enable/disable file formats
+          is in <link url="../Extensions/ExtFileFormats.xml">File Format Extensions</link>.
+          <br/>
+          <i>FPC:</i> There's no large TIFF support and FPC generated exes are
+          bigger than Delphi's anyway so binary size may not bother you so much.
+          But if it does you can disable file formats too.
+          </par>
+      </li>
+      <li>
+        <b>How can I display images to user using Imaging? And it should be fast too...</b>
+        <par>Displaying images wasn't one of Imaging's design goals:
+          "You can use it to load images, prepare them, and then display them
+          using some other library designed and optimized for this purpose."
+          You can quickly and easily create Direct3D, OpenGL, and SDL textures/surfaces
+          using Imaging and then display them using these APIs.
+          VCL/LCL TGraphic descendant classes were later added
+          to allow easy display of your images on you forms.
+          But it basically just converts image to TBitmap and all drawing
+          is handled by GDI (GTK/Qt/whatever) just like your regular TBitmap.
+          Only 32bit images can be directly displayed on TCanvas (GDI/GTK only)
+          using simple underlying OS/toolkit call in
+          <ref>DisplayImage</ref> function (but with no fancy stuff like alpha blending etc.).
+        </par>
+        <par>
+          So Imaging is best used if you prepare your in-memory image with it (load, resample,
+          change format, gamma correction, alpha blend, etc.) and then show it to
+          the user using libraries like OpenGL, Direct3D, SDL, Graphics32
+          or convert it to TBitmap and use it in regular VCL/LCL way.
+        </par>
+      </li>
+      <li>
+        <b>Where is collision detection? Window management? Audio support?</b>
+        <par>Imaging is image library not gaming or any other. It can load, save,
+          and alter raster images.
+        </par>
+      </li>
+      
+    </olist>
+
+  </chapter>
+</doc>

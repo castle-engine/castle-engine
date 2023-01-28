@@ -1,0 +1,87 @@
+{
+  "Name" : "RootTransform",
+  "$Children" : [
+    {
+      "AutoAnimation" : "walk",
+      "ExposeTransforms" : [
+        "Bone.003"
+      ],
+      "Name" : "SceneSoldier",
+      "ProcessEvents" : true,
+      "RenderOptions" : {
+        "Name" : "RenderOptions",
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "TranslationPersistent" : {
+        "X" : -6.4860010147094727E-001,
+        "$ClassName" : "TCastleVector3Persistent"
+      },
+      "URL" : "castle-data:/soldier/soldier1.gltf",
+      "$Children" : [
+        {
+          "Name" : "Bone_003",
+          "RotationPersistent" : {
+            "W" : 3.2538411617279053E+000,
+            "X" : 2.3168504238128662E-002,
+            "Y" : 9.9968260526657104E-001,
+            "Z" : 9.9025228992104530E-003,
+            "$ClassName" : "TCastleVector4Persistent"
+          },
+          "ScalePersistent" : {
+            "X" : 5.2499985694885254E-001,
+            "Y" : 5.2499979734420776E-001,
+            "Z" : 5.2499979734420776E-001,
+            "$ClassName" : "TCastleVector3Persistent"
+          },
+          "TranslationPersistent" : {
+            "X" : 4.3090980499982834E-002,
+            "Y" : 1.6150346994400024E+000,
+            "Z" : 9.8145999014377594E-002,
+            "$ClassName" : "TCastleVector3Persistent"
+          },
+          "$Children" : [
+            {
+              "ExposeTransforms" : [
+              ],
+              "Name" : "SceneCape",
+              "RenderOptions" : {
+                "Name" : "RenderOptions",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene.TSceneRenderOptions"
+              },
+              "RotationPersistent" : {
+                "W" : 3.0764920711517334E+000,
+                "X" : -1.3353420654311776E-003,
+                "Y" : -9.9915921688079834E-001,
+                "Z" : 4.0974941104650497E-002,
+                "$ClassName" : "TCastleVector4Persistent"
+              },
+              "ScalePersistent" : {
+                "X" : 2.0488069057464600E+000,
+                "Y" : 2.0488069057464600E+000,
+                "Z" : 2.0488069057464600E+000,
+                "$ClassName" : "TCastleVector3Persistent"
+              },
+              "TranslationPersistent" : {
+                "X" : -1.3550784494498203E-008,
+                "Y" : -3.4193184375762939E+000,
+                "Z" : 2.8092083334922791E-001,
+                "$ClassName" : "TCastleVector3Persistent"
+              },
+              "URL" : "castle-data:/cape/cape.gltf",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene"
+            }
+          ],
+          "$ClassName" : "TCastleTransform"
+        }
+      ],
+      "$ClassName" : "TCastleScene"
+    }
+  ],
+  "$ClassName" : "TCastleTransform"
+}

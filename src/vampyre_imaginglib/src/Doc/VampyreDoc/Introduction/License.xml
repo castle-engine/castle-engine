@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>License</title>
+  <chapter>
+    <title>License</title>
+    <par>Imaging comes with two licenses from which you can choose the one which
+    fits your needs best:</par>
+    <bulletlist>
+      <li><link url="MPL.xml">Mozilla Public License</link></li>
+      <li><link url="LGPL.xml">GNU Lesser General Public License</link></li>
+    </bulletlist>
+  </chapter>
+</doc>

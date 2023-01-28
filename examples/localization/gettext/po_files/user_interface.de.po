@@ -1,0 +1,35 @@
+msgctxt "castle-components"
+msgid "gameviewmain.Text3d.Caption"
+msgstr "Ich bin 3D-Text"
+
+msgctxt "castle-components"
+msgid "gameviewmain.Label1.Caption"
+msgstr "Mein Etikett"
+
+msgctxt "castle-components"
+msgid "gameviewmain.Edit.Text"
+msgstr "Anfänglicher Inhalt bearbeiten"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonMessage.Caption"
+msgstr "Zeige Nachricht"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchEnglish.Caption"
+msgstr "Englisch"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchGerman.Caption"
+msgstr "Deutsche"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchPolish.Caption"
+msgstr "Polieren"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchRussian.Caption"
+msgstr "Russisch"
+
+msgctxt "castle-components"
+msgid "gameviewmain.ButtonSwitchUkrainian.Caption"
+msgstr "Ukrainisch"

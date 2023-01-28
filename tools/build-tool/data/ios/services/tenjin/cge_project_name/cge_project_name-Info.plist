@@ -1,0 +1,5 @@
+<!-- This will be inserted inside the larger xxx-Info.plist file
+     by the Castle Game Engine build tool. -->
+
+<key>NSUserTrackingUsageDescription</key>
+<string>${IOS.TENJIN.USER_TRACKING_USAGE_DESCRIPTION}</string>

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<!--
+  Define the "Knight" creature properties. See
+  https://castle-engine.io/creating_data_resources.php
+  for extensive documentation of available properties, in short:
+
+  - name: used to refer to this creature from ObjectPascal code,
+    e.g. in Resources.FindName('Knight').
+    Also to create placeholders to place initial creatures of this kind on level:
+    (place on the level, in Blender, object named 'CasResKnight').
+
+  - type: indicates ObjectPascal class used to handle this creature,
+    in this case TWalkAttackCreatureResource (and the
+    TWalkAttackCreatureResource, in turn, indicates that particular creature
+    on level will use TWalkAttackCreature class).
+    This is an intelligent walking-attacking creature.
+
+  - model: animations 3D models. There are many ways to define them,
+    in this case we use glTF, exported from Blender.
+
+  - radius and preferred_height: important for collision detection.
+    These are best visualized with "Render debug 3D" in fps_game.
+    See TCastleTransform.Sphere and TCastleTransform.Middle and
+    TCastleTransform.PreferredHeight documentation for
+    a precise meaning of these values. Engine *does* calculate good values
+    for them automatically, but they can be "tuned" manually to work even better
+    (that is because the engine does not know that these are humanoids,
+    and so their head is quite high in all animation states (aside from "die")).
+-->
+
+<resource
+  name="Knight"
+  type="WalkAttack"
+  middle_height="0.75"
+  radius="0.5"
+  preferred_distance="3.5"
+  move_speed="1.75"
+>
+  <model url="knight.gltf" pool="10" default_animation_transition="0.25">
+    <idle   animation_name="Idle"    />
+    <walk   animation_name="Walk"    />
+    <attack animation_name="Attack"  />
+    <die    animation_name="Die"     />
+    <hurt   animation_name="Damaged" />
+  </model>
+
+  <!-- Note that time="xxx" attribute should be synchronized with "attack"
+       animation specified above to look good. This is the time during animation
+       when the actual "hit" (life loss, pain, knockback, and so on) occurs.
+       So this should be synchronized to occur when visually the sword falls
+       down on the player. -->
+  <attack max_distance="4.0" knockback_distance="4.0" time="0.5">
+    <!-- Note that by default damage is 0, so player doesn't lose Life,
+         so we will not even show the "pain" FadeOut. -->
+    <damage const="1" random="1" />
+  </attack>
+</resource>

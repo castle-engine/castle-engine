@@ -1,0 +1,8 @@
+## chartboost
+
+Enable the http://chartboost.com/[Chartboost] ads. Use https://castle-engine.io/apidoc/html/CastleAds.TAds.html[TAds] class from the https://castle-engine.io/apidoc/html/CastleAds.html[CastleAds] unit to show and control the ads from your Pascal code, with `AdNetwork` set to `anChartboost`.
+
+Requires:
+
+* Using this service requires using also `google_play_services`.
+* The core of this service is a closed-source library distributed by Chartboost. Download it from https://dashboard.chartboost.com/tools/sdk , unpack to some temporary location, and copy the `lib/chartboost.jar` file from the SDK to the `castle_game_engine/tools/build-tool/data/android/integrated-services/chartboost/app/libs/` directory.

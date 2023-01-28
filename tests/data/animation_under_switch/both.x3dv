@@ -1,0 +1,16 @@
+#X3D V3.0 utf8
+PROFILE Interchange
+
+Switch {
+  whichChoice 0
+  children [
+    Inline { url "knight/knight.gltf" }
+    Transform {
+      translation 2 0 0
+      scale 0.01 0.01 0.01
+      children Inline {
+        url "escape_from_the_universe_boss/boss.json"
+      }
+    }
+  ]
+}

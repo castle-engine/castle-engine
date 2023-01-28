@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="model_3d_with_2d_controls"
+  lazarus_project="model_3d_with_2d_controls.lpi"
+  build_using_lazbuild="true"
+>
+</project>

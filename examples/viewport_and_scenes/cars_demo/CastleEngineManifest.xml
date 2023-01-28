@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="cars_demo"
+  standalone_source="cars_demo_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.cars.demo"
+  caption="Cars Demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

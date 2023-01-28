@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>How To ... (High Level)</title>
+  <chapter>
+    <title>How To ... (High Level)</title>
+
+    <par>High Level interface in the current version is made of
+    the base class <ref>TBaseImage</ref> and its two descendants
+    <ref>TSingleImage</ref> and <ref>TMultiImage</ref>.
+    More information on the current state of high level interface
+    can be found in
+    <link url="../Usage/HighLevel.xml">Usage/High Level Interface</link>
+    section.</par>
+
+    <par>You can learn how to use high level interface from the
+    following code fragments or (more useful) high level
+    <link url="../Demos/Pascal.xml">Pascal Demos</link>.</par>
+
+    <code>
+// high level interface test
+<b>uses</b>
+  ImagingTypes,
+  // high level classes are declared in this unit
+  ImagingClasses;
+<b>var</b>
+  // this is one level image container
+  SImg: <ref>TSingleImage</ref>;
+  // this is multi level image container
+  MImg: <ref>TMultiImage</ref>;
+<b>begin</b>
+  // new 400x300x24 image is created
+  SImg := <ref>TSingleImage</ref>.CreateFromParams(400, 300, ifR8G8B8);
+  // resize image
+  SImg.Resize(512, 384, rfBicubic);
+  // you can find out whether image is valid or not this way:
+  <b>if</b> SImg.Valid <b>then</b>
+    WriteLn('Image is valid!');
+  // you are free to use low level functions on high level classes
+  // you can use ImageData property to get access to underlying structure
+  SwapChannels(SImg.ImageDataPointer^, ChannelRed, ChannelGreen);
+  // image can be converted to another format by simply setting Format property
+  SImg.Format := ifIndex8;
+  // extended format info is accessible trough FormatInfo property
+  WriteLn('Image has ', SImg.FormatInfo.PaletteEntries, ' palette entries');
+
+  // new multi image without parameters is created (default sized 1 level image
+  // will be created)
+  MImg := <ref>TMultiImage</ref>.Create;
+  // single image is assigned to multi image - multi image will now have
+  // one level identical to source single image
+  MImg.Assign(SImg);
+  // single image is resized
+  SImg.Width := SImg.Width * 2;
+  // new level is added to multi image (SImg is cloned)
+  MImg.AddLevel(SImg);
+  // single image is converted
+  SImg.Format := ifR32F;
+  // new level is inserted to multi image at index 0 (SImg is cloned)
+  MImg.InsertLevel(0, SImg);
+  // all levels of multi image are written to stream
+  MImg.SaveMultiToStream('tga', SomeStream);
+
+  // images are freed
+  SImg.Free;
+  MImg.Free;
+<b>end.</b>
+    </code>
+
+
+  </chapter>
+</doc>

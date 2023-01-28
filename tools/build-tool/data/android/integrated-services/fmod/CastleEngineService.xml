@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <package>
+    <copy source="${ANDROID.FMOD.LIBRARY_PATH}/fmod.jar" target="app/libs/fmod.jar" />
+    <!-- Note that we may not build for all Android CPUs (e.g. you can build explicitly
+         for Android on 64-bit Arm only; and right now we never build for Android x86 or x86_64).
+         But it's harmless to copy libraries for additional, unused, architectures here.
+         So we just copy them all, without implementing here any filtering logic.
+    -->
+    <copy source="${ANDROID.FMOD.LIBRARY_PATH}/arm64-v8a/libfmod.so" target="app/src/main/jniLibs/arm64-v8a/libfmod.so" />
+    <copy source="${ANDROID.FMOD.LIBRARY_PATH}/armeabi-v7a/libfmod.so" target="app/src/main/jniLibs/armeabi-v7a/libfmod.so" />
+    <copy source="${ANDROID.FMOD.LIBRARY_PATH}/x86/libfmod.so" target="app/src/main/jniLibs/x86/libfmod.so" />
+    <copy source="${ANDROID.FMOD.LIBRARY_PATH}/x86_64/libfmod.so" target="app/src/main/jniLibs/x86_64/libfmod.so" />
+  </package>
+</service>

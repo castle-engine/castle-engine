@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="Xsl/doc2html.xsl"?>
+<doc>
+  <title>Vampyre Imaging Library</title>
+  <chapter>
+    <center>
+      <br /><br /><br />
+      <inlineimage url="../Common/logo.png" desc="Imaging Logo"/>
+      <br /><br />
+      <mcap>Version 0.26.4</mcap>
+      <br /><br />
+      <listedlink url="Documentation.xml">Handwritten Documentation</listedlink>
+      <br /><br />
+      <listedlink url="Reference.xml">Reference (generated from source code)</listedlink>
+      <br /><br />
+      <br /><br /><br /><br />
+      External: <listedlink url="http://imaginglib.sourceforge.net">Vampyre Imaging Library Homepage</listedlink>
+      <br />
+      External: <listedlink url="http://galfar.vevb.net/imaging/smf">Vampyre Imaging Library Forum</listedlink>
+      <br /><br />
+    </center>
+  </chapter>
+</doc>

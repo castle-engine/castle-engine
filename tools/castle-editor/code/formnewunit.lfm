@@ -1,0 +1,303 @@
+object NewUnitForm: TNewUnitForm
+  Left = 737
+  Height = 815
+  Top = 129
+  Width = 732
+  ActiveControl = EditUnitName
+  Caption = 'Create Pascal Unit'
+  ClientHeight = 815
+  ClientWidth = 732
+  DesignTimePPI = 115
+  OnCloseQuery = FormCloseQuery
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '2.2.2.0'
+  object ComboUnitType: TComboBox
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelCreateUnit
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 33
+    Top = 37
+    Width = 711
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    ItemHeight = 0
+    ItemIndex = 0
+    Items.Strings = (
+      'Empty Unit'
+      'Class (TObject descendant)'
+      'View (TCastleView descendant)'
+      'Behavior (TCastleBehavior descendant)'
+    )
+    OnChange = ComboUnitTypeChange
+    Style = csDropDownList
+    TabOrder = 0
+    Text = 'Empty Unit'
+  end
+  object EditUnitName: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelUnitName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 38
+    Top = 196
+    Width = 711
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    OnChange = EditUnitNameChange
+    TabOrder = 2
+    Text = 'GameSomething'
+  end
+  object LabelCreateUnit: TLabel
+    Left = 8
+    Height = 21
+    Top = 8
+    Width = 189
+    Caption = 'Create New Pascal Unit:'
+    ParentColor = False
+  end
+  object LabelUnitName: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditBaseName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 21
+    Top = 167
+    Width = 88
+    BorderSpacing.Top = 15
+    Caption = 'Unit Name:'
+    ParentColor = False
+  end
+  object LabelUnitDir: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditUnitName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 21
+    Top = 249
+    Width = 116
+    BorderSpacing.Top = 15
+    Caption = 'Unit Directory:'
+    ParentColor = False
+  end
+  object EditUnitDir: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelUnitDir
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 38
+    Top = 278
+    Width = 666
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    OnChange = EditUnitDirChange
+    TabOrder = 3
+    Text = 'code/'
+  end
+  object ButtonUnitDir: TButton
+    AnchorSideLeft.Control = EditUnitDir
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditUnitDir
+    AnchorSideTop.Side = asrCenter
+    Left = 674
+    Height = 37
+    Top = 279
+    Width = 28
+    AutoSize = True
+    Caption = '...'
+    OnClick = ButtonUnitDirClick
+    TabOrder = 4
+  end
+  object PanelUnitView: TPanel
+    AnchorSideTop.Control = PanelUnitClass
+    AnchorSideTop.Side = asrBottom
+    Left = 0
+    Height = 368
+    Top = 440
+    Width = 726
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 368
+    ClientWidth = 726
+    TabOrder = 6
+    object LabelDesignDir: TLabel
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 21
+      Top = 0
+      Width = 182
+      BorderSpacing.Top = 15
+      Caption = 'View Design Directory:'
+      ParentColor = False
+    end
+    object EditDesignDir: TEdit
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = LabelDesignDir
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 38
+      Top = 29
+      Width = 666
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      OnChange = EditDesignDirChange
+      TabOrder = 0
+      Text = 'data/'
+    end
+    object ButtonViewDir: TButton
+      AnchorSideLeft.Control = EditDesignDir
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = EditDesignDir
+      AnchorSideTop.Side = asrCenter
+      Left = 674
+      Height = 37
+      Top = 30
+      Width = 28
+      AutoSize = True
+      Caption = '...'
+      OnClick = ButtonViewDirClick
+      TabOrder = 1
+    end
+    object CheckViewInitialize: TCheckBox
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = LabelFinalDesignFile
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 98
+      Width = 409
+      BorderSpacing.Top = 8
+      Caption = 'Add View Initialization to Application.OnInitialize'
+      TabOrder = 2
+    end
+    object LabelViewInitializeInfo: TLabel
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = CheckViewInitialize
+      AnchorSideTop.Side = asrBottom
+      Left = 38
+      Height = 126
+      Top = 131
+      Width = 659
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 31
+      BorderSpacing.Top = 8
+      Caption = 'We will modify code/gameinitialize.pas to add view initialization.'#10#10'Warning: Found code/gameinitialize.pas , but it is missing special CGE-XXX comments (see the new project templates for example).'#10'You will need to manually create the new view in Application.OnInitialize.'#10#10'Warning: Could not find code/gameinitialize.pas .'#10'You will need to manually create the new view in Application.OnInitialize.'
+      ParentColor = False
+      WordWrap = True
+    end
+    object LabelFinalDesignFile: TLabel
+      AnchorSideTop.Control = EditDesignDir
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 21
+      Top = 69
+      Width = 473
+      BorderSpacing.Top = 2
+      Caption = 'Final Design File: data/gamesomething.castle-user-interface'
+      Font.Color = clBlue
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object PanelUnitClass: TPanel
+    AnchorSideTop.Control = LabelFinalUnitFile
+    AnchorSideTop.Side = asrBottom
+    Left = 0
+    Height = 85
+    Top = 347
+    Width = 726
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 85
+    ClientWidth = 726
+    TabOrder = 5
+    object LabelClassName: TLabel
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 21
+      Top = 8
+      Width = 96
+      BorderSpacing.Top = 15
+      Caption = 'Class Name:'
+      ParentColor = False
+    end
+    object EditClassName: TEdit
+      AnchorSideLeft.Control = LabelClassName
+      AnchorSideTop.Control = LabelClassName
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 38
+      Top = 37
+      Width = 706
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      TabOrder = 0
+      Text = 'TSomething'
+    end
+  end
+  object ButtonPanel1: TButtonPanel
+    Left = 8
+    Height = 45
+    Top = 762
+    Width = 716
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 7
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object LabelFinalUnitFile: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditUnitDir
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 21
+    Top = 318
+    Width = 318
+    BorderSpacing.Top = 2
+    Caption = 'Final Unit File: code/gamesomething.pas'
+    Font.Color = clBlue
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelBaseName: TLabel
+    AnchorSideLeft.Control = ComboUnitType
+    AnchorSideTop.Control = ComboUnitType
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 21
+    Top = 85
+    Width = 468
+    BorderSpacing.Top = 15
+    Caption = 'Base Name (other names are derived from this, by default):'
+    ParentColor = False
+  end
+  object EditBaseName: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelBaseName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 38
+    Top = 114
+    Width = 711
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    OnChange = EditBaseNameChange
+    TabOrder = 1
+    Text = 'Something'
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    Left = 482
+    Top = 93
+  end
+end

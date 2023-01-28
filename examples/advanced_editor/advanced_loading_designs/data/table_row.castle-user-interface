@@ -1,0 +1,119 @@
+{
+  "Height" : 5.0000000000000000E+001,
+  "Name" : "Root",
+  "Width" : 1.0000000000000000E+003,
+  "$Children" : [
+    {
+      "FullSize" : true,
+      "Name" : "HorizontalGroup1",
+      "$Children" : [
+        {
+          "Border" : {
+            "AllSides" : 2.0000000000000000E+000,
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 6.0392159223556519E-001,
+            "Green" : 6.0392159223556519E-001,
+            "Red" : 6.0392159223556519E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HeightFraction" : 1.0000000000000000E+000,
+          "Name" : "CellProjectName",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 3.0000000000000000E+002,
+          "$Children" : [
+            {
+              "Name" : "LabelProjectName",
+              "Text" : [
+                "Project Name"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            }
+          ],
+          "$ClassName" : "TCastleRectangleControl"
+        },
+        {
+          "Border" : {
+            "AllSides" : 2.0000000000000000E+000,
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 6.0392159223556519E-001,
+            "Green" : 6.0392159223556519E-001,
+            "Red" : 6.0392159223556519E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HeightFraction" : 1.0000000000000000E+000,
+          "HorizontalAnchorDelta" : 3.0000000000000000E+002,
+          "Name" : "CellProjectWebsite",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.0000000000000000E+002,
+          "$Children" : [
+            {
+              "ColorPersistent" : {
+                "Blue" : 1.0000000000000000E+000,
+                "Red" : 5.6078433990478516E-001,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "Name" : "LabelProjectWebsite",
+              "Text" : [
+                "https://example.com/"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            }
+          ],
+          "$ClassName" : "TCastleRectangleControl"
+        },
+        {
+          "Border" : {
+            "AllSides" : 2.0000000000000000E+000,
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "Alpha" : 1.0000000000000000E+000,
+            "Blue" : 6.0392159223556519E-001,
+            "Green" : 6.0392159223556519E-001,
+            "Red" : 6.0392159223556519E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HeightFraction" : 1.0000000000000000E+000,
+          "HorizontalAnchorDelta" : 7.0000000000000000E+002,
+          "Name" : "CellProjectInfo",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.0000000000000000E+002,
+          "$Children" : [
+            {
+              "CaptureAllInput" : false,
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "EditProjectInfo",
+              "Text" : "My notes about the project",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.6000000000000000E+002,
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleEdit"
+            }
+          ],
+          "$ClassName" : "TCastleRectangleControl"
+        }
+      ],
+      "$ClassName" : "TCastleHorizontalGroup"
+    }
+  ],
+  "$ClassName" : "TCastleRectangleControl"
+}

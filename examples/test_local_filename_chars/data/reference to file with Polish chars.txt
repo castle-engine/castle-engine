@@ -1,0 +1,1 @@
+castle-data:/name with Polish chars ćma źrebak żmija wąż królik.txt

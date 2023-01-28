@@ -1,0 +1,402 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleDesign",
+      "FullSize" : true,
+      "Name" : "Design1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 4.8016110229492188E+002,
+        "Y" : 4.2215505981445312E+002
+      },
+      "URL" : "castle-data:/viewport_under_ui.castle-user-interface"
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 6.0000002384185791E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "FullSize" : true,
+      "Name" : "Fade"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Alignment" : "hpMiddle",
+      "Height" : 7.0000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "VerticalGroup1",
+      "Spacing" : 3.0000000000000000E+000,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 5.0000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "AutoSize" : false,
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 9.8823529481887817E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "UrbanistBold",
+          "FontSize" : 4.5000000000000000E+001,
+          "Height" : 5.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Label2",
+          "Text" : [
+            "CREDITS"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+002,
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "UrbanistBold",
+              "OptimalSize" : 50,
+              "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Bold.otf"
+            },
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "UrbanistRegular",
+              "OptimalSize" : 30,
+              "URL" : "castle-data:/fonts/Urbanist-fonts/fonts/otf/Urbanist-Regular.otf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Height" : 4.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Filler",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -5.3000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "AutoSize" : false,
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 9.8823529481887817E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "UrbanistBold",
+          "FontSize" : 3.0000000000000000E+001,
+          "Height" : 5.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Label1",
+          "Text" : [
+            "CASTLE RUN",
+            "by"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -9.6000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Height" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Filler1",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.4900000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Alignment" : "hpMiddle",
+          "AutoSizeHeight" : false,
+          "AutoSizeWidth" : false,
+          "Height" : 4.0000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "VerticalGroup2",
+          "Spacing" : 6.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.7200000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 2.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "AutoSize" : false,
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 9.4117647409439087E-001,
+                "Green" : 9.8823529481887817E-001,
+                "Red" : 1.0000000000000000E+000
+              },
+              "CustomFont" : "UrbanistBold",
+              "FontSize" : 3.0000000000000000E+001,
+              "Height" : 5.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Person0",
+              "Text" : [
+                "Michalis Kamburelis"
+              ],
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "AutoSize" : false,
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 9.4117647409439087E-001,
+                    "Green" : 9.8823529481887817E-001,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "CustomFont" : "UrbanistRegular",
+                  "FontSize" : 3.0000000000000000E+001,
+                  "Height" : 5.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Title0",
+                  "Text" : [
+                    "Castle Game Engine Developer"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "Y" : -2.9999994277954102E+001
+                  },
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "AutoSize" : false,
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 9.4117647409439087E-001,
+                "Green" : 9.8823529481887817E-001,
+                "Red" : 1.0000000000000000E+000
+              },
+              "CustomFont" : "UrbanistBold",
+              "FontSize" : 3.0000000000000000E+001,
+              "Height" : 5.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Person1",
+              "Text" : [
+                "Alya Vaneskehyan"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.1000000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "AutoSize" : false,
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 9.4117647409439087E-001,
+                    "Green" : 9.8823529481887817E-001,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "CustomFont" : "UrbanistRegular",
+                  "FontSize" : 3.0000000000000000E+001,
+                  "Height" : 5.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Title1",
+                  "Text" : [
+                    "3D Artist"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "Y" : -2.9999994277954102E+001
+                  },
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "AutoSize" : false,
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 9.4117647409439087E-001,
+                "Green" : 9.8823529481887817E-001,
+                "Red" : 1.0000000000000000E+000
+              },
+              "CustomFont" : "UrbanistBold",
+              "FontSize" : 3.0000000000000000E+001,
+              "Height" : 5.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Person2",
+              "Text" : [
+                "Adrianna Matejek"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -2.2000000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "AutoSize" : false,
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 9.4117647409439087E-001,
+                    "Green" : 9.8823529481887817E-001,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "CustomFont" : "UrbanistRegular",
+                  "FontSize" : 3.0000000000000000E+001,
+                  "Height" : 5.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Title2",
+                  "Text" : [
+                    "UI Designer"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "Y" : -2.9999994277954102E+001
+                  },
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSize" : false,
+          "AutoSizeHeight" : false,
+          "AutoSizeWidth" : false,
+          "Caption" : "CGE TEAM",
+          "CustomBackground" : true,
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
+          },
+          "CustomFont" : "UrbanistBold",
+          "CustomTextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 8.0392158031463623E-001,
+            "Green" : 8.9019608497619629E-001,
+            "Red" : 8.9411765336990356E-001
+          },
+          "CustomTextColorUse" : true,
+          "FontSize" : 2.8000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonCredits",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -5.7500000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 3.2000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "AutoSize" : false,
+          "AutoSizeHeight" : false,
+          "AutoSizeWidth" : false,
+          "Caption" : "BACK",
+          "CustomBackground" : true,
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-focused.png"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1.png"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/hud/Slot_Bg_Bolts1-pressed.png"
+          },
+          "CustomFont" : "UrbanistBold",
+          "CustomTextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 8.0392158031463623E-001,
+            "Green" : 8.9019608497619629E-001,
+            "Red" : 8.9411765336990356E-001
+          },
+          "CustomTextColorUse" : true,
+          "FontSize" : 2.8000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonBack",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.7800000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 3.2000000000000000E+002
+        }
+      ]
+    }
+  ]
+}

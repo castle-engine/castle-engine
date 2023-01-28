@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Credits</title>
+  <chapter>
+    <title>Credits</title>
+    <par>Imaging Library developers:</par>
+    <blist>
+      <li><b>Marek Mauder</b>(<link url="&#109;&#97;&#105;&#108;&#116;&#111;:&#x67;&#x61;&#x6C;&#102;&#97;&#x72;&#64;&#x75;&#x73;&#x65;&#114;&#115;&#x2E;&#x73;&#111;&#x75;&#x72;&#99;&#x65;&#102;&#x6F;&#x72;&#103;&#x65;&#46;&#110;&#x65;&#x74;">
+      &#103;&#97;&#x6C;&#x66;&#x61;&#x72;&#x28;&#97;&#x74;&#x29;&#117;&#x73;&#101;&#x72;&#x73;&#40;&#x64;&#111;&#116;&#x29;&#115;&#111;&#117;&#114;&#99;&#x65;&#x66;&#111;&#114;&#103;&#101;&#x28;&#100;&#111;&#x74;&#41;&#x6E;&#101;&#116;</link>)</li>
+    </blist>
+
+    <par>Imaging Library uses:</par>
+    <blist>
+      <li><b>PasJPEG</b> by Jacques Nomssi Nzali
+      (Pascal translation of <b>JPEGLib</b> by Independent JPEG Group).</li>
+      <li><b>PasZLib</b> by Jacques Nomssi Nzali
+      (Pascal translation of <b>ZLib</b> by
+      Jean-loup Gailly and Mark Adler).</li>
+      <li><b>OpenJPEG</b> for JPEG 2000 support by
+      Communications and remote sensing Laboratory,
+      Universite catholique de Louvain, Belgium </li>
+      <li><b>LibTiff</b> for TIFF support by
+      Sam Leffler, Silicon Graphics, Inc., and contributors.
+      <b>LibTiffDelphi</b> (pre-compiled LibTiff for Borland Delphi)
+      by AWare Systems.
+      </li>
+    </blist>
+    
+  </chapter>
+</doc>

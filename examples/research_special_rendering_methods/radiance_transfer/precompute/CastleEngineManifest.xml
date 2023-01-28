@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="precompute_radiance_transfer"
+  standalone_source="precompute_radiance_transfer.dpr"
+>
+  <data exists="false" />
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+      <path value="../../common_code/" />
+    </search_paths>
+  </compiler_options>
+</project>

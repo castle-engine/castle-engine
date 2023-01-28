@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Elder Imagery</title>
+  <chapter>
+    <title>Elder Imagery</title>
+    <par>
+      Elder Imagery is extension for Vampyre Imaging Library that
+      adds support for loading and saving of images and textures from older
+      Bethesda games like Redguard, BatteSpire,
+      Terminator: FS, and TES: Arena, but mostly for
+      The Elder Scrolls 2: Daggerfall (loads all images and textures
+      from this game). All formats are 8bit indexed images (plus some 16bit color
+      mapping in Battlespire) and palettes are often external.
+      Default palettes for most images of each game are included in Elder Imagery
+      but there are usually few images that use others (you can load them manually
+      and assign them to loader class). Elder Imagery extension resides in
+      <keyword>Extras</keyword> package.
+      Here is the list of file formats supported by Elder Imagery:
+    </par>
+    
+    <blist>
+      <li>
+        <keyword>IMG - Daggerfall Image</keyword>
+        is 8 bit indexed format found in Daggerfall, Arena, Terminator: FS,
+        and maybe other old Bethesda games. Files can be RLE compressed
+        and may contain palette although most images use external palettes.
+        Some files have no header at all so exact file size must be known
+        prior to loading (otherwise no-header files wont be recognized or whole
+        image could be identified as CIF as they use the same header).
+      </li>
+      <li>
+        <keyword>CIF - Daggerfall MultiImage</keyword>
+        is basically a sequence of images in IMG images stored in one file
+        (with exception of Weapo*.cif files which are little bit more complex).
+        As with IMG files CIF files can be RLE compressed and there are
+        also special CIFs without header.
+        Total number of frames in file is known after the whole file was parsed
+        so exact file size must be known prior to loading.
+      </li>
+      <li>
+        <keyword>TEXTURE - Daggerfall Texture</keyword>
+        is format for texture storage in TES2: Daggerfall
+        (works for Terminator: FS and maybe other games too).
+        Textures are stored in 8bit indexed format with external palette.
+        This format is very complicated (more images with subimages,
+        nonstandard RLE, many unknowns) so only loading is supported.
+        These texture files cannot be recognized by filename extension because
+        their filenames are in form texture.### where # is number. Use filename
+        masks instead.
+      </li>
+      <li>
+        <keyword>BSI - Bethesda Image</keyword>
+        is format for textures and images found
+        in Redguard and BattleSpire (maybe in other games too, Skynet?). This format
+        uses chunk structure similar to PNG (HDR/DAT/END). Redguard stores
+        multiple images in one file (usually related like textures for various
+        parts of single 3d object). Image data is stored as 8bit. Each image
+        can have its own embedded palette or it can use external default palette.
+        BattleSpire BSI use *.bsi file extension whilst Redguard uses
+        texbsi.* mask with number extension (just like Daggerfall).
+        Only loading is supported for this format.
+        BattleSpire images also contain some sort of 8bit->16bit color mapping data
+        which I've not yet figured out (only blue channel known) so
+        don't expect to get pretty results from it now.
+      </li>
+      <li>
+        <keyword>SKY - Daggerfall Sky Images</keyword>
+        are used as backdrops in outdoor areas. There's about 200MB of 
+        sky images in Daggerfall installation. Each sky file (sky##.dat)
+        contains 64 images 512x220 pixels each. Images in one file 
+        are for one climate zone and each is used for certain time of the day.
+      </li>
+    </blist>
+
+    <note>
+      When saving image in IMG or CIF format it gets converted to 8bit indexed
+      format and mapped to current palette set in saver class. Also note
+      that max size (in bytes) of image that can be saved is 65535 bytes
+      (it is resized automatically if bigger).
+    </note>
+    
+    <note>
+      Since most people won't need support for these formats they are disabled
+      by default (not compiled into your binary).    
+      If you want them go to <ref>ImagingExtras.pas</ref> unit
+      and comment out or delete <icode>{$DEFINE DONT_LINK_ELDER}</icode>
+      line.
+    </note>
+    
+  </chapter>
+</doc>

@@ -1,0 +1,370 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "VerticalAnchorParent" : "vpTop",
+  "VerticalAnchorSelf" : "vpTop",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label1",
+      "Text" : [
+        "Simple text"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label2",
+      "Text" : [
+        "Larger text"
+      ],
+      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000
+      },
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 2.6000000000000000E+002,
+      "Name" : "Label9",
+      "Text" : [
+        "Different color"
+      ],
+      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "FontParpg",
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label8",
+      "Text" : [
+        "Different font"
+      ],
+      "VerticalAnchorDelta" : -5.0000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontParpg",
+          "URL" : "castle-data:/fonts/PARPG.ttf"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "FontFamilyDejaVu",
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Html" : true,
+      "Name" : "Label10",
+      "Text" : [
+        "Using HTML tags to make <b>bold</b>, <i>italic and <b>bold and italic</b></i>. ",
+        "Can also <font color=\"#6666ff\">change text color</font> ",
+        "Can also <font size=\"-2\">change size</font>."
+      ],
+      "VerticalAnchorDelta" : -5.6000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFontFamily",
+          "Bold" : "FontDejaVuBold",
+          "BoldItalic" : "FontDejaVuBoldItalic",
+          "Italic" : "FontDejaVuItalic",
+          "Name" : "FontFamilyDejaVu",
+          "Regular" : "FontDejaVuRegular"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontDejaVuRegular",
+          "URL" : "castle-data:/fonts/DejaVuSans.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontDejaVuItalic",
+          "URL" : "castle-data:/fonts/DejaVuSans-Oblique.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontDejaVuBold",
+          "URL" : "castle-data:/fonts/DejaVuSans-Bold.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontDejaVuBoldItalic",
+          "URL" : "castle-data:/fonts/DejaVuSans-BoldOblique.ttf"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleHorizontalGroup",
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "HorizontalGroup1",
+      "VerticalAnchorDelta" : -2.6061315917968750E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Height" : 2.0000000000000000E+002,
+          "Name" : "Group2",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Height" : 1.5000000000000000E+002,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "MaxWidth" : 4.0000000000000000E+002,
+              "Name" : "Label4",
+              "Text" : [
+                "Larger multline text with MaxWidth.",
+                "Lorem ipsum dolor sit amet.",
+                "Diam donec adipiscing tristique risus nec feugiat."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.5000000000000000E+002
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Height" : 2.0000000000000000E+002,
+          "HorizontalAnchorDelta" : 4.0000000000000000E+002,
+          "Name" : "Group3",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Height" : 1.5000000000000000E+002,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "MaxWidth" : 4.0000000000000000E+002,
+              "Name" : "Label5",
+              "Text" : [
+                "Larger multline text with MaxWidth and Alignment = hpMiddle.",
+                "Lorem ipsum dolor sit amet.",
+                "Diam donec adipiscing tristique risus nec feugiat."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.5000000000000000E+002
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Height" : 2.0000000000000000E+002,
+          "HorizontalAnchorDelta" : 8.0000000000000000E+002,
+          "Name" : "Group4",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpRight",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Height" : 1.5000000000000000E+002,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "MaxWidth" : 4.0000000000000000E+002,
+              "Name" : "Label6",
+              "Text" : [
+                "Larger multline text with MaxWidth and Alignment = hpRight.",
+                "Lorem ipsum dolor sit amet.",
+                "Diam donec adipiscing tristique risus nec feugiat."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 4.0000000000000000E+002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleHorizontalGroup",
+      "Height" : 1.2000000000000000E+002,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "HorizontalGroup3",
+      "VerticalAnchorDelta" : -1.0061315917968750E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Height" : 1.4000000000000000E+002,
+          "Name" : "Group8",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 6.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "Label3",
+              "Text" : [
+                "Multiline text.",
+                "Lorem ipsum dolor sit amet.",
+                "Diam donec adipiscing tristique risus nec feugiat."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 4.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Height" : 1.4000000000000000E+002,
+          "HorizontalAnchorDelta" : 6.0000000000000000E+002,
+          "Name" : "Group9",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 6.0000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "LineSpacing" : 1.0000000000000000E+001,
+              "Name" : "Label7",
+              "Text" : [
+                "Multiline text, bigger LineSpacing.",
+                "Lorem ipsum dolor sit amet.",
+                "Diam donec adipiscing tristique risus nec feugiat."
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

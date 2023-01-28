@@ -1,0 +1,62 @@
+
+phone.png
+size: 2048,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/Rectangle 10
+  rotate: true
+  xy: 2, 78
+  size: 412, 793
+  orig: 412, 793
+  offset: 0, 0
+  index: -1
+images/phone_0000_Who-is-Trent_
+  rotate: false
+  xy: 2, 2
+  size: 327, 74
+  orig: 327, 74
+  offset: 0, 0
+  index: -1
+images/phone_0001_So-it’s-not-him.-Good
+  rotate: false
+  xy: 797, 126
+  size: 327, 65
+  orig: 327, 65
+  offset: 0, 0
+  index: -1
+images/phone_0002_Is-it-Trent_
+  rotate: false
+  xy: 1126, 302
+  size: 327, 65
+  orig: 327, 65
+  offset: 0, 0
+  index: -1
+images/phone_0003_Who’s-the-guy_
+  rotate: false
+  xy: 1455, 425
+  size: 327, 65
+  orig: 327, 65
+  offset: 0, 0
+  index: -1
+images/phone_0004_WTF-Su-you-getting--married_--I-thought-u-&-Baracus--broke-up__
+  rotate: false
+  xy: 797, 193
+  size: 327, 145
+  orig: 327, 145
+  offset: 0, 0
+  index: -1
+images/phone_0005_You’ll-see-for-yourself-when-you-get-home.-I-don’t-have-time-fo
+  rotate: false
+  xy: 797, 340
+  size: 327, 150
+  orig: 327, 150
+  offset: 0, 0
+  index: -1
+images/phone_0006_Well-maybe-if-you’d-ever-take-my-calls-you’d-know--it’s-been-ov
+  rotate: false
+  xy: 1126, 369
+  size: 327, 121
+  orig: 327, 121
+  offset: 0, 0
+  index: -1

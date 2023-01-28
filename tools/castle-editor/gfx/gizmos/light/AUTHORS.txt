@@ -1,0 +1,19 @@
+light_point
+  original name: lightbulb-solid.svg
+  https://fontawesome.com/
+  free OSI license - https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt
+
+light_spot
+  original name: noun-flashlight-1560557.svg
+  https://thenounproject.com/icon/flashlight-1560557/
+  by Mohamed Mb
+
+light_directional
+  original name: sun-solid.svg
+  https://fontawesome.com/
+  free OSI license - https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt
+
+light_environment
+  original name: noun-light-3840968.svg
+  https://thenounproject.com/icon/light-3840968/
+  by Dmitry Vasiliev

@@ -1,0 +1,130 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.2.75",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0,
+                1,
+                2
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "Sword"
+        },
+        {
+            "name" : "Camera",
+            "rotation" : [
+                0.3864961862564087,
+                0.34957513213157654,
+                -0.16477884352207184,
+                0.8374161720275879
+            ],
+            "translation" : [
+                4.887030124664307,
+                5.752246379852295,
+                4.146642684936523
+            ]
+        },
+        {
+            "name" : "Lamp",
+            "rotation" : [
+                0.25541409850120544,
+                -0.15295977890491486,
+                -0.18474896252155304,
+                0.9366081357002258
+            ],
+            "translation" : [
+                2.5,
+                7.5,
+                5
+            ]
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Plane",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3
+                }
+            ]
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 1560,
+            "max" : [
+                0.19232210516929626,
+                0.04346820339560509,
+                0.25753501057624817
+            ],
+            "min" : [
+                -0.19232206046581268,
+                -0.043468277901411057,
+                -1.2676118612289429
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 1560,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 1560,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 3894,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 18720,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 18720,
+            "byteOffset" : 18720
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 12480,
+            "byteOffset" : 37440
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 7788,
+            "byteOffset" : 49920
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 57708,
+            "uri" : "naraphim_sword1.bin"
+        }
+    ]
+}

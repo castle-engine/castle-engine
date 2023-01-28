@@ -1,0 +1,24 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF FilmGrainScreenEffect ScreenEffect {
+  shaders DEF Shader ComposedShader {
+    inputOutput SFNode grainTexture ImageTexture {
+      url "noise1.png"
+      repeatS TRUE
+      repeatT TRUE
+    }
+    inputOnly SFTime time
+    language "GLSL"
+    parts ShaderPart { type "FRAGMENT" url "film_grain.fs" }
+  }
+}
+
+DEF Timer TimeSensor { stopTime 1 loop TRUE }
+ROUTE Timer.elapsedTime TO Shader.time
+
+# Start Timer when world is loaded (otherwise the elapsedTime
+# would be huge at the start, and this is bad --- calculation using it
+# are not precise).
+DEF PS ProximitySensor { size 10000000 10000000 10000000 }
+ROUTE PS.enterTime TO Timer.startTime
