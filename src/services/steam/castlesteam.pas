@@ -10,6 +10,7 @@ type
   TCastleSteam = class(TObject)
   strict private
     FInitialized: Boolean;
+    StoreStats: Boolean;
     SteamClient: Pointer;
     //SteamUser: Pointer;
     SteamUserStats: Pointer;
@@ -17,6 +18,10 @@ type
     SteamPipeHandle: HSteamPipe;
     SteamUserStatsCallbackDispatcher: SteamCallbackDispatcher;
     procedure OnUserStatsReceived(P:Pointer);
+    { I'm not sure how to deal with steam errors
+      Making every procedure "boolean" and rely on user doing the checks seems inconvenient
+      But there are situation when some operation failed because Steam API isn't ready }
+    procedure SteamError(const ErrorMsg: String);
   public
     procedure SetAchievement(const AchievementId: String);
     function GetAchievement(const AchievementId: String): Boolean;
@@ -45,7 +50,7 @@ var
 
 function SteamInitialized: Boolean;
 begin
-  Exit(FSteam <> nil);
+  Exit((FSteam <> nil) and FSteam.Initialized);
 end;
 
 function Steam: TCastleSteam;
@@ -90,32 +95,58 @@ begin
   FInitialized := true; // maybe only after all callbacks are received - one boolean per each init callback. But as long as we have only one now, this will do
 end;
 
+procedure TCastleSteam.SteamError(const ErrorMsg: String);
+begin
+  WriteLnWarning(ErrorMsg);
+end;
+
 procedure TCastleSteam.SetAchievement(const AchievementId: String);
 begin
-  SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId));
-  SteamAPI_ISteamUserStats_StoreStats(SteamUserStats);
+  if Initialized then
+  begin
+    if not SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
+      SteamError('Failed to SteamAPI_ISteamUserStats_SetAchievement');
+    StoreStats := true;
+  end else
+    SteamError('SetAchievement failed! Steam is not initialized!');
 end;
 
 function TCastleSteam.GetAchievement(const AchievementId: String): Boolean;
 begin
-  SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats, PAnsiChar(AchievementId), {out} Result);
+  if Initialized then
+  begin
+    if not SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats, PAnsiChar(AchievementId), {out} Result) then
+      SteamError('Failed to SteamAPI_ISteamUserStats_GetAchievement');
+  end else
+    SteamError('GetAchievement failed! Steam is not initialized!');
 end;
 
 procedure TCastleSteam.ClearAchievement(const AchievementId: String);
 begin
-  SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId));
-  SteamAPI_ISteamUserStats_StoreStats(SteamUserStats)
+  if Initialized then
+  begin
+    if not SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
+      SteamError('Failed to SteamAPI_ISteamUserStats_ClearAchievement');
+    StoreStats := true;
+  end else
+    SteamError('ClearAchievement failed! Steam is not initialized!');
 end;
 
 procedure TCastleSteam.Update;
 begin
   if Initialized then
+  begin
     SteamAPI_RunCallbacks();
+    if StoreStats then
+      if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
+        StoreStats := false;
+  end;
 end;
 
 constructor TCastleSteam.Create;
 begin
   inherited; // parent is empty
+  StoreStats := false;
   FInitialized := false; // waiting for callback
 
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
