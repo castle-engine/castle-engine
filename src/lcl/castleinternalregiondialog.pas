@@ -33,6 +33,7 @@ type
   TRegionDesignDialog = class(TForm)
     ButtonPanel1: TButtonPanel;
     CastleControl1: TCastleControl;
+    ColorDialog1: TColorDialog;
     StatusBar1: TStatusBar;
 
     procedure CastleControl1Motion(Sender: TObject; const Event: TInputMotion);
@@ -40,6 +41,7 @@ type
     procedure CastleControl1Release(Sender: TObject;
       const Event: TInputPressRelease);
     procedure CastleControl1Render(Sender: TObject);
+    procedure HelpButtonClick(Sender: TObject);
   strict private
   type
     TMovingRec = record
@@ -158,6 +160,14 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
 begin
   RenderImage;
   RenderControlPoints;
+end;
+
+procedure TRegionDesignDialog.HelpButtonClick(Sender: TObject);
+begin
+  if ColorDialog1.Execute then
+    CastleControl1.Container.BackgroundColor :=
+      Vector4(byte(ColorDialog1.Color) / 255, byte(ColorDialog1.Color shr 8) /
+      255, byte(ColorDialog1.Color shr 16) / 255, 1);
 end;
 
 procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
