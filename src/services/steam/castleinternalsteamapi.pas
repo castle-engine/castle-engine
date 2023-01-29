@@ -14,9 +14,7 @@ function SteamAPI_Init(): Boolean; CDecl; external SteamLib;
 procedure SteamAPI_ReleaseCurrentThreadMemory(); CDecl; external SteamLib; // UNTESTED
 function SteamAPI_RestartAppIfNecessary(unOwnAppID: UInt32): Boolean; CDecl; external SteamLib;
 procedure SteamAPI_RunCallbacks(); CDecl; external SteamLib;
-//procedure SteamAPI_SetMiniDumpComment( const char *pchMsg );
 procedure SteamAPI_Shutdown(); CDecl; external SteamLib;
-//procedure SteamAPI_WriteMiniDump( uint32 uStructuredExceptionCode, void* pvExceptionInfo, uint32 uBuildID );
 
 { steam_api_internal.h : undocumented? }
 
@@ -52,19 +50,21 @@ function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): 
 function SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats: Pointer; const AchievementName: PChar; out Achieved: Boolean): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
-// For some reason it doesn't work properly always? Sometimes (the first launch?) returns zero achievements
 function SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats: Pointer): UInt32; CDecl; external SteamLib;
 // It returns string-ID of the achievement, not a human readable name
 function SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats: Pointer; AchievementId: UInt32 ): PAnsiChar; CDecl; external SteamLib;
 // Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
 function SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats: Pointer; const AchievementName: PChar; CurrentProgress: UInt32; MaxProgress: UInt32): Boolean; CDecl; external SteamLib;
 
-function SteamAPI_ISteamUserStats_GetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_GetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_SetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_SetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
+// Call this after changing stats or achievements
 function SteamAPI_ISteamUserStats_StoreStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
+
+// the ones below crash without any reason explained
+//function SteamAPI_ISteamUserStats_GetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_GetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_SetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_SetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
 
 implementation
 

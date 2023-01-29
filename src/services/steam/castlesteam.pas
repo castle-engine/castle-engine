@@ -29,6 +29,7 @@ type
     procedure SetAchievement(const AchievementId: String);
     function GetAchievement(const AchievementId: String): Boolean;
     procedure ClearAchievement(const AchievementId: String);
+    procedure IndicateAchievementProgress(const AchievementId: String; const CurrentProgress, MaxProgress: UInt32);
   public
     property Initialized: Boolean read FInitialized;
     { Updates callbacks and other internal Steam functions
@@ -151,6 +152,17 @@ begin
     StoreStats := true;
   end else
     SteamError('ClearAchievement failed! Steam is not initialized!');
+end;
+
+procedure TCastleSteam.IndicateAchievementProgress(const AchievementId: String;
+  const CurrentProgress, MaxProgress: UInt32);
+begin
+  if Initialized then
+  begin
+    if not SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats, PAnsiChar(AchievementId), CurrentProgress, MaxProgress) then
+      SteamError('Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress');
+  end else
+    SteamError('IndicateAchievementProgress failed! Steam is not initialized!');
 end;
 
 procedure TCastleSteam.Update;

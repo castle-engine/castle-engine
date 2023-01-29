@@ -39,6 +39,7 @@ begin
 end;
 
 initialization
+  Randomize;
   { This initialization section configures:
     - Application.OnInitialize
     - Application.MainWindow

@@ -16,6 +16,7 @@ type
   strict private
     SteamAchievementsReceived: Boolean;
     procedure ClickAchievement(Sender: TObject);
+    procedure ClickAchievementProgress(Sender: TObject);
     procedure FillInAchievements;
   public
     procedure Log(const Message: String);
@@ -58,6 +59,10 @@ begin
     Lab.Color := CastleColors.White;
     Horiz.InsertFront(Lab);
   end;
+  Button := TCastleButton.Create(VerticalGroupAchievements);
+  Button.Caption := 'Indicate Achievement Progress';
+  Button.OnClick := @ClickAchievementProgress;
+  VerticalGroupAchievements.InsertFront(Button);
 end;
 
 procedure TViewMain.ClickAchievement(Sender: TObject);
@@ -72,6 +77,11 @@ begin
     Steam.SetAchievement((Sender as TCastleButton).Caption);
   end;
   FillInAchievements;
+end;
+
+procedure TViewMain.ClickAchievementProgress(Sender: TObject);
+begin
+  Steam.IndicateAchievementProgress('ACH_WIN_100_GAMES', Random(99) + 1, 100);
 end;
 
 procedure TViewMain.Log(const Message: String);
