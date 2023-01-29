@@ -79,35 +79,141 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 
 {$ifdef read_implementation}
 
-function ImageGLFormat(const Img: TCastleImage): TGLenum;
+{ Get OpenGL enums for "format" and "internalFormat" for OpenGL routines like
+  https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
+  that load uncompressed images. }
+procedure UncompressedGLFormatAndInternalFormat(const Img: TCastleImage;
+  out ImageFormat: TGLenum;
+  out ImageInternalFormat: TGLenum);
+{ Missing from FPC OpenGL units. }
+const
+  GL_R8 = $8229;
+  GL_RG = $8227;
+  GL_RG8 = $822B;
+
+{ For all image types, we have
+
+  - "core" enum: required by OpenGL "core" profile,
+    see https://www.khronos.org/opengl/wiki/Image_Format .
+
+  - "compatibility" enum: name accepted by OpenGL ES 2 (
+    https://registry.khronos.org/OpenGL-Refpages/es2.0/xhtml/glTexImage2D.xml )
+    and OpenGL in compatibility mode.
+
+    TODO: This should just check Version_3_2 to decide which one to use.
+    But since some formats are not really functional now,
+    because of missing luminance support,
+    we instead check "TGLFeatures.RequestCapabilities = rcForceModern",
+    and depend on deprecated luminance support from OpenGL otherwise.
+
+  - Moreover, when GLFeatures.EnableFixedFunction, we adjust to OpenGL 1.x where
+    the "internal format" for glTexImage2d was just a number,
+    like 2,3,4.
+
+    In OpenGLES >= 2 and in OpenGL >= 3.2 "core" profile this is not allowed
+    anymore.
+}
+
 begin
   if Img is TRGBImage then
-    Result := GL_RGB else
+  begin
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      ImageFormat := GL_RGB;
+      ImageInternalFormat := GL_RGB8;
+    end else
+    begin
+      ImageFormat := GL_RGB;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TRGBAlphaImage then
-    Result := GL_RGBA else
+  begin
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      ImageFormat := GL_RGBA;
+      ImageInternalFormat := GL_RGBA8;
+    end else
+    begin
+      ImageFormat := GL_RGBA;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TGrayscaleImage then
   begin
-    if TGrayscaleImage(Img).TreatAsAlpha then
-      Result := GL_ALPHA else
-      Result := GL_LUMINANCE;
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      WritelnWarning('TODO: Textures loaded from TGrayscaleImage are no longer loaded as luminance (or alpha when TreatAsAlpha) in "core" OpenGL. They are instead red. Image "%s" contents may be rendered incorrectly.', [
+        URIDisplay(Img.Url)
+      ]);
+      ImageFormat := GL_RED;
+      ImageInternalFormat := GL_R8;
+    end else
+    begin
+      ImageFormat := Iff(TGrayscaleImage(Img).TreatAsAlpha, GL_ALPHA, GL_LUMINANCE);
+      if GLFeatures.EnableFixedFunction and (not TGrayscaleImage(Img).TreatAsAlpha) then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
   end else
   if Img is TGrayscaleAlphaImage then
-    Result := GL_LUMINANCE_ALPHA else
+  begin
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      WritelnWarning('TODO: Textures loaded from TGrayscaleAlphaImage are no longer loaded as luminance+alpha in "core" OpenGL. They are instead red+green. Image "%s" contents may be rendered incorrectly.', [
+        URIDisplay(Img.Url)
+      ]);
+      ImageFormat := GL_RG;
+      ImageInternalFormat := GL_RG8;
+    end else
+    begin
+      ImageFormat := GL_LUMINANCE_ALPHA;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TRGBFloatImage then
-    Result := GL_RGB else
+  begin
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      ImageFormat := GL_RGB;
+      ImageInternalFormat := GL_RGB32F;
+    end else
+    begin
+      ImageFormat := GL_RGB;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL', [Img.ClassName]);
+end;
+
+function ImageGLFormat(const Img: TCastleImage): TGLenum;
+var
+  IgnoredImageInternalFormat: TGLenum;
+begin
+  UncompressedGLFormatAndInternalFormat(Img, Result, IgnoredImageInternalFormat);
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 {$I gl_texture_compression_constants.inc}
+var
+  IgnoredImageFormat: TGLenum;
 begin
   if Img is TCastleImage then
   begin
-    if (Img is TGrayscaleImage) and TGrayscaleImage(Img).TreatAsAlpha then
-      Result := GL_ALPHA else
-      Result := {$ifdef OpenGLES} ImageGLFormat(TCastleImage(Img))
-                {$else} TCastleImage(Img).ColorComponentsCount
-                {$endif};
+    UncompressedGLFormatAndInternalFormat(TCastleImage(Img), IgnoredImageFormat, Result);
   end else
   if Img is TGPUCompressedImage then
   begin
@@ -174,9 +280,11 @@ begin
      (Img is TRGBAlphaImage) or
      (Img is TGrayscaleImage) or
      (Img is TGrayscaleAlphaImage) then
-    Result := GL_UNSIGNED_BYTE else
+    Result := GL_UNSIGNED_BYTE
+  else
   if Img is TRGBFloatImage then
-    Result := GL_FLOAT else
+    Result := GL_FLOAT
+  else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);
 end;

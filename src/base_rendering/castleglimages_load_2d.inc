@@ -283,6 +283,8 @@ end;
   LoadedSize will be increased. }
 procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Image: TCastleImage;
   var LoadedSize: Int64);
+var
+  ImageFormat, ImageInternalFormat: TGLenum;
 begin
   BeforeUnpackImage(Image);
   try
@@ -294,8 +296,9 @@ begin
       glPushAttrib(GL_ENABLE_BIT);
     {$endif}
 
-    glTexImage2D(Target, Level, ImageGLInternalFormat(Image),
-      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+    UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat);
+    glTexImage2D(Target, Level, ImageInternalFormat,
+      Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
       Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
 

@@ -168,8 +168,7 @@ begin
     raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
       [Image.ClassName]);
 
-  ImageInternalFormat := ImageGLInternalFormat(Image);
-  ImageFormat := ImageGLFormat(TCastleImage(Image));
+  UncompressedGLFormatAndInternalFormat(TCastleImage(Image), ImageFormat, ImageInternalFormat);
   LoadedSize := 0;
 
   glTexImage3DImage(TCastleImage(Image), 0);

@@ -66,6 +66,11 @@ initialization
 
   TGLFeatures.RequestCapabilities := rcForceFixedFunction;
 
+  // Alternatively, test the other extreme of support: modern OpenGL "core" profile,
+  // without any compatibility.
+  // TGLFeatures.RequestCapabilities := rcForceModern;
+  // TGLFeatures.Debug := true;
+
   { Optionally, adjust window fullscreen state and size at this point.
     Examples:
 
