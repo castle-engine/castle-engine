@@ -111,8 +111,8 @@ begin
     Achievements := TStringList.Create;
     for I := 0 to Pred(NumAchievements) do
       Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
-    for I := 0 to Pred(Achievements.Count) do
-      WriteLnLog('"' + Achievements[I] + '"');
+    {for I := 0 to Pred(Achievements.Count) do
+      WriteLnLog('"' + Achievements[I] + '"');}
   end;
 end;
 
