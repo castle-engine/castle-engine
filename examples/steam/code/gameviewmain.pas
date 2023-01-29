@@ -9,12 +9,14 @@ uses Classes,
 
 type
   TViewMain = class(TCastleView)
-  private
-    procedure ClickAddAchievement1(Sender: TObject);
   published
     LabelFps: TCastleLabel;
-    ButtonAddAchievement1: TCastleButton;
+    VerticalGroupAchievements: TCastleVerticalGroup;
     VerticalGroupLog: TCastleVerticalGroup;
+  strict private
+    SteamAchievementsReceived: Boolean;
+    procedure ClickAchievement(Sender: TObject);
+    procedure FillInAchievements;
   public
     procedure Log(const Message: String);
     constructor Create(AOwner: TComponent); override;
@@ -31,17 +33,45 @@ uses SysUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
-procedure TViewMain.ClickAddAchievement1(Sender: TObject);
+procedure TViewMain.FillInAchievements;
+var
+  S: String;
+  Horiz: TCastleHorizontalGroup;
+  Button: TCastleButton;
+  Lab: TCastleLabel;
 begin
-  if Steam.GetAchievement('ACH_WIN_ONE_GAME') then
+  VerticalGroupAchievements.ClearControls;  // Warning: hidden memory leak here, as ClearControls doesn't free them
+  for S in Steam.Achievements do
+  begin
+    Horiz := TCastleHorizontalGroup.Create(VerticalGroupAchievements);
+    Horiz.Spacing := 20;
+    VerticalGroupAchievements.InsertFront(Horiz);
+    Button := TCastleButton.Create(Horiz);
+    Button.Caption := S;
+    Button.OnClick := @ClickAchievement;
+    Horiz.InsertFront(Button);
+    Lab := TCastleLabel.Create(Horiz);
+    if Steam.GetAchievement(S) then
+      Lab.Caption := 'YES'
+    else
+      Lab.Caption := 'NO';
+    Lab.Color := CastleColors.White;
+    Horiz.InsertFront(Lab);
+  end;
+end;
+
+procedure TViewMain.ClickAchievement(Sender: TObject);
+begin
+  if Steam.GetAchievement((Sender as TCastleButton).Caption) then
   begin
     Log('Achievement set, clearing');
-    Steam.ClearAchievement('ACH_WIN_ONE_GAME');
+    Steam.ClearAchievement((Sender as TCastleButton).Caption);
   end else
   begin
     Log('Achievement not set, adding');
-    Steam.SetAchievement('ACH_WIN_ONE_GAME');
+    Steam.SetAchievement((Sender as TCastleButton).Caption);
   end;
+  FillInAchievements;
 end;
 
 procedure TViewMain.Log(const Message: String);
@@ -63,7 +93,7 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  ButtonAddAchievement1.OnClick := @ClickAddAchievement1;
+  SteamAchievementsReceived := false;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -73,6 +103,12 @@ begin
 
   { Some Steam features (like callbacks) require calling Update often, usually every frame }
   Steam.Update;
+
+  if not SteamAchievementsReceived and Steam.Initialized then
+  begin
+    SteamAchievementsReceived := true;
+    FillInAchievements;
+  end;
 end;
 
 end.

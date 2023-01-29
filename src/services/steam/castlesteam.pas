@@ -10,7 +10,6 @@ uses
 type
   TCastleSteam = class(TObject)
   strict private
-    Achievements: TStringList;
     FInitialized: Boolean;
     StoreStats: Boolean;
     SteamClient: Pointer;
@@ -26,6 +25,7 @@ type
       But there are situation when some operation failed because Steam API isn't ready }
     procedure SteamError(const ErrorMsg: String);
   public
+    Achievements: TStringList;
     procedure SetAchievement(const AchievementId: String);
     function GetAchievement(const AchievementId: String): Boolean;
     procedure ClearAchievement(const AchievementId: String);
@@ -112,7 +112,7 @@ begin
     for I := 0 to Pred(NumAchievements) do
       Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
     for I := 0 to Pred(Achievements.Count) do
-      WriteLnLog(Achievements[I]);
+      WriteLnLog('"' + Achievements[I] + '"');
   end;
 end;
 

@@ -28,38 +28,14 @@
     },
     {
       "$$ClassName" : "TCastleVerticalGroup",
-      "Name" : "VerticalGroup1",
+      "Name" : "VerticalGroupAchievements",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 3.0000000000000000E+001,
         "Y" : -3.0000000000000000E+001
       },
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleButton",
-          "Caption" : "Add Achievement",
-          "CustomBackgroundDisabled" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundFocused" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundNormal" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundPressed" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "Image" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "Name" : "ButtonAddAchievement1",
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        }
-      ]
+      "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleScrollView",
