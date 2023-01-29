@@ -134,13 +134,10 @@ end;
 
 procedure TCastleSteam.Update;
 begin
-  if Initialized then
-  begin
-    SteamAPI_RunCallbacks();
-    if StoreStats then
-      if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
-        StoreStats := false;
-  end;
+  SteamAPI_RunCallbacks();
+  if Initialized and StoreStats then
+    if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
+      StoreStats := false;
 end;
 
 constructor TCastleSteam.Create;
