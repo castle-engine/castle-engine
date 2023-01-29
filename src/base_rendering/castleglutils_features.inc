@@ -177,7 +177,9 @@ type
     SupportedExtensions: AnsiString;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
+      FDebug: Boolean;
     class procedure SetRequestCapabilities(const Value: TGLRequestCapabilities); static;
+    class procedure SetDebug(const Value: Boolean); static;
   private
     function HasExtension(const Extension: String): Boolean;
     function AllExtensions: String;
@@ -377,6 +379,20 @@ type
         @item(Multi-texturing (@link(UseMultiTexturing) is guaranteed to be @true))
         @item(VBO (@link(VertexBufferObject) is guaranteed to be @true))
         @item(Shaders (@link(Shaders) is guaranteed to be @true))
+        @item(OpenGL version >= 2.0 is available on desktops.
+
+          Note that when using rcForceModern, we want to have a "core" profile with OpenGL >= 3.2,
+          and as such when Version_3_2 is @true, you should use OpenGL 3.2 API,
+          not API from older OpenGL like 2.x.
+
+          This means we actually care about 3 cases:
+
+          1. EnabledFixedFunction is @true.
+
+          2. EnabledFixedFunction is @false and not Version_3_2.
+
+          3. EnabledFixedFunction is @false and Version_3_2.
+        )
       )
 
       When this is @true, you should use ancient fixed-function pipeline for all rendering,
@@ -417,6 +433,12 @@ type
       context is initialized, which means before TCastleWindow.Open
       occurs, which means before @link(GLFeatures) instance is initialized. }
     class property RequestCapabilities: TGLRequestCapabilities read FRequestCapabilities write SetRequestCapabilities;
+
+    { Request debug OpenGL(ES) context.
+      See https://www.khronos.org/opengl/wiki/Debug_Output .
+      This should never be used at production, but it is very useful when developing
+      and using OpenGL(ES) API directly. }
+    class property Debug: Boolean read FDebug write SetDebug;
 
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
@@ -505,6 +527,12 @@ var
   SupportedExt: AnsiString;
   I: Integer;
 begin
+  { Catch an often mistake in Extension name. }
+  if not IsPrefix('GL_', Extension, false) then
+    raise Exception.CreateFmt('Using TGLFeatures.HasExtension with extension name without GL_ prefix: %s', [
+      Extension
+    ]);
+
   if Version_3_2 then
   begin
     { With new OpenGL, one should use glGetStringi to enumerate over extensions,
@@ -552,6 +580,57 @@ begin
   end;
 end;
 
+procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
+  Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
+  {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
+  {$elseif defined(OPENGL_CALLBACK_CDECL)} cdecl;
+  {$else} {$fatal Include openglmac.inc that should define OPENGL_CALLBACK_xxx}
+  {$endif}
+var
+  SourceStr, TypeStr, SeverityStr, MessageStr: String;
+begin
+  case Source of
+    GL_DEBUG_SOURCE_API            : SourceStr := 'API';
+    GL_DEBUG_SOURCE_WINDOW_SYSTEM  : SourceStr := 'Window System';
+    GL_DEBUG_SOURCE_SHADER_COMPILER: SourceStr := 'Shader Compiler';
+    GL_DEBUG_SOURCE_THIRD_PARTY    : SourceStr := '3rd Party';
+    GL_DEBUG_SOURCE_APPLICATION    : SourceStr := 'Application';
+    GL_DEBUG_SOURCE_OTHER          : SourceStr := 'Other';
+    else                             SourceStr := 'Unknown';
+  end;
+
+  case AType of
+    GL_DEBUG_TYPE_ERROR              : TypeStr := 'GL error';
+    GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: TypeStr := 'Attempted use of deprecated features';
+    GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR : TypeStr := 'Triggering of undefined behavior';
+    GL_DEBUG_TYPE_PORTABILITY        : TypeStr := 'Portability issue';
+    GL_DEBUG_TYPE_PERFORMANCE        : TypeStr := 'Performance notification';
+    GL_DEBUG_TYPE_MARKER             : TypeStr := 'Marker';
+    GL_DEBUG_TYPE_PUSH_GROUP         : TypeStr := 'Group push';
+    GL_DEBUG_TYPE_POP_GROUP          : TypeStr := 'Group pop';
+    GL_DEBUG_TYPE_OTHER              : TypeStr := 'Other';
+    else                               TypeStr := 'Unknown';
+  end;
+
+  case Severity of
+    GL_DEBUG_SEVERITY_LOW         : SeverityStr := 'Low';
+    GL_DEBUG_SEVERITY_MEDIUM      : SeverityStr := 'Medium';
+    GL_DEBUG_SEVERITY_HIGH        : SeverityStr := 'High';
+    GL_DEBUG_SEVERITY_NOTIFICATION: SeverityStr := 'Notification';
+    else                            SeverityStr := 'Unknown';
+  end;
+
+  MessageStr := Message;
+
+  WritelnLog('OpenGL debug', '%s, %s, %d, %s: %s', [
+    SourceStr,
+    TypeStr,
+    Id,
+    SeverityStr,
+    MessageStr
+  ]);
+end;
+
 constructor TGLFeatures.Create;
 
   function GetVector2Integer(const Param: TGLenum): TVector2Integer;
@@ -561,6 +640,24 @@ constructor TGLFeatures.Create;
     glGetIntegerv(Param, @V);
     Result.X := V[0];
     Result.Y := V[1];
+  end;
+
+  procedure InitializeDebug;
+  begin
+    if HasExtension('GL_KHR_debug') then
+    begin
+      { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
+        glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually. }
+      Pointer(glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
+      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
+      // Note that we don't really use glDebugMessageControl now
+      Pointer(glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
+      if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
+
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageCallback(@CallbackGLDebug, nil);
+      WritelnLog('OpenGL debugging enabled, expect extra log messages');
+    end;
   end;
 
 var
@@ -630,6 +727,11 @@ begin
   FVersion_4_0 := GLVersion.AtLeast(4, 0);
   InitOpenGLext; // TODO: check that later
   {$endif}
+
+  { Do this as early as possible, which means: after Version_3_2 is defined,
+    to debug even errors below in TGLFeatures initialization. }
+  if Debug then
+    InitializeDebug;
 
   FARB_shadow := LoadExtensions and Load_GL_ARB_shadow;
   FEXT_fog_coord := LoadExtensions and Load_GL_EXT_fog_coord;
@@ -984,33 +1086,53 @@ begin
     Result := MaxTextureUnitsShaders;
 end;
 
-{$ifndef OpenGLES}
+const
+  SCannotChangeAfterContextInitialized = 'You cannot change "%s" once rendering context is already initialized.' + NL +
+    NL +
+    'You can only change it before TCastleWindow.Open and before TCastleApplication.OnInitialize. In usual applications, put it in "initialization" of unit like GameInitialize that creates TCastleWindow.';
+
 class procedure TGLFeatures.SetRequestCapabilities(const Value: TGLRequestCapabilities);
 begin
   if FRequestCapabilities <> Value then
   begin
     { Reason why you cannot change it after context is initialized:
 
-      Otherwise creating OpenGL context could
-      initialize early some resources for modern pipeline,
-      e.g. RenderLoadingBackground would initialize TDrawableImage shaders.
-      Setting EnableFixedFunction to true later, and disabling shaders,
-      would put us in a weird state -- some TDrawableImage
-      shader could be enabled,
-      and it couldn't be disabled (because InternalSetCurrentProgram
-      now thinks that shaders are not available).
+      1. Cannot change to rcForceFixedFunction:
 
-      It is more reliable to guarantee that EnableFixedFunction
-      is constant once OpenGL(ES) context is open.
-      So e.g. if EnableFixedFunction=true, you can be 100% certain
-      that no shaders are enabled, because they are disabled from the start. }
+         Otherwise creating OpenGL context could
+         initialize early some resources for modern pipeline,
+         e.g. RenderLoadingBackground would initialize TDrawableImage shaders.
+         Setting EnableFixedFunction to true later, and disabling shaders,
+         would put us in a weird state -- some TDrawableImage
+         shader could be enabled,
+         and it couldn't be disabled (because InternalSetCurrentProgram
+         now thinks that shaders are not available).
 
+         It is more reliable to guarantee that EnableFixedFunction
+         is constant once OpenGL(ES) context is open.
+         So e.g. if EnableFixedFunction=true, you can be 100% certain
+         that no shaders are enabled, because they are disabled from the start.
+
+      2. Cannot change to rcForceModern:
+
+         Naturally, rcForceModern is applied at context creation,
+         so it would be useless to set it later.
+    }
     if GLFeatures <> nil then
-      raise Exception.Create('It is not allowed to change TGLFeatures.RequestCapabilities once rendering context is already initialized. You can only change TGLFeatures.RequestCapabilities before TCastleWindow.Open, before TCastleApplication.OnInitialize.');
+      raise Exception.CreateFmt(SCannotChangeAfterContextInitialized, ['TGLFeatures.SetRequestCapabilities']);
     FRequestCapabilities := Value;
   end;
 end;
-{$endif}
+
+class procedure TGLFeatures.SetDebug(const Value: Boolean);
+begin
+  if FDebug <> Value then
+  begin
+    if GLFeatures <> nil then
+      raise Exception.CreateFmt(SCannotChangeAfterContextInitialized, ['TGLFeatures.Debug']);
+    FDebug := Value;
+  end;
+end;
 
 { TGLMemoryInfo -------------------------------------------------------------- }
 
