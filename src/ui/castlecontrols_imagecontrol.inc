@@ -62,6 +62,7 @@
     function GetSmoothScaling: Boolean;
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
+    function GetRegion: TRegion;
     procedure SetURL(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetOwnsDrawableImage(const Value: Boolean);
@@ -341,6 +342,8 @@
       @seealso TCastleImagePersistent.ProtectedSides }
     property ProtectedSides: TBorder read GetProtectedSides stored false;
 
+    property Region: TRegion read GetRegion stored false;
+
     { Set this to auto-detect that image is scaled compared to it's desired size.
       This detects URL endings like 'xxx@2x.png', and we will automatically adjust
       to it (the size determined by AutoSize will be actually 2x smaller than
@@ -393,6 +396,11 @@ end;
 function TCastleImageControl.GetProtectedSides: TBorder;
 begin
   Result := FContent.ProtectedSides;
+end;
+
+function TCastleImageControl.GetRegion: TRegion;
+begin
+  Result := FContent.Region;
 end;
 
 function TCastleImageControl.GetSmoothScaling: boolean;
@@ -467,8 +475,8 @@ var
 begin
   inherited;
 
-  ImageWidth  := FContent.DrawableImage.Width;
-  ImageHeight := FContent.DrawableImage.Height;
+  ImageWidth  := FContent.Width;
+  ImageHeight := FContent.Height;
   if FDetectScaleFromUrl and (FContent.ScaleFromUrl <> 1) then
   begin
     ImageWidth  := ImageWidth / FContent.ScaleFromUrl;
@@ -712,6 +720,7 @@ begin
      (PropertyName = 'FlipHorizontal') or
      (PropertyName = 'FlipVertical') or
      (PropertyName = 'ProtectedSides') or
+     (PropertyName = 'Region') or
      (PropertyName = 'Rotation') then
     Result := [psBasic]
   else

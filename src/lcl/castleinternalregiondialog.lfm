@@ -1,0 +1,41 @@
+object RegionDesignDialog: TRegionDesignDialog
+  Left = 713
+  Height = 666
+  Top = 316
+  Width = 1024
+  Caption = 'Edit Region To Show'
+  ClientHeight = 666
+  ClientWidth = 1024
+  Position = poMainFormCenter
+  object ButtonPanel1: TButtonPanel
+    Left = 7
+    Height = 35
+    Top = 624
+    Width = 1010
+    BorderSpacing.Around = 7
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel]
+    ShowGlyphs = [pbOK, pbCancel, pbClose]
+  end
+  object CastleControl1: TCastleControl
+    Left = 0
+    Height = 617
+    Top = 0
+    Width = 1024
+    Align = alClient
+    Options = []
+    TabOrder = 1
+    OnRender = CastleControl1Render
+    OnPress = CastleControl1Press
+    OnRelease = CastleControl1Release
+    OnMotion = CastleControl1Motion
+  end
+end

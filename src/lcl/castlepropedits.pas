@@ -48,7 +48,7 @@ uses // FPC and LCL units
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
-  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,CastleInternalRegionDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
@@ -65,6 +65,7 @@ uses // FPC and LCL units
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_protectedsides.inc}
+{$I castlepropedits_region.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_tiledlayers.inc}
@@ -146,6 +147,8 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TCastleProtectedSidesEditor);
+  RegisterPropertyEditor(TypeInfo(TRegion), nil, 'Region',
+    TCastleRegionEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',

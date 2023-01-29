@@ -67,6 +67,7 @@
 
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
+    FRegion: TRegion;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
 
@@ -90,6 +91,7 @@
     procedure SetClipLine(const Value: TVector3);
 
     procedure ProtectedSidesChange(Sender: TObject);
+    procedure RegionChange(Sender: TObject);
     procedure CreateDrawableImage;
     { Free FDrawableImage if needed, and make it @nil. }
     procedure FreeDrawableImage;
@@ -200,8 +202,12 @@
       (colors, or maybe even image size) you need to call this. }
     procedure ImageChanged;
 
+    { Value that have been cut by Region }
     function Width: Cardinal;
+
+    { Value that have been cut by Region }
     function Height: Cardinal;
+
     function Empty: Boolean;
 
     { Draw the image in given screen area. }
@@ -286,6 +292,9 @@
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
+    { Target Image region }
+    property Region: TRegion read FRegion;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -308,6 +317,7 @@ begin
   FInternalVisualizeProtectedSides := true;
 
   FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
+  FRegion := TRegion.Create({$ifdef FPC}@{$endif}RegionChange);
   CreateDrawableImage;
 
   {$define read_implementation_constructor}
@@ -319,6 +329,7 @@ destructor TCastleImagePersistent.Destroy;
 begin
   FreeDrawableImage;
   FreeAndNil(FProtectedSides);
+  FreeAndNil(FRegion);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
@@ -327,6 +338,11 @@ begin
 end;
 
 procedure TCastleImagePersistent.ProtectedSidesChange(Sender: TObject);
+begin
+  DoChange;
+end;
+
+procedure TCastleImagePersistent.RegionChange(Sender: TObject);
 begin
   DoChange;
 end;
@@ -514,12 +530,12 @@ end;
 
 function TCastleImagePersistent.Width: Cardinal;
 begin
-  Result := FDrawableImage.Width;
+  Result := FDrawableImage.Width - Floor(FRegion.TotalWidth);
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
 begin
-  Result := FDrawableImage.Height;
+  Result := FDrawableImage.Height - Floor(FRegion.TotalHeight);
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
@@ -595,8 +611,13 @@ procedure TCastleImagePersistent.Draw(
     ], Vector4(1, 1, 0, 0.5));
   end;
 
+  function ImageRect():TFloatRectangle;
+  begin
+     Result := FloatRectangle(FRegion.TotalLeft + FProtectedSides.TotalLeft, FRegion.TotalBottom + FProtectedSides.TotalBottom, Width - FProtectedSides.TotalRight, Height - FProtectedSides.TotalTop)
+  end;
+
 var
-  ProtectedSidesVector: TVector4;
+  ProtectedSidesVector, SrcSidesVector: TVector4;
 begin
   if (DrawableImage.Width = 0) or (DrawableImage.Height = 0) then Exit;
 
@@ -618,9 +639,9 @@ begin
   if not FProtectedSides.Exists then
   begin
     if FlipHorizontal or FlipVertical then
-      FDrawableImage.DrawFlipped(ScreenRectangle, FlipHorizontal, FlipVertical)
+      FDrawableImage.DrawFlipped(ScreenRectangle, ImageRect, FlipHorizontal, FlipVertical)
     else
-      FDrawableImage.Draw(ScreenRectangle);
+      FDrawableImage.Draw(ScreenRectangle, ImageRect);
   end else
   begin
     // TODO: FlipHorizontal, FlipVertical ignored in this case
@@ -630,7 +651,13 @@ begin
       ProtectedSides.TotalBottom,
       ProtectedSides.TotalLeft
     );
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector);
+    SrcSidesVector := Vector4(
+      Region.TotalTop,
+      Region.TotalRight,
+      Region.TotalBottom,
+      Region.TotalLeft
+    );
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcSidesVector);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;
