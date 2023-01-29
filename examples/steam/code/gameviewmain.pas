@@ -33,14 +33,14 @@ uses SysUtils;
 
 procedure TViewMain.ClickAddAchievement1(Sender: TObject);
 begin
-  if GetAchievement('ACH_WIN_ONE_GAME') then
+  if Steam.GetAchievement('ACH_WIN_ONE_GAME') then
   begin
     Log('Achievement set, clearing');
-    ClearAchievement('ACH_WIN_ONE_GAME');
+    Steam.ClearAchievement('ACH_WIN_ONE_GAME');
   end else
   begin
     Log('Achievement not set, adding');
-    SetAchievement('ACH_WIN_ONE_GAME');
+    Steam.SetAchievement('ACH_WIN_ONE_GAME');
   end;
 end;
 
@@ -72,10 +72,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   { Some Steam features (like callbacks) require calling Update often, usually every frame }
-  UpdateSteam;
+  Steam.Update;
 end;
-
-finalization
-  ShutdownSteam;
 
 end.
