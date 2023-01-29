@@ -1,6 +1,6 @@
 {%MainUnit castleutils.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -179,7 +179,7 @@ procedure RestOf3DCoordsCycle(const Coord: T3DAxis; out First, Second: T3DAxis);
 { Increase Value by Change, nicely wrapping in [0..MaxValue], accepting
   also negative Change. The final value is always in the [0..MaxValue] range,
   even when initial Value was outside. }
-function ChangeIntCycle(value, change, maxValue: Integer): Integer;
+function ChangeIntCycle(Value, Change, MaxValue: Integer): Integer;
 
 { Linear interpolation between two values. Returns @code((1-A)*L + A*H).
   @groupBegin }
@@ -688,13 +688,14 @@ begin
   Second := SecondArr[Coord];
 end;
 
-function ChangeIntCycle(value, change, maxValue: Integer): Integer;
+function ChangeIntCycle(Value, Change, MaxValue: Integer): Integer;
 begin
-  Inc(maxValue);
-  Result := (value + change) mod maxValue;
-  { We know Result is now in [-maxValue .. maxValue]
-    (where maxValue is the original maxValue passed to this function). }
-  if result < 0 then result := result+maxValue;
+  Inc(MaxValue);
+  Result := (Value + Change) mod MaxValue;
+  { We know Result is now in [-MaxValue .. MaxValue]
+    (where MaxValue is the original MaxValue passed to this function). }
+  if Result < 0 then
+    Result := result + MaxValue;
 end;
 
 { Lerp : l + (h-l) * a = l + a*h - a*l = (1-a) *l + a*h }
