@@ -25,11 +25,13 @@ type
     can also result in this error.
 
     Note: @link(EOpenGLOutOfMemoryError) may happen regardless
-    of what we do, and depends on the device. }
+    of what we do, and depends on the device.
+
+    You can call it with overloaded ancestor Create / CreateFmt that take just string,
+    not ErrorCode: TGLenum, this is a feature. }
   EOpenGLError = class(Exception)
   public
-    ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = ''); overload;
   end;
 
   { GPU memory is not sufficient.
@@ -105,8 +107,7 @@ end;
 
 constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
 begin
-  ErrorCode := AErrorCode;
-  inherited Create(GLErrorString(ErrorCode, AdditionalComment));
+  inherited Create(GLErrorString(AErrorCode, AdditionalComment));
 end;
 
 procedure GLOutOfMemory(const AdditionalComment: string);

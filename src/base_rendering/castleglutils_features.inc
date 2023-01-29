@@ -435,9 +435,13 @@ type
     class property RequestCapabilities: TGLRequestCapabilities read FRequestCapabilities write SetRequestCapabilities;
 
     { Request debug OpenGL(ES) context.
-      See https://www.khronos.org/opengl/wiki/Debug_Output .
+      OpenGL will report a lot of information and errors to log,
+      and OpenGL API usage errors will result in immediate exception (with useful stack-trace
+      pointing to their usage in CGE).
       This should never be used at production, but it is very useful when developing
-      and using OpenGL(ES) API directly. }
+      and using OpenGL(ES) API directly.
+
+      See https://www.khronos.org/opengl/wiki/Debug_Output . }
     class property Debug: Boolean read FDebug write SetDebug;
 
     { Total and current memory available.
@@ -587,7 +591,7 @@ procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity
   {$else} {$fatal Include openglmac.inc that should define OPENGL_CALLBACK_xxx}
   {$endif}
 var
-  SourceStr, TypeStr, SeverityStr, MessageStr: String;
+  SourceStr, TypeStr, SeverityStr, MessageStr, MessageWhole: String;
 begin
   case Source of
     GL_DEBUG_SOURCE_API            : SourceStr := 'API';
@@ -622,13 +626,18 @@ begin
 
   MessageStr := Message;
 
-  WritelnLog('OpenGL debug', '%s, %s, %d, %s: %s', [
+  MessageWhole := Format('OpenGL debug: %s, %s, %d, %s: %s', [
     SourceStr,
     TypeStr,
     Id,
     SeverityStr,
     MessageStr
   ]);
+
+  if AType = GL_DEBUG_TYPE_ERROR then
+    raise EOpenGLError.Create(MessageWhole)
+  else
+    WritelnLog(MessageWhole);
 end;
 
 constructor TGLFeatures.Create;
