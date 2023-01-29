@@ -4,11 +4,13 @@ unit CastleSteam;
 
 interface
 uses
+  Classes,
   CastleInternalSteamConstantsAndTypes, SteamCallback;
 
 type
   TCastleSteam = class(TObject)
   strict private
+    Achievements: TStringList;
     FInitialized: Boolean;
     StoreStats: Boolean;
     SteamClient: Pointer;
@@ -18,6 +20,7 @@ type
     SteamPipeHandle: HSteamPipe;
     SteamUserStatsCallbackDispatcher: SteamCallbackDispatcher;
     procedure OnUserStatsReceived(P:Pointer);
+    procedure GetAchievements;
     { I'm not sure how to deal with steam errors
       Making every procedure "boolean" and rely on user doing the checks seems inconvenient
       But there are situation when some operation failed because Steam API isn't ready }
@@ -32,6 +35,7 @@ type
       Run at least 10 times a second, better if every frame }
     procedure Update;
     constructor Create; // override;
+    destructor Destroy; override;
   end;
 
 function Steam: TCastleSteam;
@@ -93,6 +97,23 @@ begin
   SteamUserStatsCallbackDispatcher.Free;
   WriteLnLog('Steam', 'OnUserStatsReceived');
   FInitialized := true; // maybe only after all callbacks are received - one boolean per each init callback. But as long as we have only one now, this will do
+  GetAchievements;
+end;
+
+procedure TCastleSteam.GetAchievements;
+var
+  NumAchievements: UInt32;
+  I: Integer;
+begin
+  NumAchievements := SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats);
+  if NumAchievements > 0 then
+  begin
+    Achievements := TStringList.Create;
+    for I := 0 to Pred(NumAchievements) do
+      Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
+    for I := 0 to Pred(Achievements.Count) do
+      WriteLnLog(Achievements[I]);
+  end;
 end;
 
 procedure TCastleSteam.SteamError(const ErrorMsg: String);
@@ -158,6 +179,12 @@ begin
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , @OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
+end;
+
+destructor TCastleSteam.Destroy;
+begin
+  Achievements.Free;
+  inherited Destroy;
 end;
 
 finalization
