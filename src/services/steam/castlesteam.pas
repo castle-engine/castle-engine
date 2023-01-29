@@ -9,6 +9,7 @@ uses
 type
   TCastleSteam = class(TObject)
   strict private
+    FInitialized: Boolean;
     SteamClient: Pointer;
     //SteamUser: Pointer;
     SteamUserStats: Pointer;
@@ -21,6 +22,7 @@ type
     function GetAchievement(const AchievementId: String): Boolean;
     procedure ClearAchievement(const AchievementId: String);
   public
+    property Initialized: Boolean read FInitialized;
     { Updates callbacks and other internal Steam functions
       Run at least 10 times a second, better if every frame }
     procedure Update;
@@ -84,7 +86,8 @@ end;
 procedure TCastleSteam.OnUserStatsReceived(P: Pointer);
 begin
   SteamUserStatsCallbackDispatcher.Free;
-  WriteLnLog('OnUserStatsReceived');
+  WriteLnLog('Steam', 'OnUserStatsReceived');
+  FInitialized := true; // maybe only after all callbacks are received - one boolean per each init callback. But as long as we have only one now, this will do
 end;
 
 procedure TCastleSteam.SetAchievement(const AchievementId: String);
@@ -106,12 +109,15 @@ end;
 
 procedure TCastleSteam.Update;
 begin
-  SteamAPI_RunCallbacks();
+  if Initialized then
+    SteamAPI_RunCallbacks();
 end;
 
 constructor TCastleSteam.Create;
 begin
   inherited; // parent is empty
+  FInitialized := false; // waiting for callback
+
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
 
   SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient, @WarningHook);
@@ -123,7 +129,6 @@ begin
 
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
-
   SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , @OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
 end;
 
