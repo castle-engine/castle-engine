@@ -41,6 +41,11 @@ uses
 var
   FSteam: TCastleSteam;
 
+function SteamInitialized: Boolean;
+begin
+  Exit(FSteam <> nil);
+end;
+
 function Steam: TCastleSteam;
 begin
   if FSteam = nil then
