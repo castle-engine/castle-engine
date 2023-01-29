@@ -11,7 +11,7 @@ object RegionDesignDialog: TRegionDesignDialog
   object ButtonPanel1: TButtonPanel
     Left = 7
     Height = 35
-    Top = 624
+    Top = 602
     Width = 1010
     BorderSpacing.Around = 7
     OKButton.Name = 'OKButton'
@@ -28,7 +28,7 @@ object RegionDesignDialog: TRegionDesignDialog
   end
   object CastleControl1: TCastleControl
     Left = 0
-    Height = 617
+    Height = 595
     Top = 0
     Width = 1024
     Align = alClient
@@ -38,5 +38,34 @@ object RegionDesignDialog: TRegionDesignDialog
     OnPress = CastleControl1Press
     OnRelease = CastleControl1Release
     OnMotion = CastleControl1Motion
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 22
+    Top = 644
+    Width = 1024
+    Panels = <    
+      item
+        Text = 'Left '
+        Width = 90
+      end    
+      item
+        Text = 'Bottom '
+        Width = 90
+      end    
+      item
+        Text = 'Width '
+        Width = 90
+      end    
+      item
+        Text = 'Height '
+        Width = 90
+      end    
+      item
+        Alignment = taRightJustify
+        Text = 'CursorPos '
+        Width = 50
+      end>
+    SimplePanel = False
   end
 end

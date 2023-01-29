@@ -33,6 +33,7 @@ type
   TRegionDesignDialog = class(TForm)
     ButtonPanel1: TButtonPanel;
     CastleControl1: TCastleControl;
+    StatusBar1: TStatusBar;
 
     procedure CastleControl1Motion(Sender: TObject; const Event: TInputMotion);
     procedure CastleControl1Press(Sender: TObject; const Event: TInputPressRelease);
@@ -65,6 +66,7 @@ type
     procedure SetImage(AValue: TDrawableImage);
     procedure SetRegion(AValue: TRegion);
     procedure InitControlPoints;
+    procedure Changed;
   protected
     function ScreenToImage(APoint: TVector2): TVector2Integer;
     function ImageToScreen(APoint: TVector2Integer): TVector2;
@@ -162,6 +164,8 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 
   procedure GrowScale(beIncrease: boolean; ScreenPoint: TVector2);
+  const
+    PX = 0.7;
   var
     ImagePoint: TVector2Integer;
   begin
@@ -169,17 +173,29 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
 
     if beIncrease then
     begin
-      FScale := FScale + 0.2;
+      if FScale < 1 then
+        FScale := FScale + 0.1
+      else if FScale < 2 then
+        FScale := FScale + 0.2
+      else if FScale < 6 then
+        FScale := FScale + 0.4
+      else
+        FScale := FScale / PX;
+
       FScale := Min(FScale, 10000);
     end
     else
     begin
+      if FScale > 6 then FScale := FScale * PX
+      else if FScale > 2 then
+        FScale := FScale - 0.4
+      else
       if FScale > 0.6 then
         FScale := FScale - 0.2
       else if FScale > 0.2 then
         FScale := FScale - 0.1
       else
-        FScale := FScale * 0.7;
+        FScale := FScale * PX;
 
       FScale := Max(FScale, 0.0001);
     end;
@@ -207,6 +223,7 @@ begin
         FControlPointRec.Points[i] := ScreenToImage(Event.Position);
         FControlPointRec.Index := i;
         FControlPointRec.Adjusting := True;
+        Changed;
         Exit;
       end;
     end;
@@ -215,6 +232,7 @@ begin
     FControlPointRec.Points[1] := FControlPointRec.Points[0];
     FControlPointRec.Index := 1;
     FControlPointRec.Adjusting := True;
+    Changed;
   end;
 
   if (Event.EventType = TInputPressReleaseType.itMouseButton) and
@@ -236,10 +254,19 @@ end;
 
 procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
   const Event: TInputMotion);
+
+  procedure UpdateCursorInfo(Point: TVector2);
+  begin
+    StatusBar1.Panels.Items[4].Text := Format('CursorPos: %f , %f', [Point.X, Point.Y]);
+  end;
+
 begin
+  UpdateCursorInfo(Event.Position);
+
   if FControlPointRec.Adjusting then
   begin
     FControlPointRec.Points[FControlPointRec.Index] := ScreenToImage(Event.Position);
+    Changed;
   end;
 
   if FMovingImageRec.Moving then
@@ -285,6 +312,23 @@ begin
   FControlPointRec.Points[1] :=
     Vector2Integer(FImage.Width - Floor(FRegion.TotalRight), FImage.Height -
     Floor(FRegion.TotalTop));
+  Changed;
+end;
+
+procedure TRegionDesignDialog.Changed;
+begin
+  StatusBar1.Panels.Items[0].Text :=
+    Format('Left: %d', [Min(FControlPointRec.Points[0].X,
+    FControlPointRec.Points[1].X)]);
+  StatusBar1.Panels.Items[1].Text :=
+    Format('Bottom: %d', [Min(FControlPointRec.Points[0].Y,
+    FControlPointRec.Points[1].Y)]);
+  StatusBar1.Panels.Items[2].Text :=
+    Format('Width: %d', [Abs(FControlPointRec.Points[0].X -
+    FControlPointRec.Points[1].X)]);
+  StatusBar1.Panels.Items[3].Text :=
+    Format('Height: %d', [Abs(FControlPointRec.Points[0].Y -
+    FControlPointRec.Points[1].Y)]);
 end;
 
 function TRegionDesignDialog.ScreenToImage(APoint: TVector2): TVector2Integer;
