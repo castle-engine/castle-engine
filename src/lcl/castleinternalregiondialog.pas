@@ -21,7 +21,7 @@ interface
 uses
   Generics.Collections, Contnrs,
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
-  ButtonPanel, StdCtrls, ExtCtrls, CastleVectors, CastleControl,
+  ButtonPanel, StdCtrls, ExtCtrls, ComCtrls, CastleVectors, CastleControl,
   CastleGLImages,
   castletransform, CastleKeysMouse,
   castlecontrols, CastleRectangles, CastleLCLUtils, CastleGLUtils, CastleColors;
@@ -104,7 +104,7 @@ procedure TRegionDesignDialog.ApplyChange;
 begin
   if Assigned(FRegion) then
   begin
-    FRegion.AllSides:=0;
+    FRegion.AllSides := 0;
     FRegion.Left := Min(FControlPointRec.Points[0].X, FControlPointRec.Points[1].X);
     FRegion.Right := Image.Width - Max(FControlPointRec.Points[0].X,
       FControlPointRec.Points[1].X);
@@ -161,8 +161,12 @@ end;
 procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 
-  procedure GrowScale(beIncrease: boolean);
+  procedure GrowScale(beIncrease: boolean; ScreenPoint: TVector2);
+  var
+    ImagePoint: TVector2Integer;
   begin
+    ImagePoint := ScreenToImage(ScreenPoint);
+
     if beIncrease then
     begin
       FScale := FScale + 0.2;
@@ -179,6 +183,9 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
 
       FScale := Max(FScale, 0.0001);
     end;
+
+    { Zoom in on the pixel at the fixed mouse location. }
+    FTranslation := FTranslation + ScreenPoint - ImageToScreen(ImagePoint);
 
   end;
 
@@ -222,7 +229,7 @@ begin
 
   if (Event.EventType = TInputPressReleaseType.itMouseWheel) then
   begin
-    GrowScale(Event.MouseWheelScroll > 0);
+    GrowScale(Event.MouseWheelScroll > 0, Event.Position);
     Exit;
   end;
 end;
