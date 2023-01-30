@@ -54,18 +54,18 @@ const
 
 procedure ProcessCommandLineOption(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+
+  function StrToCapabilities(const S: String): TGLRequestCapabilities;
+  begin
+    for Result := Low(Result) to High(Result) do
+      if SameText(CapabilitiesStr[Result], S) then
+        Exit;
+    raise EInvalidParams.CreateFmt('Invalid --render argument: %s', [S]);
+  end;
+
 begin
   case OptionNum of
-    0: if Argument = 'force-fixed-function' then
-         TGLFeatures.RequestCapabilities := rcForceFixedFunction
-       else
-       if Argument = 'automatic' then
-         TGLFeatures.RequestCapabilities := rcAutomatic
-       else
-       if Argument = 'force-modern' then
-         TGLFeatures.RequestCapabilities := rcForceModern
-       else
-         raise EInvalidParams.CreateFmt('Invalid --render argument: %s', [Argument]);
+    0: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
     else raise Exception.CreateFmt('ProcessCommandLineOption: unimplemented option %d', [OptionNum]);
   end;
 end;
@@ -87,13 +87,12 @@ initialization
 
   LogGLInformationVerbose := true;
 
-  { By default, set RequestCapabilities to test fixed-function.
+  { By default, set RequestCapabilities to test modern rendering.
     But allow to test other RequestCapabilities too, by command-line option --render=xxx. }
-  TGLFeatures.RequestCapabilities := rcForceFixedFunction;
+  TGLFeatures.RequestCapabilities := rcForceModern;
   Parameters.Parse(CommandLineOptions, {$ifdef FPC}@{$endif} ProcessCommandLineOption, nil, true);
 
-  { Enable TGLFeatures.Debug when command-line options caused
-    TGLFeatures.RequestCapabilities = rcForceModern (by --render=force-modern).
+  { Enable TGLFeatures.Debug when we use rcForceModern.
     This is great way to get extra debug information and clear exception in case we violate
     the "core" profile. }
   if TGLFeatures.RequestCapabilities = rcForceModern then

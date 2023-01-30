@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleCameras,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleGLImages, CastleViewport,
-  CastleTransform;
+  CastleTransform, CastleGLUtils;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -29,7 +29,7 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps: TCastleLabel;
+    LabelFps, LabelGlInformation: TCastleLabel;
     ScenePhong: TCastleScene;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
@@ -47,11 +47,18 @@ type
 var
   ViewMain: TViewMain;
 
+const
+  CapabilitiesStr: array [TGLRequestCapabilities] of String = (
+    'automatic',
+    'force-fixed-function',
+    'force-modern'
+  );
+
 implementation
 
 uses SysUtils,
-  CastleLoadGltf, CastleGLUtils, CastleRectangles, CastleImages,
-  CastleBoxes, CastleColors, CastleRenderContext,
+  CastleLoadGltf, CastleRectangles, CastleImages,
+  CastleBoxes, CastleColors, CastleRenderContext, CastleUtils,
   GameMyMesh;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -67,6 +74,10 @@ var
   MyMesh: TMyMesh;
 begin
   inherited;
+
+  LabelGlInformation.Caption :=
+    'OpenGL capabilities requested: ' + CapabilitiesStr[TGLFeatures.RequestCapabilities] + NL +
+    '(see log for the details about context)';
 
   { Load ScenePhong.Url with temporary GltfForcePhongMaterials set to true.
     We want to test Phong shading works in ForceFixedFunction too. }
