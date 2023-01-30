@@ -1,3 +1,9 @@
+{ Provides basic interaction with Steam API
+  Call InitSteam(AppId) and wait for Steam.Initialized before starting using it
+  For now features mostly interaction with Steam Achievements
+  Note: Current calls to Steam API require a specific version of SteamWorks: 1.55
+  You can download the corresponding dynamic library from
+  https://partner.steamgames.com/downloads/list }
 unit CastleSteam;
 
 {$mode ObjFPC}{$H+}
@@ -73,10 +79,13 @@ function Steam: TCastleSteam;
   2. It tries to connect to Steam API and checks if the game was run
      through Steam or through exe file. In the latter case the game will
      automatically restart through Steam
+     Note: this behavior is recommended for end-user build of the game,
+     to avoid this, place steam_appid.txt with your game's AppId near app's executable
   3. Will ask TCastleSteam to initialize interfaces and request user stats
      Note: Steam will not be fully initialized until confirmation callback
      will be received by TCastleSteam, this may take several frames.
-     Check for Steam.Initialized before using non-trivial features of Steam API. }
+     Check for Steam.Initialized before using non-trivial features of Steam API.
+  You need to provide AppId for your app to this function }
 function InitSteam(const AppId: Integer): Boolean;
 
 implementation
@@ -107,10 +116,12 @@ end;
 
 function InitSteam(const AppId: Integer): Boolean;
 begin
-  if SteamAPI_Init() then
+  // Initialize Steam API
+  if SteamAPI_Init then
   begin
     WriteLnLog('SteamAPI_Init successfull');
 
+    // If the app was started through EXE - restart the game through Steam
     if SteamAPI_RestartAppIfNecessary(AppId) then
     begin
       WriteLnLog('The app was run through exe - restarting through Steam.');
@@ -123,6 +134,7 @@ begin
     Halt(1);
   end;
 
+  // Create TCastleSteam instance and initialize it
   FSteam := TCastleSteam.Create;
 
   Exit(true);
@@ -142,14 +154,10 @@ var
   I: Integer;
 begin
   NumAchievements := SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats);
-  if NumAchievements > 0 then
-  begin
-    Achievements := TStringList.Create;
-    for I := 0 to Pred(NumAchievements) do
-      Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
-    {for I := 0 to Pred(Achievements.Count) do
-      WriteLnLog('"' + Achievements[I] + '"');}
-  end;
+  Achievements := TStringList.Create;
+  for I := 0 to Pred(NumAchievements) do
+    Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
+  WriteLnLog('Steam Achievements', Achievements.Count.ToString);
 end;
 
 procedure TCastleSteam.SteamError(const ErrorMsg: String);
@@ -213,7 +221,9 @@ end;
 
 procedure TCastleSteam.Update;
 begin
+  // Request callbacks from Steam API if any pending
   SteamAPI_RunCallbacks();
+  // If we have unsaved changes, try saving them; if failed - repeat
   if Initialized and StoreStats then
     if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
       StoreStats := false;
@@ -227,13 +237,16 @@ begin
 
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
 
+  // Set a callback for Steam warnings
   SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient, @WarningHook);
 
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
 
-  //SteamUser := SteamAPI_ISteamClient_GetISteamUser(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
+  // Not used yet
+  // SteamUser := SteamAPI_ISteamClient_GetISteamUser(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
 
+  // Init UserStats interface and request UserStats - wait for callback
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , @OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
