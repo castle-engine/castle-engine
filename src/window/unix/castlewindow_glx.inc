@@ -156,8 +156,8 @@ var
       if TGLFeatures.RequestCapabilities = rcForceModern then
       begin
         Attribs.AddRange([
-          GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-          GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+          GLX_CONTEXT_MAJOR_VERSION_ARB, TGLFeatures.ModernVersionMajor,
+          GLX_CONTEXT_MINOR_VERSION_ARB, TGLFeatures.ModernVersionMinor,
           GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB
           { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
             forward-compatible really only makes sense on macOS.

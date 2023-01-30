@@ -94,12 +94,15 @@ type
       Using this guarantees you always have GLFeatures.EnableFixedFunction = @false.
 
       On platforms where we honor this flag at context creation (using glX etc.):
-      This even guarantees more: that at least OpenGL 3.2 is available.
+      This even guarantees more: that at least OpenGL version 3.3
+      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor) is available.
       In exchange, it really prohibits using any older deprecated OpenGL API.
-      So the code must, when Version_3_2, use new OpenGL API (and not any deprecated API).
+      So the code must, when Version_3_3 (or maybe from earlier versions for each
+      functionality), use new OpenGL API (and not any deprecated API).
 
       The specifics what it does:
-      We try to initialize "core" profile of OpenGL >= 3.2.
+      We try to initialize "core" profile of OpenGL version 3.3
+      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor).
 
       TODO: On macOS, we will also request forward-compatible context.
       See https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types ,
@@ -175,6 +178,7 @@ type
     FEnableFixedFunction: Boolean;
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
+    FTextureModernFormatsAndSwizzle: Boolean;
     SupportedExtensions: AnsiString;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
@@ -189,6 +193,20 @@ type
     destructor Destroy; override;
 
     {$ifndef OpenGLES}
+    const
+      { OpenGL version considered "modern" for us,
+        that we can use with its "core" profile.
+
+        We need >= 3.2 as before it, there were no profiles (only "forward compatibility").
+
+        We need >= 3.3 as it has texture swizzle.
+        When we don't have texture swizzle,
+        then we cannot use modern OpenGL texture format constants,
+        and so we need compatibility.
+        See TextureModernFormatsAndSwizzle . }
+      ModernVersionMajor = 3;
+      ModernVersionMinor = 3;
+
     { OpenGL versions supported. Checked by looking at GL version string
       @italic(and) by checking whether actual entry points are available.
 
@@ -385,17 +403,15 @@ type
         @item(Shaders (@link(Shaders) is guaranteed to be @true))
         @item(OpenGL version >= 2.0 is available on desktops.
 
-          Note that when using rcForceModern, we want to have a "core" profile with OpenGL >= 3.2,
-          and as such when Version_3_2 is @true, you should use OpenGL 3.2 API,
+          Note that when using rcForceModern, we want to have a "core" profile with OpenGL >= 3.3
+          (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor).
+          And as such when Version_3_3 is @true, you should use OpenGL 3.3 API,
           not API from older OpenGL like 2.x.
 
-          This means we actually care about 3 cases:
-
-          1. EnabledFixedFunction is @true.
-
-          2. EnabledFixedFunction is @false and not Version_3_2.
-
-          3. EnabledFixedFunction is @false and Version_3_2.
+          This means that, aside from EnabledFixedFunction boolean,
+          you should still check Version_X_Y to avoid using functionality that is deprecated
+          and replaced with something else
+          (in OpenGL 3.3, TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor).
         )
       )
 
@@ -458,6 +474,21 @@ type
       If EnableFixedFunction, this is MaxTextureUnitsFixedFunction,
       otherwise MaxTextureUnitsShaders. }
     function MaxTextureUnits: Cardinal;
+
+    { We should use modern OpenGL enums for format, internal format
+      and we have texture swizzle available.
+
+      This means we should use e.g. GL_RG8 and not GL_LUMINANCE_ALPHA.
+      See https://www.khronos.org/opengl/wiki/Image_Format .
+
+      To make it always work (e.g. to use grayscale or grayscale+alpha images),
+      we really need
+      https://www.khronos.org/opengl/wiki/Texture#Swizzle_mask
+      https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_swizzle.txt
+      https://registry.khronos.org/OpenGL/extensions/EXT/EXT_texture_swizzle.txt
+      (core extension since 3.3).
+    }
+    property TextureModernFormatsAndSwizzle: Boolean read FTextureModernFormatsAndSwizzle;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -541,7 +572,7 @@ begin
       Extension
     ]);
 
-  if Version_3_2 then
+  if Version_3_0 then
   begin
     { With new OpenGL, one should use glGetStringi to enumerate over extensions,
       see https://www.khronos.org/opengl/wiki/GLAPI/glGetString }
@@ -569,7 +600,7 @@ var
   SupportedExt: AnsiString;
   I: Integer;
 begin
-  if Version_3_2 then
+  if Version_3_0 then
   begin
     { Output in this case is a bit richer, since it was natural to implement using
       new OpenGL way to query for extensions. }
@@ -1017,11 +1048,7 @@ begin
     {$else} LoadExtensions and Load_GL_ARB_depth_texture
     {$endif};
 
-  {$ifdef OpenGLES}
-  FShaders := true;
-  {$else}
-  FShaders := Version_2_0;
-  {$endif}
+  FShaders := {$ifdef OpenGLES} true {$else} Version_2_0 {$endif};
 
   FEnableFixedFunction :=
     {$ifdef OpenGLES} false
@@ -1076,6 +1103,14 @@ begin
   {$endif}
 
   FMaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
+
+  FTextureModernFormatsAndSwizzle :=
+    (RequestCapabilities <> rcForceFixedFunction) and
+    (
+      {$ifndef OpenGLES} Version_3_3 or {$endif}
+      HasExtension('GL_ARB_texture_swizzle') or
+      HasExtension('GL_EXT_texture_swizzle')
+    );
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;

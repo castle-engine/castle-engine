@@ -79,12 +79,18 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 
 {$ifdef read_implementation}
 
+{ Missing from FPC OpenGL units. }
+const
+  GL_TEXTURE_SWIZZLE_RGBA = $8E46;
+
 { Get OpenGL enums for "format" and "internalFormat" for OpenGL routines like
   https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
   that load uncompressed images. }
 procedure UncompressedGLFormatAndInternalFormat(const Img: TCastleImage;
   out ImageFormat: TGLenum;
-  out ImageInternalFormat: TGLenum);
+  out ImageInternalFormat: TGLenum;
+  out ImageSwizzle: TVector4Integer);
+
 { Missing from FPC OpenGL units. }
 const
   GL_R8 = $8229;
@@ -93,18 +99,13 @@ const
 
 { For all image types, we have
 
-  - "core" enum: required by OpenGL "core" profile,
+  - Modern enum, required by OpenGL "core" profile,
     see https://www.khronos.org/opengl/wiki/Image_Format .
+    We can use it if GLFeatures.TextureModernFormatsAndSwizzle .
 
-  - "compatibility" enum: name accepted by OpenGL ES 2 (
+  - Compatibility enum: name accepted by OpenGL ES 2 (
     https://registry.khronos.org/OpenGL-Refpages/es2.0/xhtml/glTexImage2D.xml )
-    and OpenGL in compatibility mode.
-
-    TODO: This should just check Version_3_2 to decide which one to use.
-    But since some formats are not really functional now,
-    because of missing luminance support,
-    we instead check "TGLFeatures.RequestCapabilities = rcForceModern",
-    and depend on deprecated luminance support from OpenGL otherwise.
+    and latest OpenGL in compatibility mode.
 
   - Moreover, when GLFeatures.EnableFixedFunction, we adjust to OpenGL 1.x where
     the "internal format" for glTexImage2d was just a number,
@@ -115,9 +116,13 @@ const
 }
 
 begin
+  { ImageSwizzle passing depends on it. }
+  Assert(SizeOf(Integer) = SizeOf(TGLint));
+
   if Img is TRGBImage then
   begin
-    if TGLFeatures.RequestCapabilities = rcForceModern then
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB8;
@@ -132,7 +137,8 @@ begin
   end else
   if Img is TRGBAlphaImage then
   begin
-    if TGLFeatures.RequestCapabilities = rcForceModern then
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
       ImageFormat := GL_RGBA;
       ImageInternalFormat := GL_RGBA8;
@@ -147,11 +153,13 @@ begin
   end else
   if Img is TGrayscaleImage then
   begin
-    if TGLFeatures.RequestCapabilities = rcForceModern then
+    { Use texture swizzle to load texture 1st channel (red) -> as luminance (fill RGB) or alpha. }
+    if TGrayscaleImage(Img).TreatAsAlpha then
+      ImageSwizzle := Vector4Integer(GL_ONE, GL_ONE, GL_ONE, GL_RED)
+    else
+      ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
-      WritelnWarning('TODO: Textures loaded from TGrayscaleImage are no longer loaded as luminance (or alpha when TreatAsAlpha) in "core" OpenGL. They are instead red. Image "%s" contents may be rendered incorrectly.', [
-        URIDisplay(Img.Url)
-      ]);
       ImageFormat := GL_RED;
       ImageInternalFormat := GL_R8;
     end else
@@ -165,11 +173,12 @@ begin
   end else
   if Img is TGrayscaleAlphaImage then
   begin
-    if TGLFeatures.RequestCapabilities = rcForceModern then
+    { Use texture swizzle to load texture
+      - 1st channel (red) -> RBG
+      - 2nd channel (green) -> alpha }
+    ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
-      WritelnWarning('TODO: Textures loaded from TGrayscaleAlphaImage are no longer loaded as luminance+alpha in "core" OpenGL. They are instead red+green. Image "%s" contents may be rendered incorrectly.', [
-        URIDisplay(Img.Url)
-      ]);
       ImageFormat := GL_RG;
       ImageInternalFormat := GL_RG8;
     end else
@@ -183,7 +192,8 @@ begin
   end else
   if Img is TRGBFloatImage then
   begin
-    if TGLFeatures.RequestCapabilities = rcForceModern then
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB32F;
@@ -202,18 +212,20 @@ end;
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 var
   IgnoredImageInternalFormat: TGLenum;
+  IgnoredImageSwizzle: TVector4Integer;
 begin
-  UncompressedGLFormatAndInternalFormat(Img, Result, IgnoredImageInternalFormat);
+  UncompressedGLFormatAndInternalFormat(Img, Result, IgnoredImageInternalFormat, IgnoredImageSwizzle);
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 {$I gl_texture_compression_constants.inc}
 var
   IgnoredImageFormat: TGLenum;
+  IgnoredImageSwizzle: TVector4Integer;
 begin
   if Img is TCastleImage then
   begin
-    UncompressedGLFormatAndInternalFormat(TCastleImage(Img), IgnoredImageFormat, Result);
+    UncompressedGLFormatAndInternalFormat(TCastleImage(Img), IgnoredImageFormat, Result, IgnoredImageSwizzle);
   end else
   if Img is TGPUCompressedImage then
   begin

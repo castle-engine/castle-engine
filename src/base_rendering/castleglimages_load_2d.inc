@@ -285,6 +285,7 @@ procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Ima
   var LoadedSize: Int64);
 var
   ImageFormat, ImageInternalFormat: TGLenum;
+  ImageSwizzle: TVector4Integer;
 begin
   BeforeUnpackImage(Image);
   try
@@ -296,11 +297,14 @@ begin
       glPushAttrib(GL_ENABLE_BIT);
     {$endif}
 
-    UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat);
+    UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
     glTexImage2D(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
       Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
+
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+      glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
 
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then

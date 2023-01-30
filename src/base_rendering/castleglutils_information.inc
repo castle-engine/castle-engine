@@ -233,12 +233,14 @@ begin
 
     '---------' + NL +
     'Features:' + NL +
-    '  Shaders (GLSL) support: ' + BoolToStr(GLFeatures.Shaders, true) + NL +
-    '  => Enable deprecated (fixed-function) support: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
+    NL +
+    '  Shaders (GLSL): ' + BoolToStr(GLFeatures.Shaders, true) + NL +
+    '  Necessary to use deprecated (fixed-function): ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] + NL +
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
     '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) + NL +
+    '  Vertex Array Object: ' + BoolToStr(GLFeatures.VertexArrayObject, true) + NL +
     '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) + NL +
     '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] + NL +
     '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) + NL +
@@ -248,6 +250,7 @@ begin
     '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
+    '  Texture Modern Formats + Swizzle: ' + BoolToStr(GLFeatures.TextureModernFormatsAndSwizzle, true) + NL +
     NL +
     '  All extensions: ' + GLFeatures.AllExtensions + NL +
     NL;

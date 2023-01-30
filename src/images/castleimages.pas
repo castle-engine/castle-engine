@@ -1469,22 +1469,28 @@ type
     { Should we treat grayscale image as pure alpha channel (without any color
       information) when using this as a texture.
 
-      This property is meaningful only for a small subset of operations.
+      This property is meaningful for some operations:
 
       @orderedList(
         @item(
           When creating OpenGL texture from this image.
-          If @true, then the grayscale pixel data will be loaded as alpha channel
-          contents (GL_ALPHA texture for OpenGL,
-          it modifies only the fragments alpha value,
-          it doesn't have any "color" in the normal sense).
-          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+          If @true, then the grayscale pixel data will be loaded as alpha channel contents.
+          When the texture is read by shaders, the RGB is (1,1,1) and alpha comes from the image.
+
+          Note the we don't pass ColorWhenTreatedAsAlpha to OpenGL,
+          as we don't have this functionality (e.g. https://www.khronos.org/opengl/wiki/Texture#Swizzle_mask
+          cannot express an arbitrary but constant color on some channels.)
+        )
 
         @item(
           When using @link(DrawFrom) / @link(DrawTo) methods or being assigned to something using @link(Assign).
           If @true, this image is drawn like an RGBA image,
           with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
           taken from contents of this image.)
+
+        @item(
+          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+
       )
     }
     property TreatAsAlpha: boolean

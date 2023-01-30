@@ -163,15 +163,20 @@ var
     end;
   end;
 
+var
+  ImageSwizzle: TVector4Integer;
 begin
   if not (Image is TCastleImage) then
     raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
       [Image.ClassName]);
 
-  UncompressedGLFormatAndInternalFormat(TCastleImage(Image), ImageFormat, ImageInternalFormat);
+  UncompressedGLFormatAndInternalFormat(TCastleImage(Image), ImageFormat, ImageInternalFormat, ImageSwizzle);
   LoadedSize := 0;
 
   glTexImage3DImage(TCastleImage(Image), 0);
+
+  if GLFeatures.TextureModernFormatsAndSwizzle then
+    glTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
 
   if Filter.NeedsMipmaps then
   begin
