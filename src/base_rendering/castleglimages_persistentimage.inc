@@ -529,18 +529,30 @@ begin
 end;
 
 function TCastleImagePersistent.Width: Cardinal;
+var
+  vSize : Cardinal;
 begin
-  Result := FDrawableImage.Width - Floor(FRegion.TotalWidth);
+  vSize := Floor(FRegion.TotalWidth);
+  if vSize < FDrawableImage.Width then
+    Result := FDrawableImage.Width - vSize
+  else
+    Result := 0;
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
+var
+  vSize : Cardinal;
 begin
-  Result := FDrawableImage.Height - Floor(FRegion.TotalHeight);
+  vSize := Floor(FRegion.TotalHeight);
+  if vSize < FDrawableImage.Height then
+    Result := FDrawableImage.Height - vSize
+  else
+    Result := 0;
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
 begin
-  Result := (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0);
+  Result := (Width = 0) or (Height = 0);
 end;
 
 procedure TCastleImagePersistent.DrawUiBegin(const NewScaleCorners: Single);
