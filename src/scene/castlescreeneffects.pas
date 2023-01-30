@@ -147,6 +147,7 @@ type
       CurrentScreenEffectsCount: Integer;
       CurrentScreenEffectsNeedDepth: boolean;
       ScreenPointVbo: TGLuint;
+      ScreenPointVao: TVertexArrayObject;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
       FScreenEffectsEnable: Boolean;
@@ -662,6 +663,9 @@ var
         glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
       end;
 
+      if ScreenPointVao = nil then
+        ScreenPointVao := TVertexArrayObject.Create;
+
       glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
 
       glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
@@ -692,10 +696,10 @@ var
         RenderContext.Viewport that takes care of this. }
 
       AttribVertex := Shader.Attribute('vertex');
-      AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
+      AttribVertex.EnableArrayVector2(ScreenPointVao, SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
       AttribTexCoord := Shader.Attribute('tex_coord');
-      AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
+      AttribTexCoord.EnableArrayVector2(ScreenPointVao, SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -793,6 +797,7 @@ begin
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   glFreeBuffer(ScreenPointVbo);
+  FreeAndNil(ScreenPointVao);
   inherited;
 end;
 

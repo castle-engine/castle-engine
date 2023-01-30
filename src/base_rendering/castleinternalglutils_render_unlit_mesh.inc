@@ -119,6 +119,7 @@ type
       VertexAllocatedItems, IndexAllocatedItems: Cardinal;
     FixedFunctionVertexes: TVector4List;
     FixedFunctionIndexes: TUInt16List;
+    Vao: TVertexArrayObject;
   public
     { By default all zeros, you must set this before any rendering. }
     ModelViewProjection: TMatrix4;
@@ -201,11 +202,14 @@ begin
     if AUseColor then
       UniformColor := Shader.Uniform('color');
   end;
+
+  Vao := TVertexArrayObject.Create;
 end;
 
 destructor TCastleRenderUnlitMesh.Destroy;
 begin
   FreeAndNil(Shader);
+  FreeAndNil(Vao);
   glFreeBuffer(VboIndex);
   glFreeBuffer(VboVertex);
   inherited;
@@ -229,7 +233,7 @@ begin
     if FUseColor then
       UniformColor.SetValue(Color);
     UniformModelViewProjectionMatrix.SetValue(ModelViewProjection);
-    AttributeVertex.EnableArrayVector4(SizeOf(TVector4), 0);
+    AttributeVertex.EnableArrayVector4(Vao, SizeOf(TVector4), 0);
   end else
   begin
     {$ifndef OpenGLES}

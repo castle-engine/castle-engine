@@ -262,10 +262,12 @@ type
     VboAllocatedSize: array [TVboType] of Cardinal;
     VboCoordinatePreserveGeometryOrder: Boolean; //< copied from TGeometryArrays.CoordinatePreserveGeometryOrder
 
+    Vao: TVertexArrayObject;
+
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
     procedure LoadArraysToVbo(const DynamicGeometry: boolean);
-    procedure FreeVBO;
+    procedure GLContextClose;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1733,11 +1735,11 @@ end;
 destructor TShapeCache.Destroy;
 begin
   FreeAndNil(Arrays);
-  FreeVBO;
+  GLContextClose;
   inherited;
 end;
 
-procedure TShapeCache.FreeVBO;
+procedure TShapeCache.GLContextClose;
 var
   I: TVboType;
 begin
@@ -1752,6 +1754,8 @@ begin
     for I := Low(I) to High(I) do
       Vbo[I] := 0;
   end;
+
+  FreeAndNil(Vao);
 end;
 
 procedure TShapeCache.InvalidateVertexData(const Changed: TVboTypes);
@@ -1881,6 +1885,9 @@ begin
     VboAllocatedUsage := DataUsage;
 
     Arrays.FreeData;
+
+    if GLFeatures.VertexArrayObject and (Vao = nil) then
+      Vao := TVertexArrayObject.Create;
   end;
 
   VboToReload := [];
@@ -3377,6 +3384,7 @@ begin
         so Vbo contents are already loaded too }
       Assert(Shape.Cache.Vbo[vtCoordinate] <> 0);
       CoordinateRenderer.Vbo := Shape.Cache.Vbo;
+      CoordinateRenderer.Vao := Shape.Cache.Vao;
     end;
 
     CoordinateRenderer.Arrays := Shape.Cache.Arrays;

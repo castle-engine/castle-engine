@@ -167,6 +167,7 @@ type
     FTextureCubeMap: TGLSupport;
     FTextureCompression: TTextureCompressions;
     FVertexBufferObject: Boolean;
+    FVertexArrayObject: Boolean;
     FBlendConstant: Boolean;
     FTextureFloat: Boolean;
     FTextureDepth: Boolean;
@@ -356,6 +357,9 @@ type
 
     { VBO support (in OpenGL (ES) core). }
     property VertexBufferObject: Boolean read FVertexBufferObject;
+
+    { VAO support (in OpenGL (ES) core). }
+    property VertexArrayObject: Boolean read FVertexArrayObject;
 
     { glBlendColor and GL_CONSTANT_ALPHA support. }
     property BlendConstant: Boolean read FBlendConstant;
@@ -1045,6 +1049,8 @@ begin
 
   Assert(EnableFixedFunction = (not Shaders));
   Assert(EnableFixedFunction = (not VertexBufferObject));
+
+  FVertexArrayObject := {$ifdef OpenGLES} false {$else} (not EnableFixedFunction) and Version_3_0 {$endif};
 
   { Calculate MaxClipPlanes.
     The logic follows various approaches to clip planes in TShader.EnableClipPlane.

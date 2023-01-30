@@ -301,6 +301,7 @@ type
     AttribVertex: TGLSLAttribute;
 
     Vbo: TGLuint;
+    Vao: TVertexArrayObject;
     PointPtr: Pointer;
     PointPtrAllocated: Integer;
     destructor Destroy; override;
@@ -309,6 +310,7 @@ type
 destructor TPrimitive2DResources.Destroy;
 begin
   glFreeBuffer(Vbo);
+  FreeAndNil(Vao);
   FreeAndNil(Prog);
   FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
   PointPtr := nil;
@@ -376,6 +378,9 @@ begin
       Assert(GLFeatures.VertexBufferObject);
       glGenBuffers(1, @Primitive2DRes.Vbo);
     end;
+
+    if Primitive2DRes.Vao = nil then
+      Primitive2DRes.Vao := TVertexArrayObject.Create;
   end;
 
   { apply LineWidth, PointSize.
@@ -416,7 +421,8 @@ begin
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_DYNAMIC_DRAW);
 
     RenderContext.CurrentProgram := Primitive2DRes.Prog;
-    Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
+
+    Primitive2DRes.AttribVertex.EnableArrayVector2(Primitive2DRes.Vao, SizeOf(TVector2), 0);
 
     if (RenderContext.Viewport.Left <> 0) or
        (RenderContext.Viewport.Bottom <> 0) then

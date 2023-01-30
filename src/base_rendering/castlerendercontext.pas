@@ -23,7 +23,7 @@ interface
 uses SysUtils, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleGLUtils;
 
 type
   TClearBuffer = (cbColor, cbDepth, cbStencil);
@@ -115,6 +115,7 @@ type
       FViewportDelta: TVector2Integer;
       WarningViewportTooLargeDone: Boolean;
       FCurrentProgram: TGLSLProgram;
+      FCurrentVao: TVertexArrayObject;
       FBlendingSourceFactor: TBlendingSourceFactor;
       FBlendingDestinationFactor: TBlendingDestinationFactor;
       FBlendingEnabled: Boolean;
@@ -142,6 +143,7 @@ type
     procedure UpdateViewport;
     procedure WarningViewportTooLarge;
     procedure SetCurrentProgram(const Value: TGLSLProgram);
+    procedure SetCurrentVao(const Value: TVertexArrayObject);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
   private
@@ -271,11 +273,13 @@ type
     function FinalScissor(out Rect: TRectangle): Boolean;
 
     { Currently enabled GLSL program.
-      @nil if fixed-function pipeline should be used.
-      Setting this property encapsulates the OpenGL glUseProgram
-      (or equivalent ARB extension), additionally preventing redundant glUseProgram
-      calls. }
+      @nil if none (rendering is not possible, unless ancient fixed-function pipeline is used).
+      Setting this property encapsulates the OpenGL glUseProgram. }
     property CurrentProgram: TGLSLProgram read FCurrentProgram write SetCurrentProgram;
+
+    { Currently bound vertex array object.
+      @nil if none.. }
+    property CurrentVao: TVertexArrayObject read FCurrentVao write SetCurrentVao;
 
     { Does the current color buffer have any alpha channel.
       Some blending features depend on storing alpha in the color channel. }
@@ -333,7 +337,7 @@ function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar:
 
 implementation
 
-uses CastleLog, CastleGLUtils, CastleProjection, CastleInternalGLUtils;
+uses CastleLog, CastleProjection, CastleInternalGLUtils;
 
 constructor TRenderContext.Create;
 begin
@@ -669,6 +673,21 @@ begin
   begin
     FCurrentProgram := Value;
     InternalSetCurrentProgram(Value);
+  end;
+end;
+
+procedure TRenderContext.SetCurrentVao(const Value: TVertexArrayObject);
+begin
+  if FCurrentVao <> Value then
+  begin
+    FCurrentVao := Value;
+    if GLFeatures.VertexArrayObject then
+    begin
+      if Value <> nil then
+        glBindVertexArray(Value.InternalHandle)
+      else
+        glBindVertexArray(0);
+    end;
   end;
 end;
 

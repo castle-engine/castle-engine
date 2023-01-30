@@ -33,6 +33,7 @@ uses
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
+{$I castleglutils_vertex_array_object.inc}
 
 {$undef read_interface}
 
@@ -49,6 +50,7 @@ uses
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
+{$I castleglutils_vertex_array_object.inc}
 
 { initialization, finalization ----------------------------------------------- }
 

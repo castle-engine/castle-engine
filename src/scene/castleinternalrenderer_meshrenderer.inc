@@ -1,3 +1,4 @@
+{%MainUnit castleinternalrenderer.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -99,6 +100,8 @@ type
       (by TGeometryArrays.FreeData). }
     Vbo: TVboArrays;
 
+    Vao: TVertexArrayObject;
+
     { You have to set this before calling Render, to enable proper shading. }
     Shader: TShader;
 
@@ -184,14 +187,14 @@ var
         Continue;
       end;
       case Arrays.Attribs[I].AType of
-        atFloat  : A.EnableArraySingle       (Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atFloat  : A.EnableArraySingle (Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atVector2: A.EnableArrayVector2(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector3: A.EnableArrayVector3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector4: A.EnableArrayVector4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector2: A.EnableArrayVector2(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: A.EnableArrayVector3(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: A.EnableArrayVector4(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atMatrix3: A.EnableArrayMatrix3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atMatrix4: A.EnableArrayMatrix4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix3: A.EnableArrayMatrix3(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix4: A.EnableArrayMatrix4(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
@@ -371,18 +374,18 @@ begin
 
         Attribs := TGLSLAttributeList.Create;
 
-        CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+        CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Position));
         Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
 
         if Shader.NeedsNormals then
         begin
-          CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+          CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
         end;
 
         if Arrays.HasTangent then
         begin
-          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
+          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Tangent);
         end;
       end else
@@ -409,8 +412,8 @@ begin
         begin
           Assert(Arrays.ColorType <> ctNone);
           case Arrays.ColorType of
-            ctRgb     : CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector3(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgb));
-            ctRgbAlpha: CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgbAlpha));
+            ctRgb     : CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector3(Vao, Arrays.AttributeSize, PtrUInt(Arrays.ColorRgb));
+            ctRgbAlpha: CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.ColorRgbAlpha));
             else ;
           end;
           Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
@@ -418,7 +421,7 @@ begin
 
         if Arrays.HasFogCoord then
         begin
-          CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+          CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Vao, Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
           Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
         end;
 
@@ -430,7 +433,7 @@ begin
             // but save it in GLSLProgram.
             TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
             if TexCoordAttrib.Location = -1 then Continue;
-            TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+            TexCoordAttrib.EnableArray(Vao, 0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
               Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
             Attribs.Add(TexCoordAttrib);
           end;

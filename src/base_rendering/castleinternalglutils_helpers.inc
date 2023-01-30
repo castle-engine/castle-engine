@@ -126,6 +126,9 @@ procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 { If Buffer <> 0 then it does glDeleteBuffers and sets Buffer to 0. }
 procedure glFreeBuffer(var Buffer: TGLuint);
 
+{ If Vao <> 0 then it does glDeleteVertexArrays and sets Vao to 0. }
+procedure glFreeVertexArray(var Vao: TGLuint);
+
 { Set color and depth buffers writeable or not.
 
   This is just a shortcut for setting
@@ -287,6 +290,15 @@ begin
   begin
     glDeleteBuffers(1, @Buffer);
     Buffer := 0;
+  end;
+end;
+
+procedure glFreeVertexArray(var Vao: TGLuint);
+begin
+  if Vao <> 0 then
+  begin
+    glDeleteVertexArrays(1, @Vao);
+    Vao := 0;
   end;
 end;
 

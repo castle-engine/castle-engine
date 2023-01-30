@@ -80,6 +80,7 @@
       TVboStorage = record
         PointsVbo, IndexesVbo: TGLuint;
         PointsVboSize, IndexesVboSize: Cardinal;
+        Vao: TVertexArrayObject;
       end;
       PVboStorage = ^TVboStorage;
 
@@ -893,15 +894,14 @@ begin
   begin
     for I := Low(VboStorage) to High(VboStorage) do
     begin
-      if (VboStorage[I].PointsVbo = 0) then
+      if VboStorage[I].PointsVbo = 0 then
         glGenBuffers(1, @VboStorage[I].PointsVbo);
-      if (VboStorage[I].IndexesVbo = 0) then
+      if VboStorage[I].IndexesVbo = 0 then
         glGenBuffers(1, @VboStorage[I].IndexesVbo);
+      if VboStorage[I].Vao = nil then
+        VboStorage[I].Vao := TVertexArrayObject.Create;
     end;
-  end;
 
-  if not GLFeatures.EnableFixedFunction then
-  begin
     { create programs }
     for AlphaTestShader := Low(boolean) to High(boolean) do
       for ClipLineShader := Low(boolean) to High(boolean) do
@@ -944,6 +944,7 @@ begin
   begin
     glFreeBuffer(VboStorage[I].PointsVbo);
     glFreeBuffer(VboStorage[I].IndexesVbo);
+    FreeAndNil(VboStorage[I].Vao);
     VboStorage[I].PointsVboSize := 0;
     VboStorage[I].IndexesVboSize := 0;
   end;
@@ -1256,10 +1257,10 @@ begin
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
     RenderContext.CurrentProgram := Prog.Prog;
-    Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
-    Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
+    Prog.AttribVertex.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
+    Prog.AttribTexCoord.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
 
     if (RenderContext.Viewport.Left <> 0) or
        (RenderContext.Viewport.Bottom <> 0) then

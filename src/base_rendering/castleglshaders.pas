@@ -153,22 +153,31 @@ type
 
       Note that the array size is not specified anywhere. The way you access
       the array (what indexes you use) determines the minimum count of the array
-      you should have (and uploaded to VBO). }
-    procedure EnableArray(LocationOffset: TLocationOffset;
-      Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-      Ptr: PtrUInt);
+      you should have (and uploaded to VBO).
+
+      You have to provide VertexArrayObject where the array is bound. }
+    procedure EnableArray(const Vao: TVertexArrayObject;
+      const LocationOffset: TLocationOffset;
+      const Size: TGLint; const AType: TGLenum; const Normalized: TGLboolean; const Stride: TGLsizei;
+      const Ptr: PtrUInt);
     { Shortcut to enable an array of floats (Single in Pascal). }
-    procedure EnableArraySingle(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArraySingle(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
     { Shortcut to enable an array of TVector2. }
-    procedure EnableArrayVector2(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArrayVector2(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
     { Shortcut to enable an array of TVector3. }
-    procedure EnableArrayVector3(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArrayVector3(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
     { Shortcut to enable an array of TVector4. }
-    procedure EnableArrayVector4(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArrayVector4(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
     { Shortcut to enable an array of TMatrix3. }
-    procedure EnableArrayMatrix3(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArrayMatrix3(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
     { Shortcut to enable an array of TMatrix4. }
-    procedure EnableArrayMatrix4(Stride: TGLsizei; Ptr: PtrUInt);
+    procedure EnableArrayMatrix4(const Vao: TVertexArrayObject;
+      const Stride: TGLsizei; const Ptr: PtrUInt);
 
     procedure DisableArray;
 
@@ -452,31 +461,6 @@ type
       or @link(TGLSLAttribute.EnableArray) or @link(TGLSLAttribute.DisableArray)
       methods are silently ignored. }
     function AttributeOptional(const Name: string): TGLSLAttribute;
-
-    { Load and enable vertex attribute data.
-      This calls glVertexAttribPointer and enables it by
-      glEnableVertexAttribArray (or ARB extension equivalents),
-      see OpenGL reference for details.
-
-      The attribute name is automatically resolved to a "location".
-      We add LocationOffset (useful if you want to load matrix attributes,
-      when you have to load matrix columns separately, with
-      LocationOffset = column index).
-
-      For repeated usage, it's better to use @link(Attribute) method,
-      and repeatedly call @link(TGLSLAttribute.EnableArray) on the same
-      @link(TGLSLAttribute) instance.
-
-      @raises(EGLSLAttributeNotFound If the variable is not found within
-        the program.)
-
-      @returns(Attribute location (with LocationOffset already applied).
-        You can use it with DisableVertexAttribArray.) }
-    function VertexAttribPointer(const Name: string; LocationOffset: TGLSLAttribute.TLocationOffset;
-      Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-      Ptr: Pointer): TGLint; deprecated 'use TGLSLAttribute.EnableArray';
-
-    class procedure DisableVertexAttribArray(Location: TGLint); deprecated 'use TGLSLAttribute.DisableArray';
 
     { Set attribute variable value.
       The used type must match the type of this variable in GLSL program.
@@ -941,53 +925,62 @@ end;
 }
 {$endif}
 
-procedure TGLSLAttribute.EnableArray(LocationOffset: TLocationOffset;
-  Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-  Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArray(const Vao: TVertexArrayObject;
+  const LocationOffset: TLocationOffset;
+  const Size: TGLint; const AType: TGLenum; const Normalized: TGLboolean; const Stride: TGLsizei;
+  const Ptr: PtrUInt);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   if GLFeatures.Shaders then
   begin
-    Owner.Enable;
+    RenderContext.CurrentVao := Vao;
+    RenderContext.CurrentProgram := Owner;
+
     LocationOffsetsToDisable[LocationOffset] := true;
-    glEnableVertexAttribArray   (Location + LocationOffset);
-    glVertexAttribPointer   (Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
+    glEnableVertexAttribArray(Location + LocationOffset);
+    glVertexAttribPointer    (Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
   end;
 end;
 
-procedure TGLSLAttribute.EnableArraySingle(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArraySingle(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 1, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 0, 1, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector2(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector2(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 2, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 0, 2, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector3(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector3(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector4(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector4(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayMatrix3(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayMatrix3(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
-  EnableArray(1, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3));
-  EnableArray(2, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3) * 2);
+  EnableArray(Vao, 0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 1, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3));
+  EnableArray(Vao, 2, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3) * 2);
 end;
 
-procedure TGLSLAttribute.EnableArrayMatrix4(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayMatrix4(const Vao: TVertexArrayObject;
+  const Stride: TGLsizei; const Ptr: PtrUInt);
 begin
-  EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
-  EnableArray(1, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4));
-  EnableArray(2, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 2);
-  EnableArray(3, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 3);
+  EnableArray(Vao, 0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(Vao, 1, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4));
+  EnableArray(Vao, 2, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 2);
+  EnableArray(Vao, 3, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 3);
 end;
 
 procedure TGLSLAttribute.DisableArray;
@@ -1861,25 +1854,6 @@ begin
 end;
 }
 {$endif}
-
-function TGLSLProgram.VertexAttribPointer(const Name: string;
-  LocationOffset: TGLSLAttribute.TLocationOffset;
-  Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-  Ptr: Pointer): TGLint;
-var
-  A: TGLSLAttribute;
-begin
-  A := Attribute(Name);
-  A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, PtrUInt(Ptr));
-  Result := A.Location;
-end;
-
-class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
-begin
-  if Location <> -1 then
-    if GLFeatures.Shaders then
-      glDisableVertexAttribArray(Location);
-end;
 
 class function TGLSLProgram.GetCurrent: TGLSLProgram;
 begin
