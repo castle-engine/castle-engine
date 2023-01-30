@@ -641,6 +641,8 @@ begin
   if AType = GL_DEBUG_TYPE_ERROR then
     raise EOpenGLError.Create(MessageWhole)
   else
+  // Don't output notifcations, too much log every frame
+  if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
     WritelnLog(MessageWhole);
 end;
 
