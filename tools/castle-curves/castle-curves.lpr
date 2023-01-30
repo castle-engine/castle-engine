@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -747,7 +747,7 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           NL +
-          TCastleWindow.ParseParametersHelp(StandardParseOptions, true) + NL +
+          TCastleWindow.ParseParametersHelp + NL +
           NL +
           'Full documentation on' + NL +
           'https://castle-engine.io/curves_tool' + NL +

@@ -47,29 +47,6 @@ begin
   Window.Container.View := ViewMain;
 end;
 
-const
-  CommandLineOptions: array [0..0] of TOption = (
-    (Short: 'r'; Long: 'render'; Argument: oaRequired)
-  );
-
-procedure ProcessCommandLineOption(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-
-  function StrToCapabilities(const S: String): TGLRequestCapabilities;
-  begin
-    for Result := Low(Result) to High(Result) do
-      if SameText(CapabilitiesStr[Result], S) then
-        Exit;
-    raise EInvalidParams.CreateFmt('Invalid --render argument: %s', [S]);
-  end;
-
-begin
-  case OptionNum of
-    0: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
-    else raise Exception.CreateFmt('ProcessCommandLineOption: unimplemented option %d', [OptionNum]);
-  end;
-end;
-
 initialization
   { This initialization section configures:
     - Application.OnInitialize
@@ -86,11 +63,6 @@ initialization
   Application.MainWindow := Window;
 
   LogGLInformationVerbose := true;
-
-  { By default, set RequestCapabilities to test modern rendering.
-    But allow to test other RequestCapabilities too, by command-line option --render=xxx. }
-  TGLFeatures.RequestCapabilities := rcForceModern;
-  Parameters.Parse(CommandLineOptions, {$ifdef FPC}@{$endif} ProcessCommandLineOption, nil, true);
 
   { Enable TGLFeatures.Debug when we use rcForceModern.
     This is great way to get extra debug information and clear exception in case we violate

@@ -114,6 +114,14 @@ type
     rcForceModern
   );
 
+const
+  CapabilitiesStr: array [TGLRequestCapabilities] of String = (
+    'automatic',
+    'force-fixed-function',
+    'force-modern'
+  );
+
+type
   { OpenGL(ES) features, analyzed based on extensions and version.
     A single instance of this class is assigned to @link(GLFeatures)
     after the first rendering context was created.
@@ -499,6 +507,9 @@ var
 
   { Much more verbose logging of current context capabilities in GLInformationInitialize. }
   LogGLInformationVerbose: Boolean = false;
+
+{ Convert a string (like command-line argument) to TGLRequestCapabilities. }
+function StrToCapabilities(const S: String): TGLRequestCapabilities;
 
 {$endif read_interface}
 
@@ -1248,6 +1259,16 @@ begin
   else
     // unknown memory, assume old GPU with low memory
     Result := true;
+end;
+
+{ global routines --------------------------------------------------------------------- }
+
+function StrToCapabilities(const S: String): TGLRequestCapabilities;
+begin
+  for Result := Low(Result) to High(Result) do
+    if SameText(CapabilitiesStr[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid capabilities name "%s"', [S]);
 end;
 
 {$endif read_implementation}

@@ -318,12 +318,14 @@ function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;
 const
   OnlyHelpOptions: array [0..0] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone)
-  );
+  ) deprecated 'define this in your application';
 
   HelpOptionHelp =
-    '  -h / --help           Print this help message and exit.';
+    '  -h / --help           Print this help message and exit.'
+    deprecated 'use OptionDescription';
   VersionOptionHelp =
-    '  -v / --version        Print the version number and exit.';
+    '  -v / --version        Print the version number and exit.'
+    deprecated 'use OptionDescription';
 
 var
   { Command-line parameters. Initialized from standard

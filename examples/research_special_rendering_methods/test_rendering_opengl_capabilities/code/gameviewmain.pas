@@ -47,13 +47,6 @@ type
 var
   ViewMain: TViewMain;
 
-const
-  CapabilitiesStr: array [TGLRequestCapabilities] of String = (
-    'automatic',
-    'force-fixed-function',
-    'force-modern'
-  );
-
 implementation
 
 uses SysUtils,
