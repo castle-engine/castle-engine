@@ -1,3 +1,10 @@
+{ Translation of Steam headers (first of all steam_api_flat.h and steam_api_internal.h).
+  Note that for yet unknown reason not all Steam headers are accessible from Pascal code
+  Therefore only those calls that were tested and proven to work are included
+  Some features can be accessed through different calls,
+  which was accounted for in this unit.
+  We'd like to note invaluable help that Apus Engine's sources by Ivan Polyacov (Cooler2)
+  have provided in hunting down those specific calls and a few tricks to make them work properly. }
 unit CastleInternalSteamApi;
 
 {$I castleconf.inc}

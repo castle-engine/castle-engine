@@ -1,3 +1,7 @@
+{ Provides basic classes to interact with Steam callbacks structures
+  This is a slightly modified copy of
+  https://github.com/Relfos/steamworks_wrappers/blob/master/headers/SteamCallback.pas (MIT license)
+  by Sérgio Flores (Relfos) }
 Unit SteamCallback;
 
 {$I castleconf.inc}
