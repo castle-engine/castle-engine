@@ -180,9 +180,15 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
     ImagePoint: TVector2Integer;
   begin
     ImagePoint := ScreenToImage(ScreenPoint);
+    ImagePoint.X := Max(ImagePoint.X, 0);
+    ImagePoint.Y := Max(ImagePoint.Y, 0);
+    ImagePoint.X := Min(ImagePoint.X, FImage.Width);
+    ImagePoint.Y := Min(ImagePoint.Y, FImage.Height);
 
     if beIncrease then
     begin
+      { When FScale is less than 6, it increases linearly, otherwise it increases exponentially. }
+
       if FScale < 1 then
         FScale := FScale + 0.1
       else if FScale < 2 then
@@ -196,13 +202,19 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
     end
     else
     begin
+      {
+        Same as above.
+        Between 0.5 and 6 : linearly,
+        otherwise : exponentially.
+      }
+
       if FScale > 6 then FScale := FScale * PX
       else if FScale > 2 then
         FScale := FScale - 0.4
-      else
-      if FScale > 0.6 then
+      else if FScale > 1 then
         FScale := FScale - 0.2
-      else if FScale > 0.2 then
+      else
+      if FScale > 0.5 then
         FScale := FScale - 0.1
       else
         FScale := FScale * PX;
@@ -210,7 +222,7 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
       FScale := Max(FScale, 0.0001);
     end;
 
-    { Zoom in on the pixel at the fixed mouse location. }
+    { Zoom in on the pixel at the mouse location. }
     FTranslation := FTranslation + ScreenPoint - ImageToScreen(ImagePoint);
 
   end;
@@ -316,12 +328,25 @@ begin
 end;
 
 procedure TRegionDesignDialog.InitControlPoints;
+
+  function CenterPoint: TVector2Integer;
+  begin
+    Result := FControlPointRec.Points[0] + FControlPointRec.Points[1];
+    Result.X := Result.X div 2;
+    Result.Y := Result.Y div 2;
+  end;
+
 begin
   FControlPointRec.Points[0] :=
     Vector2Integer(Floor(FRegion.TotalLeft), Floor(FRegion.TotalBottom));
   FControlPointRec.Points[1] :=
     Vector2Integer(FImage.Width - Floor(FRegion.TotalRight), FImage.Height -
     Floor(FRegion.TotalTop));
+
+  { Center view then region. }
+  FTranslation := FTranslation + ImageToScreen(CastleControl1.Rect.Center) -
+    ImageToScreen(CenterPoint);
+
   Changed;
 end;
 
