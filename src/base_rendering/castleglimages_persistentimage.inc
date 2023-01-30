@@ -529,25 +529,15 @@ begin
 end;
 
 function TCastleImagePersistent.Width: Cardinal;
-var
-  vSize : Cardinal;
 begin
-  vSize := Floor(FRegion.TotalWidth);
-  if vSize < FDrawableImage.Width then
-    Result := FDrawableImage.Width - vSize
-  else
-    Result := 0;
+  Result := FDrawableImage.Width - Floor(FRegion.TotalWidth);
+  Result := Min(Result, FDrawableImage.Width);
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
-var
-  vSize : Cardinal;
 begin
-  vSize := Floor(FRegion.TotalHeight);
-  if vSize < FDrawableImage.Height then
-    Result := FDrawableImage.Height - vSize
-  else
-    Result := 0;
+  Result := FDrawableImage.Height - Floor(FRegion.TotalHeight);
+  Result := Min(Result, FDrawableImage.Height);
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
