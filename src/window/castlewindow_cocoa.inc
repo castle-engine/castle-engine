@@ -633,7 +633,12 @@ begin
     else
       ScaleFactor := 1;
 
-    TCocoaWindow(window).ScaleFactor := ScaleFactor;
+    if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
+    begin
+      TCocoaWindow(window).ScaleFactor := ScaleFactor;
+      windowRef.Dpi := ScaleFactor * DefaultDpi
+    end;
+
     windowRef.DoResize(
       trunc(ScaleFactor * bounds.size.width),
       trunc(ScaleFactor * bounds.size.height), false);

@@ -575,6 +575,7 @@ type
     procedure SetHeight(const Value: Integer);
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
+    procedure SetDpi(const Value: Single);
     procedure SetResizeAllowed(const Value: TResizeAllowed);
 
     { Convert window position from the usual window system convention,
@@ -999,7 +1000,7 @@ type
       "how to scale the user-interface", where 96 (DefaultDpi) is default.
       So do not depend that it is actually related to the physical monitor size.
       See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
-    property Dpi: Single read FDpi write FDpi {$ifdef FPC}default DefaultDpi{$endif};
+    property Dpi: Single read FDpi write SetDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -4184,6 +4185,15 @@ begin
     FTop := Value;
     if not Closed then
       WritelnWarning('Window', 'Changing TCastleWindow.Top when the window is open is not supported now');
+  end;
+end;
+
+procedure TCastleWindow.SetDpi(const Value: Single);
+begin
+  if FDpi <> Value then
+  begin
+    FDpi := Value;
+    Container.UpdateAfterDpiChange;
   end;
 end;
 

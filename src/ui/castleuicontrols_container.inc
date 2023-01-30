@@ -636,6 +636,12 @@
     property UIScaling: TUIScaling
       read FUIScaling write SetUIScaling default usNone;
 
+    { Notify container window DPI has changed.
+
+      This function is called internally when the backend DPI changed. When our
+      @link(UIScaling) is set to usDpiScale, all controls should rescale. }
+    procedure UpdateAfterDpiChange;
+
     { Reference width and height to which we fit the container size
       (as seen by TCastleUserInterface implementations) when UIScaling is
       usEncloseReferenceSize or usFitReferenceSize.
@@ -2146,6 +2152,12 @@ begin
     FUIScaling := Value;
     UpdateUIScale;
   end;
+end;
+
+procedure TCastleContainer.UpdateAfterDpiChange;
+begin
+  if UIScaling = usDpiScale then
+     UpdateUIScale;
 end;
 
 procedure TCastleContainer.SetUIReferenceWidth(const Value: Single);
