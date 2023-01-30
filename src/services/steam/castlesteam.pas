@@ -219,7 +219,7 @@ var
 begin
   if Initialized then
     for S in Achievements do
-      ClearAchievement(S);
+      ClearAchievement(S)
   else
   SteamError('ClearAllAchievements failed! Steam is not initialized!');
 end;
