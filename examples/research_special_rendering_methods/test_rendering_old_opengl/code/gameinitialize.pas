@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleGLUtils
+  CastleWindow, CastleLog, CastleUIControls, CastleGLUtils, CastleParameters
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -47,6 +47,29 @@ begin
   Window.Container.View := ViewMain;
 end;
 
+const
+  CommandLineOptions: array [0..0] of TOption = (
+    (Short: 'r'; Long: 'render'; Argument: oaRequired)
+  );
+
+procedure ProcessCommandLineOption(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: if Argument = 'force-fixed-function' then
+         TGLFeatures.RequestCapabilities := rcForceFixedFunction
+       else
+       if Argument = 'automatic' then
+         TGLFeatures.RequestCapabilities := rcAutomatic
+       else
+       if Argument = 'force-modern' then
+         TGLFeatures.RequestCapabilities := rcForceModern
+       else
+         raise EInvalidParams.CreateFmt('Invalid --render argument: %s', [Argument]);
+    else raise Exception.CreateFmt('ProcessCommandLineOption: unimplemented option %d', [OptionNum]);
+  end;
+end;
+
 initialization
   { This initialization section configures:
     - Application.OnInitialize
@@ -64,12 +87,17 @@ initialization
 
   LogGLInformationVerbose := true;
 
+  { By default, set RequestCapabilities to test fixed-function.
+    But allow to test other RequestCapabilities too, by command-line option --render=xxx. }
   TGLFeatures.RequestCapabilities := rcForceFixedFunction;
+  Parameters.Parse(CommandLineOptions, {$ifdef FPC}@{$endif} ProcessCommandLineOption, nil, true);
 
-  // Alternatively, test the other extreme of support: modern OpenGL "core" profile,
-  // without any compatibility.
-  // TGLFeatures.RequestCapabilities := rcForceModern;
-  // TGLFeatures.Debug := true;
+  { Enable TGLFeatures.Debug when command-line options caused
+    TGLFeatures.RequestCapabilities = rcForceModern (by --render=force-modern).
+    This is great way to get extra debug information and clear exception in case we violate
+    the "core" profile. }
+  if TGLFeatures.RequestCapabilities = rcForceModern then
+    TGLFeatures.Debug := true;
 
   { Optionally, adjust window fullscreen state and size at this point.
     Examples:

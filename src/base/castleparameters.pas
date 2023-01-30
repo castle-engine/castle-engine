@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -316,7 +316,7 @@ function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;
   deprecated 'use SeparateArgsToVector3';
 
 const
-  OnlyHelpOptions: array[0..0]of TOption = (
+  OnlyHelpOptions: array [0..0] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone)
   );
 
