@@ -6,7 +6,7 @@ This example sets `TGLFeatures.RequestCapabilities` and then tests a few standar
 
 - _Force Modern OpenGL(ES) usage_:
 
-    Default mode of this test application. Sets `TGLFeatures.RequestCapabilities := rcForceModern`. Can be requested explicitly on command-line (but there's not much reason, as it is default now) by `-render=force-modern`.
+    Default mode of this test application. Sets `TGLFeatures.RequestCapabilities := rcForceModern`. Can be requested explicitly on command-line (but there's not much reason, as it is default now) by `--render=force-modern`.
 
     In this mode we make sure to initialize OpenGL 3.3 "core" profile (see TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor), _without any compatibility features enabled_. It is guaranteed we will have `GLFeatures.EnableFixedFunction = false`. We will use shaders, VBO, VAO, texture swizzle and more modern features for everything.
 
@@ -14,7 +14,7 @@ This example sets `TGLFeatures.RequestCapabilities` and then tests a few standar
 
 - _Automatic_:
 
-    This is the default CGE behavior, in normal CGE applications. Run with command-line parameter `-render=automatic` to set `TGLFeatures.RequestCapabilities := rcAutomatic`.
+    This is the default CGE behavior, in normal CGE applications. Run with command-line parameter `--render=automatic` to set `TGLFeatures.RequestCapabilities := rcAutomatic`.
 
     We ask for context with latest OpenGL version, but also with compatibility API entry points. If everything goes well and we get a context with at least OpenGL 2.0, then we use shaders and modern features for everything (`GLFeatures.EnableFixedFunction` will be `false`). If we get ancient or buggy OpenGL version, we use `GLFeatures.EnableFixedFunction = true`.
 
@@ -22,7 +22,7 @@ This example sets `TGLFeatures.RequestCapabilities` and then tests a few standar
 
 - _Force Ancient Force-function Usage_:
 
-    Mode to test support for ancient/buggy OpenGL versions. Run with `-render=force-fixed-function` command-line parameter. This sets `TGLFeatures.RequestCapabilities := rcForceFixedFunction`.
+    Mode to test support for ancient/buggy OpenGL versions. Run with `--render=force-fixed-function` command-line parameter. This sets `TGLFeatures.RequestCapabilities := rcForceFixedFunction`.
 
     In effect we force treating the current OpenGL version as if it was an ancient OpenGL version, without any modern features (like VBO and shaders). Once such OpenGL context is initialized, it is guaranteed to have `GLFeatures.EnableFixedFunction = true`.
 

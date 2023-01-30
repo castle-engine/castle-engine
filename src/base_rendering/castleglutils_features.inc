@@ -1071,6 +1071,9 @@ begin
   // RequestCapabilities = rcForceFixedFunction overrides above detection
   if RequestCapabilities = rcForceFixedFunction then
   begin
+    if Version_3_1 and not HasExtension('GL_ARB_compatibility') then
+      raise Exception.Create('Requested deprecated fixed-function approach, but this is a modern context without compatibility (ARB_compatibility). Cannot use fixed-function.');
+
     FEnableFixedFunction := true;
     FShaders := false;
     FVertexBufferObject := false;
