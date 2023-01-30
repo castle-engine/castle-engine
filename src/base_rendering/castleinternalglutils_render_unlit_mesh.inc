@@ -225,11 +225,13 @@ begin
     if VboVertex = 0 then
       raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
 
+    RenderContext.CurrentProgram := Shader;
+    RenderContext.CurrentVao := Vao;
+
     glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
     // do this even if VboIndex = 0, to set this to 0
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
 
-    RenderContext.CurrentProgram := Shader;
     if FUseColor then
       UniformColor.SetValue(Color);
     UniformModelViewProjectionMatrix.SetValue(ModelViewProjection);

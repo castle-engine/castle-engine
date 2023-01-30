@@ -666,6 +666,9 @@ var
       if ScreenPointVao = nil then
         ScreenPointVao := TVertexArrayObject.Create;
 
+      RenderContext.CurrentProgram := Shader;
+      RenderContext.CurrentVao := ScreenPointVao;
+
       glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
 
       glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
@@ -679,7 +682,6 @@ var
         Inc(BoundTextureUnits);
       end;
 
-      RenderContext.CurrentProgram := Shader;
       Shader.Uniform('screen').SetValue(0);
       if CurrentScreenEffectsNeedDepth then
         Shader.Uniform('screen_depth').SetValue(1);
@@ -707,7 +709,6 @@ var
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     end;
 
   var

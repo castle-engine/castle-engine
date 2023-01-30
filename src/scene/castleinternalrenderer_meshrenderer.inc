@@ -493,7 +493,10 @@ begin
       if Arrays.HasIndexes then
       begin
         if Vbo[vtIndex] <> 0 then
+        begin
+          RenderContext.CurrentVao := Vao;
           glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
+        end;
 
         if Arrays.Counts = nil then
           glDrawElements(Mode, Arrays.IndexesCount,

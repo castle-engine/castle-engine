@@ -1156,6 +1156,7 @@ var
     end;
   end;
 
+  { Bind the given buffer and update contents. }
   procedure LoadBuffer(const Target: TGLenum;
     const Vbo: TGLuint; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
@@ -1233,6 +1234,10 @@ begin
     Inc(VboStorageNext);
     if VboStorageNext = High(VboStorage) + 1 then
       VboStorageNext := 0;
+
+    { VAO must be bound before binding VBOs,
+      esp. important for GL_ELEMENT_ARRAY_BUFFER whose VBO isn't bound later. }
+    RenderContext.CurrentVao := Vbo^.Vao;
 
     LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));

@@ -415,12 +415,13 @@ begin
 
   if not GLFeatures.EnableFixedFunction then
   begin
+    RenderContext.CurrentProgram := Primitive2DRes.Prog;
+    RenderContext.CurrentVao := Primitive2DRes.Vao;
+
     glBindBuffer(GL_ARRAY_BUFFER, Primitive2DRes.Vbo);
     { load only RequiredPointPtrSize, not Primitive2DRes.PointPtrAllocated which may be larger }
     Assert(Primitive2DRes.PointPtrAllocated >= RequiredPointPtrSize);
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_DYNAMIC_DRAW);
-
-    RenderContext.CurrentProgram := Primitive2DRes.Prog;
 
     Primitive2DRes.AttribVertex.EnableArrayVector2(Primitive2DRes.Vao, SizeOf(TVector2), 0);
 
@@ -455,7 +456,6 @@ begin
     Primitive2DRes.AttribVertex.DisableArray;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end else
   begin
     {$ifndef OpenGLES}
