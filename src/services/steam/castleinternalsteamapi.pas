@@ -1,13 +1,11 @@
 unit CastleInternalSteamApi;
 
-{$mode ObjFPC}{$H+}
+{$I castleconf.inc}
 
 interface
 
 uses
   CastleInternalSteamConstantsAndTypes;
-
-{ char *ver = PAnsiChar }
 
 { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
 function SteamAPI_Init(): Boolean; CDecl; external SteamLib;

@@ -1,8 +1,10 @@
 Unit SteamCallback;
 
+{$I castleconf.inc}
+
 Interface
 
-Uses //SteamAPI;
+Uses
   CastleInternalSteamConstantsAndTypes;
 
 Const
