@@ -68,6 +68,10 @@ type
     procedure SetImage(AValue: TDrawableImage);
     procedure SetRegion(AValue: TRegion);
     procedure InitControlPoints;
+
+    { Restrict the region within the image rectangle. }
+    procedure FixControlPoints;
+
     procedure Changed;
   protected
     function ScreenToImage(APoint: TVector2; bRound: boolean = True): TVector2Integer;
@@ -281,7 +285,7 @@ procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
   var
     Point: TVector2Integer;
   begin
-    Point := ScreenToImage(MousePoint,False);
+    Point := ScreenToImage(MousePoint, False);
     StatusBar1.Panels.Items[4].Text := Format('CursorPos: %d , %d', [Point.X, Point.Y]);
   end;
 
@@ -301,6 +305,19 @@ begin
   end;
 end;
 
+procedure TRegionDesignDialog.FixControlPoints;
+var
+  i: integer;
+begin
+  for  i := Low(FControlPointRec.Points) to High(FControlPointRec.Points) do
+  begin
+    FControlPointRec.Points[i].X := Max(0, FControlPointRec.Points[i].X);
+    FControlPointRec.Points[i].X := Min(FImage.Width, FControlPointRec.Points[i].X);
+    FControlPointRec.Points[i].Y := Max(0, FControlPointRec.Points[i].Y);
+    FControlPointRec.Points[i].Y := Min(FImage.Height, FControlPointRec.Points[i].Y);
+  end;
+end;
+
 procedure TRegionDesignDialog.CastleControl1Release(Sender: TObject;
   const Event: TInputPressRelease);
 begin
@@ -312,7 +329,10 @@ begin
   if (Event.EventType = TInputPressReleaseType.itMouseButton) and
     (Event.MouseButton = TCastleMouseButton.buttonLeft) and
     FControlPointRec.Adjusting then
+  begin
     FControlPointRec.Adjusting := False;
+    FixControlPoints;
+  end;
 end;
 
 procedure TRegionDesignDialog.SetImage(AValue: TDrawableImage);
@@ -345,6 +365,7 @@ begin
   FControlPointRec.Points[1] :=
     Vector2Integer(FImage.Width - Floor(FRegion.TotalRight), FImage.Height -
     Floor(FRegion.TotalTop));
+  FixControlPoints;
 
   { Center view then region. }
   FTranslation := FTranslation + ImageToScreen(CastleControl1.Rect.Center) -
