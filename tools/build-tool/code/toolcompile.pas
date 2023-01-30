@@ -153,6 +153,7 @@ const
     'ui',
     'ui/windows',
     'services',
+    'services/steam',
     'physics',
     'physics/kraft',
     'deprecated_units',

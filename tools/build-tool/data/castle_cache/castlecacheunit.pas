@@ -75,6 +75,12 @@ uses
   castleopendocument,
   castletenjin,
 
+  // src/services/steam
+  castleinternalsteamapi,
+  castleinternalsteamconstantsandtypes,
+  castlesteam,
+  steamcallback,
+
 {$ifdef ANDROID}
   // src/base/android
   castleandroidinternalassetmanager,
