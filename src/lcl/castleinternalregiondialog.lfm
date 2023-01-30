@@ -8,7 +8,6 @@ object RegionDesignDialog: TRegionDesignDialog
   ClientHeight = 638
   ClientWidth = 1024
   Position = poMainFormCenter
-  LCLVersion = '2.3.0.0'
   object ButtonPanel1: TButtonPanel
     Left = 7
     Height = 35
@@ -64,9 +63,8 @@ object RegionDesignDialog: TRegionDesignDialog
         Width = 90
       end    
       item
-        Alignment = taRightJustify
         Text = 'CursorPos '
-        Width = 50
+        Width = 200
       end>
     SimplePanel = False
   end

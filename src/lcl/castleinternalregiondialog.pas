@@ -70,8 +70,8 @@ type
     procedure InitControlPoints;
     procedure Changed;
   protected
-    function ScreenToImage(APoint: TVector2): TVector2Integer;
-    function ImageToScreen(APoint: TVector2Integer): TVector2;
+    function ScreenToImage(APoint: TVector2; bRound: boolean = True): TVector2Integer;
+    function ImageToScreen(const APoint: TVector2Integer): TVector2;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -277,13 +277,16 @@ end;
 procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
   const Event: TInputMotion);
 
-  procedure UpdateCursorInfo(Point: TVector2);
+  procedure UpdateCursorPosInfo(const MousePoint: TVector2);
+  var
+    Point: TVector2Integer;
   begin
-    StatusBar1.Panels.Items[4].Text := Format('CursorPos: %f , %f', [Point.X, Point.Y]);
+    Point := ScreenToImage(MousePoint,False);
+    StatusBar1.Panels.Items[4].Text := Format('CursorPos: %d , %d', [Point.X, Point.Y]);
   end;
 
 begin
-  UpdateCursorInfo(Event.Position);
+  UpdateCursorPosInfo(Event.Position);
 
   if FControlPointRec.Adjusting then
   begin
@@ -366,16 +369,26 @@ begin
     FControlPointRec.Points[1].Y)]);
 end;
 
-function TRegionDesignDialog.ScreenToImage(APoint: TVector2): TVector2Integer;
+function TRegionDesignDialog.ScreenToImage(APoint: TVector2;
+  bRound: boolean = True): TVector2Integer;
 begin
   APoint := APoint - FTranslation;
   APoint := APoint / FScale;
 
-  Result.X := Round(APoint.X);
-  Result.Y := Round(APoint.Y);
+  if bRound then
+  begin
+    Result.X := Round(APoint.X);
+    Result.Y := Round(APoint.Y);
+  end
+  else
+  begin
+    Result.X := Floor(APoint.X);
+    Result.Y := Floor(APoint.Y);
+  end;
+
 end;
 
-function TRegionDesignDialog.ImageToScreen(APoint: TVector2Integer): TVector2;
+function TRegionDesignDialog.ImageToScreen(const APoint: TVector2Integer): TVector2;
 var
   pt: TVector2;
 begin
