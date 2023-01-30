@@ -1,12 +1,28 @@
+{
+  Copyright 2023-2023 Michalis Kamburelis, Yevhen Loza.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 { Provides basic interaction with Steam API
   Call InitSteam(AppId) and wait for Steam.Initialized before starting using it
   For now features mostly interaction with Steam Achievements
   Note: Current calls to Steam API require a specific version of SteamWorks: 1.55
   You can download the corresponding dynamic library from
-  https://partner.steamgames.com/downloads/list }
+  https://partner.steamgames.com/downloads/list
+  Note currently only 64 bit libraries are supported }
 unit CastleSteam;
 
-{$mode ObjFPC}{$H+}
+{$I castleconf.inc}
 
 interface
 uses

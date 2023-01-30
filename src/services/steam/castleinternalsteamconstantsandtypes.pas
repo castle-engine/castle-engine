@@ -1,14 +1,23 @@
 unit CastleInternalSteamConstantsAndTypes;
 
-{$mode ObjFPC}{$H+}
+{$I castleconf.inc}
 {$modeswitch ADVANCEDRECORDS}  // necessary to include constants in records according to Steam specifications
 
 interface
 
 const
-  SteamLib = 'steam_api64';
+  SteamLib =
+  {$ifdef LINUX}
+    {$ifdef CPU64}'libsteam_api.so'{$endif}
+  {$endif}
+  {$ifdef MSWINDOWS}
+    {$ifdef CPU64}'steam_api64'{$endif}
+  {$endif};
 
 const
+  { Note for now we are forced to use "version-specific" calls to Steam API
+    There are version-free calls in Steam API headers, however, those just crash
+    for no reason. Therefore for now we must use a specific version of Steamworks: 1.55 }
   STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
   STEAMUSER_INTERFACE_VERSION = 'SteamUser021'; // in isteamuser.h
   STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h
@@ -71,7 +80,7 @@ const
 
 { callback received structs, from isteamxxxxxxx.h for other callbacks and constants }
 
-type
+{type
   { from isteamuserstats.h }
   UserStatsReceived_t = packed record
     const
@@ -80,7 +89,7 @@ type
       m_nGameID: UInt64;
       m_eResult: EResult;
       m_steamIDUser: CSteamID;	// The user for whom the stats are retrieved for
-  end;
+  end;} // currently not used: example of how to translate callback records from Steam API headers
 
 implementation
 
