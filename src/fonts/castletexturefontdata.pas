@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -318,26 +318,6 @@ var
     finally FreeAndNil(Bitmaps) end;
   end;
 
-  function FileNameContainsNonAsciiCharacters(const FileName: String): Boolean;
-  {$ifndef FPC}
-  var
-    I:Integer;
-  {$endif}
-  begin
-    {$ifdef FPC}
-    Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
-    {$else}
-    if FileName = '' then
-      Exit(false);
-
-    for I := 1 to Length(FileName) do
-      if (Ord(FileName[I]) > 126) or (Ord(FileName[I]) < 32) then
-        Exit(true);
-
-    Result := false;
-    {$endif}
-  end;
-
 const
   { Separate the glyphs for safety, to avoid pulling in colors
     from neighboring letters when drawing (floating point errors could in theory
@@ -345,15 +325,11 @@ const
   GlyphPadding = 2;
 
 var
-  FileName: string;
   GlyphInfo: TGlyph;
   GlyphsCount, ImageSize: Cardinal;
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
   C: TUnicodeChar;
   TemporaryCharacters: boolean;
-  Cache: TStream;
-  CacheURL: String;
-  IsCachedFile: Boolean;
 begin
   inherited Create;
   FUrl := AUrl;
@@ -368,34 +344,7 @@ begin
     http://www.freetype.org/freetype2/docs/tutorial/step1.html ,
     and in effect Size is in nice pixels by default. }
   FontMgr.Resolution := 0;
-  FileName := URIToFilenameSafe(URL);
-  { About FileNameContainsNonAsciiCharacters:
-    Reading filenames with non-ASCII characters on Windows using FreeType
-    seems not possible, see
-    https://stackoverflow.com/questions/10075032/can-freetype-functions-accept-unicode-filenames .
-    So use temporary file in this case too (just like with e.g. HTTP URLs). }
-  if (FileName = '') {$ifdef MSWINDOWS} or FileNameContainsNonAsciiCharacters(FileName) {$endif} then
-  begin
-    Cache := Download(URL);
-    try
-      CacheURL := ApplicationConfig('cache_font_' + IntToStr(Random(MaxInt)) + ExtractFileExt(URL));
-      WritelnLog('Loading font through a temporary file "%s"', [CacheURL]);
-      StreamSaveToFile(Cache, CacheURL);
-      FileName := URIToFilenameSafe(CacheURL);
-      IsCachedFile := true;
-    finally
-      Cache.Free;
-    end;
-  end
-  else IsCachedFile := false;
-
-  FontId := FontMgr.RequestFont(FileName);
-
-  if IsCachedFile then
-    // TODO: It seems on Windows we cannot delete font now.
-    // Because TMgrFont never calls FT_Done_Face?
-    // And when is TMgrFont.Destroy called?
-    CheckDeleteFile(FileName, true);
+  FontId := FontMgr.RequestFont(URL);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then

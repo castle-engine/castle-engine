@@ -118,15 +118,49 @@ const
   FT_KERNING_UNFITTED = 1;
   FT_KERNING_UNSCALED = 2;
 
+  {**************************************************************************
+   *
+   * @enum:
+   *   FT_OPEN_XXX
+   *
+   * @description:
+   *   A list of bit field constants used within the `flags` field of the
+   *   @FT_Open_Args structure.
+   *
+   * @values:
+   *   FT_OPEN_MEMORY ::
+   *     This is a memory-based stream.
+   *
+   *   FT_OPEN_STREAM ::
+   *     Copy the stream from the `stream` field.
+   *
+   *   FT_OPEN_PATHNAME ::
+   *     Create a new input stream from a C~path name.
+   *
+   *   FT_OPEN_DRIVER ::
+   *     Use the `driver` field.
+   *
+   *   FT_OPEN_PARAMS ::
+   *     Use the `num_params` and `params` fields.
+   *
+   * @note:
+   *   The `FT_OPEN_MEMORY`, `FT_OPEN_STREAM`, and `FT_OPEN_PATHNAME` flags
+   *   are mutually exclusive.
+   *}
+  FT_OPEN_MEMORY    = $1;
+  FT_OPEN_STREAM    = $2;
+  FT_OPEN_PATHNAME  = $4;
+  FT_OPEN_DRIVER    = $8;
+  FT_OPEN_PARAMS    = $10;
 
 type
-
   FT_Bool = boolean;
   FT_FWord = smallint;
   FT_UFWord = word;
   FT_Char = AnsiChar;
   FT_Byte = byte;
   FT_String = Ansichar;
+  PFT_String = PAnsiChar;
   FT_Short = smallint;
   FT_UShort = word;
   FT_Int = longint;
@@ -360,6 +394,20 @@ type
     outline : FT_Outline;
   end;
 
+  { Structure that describes a custom stream, used e.g. with FT_Open_Face .
+    See https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_open_args }
+  TFT_Open_Args = record
+    flags: FT_UInt;
+    memory_base: ^FT_Byte;
+    memory_size: FT_Long;
+    pathname: PFT_String;
+    stream: Pointer; // FT_Stream; TODO: Not translated yet
+    driver: Pointer; // FT_Module; TODO: Not translated yet
+    num_params: FT_Int;
+    params: Pointer; // FT_Parameter*; TODO: Not translated yet
+  end;
+  PFT_Open_Args = ^TFT_Open_Args;
+
 {$ifdef CASTLE_FREETYPE_STATIC}
 
 //Base Interface
@@ -370,7 +418,11 @@ function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_U
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
 function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external;
+{ TODO:
+  Is this right?
+  - face_index should be FT_Long (makes different on 64-bit non-Windows)? }
 function FT_New_Face(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
+function FT_Open_Face(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external;
 procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external;
@@ -401,6 +453,7 @@ var
   FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl;
   FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl;
   FT_New_Face: function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
+  FT_Open_Face: function(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_Set_Char_Size: function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
   FT_Set_Pixel_Sizes: function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
   FT_Set_Transform: procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;
@@ -505,6 +558,7 @@ begin
     Pointer({$ifndef FPC}@{$endif} FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
     Pointer({$ifndef FPC}@{$endif} FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
     Pointer({$ifndef FPC}@{$endif} FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
+    Pointer({$ifndef FPC}@{$endif} FT_Open_Face) := FreeTypeLibrary.Symbol('FT_Open_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');

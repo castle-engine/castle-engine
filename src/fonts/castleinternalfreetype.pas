@@ -138,7 +138,7 @@ type
     protected
       function GetFontId (afilename:string; anindex:integer) : integer;
       function CreateFont (afilename:string; anindex:integer) : integer;
-      function SearchFont (afilename:string) : string;
+      //function SearchFont (afilename:string) : string;
       function GetFont (FontID:integer) : TMgrFont;
       procedure GetSize (aSize, aResolution : integer);
       function CreateSize (aSize, aResolution : integer) : PMgrSize;
@@ -206,7 +206,8 @@ var
 
 implementation
 
-{$ifdef FPC}{$IFDEF win32}uses dos;{$ENDIF}{$endif}
+uses {$ifdef FPC}{$IFDEF win32}dos, {$ENDIF}{$endif}
+  CastleDownload;
 
 procedure FTError (Event:string; Err:integer);
 begin
@@ -265,6 +266,9 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
+var
+  MemoryStream: TCustomMemoryStream;
+  OpenArgs: TFT_Open_Args;
 begin
   inherited create;
   Filename := afilename;
@@ -273,7 +277,30 @@ begin
   LastSize := nil;
 
   Try
+    { Old code:
     FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+
+      This mostly worked OK, except on Windows where it fails reading
+      a filename with non-ASCII characters.
+      Also it required a temporary file when accessing non-file URLs.
+      So now we make it simpler: just use CGE Download() to open the URL
+      (afilename can be any URL), and pass memory chunk to FreeType using
+      FT_Open_Face.
+    }
+
+    MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
+    try
+      { calculate OpenArgs }
+      FillByte(OpenArgs, SizeOf(OpenArgs), 0);
+      OpenArgs.flags := FT_OPEN_MEMORY;
+      OpenArgs.memory_base := MemoryStream.Memory;
+      OpenArgs.memory_size := MemoryStream.Size;
+
+      FTCheck(FT_Open_Face(aMgr.FTLib, @OpenArgs, anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    finally
+      FreeAndNil(MemoryStream);
+    end;
+
     //WriteFT_Face(font);
   except
     Font:=Nil;
@@ -413,6 +440,11 @@ begin
     AValue := '';
 end;
 
+(*
+CGE: We load using URLs, they are given already expanded to FreeType,
+we don't need font searching functionality.
+TODO: We could probably simplify this code a lot.
+
 function TFontManager.SearchFont (afilename:string) : string;
 // returns full filename of font, taking SearchPath in account
 var p,fn : string;
@@ -442,6 +474,7 @@ begin
       raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [afilename]);
     end;
 end;
+*)
 
 function TFontManager.GetFontId (afilename:string; anindex:integer) : integer;
 begin
@@ -889,16 +922,14 @@ begin
 end;
 
 function TFontManager.RequestFont (afilename:string; anindex:integer) : integer;
-var s : string;
 begin
   if afilename = '' then
     result := -1
   else
     begin
-    s := SearchFont (afilename);
-    result := GetFontID (s,anindex);
+    result := GetFontID (afilename,anindex);
     if result < 0 then
-      result := CreateFont (s,anindex);
+      result := CreateFont (afilename,anindex);
     end;
 end;
 
