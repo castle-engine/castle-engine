@@ -268,7 +268,6 @@ end;}
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
 var
   MemoryStream: TCustomMemoryStream;
-  OpenArgs: TFT_Open_Args;
 begin
   inherited create;
   Filename := afilename;
@@ -285,18 +284,13 @@ begin
       Also it required a temporary file when accessing non-file URLs.
       So now we make it simpler: just use CGE Download() to open the URL
       (afilename can be any URL), and pass memory chunk to FreeType using
-      FT_Open_Face.
+      FT_New_Memory_Face.
     }
 
     MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
     try
-      { calculate OpenArgs }
-      FillByte(OpenArgs, SizeOf(OpenArgs), 0);
-      OpenArgs.flags := FT_OPEN_MEMORY;
-      OpenArgs.memory_base := MemoryStream.Memory;
-      OpenArgs.memory_size := MemoryStream.Size;
-
-      FTCheck(FT_Open_Face(aMgr.FTLib, @OpenArgs, anindex, font),format (sErrLoadFont,[anindex,afilename]));
+      FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
+        format (sErrLoadFont,[anindex,afilename]));
     finally
       FreeAndNil(MemoryStream);
     end;

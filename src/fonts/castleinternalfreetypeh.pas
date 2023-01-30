@@ -423,6 +423,7 @@ function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint
   - face_index should be FT_Long (makes different on 64-bit non-Windows)? }
 function FT_New_Face(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
 function FT_Open_Face(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
+function FT_New_Memory_Face(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl; external;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external;
 procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external;
@@ -454,6 +455,7 @@ var
   FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl;
   FT_New_Face: function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
   FT_Open_Face: function(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
+  FT_New_Memory_Face: function(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_Set_Char_Size: function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
   FT_Set_Pixel_Sizes: function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
   FT_Set_Transform: procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;
@@ -559,6 +561,7 @@ begin
     Pointer({$ifndef FPC}@{$endif} FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
     Pointer({$ifndef FPC}@{$endif} FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Open_Face) := FreeTypeLibrary.Symbol('FT_Open_Face');
+    Pointer({$ifndef FPC}@{$endif} FT_New_Memory_Face) := FreeTypeLibrary.Symbol('FT_New_Memory_Face');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
     Pointer({$ifndef FPC}@{$endif} FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
