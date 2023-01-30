@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'test_rendering_old_opengl';
-  ApplicationProperties.Caption := 'Test Rendering With Old OpenGL';
+  ApplicationProperties.ApplicationName := 'test_rendering_opengl_capabilities';
+  ApplicationProperties.Caption := 'Test Rendering With Various OpenGL(ES) Capabilities';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

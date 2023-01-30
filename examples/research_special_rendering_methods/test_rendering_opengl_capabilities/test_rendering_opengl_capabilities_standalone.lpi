@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="test_rendering_old_opengl"/>
+      <Title Value="test_rendering_opengl_capabilities"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="test_rendering_old_opengl_standalone.dpr"/>
+        <Filename Value="test_rendering_opengl_capabilities_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -46,7 +46,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="test_rendering_old_opengl"/>
+      <Filename Value="test_rendering_opengl_capabilities"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

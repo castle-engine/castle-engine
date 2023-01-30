@@ -1,4 +1,4 @@
-# Test Rendering With Various OpenGL(ES) Context Capabilities
+# Test Rendering With Various OpenGL(ES) Capabilities
 
 This example sets `TGLFeatures.RequestCapabilities` and then tests a few standard engine rendering techniques, to make sure everything works at all OpenGL "capabilities" variants that we support.
 
@@ -52,4 +52,4 @@ Compile by:
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `test_rendering_old_opengl_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `test_rendering_opengl_capabilities_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
