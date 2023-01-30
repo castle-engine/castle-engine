@@ -1775,7 +1775,7 @@ var
     Result := TGeometryArrays.Create;
     if not Box.IsEmpty then
     begin
-      Result.Primitive := gpTriangleFan; // gpQuads; - use triangle fan instead, to work with OpenGLES
+      Result.Primitive := gpTriangleFan;
       Result.Count := 4;
 
       Result.Position(0)^ := Vector3(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
@@ -2924,18 +2924,6 @@ var
             Inc(I, 3);
           end;
         end;
-      {$ifndef OpenGLES}
-      gpQuads:
-        begin
-          I := 0;
-          while I + 3 < Count do
-          begin
-            Triangle(I, I + 1, I + 2);
-            Triangle(I, I + 2, I + 3);
-            Inc(I, 4);
-          end;
-        end;
-      {$endif}
       gpTriangleFan:
         begin
           I := 0;

@@ -837,7 +837,6 @@ end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 
-  {$ifdef OpenGLES}
   { Calculate IndexesFromCoordIndex for triangle primitive
     from CoordIndex for quad primitive. }
   procedure CalculateIndexesFromCoordIndexForTriangles;
@@ -869,12 +868,10 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
       I += 4;
     end;
   end;
-  {$endif}
 
 begin
-  {$ifdef OpenGLES}
-  { On OpenGLES, we don't have GL_QUADS primitive. So render quads
-    by splitting them into triangles. }
+  { On OpenGLES and modern OpenGL ( https://docs.gl/gl3/glDrawArrays ),
+    we don't have GL_QUADS primitive. So render quads by splitting them into triangles. }
   if CoordIndex <> nil then
   begin
     Arrays.Primitive := gpTriangles;
@@ -882,8 +879,7 @@ begin
     CalculateIndexesFromCoordIndexForTriangles;
   end else
   begin
-    { This means we have QuadSet (no indexes, so not IndexedQuadSet) on OpenGLES
-      (where no gpQuads primitive is available).
+    { This means we have QuadSet (no indexes, so not IndexedQuadSet).
       We want to generate 2 triangles for each quad.
 
       We cannot do it by generating IndexesFromCoordIndex, as
@@ -897,20 +893,6 @@ begin
     Arrays.Counts := TCardinalList.Create;
     CalculateCountsForTriangleFan;
   end;
-
-  {$else}
-  Arrays.Primitive := gpQuads;
-
-  if CoordIndex <> nil then
-  begin
-    { indexes are just directly from CoordIndex in this case. }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
-    IndexesFromCoordIndex.Assign(CoordIndex.Items);
-    { make sure we have only full quads (although nothing really
-      requires or promises that, but for the future). }
-    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
-  end;
-  {$endif}
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);

@@ -335,7 +335,6 @@ var
 const
   ToMode: array [TGeometryPrimitive] of TGLenum = (
     GL_TRIANGLES,
-    {$ifndef OpenGLES} GL_QUADS, {$endif}
     GL_TRIANGLE_FAN,
     GL_TRIANGLE_STRIP,
     GL_LINE_STRIP,
