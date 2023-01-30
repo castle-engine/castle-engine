@@ -326,6 +326,7 @@ type
   private
     ref: TCastleWindow;
     WithinCloseBackend: Cardinal;
+    ScaleFactor: Single;
   public
     procedure close; override;
     procedure becomeKeyWindow; override;
@@ -390,6 +391,7 @@ var
   event: NSEvent;
   pool: NSAutoreleasePool;
   CastleMouseButton: TCastleMouseButton;
+  ScaleFactor: Single;
 begin
   pool := NSAutoreleasePool.alloc.init;
   event := nextEventMatchingMask_untilDate_inMode_dequeue(NSAnyEventMask, {NSDate.distantPast}nil, NSDefaultRunLoopMode, true);
@@ -413,6 +415,7 @@ begin
 
       if win <> nil then
       begin
+        ScaleFactor := TCocoaWindow(event.window).ScaleFactor;
         case event.type_ of
           NSMouseMoved,
           NSLeftMouseDragged,
@@ -425,7 +428,7 @@ begin
                 NSOtherMouseDragged: CheckMotionDragged(buttonMiddle);
               end;
               win.DoMotion(InputMotion(win.MousePosition,
-                Vector2(event.locationInWindow.x, event.locationInWindow.y), win.MousePressed, 0));
+                Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor), win.MousePressed, 0));
             end;
           NSLeftMouseDown, NSRightMouseDown, NSOtherMouseDown:
             begin
@@ -435,7 +438,7 @@ begin
                 NSOtherMouseDown: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
-              win.DoMouseDown(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+              win.DoMouseDown(Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor),
                 CastleMouseButton, 0);
             end;
           NSLeftMouseUp, NSRightMouseUp, NSOtherMouseUp:
@@ -446,7 +449,7 @@ begin
                 NSOtherMouseUp: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
-              win.DoMouseUp(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+              win.DoMouseUp(Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor),
                 CastleMouseButton, 0);
             end;
           NSKeyDown:
@@ -630,6 +633,7 @@ begin
     else
       ScaleFactor := 1;
 
+    TCocoaWindow(window).ScaleFactor := ScaleFactor;
     windowRef.DoResize(
       trunc(ScaleFactor * bounds.size.width),
       trunc(ScaleFactor * bounds.size.height), false);
@@ -865,6 +869,7 @@ begin
     end;
 
   window.ref := Self;
+  window.ScaleFactor := 1; // wil be detected during openGLView creation
 
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   // makes drag-and-drop files on window work
@@ -884,12 +889,13 @@ begin
   glcontext := openGLView.openGLContext;
   ref := window;
 
+  FDpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
+
   Application.OpenWindowsAdd(Self);
 
   // TODO
   // GetInitialCursorPos;
   // UpdateCursor;
-  // InitializeDpi;
 end;
 
 procedure TCastleWindow.CloseBackend;
