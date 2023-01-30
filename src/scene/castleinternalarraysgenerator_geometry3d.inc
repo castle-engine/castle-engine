@@ -1,3 +1,4 @@
+{%MainUnit castleinternalarraysgenerator.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
