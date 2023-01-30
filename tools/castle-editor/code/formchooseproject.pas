@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -76,7 +76,7 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
-  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
+  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -383,8 +383,20 @@ begin
   end;
 end;
 
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  HelpString: string;
+begin
+  case OptionNum of
+    0: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
+  end;
+end;
+
 procedure TChooseProjectForm.OpenProjectFromCommandLine;
 
+  {$ifdef DARWIN}
   { On macOS, on the first run (after accepting "open application downloaded from the Internet")
     we may get additional command-line parameter -psn_...,
     which stands for "Process Serial Number".
@@ -398,7 +410,6 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
 
     We have to remove it, to not confuse it with a project name. }
   procedure RemoveMacOsProcessSerialNumber;
-  {$ifdef DARWIN}
   var
     I: Integer;
   begin
@@ -408,16 +419,25 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
         Parameters.Delete(I);
         Exit;
       end;
-  {$else}
-  begin
-  {$endif}
   end;
+  {$endif}
+
+const
+  Options: array [0..0] of TOption =
+  (
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+  );
 
 begin
   if CommandLineHandled then Exit;
   CommandLineHandled := true;
 
+  {$ifdef DARWIN}
   RemoveMacOsProcessSerialNumber;
+  {$endif}
+
+  Parameters.Parse(Options, @OptionProc, nil, true);
+
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
   begin
