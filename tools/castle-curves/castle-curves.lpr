@@ -813,7 +813,7 @@ begin
 
   Window := TCastleWindow.Create(Application);
 
-  Window.ParseParameters(StandardParseOptions);
+  Window.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
 

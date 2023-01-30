@@ -521,6 +521,7 @@ type
 var
   Viewport: TMyViewport;
   RectVbo: TGLuint;
+  RectVao: TVertexArrayObject;
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
@@ -555,6 +556,10 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       Points[2] := Vector2(Rect.Right, Rect.Top);
       Points[3] := Vector2(Rect.Left , Rect.Top);
 
+      if RectVao = nil then
+        RectVao := TVertexArrayObject.Create;
+      RenderContext.CurrentVao := RectVao;
+
       if RectVbo = 0 then
         glGenBuffers(1, @RectVbo);
       glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
@@ -563,7 +568,7 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
       AttribVertex := RenderContext.CurrentProgram.Attribute('vertex');
 
-      AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
+      AttribVertex.EnableArrayVector2(RectVao, SizeOf(TVector2), 0);
       UniformViewportSize.SetValue(Vector2(
         RenderContext.Viewport.Width,
         RenderContext.Viewport.Height
