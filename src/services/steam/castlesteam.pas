@@ -8,40 +8,75 @@ uses
   CastleInternalSteamConstantsAndTypes, SteamCallback;
 
 type
+  { Provides simplified access to some Steam API functions
+    Do not create a manual instance of the class,
+    call SteamInit(AppId) to initialize singleton of this class.
+    Steam API will shut down automatically when the app shuts down }
   TCastleSteam = class(TObject)
   strict private
     FInitialized: Boolean;
     StoreStats: Boolean;
     SteamClient: Pointer;
-    //SteamUser: Pointer;
+    //SteamUser: Pointer; // We aren't using it right now
     SteamUserStats: Pointer;
     SteamUserHandle: HSteamUser;
     SteamPipeHandle: HSteamPipe;
     SteamUserStatsCallbackDispatcher: SteamCallbackDispatcher;
     procedure OnUserStatsReceived(P:Pointer);
     procedure GetAchievements;
-    { I'm not sure how to deal with steam errors
-      Making every procedure "boolean" and rely on user doing the checks seems inconvenient
-      But there are situation when some operation failed because Steam API isn't ready }
+    { For now if some operation failed, we log an error into WriteLnWarning
+      This seems to be the practice of SteamWorks examples,
+      So hopefully Steam API cannot randomly fail at regular requests
+      if they are formulated correctly (e.g. achievement exists, etc.)
+      Make sure Steam.Initialized before calling Steam features }
     procedure SteamError(const ErrorMsg: String);
   public
+    { List of achievements for this game
+      These are IDs of achievements, used in other calls
+      This field is initialized after Steam has been initialized
+      and is nil until that moment }
     Achievements: TStringList;
+    { Set achievement as "achieved",
+      This will also toggle overlay indicating the obtained achievement to the Player }
     procedure SetAchievement(const AchievementId: String);
+    { Get state of the achievement. Returns:
+      "true" - achievement has been achieved
+      "false" - achievement has not been achieved }
     function GetAchievement(const AchievementId: String): Boolean;
+    { Set achievement as "not achieved"
+      sometimes useful for testing purposes }
     procedure ClearAchievement(const AchievementId: String);
+    { Clears all achievements from the connected user }
+    procedure ClearAllAchievements;
+    { Shows Steam overlay "progress towards achievement" i.e. Wins 33/100 }
     procedure IndicateAchievementProgress(const AchievementId: String; const CurrentProgress, MaxProgress: UInt32);
   public
+    { If this instance is properly initialized,
+      Check this before using more complex Steam API calls
+      It should regularly take several frames to initialize Steam API,
+      So avoid calling Steam features too early, e.g. from Initialization code }
     property Initialized: Boolean read FInitialized;
-    { Updates callbacks and other internal Steam functions
-      Run at least 10 times a second, better if every frame }
+    { Updates callbacks, performs saving of user stats
+      According to SteamWorks documentation you should run this at least 10 times a second, better if every frame }
     procedure Update;
     constructor Create; // override;
     destructor Destroy; override;
   end;
 
+{ Instance of Steam API bridge,
+  use this singleton to access to Steam API
+  Will throw an exception "Steam not initialized" if called before InitSteam }
 function Steam: TCastleSteam;
 
-{ Connect to Steam and initialize everything }
+{ Connect to Steam and initialize everything:
+  1. It checks if Steam is running and exits with error code 1 otherwise
+  2. It tries to connect to Steam API and checks if the game was run
+     through Steam or through exe file. In the latter case the game will
+     automatically restart through Steam
+  3. Will ask TCastleSteam to initialize interfaces and request user stats
+     Note: Steam will not be fully initialized until confirmation callback
+     will be received by TCastleSteam, this may take several frames.
+     Check for Steam.Initialized before using non-trivial features of Steam API. }
 function InitSteam(const AppId: Integer): Boolean;
 
 implementation
@@ -152,6 +187,17 @@ begin
     StoreStats := true;
   end else
     SteamError('ClearAchievement failed! Steam is not initialized!');
+end;
+
+procedure TCastleSteam.ClearAllAchievements;
+var
+  S: String;
+begin
+  if Initialized then
+    for S in Achievements do
+      ClearAchievement(S);
+  else
+  SteamError('ClearAllAchievements failed! Steam is not initialized!');
 end;
 
 procedure TCastleSteam.IndicateAchievementProgress(const AchievementId: String;
