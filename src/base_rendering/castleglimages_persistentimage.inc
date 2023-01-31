@@ -38,6 +38,9 @@
         some image).)
     )
   }
+
+  { TCastleImagePersistent }
+
   TCastleImagePersistent = class(TPersistent)
   strict private
     FURL: string;
@@ -68,6 +71,7 @@
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
     FRegion: TRegion;
+    FRegionEnabled :Boolean;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
 
@@ -75,6 +79,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
+    procedure SetRegionEnabled(AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -292,8 +297,9 @@
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
-    { Target Image region }
+    { Cropped by Image region }
     property Region: TRegion read FRegion;
+    property RegionEnabled: Boolean read FRegionEnabled write SetRegionEnabled default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
@@ -456,6 +462,14 @@ begin
       DoChange; // this possibly changed rendered contents
     end;
   end;
+end;
+
+procedure TCastleImagePersistent.SetRegionEnabled(AValue: Boolean);
+begin
+  if FRegionEnabled=AValue then Exit;
+
+  FRegionEnabled:=AValue;
+  DoChange;
 end;
 
 function TCastleImagePersistent.GetImage: TEncodedImage;

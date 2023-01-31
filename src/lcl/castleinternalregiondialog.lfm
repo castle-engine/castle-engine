@@ -8,7 +8,7 @@ object RegionDesignDialog: TRegionDesignDialog
   ClientHeight = 638
   ClientWidth = 1024
   Position = poMainFormCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '2.2.4.0'
   object ButtonPanel1: TButtonPanel
     Left = 7
     Height = 35

@@ -37,6 +37,9 @@
     We automatically use alpha test or alpha blending based
     on loaded image alpha channel (see @link(TDrawableImage.Alpha)).
     You can influence this by @link(AlphaChannel) property. }
+
+  { TCastleImageControl }
+
   TCastleImageControl = class(TCastleUserInterface)
   strict private
     FStretch: boolean;
@@ -63,6 +66,7 @@
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
     function GetRegion: TRegion;
+    function GetRegionEnabled: Boolean;
     procedure SetURL(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetOwnsDrawableImage(const Value: Boolean);
@@ -74,6 +78,7 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetRegionEnabled(const Value: Boolean);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
@@ -344,6 +349,8 @@
 
     property Region: TRegion read GetRegion stored false;
 
+    property RegionEnabled: Boolean read GetRegionEnabled write SetRegionEnabled stored false;
+
     { Set this to auto-detect that image is scaled compared to it's desired size.
       This detects URL endings like 'xxx@2x.png', and we will automatically adjust
       to it (the size determined by AutoSize will be actually 2x smaller than
@@ -403,7 +410,12 @@ begin
   Result := FContent.Region;
 end;
 
-function TCastleImageControl.GetSmoothScaling: boolean;
+function TCastleImageControl.GetRegionEnabled: Boolean;
+begin
+  Result := FContent.RegionEnabled;
+end;
+
+function TCastleImageControl.GetSmoothScaling: Boolean;
 begin
   Result := FContent.SmoothScaling;
 end;
@@ -431,6 +443,11 @@ end;
 procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
   FContent.ClipLine := Value;
+end;
+
+procedure TCastleImageControl.SetRegionEnabled(const Value: Boolean);
+begin
+  FContent.RegionEnabled := Value;
 end;
 
 function TCastleImageControl.GetRotation: Single;
@@ -721,6 +738,7 @@ begin
      (PropertyName = 'FlipVertical') or
      (PropertyName = 'ProtectedSides') or
      (PropertyName = 'Region') or
+     (PropertyName = 'RegionEnabled') or
      (PropertyName = 'Rotation') then
     Result := [psBasic]
   else

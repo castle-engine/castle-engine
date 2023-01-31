@@ -99,8 +99,6 @@ begin
   inherited;
 
   FScale := 1;
-  FillChar(FControlPointRec, SizeOf(FControlPointRec), #0);
-  FillChar(FMovingImageRec, SizeOf(FControlPointRec), #0);
 end;
 
 destructor TRegionDesignDialog.Destroy;
@@ -393,20 +391,12 @@ end;
 function TRegionDesignDialog.ScreenToImage(APoint: TVector2;
   bRound: boolean = True): TVector2Integer;
 begin
-  APoint := APoint - FTranslation;
-  APoint := APoint / FScale;
+  APoint := (APoint - FTranslation) / FScale;
 
   if bRound then
-  begin
-    Result.X := Round(APoint.X);
-    Result.Y := Round(APoint.Y);
-  end
+    Result := Vector2Integer(Round(APoint.X), Round(APoint.Y))
   else
-  begin
-    Result.X := Floor(APoint.X);
-    Result.Y := Floor(APoint.Y);
-  end;
-
+    Result := Vector2Integer(Floor(APoint.X), Floor(APoint.Y));
 end;
 
 function TRegionDesignDialog.ImageToScreen(const APoint: TVector2Integer): TVector2;
@@ -416,8 +406,7 @@ begin
   pt.X := APoint.X;
   pt.Y := APoint.Y;
 
-  pt := pt * FScale;
-  Result := pt + FTranslation;
+  Result := pt * FScale + FTranslation;
 end;
 
 end.
