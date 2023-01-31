@@ -8,6 +8,15 @@ Unit SteamCallback;
 
 Interface
 
+{$ifdef LINUX}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+{$ifdef MSWINDOWS}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+
+{$ifdef STEAM_API}
+
 Uses
   CastleInternalSteamConstantsAndTypes;
 
@@ -138,4 +147,7 @@ Initialization
   MyCallbackVTable.Run := {$ifdef FPC}@{$endif}MySteamCallback_Run;
   MyCallbackVTable.Run_2 := {$ifdef FPC}@{$endif}MySteamCallback_Run_2;
   MyCallbackVTable.GetCallbackSizeBytes := {$ifdef FPC}@{$endif}MySteamCallback_GetCallbackSizeBytes;
+
+{$endif}
+
 End.

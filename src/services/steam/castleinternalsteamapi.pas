@@ -11,6 +11,15 @@ unit CastleInternalSteamApi;
 
 interface
 
+{$ifdef LINUX}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+{$ifdef MSWINDOWS}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+
+{$ifdef STEAM_API}
+
 uses
   CastleInternalSteamConstantsAndTypes;
 
@@ -72,6 +81,8 @@ function SteamAPI_ISteamUserStats_StoreStats(SteamUserStats: Pointer): Boolean; 
 //function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
 
 implementation
+
+{$endif}
 
 end.
 

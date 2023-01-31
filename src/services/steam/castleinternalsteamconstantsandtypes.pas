@@ -5,6 +5,22 @@ unit CastleInternalSteamConstantsAndTypes;
 
 interface
 
+{$ifdef LINUX}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+{$ifdef MSWINDOWS}{$ifdef CPU64}
+  {$define STEAM_API}
+{$endif}{$endif}
+
+type
+  HSteamPipe = Int32;
+  HSteamUser = Int32;
+  CSteamId = UInt64; // It's a struct but passed as UInt64
+  CGameID = UInt64;
+  EResult = UInt32;
+
+{$ifdef STEAM_API}
+
 const
   SteamLib =
   {$ifdef LINUX}
@@ -21,13 +37,6 @@ const
   STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
   STEAMUSER_INTERFACE_VERSION = 'SteamUser021'; // in isteamuser.h
   STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h
-
-type
-  HSteamPipe = Int32;
-  HSteamUser = Int32;
-  CSteamId = UInt64; // It's a struct but passed as UInt64
-  CGameID = UInt64;
-  EResult = UInt32;
 
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
@@ -92,6 +101,6 @@ const
   end;} // currently not used: example of how to translate callback records from Steam API headers
 
 implementation
-
+{$endif}
 end.
 
