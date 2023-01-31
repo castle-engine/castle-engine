@@ -2024,8 +2024,8 @@ type
       paragraph (separated from the rest of your "--help" text
       by e.g. empty lines around). }
     class function ParseParametersHelp(
-      const AllowedOptions: TWindowParseOptions;
-      AddHeader: boolean): string;
+      const AllowedOptions: TWindowParseOptions = StandardParseOptions;
+      AddHeader: boolean = true): string;
 
     { Select a file to open or save, using native (looks familiar on a given system) dialog box.
       Accepts and returns argument as an URL.

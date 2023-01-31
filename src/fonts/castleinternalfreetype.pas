@@ -1,53 +1,57 @@
-{ Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
-  as Castle Game Engine, so no problem).
-  Adjusted to
-  - use CastleInternalFreeTypeH
+{
+  This file is based on the Free Pascal run time library,
+  remade a lot for Castle Game Engine.
+
+  Copyright by the Free Pascal development team and Michalis Kamburelis.
+
+  License:
+  This file is adapted from the FPC RTL source code, as such
+  the license and copyright information of FPC RTL applies here.
+  That said, the license of FPC RTL happens to be *exactly*
+  the same as used by the "Castle Game Engine": LGPL (version 2.1)
+  with "static linking exception" (with exactly the same wording
+  of the "static linking exception").
+  See the file COPYING.txt, included in this distribution, for details about
+  the copyright of "Castle Game Engine".
+  See http://www.freepascal.org/faq.var#general-license about the copyright
+  of FPC RTL.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Manager for FreeType fonts, serving as a middle-man between FreeType library API
+  (in CastleInternalFreeTypeH) and CGE code loading font into image
+  (in CastleTextureFontData).
+
+  This is based on a similar FPC concept, but
+
+  - We simplified this unit a lot to better suit our purpose.
+    We don't need platform-specific searching for fonts,
+    or platform-specific resolutions etc.
+    We only want to open font files from URLs.
+
+  - Loading fonts using from any URL supported by CGE,
+    thanks to using Download and FT_New_Memory_Face underneath.
+
   - raise exception from TFontManager.Create when FreeType library not found
+
   - Use UTF-8 encoding for string and Cardinal for character type,
     following David Emerson patch from
     http://free-pascal-general.1045716.n5.nabble.com/freetype-unit-unicode-td4866273.html
     adjusted to use our CastleUnicode unit.
 }
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2003 by the Free Pascal development team
-
-    Basic canvas definitions.
-
-    This file is adapted from the FPC RTL source code, as such
-    the license and copyright information of FPC RTL applies here.
-    That said, the license of FPC RTL happens to be *exactly*
-    the same as used by the "Castle Game Engine": LGPL (version 2.1)
-    with "static linking exception" (with exactly the same wording
-    of the "static linking exception").
-    See the file COPYING.txt, included in this distribution, for details about
-    the copyright of "Castle Game Engine".
-    See http://www.freepascal.org/faq.var#general-license about the copyright
-    of FPC RTL.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-{ @exclude Not ready for PasDoc. }
 unit CastleInternalFreeType;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, Types, {$ifdef FPC}FPImgCmn,{$endif}
+uses SysUtils, Classes, Types,
   CastleInternalFreeTypeH, CastleUnicode, CastleUtils;
-
-{ TODO : take resolution in account to find the size }
-{ TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
-{ TODO : memory optimization: TStringBitmaps keeps for each differnet character
-         only 1 bitmap }
-{ TODO : load other files depending on the extention }
-{ possible TODO : different sizes/resolutions for x and y }
-{ possible TODO : TFontmanager can fill a list of all the fonts he can find
-              fontfiles and faces available in a fontfile }
 
 // determine if file comparison need to be case sensitive or not
 {$ifdef WIN32}
@@ -57,7 +61,6 @@ uses SysUtils, Classes, Types, {$ifdef FPC}FPImgCmn,{$endif}
 {$endif}
 
 type
-
   FreeTypeException = class (exception);
 
   { Raised by TFontManager.Create when the freetype library is not available. }
@@ -72,7 +75,6 @@ type
     data : CastleUtils.PByteArray;
   end;
   PFontBitmap = ^TFontBitmap;
-
 
   TStringBitMaps = class
     private
@@ -104,7 +106,7 @@ type
 
   PMgrSize = ^TMgrSize;
   TMgrSize = record
-    Resolution, Size : integer;
+    Size : integer;
     Glyphs : TList;
   end;
 
@@ -115,6 +117,7 @@ type
       FSizes : TList;
       Filename : string;
       LastSize : PMgrSize;
+      MemoryStream: TCustomMemoryStream;
       procedure FreeGlyphs;
     public
       constructor Create (aMgr:TFontManager; afilename:string; anindex:integer);
@@ -126,28 +129,21 @@ type
       FTLib : PFT_Library;
       FList : TList;
       FPaths : TStringList;
-      FExtention : string;
-      FResolution : integer;
       CurFont : TMgrFont;
       CurSize : PMgrSize;
       CurRenderMode : FT_Render_Mode;
       UseKerning : boolean;
-      function GetSearchPath : string;
-      procedure SetSearchPath (AValue : string);
-      procedure SetExtention (AValue : string);
     protected
       function GetFontId (afilename:string; anindex:integer) : integer;
       function CreateFont (afilename:string; anindex:integer) : integer;
-      function SearchFont (afilename:string) : string;
+      //function SearchFont (afilename:string) : string;
       function GetFont (FontID:integer) : TMgrFont;
-      procedure GetSize (aSize, aResolution : integer);
-      function CreateSize (aSize, aResolution : integer) : PMgrSize;
-      procedure SetPixelSize (aSize, aResolution : integer);
+      procedure GetSize (aSize : integer);
+      function CreateSize (aSize : integer) : PMgrSize;
+      procedure SetPixelSize (aSize : integer);
       function GetGlyph (c : TUnicodeChar) : PMgrGlyph;
       function CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
-      procedure MakeTransformation (angle:real; out Transformation:FT_Matrix);
       procedure InitMakeString (FontID, Size:integer);
-      function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
       function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
     public
       { @raises EFreeTypeLibraryNotFound }
@@ -156,17 +152,10 @@ type
       function RequestFont (afilename:string) : integer; overload;
       function RequestFont (afilename:string; anindex:integer) : integer; overload;
       function GetFreeTypeFont (aFontID:integer) : PFT_Face;
-      function GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
-      // Black and white
-      function GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
-      // Anti Aliased gray scale
       function GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
       // Black and white, following the direction of the font (left to right, top to bottom, ...)
       function GetStringGray (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
       // Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
-      property SearchPath : string read GetSearchPath write SetSearchPath;
-      property DefaultExtention : string read FExtention write SetExtention;
-      property Resolution : integer read Fresolution write FResolution;
   end;
 
 const
@@ -176,8 +165,8 @@ const
   sInitializing : string = 'initializing font engine';
   sDestroying : string = 'destroying font engine';
   sErrErrorInCleanup : string = 'freeing Font Manager object';
-  sErrSetPixelSize : string = 'setting pixel size %d (resolution %d)';
-  sErrSetCharSize : string = 'setting char size %d (resolution %d)';
+  sErrSetPixelSize : string = 'setting pixel size %d';
+  sErrSetCharSize : string = 'setting char size %d';
   sErrLoadingGlyph : string = 'loading glyph';
   sErrKerning : string = 'determining kerning distance';
   sErrMakingString1 : string = 'making string bitmaps step 1';
@@ -188,25 +177,17 @@ const
   sErrInitializing : string = 'initializing FreeType';
   sErrDestroying : string = 'finalizing FreeType';
 
-  DefaultFontExtention : string = '.ttf';
-
-  {$IFDEF MAC}
-  DefaultResolution : integer = 72;
-  {$ELSE}
-  DefaultResolution : integer = 97;
-  {$ENDIF}
-
 var
-  // Standard location for fonts in the Operating System
-  {$ifdef Darwin}
-  DefaultSearchPath : string = '/Library/Fonts/';
-  {$else}
-  DefaultSearchPath : string = '';
-  {$endif}
+  FontMgr : TFontManager;
+
+{ @raises EFreeTypeLibraryNotFound }
+procedure InitFontMgr;
+procedure DoneFontMgr;
 
 implementation
 
-{$ifdef FPC}{$IFDEF win32}uses dos;{$ENDIF}{$endif}
+uses {$ifdef FPC}{$IFDEF win32}dos, {$ENDIF}{$endif}
+  CastleDownload;
 
 procedure FTError (Event:string; Err:integer);
 begin
@@ -273,7 +254,29 @@ begin
   LastSize := nil;
 
   Try
+    { Old code:
     FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+
+      This mostly worked OK, except on Windows where it fails reading
+      a filename with non-ASCII characters.
+      Also it required a temporary file when accessing non-file URLs.
+      So now we make it simpler: just use CGE Download() to open the URL
+      (afilename can be any URL), and pass memory chunk to FreeType using
+      FT_New_Memory_Face.
+    }
+
+    MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
+    FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
+      format (sErrLoadFont,[anindex,afilename]));
+
+    { We will free MemoryStream only in our destructor.
+      Otherwise weirdest errors can occur when reading the existing font 2nd time
+      (autotests see weird RowHeight),
+      this is also said in docs
+      https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
+      "You must not deallocate the memory before calling FT_Done_Face."
+    }
+
     //WriteFT_Face(font);
   except
     Font:=Nil;
@@ -286,6 +289,7 @@ begin
   try
     FreeGlyphs;
   finally
+    FreeAndNil(MemoryStream);
     FSizes.Free;
     inherited Destroy;
   end;
@@ -333,9 +337,6 @@ begin
     FTLib := nil;
     FTError (sErrInitializing, r);
     end;
-  SearchPath := DefaultSearchPath;
-  DefaultExtention := DefaultFontExtention;
-  Resolution := DefaultResolution;
 end;
 
 destructor TFontManager.Destroy;
@@ -364,83 +365,6 @@ begin
   finally
     inherited Destroy;
   end;
-end;
-
-function TFontManager.GetSearchPath : string;
-var r : integer;
-begin
-  if FPaths.count > 0 then
-    begin
-    result := FPaths[0];
-    for r := 1 to FPaths.count-1 do
-      result := result + ';' + FPaths[r];
-    end
-  else
-    result := '';
-end;
-
-procedure TFontManager.SetSearchPath (AValue : string);
-  procedure AddPath (apath : string);
-  begin
-    FPaths.Add (IncludeTrailingPathDelimiter(Apath));
-  end;
-var p : integer;
-begin
-  while (AValue <> '') do
-    begin
-    p := pos (';', AValue);
-    if p = 0 then
-      begin
-      AddPath (AValue);
-      AValue := '';
-      end
-    else
-      begin
-      AddPath (copy(AValue,1,p-1));
-      delete (AVAlue,1,p);
-      end;
-    end;
-end;
-
-procedure TFontManager.SetExtention (AValue : string);
-begin
-  if AValue <> '' then
-    if AValue[1] <> '.' then
-      FExtention := '.' + AValue
-    else
-      FExtention := AValue
-  else
-    AValue := '';
-end;
-
-function TFontManager.SearchFont (afilename:string) : string;
-// returns full filename of font, taking SearchPath in account
-var p,fn : string;
-    r : integer;
-begin
-  if (pos('.', afilename)=0) and (DefaultFontExtention<>'') then
-    fn := afilename + DefaultFontExtention
-  else
-    fn := aFilename;
-  if FileExists(fn) then
-    result := ExpandFilename(fn)
-  else
-    begin
-    p := ExtractFilepath(fn);
-    if p = '' then
-      begin  // no path given, look in SearchPaths
-      r := FPaths.Count;
-      repeat
-        dec (r);
-      until (r < 0) or FileExists(FPaths[r]+fn);
-      if r < 0 then
-        raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [fn])
-      else
-        result := FPaths[r]+fn;
-      end
-    else
-      raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [afilename]);
-    end;
 end;
 
 function TFontManager.GetFontId (afilename:string; anindex:integer) : integer;
@@ -478,36 +402,34 @@ begin
     Result := nil;
 end;
 
-procedure TFontManager.GetSize (aSize, aResolution : integer);
+procedure TFontManager.GetSize (aSize : integer);
 var r : integer;
 begin
   if not ( assigned(CurSize) and
-          (CurSize^.Size = aSize) and (CurSize^.resolution = aResolution)) then
+          (CurSize^.Size = aSize) ) then
     begin
     r := CurFont.FSizes.count;
     repeat
       dec (r)
-    until (r < 0) or ( (PMgrSize(CurFont.FSizes[r])^.size = aSize) and
-                       (PMgrSize(CurFont.FSizes[r])^.resolution = FResolution) );
+    until (r < 0) or ( (PMgrSize(CurFont.FSizes[r])^.size = aSize) );
     if r < 0 then
-      CurSize := CreateSize (aSize,aResolution)
+      CurSize := CreateSize (aSize)
     else
       CurSize := PMgrSize(CurFont.FSizes[r]);
     CurFont.LastSize := CurSize;
     end;
 end;
 
-function TFontManager.CreateSize (aSize, aResolution : integer) : PMgrSize;
+function TFontManager.CreateSize (aSize : integer) : PMgrSize;
 begin
   new (result);
   result^.Size := aSize;
-  result^.Resolution := aResolution;
   result^.Glyphs := Tlist.Create;
-  SetPixelSize (aSize,aResolution);
+  SetPixelSize (aSize);
   CurFont.FSizes.Add (result);
 end;
 
-procedure TFontManager.SetPixelSize (aSize, aResolution : integer);
+procedure TFontManager.SetPixelSize (aSize : integer);
 
   procedure CheckSize;
   var r : integer;
@@ -529,6 +451,11 @@ procedure TFontManager.SetPixelSize (aSize, aResolution : integer);
 var s : longint;
     Err : integer;
 
+const
+  { Use 0, letting FreeType library use good default,
+    http://www.freetype.org/freetype2/docs/tutorial/step1.html ,
+    and in effect Size is in nice pixels by default. }
+  Resolution = 0;
 begin
   with Curfont, Font^ do
     if (face_flags and FT_Face_Flag_Fixed_Sizes) <> 0 then
@@ -536,26 +463,15 @@ begin
       CheckSize;
       Err := FT_Set_pixel_sizes (Font, aSize, aSize);
       if Err <> 0 then
-        FTError (format(sErrSetPixelSize,[aSize,aResolution]), Err);
+        FTError (format(sErrSetPixelSize,[aSize]), Err);
       end
     else
       begin
       s := aSize shl 6;
-      Err := FT_Set_char_size (Font, s, s, aResolution, aResolution);
+      Err := FT_Set_char_size (Font, s, s, Resolution, Resolution);
       if Err <> 0 then
-        FTError (format(sErrSetCharSize,[aSize,aResolution]), Err);
+        FTError (format(sErrSetCharSize,[aSize]), Err);
       end;
-end;
-
-procedure TFontManager.MakeTransformation (angle:real; out Transformation:FT_Matrix);
-begin
-  with Transformation do
-    begin
-    xx := round( cos(angle)*$10000);
-    xy := round(-sin(angle)*$10000);
-    yx := round( sin(angle)*$10000);
-    yy := round( cos(angle)*$10000);
-    end;
 end;
 
 function TFontManager.CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
@@ -597,145 +513,8 @@ end;
 
 procedure TFontManager.InitMakeString (FontID, Size:integer);
 begin
-  GetSize (size,Resolution);
+  GetSize (size);
   UseKerning := ((Curfont.font^.face_flags and FT_FACE_FLAG_KERNING) <> 0);
-end;
-
-function TFontManager.MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
-var g : PMgrGlyph;
-    bm : PFT_BitmapGlyph;
-    gl : PFT_Glyph;
-    prevIndex, prevx, c, r, rx : integer;
-    uc : TUnicodeChar;
-    {$ifdef FPC}
-    pc : PChar;
-    cl: Integer;
-    {$else}
-    TextIndex: Integer;
-    NextIndex: Integer;
-    TextLength: Integer;
-    {$endif}
-    pre, adv, pos, kern : FT_Vector;
-    buf : CastleUtils.PByteArray;
-    reverse : boolean;
-    trans : FT_Matrix;
-begin
-  CurFont := GetFont(FontID);
-  if  (Angle = 0) or   // no angle asked, or can't work with angles (not scalable)
-      ((CurFont.Font^.face_flags and FT_FACE_FLAG_SCALABLE)=0) then
-    result := MakeString (FontID, Text, Size)
-  else
-    begin
-    InitMakeString (FontID, Size);
-    {$ifdef FPC}
-    c := UTF8Length(text);
-    {$else}
-    c := GetUTF32Length(text); // Returns number of chars (not bytes) in Delphi Unicode
-    {$endif}
-    result := TStringBitmaps.Create(c);
-    if (CurRenderMode = FT_RENDER_MODE_MONO) then
-      result.FMode := btBlackWhite
-    else
-      result.FMode := bt256Gray;
-    MakeTransformation (angle, trans);
-    prevIndex := 0;
-    prevx := 0;
-    pos.x := 0;
-    pos.y := 0;
-    pre.x := 0;
-    pre.y := 0;
-    r := -1;
-    // get the unicode for the character. Also performed at the end of the while loop.
-    {$ifdef FPC}
-    pc := PChar(text);
-    uc := UTF8CharacterToUnicode (pc, cl);
-    while (uc>0) and (cl>0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(Text);
-    while (TextIndex <= TextLength) do
-    {$endif}
-    begin
-      {$ifdef FPC}
-        // increment pchar by character length
-        inc (pc, cl);
-      {$else}
-        uc := GetUTF32Char(Text, TextIndex, NextIndex);
-        TextIndex := NextIndex;
-      {$endif}
-      // retrieve loaded glyph
-      g := GetGlyph (uc);
-      inc (r);
-      // check kerning
-      if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
-        begin
-        prevx := pre.x;
-        FTCheck(FT_Get_Kerning (Curfont.Font, prevIndex, g^.GlyphIndex, ft_kerning_default, kern),sErrKerning);
-        pre.x := pre.x + kern.x;
-        end;
-      // render the glyph
-      Gl:=Nil;
-      FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
-      //    placing the glyph
-      FTCheck(FT_Glyph_Transform (gl, nil, @pre),sErrMakingString2);
-      adv := gl^.advance;
-      //    rotating the glyph
-      FTCheck(FT_Glyph_Transform (gl, @trans, nil),sErrMakingString3);
-      //    rendering the glyph
-      FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, nil, true),sErrMakingString4);
-      // Copy what is needed to record
-      bm := PFT_BitmapGlyph(gl);
-      with result.Bitmaps[r]^ do
-        begin
-        with gl^.advance do
-          begin
-          advanceX := x div 64;
-          advanceY := y div 64;
-          end;
-        with bm^ do
-          begin
-          height := bitmap.rows;
-          width := bitmap.width;
-          x := {(pos.x div 64)} + left;  // transformed bitmap has correct x,y
-          y := {(pos.y div 64)} - top;   // not transformed has only a relative correction
-          buf := CastleUtils.PByteArray(bitmap.buffer);
-          reverse := (bitmap.pitch < 0);
-          if reverse then
-            begin
-            pitch := -bitmap.pitch;
-            {$ifndef FPC}System.{$endif}getmem (data, pitch*height);
-            for rx := height-1 downto 0 do
-              move (buf^[rx*pitch], data^[(height-rx-1)*pitch], pitch);
-            end
-          else
-            begin
-            pitch := bitmap.pitch;
-            rx := pitch*height;
-            {$ifndef FPC}System.{$endif}getmem (data, rx);
-            move (buf^[0], data^[0], rx);
-            end;
-          end;
-        end;
-      // place position for next glyph
-      with gl^.advance do
-        begin
-        pos.x := pos.x + (x div 1024);
-        pos.y := pos.y + (y div 1024);
-        end;
-      with adv do
-        pre.x := pre.x + (x div 1024);
-      if prevx > pre.x then
-        pre.x := prevx;
-      // finish rendered glyph
-      FT_Done_Glyph (gl);
-      // Get the next unicode
-      {$ifdef FPC}
-      uc := UTF8CharacterToUnicode (pc, cl);
-      {$endif FPC}
-    end;
-    result.FText := Text;
-    result.CalculateGlobals;
-    end;
 end;
 
 function TFontManager.MakeString(FontId: Integer; Text: String; Size: Integer): TStringBitmaps;
@@ -853,22 +632,6 @@ begin
   result.CalculateGlobals;
 end;
 
-function TFontManager.GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
-// Black and white
-begin
-  CurRenderMode := FT_RENDER_MODE_MONO;
-  result := MakeString (FontID, text, Size, angle);
-end;
-
-function TFontManager.GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
-// Anti Aliased gray scale
-begin
-  CurRenderMode := FT_RENDER_MODE_NORMAL;
-  result := MakeString (FontID, text, Size, angle);
-end;
-
-{ Procedures without angle have own implementation to have better speed }
-
 function TFontManager.GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
 // Black and white, following the direction of the font (left to right, top to bottom, ...)
 begin
@@ -889,16 +652,14 @@ begin
 end;
 
 function TFontManager.RequestFont (afilename:string; anindex:integer) : integer;
-var s : string;
 begin
   if afilename = '' then
     result := -1
   else
     begin
-    s := SearchFont (afilename);
-    result := GetFontID (s,anindex);
+    result := GetFontID (afilename,anindex);
     if result < 0 then
-      result := CreateFont (s,anindex);
+      result := CreateFont (afilename,anindex);
     end;
 end;
 
@@ -989,15 +750,19 @@ begin
   aRect := FBounds;
 end;
 
-{$ifdef win32}
-procedure SetWindowsFontPath;
+procedure InitFontMgr;
 begin
-  DefaultSearchPath := IncludeTrailingPathDelimiter({$ifdef FPC}GetEnv{$else}GetEnvironmentVariable{$endif}('windir')) + 'fonts';
+  if not assigned (FontMgr) then
+    FontMgr := TFontManager.create;
 end;
-{$endif}
+
+procedure DoneFontMgr;
+begin
+  if assigned (FontMgr) then
+    FontMgr.Free;
+end;
 
 initialization
-  {$ifdef win32}
-  SetWindowsFontPath;
-  {$endif}
+finalization
+  DoneFontMgr;
 end.

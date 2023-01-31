@@ -104,7 +104,6 @@ uses
   castlefonts,
   castleinternalfreetype,
   castleinternalfreetypeh,
-  castleinternalftfont,
   castleinternalrichtext,
   castletexturefont_dejavusans_10,
   castletexturefont_dejavusansmono_18,
