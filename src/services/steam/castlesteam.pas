@@ -254,7 +254,7 @@ begin
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
 
   // Set a callback for Steam warnings
-  SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient, @WarningHook);
+  SteamAPI_ISteamClient_SetWarningMessageHook(SteamClient, {$ifdef FPC}@{$endif}WarningHook);
 
   SteamUserHandle := SteamAPI_GetHSteamUser();
   SteamPipeHandle := SteamAPI_GetHSteamPipe();
@@ -265,7 +265,7 @@ begin
   // Init UserStats interface and request UserStats - wait for callback
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
-  SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , @OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
+  SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , {$ifdef FPC}@{$endif}OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
 end;
 
 destructor TCastleSteam.Destroy;

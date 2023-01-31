@@ -135,7 +135,7 @@ Begin
 End;
 
 Initialization
-  MyCallbackVTable.Run := @MySteamCallback_Run;
-  MyCallbackVTable.Run_2 := @MySteamCallback_Run_2;
-  MyCallbackVTable.GetCallbackSizeBytes := @MySteamCallback_GetCallbackSizeBytes;
+  MyCallbackVTable.Run := {$ifdef FPC}@{$endif}MySteamCallback_Run;
+  MyCallbackVTable.Run_2 := {$ifdef FPC}@{$endif}MySteamCallback_Run_2;
+  MyCallbackVTable.GetCallbackSizeBytes := {$ifdef FPC}@{$endif}MySteamCallback_GetCallbackSizeBytes;
 End.
