@@ -15,8 +15,6 @@ Interface
   {$define STEAM_API}
 {$endif}{$endif}
 
-{$ifdef STEAM_API}
-
 Uses
   CastleInternalSteamConstantsAndTypes;
 
@@ -72,6 +70,7 @@ Type
 
 
 Implementation
+{$ifdef STEAM_API}
 uses
   CastleInternalSteamApi;
 
@@ -148,6 +147,9 @@ Initialization
   MyCallbackVTable.Run_2 := {$ifdef FPC}@{$endif}MySteamCallback_Run_2;
   MyCallbackVTable.GetCallbackSizeBytes := {$ifdef FPC}@{$endif}MySteamCallback_GetCallbackSizeBytes;
 
+{$else}
+Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer); begin end;
+Destructor SteamCallbackDispatcher.Destroy; begin inherited end;
 {$endif}
 
 End.

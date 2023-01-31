@@ -80,9 +80,10 @@ function SteamAPI_ISteamUserStats_StoreStats(SteamUserStats: Pointer): Boolean; 
 //function SteamAPI_ISteamUserStats_SetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
 //function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
 
+{$endif}
+
 implementation
 
-{$endif}
 
 end.
 

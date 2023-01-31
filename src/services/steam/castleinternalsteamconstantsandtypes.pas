@@ -30,6 +30,8 @@ const
     {$ifdef CPU64}'steam_api64'{$endif}
   {$endif};
 
+{$endif}
+
 const
   { Note for now we are forced to use "version-specific" calls to Steam API
     There are version-free calls in Steam API headers, however, those just crash
@@ -99,8 +101,7 @@ const
       m_eResult: EResult;
       m_steamIDUser: CSteamID;	// The user for whom the stats are retrieved for
   end;} // currently not used: example of how to translate callback records from Steam API headers
-
 implementation
-{$endif}
+
 end.
 

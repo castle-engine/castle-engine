@@ -158,6 +158,8 @@ begin
     WriteLnWarning('FATAL: SteamAPI_Init failed!');
     Halt(1);
   end;
+  {$else}
+  WriteLnLog('Steam is not supported on this system, so not initialized');
   {$endif}
 
   // Create TCastleSteam instance and initialize it
