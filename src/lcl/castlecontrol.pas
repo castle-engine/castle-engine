@@ -68,7 +68,6 @@ type
     function Height: Integer; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
-    function Dpi: Single; override;
 
     procedure EventOpen(const OpenWindowsCount: Cardinal); override;
     procedure EventClose(const OpenWindowsCount: Cardinal); override;
@@ -820,6 +819,7 @@ constructor TCastleControlContainer.Create(AParent: TCastleControl);
 begin
   inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
   Parent := AParent;
+  Dpi := Screen.PixelsPerInch;
 end;
 
 procedure TCastleControlContainer.Invalidate;
@@ -874,11 +874,6 @@ begin
     EventRender;
   end;
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
-end;
-
-function TCastleControlContainer.Dpi: Single;
-begin
-  Result := Screen.PixelsPerInch;
 end;
 
 procedure TCastleControlContainer.EventOpen(const OpenWindowsCount: Cardinal);

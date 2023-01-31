@@ -636,7 +636,7 @@ begin
     if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
     begin
       TCocoaWindow(window).ScaleFactor := ScaleFactor;
-      windowRef.Dpi := ScaleFactor * DefaultDpi
+      windowRef.Container.Dpi := ScaleFactor * DefaultDpi
     end;
 
     windowRef.DoResize(
@@ -894,7 +894,7 @@ begin
   glcontext := openGLView.openGLContext;
   ref := window;
 
-  FDpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
+  Container.Dpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
 
   Application.OpenWindowsAdd(Self);
 

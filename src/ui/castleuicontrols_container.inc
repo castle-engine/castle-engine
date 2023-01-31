@@ -66,6 +66,7 @@
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
+    FDpi: Single;
     FUIScaling: TUIScaling;
     FUIReferenceWidth: Single;
     FUIReferenceHeight: Single;
@@ -93,6 +94,7 @@
 
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
+    procedure SetDpi(const Value: Single);
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Single);
     procedure SetUIReferenceHeight(const Value: Single);
@@ -201,6 +203,16 @@
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
     { @groupEnd }
+
+    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
+      So this is determined by the screen resolution in pixels,
+      and by the physical size of the device.
+
+      Some systems may expose a value that actually reflects user preference
+      "how to scale the user-interface", where 96 (DefaultDpi) is default.
+      So do not depend that it is actually related to the physical monitor size.
+      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
+    property Dpi: Single read FDpi write SetDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
@@ -314,9 +326,6 @@
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
-
-    { Dots per inch, specifying the relation of screen pixels to physical size. }
-    function Dpi: Single; virtual;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -636,12 +645,6 @@
     property UIScaling: TUIScaling
       read FUIScaling write SetUIScaling default usNone;
 
-    { Notify container window DPI has changed.
-
-      This function is called internally when the backend DPI changed. When our
-      @link(UIScaling) is set to usDpiScale, all controls should rescale. }
-    procedure UpdateAfterDpiChange;
-
     { Reference width and height to which we fit the container size
       (as seen by TCastleUserInterface implementations) when UIScaling is
       usEncloseReferenceSize or usFitReferenceSize.
@@ -811,6 +814,7 @@ begin
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
   FCaptureInput := TFingerIndexCaptureMap.Create;
+  FDpi := DefaultDpi;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
   FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
@@ -2154,10 +2158,14 @@ begin
   end;
 end;
 
-procedure TCastleContainer.UpdateAfterDpiChange;
+procedure TCastleContainer.SetDpi(const Value: Single);
 begin
-  if UIScaling = usDpiScale then
-     UpdateUIScale;
+  if FDpi <> Value then
+  begin
+    FDpi := Value;
+    if UIScaling = usDpiScale then
+       UpdateUIScale;
+  end;
 end;
 
 procedure TCastleContainer.SetUIReferenceWidth(const Value: Single);
@@ -2328,12 +2336,6 @@ end;
 function TCastleContainer.SaveScreenRgba: TRGBAlphaImage;
 begin
   Result := SaveScreenRgba(Rect);
-end;
-
-function TCastleContainer.Dpi: Single;
-begin
-  { Default implementation, if you cannot query real dpi value of the screen. }
-  Result := DefaultDpi;
 end;
 
 function TCastleContainer.Rect: TRectangle;
