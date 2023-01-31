@@ -1,7 +1,31 @@
-{ Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
-  as Castle Game Engine, so no problem).
+{
+  This file is based on the Free Pascal run time library,
+  with various adjustments for Castle Game Engine.
 
-  Adjusted to
+  Copyright by the Free Pascal development team and Michalis Kamburelis.
+
+  License:
+  This file is adapted from the FPC RTL source code, as such
+  the license and copyright information of FPC RTL applies here.
+  That said, the license of FPC RTL happens to be *exactly*
+  the same as used by the "Castle Game Engine": LGPL (version 2.1)
+  with "static linking exception" (with exactly the same wording
+  of the "static linking exception").
+  See the file COPYING.txt, included in this distribution, for details about
+  the copyright of "Castle Game Engine".
+  See http://www.freepascal.org/faq.var#general-license about the copyright
+  of FPC RTL.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ FreeType library routines.
+
+  Based on FPC RTL, with some modifications:
 
   - Load dynamic library using TDynLib, and merely expose
     FreeTypeLibraryInitialized = false when library not found.
@@ -10,40 +34,15 @@
 
   - Honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION symbol.
 
-  - Optionally load is staticaly, if CASTLE_FREETYPE_STATIC is defined.
+  - Optionally load staticaly, if CASTLE_FREETYPE_STATIC is defined.
     It is automatically defined on iOS now
-    (matchin Castle Game Engine "freetype" service on iOS,
+    (matching Castle Game Engine "freetype" service on iOS,
     that links freetype statically into the main library).
 
-  -----------------------------------------------------------------
-}
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2003 by the Free Pascal development team
-
-    Basic canvas definitions.
-
-    This file is adapted from the FPC RTL source code, as such
-    the license and copyright information of FPC RTL applies here.
-    That said, the license of FPC RTL happens to be *exactly*
-    the same as used by the "Castle Game Engine": LGPL (version 2.1)
-    with "static linking exception" (with exactly the same wording
-    of the "static linking exception").
-    See the file COPYING.txt, included in this distribution, for details about
-    the copyright of "Castle Game Engine".
-    See http://www.freepascal.org/faq.var#general-license about the copyright
-    of FPC RTL.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-{ @exclude Not ready for PasDoc. }
+  - Define some things we need (or needed in the past) in CGE:
+    FT_New_Memory_Face, FT_Open_Face and friends. }
 unit CastleInternalFreeTypeH;
 
-{ Note that these are not all the availlable calls from the dll yet.
-  This unit is used by TStringBitMaps and FTFont }
 {$i castleconf.inc}
 
 {$ifdef CASTLE_IOS}

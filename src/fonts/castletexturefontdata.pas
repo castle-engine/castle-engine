@@ -177,7 +177,7 @@ type
 
 implementation
 
-uses Classes, SysUtils, Character, CastleInternalFtFont,
+uses Classes, SysUtils, Character,
   CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
@@ -337,13 +337,7 @@ begin
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
-  CastleInternalFtFont.InitEngine;
-  { By default TFontManager uses DefaultResolution that is OS-dependent
-    and does not really have any good reasoninig?
-    We set 0, letting FreeType library use good default,
-    http://www.freetype.org/freetype2/docs/tutorial/step1.html ,
-    and in effect Size is in nice pixels by default. }
-  FontMgr.Resolution := 0;
+  InitFontMgr;
   FontId := FontMgr.RequestFont(URL);
 
   TemporaryCharacters := ACharacters = nil;
