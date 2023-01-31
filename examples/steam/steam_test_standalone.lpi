@@ -32,7 +32,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="SteamTest_standalone.dpr"/>
+        <Filename Value="steam_test_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -54,7 +54,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="SteamTest"/>
+      <Filename Value="steam_test"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

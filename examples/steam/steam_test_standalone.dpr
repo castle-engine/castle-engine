@@ -17,7 +17,7 @@
   to change standalone_source in CastleEngineManifest.xml easier. }
 // program SteamTest_standalone;
 
-{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+//{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile". }

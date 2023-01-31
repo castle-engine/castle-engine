@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{330FBB1E-61D1-42A6-BA3F-31142139C8D1}</ProjectGuid>
-        <MainSource>SteamTest_standalone.dpr</MainSource>
+        <MainSource>steam_test_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -180,7 +180,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">SteamTest_standalone.dpr</Source>
+                    <Source Name="MainSource">steam_test_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
