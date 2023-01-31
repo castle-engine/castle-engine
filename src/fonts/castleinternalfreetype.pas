@@ -115,6 +115,7 @@ type
       FSizes : TList;
       Filename : string;
       LastSize : PMgrSize;
+      MemoryStream: TCustomMemoryStream;
       procedure FreeGlyphs;
     public
       constructor Create (aMgr:TFontManager; afilename:string; anindex:integer);
@@ -266,8 +267,6 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
-var
-  MemoryStream: TCustomMemoryStream;
 begin
   inherited create;
   Filename := afilename;
@@ -288,12 +287,16 @@ begin
     }
 
     MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
-    try
-      FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
-        format (sErrLoadFont,[anindex,afilename]));
-    finally
-      FreeAndNil(MemoryStream);
-    end;
+    FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
+      format (sErrLoadFont,[anindex,afilename]));
+
+    { We will free MemoryStream only in our destructor.
+      Otherwise weirdest errors can occur when reading the existing font 2nd time
+      (autotests see weird RowHeight),
+      this is also said in docs
+      https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
+      "You must not deallocate the memory before calling FT_Done_Face."
+    }
 
     //WriteFT_Face(font);
   except
@@ -307,6 +310,7 @@ begin
   try
     FreeGlyphs;
   finally
+    FreeAndNil(MemoryStream);
     FSizes.Free;
     inherited Destroy;
   end;
