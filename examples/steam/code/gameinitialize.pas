@@ -15,6 +15,9 @@ var
   Window: TCastleWindow;
 
 const
+  { Here we are using AppID of SteamWorks game example - SpaceWar
+    see https://partner.steamgames.com/doc/sdk/api/example
+    Note that using this example will add it to your Steam library }
   AppId = UInt32(480);
 
 { One-time initialization of resources. }
