@@ -392,7 +392,6 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
-    P.Targets.AddUnit('castleinternalftfont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');

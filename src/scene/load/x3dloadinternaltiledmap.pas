@@ -106,7 +106,7 @@ implementation
 
 uses
   SysUtils, Math, Generics.Collections,
-  CastleTransform, CastleColors, CastleRectangles,
+  CastleTransform, CastleColors, CastleRectangles, CastleUtils,
   CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages, CastleURIUtils;
 
@@ -434,7 +434,14 @@ var
       end;
 
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
-      TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset);
+      if Between(Frame, 0, Tileset.Tiles.Count - 1) then
+        TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset)
+      else
+      begin
+        WritelnWarning('Tiled', 'Invalid frame id %d', [Frame]);
+        // some fallback, to have something defined
+        TexCoordRect := FloatRectangle(0, 0, Tileset.TileWidth, Tileset.TileHeight);
+      end;
 
       Coord.FdPoint.Items.AddRange([
         Vector3(CoordRect.Left , CoordRect.Bottom, 0),
