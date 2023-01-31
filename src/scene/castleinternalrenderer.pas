@@ -2001,7 +2001,30 @@ begin
   begin
     Assert(Node.Shader = nil);
     Node.ShaderLoaded := true;
-    if Node.FdEnabled.Value then
+
+    { Note: Strictly speaking, we should not need to check
+      "not GLFeatures.EnableFixedFunction" below.
+      Without this check, TX3DGLSLProgram.Create below will raise an exception
+      which will cause to abort.
+
+      But:
+      - This is a bit inefficient way to abort.
+      - It causes unknown issues: view3dscene --debug-fixed-function,
+        enable any (like "visualize depth") screen effect,
+        and you may experience crash in TCastleScene.ScreenEffectsCount
+        as if ScreenEffectNodes was nil.
+
+        Not debugged to the end:
+        situation seems impossible and in debugger mysteriously
+        doesn't occur. And logging inconclusive:
+
+          WritelnLog('TCastleScene.ScreenEffectsCount %s', [BoolToStr(ScreenEffectNodes <> nil, true)]);
+
+        sometimes shown we indeed have nil right before crash,
+        but sometimes not...
+    }
+
+    if Node.FdEnabled.Value and (not GLFeatures.EnableFixedFunction) then
     begin
       { make sure that textures inside shaders are prepared }
       PrepareIDeclsList(Node.FdShaders, Node.StateForShaderPrepare);
