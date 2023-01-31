@@ -140,6 +140,7 @@ End;
 Destructor SteamCallbackDispatcher.Destroy;
 Begin
   SteamAPI_UnregisterCallback(@_SteamInterface);
+  inherited;
 End;
 
 Initialization
