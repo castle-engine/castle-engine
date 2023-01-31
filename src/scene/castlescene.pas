@@ -112,7 +112,7 @@ type
         Shader: TX3DShaderProgramBase;
         ShaderAlphaTest: TX3DShaderProgramBase;
         procedure Initialize(const VertexCode, FragmentCode: string);
-        procedure Free;
+        procedure Finalize;
       end;
 
       TSceneRenderOptions = class(TCastleRenderOptions)
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.TCustomShaders.Free;
+procedure TCastleScene.TCustomShaders.Finalize;
 begin
   FreeAndNil(Shader);
   FreeAndNil(ShaderAlphaTest);
@@ -917,8 +917,8 @@ begin
   if Renderer <> nil then
     Renderer.UnprepareAll;
 
-  VarianceShadowMapsProgram.Free;
-  ShadowMapsProgram.Free;
+  VarianceShadowMapsProgram.Finalize;
+  ShadowMapsProgram.Finalize;
 
   ScheduleUpdateGeneratedTextures;
 
