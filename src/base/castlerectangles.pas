@@ -469,6 +469,8 @@ type
 
   TFloatRectangleList = {$ifdef FPC}specialize{$endif} TStructList<TFloatRectangle>;
 
+  TRegion = TFloatRectangle;
+
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle; overload;
 function Rectangle(const LeftBottom: TVector2Integer;

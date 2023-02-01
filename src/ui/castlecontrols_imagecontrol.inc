@@ -78,6 +78,7 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetRegion(const Value: TRegion);
     procedure SetRegionEnabled(const Value: Boolean);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
@@ -222,6 +223,7 @@
 
       @seealso TCastleImagePersistent.ClipLine }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
+    property Region: TRegion read GetRegion write SetRegion;
 
     { Custom GLSL shading code.
       See TDrawableImage.CustomShader for explanation.
@@ -347,8 +349,6 @@
       @seealso TCastleImagePersistent.ProtectedSides }
     property ProtectedSides: TBorder read GetProtectedSides stored false;
 
-    property Region: TRegion read GetRegion stored false;
-
     property RegionEnabled: Boolean read GetRegionEnabled write SetRegionEnabled stored false;
 
     { Set this to auto-detect that image is scaled compared to it's desired size.
@@ -443,6 +443,11 @@ end;
 procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
   FContent.ClipLine := Value;
+end;
+
+procedure TCastleImageControl.SetRegion(const Value: TRegion);
+begin
+  FContent.Region := Value;
 end;
 
 procedure TCastleImageControl.SetRegionEnabled(const Value: Boolean);

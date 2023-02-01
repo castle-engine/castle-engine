@@ -58,7 +58,6 @@ type
     property AllSides: Single read FAllSides write SetAllSides {$ifdef FPC} default 0 {$endif};
   end;
 
-  TRegion = TBorder;
 {$endif read_interface}
 
 {$ifdef read_implementation}

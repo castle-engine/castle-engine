@@ -108,16 +108,10 @@ end;
 
 procedure TRegionDesignDialog.ApplyChange;
 begin
-  if Assigned(FRegion) then
-  begin
-    FRegion.AllSides := 0;
-    FRegion.Left := Min(FControlPointRec.Points[0].X, FControlPointRec.Points[1].X);
-    FRegion.Right := Image.Width - Max(FControlPointRec.Points[0].X,
-      FControlPointRec.Points[1].X);
-    FRegion.Bottom := Min(FControlPointRec.Points[0].Y, FControlPointRec.Points[1].Y);
-    FRegion.Top := Image.Height - Max(FControlPointRec.Points[0].Y,
-      FControlPointRec.Points[1].Y);
-  end;
+  FRegion.Left := Min(FControlPointRec.Points[0].X, FControlPointRec.Points[1].X);
+  FRegion.Bottom := Min(FControlPointRec.Points[0].Y, FControlPointRec.Points[1].Y);
+  FRegion.Width := ABS(FControlPointRec.Points[0].X - FControlPointRec.Points[1].X);
+  FRegion.Height := ABS(FControlPointRec.Points[0].Y - FControlPointRec.Points[1].Y);
 end;
 
 procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
@@ -338,12 +332,13 @@ begin
   if FImage = AValue then Exit;
 
   FImage := AValue;
-  if Assigned(FRegion) then InitControlPoints;
+  InitControlPoints;
 end;
 
 procedure TRegionDesignDialog.SetRegion(AValue: TRegion);
 begin
-  if FRegion = AValue then Exit;
+  if FRegion.PerfectlyEquals(AValue) then Exit;
+
   FRegion := AValue;
   if Assigned(FImage) then InitControlPoints;
 end;
@@ -359,10 +354,9 @@ procedure TRegionDesignDialog.InitControlPoints;
 
 begin
   FControlPointRec.Points[0] :=
-    Vector2Integer(Floor(FRegion.TotalLeft), Floor(FRegion.TotalBottom));
+    Vector2Integer(Floor(FRegion.Left), Floor(FRegion.Bottom));
   FControlPointRec.Points[1] :=
-    Vector2Integer(FImage.Width - Floor(FRegion.TotalRight), FImage.Height -
-    Floor(FRegion.TotalTop));
+    Vector2Integer(Floor(FRegion.Right), Floor(FRegion.Top));
   FixControlPoints;
 
   { Center view then region. }
