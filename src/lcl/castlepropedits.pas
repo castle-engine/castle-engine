@@ -46,7 +46,7 @@ uses // FPC and LCL units
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
+  CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,CastleInternalRegionDialog,
   CastleSoundEngine, CastleFonts,
@@ -147,7 +147,7 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TCastleProtectedSidesEditor);
-  RegisterPropertyEditor(TypeInfo(TRegion), nil, 'Region',
+  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, '',
     TCastleRegionEditor);
 
   { Other properties }

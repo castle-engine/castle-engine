@@ -198,7 +198,7 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
-        { Cropped by Image region }
+    { Cropped region. "empty region"(Width<0 or Height<0) means using the whole image. }
     property Region: TRegion read FRegion write SetRegion ;
 
     property InternalVisualizeProtectedSides: Boolean
@@ -325,6 +325,7 @@ begin
   FScaleCorners := 1;
   FScaleFromUrl := 1;
   FInternalVisualizeProtectedSides := true;
+  FRegion := TFloatRectangle.Empty;
 
   FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
   CreateDrawableImage;
@@ -462,8 +463,18 @@ begin
 end;
 
 procedure TCastleImagePersistent.SetRegion(AValue: TRegion);
+function SameFloatRectangle(const a,b:TFloatRectangle):Boolean;
 begin
-  if FRegion.PerfectlyEquals(AValue) then Exit;
+ Result := (SameValue(a.Left  , b.Left)) and
+      (SameValue(a.Bottom, b.Bottom)) and
+      (SameValue(a.Width , b.Width)) and
+      (SameValue(a.Height, b.Height));
+end;
+
+begin
+  { don't use 'PerfectlyEquals' or 'Equals' to judge.
+    Otherwise, if the Region is empty, it cannot be modified in the editor.}
+  if SameFloatRectangle(FRegion, AValue) then Exit;
 
   FRegion := AValue;
   DoChange;
@@ -471,9 +482,9 @@ end;
 
 procedure TCastleImagePersistent.SetRegionEnabled(const AValue: Boolean);
 begin
-  if FRegionEnabled=AValue then Exit;
+  if FRegionEnabled = AValue then Exit;
 
-  FRegionEnabled:=AValue;
+  FRegionEnabled := AValue;
   DoChange;
 end;
 

@@ -99,6 +99,7 @@ begin
   inherited;
 
   FScale := 1;
+  FRegion := TFloatRectangle.Empty;
 end;
 
 destructor TRegionDesignDialog.Destroy;
@@ -332,7 +333,7 @@ begin
   if FImage = AValue then Exit;
 
   FImage := AValue;
-  InitControlPoints;
+  if Assigned(FImage) then InitControlPoints;
 end;
 
 procedure TRegionDesignDialog.SetRegion(AValue: TRegion);
@@ -353,14 +354,26 @@ procedure TRegionDesignDialog.InitControlPoints;
   end;
 
 begin
-  FControlPointRec.Points[0] :=
-    Vector2Integer(Floor(FRegion.Left), Floor(FRegion.Bottom));
-  FControlPointRec.Points[1] :=
-    Vector2Integer(Floor(FRegion.Right), Floor(FRegion.Top));
+  { "empty region" means using the whole image. }
+  if FRegion.IsEmpty then
+  begin
+    FControlPointRec.Points[0] :=
+      TVector2Integer.Zero;
+    FControlPointRec.Points[1] :=
+      Vector2Integer(FImage.Width, FImage.Height);
+  end
+  else
+  begin
+    FControlPointRec.Points[0] :=
+      Vector2Integer(Floor(FRegion.Left), Floor(FRegion.Bottom));
+    FControlPointRec.Points[1] :=
+      Vector2Integer(Floor(FRegion.Right), Floor(FRegion.Top));
+  end;
+
   FixControlPoints;
 
   { Center view then region. }
-  FTranslation := FTranslation + ImageToScreen(CastleControl1.Rect.Center) -
+  FTranslation := ImageToScreen(CastleControl1.Rect.Center) -
     ImageToScreen(CenterPoint);
 
   Changed;

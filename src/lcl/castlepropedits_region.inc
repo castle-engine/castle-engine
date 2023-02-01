@@ -21,10 +21,17 @@
 type
   TCastleRegionEditor = class(TSubPropertiesEditor)
   public
+    function GetName: shortstring; override;
     function GetValue: string; override;
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
+
+function TCastleRegionEditor.GetName: shortstring;
+begin
+  Result:=inherited GetName;
+  Result := SuffixRemove('persistent', Result, true);
+end;
 
 function TCastleRegionEditor.GetValue: string;
 begin
@@ -71,6 +78,7 @@ begin
     if D.ShowModal = mrOk then
     begin
       D.ApplyChange;
+      ImagePersistent.Region := D.Region;
       self.Modified('');
     end;
 

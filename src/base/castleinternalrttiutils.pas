@@ -60,7 +60,7 @@ function PropertyHasDefaultValue(const PropObject: TObject;
 implementation
 
 uses SysUtils, RtlConsts, Classes,
-  CastleUtils, CastleVectors, CastleStringUtils, CastleColors;
+  CastleUtils, CastleVectors, CastleStringUtils, CastleColors, CastleRectangles;
 
 {$ifndef FPC}
 resourcestring
@@ -97,6 +97,11 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out N
     if O is TCastleColorRGBPersistent then
     begin
       Result := TCastleColorRGBPersistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
+    if O is TFloatRectanglePersistent then
+    begin
+      Result := TFloatRectanglePersistent(O).Value.ToString;
       Name := SuffixRemove('persistent', Name, true);
     end else
     if O is TComponent then

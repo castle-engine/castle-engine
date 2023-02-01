@@ -8,7 +8,6 @@ object RegionDesignDialog: TRegionDesignDialog
   ClientHeight = 638
   ClientWidth = 1024
   Position = poMainFormCenter
-  LCLVersion = '2.3.0.0'
   object ButtonPanel1: TButtonPanel
     Left = 7
     Height = 35
@@ -18,7 +17,7 @@ object RegionDesignDialog: TRegionDesignDialog
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
     HelpButton.Name = 'HelpButton'
-    HelpButton.Caption = '&BgColor'
+    HelpButton.Caption = '&bgcolor'
     HelpButton.OnClick = HelpButtonClick
     CloseButton.Name = 'CloseButton'
     CloseButton.DefaultCaption = True

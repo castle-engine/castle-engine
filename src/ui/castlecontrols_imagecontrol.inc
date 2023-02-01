@@ -742,7 +742,7 @@ begin
      (PropertyName = 'FlipHorizontal') or
      (PropertyName = 'FlipVertical') or
      (PropertyName = 'ProtectedSides') or
-     (PropertyName = 'Region') or
+     (PropertyName = 'RegionPersistent') or
      (PropertyName = 'RegionEnabled') or
      (PropertyName = 'Rotation') then
     Result := [psBasic]

@@ -26,10 +26,12 @@
 ../../../src/ui/ TCastleImageControl Color TCastleColor no-store
 ../../../src/ui/ TCastleImageControl ClipLine TVector3 no-store
 ../../../src/ui/ TCastleImageControl RotationCenter TVector2 no-store
+../../../src/ui/ TCastleImageControl Region TFloatRectangle no-store
 
 ../../../src/base_rendering/ TCastleImagePersistent Color TCastleColor
 ../../../src/base_rendering/ TCastleImagePersistent ClipLine TVector3
 ../../../src/base_rendering/ TCastleImagePersistent RotationCenter TVector2
+../../../src/base_rendering/ TCastleImagePersistent Region TFloatRectangle
 
 ../../../src/ui/ TCastleUserInterfaceFont OutlineColor TCastleColor
 
