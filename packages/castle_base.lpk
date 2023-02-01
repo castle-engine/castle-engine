@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1052">
+    <Files Count="1053">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -977,6 +977,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/fonts/castleinternalfreetypeh.pas"/>
         <UnitName Value="CastleInternalFreeTypeH"/>
       </Item219>
+      <Item220>
+        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
+        <Type Value="Include"/>
+      </Item220>
       <Item221>
         <Filename Value="../src/fonts/castleinternalrichtext.pas"/>
         <UnitName Value="CastleInternalRichText"/>
@@ -4242,6 +4246,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castlevectors_matrix_decompose.inc"/>
         <Type Value="Include"/>
       </Item1035>
+      <Item1036>
+        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
+        <Type Value="Include"/>
+      </Item1036>
       <Item1037>
         <Filename Value="../src/transform/castleinternalphysicsvisualization.pas"/>
         <UnitName Value="CastleInternalPhysicsVisualization"/>
@@ -4286,10 +4294,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castletransform_joints.inc"/>
         <Type Value="Include"/>
       </Item1047>
-      <Item1036>
-        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
-        <Type Value="Include"/>
-      </Item1036>
       <Item1048>
         <Filename Value="../src/base/castleinternalclassutils.pas"/>
         <UnitName Value="CastleInternalClassUtils"/>
@@ -4311,10 +4315,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleabstractslider_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1052>
-      <Item220>
-        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
+      <Item1053>
+        <Filename Value="../src/base/castlerectangles_persistent.inc"/>
         <Type Value="Include"/>
-      </Item220>
+      </Item1053>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
