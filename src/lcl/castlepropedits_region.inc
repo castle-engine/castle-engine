@@ -50,26 +50,29 @@ begin
   else if (comp is TCastleImageControl) then
     ImagePersistent := (comp as TCastleImageControl).Content;
 
-  if not Assigned(ImagePersistent) then Exit;
+  if not Assigned(ImagePersistent) then
+  begin
+    ShowMessage('ImagePersistent does not exist.');
+    Exit;
+  end;
+  if (not Assigned(ImagePersistent.DrawableImage)) or
+    (ImagePersistent.DrawableImage.Rect.IsEmpty) then
+  begin
+    ShowMessage('Please load the image first.');
+    Exit;
+  end;
 
   D := TRegionDesignDialog.Create(Application);
   try
     D.Caption := 'Edit ' + 'Region';
-
     D.Image := ImagePersistent.DrawableImage;
+    D.Region := ImagePersistent.Region;
 
-    if Assigned(D.Image) then
+    if D.ShowModal = mrOk then
     begin
-      D.Region := ImagePersistent.Region;
-
-      if D.ShowModal = mrOk then
-      begin
-        D.ApplyChange;
-        self.Modified('');
-      end;
-    end
-    else
-      ShowMessage('Please load the image first.');
+      D.ApplyChange;
+      self.Modified('');
+    end;
 
   finally
     FreeAndNil(D);

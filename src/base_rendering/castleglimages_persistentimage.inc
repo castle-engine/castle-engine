@@ -79,7 +79,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetRegionEnabled(AValue: Boolean);
+    procedure SetRegionEnabled(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -464,7 +464,7 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetRegionEnabled(AValue: Boolean);
+procedure TCastleImagePersistent.SetRegionEnabled(const AValue: Boolean);
 begin
   if FRegionEnabled=AValue then Exit;
 
