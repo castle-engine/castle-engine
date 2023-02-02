@@ -2126,8 +2126,9 @@ begin
     (AFogFunctionality <> nil) and
     (AFogFunctionality.VisibilityRange <> 0.0);
   Volumetric := Enabled and
-    AFogFunctionality.Volumetric
-    {$ifndef OpenGLES} and GLFeatures.EXT_fog_coord {$endif};
+    AFogFunctionality.Volumetric and
+    // Volumetric fog is now only supported by shaders
+    (not GLFeatures.EnableFixedFunction);
 
   if Volumetric then
   begin
@@ -2554,36 +2555,6 @@ const
       VisibilityRangeScaled :=
         AFogFunctionality.VisibilityRange *
         AFogFunctionality.TransformScale;
-
-      if GLFeatures.EnableFixedFunction then
-      begin
-        {$ifndef OpenGLES}
-        { This code does not need to be executed on shader pipeline at all,
-          where we know that fog coord is possible and will be realized by passing
-          castle_FogCoord to shader. }
-
-        if AFogFunctionality.Volumetric and (not GLFeatures.EXT_fog_coord) then
-        begin
-          { Try to make normal fog that looks similar. This looks poorly,
-            but it's not a real problem --- EXT_fog_coord is supported
-            on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
-            seems enough. }
-          WritelnWarning('VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
-          VisibilityRangeScaled := VisibilityRangeScaled * 5;
-        end;
-
-        if Volumetric then
-        begin
-          glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-        end else
-        begin
-          { If not Volumetric but still GL_EXT_fog_coord, we make sure
-            that we're *not* using FogCoord below. }
-          if GLFeatures.EXT_fog_coord then
-            glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-        end;
-        {$endif}
-      end;
 
       { calculate FogType and other Fog parameters }
       FogType := AFogFunctionality.FogType;

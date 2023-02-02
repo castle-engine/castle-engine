@@ -47,7 +47,7 @@ type
   TFogCoordinateSource = (
     { Fog is determined by depth (distance to camera). }
     fcDepth,
-    { Fog is determined by explicit coordinate (per-vertex glFogCoord*). }
+    { Fog is determined by explicit coordinate (per-vertex castle_FogCoord attribute). }
     fcPassedCoordinate);
 
   TBoundingBoxEvent = function: TBox3D of object;

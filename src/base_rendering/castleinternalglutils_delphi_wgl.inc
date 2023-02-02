@@ -98,7 +98,6 @@ function Load_GL_ARB_shader_objects: Boolean;
 function Load_GL_ARB_vertex_shader: Boolean;
 function Load_GL_ARB_fragment_shader: Boolean;
 function Load_GL_ARB_shading_language_100: Boolean;
-function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
 function Load_WGL_ARB_pixel_format: Boolean;
@@ -630,31 +629,6 @@ begin
 
   if glext_ExtensionSupported('GL_ARB_shading_language_100', extstring) then
   begin
-    Result := TRUE;
-  end;
-
-end;
-
-function Load_GL_EXT_fog_coord: Boolean;
-var
-  extstring: AnsiString;
-begin
-
-  Result := FALSE;
-  extstring := glGetString(GL_EXTENSIONS);
-
-  if glext_ExtensionSupported('GL_EXT_fog_coord', extstring) then
-  begin
-    glFogCoordfEXT := wglGetProcAddress('glFogCoordfEXT');
-    if not Assigned(glFogCoordfEXT) then Exit;
-    glFogCoorddEXT := wglGetProcAddress('glFogCoorddEXT');
-    if not Assigned(glFogCoorddEXT) then Exit;
-    glFogCoordfvEXT := wglGetProcAddress('glFogCoordfvEXT');
-    if not Assigned(glFogCoordfvEXT) then Exit;
-    glFogCoorddvEXT := wglGetProcAddress('glFogCoorddvEXT');
-    if not Assigned(glFogCoorddvEXT) then Exit;
-    glFogCoordPointerEXT := wglGetProcAddress('glFogCoordPointerEXT');
-    if not Assigned(glFogCoordPointerEXT) then Exit;
     Result := TRUE;
   end;
 

@@ -218,8 +218,11 @@ var
       if RenderOptions.Mode = rmFull then
         glDisableClientState(GL_COLOR_ARRAY);
 
+      { Note: For simplicity, we no longer support fog coordinate in fixed-function.
+        We avoid extra alternative code path for GL_EXT_fog_coord or GL_version_1_4 that made it core.
       if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+      }
 
       if GLFeatures.UseMultiTexturing then
       begin
@@ -453,11 +456,14 @@ begin
         if (RenderOptions.Mode = rmFull) and Arrays.ForceUnlit then
           glColorv(Arrays.ForcedUnlitColor);
 
+        { Note: For simplicity, we no longer support fog coordinate in fixed-function.
+          We avoid extra alternative code path for GL_EXT_fog_coord or GL_version_1_4 that made it core.
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         begin
           glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
           glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
         end;
+        }
 
         if GLFeatures.UseMultiTexturing then
         begin
@@ -907,49 +913,13 @@ begin
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues then
   begin
-    {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction and GLFeatures.EXT_fog_coord then
-    begin
-      { This is not needed for shader pipeline. When we know that rendering
-        is done through shaders, then Shader.ModifyFog does everything necessary. }
-
-      { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
-        is already set correctly by RenderBegin. }
-      if not Renderer.FogVolumetric then
-        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-
-      glPushAttrib(GL_FOG_BIT);
-      glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
-      glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
-      glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
-    end;
-    {$endif}
-
-    { We potentially override the fog already set
-      by TGLRenderer.RenderShapeFog here. }
+    { We potentially override the fog already set by TGLRenderer.RenderShapeFog here. }
     Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
 
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
-  {$ifndef OpenGLES}
-  { Restore defaults }
-  if Arrays.HasFogCoord and
-     Arrays.FogDirectValues and
-     GLFeatures.EnableFixedFunction and
-     GLFeatures.EXT_fog_coord then
-  begin
-    glPopAttrib;
-
-    { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
-      also would restore it, but I didn't find it in the docs, so don't depend
-      on it. }
-    if not Renderer.FogVolumetric then
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-  end;
-  {$endif}
-
   inherited;
 end;
 

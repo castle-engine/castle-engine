@@ -151,9 +151,6 @@ type
     FNV_multisample_filter_hint: Boolean;
     FARB_occlusion_query: Boolean;
     FEXT_framebuffer_blit: Boolean;
-    {$ifndef OpenGLES}
-    FEXT_fog_coord: Boolean;
-    {$endif}
     FCLAMP_TO_EDGE: TGLenum;
     FMaxTextureSize: Cardinal;
     FMaxLights: Cardinal;
@@ -257,9 +254,6 @@ type
     property NV_multisample_filter_hint: Boolean read FNV_multisample_filter_hint;
     property ARB_occlusion_query: Boolean read FARB_occlusion_query;
     property EXT_framebuffer_blit: Boolean read FEXT_framebuffer_blit;
-    {$ifndef OpenGLES}
-    property EXT_fog_coord: Boolean read FEXT_fog_coord;
-    {$endif}
 
     { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
       Otherwise GL_CLAMP.
@@ -795,7 +789,6 @@ begin
   if Debug then
     InitializeDebug;
 
-  FEXT_fog_coord := LoadExtensions and Load_GL_EXT_fog_coord;
   FNV_multisample_filter_hint := LoadExtensions and Load_GL_NV_multisample_filter_hint;
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
