@@ -2087,6 +2087,9 @@ var
   TextureWrap: TTextureWrap2D;
   Filter: TTextureFilter;
 begin
+  // in fixed-function, do not create shadow maps, do not render to shadow maps
+  if GLFeatures.EnableFixedFunction then Exit;
+
   { Float texture extensions: there is also NV_float_buffer,
     which is the only way for a float texture on old nvidia GPUs.
     But it's only for NV_texture_rectangle, without bilinear filtering
