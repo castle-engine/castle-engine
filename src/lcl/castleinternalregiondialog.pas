@@ -84,7 +84,9 @@ type
     procedure Changed;
   protected
     function ScreenToImage(APoint: TVector2; bRound: boolean = True): TVector2Integer;
-    function ImageToScreen(const APoint: TVector2Integer): TVector2;
+    function ImageToScreen(const APoint: TVector2Integer): TVector2; overload;
+    function ImageToScreen(const APoints: TArrayImagePoints): TArrayScreenPoints;
+      overload;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -432,17 +434,12 @@ end;
 
 function TRegionDesignDialog.ScreenRegionPoints: TArrayScreenPoints;
 begin
-  Result[0] := ImageToScreen(FControlPointRec.Points[0]);
-  Result[1] := ImageToScreen(FControlPointRec.Points[1]);
+  Result := ImageToScreen(FControlPointRec.Points);
 end;
 
 function TRegionDesignDialog.ScreenAdditionalPoints: TArrayScreenPoints;
-var
-  Points: TArrayImagePoints;
 begin
-  Points := FControlPointRec.AdditionalPoints;
-  Result[0] := ImageToScreen(Points[0]);
-  Result[1] := ImageToScreen(Points[1]);
+  Result := ImageToScreen(FControlPointRec.AdditionalPoints);
 end;
 
 procedure TRegionDesignDialog.Changed;
@@ -480,6 +477,15 @@ begin
   pt.Y := APoint.Y;
 
   Result := pt * FScale + FTranslation;
+end;
+
+function TRegionDesignDialog.ImageToScreen(
+  const APoints: TArrayImagePoints): TArrayScreenPoints;
+var
+  i: integer;
+begin
+  for i := Low(APoints) to High(APoints) do
+    Result[i] := ImageToScreen(APoints[i]);
 end;
 
 end.
