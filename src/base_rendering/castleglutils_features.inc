@@ -597,7 +597,7 @@ begin
       SupportedExt := PChar(glGetStringi(GL_EXTENSIONS, I));
       if SupportedExt = Extension then
       begin
-        WritelnLog('Detected extension as supported: ' + Extension);
+        // WritelnLog('Detected extension as supported: ' + Extension);
         Exit(true);
       end;
     end;
