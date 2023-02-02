@@ -206,9 +206,8 @@ procedure glTextureCubeMapSide(
     { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
       doesn't affect loading compressed textures, as far as I understand.
       So no need to call it. }
-    {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
-      (Target, Level, ImageGLInternalFormat(Image), Image.Width, Image.Height,
-        0, Image.Size, Image.RawPixels);
+    glCompressedTexImage2D(Target, Level, ImageGLInternalFormat(Image),
+      Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
   end;
 

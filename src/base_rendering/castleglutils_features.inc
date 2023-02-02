@@ -913,15 +913,17 @@ begin
 
   FEXT_framebuffer_blit := LoadExtensions and Load_GL_EXT_framebuffer_blit;
 
-  { calculate UseMultiTexturing: check extensions required for multitexturing.
-
-    We used to require a couple of extensions for this:
+  { Calculate UseMultiTexturing.
+    We used to require a couple of extensions for multitexturing:
     - EXT_texture_env_combine
     - ARB_multitexture
     - ARB_texture_env_dot3
     But GL version >= 1.3 is actually required for GL_subtract,
-    and includes all above extensions in core. }
-  FUseMultiTexturing := {$ifdef OpenGLES} true {$else} Version_1_3 {$endif};
+    and includes all above extensions in core.
+    It is simpler to just depend on presense in core, and all modern OpenGLs will satisfy this. }
+  FUseMultiTexturing := {$ifdef OpenGLES} true
+    {$else} Version_1_3
+    {$endif};
 
   FFBOMultiSampling := {$ifdef OpenGLES} false {$else}
     { Is GL_ARB_framebuffer_object available? }
@@ -945,7 +947,7 @@ begin
 
   FPackedDepthStencil :=
     {$ifdef OpenGLES} HasExtension('GL_OES_packed_depth_stencil')
-    {$else} LoadExtensions and Load_GL_EXT_packed_depth_stencil
+    {$else} HasExtension('GL_EXT_packed_depth_stencil')
     {$endif};
 
   if Version_3_2 then
@@ -960,14 +962,15 @@ begin
   FShadowVolumesPossible := StencilSize >= 4;
 
   FTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    LoadExtensions and Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
+    Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two') {$endif};
 
   FTextureCompression := [];
 
   {$ifndef OpenGLES}
-  { on non-OpenGLES, we require ARB_texture_compression for *any* compression
-    format, to have the necessary glCompressedTexImage2DARB call available }
-  if LoadExtensions and Load_GL_ARB_texture_compression then
+  { OpenGL 1.3 introduced glCompressedTexImage2D in core.
+    To keep things simple, we don't support compressed textures with older OpenGLs
+    by looking at GL_ARB_texture_compression. }
+  if Version_1_3 then
   {$endif}
   begin
     { See http://stackoverflow.com/questions/9148795/android-opengl-texture-compression
@@ -1045,13 +1048,15 @@ begin
   SupportedTextureCompressionKnown := true;
   SupportedTextureCompression := TextureCompression;
 
-  FVertexBufferObject := {$ifdef OpenGLES} true {$else}
-    Version_1_5 and not GLVersion.BuggyVBO {$endif};
+  FVertexBufferObject := {$ifdef OpenGLES} true
+    {$else} Version_1_5 and not GLVersion.BuggyVBO
+    {$endif};
 
-  FBlendConstant := {$ifdef OpenGLES} true {$else}
-    { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
-      as standard. glBlendColor is available since 1.2 as standard. }
-    ((Version_1_2 and LoadExtensions and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
+  FBlendConstant := {$ifdef OpenGLES} true
+    {$else}
+    { OpenGL 1.4 has GL_CONSTANT_ALPHA, glBlendColor is available since 1.2. }
+    Version_1_4
+    {$endif};
 
   FTextureFloat :=
     {$ifdef OpenGLES} false
