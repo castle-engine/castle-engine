@@ -46,9 +46,9 @@ procedure SteamAPI_UnregisterCallback(pCallback: Pointer); CDecl; external Steam
   Weird enough not all of them seem to do what they look like they're supposed to do
   So, sometimes experimenting is necessary : which function will work
   and which will simply crash without explaining any reason
-  I don't see any big point in translating all of the hearders currently,
+  I don't see any big point in translating all of the headers currently,
   for the said weird behavior first of all,
-  Let's add here only functions that were teseted and proven to work,
+  Let's add here only functions that were tested and proven to work,
   which should be done on use-case basis. }
 
 (* ISteamClient *)
