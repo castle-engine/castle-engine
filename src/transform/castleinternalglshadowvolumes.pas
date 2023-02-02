@@ -712,12 +712,12 @@ begin
       begin
         RenderContext.CullFace := true;
 
-        { Render front facing shadow shadow volume faces. }
+        { Render front facing shadow volume faces. }
         StencilSetupKind := ssFront;
         glCullFace(GL_BACK);
         RenderShadowVolumes(Params);
 
-        { Render back facing shadow shadow volume faces. }
+        { Render back facing shadow volume faces. }
         StencilSetupKind := ssBack;
         SavedCount := Count;
         Count := false;
