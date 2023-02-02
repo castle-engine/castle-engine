@@ -51,7 +51,7 @@ implementation
 
 uses SysUtils,
   CastleLoadGltf, CastleRectangles, CastleImages,
-  CastleBoxes, CastleColors, CastleRenderContext, CastleUtils,
+  CastleBoxes, CastleColors, CastleRenderContext, CastleUtils, X3DLoad,
   GameMyMesh;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -82,6 +82,8 @@ begin
 
   MyMesh := TMyMesh.Create(FreeAtStop);
   UnlitMeshParent.Add(MyMesh);
+
+  MainViewport.AddScreenEffect(LoadNode('castle-data:/screen_effect_frame.x3dv'));
 end;
 
 procedure TViewMain.Stop;

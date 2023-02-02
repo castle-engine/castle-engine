@@ -42,7 +42,7 @@ This application exercises a few things in CGE that do rendering to make sure th
 
 The rendering methods tested:
 
-- `TCastleScene`
+- `TCastleScene` (including testing shadow maps and shadow volumes).
 
 - `TDrawableImage`
 
@@ -51,6 +51,8 @@ The rendering methods tested:
 - `TCastleFont.Print` (uses `TDrawableImage` under the hood)
 
 - `TCastleRenderUnlitMesh` (internal CGE utility in `CastleInternalGLRenderer` right now)
+
+- Screen (post-processing) effects (by `TCastleScreenEffect.AddScreenEffect`).
 
 Everything else in CGE is in some way rendered on top of above methods.
 
