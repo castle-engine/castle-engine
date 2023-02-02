@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUtils" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,6 +52,7 @@ type
     procedure TestIsPathAbsoluteOnDrive;
     procedure TestRestOf3DCoords;
     procedure TestRestOf3DCoordsCycle;
+    procedure TestDecimalSeparator;
   end;
 
 implementation
@@ -786,6 +787,19 @@ begin
   RestOf3DCoordsCycle(2, A, B);
   AssertEquals(0, A);
   AssertEquals(1, B);
+end;
+
+procedure TTestCastleUtils.TestDecimalSeparator;
+begin
+  {$ifdef CASTLE_TEST_DECIMAL_SEPARATOR_COMMA}
+  AssertEquals('123,45', Format('%f', [123.45]));
+  AssertEquals('123,45', FloatToStr(123.45));
+  AssertSameValue(123.45, StrToFloat('123,45'));
+  {$else}
+  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', Format('%f', [123.45]));
+  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', FloatToStr(123.45));
+  AssertSameValue(123.45, StrToFloat('123' + DefaultFormatSettings.DecimalSeparator + '45'));
+  {$endif}
 end;
 
 initialization
