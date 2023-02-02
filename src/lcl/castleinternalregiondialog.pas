@@ -44,16 +44,22 @@ type
     procedure HelpButtonClick(Sender: TObject);
   strict private
   type
+    TArrayScreenPoints = array[0..1] of TVector2;
+    TArrayImagePoints = array[0..1] of TVector2Integer;
+
     TMovingRec = record
       Moving: boolean;
       StartTranslation: TVector2;
       StartMousePoint: TVector2;
     end;
 
+    { TControlPointRec }
+
     TControlPointRec = record
       Adjusting: boolean;
       Index: integer;
-      Points: array[0..1] of TVector2Integer;
+      Points: TArrayImagePoints;
+      function AdditionalPoints: TArrayImagePoints;
     end;
 
   const
@@ -65,9 +71,12 @@ type
     FTranslation: TVector2;
     FMovingImageRec: TMovingRec;
     FControlPointRec: TControlPointRec;
-    procedure SetImage(AValue: TDrawableImage);
-    procedure SetRegion(AValue: TRegion);
+    procedure SetImage(const AValue: TDrawableImage);
+    procedure SetRegion(const AValue: TRegion);
     procedure InitControlPoints;
+    function ScreenRegionRectangle: TFloatRectangle;
+    function ScreenRegionPoints: TArrayScreenPoints;
+    function ScreenAdditionalPoints: TArrayScreenPoints;
 
     { Restrict the region within the image rectangle. }
     procedure FixControlPoints;
@@ -92,6 +101,14 @@ uses Math;
 
 {$R *.lfm}
 
+{ TRegionDesignDialog.TControlPointRec }
+
+function TRegionDesignDialog.TControlPointRec.AdditionalPoints: TArrayImagePoints;
+begin
+  Result[0] := Vector2Integer(Points[0].X, Points[1].Y);
+  Result[1] := Vector2Integer(Points[1].X, Points[0].Y);
+end;
+
 { TRegionDesignDialog }
 
 constructor TRegionDesignDialog.Create(AOwner: TComponent);
@@ -115,6 +132,21 @@ begin
   FRegion.Height := ABS(FControlPointRec.Points[0].Y - FControlPointRec.Points[1].Y);
 end;
 
+function TRegionDesignDialog.ScreenRegionRectangle: TFloatRectangle;
+var
+  Points: TArrayScreenPoints;
+  vLeft, vBottom, vWidth, vHeight: single;
+begin
+  Points := ScreenRegionPoints;
+
+  vLeft := Min(Points[0].X, Points[1].X);
+  vBottom := Min(Points[0].Y, Points[1].Y);
+  vWidth := ABS(Points[0].X - Points[1].X);
+  vHeight := ABS(Points[0].Y - Points[1].Y);
+
+  Result := FloatRectangle(vLeft, vBottom, vWidth, vHeight);
+end;
+
 procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
 
   function ScreenRect: TFloatRectangle;
@@ -123,9 +155,12 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
       FScale).Translate(FTranslation);
   end;
 
-  procedure RenderPoint(const Point: TVector2);
+  procedure RenderPoints(const Points: TArrayScreenPoints);
+  var
+    Point: TVector2;
   begin
-    DrawCircle(Point, CircleRads, CircleRads, Vector4(0.864, 0.17, 0.03, 1));
+    for Point in Points do
+      DrawCircle(Point, CircleRads, CircleRads, Vector4(0.864, 0.17, 0.03, 1));
   end;
 
   procedure RenderImage;
@@ -135,23 +170,16 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
 
   procedure RenderControlPoints;
   var
-    pt0, pt1: TVector2;
-    vLeft, vBottom, vWidth, vHeight: single;
+    vRect: TFloatRectangle;
   begin
-    pt0 := ImageToScreen(FControlPointRec.Points[0]);
-    pt1 := ImageToScreen(FControlPointRec.Points[1]);
+    vRect := ScreenRegionRectangle;
 
-    vLeft := Min(pt0.X, pt1.X);
-    vBottom := Min(pt0.Y, pt1.Y);
-    vWidth := ABS(pt0.X - pt1.X);
-    vHeight := ABS(pt0.Y - pt1.Y);
-
-    DrawRectangle(FloatRectangle(vLeft, vBottom, vWidth, vHeight),
-      Vector4(1, 1, 1, 0.5));
-    DrawRectangleOutline(FloatRectangle(vLeft, vBottom, vWidth, vHeight),
+    DrawRectangle(vRect,
+      Vector4(1, 1, 1, 0.4));
+    DrawRectangleOutline(vRect,
       CastleColors.Red, 2);
-    RenderPoint(pt0);
-    RenderPoint(pt1);
+    RenderPoints(ScreenRegionPoints);
+    RenderPoints(ScreenAdditionalPoints);
   end;
 
 begin
@@ -170,12 +198,14 @@ end;
 procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 
-  procedure GrowScale(beIncrease: boolean; ScreenPoint: TVector2);
+  procedure GrowScale(const beIncrease: boolean; const ScreenPoint: TVector2);
   const
     PX = 0.7;
   var
     ImagePoint: TVector2Integer;
   begin
+    { Limit the scaling point to be inside the image to prevent the coordinates from losing control. }
+
     ImagePoint := ScreenToImage(ScreenPoint);
     ImagePoint.X := Max(ImagePoint.X, 0);
     ImagePoint.Y := Max(ImagePoint.Y, 0);
@@ -224,20 +254,26 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
 
   end;
 
+  function PointUnderMouse(const AImagePoint: TVector2Integer): boolean;
+  var
+    pt: TVector2;
+  begin
+    pt := ImageToScreen(AImagePoint);
+    Result := PointsDistance(pt, Event.Position) < CircleRads;
+  end;
+
 var
-  ScreenPt: array[0..1] of TVector2;
+  RegionPts: TArrayImagePoints;
   i: integer;
-  bTouchPoints: array[0..1] of boolean;
 begin
   if (Event.EventType = TInputPressReleaseType.itMouseButton) and
     (Event.MouseButton = TCastleMouseButton.buttonLeft) and
     (not FControlPointRec.Adjusting) then
   begin
-    for i := Low(FControlPointRec.Points) to High(FControlPointRec.Points) do
+    RegionPts := FControlPointRec.Points;
+    for i := Low(RegionPts) to High(RegionPts) do
     begin
-      ScreenPt[i] := ImageToScreen(FControlPointRec.Points[i]);
-      bTouchPoints[i] := PointsDistance(ScreenPt[i], Event.Position) < CircleRads;
-      if bTouchPoints[i] then
+      if PointUnderMouse(RegionPts[i]) then
       begin
         FControlPointRec.Points[i] := ScreenToImage(Event.Position);
         FControlPointRec.Index := i;
@@ -247,6 +283,21 @@ begin
       end;
     end;
 
+    RegionPts := FControlPointRec.AdditionalPoints;
+    for i := Low(RegionPts) to High(RegionPts) do
+    begin
+      if PointUnderMouse(RegionPts[i]) then
+      begin
+        { The original control points become additional control points. }
+        FControlPointRec.Points := RegionPts;
+        FControlPointRec.Index := i;
+        FControlPointRec.Adjusting := True;
+        Changed;
+        Exit;
+      end;
+    end;
+
+    { new region }
     FControlPointRec.Points[0] := ScreenToImage(Event.Position);
     FControlPointRec.Points[1] := FControlPointRec.Points[0];
     FControlPointRec.Index := 1;
@@ -328,7 +379,7 @@ begin
   end;
 end;
 
-procedure TRegionDesignDialog.SetImage(AValue: TDrawableImage);
+procedure TRegionDesignDialog.SetImage(const AValue: TDrawableImage);
 begin
   if FImage = AValue then Exit;
 
@@ -336,7 +387,7 @@ begin
   if Assigned(FImage) then InitControlPoints;
 end;
 
-procedure TRegionDesignDialog.SetRegion(AValue: TRegion);
+procedure TRegionDesignDialog.SetRegion(const AValue: TRegion);
 begin
   if FRegion.PerfectlyEquals(AValue) then Exit;
 
@@ -377,6 +428,21 @@ begin
     ImageToScreen(CenterPoint);
 
   Changed;
+end;
+
+function TRegionDesignDialog.ScreenRegionPoints: TArrayScreenPoints;
+begin
+  Result[0] := ImageToScreen(FControlPointRec.Points[0]);
+  Result[1] := ImageToScreen(FControlPointRec.Points[1]);
+end;
+
+function TRegionDesignDialog.ScreenAdditionalPoints: TArrayScreenPoints;
+var
+  Points: TArrayImagePoints;
+begin
+  Points := FControlPointRec.AdditionalPoints;
+  Result[0] := ImageToScreen(Points[0]);
+  Result[1] := ImageToScreen(Points[1]);
 end;
 
 procedure TRegionDesignDialog.Changed;
