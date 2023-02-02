@@ -17,8 +17,8 @@ DEF FrameScreenEffect ScreenEffect {
 
         vec2 screen_pos = screenf_position();
         float border_distance = min(
-          min(screen_pos.x, (float)screen_width - screen_pos.x),
-          min(screen_pos.y, (float)screen_height - screen_pos.y)
+          min(screen_pos.x, float(screen_width) - screen_pos.x),
+          min(screen_pos.y, float(screen_height) - screen_pos.y)
         );
         const float border_max_distance = 40.0;
         border_distance = clamp(border_distance / border_max_distance, 0.0, 1.0);
