@@ -147,7 +147,6 @@ type
     FVersionES_3_1: Boolean;
     FVersionES_3_2: Boolean;
     {$endif}
-    FARB_shadow: Boolean;
     FEXT_texture_filter_anisotropic: Boolean;
     FNV_multisample_filter_hint: Boolean;
     FARB_occlusion_query: Boolean;
@@ -181,7 +180,7 @@ type
     FVertexArrayObject: Boolean;
     FBlendConstant: Boolean;
     FTextureFloat: Boolean;
-    FTextureDepth: Boolean;
+    FTextureDepth, FTextureDepthCompare: Boolean;
     FShaders: Boolean;
     FEnableFixedFunction: Boolean;
     FMemory: TGLMemoryInfo;
@@ -253,7 +252,7 @@ type
       like below.
       Instead most interesting extensions are wrapped in "features"
       like @link(UseMultiTexturing), see lower. }
-    property ARB_shadow: Boolean read FARB_shadow;
+
     property EXT_texture_filter_anisotropic: Boolean read FEXT_texture_filter_anisotropic;
     property NV_multisample_filter_hint: Boolean read FNV_multisample_filter_hint;
     property ARB_occlusion_query: Boolean read FARB_occlusion_query;
@@ -395,6 +394,12 @@ type
 
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
+
+    { Ability to create depth textures (TextureDepth) and to define comparison on them:
+      GL_TEXTURE_COMPARE_MODE
+      GL_TEXTURE_COMPARE_FUNC
+      GL_COMPARE_R_TO_TEXTURE . }
+    property TextureDepthCompare: Boolean read FTextureDepthCompare;
 
     { Are GLSL shaders supported. }
     property Shaders: Boolean read FShaders;
@@ -790,7 +795,6 @@ begin
   if Debug then
     InitializeDebug;
 
-  FARB_shadow := LoadExtensions and Load_GL_ARB_shadow;
   FEXT_fog_coord := LoadExtensions and Load_GL_EXT_fog_coord;
   FNV_multisample_filter_hint := LoadExtensions and Load_GL_NV_multisample_filter_hint;
   {$else}
@@ -1051,12 +1055,22 @@ begin
 
   FTextureFloat :=
     {$ifdef OpenGLES} false
-    {$else} LoadExtensions and (Load_GL_ATI_texture_float or Load_GL_ARB_texture_float)
+    {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
     {$endif};
 
   FTextureDepth :=
     {$ifdef OpenGLES} HasExtension('GL_OES_depth_texture')
-    {$else} LoadExtensions and Load_GL_ARB_depth_texture
+    {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
+    {$endif};
+
+  { ARB_shadow defines no new functions, so we don't need to load using this:
+      LoadExtensions and Load_GL_ARB_shadow;
+    and therefore it will work also with modern OpenGL where Load_GL_ARB_shadow is broken in GLExt. }
+  FTextureDepthCompare :=
+    { See https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt ,
+      EXT_shadow_samplers is even a bit more than GL_ARB_shadow. }
+    {$ifdef OpenGLES} HasExtension('GL_EXT_shadow_samplers')
+    {$else} Version_1_4 or HasExtension('GL_ARB_shadow')
     {$endif};
 
   FShaders := {$ifdef OpenGLES} true {$else} Version_2_0 {$endif};

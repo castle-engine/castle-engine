@@ -387,7 +387,7 @@ type
       const TextureGLName: TGLuint);
 
     { Increase / decrease reference to a float texture.
-      Required ARB_texture_float or ATI_texture_float before calling this.
+      Required GLFeatures.TextureFloat before calling this.
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
     function TextureFloat_IncReference(
@@ -1299,7 +1299,7 @@ begin
 
   {$ifndef OpenGLES}
 
-  if GLFeatures.ARB_shadow then
+  if GLFeatures.TextureDepthCompare then
   begin
     if VisualizeDepthMap then
       CompareMode := smNone;
@@ -1314,24 +1314,24 @@ begin
             on other GPUs (NVidia GeForce 450 (kocury)) it is needed
             (otherwise depth map only returns 0/1 values, not grayscale).
             Spec suggests it should be needed. }
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
         end;
       smCompareRLEqual:
         begin
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
         end;
       smCompareRGEqual:
         begin
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
       {$endif}
     end;
 
-    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
   end else
     WritelnWarning('VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 

@@ -102,7 +102,6 @@ function Load_GL_ARB_shader_objects: Boolean;
 function Load_GL_ARB_vertex_shader: Boolean;
 function Load_GL_ARB_fragment_shader: Boolean;
 function Load_GL_ARB_shading_language_100: Boolean;
-function Load_GL_ARB_shadow: Boolean;
 function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
@@ -774,20 +773,6 @@ begin
     Result := TRUE;
   end;
 
-end;
-
-function Load_GL_ARB_shadow: Boolean;
-var
-  extstring: AnsiString;
-begin
-
-  Result := FALSE;
-  extstring := glGetString(GL_EXTENSIONS);
-
-  if glext_ExtensionSupported('GL_ARB_shadow', extstring) then
-  begin
-    Result := TRUE;
-  end;
 end;
 
 function Load_GL_EXT_fog_coord: Boolean;
