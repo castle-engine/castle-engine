@@ -4896,7 +4896,6 @@ const
       if IsPrefix('-psn_', Parameters[I], false) then
       begin
         Parameters.Delete(I);
-        Include(Data.SpecifiedOptions, poMacOsXProcessSerialNumber);
         Exit;
       end;
   end;
