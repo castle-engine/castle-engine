@@ -81,6 +81,8 @@ type
     { Restrict the region within the image rectangle. }
     procedure FixControlPoints;
 
+    procedure UpdateCursorPosInfo(const MousePoint: TVector2);
+
     procedure Changed;
   protected
     function ScreenToImage(APoint: TVector2; bRound: boolean = True): TVector2Integer;
@@ -320,21 +322,21 @@ begin
   if (Event.EventType = TInputPressReleaseType.itMouseWheel) then
   begin
     GrowScale(Event.MouseWheelScroll > 0, Event.Position);
+    UpdateCursorPosInfo(Event.Position);
     Exit;
   end;
 end;
 
+procedure TRegionDesignDialog.UpdateCursorPosInfo(const MousePoint: TVector2);
+var
+  Point: TVector2Integer;
+begin
+  Point := ScreenToImage(MousePoint, False);
+  StatusBar1.Panels.Items[4].Text := Format('CursorPos: %d , %d', [Point.X, Point.Y]);
+end;
+
 procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
   const Event: TInputMotion);
-
-  procedure UpdateCursorPosInfo(const MousePoint: TVector2);
-  var
-    Point: TVector2Integer;
-  begin
-    Point := ScreenToImage(MousePoint, False);
-    StatusBar1.Panels.Items[4].Text := Format('CursorPos: %d , %d', [Point.X, Point.Y]);
-  end;
-
 begin
   UpdateCursorPosInfo(Event.Position);
 

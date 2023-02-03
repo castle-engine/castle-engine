@@ -495,13 +495,13 @@
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       CornerTop, CornerRight, CornerBottom, CornerLeft, SrcTop, SrcRight, SrcBottom, SrcLeft: Single); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const Corner: TVector4Integer; SrcCorner:TVector4); overload;
+      const Corner: TVector4Integer; const SrcCorner:TVector4); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
-      const Corner: TVector4Integer; SrcCorner:TVector4); overload;
+      const Corner: TVector4Integer; const SrcCorner:TVector4); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
-      const Corner: TVector4Integer; SrcCorner:TVector4); overload;
+      const Corner: TVector4Integer; const SrcCorner:TVector4); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
-      const Corner: TVector4; SrcCorner:TVector4); overload;
+      const Corner: TVector4; const SrcCorner:TVector4); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -1517,14 +1517,14 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const Corner: TVector4Integer; SrcCorner:TVector4);
+  const Corner: TVector4Integer; const SrcCorner:TVector4);
 begin
   Draw3x3(X, Y, DrawWidth, DrawHeight,
     Corner[0], Corner[1], Corner[2], Corner[3], SrcCorner[0], SrcCorner[1], SrcCorner[2], SrcCorner[3]);
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TRectangle;
-  const Corner: TVector4Integer; SrcCorner:TVector4);
+  const Corner: TVector4Integer; const SrcCorner:TVector4);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
@@ -1532,7 +1532,7 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TFloatRectangle;
-  const Corner: TVector4Integer; SrcCorner:TVector4);
+  const Corner: TVector4Integer; const SrcCorner:TVector4);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
@@ -1540,7 +1540,7 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TFloatRectangle;
-  const Corner: TVector4; SrcCorner:TVector4);
+  const Corner: TVector4; const SrcCorner:TVector4);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,

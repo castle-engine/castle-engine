@@ -147,7 +147,7 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TCastleProtectedSidesEditor);
-  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, '',
+  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
     TCastleRegionEditor);
 
   { Other properties }
