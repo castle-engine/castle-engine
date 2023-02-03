@@ -3009,14 +3009,16 @@ function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
 
+  { Slash / seems like a nice way to show it, since it is like a path, just in X3D tree. }
+
   if FGeometryParentNode <> nil then
-    Result := FGeometryParentNode.X3DName + ':' + Result;
+    Result := FGeometryParentNode.X3DName + '/' + Result;
 
   if FGeometryGrandParentNode <> nil then
-    Result := FGeometryGrandParentNode.X3DName + ':' + Result;
+    Result := FGeometryGrandParentNode.X3DName + '/' + Result;
 
   if FGeometryGrandGrandParentNode <> nil then
-    Result := FGeometryGrandGrandParentNode.X3DName + ':' + Result;
+    Result := FGeometryGrandGrandParentNode.X3DName + '/' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;
