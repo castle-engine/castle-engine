@@ -228,6 +228,8 @@ begin
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
     '  Texture Modern Formats + Swizzle: ' + BoolToStr(GLFeatures.TextureModernFormatsAndSwizzle, true) + NL +
+    '  Shadow Volumes Possible (stencil buffer, two-sided stencil operations): ' + BoolToStr(GLFeatures.ShadowVolumesPossible, true) + NL +
+    '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
     NL +
     '  All extensions: ' + GLFeatures.AllExtensions + NL +
     NL;

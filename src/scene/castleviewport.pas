@@ -2903,12 +2903,11 @@ begin
 
   { We actually need to do it only if GLFeatures.ShadowVolumesPossible
     and ShadowVolumes for any viewport.
-    But we can as well do it always, it's harmless (just checks some GL
-    extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
+    But we can as well do it always, it's harmless (constructor does not do anything now).
+    (Otherwise we'd have to handle SetShadowVolumes.) }
   if FShadowVolumeRenderer = nil then
   begin
     FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
-    FShadowVolumeRenderer.GLContextOpen;
   end;
 end;
 

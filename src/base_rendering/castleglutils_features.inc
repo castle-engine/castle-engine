@@ -364,7 +364,11 @@ type
     property PackedDepthStencil: Boolean read FPackedDepthStencil;
 
     { Does OpenGL context support shadow volumes.
-      This simply checks do we have stencil buffer with at least 4 bits for now. }
+      This checks do we have:
+      - stencil buffer with at least 4 bits
+      - stencil operations that wrap (GL_INCR/DECR_WRAP in OpenGL >= 2.0)
+      - separate stencil operation (glStencilOpSeparate, without this shadow volumes
+        are more complicated, and now we just require it) }
     property ShadowVolumesPossible: Boolean read FShadowVolumesPossible;
 
     { Are non-power-of-2 textures supported. }
@@ -955,7 +959,13 @@ begin
   end else
     StencilSize := glGetInteger(GL_STENCIL_BITS);
 
-  FShadowVolumesPossible := StencilSize >= 4;
+  FShadowVolumesPossible :=
+    (StencilSize >= 4) and
+    { OpenGLES 2 always has GL_INCR/DECR_WRAP, glStencilOpSeparate:
+      see bottom table at https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glStencilOpSeparate.xhtml }
+    {$ifdef OpenGLES} true
+    {$else} Version_2_0
+    {$endif};
 
   FTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
     Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two') {$endif};
