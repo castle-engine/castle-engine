@@ -100,7 +100,7 @@ type
           Vector3(0, 0, 0, 1),
           Vector3(10, 0, 0, 1),
           Vector3(0, 10, 0, 1)
-        ]);
+        ], false);
         Mesh.Render(pmTriangles);
       finally FreeAndNil(Mesh) end;
 
@@ -133,6 +133,13 @@ type
     procedure SetIndexes(const Indexes: array of UInt16); overload;
     procedure SetIndexes(const Indexes: PUInt16; const IndexesCount: Cardinal); overload;
 
+    { Set vertexes (points) to render.
+
+      UsageDynamic is an optimization hint, pass @true if you plan to change this VBO often,
+      e.g. always or almost-always before each @link(Render) you will send new vertexes
+      with @link(SetVertexes). Pass @false if this VBO stays constant for a long time,
+      and will be drawn many times (so you call @link(SetVertexes) once,
+      then many times @link(Render)). }
     procedure SetVertexes(const Vertexes: array of TVector4;
       const UsageDynamic: Boolean); overload;
     procedure SetVertexes(const Vertexes: TVector4List;
