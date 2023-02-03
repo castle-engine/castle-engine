@@ -57,11 +57,6 @@ const
   WGL_BLUE_SHIFT_ARB = $201A;
   WGL_ALPHA_BITS_ARB = $201B;
   WGL_ALPHA_SHIFT_ARB = $201C;
-  WGL_ACCUM_BITS_ARB = $201D;
-  WGL_ACCUM_RED_BITS_ARB = $201E;
-  WGL_ACCUM_GREEN_BITS_ARB = $201F;
-  WGL_ACCUM_BLUE_BITS_ARB = $2020;
-  WGL_ACCUM_ALPHA_BITS_ARB = $2021;
   WGL_DEPTH_BITS_ARB = $2022;
   WGL_STENCIL_BITS_ARB = $2023;
   WGL_AUX_BUFFERS_ARB = $2024;
@@ -98,7 +93,6 @@ function Load_GL_ARB_shader_objects: Boolean;
 function Load_GL_ARB_vertex_shader: Boolean;
 function Load_GL_ARB_fragment_shader: Boolean;
 function Load_GL_ARB_shading_language_100: Boolean;
-function Load_GL_NV_multisample_filter_hint: Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
 function Load_WGL_ARB_pixel_format: Boolean;
 function Load_GL_EXT_stencil_wrap: Boolean;
@@ -628,21 +622,6 @@ begin
   extstring := glGetString(GL_EXTENSIONS);
 
   if glext_ExtensionSupported('GL_ARB_shading_language_100', extstring) then
-  begin
-    Result := TRUE;
-  end;
-
-end;
-
-function Load_GL_NV_multisample_filter_hint: Boolean;
-var
-  extstring: AnsiString;
-begin
-
-  Result := FALSE;
-  extstring := glGetString(GL_EXTENSIONS);
-
-  if glext_ExtensionSupported('GL_NV_multisample_filter_hint', extstring) then
   begin
     Result := TRUE;
   end;

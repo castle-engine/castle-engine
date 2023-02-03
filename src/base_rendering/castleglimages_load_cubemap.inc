@@ -83,7 +83,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
 begin
   Result :=
-    (GLFeatures.TextureCubeMap = gsNone) or
+    (not GLFeatures.TextureCubeMap) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -94,7 +94,7 @@ end;
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean; overload;
 begin
   Result :=
-    (GLFeatures.TextureCubeMap = gsNone) or
+    (not GLFeatures.TextureCubeMap) or
     (
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
@@ -120,14 +120,17 @@ end;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
 begin
   Result := Size;
-  if GLFeatures.TextureCubeMap <> gsNone then
+  if GLFeatures.TextureCubeMap then
   begin
     if Size <= 0 then
-      Result := 1 else
+      Result := 1
+    else
     if Size > GLFeatures.MaxCubeMapTextureSize then
-      Result := GLFeatures.MaxCubeMapTextureSize else
+      Result := GLFeatures.MaxCubeMapTextureSize
+    else
     if IsPowerOf2(Size) then
-      Result := Size else
+      Result := Size
+    else
       { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
         skoro Size <= MaxTexSize i not IsPowerOf2(Size) to Size < MaxTexSize
         a MaxTexSize samo jest potega dwojki. }
@@ -139,7 +142,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; overlo
 var
   Size: Cardinal;
 begin
-  if GLFeatures.TextureCubeMap <> gsNone then
+  if GLFeatures.TextureCubeMap then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);

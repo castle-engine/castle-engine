@@ -39,49 +39,18 @@ procedure GenerateMipmap(target: TGLenum);
 
 { GenerateMipmap ------------------------------------------------------------- }
 
-{ $define TEST_NO_GENERATE_MIPMAP}
-
 function HasGenerateMipmap: boolean;
-{$ifdef TEST_NO_GENERATE_MIPMAP}
 begin
-  Result := false;
-{$else}
-begin
-  Result := (GLFeatures.Framebuffer <> gsNone) and (not GLVersion.BuggyGenerateMipmap);
-{$endif}
+  Result := GLFeatures.Framebuffer and (not GLVersion.BuggyGenerateMipmap);
 end;
 
 procedure GenerateMipmap(target: TGLenum);
 begin
-  {$ifndef TEST_NO_GENERATE_MIPMAP}
-  if GLFeatures.Framebuffer <> gsNone then
+  if GLFeatures.Framebuffer then
   begin
-    {$ifndef OpenGLES}
-    if GLVersion.Fglrx then
-    begin
-      glPushAttrib(GL_ENABLE_BIT);
-      { To work under fglrx (confirmed on chantal (ATI Mobility Radeon X1600)),
-        we have to temporarily enable target.
-        At least with EXT_framebuffer_object.
-        This is a known ATI drivers problem:
-        http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=237052 }
-      glEnable(Target);
-    end;
-
-    case GLFeatures.Framebuffer of
-      gsExtension: glGenerateMipmapEXT(Target);
-      gsStandard : glGenerateMipmap   (Target);
-      else ;
-    end;
-
-    if GLVersion.Fglrx then
-      glPopAttrib;
-    {$else}
     glGenerateMipmap(Target);
-    {$endif}
   end else
-  {$endif}
-    raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap[EXT] not available');
+    raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap not available');
 end;
 
 {$endif read_implementation}

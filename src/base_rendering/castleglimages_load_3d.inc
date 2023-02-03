@@ -69,7 +69,7 @@ procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
 function IsTexture3DSized(const Size: Cardinal): boolean; overload;
 begin
   Result :=
-    (GLFeatures.Texture3D = gsNone) or
+    (not GLFeatures.Texture3D) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -79,7 +79,7 @@ end;
 
 function IsTexture3DSized(const R: TCastleImage): boolean; overload;
 begin
-  if GLFeatures.Texture3D <> gsNone then
+  if GLFeatures.Texture3D then
   begin
     Result :=
       IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
@@ -111,17 +111,10 @@ var
     begin
       BeforeUnpackImage(Image);
       try
-        case GLFeatures.Texture3D of
-          gsExtension:
-            glTexImage3DEXT(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
-              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
-              Image.RawPixels);
-          gsStandard:
-            glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
-              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
-              Image.RawPixels);
-          else ;
-        end;
+        if GLFeatures.Texture3D then
+          glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
+            Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
+            Image.RawPixels);
         LoadedSize := LoadedSize + Image.Size;
       finally AfterUnpackImage(Image) end;
     end;

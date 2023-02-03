@@ -19,9 +19,19 @@
 {$ifdef read_interface}
 
 type
+  { Unused for now.
+    Was used to differentiate in TGLFeatures whether something is supported as core or extension,
+    but in the end -- this it not needed for anything now.
+    Maybe will be useful again in the future.
+    @exclude }
   TGLSupport = (gsNone, gsExtension, gsStandard);
 
 const
+  { Unused for now.
+    Was used to differentiate in TGLFeatures whether something is supported as core or extension,
+    but in the end -- this it not needed for anything now.
+    Maybe will be useful again in the future.
+    @exclude }
   GLSupportNames: array [TGLSupport] of string =
   ( 'None', 'Extension', 'Standard' );
 
@@ -150,7 +160,6 @@ type
     FEXT_texture_filter_anisotropic: Boolean;
     FNV_multisample_filter_hint: Boolean;
     FARB_occlusion_query: Boolean;
-    FEXT_framebuffer_blit: Boolean;
     FCLAMP_TO_EDGE: TGLenum;
     FMaxTextureSize: Cardinal;
     FMaxLights: Cardinal;
@@ -164,14 +173,15 @@ type
     FMaxTextureUnitsFixedFunction: Cardinal;
     FMaxTextureUnitsShaders: Cardinal;
     FUseMultiTexturing: Boolean;
-    FTexture3D: TGLSupport;
-    FFramebuffer: TGLSupport;
+    FTexture3D: Boolean;
+    FFramebuffer: Boolean;
+    FFramebufferBlit: Boolean;
     FFBOMultiSampling: Boolean;
     FCurrentMultiSampling: Cardinal;
     FPackedDepthStencil: Boolean;
     FShadowVolumesPossible: Boolean;
     FTextureNonPowerOfTwo: Boolean;
-    FTextureCubeMap: TGLSupport;
+    FTextureCubeMap: Boolean;
     FTextureCompression: TTextureCompressions;
     FVertexBufferObject: Boolean;
     FVertexArrayObject: Boolean;
@@ -253,15 +263,11 @@ type
     property EXT_texture_filter_anisotropic: Boolean read FEXT_texture_filter_anisotropic;
     property NV_multisample_filter_hint: Boolean read FNV_multisample_filter_hint;
     property ARB_occlusion_query: Boolean read FARB_occlusion_query;
-    property EXT_framebuffer_blit: Boolean read FEXT_framebuffer_blit;
 
     { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
       Otherwise GL_CLAMP.
-
-      Use this (insteaf of direct GL_CLAMP_TO_EDGE)
-      to work with @italic(really ancient) OpenGL versions before 1.2.
-      Note that our engine officially supports only OpenGL >= 1.2,
-      so don't expect everything to work smootly with such ancient OpenGL anyway! }
+      Use this (instead of just GL_CLAMP_TO_EDGE)
+      to work with @italic(really ancient) OpenGL versions before 1.2. }
     property CLAMP_TO_EDGE: TGLenum read FCLAMP_TO_EDGE;
 
     { Constant (for given context) OpenGL limits.
@@ -306,17 +312,14 @@ type
       ancient GPUs. }
     property UseMultiTexturing: Boolean read FUseMultiTexturing;
 
-    { Are 3D textures supported by OpenGL.
-      If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
-      so often both Texture3D = gsStandard and Texture3D = gsExtension
-      cases may be handled by the same code. }
-    property Texture3D: TGLSupport read FTexture3D;
+    { Are 3D textures (GL_TEXTURE_3D, glTexImage3D) supported by core OpenGL or OpenGLES. }
+    property Texture3D: Boolean read FTexture3D;
 
-    { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
-      is used, gsStandard means that ARB_framebuffer_object (which is
-      a "core extesion", present the same way in OpenGL 3 core,
-      also in OpenGL ES >= 2.0 core) is available. }
-    property Framebuffer: TGLSupport read FFramebuffer;
+    { Framebuffer supported, by core OpenGL or OpenGLES. }
+    property Framebuffer: Boolean read FFramebuffer;
+
+    { glFramebufferBlit supported, by core OpenGL or OpenGLES. }
+    property FramebufferBlit: Boolean read FFramebufferBlit;
 
     { Is multisampling possible for FBO buffers and textures.
       Although these are two orthogonal features of OpenGL,
@@ -362,16 +365,12 @@ type
     { Are non-power-of-2 textures supported. }
     property TextureNonPowerOfTwo: Boolean read FTextureNonPowerOfTwo;
 
-    { Are cubemaps supported.
+    { Are cubemaps supported (so you can load to texture targets like
+      GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z) by core OpenGL or OpenGLES. }
+    property TextureCubeMap: Boolean read FTextureCubeMap;
 
-      gsExtension means GL_ARB_texture_cube_map on core OpenGL.
-      gsStandard means standard feature of OpenGL or OpenGL ES.
-      Since the constants defined by ARB_texture_cube_map were promoted
-      to core with the same values, the distinction between gsExtension
-      and gsStandard in practice doesn't exist. }
-    property TextureCubeMap: TGLSupport read FTextureCubeMap;
-
-    { Which texture compression formats are supported. }
+    { Which texture compression formats are supported.
+      If this is not [], then we guarantee glCompressedTexImage2D is also supported. }
     property TextureCompression: TTextureCompressions read FTextureCompression;
 
     { VBO support (in OpenGL (ES) core). }
@@ -789,12 +788,15 @@ begin
   if Debug then
     InitializeDebug;
 
-  FNV_multisample_filter_hint := LoadExtensions and Load_GL_NV_multisample_filter_hint;
+  FNV_multisample_filter_hint := HasExtension('GL_NV_multisample_filter_hint');
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
   FVersionES_3_1 := GLVersion.AtLeast(3, 1);
   FVersionES_3_2 := GLVersion.AtLeast(3, 2);
+
+  if not VersionES_2_0 then
+    raise Exception.Create('We only support OpenGL ES versions >= 2.0');
   {$endif}
 
   {$ifdef OpenGLES}
@@ -827,42 +829,33 @@ begin
     FMaxTextureUnitsFixedFunction := 1;
   {$endif}
 
-  FMaxCubeMapTextureSize := 0;
-  {$ifdef OpenGLES}
-  FTextureCubeMap := gsStandard;
-  {$else}
-  if Version_1_3 then
-    FTextureCubeMap := gsStandard
-  else
-  if LoadExtensions and Load_GL_ARB_texture_cube_map then
-    FTextureCubeMap := gsExtension
-  else
-    FTextureCubeMap := gsNone;
-  {$endif}
-  if TextureCubeMap <> gsNone then
-    FMaxCubeMapTextureSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
+  FTextureCubeMap := {$ifdef OpenGLES} true
+    {$else} Version_1_3
+    {$endif};
 
-  {$ifndef OpenGLES}
-  if Version_1_2 then
-    FTexture3D := gsStandard
+  if TextureCubeMap then
+    FMaxCubeMapTextureSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE)
   else
-  if LoadExtensions and Load_GL_EXT_texture3D then
-    FTexture3D := gsExtension
-  else
-  {$endif}
-    FTexture3D := gsNone;
+    FMaxCubeMapTextureSize := 0;
+
+  { OpenGLES: Since 3.0, https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexImage3D.xhtml .
+    OpenGL: Since 1.2, https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage3D.xhtml
+    (actually they don't show there OpenGL 1.x anymore) }
+  FTexture3D := {$ifdef OpenGLES} VersionES_3_0
+    {$else} Version_1_2
+    {$endif};
 
   { calculate MaxTexture3DSize, eventually correct Texture3D if buggy }
-  case Texture3D of
-    gsExtension: FMaxTexture3DSize := {$ifndef OpenGLES} glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) {$else} 0 {$endif};
-    gsStandard : FMaxTexture3DSize := {$ifndef OpenGLES} glGetInteger(GL_MAX_3D_TEXTURE_SIZE) {$else} 0 {$endif};
-    gsNone     : FMaxTexture3DSize := 0;
-  end;
-  if (MaxTexture3DSize = 0) and (Texture3D <> gsNone) then
+  if Texture3D then
   begin
-    FTexture3D := gsNone;
-    WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
-  end;
+    FMaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
+    if MaxTexture3DSize = 0 then
+    begin
+      FTexture3D := false;
+      WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE is zero. (Bug may be found on Mesa 7.0.4.)');
+    end;
+  end else
+    FMaxTexture3DSize := 0;
 
   // TODO: there is also such extension for OpenGL ES
   FEXT_texture_filter_anisotropic := {$ifdef OpenGLES} false {$else}
@@ -880,31 +873,28 @@ begin
     glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @FQueryCounterBits);
   {$endif}
 
-  { calculate GLFramebuffer }
-  {$ifdef OpenGLES}
-  FFramebuffer := gsStandard;
-  {$else}
-  if Version_3_0 or (LoadExtensions and Load_GL_ARB_framebuffer_object) then
-    FFramebuffer := gsStandard
-  else
-  if LoadExtensions and Load_GL_EXT_framebuffer_object then
-    FFramebuffer := gsExtension
-  else
-    FFramebuffer := gsNone;
-  {$endif}
+  { calculate Framebuffer }
+  FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
+    {$else} Version_3_0
+    {$endif};
 
-  if Framebuffer <> gsNone then
+  if Framebuffer then
   begin
-    FMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE { equal to GL_MAX_RENDERBUFFER_SIZE_EXT });
+    FMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE);
     if MaxRenderbufferSize = 0 then
     begin
-      FFramebuffer := gsNone;
-      WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
+      FFramebuffer := false;
+      WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE is zero. (Bug may be found on Mesa 7.0.4.)');
     end;
   end else
     FMaxRenderbufferSize := 0;
 
-  FEXT_framebuffer_blit := LoadExtensions and Load_GL_EXT_framebuffer_blit;
+  { - In case of OpenGLES: while OpenGLES 2 includes base FBO,
+      only OpenGLES 3 has glBlitFramebuffer.
+    - In case of OpenGL: OpenGL 3 core includes both base FBO and glBlitFramebuffer. }
+  FFramebufferBlit := {$ifdef OpenGLES} VersionES_3_0
+    {$else} Version_3_0
+    {$endif};
 
   { Calculate UseMultiTexturing.
     We used to require a couple of extensions for multitexturing:
@@ -918,12 +908,13 @@ begin
     {$else} Version_1_3
     {$endif};
 
-  FFBOMultiSampling := {$ifdef OpenGLES} false {$else}
-    { Is GL_ARB_framebuffer_object available? }
-    (Framebuffer = gsStandard) and
+  FFBOMultiSampling := {$ifdef OpenGLES} false
+    {$else}
+    Framebuffer and
     LoadExtensions and
     Load_GL_ARB_texture_multisample and
-    (not GLVersion.BuggyFBOMultiSampling) {$endif};
+    (not GLVersion.BuggyFBOMultiSampling)
+    {$endif};
 
   FMultisample := {$ifdef OpenGLES} true {$else} LoadExtensions and Load_GL_ARB_multisample {$endif};
   if FMultisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
@@ -1071,7 +1062,9 @@ begin
     {$else} Version_1_4 or HasExtension('GL_ARB_shadow')
     {$endif};
 
-  FShaders := {$ifdef OpenGLES} true {$else} Version_2_0 {$endif};
+  FShaders := {$ifdef OpenGLES} true
+    {$else} Version_2_0
+    {$endif};
 
   FEnableFixedFunction :=
     {$ifdef OpenGLES} false
@@ -1108,9 +1101,7 @@ begin
   FVertexArrayObject := {$ifdef OpenGLES} false {$else} (not EnableFixedFunction) and Version_3_0 {$endif};
 
   { Calculate MaxClipPlanes.
-    The logic follows various approaches to clip planes in TShader.EnableClipPlane.
-    TODO: If you later switch EnableFixedFunction to true,
-    our code doesn't recalculate this limit now. }
+    The logic follows various approaches to clip planes in TShader.EnableClipPlane. }
   {$ifndef OpenGLES}
   if EnableFixedFunction or (not Version_3_0) then
     FMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES)
@@ -1253,7 +1244,7 @@ begin
     glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, @FreeMemory);
     CurrentTexture := FreeMemory[0];
 
-    if GLFeatures.Framebuffer <> gsNone then
+    if GLFeatures.Framebuffer then
     begin
       glGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, @FreeMemory);
       CurrentRenderbuffer := FreeMemory[0];

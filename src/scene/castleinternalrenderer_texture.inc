@@ -1739,9 +1739,9 @@ var
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
   GUITexture: boolean;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ComposedCubeMapTexture');
     Exit;
   end;
 
@@ -1806,9 +1806,9 @@ var
   GUITexture: boolean;
   Composite: TCompositeImage;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ImageCubeMapTexture');
     Exit;
   end;
 
@@ -1866,9 +1866,9 @@ var
   GUITexture: boolean;
   InitialImage: TCastleImage;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use GeneratedCubeMapTexture');
     Exit;
   end;
 
@@ -2000,9 +2000,9 @@ var
   GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
 begin
-  if GLFeatures.Texture3D = gsNone then
+  if not GLFeatures.Texture3D then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support 3D textures, cannot use Texture3D nodes');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support 3D textures, cannot use Texture3D nodes');
     Exit;
   end;
 

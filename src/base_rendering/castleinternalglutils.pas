@@ -35,7 +35,6 @@ uses
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
 {$I castleinternalglutils_mipmaps.inc}
-{$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
 {$I castleinternalglutils_render_unlit_mesh.inc}
 
@@ -52,7 +51,6 @@ uses
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
 {$I castleinternalglutils_mipmaps.inc}
-{$I castleinternalglutils_ext_framebuffer_blit.inc}
 {$I castleinternalglutils_delphi_wgl.inc}
 {$I castleinternalglutils_render_unlit_mesh.inc}
 

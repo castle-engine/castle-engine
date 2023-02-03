@@ -730,11 +730,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgWorldSpaceNormal:
         begin
           {$ifdef OpenGLES}
-          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if GLFeatures.TextureCubeMap = gsNone then
+          if not GLFeatures.TextureCubeMap then
           begin
-            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
 
             if GLFeatures.EnableFixedFunction then
             begin
@@ -763,11 +763,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgWorldSpaceReflectionVector:
         begin
           {$ifdef OpenGLES}
-          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if GLFeatures.TextureCubeMap = gsNone then
+          if not GLFeatures.TextureCubeMap then
           begin
-            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
 
             if GLFeatures.EnableFixedFunction then
             begin

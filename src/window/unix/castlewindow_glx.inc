@@ -83,11 +83,8 @@ begin
       { Buffer sizes below are all in bits. }
       GLX_DEPTH_SIZE, DepthBits,
       GLX_STENCIL_SIZE, StencilBits,
-      GLX_ALPHA_SIZE, AlphaBits,
-      GLX_ACCUM_RED_SIZE, FAccumBits[0],
-      GLX_ACCUM_GREEN_SIZE, FAccumBits[1],
-      GLX_ACCUM_BLUE_SIZE, FAccumBits[2],
-      GLX_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
+      GLX_ALPHA_SIZE, AlphaBits
+    ]);
     if RedBits   <> 0 then Attribs.AddRange([GLX_RED_SIZE  , RedBits  ]);
     if GreenBits <> 0 then Attribs.AddRange([GLX_GREEN_SIZE, GreenBits]);
     if BlueBits  <> 0 then Attribs.AddRange([GLX_BLUE_SIZE , BlueBits ]);

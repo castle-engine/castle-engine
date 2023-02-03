@@ -324,13 +324,8 @@ begin
   end;
   BoundFboStack.Add(Fbo);
 
-  case GLFeatures.Framebuffer of
-    {$ifndef OpenGLES}
-    gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);
-    {$endif}
-    gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , Fbo);
-    else ;
-  end;
+  if GLFeatures.Framebuffer then
+    glBindFramebuffer(GL_FRAMEBUFFER, Fbo);
 end;
 
 { Remove the top Fbo from the stack, and bind previous (new top) Fbo.
@@ -365,13 +360,8 @@ begin
   else
     PreviousFboDefaultBuffer := GL_COLOR_ATTACHMENT0;
 
-  case GLFeatures.Framebuffer of
-    {$ifndef OpenGLES}
-    gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
-    {$endif}
-    gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , PreviousFbo);
-    else ;
-  end;
+  if GLFeatures.Framebuffer then
+    glBindFramebuffer(GL_FRAMEBUFFER, PreviousFbo);
 end;
 
 procedure UnbindFramebuffer; overload;
@@ -403,26 +393,15 @@ procedure FramebufferTexture2D(const Target: TGLenum;
   Attachment, TexTarget: TGLenum; const Texture: TGLTextureId; const Level: TGLint);
 begin
   Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
-  case GLFeatures.Framebuffer of
-    {$ifndef OpenGLES}
-    gsExtension:
-      begin
-        if AttachmentDepthAndStencil then
-          Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
-        glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
-      end;
-    {$endif}
-    gsStandard:
-      begin
-        if AttachmentDepthAndStencil then
-        begin
-          WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
-          glFramebufferTexture2D(Target, GL_DEPTH_ATTACHMENT  , TexTarget, Texture, Level);
-          glFramebufferTexture2D(Target, GL_STENCIL_ATTACHMENT, TexTarget, Texture, Level);
-        end else
-          glFramebufferTexture2D(Target, Attachment, TexTarget, Texture, Level);
-      end;
-    else ;
+  if GLFeatures.Framebuffer then
+  begin
+    if AttachmentDepthAndStencil then
+    begin
+      WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
+      glFramebufferTexture2D(Target, GL_DEPTH_ATTACHMENT  , TexTarget, Texture, Level);
+      glFramebufferTexture2D(Target, GL_STENCIL_ATTACHMENT, TexTarget, Texture, Level);
+    end else
+      glFramebufferTexture2D(Target, Attachment, TexTarget, Texture, Level);
   end;
 end;
 
@@ -461,13 +440,8 @@ begin
     begin
       if not FramebufferBound then
         BindFramebuffer(Framebuffer);
-      case GLFeatures.Framebuffer of
-        {$ifndef OpenGLES}
-        gsExtension: glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
-        {$endif}
-        gsStandard : glFramebufferTexture2D   (GL_FRAMEBUFFER    , GL_COLOR_ATTACHMENT0    , TextureTarget, Texture, 0);
-        else ;
-      end;
+      if GLFeatures.Framebuffer then
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
       if not FramebufferBound then
         UnbindFramebuffer;
     end;
@@ -510,45 +484,32 @@ procedure TGLRenderToTexture.GLContextOpen;
     const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
     Attachment: TGLenum);
   begin
-    case GLFeatures.Framebuffer of
+    if GLFeatures.Framebuffer then
+    begin
+      glGenRenderbuffers(1, @RenderbufferId);
+      glBindRenderbuffer(GL_RENDERBUFFER, RenderbufferId);
       {$ifndef OpenGLES}
-      gsExtension:
-        begin
-          glGenRenderbuffersEXT(1, @RenderbufferId);
-          glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferId);
-          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, InternalFormat, Width, Height);
-          if AttachmentDepthAndStencil then
-            Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
-          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, Attachment, GL_RENDERBUFFER_EXT, RenderbufferId);
-        end;
+      if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
       {$endif}
-      gsStandard:
-        begin
-          glGenRenderbuffers(1, @RenderbufferId);
-          glBindRenderbuffer(GL_RENDERBUFFER, RenderbufferId);
-          {$ifndef OpenGLES}
-          if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
-            glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
-          {$endif}
-            glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
-          if AttachmentDepthAndStencil then
-          begin
-            // WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
-            { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
-              when trying to use GL_DEPTH_STENCIL_ATTACHMENT. }
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
-          end else
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
-        end;
-      else ;
+        glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
+      if AttachmentDepthAndStencil then
+      begin
+        // WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
+        { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
+          when trying to use GL_DEPTH_STENCIL_ATTACHMENT. }
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
+      end else
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
     end;
   end;
 
   function ColorBufferFormat: TGLenum;
   begin
     if ColorBufferAlpha then
-      Result := GL_RGBA else
+      Result := GL_RGBA
+    else
       Result := GL_RGB;
   end;
 
@@ -561,7 +522,7 @@ var
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
-  if (GLFeatures.Framebuffer <> gsNone) and
+  if GLFeatures.Framebuffer and
      (not (GLVersion.BuggyFBOCubeMap and
            Between(TextureTarget, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z))) then
   begin
@@ -570,13 +531,7 @@ begin
       raise EFramebufferSizeTooLow.CreateFmt('Maximum renderbuffer (within framebuffer) size is %d x %d in your OpenGL implementation, while we require %d x %d',
         [ GLFeatures.MaxRenderbufferSize, GLFeatures.MaxRenderbufferSize, Width, Height ]);
 
-    case GLFeatures.Framebuffer of
-      {$ifndef OpenGLES}
-      gsExtension: glGenFramebuffersEXT(1, @Framebuffer);
-      {$endif}
-      gsStandard : glGenFramebuffers   (1, @Framebuffer);
-      else ;
-    end;
+    glGenFramebuffers(1, @Framebuffer);
     BindFramebuffer(Framebuffer);
 
     { When GLPackedDepthStencil, and stencil is wanted
@@ -650,13 +605,7 @@ begin
     Success := false;
     try
       CheckGLErrors('Check errors before checking FBO status');
-      case GLFeatures.Framebuffer of
-        {$ifndef OpenGLES}
-        gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-        {$endif}
-        gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
-        else Status := GL_FRAMEBUFFER_UNSUPPORTED; // FBO not supported by OpenGL(ES) implementation
-      end;
+      Status := glCheckFramebufferStatus(GL_FRAMEBUFFER);
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;
         GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
@@ -665,13 +614,7 @@ begin
       end;
     finally
       { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
-      case GLFeatures.Framebuffer of
-        {$ifndef OpenGLES}
-        gsExtension: glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-        {$endif}
-        gsStandard : glBindRenderbuffer   (GL_RENDERBUFFER    , 0);
-        else ;
-      end;
+      glBindRenderbuffer(GL_RENDERBUFFER, 0);
       UnbindFramebuffer(PreviousFboDefaultBuffer);
 
       if Buffer = tbDepth then
@@ -696,13 +639,8 @@ procedure TGLRenderToTexture.GLContextClose;
   begin
     if Buf <> 0 then
     begin
-      case GLFeatures.Framebuffer of
-        {$ifndef OpenGLES}
-        gsExtension: glDeleteRenderbuffersEXT(1, @Buf);
-        {$endif}
-        gsStandard : glDeleteRenderbuffers   (1, @Buf);
-        else ;
-      end;
+      if GLFeatures.Framebuffer then
+        glDeleteRenderbuffers(1, @Buf);
       Buf := 0;
     end;
   end;
@@ -711,13 +649,8 @@ procedure TGLRenderToTexture.GLContextClose;
   begin
     if Buf <> 0 then
     begin
-      case GLFeatures.Framebuffer of
-        {$ifndef OpenGLES}
-        gsExtension: glDeleteFramebuffersEXT(1, @Buf);
-        {$endif}
-        gsStandard : glDeleteFramebuffers   (1, @Buf);
-        else ;
-      end;
+      if GLFeatures.Framebuffer then
+        glDeleteFramebuffers(1, @Buf);
       Buf := 0;
     end;
   end;
@@ -862,8 +795,8 @@ begin
   if (MultiSampling > 1) and
      GLFeatures.FBOMultiSampling then
   begin
-    if not GLFeatures.EXT_framebuffer_blit then
-      raise Exception.Create('Cannot get FBO contents without EXT_framebuffer_blit supported. You need a newer GPU for this application to work.');
+    if not GLFeatures.FramebufferBlit then
+      raise Exception.Create('Cannot get FBO contents without glBlitFramebuffer supported. You need a newer GPU for this application to work.');
 
     { In case we used multi-sampling FBO for rendering,
       we cannot directly use glReadPixels on it. See the bottom of
@@ -875,9 +808,9 @@ begin
       NonMultiFbo.ColorBufferAlpha := ColorBufferAlpha;
       NonMultiFbo.GLContextOpen;
 
-      glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, Framebuffer);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, NonMultiFbo.Framebuffer);
-      glBlitFramebufferEXT(0, 0, Width, Height, 0, 0, Width, Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, Framebuffer);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NonMultiFbo.Framebuffer);
+      glBlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
       glBindFramebuffer(GL_FRAMEBUFFER, NonMultiFbo.Framebuffer);
       Result := SaveScreen_NoFlush(ImageClass, Rect, ColorBuffer);

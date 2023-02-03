@@ -330,23 +330,23 @@ begin
     case Target of
       etNone: begin
           glDisable(GL_TEXTURE_2D);
-          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+          if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D then glDisable(GL_TEXTURE_3D);
         end;
       et2D: begin
           glEnable(GL_TEXTURE_2D);
-          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+          if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D then glDisable(GL_TEXTURE_3D);
         end;
       etCubeMap: begin
           glDisable(GL_TEXTURE_2D);
-          if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
-          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+          if GLFeatures.TextureCubeMap then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
+          if GLFeatures.Texture3D then glDisable(GL_TEXTURE_3D);
         end;
       et3D: begin
           glDisable(GL_TEXTURE_2D);
-          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-          if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
+          if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D then glEnable(GL_TEXTURE_3D) else Result := false;
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('GLEnableTexture:Target?');

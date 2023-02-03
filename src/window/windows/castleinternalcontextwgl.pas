@@ -82,20 +82,12 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
       cAlphaBits := Requirements.AlphaBits;
       cDepthBits := Requirements.DepthBits;
       cStencilBits := Requirements.StencilBits;
-      { Note: cAccumRed/Green/Blue/AlphaBits are ignored.
-        We have to use (less functional) cAccumBits. }
-      {$warnings off} // using AccumBits to keep them working for now
-      cAccumBits := RoundUpToMultiply(Requirements.AccumBits[0], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[1], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[2], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[3], 8);
-      {$warnings on}
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
     PixelFormat := Windows.ChoosePixelFormat(h_Dc, {$ifndef FPC}@{$endif}pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
-    { Check if we got required AlphaBits, DepthBits, StencilBits, FAccumBits -
+    { Check if we got required AlphaBits, DepthBits, StencilBits -
       because ChoosePixelFormat doesn't guarantee it.
 
       In the future, I may switch to using SetPixelFormat_WGLChoose by default.
@@ -258,19 +250,14 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
             if Requirements.DoubleBuffer then
               VisualAttr.AddRange([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
-            {$warnings off} // using AccumBits to keep them working for now
             VisualAttr.AddRange([
               WGL_RED_BITS_ARB, Requirements.RedBits,
               WGL_GREEN_BITS_ARB, Requirements.GreenBits,
               WGL_BLUE_BITS_ARB, Requirements.BlueBits,
               WGL_DEPTH_BITS_ARB, Requirements.DepthBits,
               WGL_STENCIL_BITS_ARB, Requirements.StencilBits,
-              WGL_ALPHA_BITS_ARB, Requirements.AlphaBits,
-              WGL_ACCUM_RED_BITS_ARB, Requirements.AccumBits[0],
-              WGL_ACCUM_GREEN_BITS_ARB, Requirements.AccumBits[1],
-              WGL_ACCUM_BLUE_BITS_ARB, Requirements.AccumBits[2],
-              WGL_ACCUM_ALPHA_BITS_ARB, Requirements.AccumBits[3] ]);
-            {$warnings on}
+              WGL_ALPHA_BITS_ARB, Requirements.AlphaBits
+            ]);
 
             if Requirements.MultiSampling > 1 then
             begin

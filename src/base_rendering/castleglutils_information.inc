@@ -35,9 +35,6 @@ function GLInformationStringSummary: String;
 {$ifdef read_implementation}
 
 function GLInformationString: string;
-const
-  GLSupportNamesFBO: array [TGLSupport] of String =
-  ( 'None', 'Extension', 'Standard (or ARB "core extension")' );
 
   function GetInteger(const Param: TGLenum): String;
   begin
@@ -132,20 +129,6 @@ const
         ]);
   end;
 
-  function GetMaxCubeMapTextureSize: string;
-  begin
-    if GLFeatures.TextureCubeMap <> gsNone then
-      Result := IntToStr(GLFeatures.MaxCubeMapTextureSize) else
-      Result := 'Cube maps not available';
-  end;
-
-  function GetMaxTexture3DSize: string;
-  begin
-    if GLFeatures.Texture3D <> gsNone then
-      Result := IntToStr(GLFeatures.MaxTexture3DSize) else
-      Result := '3D textures not available';
-  end;
-
   function GetMaxTextureMaxAnisotropy: string;
   begin
     if GLFeatures.EXT_texture_filter_anisotropic then
@@ -159,13 +142,6 @@ const
     if GLFeatures.ARB_occlusion_query then
       Result := IntToStr(GLFeatures.QueryCounterBits) else
       Result := 'ARB_occlusion_query not available';
-  end;
-
-  function GetMaxRenderbufferSize: string;
-  begin
-    if GLFeatures.Framebuffer <> gsNone then
-      Result := IntToStr(GLFeatures.MaxRenderbufferSize) else
-      Result := 'Framebuffer not available';
   end;
 
   function TextureCompressionsToString(const Compressions: TTextureCompressions): string;
@@ -237,14 +213,14 @@ begin
     '  Shaders (GLSL): ' + BoolToStr(GLFeatures.Shaders, true) + NL +
     '  Necessary to use deprecated (fixed-function): ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
-    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] + NL +
+    '  Framebuffer Object: ' + BoolToStr(GLFeatures.Framebuffer, true) + NL +
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
     '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) + NL +
     '  Vertex Array Object: ' + BoolToStr(GLFeatures.VertexArrayObject, true) + NL +
     '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) + NL +
-    '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] + NL +
+    '  Cube map textures: ' + BoolToStr(GLFeatures.TextureCubeMap, true) + NL +
     '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) + NL +
-    '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] + NL +
+    '  3D textures: ' + BoolToStr(GLFeatures.Texture3D, true) + NL +
     '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) + NL +
     '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) + NL +
     '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
@@ -271,16 +247,8 @@ begin
         +GetInteger(GL_BLUE_BITS) +' / '
         +GetInteger(GL_ALPHA_BITS) + NL +
       '  Depth: ' +GetInteger(GL_DEPTH_BITS) + NL +
-      {$ifndef OpenGLES}
-      '  Index: ' +GetInteger(GL_INDEX_BITS) + NL +
-      {$endif}
       '  Stencil: ' +GetInteger(GL_STENCIL_BITS) + NL +
       {$ifndef OpenGLES}
-      '  Accumulation (red / green / blue / alpha): '
-        +GetInteger(GL_ACCUM_RED_BITS) +' / '
-        +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
-        +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-        +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
       '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
       {$endif}
       '  Multi-sampling (full-screen anti-aliasing) possible: ' +
@@ -313,12 +281,12 @@ begin
       '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
       '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
       '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) + NL +
-      '  Max cube map texture size: ' + GetMaxCubeMapTextureSize + NL +
-      '  Max 3d texture size: ' + GetMaxTexture3DSize + NL +
+      '  Max cube map texture size: ' + IntToStr(GLFeatures.MaxCubeMapTextureSize) + NL +
+      '  Max 3d texture size: ' + IntToStr(GLFeatures.MaxTexture3DSize) + NL +
       '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
       '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
         GetQueryCounterBits + NL +
-      '  Max renderbuffer size: ' + GetMaxRenderbufferSize + NL +
+      '  Max renderbuffer size: ' + IntToStr(GLFeatures.MaxRenderbufferSize) + NL +
       '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
       NL;
   end;

@@ -502,7 +502,6 @@ type
 
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
-    FAccumBits: TVector4Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
@@ -584,23 +583,28 @@ type
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
 
-      Here's a list of properties that should be made "visible" to the user
-      in OpenBackend:
+      Properties that should be used in OpenBackend implementation to determine
+      the window:
 
-        Width, Height, Left, Top
-        Cursor,
-        FullScreen
-          (Note that FFullScreenWanted and FFullScreenBackend are always
-          equal at this point, so you can read any of these fields.
-          You can also just read FullScreen property.)
-        ResizeAllowed (DoResize already implements appropriate
-          checks, but implementation should provide user with visual clues that
-          the window may / may not be resized)
-        MainMenu (display MainMenu and provide way to call DoMenuClick)
+      - Width, Height, Left, Top
+      - Cursor,
+      - FullScreen
+        (Note that FFullScreenWanted and FFullScreenBackend are always
+        equal at this point, so you can read any of these fields.
+        You can also just read FullScreen property.)
+      - ResizeAllowed
+        (DoResize already implements appropriate
+        checks, but implementation should provide user with visual clues that
+        the window may / may not be resized)
+      - MainMenu (display MainMenu and provide way to call DoMenuClick)
 
       OpenGL context must be initialized honouring these properties:
-        DoubleBuffer, StencilBits, DepthBits, AlphaBits,
-        AccumBits, MultiSampling }
+
+      - DoubleBuffer,
+      - StencilBits,
+      - DepthBits,
+      - AlphaBits,
+      - MultiSampling }
     procedure OpenBackend;
 
     { Close OpenGL context, for particular backend.
@@ -881,7 +885,7 @@ type
     procedure OpenCore;
     { Current OpenGL buffers configuration required.
       Stuff like DoubleBuffer, AlphaBits, DepthBits,
-      StencilBits, AccumBits etc.
+      StencilBits etc.
       This simply returns a text description of these properties.
 
       It does not describe the current OpenGL context parameters.
@@ -1370,24 +1374,6 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    { Required number of bits in color channels of accumulation buffer.
-      Color channel is 0..3: red, green, blue, alpha.
-      Zero means that given channel of accumulation buffer is not needed,
-      so when the vector is all zeros (default value) this means that
-      accumulation buffer is not needed at all.
-
-      Just like with other XxxBits property, we may get more
-      bits than we requested. But we will never get less --- if window system
-      will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error.
-
-      @deprecated
-      This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. LCL backend
-      doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
-      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
-
     { Name of the icon for this window used by GTK 2 backend.
 
       This is simply passed to @code(gtk_window_set_icon_name),
@@ -1780,7 +1766,7 @@ type
       @raises(EGLContextNotPossible
         If it's not possible to obtain
         OpenGL context with specified attributes.
-        For example, maybe you set AlphaBits, DepthBits, StencilBits, AccumBits
+        For example, maybe you set AlphaBits, DepthBits, StencilBits
         properties too high?
 
         It's guaranteed that when EGLContextNotPossible
@@ -3869,9 +3855,6 @@ begin
    Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
    Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not FAccumBits.IsZero then
-   Result := Result + Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
-    [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then
    Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
@@ -3894,10 +3877,6 @@ procedure TCastleWindow.CheckRequestedBufferAttributes(
   CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
   CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
   CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
-  CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
-  CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
-  CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
-  CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
 
   { If MultiSampling <= 1, this means that multisampling not required,
     so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
