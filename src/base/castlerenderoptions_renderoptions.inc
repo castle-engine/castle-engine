@@ -282,7 +282,7 @@ type
       The shapes obscured by other shapes will not be rendered.
 
       This is ignored if GPU doesn't support the necessary functionality
-      (for OpenGL, we require ARB_occlusion_query).
+      (TGLFeatures.OcclusionQuery).
 
       We don't advise this approach to occlusion query now.
       While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
@@ -542,7 +542,7 @@ type
       This is ignored if HierarchicalOcclusionQuery.
 
       This is ignored if GPU doesn't support the necessary functionality
-      (for OpenGL, we require ARB_occlusion_query). }
+      (@link(TGLFeatures.OcclusionQuery)). }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
 

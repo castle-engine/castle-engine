@@ -177,8 +177,6 @@ end;
 
 { TOcclusionQuery ------------------------------------------------------------ }
 
-{$ifndef OpenGLES} // TODO-es
-
 type
   TOcclusionQuery = class
   public
@@ -197,27 +195,25 @@ type
 constructor TOcclusionQuery.Create;
 begin
   inherited;
-  glGenQueriesARB(1, @Id);
+  glGenQueries(1, @Id);
 end;
 
 destructor TOcclusionQuery.Destroy;
 begin
-  glDeleteQueriesARB(1, @Id);
+  glDeleteQueries(1, @Id);
   inherited;
 end;
 
 function TOcclusionQuery.Available: LongBool;
 begin
   Assert(SizeOf(LongBool) = SizeOf(TGLuint));
-  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_AVAILABLE_ARB, @Result);
+  glGetQueryObjectuiv(Id, GL_QUERY_RESULT_AVAILABLE, @Result);
 end;
 
 function TOcclusionQuery.GetResult: TGLuint;
 begin
-  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
+  glGetQueryObjectuiv(Id, GL_QUERY_RESULT, @Result);
 end;
-
-{$endif}
 
 { TSimpleOcclusionQueryRenderer ---------------------------------------------- }
 
@@ -231,13 +227,12 @@ end;
 
 procedure TSimpleOcclusionQueryRenderer.Render(const Shape: TGLShape;
    const RenderShape: TShapeProcedure; const Params: TRenderParams);
-{$ifndef OpenGLES}
 var
   SampleCount: TGLuint;
 begin
   Assert(Shape.OcclusionQueryId <> 0);
   if Shape.OcclusionQueryAsked then
-    glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
+    glGetQueryObjectuiv(Shape.OcclusionQueryId, GL_QUERY_RESULT,
       @SampleCount) else
     SampleCount := 1; { if not asked, assume it's visible }
 
@@ -249,7 +244,7 @@ begin
     (with InShadow = true) render pass. }
 
   if Params.StencilTest = 0 then
-    glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
+    glBeginQuery(GL_SAMPLES_PASSED, Shape.OcclusionQueryId);
 
     if SampleCount > 0 then
     begin
@@ -268,12 +263,9 @@ begin
 
   if Params.StencilTest = 0 then
   begin
-    glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+    glEndQuery(GL_SAMPLES_PASSED);
     Shape.OcclusionQueryAsked := true;
   end;
-{$else}
-begin
-{$endif}
 end;
 
 { THierarchicalOcclusionQueryRenderer ---------------------------------------- }
@@ -291,7 +283,6 @@ procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
   const Params: TRenderParams;
   const RenderCameraPosition: TVector3);
-{$ifndef OpenGLES}
 var
   { Stack of TShapeOctreeNode.
 
@@ -497,7 +488,7 @@ begin
               Q := TOcclusionQuery.Create;
               Q.Node := Node;
 
-              glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
+              glBeginQuery(GL_SAMPLES_PASSED, Q.Id);
                 if Node.IsLeaf and WasVisible then
                   TraverseNode(Node) else
                 if Node.IsLeaf then
@@ -509,7 +500,7 @@ begin
                   if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then
                     Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                 end;
-              glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+              glEndQuery(GL_SAMPLES_PASSED);
 
               QueryQueue.Push(Q);
             end else
@@ -524,9 +515,6 @@ begin
     FreeAndNil(TraversalStack);
     FreeAndNil(QueryQueue);
   end;
-{$else}
-begin
-{$endif}
 end;
 
 function THierarchicalOcclusionQueryRenderer.WasLastVisible(const Shape: TGLShape): boolean;

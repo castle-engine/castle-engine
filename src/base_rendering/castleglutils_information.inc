@@ -137,11 +137,12 @@ function GLInformationString: string;
       Result := 'EXT_texture_filter_anisotropic not available';
   end;
 
-  function GetQueryCounterBits: string;
+  function GetOcclusionQueryCounterBits: string;
   begin
-    if GLFeatures.ARB_occlusion_query then
-      Result := IntToStr(GLFeatures.QueryCounterBits) else
-      Result := 'ARB_occlusion_query not available';
+    if GLFeatures.OcclusionQuery then
+      Result := IntToStr(GLFeatures.OcclusionQueryCounterBits)
+    else
+      Result := 'Occlusion query not available';
   end;
 
   function TextureCompressionsToString(const Compressions: TTextureCompressions): string;
@@ -284,8 +285,7 @@ begin
       '  Max cube map texture size: ' + IntToStr(GLFeatures.MaxCubeMapTextureSize) + NL +
       '  Max 3d texture size: ' + IntToStr(GLFeatures.MaxTexture3DSize) + NL +
       '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
-      '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
-        GetQueryCounterBits + NL +
+      '  Occlusion query counter bits: ' +  GetOcclusionQueryCounterBits + NL +
       '  Max renderbuffer size: ' + IntToStr(GLFeatures.MaxRenderbufferSize) + NL +
       '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
       NL;

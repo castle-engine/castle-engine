@@ -159,14 +159,14 @@ type
     {$endif}
     FTextureFilterAnisotropic: Boolean;
     FNV_multisample_filter_hint: Boolean;
-    FARB_occlusion_query: Boolean;
+    FOcclusionQuery: Boolean;
     FCLAMP_TO_EDGE: TGLenum;
     FMaxTextureSize: Cardinal;
     FMaxLights: Cardinal;
     FMaxCubeMapTextureSize: Cardinal;
     FMaxTexture3DSize: Cardinal;
     FMaxTextureMaxAnisotropy: Single;
-    FQueryCounterBits: TGLint;
+    FOcclusionQueryCounterBits: TGLint;
     FMaxRenderbufferSize: TGLuint;
     FMaxClipPlanes: Cardinal;
     FMultisample: Boolean;
@@ -254,12 +254,6 @@ type
     property VersionES_3_2: Boolean read FVersionES_3_2;
     {$endif}
 
-    { Is the extension below loaded.
-      Note: we prefer to avoid exposing directly each extension presence
-      like below.
-      Instead most interesting extensions are wrapped in "features"
-      like @link(UseMultiTexturing), see lower. }
-
     { Supports anisotropic texture filtering, as EXT_texture_filter_anisotropic extension
       (possible for both OpenGL and OpenGLES).
       This was introduced into OpenGL core late, but is widely available as extension.
@@ -268,7 +262,10 @@ type
     property TextureFilterAnisotropic: Boolean read FTextureFilterAnisotropic;
 
     property NV_multisample_filter_hint: Boolean read FNV_multisample_filter_hint;
-    property ARB_occlusion_query: Boolean read FARB_occlusion_query;
+
+    { Occlusion query (glGenQueries, glGetQueryObject, glBeginQuery, glEndQuery)
+      in core OpenGL or OpenGLES. }
+    property OcclusionQuery: Boolean read FOcclusionQuery;
 
     { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
       Otherwise GL_CLAMP.
@@ -291,7 +288,7 @@ type
     property MaxCubeMapTextureSize: Cardinal read FMaxCubeMapTextureSize;
     property MaxTexture3DSize: Cardinal read FMaxTexture3DSize;
     property MaxTextureMaxAnisotropy: Single read FMaxTextureMaxAnisotropy;
-    property QueryCounterBits: TGLint read FQueryCounterBits;
+    property OcclusionQueryCounterBits: TGLint read FOcclusionQueryCounterBits;
     property MaxRenderbufferSize: TGLuint read FMaxRenderbufferSize;
     property MaxClipPlanes: Cardinal read FMaxClipPlanes;
     { @groupEnd }
@@ -875,13 +872,15 @@ begin
   else
     FMaxTextureMaxAnisotropy := 0.0;
 
-  FARB_occlusion_query := false;
-  FQueryCounterBits := 0;
-  {$ifndef OpenGLES}
-  FARB_occlusion_query := LoadExtensions and Load_GL_ARB_occlusion_query;
-  if FARB_occlusion_query then
-    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @FQueryCounterBits);
-  {$endif}
+  FOcclusionQuery :=
+    {$ifdef OpenGLES} VersionES_3_0
+    {$else} Version_1_5
+    {$endif};
+
+  if OcclusionQuery then
+    glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits)
+  else
+    FOcclusionQueryCounterBits := 0;
 
   { calculate Framebuffer }
   FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
