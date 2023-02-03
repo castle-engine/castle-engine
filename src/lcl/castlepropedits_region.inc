@@ -29,13 +29,17 @@ type
 
 function TCastleRegionEditor.GetName: shortstring;
 begin
-  Result:=inherited GetName;
-  Result := SuffixRemove('persistent', Result, true);
+  Result := inherited GetName;
+  Result := SuffixRemove('persistent', Result, True);
 end;
 
 function TCastleRegionEditor.GetValue: string;
+var
+  vClassName: string;
 begin
-  Result := '(TRegion)';
+  vClassName := self.GetPropInfo^.PropType^.Name;
+  Result := '(' + SuffixRemove('persistent', vClassName, True) + ')';
+  if GetName = 'ProtectedSides' then  Result := Result + ' (9-slice scaling)';
 end;
 
 function TCastleRegionEditor.GetAttributes: TPropertyAttributes;
@@ -48,6 +52,7 @@ var
   D: TRegionDesignDialog;
   comp: TPersistent;
   ImagePersistent: TCastleImagePersistent;
+  vClassName: string;
 begin
   ImagePersistent := nil;
 
@@ -69,16 +74,38 @@ begin
     Exit;
   end;
 
+  vClassName := self.GetPropInfo^.PropType^.Name;
+
   D := TRegionDesignDialog.Create(Application);
   try
-    D.Caption := 'Edit ' + 'Region';
-    D.Image := ImagePersistent.DrawableImage;
-    D.Region := ImagePersistent.Region;
+    if vClassName = TFloatRectanglePersistent.ClassName then
+    begin
+      D.Caption := 'Edit ' + 'Region';
+      D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region);
+    end
+    else
+    begin
+      D.Caption := 'Edit ' + 'Border';
+      if ImagePersistent.Clipped then
+        D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region,
+          ImagePersistent.ProtectedSides)
+      else
+        D.Load(ImagePersistent.DrawableImage, TFloatRectangle.Empty,
+          ImagePersistent.ProtectedSides);
+    end;
 
     if D.ShowModal = mrOk then
     begin
       D.ApplyChange;
-      ImagePersistent.Region := D.Region;
+
+      case D.DesignMode of
+        TDesignMode.ModeRegion:
+          ImagePersistent.Region := D.Region;
+        TDesignMode.ModeBorder:
+          D.ApplyToBorder(
+            ImagePersistent.ProtectedSides);
+      end;
+
       self.Modified('');
     end;
 
