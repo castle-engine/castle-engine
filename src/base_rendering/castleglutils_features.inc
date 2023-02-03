@@ -712,14 +712,14 @@ constructor TGLFeatures.Create;
     begin
       { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
         glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually. }
-      Pointer(glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
+      Pointer({$ifndef FPC}@{$endif} glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
       if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
       // Note that we don't really use glDebugMessageControl now
-      Pointer(glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
+      Pointer({$ifndef FPC}@{$endif} glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
       if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
 
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(@CallbackGLDebug, nil);
+      glDebugMessageCallback({$ifdef FPC}@{$endif} CallbackGLDebug, nil);
       WritelnLog('OpenGL debugging enabled, expect extra log messages');
     end;
   end;
