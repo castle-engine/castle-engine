@@ -49,9 +49,7 @@ type
     FWrapAvailable: boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
 
-    { These will ideally be initialized to GL_INCR/DECR_WRAP (available
-      in OpenGL >= 2.0) or GL_INCR/DECR_WRAP_EXT (available if EXT_stencil_wrap).
-      Actually values with and without _EXT are the same.
+    { These will ideally be initialized to GL_INCR/DECR_WRAP in OpenGL >= 2.0.
 
       If OpenGL will not have these available, then they will be equal to
       old GL_INCR/DECT constants (without wrapping).
@@ -253,11 +251,11 @@ begin
   FStencilOpIncrWrap := GL_INCR_WRAP;
   FStencilOpDecrWrap := GL_DECR_WRAP;
   {$else}
-  FWrapAvailable := GLFeatures.Version_2_0 or Load_GL_EXT_stencil_wrap;
+  FWrapAvailable := GLFeatures.Version_2_0;
   if WrapAvailable then
   begin
-    FStencilOpIncrWrap := GL_INCR_WRAP_EXT;
-    FStencilOpDecrWrap := GL_DECR_WRAP_EXT;
+    FStencilOpIncrWrap := GL_INCR_WRAP;
+    FStencilOpDecrWrap := GL_DECR_WRAP;
   end else
   begin
     FStencilOpIncrWrap := GL_INCR;
@@ -293,7 +291,7 @@ begin
 
   if LogShadowVolumes then
     WritelnLogMultiline('Shadow volumes',
-      Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
+      Format('GL_INCR/DECR_WRAP available: %s' + nl +
              'Two-sided stencil test available: %s',
             [ BoolToStr(WrapAvailable, true),
               BoolToStr(StencilTwoSided, true) ]));
