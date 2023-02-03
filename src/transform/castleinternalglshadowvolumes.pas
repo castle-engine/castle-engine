@@ -22,7 +22,8 @@ interface
 
 uses
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum;
+  CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
+  CastleInternalGLUtils;
 
 type
   TGLShadowVolumeRenderer = class;
@@ -43,7 +44,7 @@ type
     FrustumAndLightPlanesCount: Cardinal;
     FFrustum: TFrustum;
     FrustumNearPoints: TFrustumPoints;
-  private
+
     FCasterShadowPossiblyVisible: boolean;
     FZFail: boolean;
     FZFailAndLightCap: boolean;
@@ -60,9 +61,12 @@ type
     FCountZFailNoLightCap: Cardinal;
     FCountZFailAndLightCap: Cardinal;
 
+    FMesh: TCastleRenderUnlitMesh;
+
     procedure UpdateCount;
   public
     constructor Create;
+    destructor Destroy; override;
 
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
@@ -177,18 +181,28 @@ type
       const RenderOnePass: TSVRenderProc;
       const RenderShadowVolumes: TSVRenderProc;
       const DrawShadowVolumes: boolean);
+
+    { Use this to render shadow quads. }
+    property Mesh: TCastleRenderUnlitMesh read FMesh;
   end;
 
 implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRenderOptions, CastleRenderContext, CastleInternalGLUtils;
+  CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
+  FMesh := TCastleRenderUnlitMesh.Create(false);
+end;
+
+destructor TGLShadowVolumeRenderer.Destroy;
+begin
+  FreeAndNil(FMesh);
+  inherited;
 end;
 
 procedure TGLShadowVolumeRenderer.InitFrustumAndLight(

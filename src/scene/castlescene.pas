@@ -1794,6 +1794,7 @@ begin
             T := Params.Transform^ * Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
+            SVRenderer.Mesh,
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,

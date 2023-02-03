@@ -2478,6 +2478,11 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       FWarningZFarInfinityDone := true;
       WritelnWarning('Rendering with Shadow Volumes, but ProjectionFar is not ZFarInfinity. Shadow volumes require ProjectionFar = ZFarInfinity. Leave TCastleCamera.ProjectionFar = 0.');
     end;
+
+    { Initialize FShadowVolumeRenderer if needed, along with its OpenGL resources.
+      This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
+    if FShadowVolumeRenderer = nil then
+      FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
       {$ifdef FPC}@{$endif}RenderOnePass,
@@ -2900,15 +2905,6 @@ end;
 procedure TCastleViewport.GLContextOpen;
 begin
   inherited;
-
-  { We actually need to do it only if GLFeatures.ShadowVolumesPossible
-    and ShadowVolumes for any viewport.
-    But we can as well do it always, it's harmless (constructor does not do anything now).
-    (Otherwise we'd have to handle SetShadowVolumes.) }
-  if FShadowVolumeRenderer = nil then
-  begin
-    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
-  end;
 end;
 
 procedure TCastleViewport.GLContextClose;
