@@ -331,9 +331,9 @@ end;
 
 procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 begin
-  if GLFeatures.EXT_texture_filter_anisotropic then
+  if GLFeatures.TextureFilterAnisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-      Min(GLFeatures.MaxTextureMaxAnisotropyEXT, Anisotropy));
+      Min(GLFeatures.MaxTextureMaxAnisotropy, Anisotropy));
 end;
 
 {$endif read_implementation}

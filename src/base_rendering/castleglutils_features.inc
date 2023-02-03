@@ -157,7 +157,7 @@ type
     FVersionES_3_1: Boolean;
     FVersionES_3_2: Boolean;
     {$endif}
-    FEXT_texture_filter_anisotropic: Boolean;
+    FTextureFilterAnisotropic: Boolean;
     FNV_multisample_filter_hint: Boolean;
     FARB_occlusion_query: Boolean;
     FCLAMP_TO_EDGE: TGLenum;
@@ -165,7 +165,7 @@ type
     FMaxLights: Cardinal;
     FMaxCubeMapTextureSize: Cardinal;
     FMaxTexture3DSize: Cardinal;
-    FMaxTextureMaxAnisotropyEXT: Single;
+    FMaxTextureMaxAnisotropy: Single;
     FQueryCounterBits: TGLint;
     FMaxRenderbufferSize: TGLuint;
     FMaxClipPlanes: Cardinal;
@@ -260,7 +260,13 @@ type
       Instead most interesting extensions are wrapped in "features"
       like @link(UseMultiTexturing), see lower. }
 
-    property EXT_texture_filter_anisotropic: Boolean read FEXT_texture_filter_anisotropic;
+    { Supports anisotropic texture filtering, as EXT_texture_filter_anisotropic extension
+      (possible for both OpenGL and OpenGLES).
+      This was introduced into OpenGL core late, but is widely available as extension.
+      https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
+      https://www.khronos.org/opengl/wiki/Ubiquitous_Extension }
+    property TextureFilterAnisotropic: Boolean read FTextureFilterAnisotropic;
+
     property NV_multisample_filter_hint: Boolean read FNV_multisample_filter_hint;
     property ARB_occlusion_query: Boolean read FARB_occlusion_query;
 
@@ -284,7 +290,7 @@ type
     property MaxLights: Cardinal read FMaxLights;
     property MaxCubeMapTextureSize: Cardinal read FMaxCubeMapTextureSize;
     property MaxTexture3DSize: Cardinal read FMaxTexture3DSize;
-    property MaxTextureMaxAnisotropyEXT: Single read FMaxTextureMaxAnisotropyEXT;
+    property MaxTextureMaxAnisotropy: Single read FMaxTextureMaxAnisotropy;
     property QueryCounterBits: TGLint read FQueryCounterBits;
     property MaxRenderbufferSize: TGLuint read FMaxRenderbufferSize;
     property MaxClipPlanes: Cardinal read FMaxClipPlanes;
@@ -857,13 +863,15 @@ begin
   end else
     FMaxTexture3DSize := 0;
 
-  // TODO: there is also such extension for OpenGL ES
-  FEXT_texture_filter_anisotropic := {$ifdef OpenGLES} false {$else}
-    LoadExtensions and Load_GL_EXT_texture_filter_anisotropic {$endif};
-  if EXT_texture_filter_anisotropic then
-    FMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+  { Both OpenGL and OpenGLES commonly define this extension.
+    See https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (OpenGLES list),
+    https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
+    https://www.khronos.org/opengl/wiki/Ubiquitous_Extension }
+  FTextureFilterAnisotropic := HasExtension('GL_EXT_texture_filter_anisotropic');
+  if TextureFilterAnisotropic then
+    FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
   else
-    FMaxTextureMaxAnisotropyEXT := 0.0;
+    FMaxTextureMaxAnisotropy := 0.0;
 
   FARB_occlusion_query := false;
   FQueryCounterBits := 0;
