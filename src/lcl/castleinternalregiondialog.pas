@@ -174,7 +174,7 @@ procedure TRegionDesignDialog.Load(AImage: TDrawableImage; const ARegion: TRegio
 begin
   FImage := AImage;
   if not Assigned(FImage) then  raise Exception.Create('Image is nil.');
-  FSourceRegion := FloatRectangle(0, 0, ImageWidth, ImageHeight);
+  FSourceRegion := TFloatRectangle.Empty;
   FRegion := ARegion;
   FDesignMode := TDesignMode.ModeRegion;
 
@@ -699,8 +699,8 @@ begin
   Result := pt * FScale + FTranslation;
 end;
 
-function TRegionDesignDialog.ImageToScreen(
-  const APoints: TArrayImagePoints): TArrayScreenPoints;
+function TRegionDesignDialog.ImageToScreen(const APoints: TArrayImagePoints):
+TArrayScreenPoints;
 var
   i: integer;
 begin
