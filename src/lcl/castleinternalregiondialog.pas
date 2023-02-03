@@ -226,9 +226,12 @@ end;
 function TRegionDesignDialog.ScreenImageFullRectangle: TFloatRectangle;
 var
   Points: TArrayScreenPoints;
+  { FPC3.2.2 not support "Array Of Const" => "const array" }
+  imgPoints: TArrayImagePoints;
 begin
-  Points := ImageToScreen([Vector2Integer(0, 0),
-    Vector2Integer(ImageWidth, ImageHeight)]);
+  imgPoints[0] := Vector2Integer(0, 0);
+  imgPoints[1] := Vector2Integer(ImageWidth, ImageHeight);
+  Points := ImageToScreen(imgPoints);
 
   Result.LeftBottom := Points[0];
   Result.Width := Points[1].X - Points[0].X;
@@ -307,20 +310,20 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
       begin
         vImageRegionRect := ImageRegionRectangle;
 
-        Points := [Vector2Integer(vImageRegionRect.Left, 0), Vector2Integer(
-          vImageRegionRect.Left, ImageHeight)];
+        Points[0] := Vector2Integer(vImageRegionRect.Left, 0);
+        Points[1] := Vector2Integer(vImageRegionRect.Left, ImageHeight);
         RenderLine(Points, LineColor, LineWidth);
 
-        Points := [Vector2Integer(vImageRegionRect.Right, 0),
-          Vector2Integer(vImageRegionRect.Right, ImageHeight)];
+        Points[0] := Vector2Integer(vImageRegionRect.Right, 0);
+        Points[1] := Vector2Integer(vImageRegionRect.Right, ImageHeight);
         RenderLine(Points, LineColor, LineWidth);
 
-        Points := [Vector2Integer(0, vImageRegionRect.Bottom),
-          Vector2Integer(ImageWidth, vImageRegionRect.Bottom)];
+        Points[0] := Vector2Integer(0, vImageRegionRect.Bottom);
+        Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Bottom);
         RenderLine(Points, LineColor, LineWidth);
 
-        Points := [Vector2Integer(0, vImageRegionRect.Top),
-          Vector2Integer(ImageWidth, vImageRegionRect.Top)];
+        Points[0] := Vector2Integer(0, vImageRegionRect.Top);
+        Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Top);
         RenderLine(Points, LineColor, LineWidth);
 
         RenderPoints(ScreenRegionPoints);
@@ -696,8 +699,8 @@ begin
   Result := pt * FScale + FTranslation;
 end;
 
-function TRegionDesignDialog.ImageToScreen(const APoints: TArrayImagePoints):
-TArrayScreenPoints;
+function TRegionDesignDialog.ImageToScreen(
+  const APoints: TArrayImagePoints): TArrayScreenPoints;
 var
   i: integer;
 begin
