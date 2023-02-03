@@ -176,8 +176,8 @@ type
       You can enable/disable anti-aliasing in your program by code like
 
       @longCode(#
-        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
-        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
+        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE);
+        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE);
       #)
 
       But usually that's not needed, as it is "on" by default

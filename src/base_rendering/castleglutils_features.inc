@@ -296,6 +296,8 @@ type
     property MaxClipPlanes: Cardinal read FMaxClipPlanes;
     { @groupEnd }
 
+    { Multisampling is available and can be disabled / enabled by GL_MULTISAMPLE flag
+      (it is enabled by default, if buffers have multiple samples available). }
     property Multisample: Boolean read FMultisample;
 
     { Number of texture units available for fixed-function pipeline.
@@ -924,10 +926,13 @@ begin
     (not GLVersion.BuggyFBOMultiSampling)
     {$endif};
 
-  FMultisample := {$ifdef OpenGLES} true {$else} LoadExtensions and Load_GL_ARB_multisample {$endif};
-  if FMultisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
+  FMultisample :=
+    {$ifdef OpenGLES} true
+    {$else} Version_1_3 or HasExtension('GL_ARB_multisample')
+    {$endif};
+  if FMultisample and (glGetInteger(GL_SAMPLE_BUFFERS) <> 0) then
   begin
-    FCurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
+    FCurrentMultiSampling := glGetInteger(GL_SAMPLES);
     if FCurrentMultiSampling <= 1 then
     begin
       WritelnWarning('MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
