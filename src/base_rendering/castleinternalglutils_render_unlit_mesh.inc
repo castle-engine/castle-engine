@@ -227,6 +227,8 @@ var
   SavedFixedFunctionLighting: Boolean;
   IndexPtr: Pointer;
 begin
+  SavedFixedFunctionLighting := false; // make it always defined, to silence Delphi warning
+
   if not GLFeatures.EnableFixedFunction then
   begin
     if VboVertex = 0 then
