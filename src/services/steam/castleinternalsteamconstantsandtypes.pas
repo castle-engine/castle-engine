@@ -1,7 +1,6 @@
 unit CastleInternalSteamConstantsAndTypes;
 
 {$I castleconf.inc}
-{$modeswitch ADVANCEDRECORDS}  // necessary to include constants in records according to Steam specifications
 
 interface
 
@@ -91,16 +90,6 @@ const
 
 { callback received structs, from isteamxxxxxxx.h for other callbacks and constants }
 
-{type
-  { from isteamuserstats.h }
-  UserStatsReceived_t = packed record
-    const
-      k_iCallback = k_iSteamUserStatsCallbacks + 1;
-    var
-      m_nGameID: UInt64;
-      m_eResult: EResult;
-      m_steamIDUser: CSteamID;	// The user for whom the stats are retrieved for
-  end;} // currently not used: example of how to translate callback records from Steam API headers
 implementation
 
 end.
