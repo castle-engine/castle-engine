@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'SteamTest';
-  ApplicationProperties.Caption := 'SteamTest';
+  ApplicationProperties.ApplicationName := 'steam_test';
+  ApplicationProperties.Caption := 'Steam Test';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
