@@ -49,7 +49,7 @@ begin
     VerticalGroupAchievements.InsertFront(Horiz);
     Button := TCastleButton.Create(Horiz);
     Button.Caption := S;
-    Button.OnClick := @ClickAchievement;
+    Button.OnClick := {$ifdef FPC}@{$endif}ClickAchievement;
     Horiz.InsertFront(Button);
     Lab := TCastleLabel.Create(Horiz);
     if Steam.GetAchievement(S) then
@@ -61,7 +61,7 @@ begin
   end;
   Button := TCastleButton.Create(VerticalGroupAchievements);
   Button.Caption := 'Indicate Achievement Progress';
-  Button.OnClick := @ClickAchievementProgress;
+  Button.OnClick := {$ifdef FPC}@{$endif}ClickAchievementProgress;
   VerticalGroupAchievements.InsertFront(Button);
 end;
 
