@@ -78,11 +78,15 @@ FIND := find
 INSTALL := install
 EXE_EXTENSION :=
 
+$(info OS is $(OS))
+
 ifeq ($(OS),Windows_NT)
   # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
   FIND := `cygpath --mixed /bin/find`
   EXE_EXTENSION := .exe
+  $(info Detected Windows)
 else
+  $(info Detected not Windows)
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
