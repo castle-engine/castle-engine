@@ -36,10 +36,14 @@ end;
 function TCastleRegionEditor.GetValue: string;
 var
   vClassName: string;
+  vName: string;
 begin
-  vClassName := self.GetPropInfo^.PropType^.Name;
+  vName := GetName;
+  if vName = 'Region' then  vClassName := 'TRegion'
+  else
+    vClassName := self.GetPropInfo^.PropType^.Name;
   Result := '(' + SuffixRemove('persistent', vClassName, True) + ')';
-  if GetName = 'ProtectedSides' then  Result := Result + ' (9-slice scaling)';
+  if vName = 'ProtectedSides' then  Result := Result + ' (9-slice scaling)';
 end;
 
 function TCastleRegionEditor.GetAttributes: TPropertyAttributes;

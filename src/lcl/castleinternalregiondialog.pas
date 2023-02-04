@@ -195,11 +195,23 @@ end;
 
 procedure TRegionDesignDialog.ApplyToBorder(ABorder: TBorder);
 begin
-  ABorder.AllSides := 0;
-  ABorder.Left := FRegion.Left;
-  ABorder.Bottom := FRegion.Bottom;
-  ABorder.Right := ImageWidth - FRegion.Right;
-  ABorder.Top := ImageHeight - FRegion.Top;
+  if (FRegion.Left = FRegion.Bottom) and (FRegion.Left = ImageWidth - FRegion.Right) and
+    (FRegion.Left = ImageHeight - FRegion.Top) then
+  begin
+    ABorder.AllSides := FRegion.Left;
+    ABorder.Left := 0;
+    ABorder.Bottom := 0;
+    ABorder.Right := 0;
+    ABorder.Top := 0;
+  end
+  else
+  begin
+    ABorder.AllSides := 0;
+    ABorder.Left := FRegion.Left;
+    ABorder.Bottom := FRegion.Bottom;
+    ABorder.Right := ImageWidth - FRegion.Right;
+    ABorder.Top := ImageHeight - FRegion.Top;
+  end;
 end;
 
 function TRegionDesignDialog.RegionFromBorder(ABorder: TBorder): TRegion;
@@ -539,12 +551,9 @@ var
   Point: TVector2Integer;
   DirectionEnables: TDirectionEnables;
 begin
-  UpdateCursorPosInfo(Event.Position);
-
   DirectionEnables := [];
   for Point in FControlPointRec.Points do
     DirectionEnables := DirectionEnables + HitTest(Point, Event.Position);
-
   if DirectionEnables = [EnableX, EnableY] then
     CastleControl1.Cursor := crHandPoint
   else
@@ -571,6 +580,8 @@ begin
     FTranslation := Event.Position - FMovingImageRec.StartMousePoint +
       FMovingImageRec.StartTranslation;
   end;
+
+  UpdateCursorPosInfo(Event.Position);
 end;
 
 procedure TRegionDesignDialog.FixControlPoints;
@@ -600,6 +611,7 @@ begin
   begin
     FControlPointRec.Adjusting := False;
     FixControlPoints;
+    Changed;
   end;
 end;
 
@@ -670,12 +682,25 @@ begin
   StatusBar1.Panels.Items[1].Text :=
     Format('Bottom: %d', [Min(FControlPointRec.Points[0].Y,
     FControlPointRec.Points[1].Y)]);
-  StatusBar1.Panels.Items[2].Text :=
-    Format('Width: %d', [Abs(FControlPointRec.Points[0].X -
-    FControlPointRec.Points[1].X)]);
-  StatusBar1.Panels.Items[3].Text :=
-    Format('Height: %d', [Abs(FControlPointRec.Points[0].Y -
-    FControlPointRec.Points[1].Y)]);
+
+  if FDesignMode = TDesignMode.ModeRegion then
+  begin
+    StatusBar1.Panels.Items[2].Text :=
+      Format('Width: %d', [Abs(FControlPointRec.Points[0].X -
+      FControlPointRec.Points[1].X)]);
+    StatusBar1.Panels.Items[3].Text :=
+      Format('Height: %d', [Abs(FControlPointRec.Points[0].Y -
+      FControlPointRec.Points[1].Y)]);
+  end
+  else
+  begin
+    StatusBar1.Panels.Items[2].Text :=
+      Format('Right: %d', [ImageWidth - Max(FControlPointRec.Points[0].X,
+      FControlPointRec.Points[1].X)]);
+    StatusBar1.Panels.Items[3].Text :=
+      Format('Top: %d', [ImageHeight - Max(FControlPointRec.Points[0].Y,
+      FControlPointRec.Points[1].Y)]);
+  end;
 end;
 
 function TRegionDesignDialog.ScreenToImage(APoint: TVector2;
@@ -699,8 +724,8 @@ begin
   Result := pt * FScale + FTranslation;
 end;
 
-function TRegionDesignDialog.ImageToScreen(const APoints: TArrayImagePoints):
-TArrayScreenPoints;
+function TRegionDesignDialog.ImageToScreen(
+  const APoints: TArrayImagePoints): TArrayScreenPoints;
 var
   i: integer;
 begin

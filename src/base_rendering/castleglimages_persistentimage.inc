@@ -79,7 +79,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetRegion(AValue: TRegion);
+    procedure SetRegion(const AValue: TRegion);
     procedure SetRegionEnabled(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
@@ -462,7 +462,7 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetRegion(AValue: TRegion);
+procedure TCastleImagePersistent.SetRegion(const AValue: TRegion);
 function SameFloatRectangle(const a,b:TFloatRectangle):Boolean;
 begin
  Result := (SameValue(a.Left  , b.Left)) and

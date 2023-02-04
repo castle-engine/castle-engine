@@ -145,8 +145,8 @@ begin
     in castle-editor and Lazarus design-time. }
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TCastleProtectedSidesEditor);
+  {RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
+    TCastleProtectedSidesEditor);}
   RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
     TCastleRegionEditor);
   RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
