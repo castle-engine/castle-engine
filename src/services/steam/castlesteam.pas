@@ -302,6 +302,7 @@ begin
   inherited Destroy;
 end;
 
+initialization // Delphi needs initialization before finalization
 finalization
   if FSteam <> nil then
   begin
