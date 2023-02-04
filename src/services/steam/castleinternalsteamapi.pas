@@ -61,24 +61,24 @@ function SteamAPI_ISteamClient_GetISteamUserStats(SteamClient: Pointer; SteamUse
 
 // function SteamAPI_SteamUserStats(): Pointer; CDecl; external SteamLib; // This one returns something that doesn't work
 function SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats: Pointer; const AchievementName: PChar; out Achieved: Boolean): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
-function SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats: Pointer; const AchievementName: PChar): Boolean; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats: Pointer; const AchievementName: PAnsiChar; out Achieved: Boolean): Boolean; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats: Pointer; const AchievementName: PAnsiChar): Boolean; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats: Pointer; const AchievementName: PAnsiChar): Boolean; CDecl; external SteamLib;
 function SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats: Pointer): UInt32; CDecl; external SteamLib;
 // It returns string-ID of the achievement, not a human readable name
 function SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats: Pointer; AchievementId: UInt32 ): PAnsiChar; CDecl; external SteamLib;
 // Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
-function SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats: Pointer; const AchievementName: PChar; CurrentProgress: UInt32; MaxProgress: UInt32): Boolean; CDecl; external SteamLib;
+function SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats: Pointer; const AchievementName: PAnsiChar; CurrentProgress: UInt32; MaxProgress: UInt32): Boolean; CDecl; external SteamLib;
 
 // Call this after changing stats or achievements
 function SteamAPI_ISteamUserStats_StoreStats(SteamUserStats: Pointer): Boolean; CDecl; external SteamLib;
 
 // the ones below crash without any reason explained
-//function SteamAPI_ISteamUserStats_GetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
-//function SteamAPI_ISteamUserStats_GetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
-//function SteamAPI_ISteamUserStats_SetStatInt32(SteamUserStats: Pointer; const StatName: PChar; Value: Int32): Boolean; CDecl; external SteamLib;
-//function SteamAPI_ISteamUserStats_SetStatFloat(SteamUserStats: Pointer; const StatName: PChar; Value: Single): Boolean; CDecl; external SteamLib;
-//function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_GetStatInt32(SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_GetStatFloat(SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_SetStatInt32(SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_SetStatFloat(SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): Boolean; CDecl; external SteamLib;
+//function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PAnsiChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
 
 {$endif}
 
