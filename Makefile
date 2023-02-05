@@ -79,9 +79,10 @@ INSTALL := install
 EXE_EXTENSION :=
 
 # Detect Windows when $OS is Windows_NT or win64.
+# Other $OS, including when $OS is empty / undefined, must be non-Windows.
 # See https://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or#9802777
 # to how this trick to detect an alternative works.
-ifeq ($(OS),$(filter $(OS),Windows_NT win64))
+ifneq (,$(filter $(OS),Windows_NT win64))
   $(info Detected Windows, OS is $(OS))
 
   # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
