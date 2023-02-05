@@ -77,6 +77,7 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
+  CastleApplicationProperties,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -385,11 +386,30 @@ end;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  HelpString: string;
 begin
   case OptionNum of
-    0: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    0: begin
+         InfoWrite(
+           'castle-editor: Create, build and design Castle Game Engine applications.' + NL +
+           NL +
+           'Usually run without any command-line paramaters, to present to user a choice' + NL +
+           'which project to open. But you can also specify project to open' + NL +
+           '(provide a full path, including the CastleEngineManifest.xml file).' + NL +
+           NL +
+           'Other available options are:' + NL +
+           OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+           OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
+           OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.') + NL +
+           NL +
+           ApplicationProperties.Description);
+         Halt;
+       end;
+    1: begin
+         // include ApplicationName in version, good for help2man
+         InfoWrite(ApplicationName + ' ' + ApplicationProperties.Version);
+         Halt;
+       end;
+    2: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
@@ -423,8 +443,10 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
   {$endif}
 
 const
-  Options: array [0..0] of TOption =
+  Options: array [0..2] of TOption =
   (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
   );
 
@@ -451,4 +473,7 @@ begin
   end;
 end;
 
+initialization
+  ApplicationProperties.ApplicationName := 'castle-editor';
+  ApplicationProperties.Version := CastleEngineVersion;
 end.
