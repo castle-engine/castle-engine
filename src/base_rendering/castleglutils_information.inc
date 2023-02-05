@@ -276,29 +276,11 @@ begin
       '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
       NL +
 
-      {$ifndef OpenGLES}
-      Section + NL +
-      NL +
-      'Stack depths:' + NL +
-      '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) + NL +
-      '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) + NL +
-      '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) + NL +
-      '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) + NL +
-      '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) + NL +
-      '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) + NL +
-      NL +
-      {$endif}
-
       Section + NL +
       'Limits:' + NL +
       NL +
       '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
       '  Max lights (fixed-function limit): ' + IntToStr(GLFeatures.MaxLights) + NL +
-      {$ifndef OpenGLES}
-      '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) + NL +
-      '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) + NL +
-      '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) + NL +
-      {$endif}
       '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) + NL +
       '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
       '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
