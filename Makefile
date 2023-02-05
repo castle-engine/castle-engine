@@ -78,15 +78,18 @@ FIND := find
 INSTALL := install
 EXE_EXTENSION :=
 
-$(info OS is $(OS))
+# Detect Windows when $OS is Windows_NT or win64.
+# See https://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or#9802777
+# to how this trick to detect an alternative works.
+ifeq ($(OS),$(filter $(OS),Windows_NT win64))
+  $(info Detected Windows, OS is $(OS))
 
-ifeq ($(OS),Windows_NT)
   # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
   FIND := `cygpath --mixed /bin/find`
   EXE_EXTENSION := .exe
-  $(info Detected Windows)
 else
-  $(info Detected not Windows)
+  $(info Detected non-Windows, OS is $(OS))
+
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)

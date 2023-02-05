@@ -284,7 +284,7 @@ pack_platform_dir ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
-  "${MAKE}" -d cleanmore ${MAKE_OPTIONS}
+  "${MAKE}" cleanmore ${MAKE_OPTIONS}
 
   # Cleanup .exe more brutally.
   # TODO: This should not be needed "castle-engine clean" done by "make clean"
