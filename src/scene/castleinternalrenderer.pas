@@ -1181,8 +1181,10 @@ begin
     end;
   end;
 
+  if not GLFeatures.Texture3D then
+    raise Exception.Create('3D textures not supported by OpenGL(ES)');
+
   glGenTextures(1, @Result);
-  {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Result, Image, Filter, Composite);
@@ -1192,7 +1194,6 @@ begin
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap.Data[2]);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
-  {$endif}
 
   TextureCached := TTexture3DCache.Create;
   Texture3DCaches.Add(TextureCached);

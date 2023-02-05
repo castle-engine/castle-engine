@@ -2046,9 +2046,7 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, GLName);
-  {$endif}
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;

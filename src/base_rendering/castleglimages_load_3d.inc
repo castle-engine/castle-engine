@@ -92,8 +92,6 @@ end;
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
   const Image: TEncodedImage;
   Filter: TTextureFilter; CompositeForMipmaps: TCompositeImage);
-
-{$ifndef OpenGLES}
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -168,6 +166,9 @@ begin
 
   glTexImage3DImage(TCastleImage(Image), 0);
 
+  if not GLFeatures.Texture3D then
+    raise Exception.Create('3D textures not supported by OpenGL(ES)');
+
   if GLFeatures.TextureModernFormatsAndSwizzle then
     glTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
 
@@ -191,15 +192,5 @@ begin
 
   SetTextureFilter(GL_TEXTURE_3D, Filter);
 end;
-
-{$else}
-
-begin
-  { TODO-OpenGLES3:
-    Loading 3D textures on OpenGL ES -- use GL_OES_texture_3D extension,
-    or OpenGLES3 }
-end;
-
-{$endif}
 
 {$endif read_implementation}
