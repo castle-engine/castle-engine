@@ -98,6 +98,11 @@ uses SysUtils, Math,
 
 { Set and enable OpenGL light properties based on X3D light.
 
+  This does something only when ancient OpenGL fixed-function pipeline
+  has to be used.
+  For shaders, we pass light information to shaders in uniform variables,
+  this is handled by CastleRendererInternalShader.
+
   Requires that current OpenGL matrix is modelview.
   Always preserves the matrix value (by using up to one modelview
   matrix stack slot).
