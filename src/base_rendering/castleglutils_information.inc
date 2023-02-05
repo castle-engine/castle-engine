@@ -35,6 +35,8 @@ function GLInformationStringSummary: String;
 {$ifdef read_implementation}
 
 function GLInformationString: string;
+const
+  Section = '----------------------------------------';
 
   function GetInteger(const Param: TGLenum): String;
   begin
@@ -90,9 +92,23 @@ function GLInformationString: string;
         '  Vendor type: %s' + NL +
         NL +
         '  Renderer: %s' + NL +
-        '  Fglrx (ATI on Linux): %s' + NL +
-        '  Mesa: %s' + NL +
-        NL +
+        '  Fglrx (ancient ATI drivers on Linux): %s' + NL +
+        '  Mesa: %s', [
+        Version.VendorMajor,
+        Version.VendorMinor,
+        Version.VendorRelease,
+        PAnsiChar(glGetString(GL_VENDOR)),
+        VendorTypeToStr(Version.VendorType),
+        PAnsiChar(glGetString(GL_RENDERER)),
+        BoolToStr(Version.Fglrx, true),
+        BoolToStr(Version.Mesa, true)
+      ]);
+  end;
+
+  function BugsReport(Version: TGLVersion): string;
+  begin
+    Result :=
+      Format(
         '  Buggy glGenerateMipmap(EXT): %s' + NL +
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' + NL +
         '  Buggy VBO: %s' + NL +
@@ -105,28 +121,21 @@ function GLInformationString: string;
         '  Buggy GLSL read varying: %s' + NL +
         '  Buggy Pure Shader Pipeline: %s' + NL +
         '  Buggy Texture Size Above 2048: %s' + NL +
-        '  Buggy Shader Bump Mapping num_steps: %s',
-        [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
-          PAnsiChar(glGetString(GL_VENDOR)),
-          VendorTypeToStr(Version.VendorType),
-          PAnsiChar(glGetString(GL_RENDERER)),
-          BoolToStr(Version.Fglrx, true),
-          BoolToStr(Version.Mesa, true),
-
-          BoolToStr(Version.BuggyGenerateMipmap, true),
-          BoolToStr(Version.BuggyLightModelTwoSide, true),
-          BoolToStr(Version.BuggyVBO, true),
-          BoolToStr(Version.BuggyShaderShadowMap, true),
-          BoolToStr(Version.BuggyFBOMultiSampling, true),
-          BoolToStr(Version.BuggyFBOCubeMap, true),
-          BoolToStr(Version.BuggySwapNonStandardViewport, true),
-          BoolToStr(Version.BuggyDepth32, true),
-          BoolToStr(Version.BuggyGLSLFrontFacing, true),
-          BoolToStr(Version.BuggyGLSLReadVarying, true),
-          BoolToStr(Version.BuggyPureShaderPipeline, true),
-          BoolToStr(Version.BuggyTextureSizeAbove2048, true),
-          BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
-        ]);
+        '  Buggy Shader Bump Mapping num_steps: %s', [
+        BoolToStr(Version.BuggyGenerateMipmap, true),
+        BoolToStr(Version.BuggyLightModelTwoSide, true),
+        BoolToStr(Version.BuggyVBO, true),
+        BoolToStr(Version.BuggyShaderShadowMap, true),
+        BoolToStr(Version.BuggyFBOMultiSampling, true),
+        BoolToStr(Version.BuggyFBOCubeMap, true),
+        BoolToStr(Version.BuggySwapNonStandardViewport, true),
+        BoolToStr(Version.BuggyDepth32, true),
+        BoolToStr(Version.BuggyGLSLFrontFacing, true),
+        BoolToStr(Version.BuggyGLSLReadVarying, true),
+        BoolToStr(Version.BuggyPureShaderPipeline, true),
+        BoolToStr(Version.BuggyTextureSizeAbove2048, true),
+        BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
+      ]);
   end;
 
   function GetMaxTextureMaxAnisotropy: string;
@@ -172,15 +181,16 @@ begin
     ' information (detected by ' + ApplicationName +'):' + NL +
     NL +
 
-    '--------' + NL +
-    'Version:' + NL +
+    Section + NL +
+    'Basic information:' + NL +
+    NL +
     '  Version string: ' + PAnsiChar(glGetString(GL_VERSION)) + NL +
     VersionReport(GLVersion) + NL +
     VendorReport(GLVersion) + NL +
     NL +
 
     {$ifdef OpenGLES}
-    '------------------------' + NL +
+    Section + NL +
     'Versions available:' + NL +
     NL +
     '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
@@ -190,9 +200,9 @@ begin
     NL +
 
     {$else}
-    '------------------------' + NL +
-    'Real versions available:' + NL +
-    '(checks both version string and actual functions availability in GL library, to secure from buggy implementations)' + NL +
+    Section + NL +
+    'Confirmed versions:' + NL +
+    '(checks both version string and actual functions availability in the library, to secure from buggy implementations)' + NL +
     NL +
     '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) + NL +
     '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) + NL +
@@ -208,7 +218,7 @@ begin
     NL +
     {$endif}
 
-    '---------' + NL +
+    Section + NL +
     'Features:' + NL +
     NL +
     '  Shaders (GLSL): ' + BoolToStr(GLFeatures.Shaders, true) + NL +
@@ -232,6 +242,12 @@ begin
     '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
     NL +
     '  All extensions: ' + GLFeatures.AllExtensions + NL +
+    NL +
+
+    Section + NL +
+    'Bugs:' + NL +
+    NL +
+    BugsReport(GLVersion) + NL +
     NL;
 
   if GLFeatures.RequestCapabilities <> rcForceModern then
@@ -242,8 +258,9 @@ begin
     }
 
     Result := Result +
-      '---------------------------' + NL +
+      Section + NL +
       'Current buffers bit depths:' + NL +
+      NL +
       '  Color (red / green / blue / alpha): '
         +GetInteger(GL_RED_BITS) +' / '
         +GetInteger(GL_GREEN_BITS) +' / '
@@ -260,7 +277,8 @@ begin
       NL +
 
       {$ifndef OpenGLES}
-      '-------------' + NL +
+      Section + NL +
+      NL +
       'Stack depths:' + NL +
       '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) + NL +
       '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) + NL +
@@ -271,8 +289,9 @@ begin
       NL +
       {$endif}
 
-      '-------' + NL +
+      Section + NL +
       'Limits:' + NL +
+      NL +
       '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
       '  Max lights (fixed-function limit): ' + IntToStr(GLFeatures.MaxLights) + NL +
       {$ifndef OpenGLES}
@@ -294,8 +313,9 @@ begin
   end;
 
   Result := Result +
-    '-------' + NL +
+    Section + NL +
     'Memory (in Kb):' + NL +
+      NL +
     '  Total: ' + IntToStrUnknown(GLFeatures.Memory.Total) + NL +
     '  Current: ' + IntToStrUnknown(GLFeatures.Memory.Current) + NL +
     '  Current for VBO: ' + IntToStrUnknown(GLFeatures.Memory.CurrentVbo) + NL +
