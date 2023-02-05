@@ -92,8 +92,10 @@ type
     procedure FixControlPoints;
 
     procedure UpdateCursorPosInfo(const MousePoint: TVector2);
+    procedure UpdateCursorShape(const MousePoint: TVector2);
     function HitTest(const AControlPoint: TVector2Integer;
       const AMousePoint: TVector2): TDirectionEnables;
+    function GetDirectionEnables(const MousePoint: TVector2): TDirectionEnables;
 
     procedure Changed;
   protected
@@ -390,6 +392,16 @@ begin
 
 end;
 
+function TRegionDesignDialog.GetDirectionEnables(
+  const MousePoint: TVector2): TDirectionEnables;
+var
+  Point: TVector2Integer;
+begin
+  Result := [];
+  for Point in FControlPointRec.Points do
+    Result := Result + HitTest(Point, MousePoint);
+end;
+
 procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 
@@ -512,7 +524,6 @@ begin
 
     FControlPointRec.Adjusting := True;
     Changed;
-    Exit;
   end;
 
   { RightMouseButton pressed. }
@@ -524,7 +535,6 @@ begin
     FMovingImageRec.StartMousePoint := Event.Position;
     FMovingImageRec.StartTranslation := FTranslation;
     FMovingImageRec.Moving := True;
-    Exit;
   end;
 
   { MouseWheel. }
@@ -533,8 +543,9 @@ begin
   begin
     GrowScale(Event.MouseWheelScroll > 0, Event.Position);
     UpdateCursorPosInfo(Event.Position);
-    Exit;
   end;
+
+  UpdateCursorShape(Event.Position);
 end;
 
 procedure TRegionDesignDialog.UpdateCursorPosInfo(const MousePoint: TVector2);
@@ -545,15 +556,15 @@ begin
   StatusBar1.Panels.Items[4].Text := Format('CursorPos: %d , %d', [Point.X, Point.Y]);
 end;
 
-procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
-  const Event: TInputMotion);
+procedure TRegionDesignDialog.UpdateCursorShape(const MousePoint: TVector2);
 var
-  Point: TVector2Integer;
   DirectionEnables: TDirectionEnables;
 begin
-  DirectionEnables := [];
-  for Point in FControlPointRec.Points do
-    DirectionEnables := DirectionEnables + HitTest(Point, Event.Position);
+  if FControlPointRec.Adjusting then DirectionEnables :=
+      FControlPointRec.DirectionEnables
+  else
+    DirectionEnables := GetDirectionEnables(MousePoint);
+
   if DirectionEnables = [EnableX, EnableY] then
     CastleControl1.Cursor := crHandPoint
   else
@@ -562,7 +573,13 @@ begin
   if DirectionEnables = [EnableY] then CastleControl1.Cursor := crSizeNS
   else
     CastleControl1.Cursor := crDefault;
+end;
 
+procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
+  const Event: TInputMotion);
+var
+  Point: TVector2Integer;
+begin
   if FControlPointRec.Adjusting and not (FControlPointRec.DirectionEnables = []) then
   begin
     Point := ScreenToImage(Event.Position);
@@ -581,6 +598,7 @@ begin
       FMovingImageRec.StartTranslation;
   end;
 
+  UpdateCursorShape(Event.Position);
   UpdateCursorPosInfo(Event.Position);
 end;
 
@@ -611,6 +629,7 @@ begin
   begin
     FControlPointRec.Adjusting := False;
     FixControlPoints;
+    UpdateCursorShape(Event.Position);
     Changed;
   end;
 end;
@@ -724,8 +743,8 @@ begin
   Result := pt * FScale + FTranslation;
 end;
 
-function TRegionDesignDialog.ImageToScreen(
-  const APoints: TArrayImagePoints): TArrayScreenPoints;
+function TRegionDesignDialog.ImageToScreen(const APoints: TArrayImagePoints):
+TArrayScreenPoints;
 var
   i: integer;
 begin
