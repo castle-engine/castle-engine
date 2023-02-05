@@ -62,8 +62,10 @@ type
     FCountZFailAndLightCap: Cardinal;
 
     FMesh: TCastleRenderUnlitMesh;
+    FDebugRender: Boolean;
 
     procedure UpdateCount;
+    procedure SetDebugRender(const Value: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -171,19 +173,18 @@ type
       partially-transparent parts, IOW they also note that transparent parts
       simply don't work at all with shadow volumes.
 
-      RenderShadowVolumes renders shadow volumes from shadow casters.
-
-      If DrawShadowVolumes then shadow volumes will be also actually drawn
-      to color buffer (as yellow blended polygons), this is useful for debugging
-      shadow volumes. }
+      RenderShadowVolumes renders shadow volumes from shadow casters. }
     procedure Render(
       const Params: TRenderParams;
       const RenderOnePass: TSVRenderProc;
-      const RenderShadowVolumes: TSVRenderProc;
-      const DrawShadowVolumes: boolean);
+      const RenderShadowVolumes: TSVRenderProc);
 
     { Use this to render shadow quads. }
     property Mesh: TCastleRenderUnlitMesh read FMesh;
+
+    { Shadow volumes will be also actually drawn to color buffer
+      (as yellow blended polygons), useful for debugging. }
+    property DebugRender: Boolean read FDebugRender write SetDebugRender default false;
   end;
 
 implementation
@@ -196,7 +197,7 @@ constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
-  FMesh := TCastleRenderUnlitMesh.Create(false);
+  FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
 end;
 
 destructor TGLShadowVolumeRenderer.Destroy;
@@ -512,14 +513,7 @@ end;
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
   const RenderOnePass: TSVRenderProc;
-  const RenderShadowVolumes: TSVRenderProc;
-  const DrawShadowVolumes: boolean);
-{$ifdef OpenGLES}
-begin
-  // TODO-es
-  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-{$else}
+  const RenderShadowVolumes: TSVRenderProc);
 
 const
   { Which stencil bits should be tested when determining which things
@@ -663,7 +657,7 @@ begin
 
   RenderContext.DepthFunc := SavedDepthFunc;
 
-  if DrawShadowVolumes then
+  if DebugRender then
   begin
     SavedCount := Count;
     Count := false;
@@ -675,12 +669,9 @@ begin
     RenderContext.DepthTest := true;
     RenderContext.BlendingEnable;
 
-    glColorv(Vector4(1, 1, 0, 0.3)); // TODO: pass this to TCastleRenderUnlitMesh.Color
-
     RenderShadowVolumes(Params);
 
     RenderContext.BlendingDisable;
-
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
     RenderContext.DepthTest := SavedDepthTest;
 
@@ -696,7 +687,20 @@ begin
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := [false];
   RenderOnePass(Params);
-{$endif}
+end;
+
+procedure TGLShadowVolumeRenderer.SetDebugRender(const Value: Boolean);
+begin
+  if FDebugRender <> Value then
+  begin
+    FDebugRender := Value;
+    if (Mesh <> nil) and (Mesh.UseColor <> Value) then
+    begin
+      FreeAndNil(FMesh);
+      FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
+      FMesh.Color := Vector4(1, 1, 0, 0.3);
+    end;
+  end;
 end;
 
 end.

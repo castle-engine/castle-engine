@@ -2483,10 +2483,11 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
     if FShadowVolumeRenderer = nil then
       FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+    FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
       {$ifdef FPC}@{$endif}RenderOnePass,
-      {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
+      {$ifdef FPC}@{$endif}RenderShadowVolume);
   end;
 
 var
