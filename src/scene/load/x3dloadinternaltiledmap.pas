@@ -408,11 +408,77 @@ var
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
     TexCoordArray: TQuadTexCoords;
+    { animations var.}
+    TimeSensor: TTimeSensorNode;
+    TexCoordInterp : TCoordinateInterpolator2DNode;
+
+    function HasAnimation:Boolean;
+    begin
+      Result := Tileset.Tiles[Frame].Animation.Count > 0;
+    end;
+
+    procedure AddAnimation;
+    var
+      Durations,AllDurations: Single;
+      I: integer;
+      AniFrame : TCastleTiledMapData.TFrame;
+    begin
+      for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
+        AllDurations := AllDurations + Tileset.Tiles[Frame].Animation.Items[I].Duration;
+      TimeSensor.CycleInterval := AllDurations / 1000;
+      WritelnLog('CycleInterval:%f s',[TimeSensor.CycleInterval]);
+
+      Durations := 0;
+      for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
+      begin
+        AniFrame := Tileset.Tiles[Frame].Animation.Items[I];
+
+        if Between(AniFrame.TileId, 0, Tileset.Tiles.Count - 1) then
+          TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[AniFrame.TileId], Tileset)
+        else
+        begin
+          WritelnWarning('Tiled animation', 'Invalid frame id %d', [AniFrame.TileId]);
+          // some fallback, to have something defined
+          TexCoordRect := FloatRectangle(0, 0, Tileset.TileWidth, Tileset.TileHeight);
+        end;
+
+        TexCoordArray[0] := Vector2(TexCoordRect.Left , TexCoordRect.Bottom);
+        TexCoordArray[1] := Vector2(TexCoordRect.Right, TexCoordRect.Bottom);
+        TexCoordArray[2] := Vector2(TexCoordRect.Right, TexCoordRect.Top);
+        TexCoordArray[3] := Vector2(TexCoordRect.Left , TexCoordRect.Top);
+        ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
+        if I =0 then
+          TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+        TexCoordInterp.FdKey.Items.Add(Durations / AllDurations);
+
+        Durations := Durations + AniFrame.Duration;
+      end;
+
+      { Add TimeSensor to Root node }
+      LayerNode.AddChildren(TimeSensor);
+      { Add TextureCoordinate animation }
+      LayerNode.AddChildren(TexCoordInterp);
+      LayerNode.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
+      LayerNode.AddRoute(TexCoordInterp.EventValue_changed, TexCoord.FdPoint);
+
+      TimeSensor.Loop:=True;
+      TimeSensor.Enabled:=True;
+    end;
+
+    procedure PrepareAnimation(const Name: string);
+    begin
+      TimeSensor := TTimeSensorNode.Create(Name);
+      TexCoordInterp := TCoordinateInterpolator2DNode.Create(Name + '_TexCoord');
+      TexCoordInterp.Interpolation := inStep;
+    end;
+
   begin
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      if LastTileTileset = Tileset then
+      if (LastTileTileset = Tileset) and (not HasAnimation)  then
       begin
         { Append tile to last geometry node }
         Coord := LastTileCoord;
@@ -434,15 +500,6 @@ var
       end;
 
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
-      if Between(Frame, 0, Tileset.Tiles.Count - 1) then
-        TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset)
-      else
-      begin
-        WritelnWarning('Tiled', 'Invalid frame id %d', [Frame]);
-        // some fallback, to have something defined
-        TexCoordRect := FloatRectangle(0, 0, Tileset.TileWidth, Tileset.TileHeight);
-      end;
-
       Coord.FdPoint.Items.AddRange([
         Vector3(CoordRect.Left , CoordRect.Bottom, 0),
         Vector3(CoordRect.Right, CoordRect.Bottom, 0),
@@ -450,12 +507,29 @@ var
         Vector3(CoordRect.Left , CoordRect.Top   , 0)
       ]);
 
-      TexCoordArray[0] := Vector2(TexCoordRect.Left , TexCoordRect.Bottom);
-      TexCoordArray[1] := Vector2(TexCoordRect.Right, TexCoordRect.Bottom);
-      TexCoordArray[2] := Vector2(TexCoordRect.Right, TexCoordRect.Top);
-      TexCoordArray[3] := Vector2(TexCoordRect.Left , TexCoordRect.Top);
-      ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
-      TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+      if HasAnimation then
+      begin
+        { load animation. }
+        PrepareAnimation('Ani_'+TilePosition.ToString);
+        AddAnimation;
+      end else
+      begin
+        if Between(Frame, 0, Tileset.Tiles.Count - 1) then
+          TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset)
+        else
+        begin
+          WritelnWarning('Tiled', 'Invalid frame id %d', [Frame]);
+          // some fallback, to have something defined
+          TexCoordRect := FloatRectangle(0, 0, Tileset.TileWidth, Tileset.TileHeight);
+        end;
+
+        TexCoordArray[0] := Vector2(TexCoordRect.Left , TexCoordRect.Bottom);
+        TexCoordArray[1] := Vector2(TexCoordRect.Right, TexCoordRect.Bottom);
+        TexCoordArray[2] := Vector2(TexCoordRect.Right, TexCoordRect.Top);
+        TexCoordArray[3] := Vector2(TexCoordRect.Left , TexCoordRect.Top);
+        ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
+        TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+      end;
     end;
   end;
 
