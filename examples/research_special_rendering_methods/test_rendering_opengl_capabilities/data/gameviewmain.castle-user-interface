@@ -172,7 +172,8 @@
             "Name" : "SceneWithShadowMaps",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "ReceiveGlobalLights" : false
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -209,20 +210,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.5882489681243896E-001,
-          "X" : -4.6052429080009460E-001,
-          "Y" : -8.8242048025131226E-001,
-          "Z" : -9.6185304224491119E-002
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 9.9999994039535522E-001
+          "W" : 4.5552003383636475E-001,
+          "X" : -9.9640464782714844E-001,
+          "Y" : -8.4637701511383057E-002,
+          "Z" : 3.7978084292262793E-003
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.7729158401489258E+001,
-          "Y" : 8.9607877731323242E+000,
-          "Z" : 1.5725677490234375E+001
+          "X" : -1.5281671524047852E+001,
+          "Y" : 5.1326308250427246E+000,
+          "Z" : 6.7832069396972656E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
