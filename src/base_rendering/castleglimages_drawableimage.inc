@@ -951,7 +951,8 @@ begin
 
   { Free below regardless of GLFeatures.EnableFixedFunction,
     in case user toggles GLFeatures.EnableFixedFunction at runtime.
-    Note: This robustness is not really unnecessary now, as TGLFeatures.RequestCapabilities
+    Note: This robustness is not really unnecessary now,
+    as GLFeatures.EnableFixedFunction and TGLFeatures.RequestCapabilities
     cannot change once GL context is initialized. }
   //if not GLFeatures.EnableFixedFunction then
   for AlphaTestShader := Low(boolean) to High(boolean) do
