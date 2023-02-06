@@ -38,7 +38,6 @@ type
     FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
-    FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
@@ -73,7 +72,6 @@ type
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetVisualizeDepthMap(const Value: boolean);
     procedure SetBlending(const Value: boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
@@ -210,22 +208,6 @@ type
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
-
-    { Visualize depths stored in the shadow maps, instead of using them to
-      actually make shadow.
-
-      Even without turning this on, VRML author can always activate it
-      explicitly for specific lights. For this, you have to use
-      @code(X3DLightNode.defaultShadowMap) field,
-      and place a GeneratedShadowMap node there. If the
-      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
-      we will always visualize depths of this shadow map.
-
-      Setting this property to @true has the same effect as setting
-      compareMode to "NONE" on all (explicit and implicitly created)
-      GeneratedShadowMap nodes. }
-    property VisualizeDepthMap: boolean
-      read FVisualizeDepthMap write SetVisualizeDepthMap default false;
 
     { By default, we use depth testing to determine which objects are in front
       of the others. This allows to display all 3D content (all TCastleScene
@@ -717,15 +699,6 @@ begin
       ReleaseCachedResources;
 
     FShadowSampling := Value;
-  end;
-end;
-
-procedure TCastleRenderOptions.SetVisualizeDepthMap(const Value: boolean);
-begin
-  if VisualizeDepthMap <> Value then
-  begin
-    ReleaseCachedResources;
-    FVisualizeDepthMap := Value;
   end;
 end;
 

@@ -373,15 +373,11 @@ type
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
 
-    { Required GLFeatures.TextureDepth before calling this.
-      For interpreating CompareMode, ARB_shadow will be needed
-      (but we'll make nice warning if it's not available). }
+    { Requires GLFeatures.TextureDepth before calling this. }
     function TextureDepth_IncReference(
       const TextureFullUrl: string;
       const TextureWrap: TTextureWrap2D;
-      CompareMode: TShadowMapCompareMode;
-      const Width, Height: Cardinal;
-      const VisualizeDepthMap: boolean): TGLuint;
+      const Width, Height: Cardinal): TGLuint;
 
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
@@ -1239,9 +1235,7 @@ end;
 function TGLRendererContextCache.TextureDepth_IncReference(
   const TextureFullUrl: String;
   const TextureWrap: TTextureWrap2D;
-  CompareMode: TShadowMapCompareMode;
-  const Width, Height: Cardinal;
-  const VisualizeDepthMap: boolean): TGLuint;
+  const Width, Height: Cardinal): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
@@ -1268,6 +1262,8 @@ begin
     end;
   end;
 
+  Assert(GLFeatures.TextureDepth);
+
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
 
@@ -1292,50 +1288,15 @@ begin
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
     Width, Height, 1);
 
-  { On OpenGLES, we just assume CompareMode = COMPARE_R_LEQUAL for now,
-    which is hardcoded in glsl/shadow_map_common.fs
-    in GLSL functions castleShadow2D and castleShadow2DProj.
-    Customizing CompareMode isn't really useful in practice, for non-debug
-    you always want COMPARE_R_LEQUAL. }
-
+  { On OpenGLES, the comparison "less or equal" is hardcoded in glsl/shadow_map_common.fs
+    in GLSL functions castleShadow2D and castleShadow2DProj. }
   {$ifndef OpenGLES}
-
   if GLFeatures.TextureDepthCompare then
   begin
-    if VisualizeDepthMap then
-      CompareMode := smNone;
-    case CompareMode of
-      smNone:
-        begin
-          { Using RenderOptions.VisualizeDepthMap effectively forces
-            every shadow map's compareMode to be NONE.
-            Although on some GPUs (Radeon X1600 (fglrx, chantal))
-            setting compareMode to NONE is not needed (one can use them
-            as sampler2D in shaders anyway, and extract depth as grayscale),
-            on other GPUs (NVidia GeForce 450 (kocury)) it is needed
-            (otherwise depth map only returns 0/1 values, not grayscale).
-            Spec suggests it should be needed. }
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-        end;
-      smCompareRLEqual:
-        begin
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-        end;
-      smCompareRGEqual:
-        begin
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
-        end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
-      {$endif}
-    end;
-
-    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   end else
-    WritelnWarning('VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
-
+    WritelnWarning('VRML/X3D', 'OpenGL doesn''t support GL_ARB_shadow, we cannot set depth comparison for depth texture');
   {$endif}
 
   TextureCached := TTextureDepthOrFloatCache.Create;
@@ -3038,12 +2999,9 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   var
     GLTexture: TGLTextureNode;
   begin
-    if Texture.CompareMode <> smNone then
-    begin
-      GLTexture := GLTextureNodes.TextureNode(Texture);
-      if GLTexture <> nil then
-        GLTexture.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
-    end;
+    GLTexture := GLTextureNodes.TextureNode(Texture);
+    if GLTexture <> nil then
+      GLTexture.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
   end;
 
   procedure EnableShadowMaps(const Texture: TAbstractTextureNode;

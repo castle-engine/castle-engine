@@ -124,27 +124,4 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '}' + LineEnding +
-'' + LineEnding +
-'/* Debug function, to display depth (distances) of the texture directly.' + LineEnding +
-'' + LineEnding +
-'   Note that you have to use compareMode "NONE" inside GeneratedShadowMap' + LineEnding +
-'   (otherwise getting it as sampler2D may not be sensible, depends on GPU;' + LineEnding +
-'   Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).' + LineEnding +
-'*/' + LineEnding +
-'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'{' + LineEnding +
-'  /* Avoid back-projecting shadows. */' + LineEnding +
-'  if (shadowMapCoord.z < 0.0) return 0.0;' + LineEnding +
-'' + LineEnding +
-'  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding +
-'' + LineEnding +
-'  /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.' + LineEnding +
-'     Otherwise texture would be visible stretched due to clamping. */' + LineEnding +
-'  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding +
-'      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding +
-'    return 0.0; else' + LineEnding +
-'    return texture2D(shadowMap, coord2).z;' + LineEnding +
-'' + LineEnding +
-'  // d = pow(d, 4.0); // makes shadows a little more contrasting' + LineEnding +
-'}' + LineEnding +
 ''

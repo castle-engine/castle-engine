@@ -3724,11 +3724,9 @@ function TShader.DeclareShadowFunctions: string;
 const
   ShadowDeclare: array [boolean { vsm? }] of string =
   ('float shadow(' + Sampler2DShadow + ' shadowMap, const vec4 shadowMapCoord, const in float size);',
-   'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
-  ShadowDepthDeclare =
-   'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
+   'float shadow(sampler2D               shadowMap, const vec4 shadowMapCoord, const in float size);');
 begin
-  Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps] + NL + ShadowDepthDeclare;
+  Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps];
 end;
 
 procedure TShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
