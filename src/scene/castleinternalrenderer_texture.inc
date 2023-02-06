@@ -2201,7 +2201,7 @@ begin
       Camera.Target := rtShadowMap;
 
     Camera.FromMatrix(
-      Light.ProjectionSceneLocation,
+      Light.ProjectionWorldLocation,
       Light.ModelviewMatrix,
       Light.ModelviewRotationMatrix,
       NewProjectionMatrix);

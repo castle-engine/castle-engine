@@ -177,7 +177,7 @@
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : -1.5541410446166992E+001,
-              "Y" : 9.1469306945800781E+000,
+              "Y" : 7.5707693099975586E+000,
               "Z" : -8.6054921150207520E-002
             },
             "URL" : "castle-data:/primitives_with_shadow_maps.x3dv"
@@ -209,22 +209,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.1859652996063232E-001,
-          "X" : -4.2458820343017578E-001,
-          "Y" : 8.9705091714859009E-001,
-          "Z" : 1.2257452309131622E-001
+          "W" : 5.5882489681243896E-001,
+          "X" : -4.6052429080009460E-001,
+          "Y" : -8.8242048025131226E-001,
+          "Z" : -9.6185304224491119E-002
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 9.9999994039535522E-001,
-          "Z" : 9.9999994039535522E-001
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -9.9413055181503296E-001,
-          "Y" : 1.0624264717102051E+001,
-          "Z" : 4.1449394226074219E+001
+          "X" : -1.7729158401489258E+001,
+          "Y" : 8.9607877731323242E+000,
+          "Z" : 1.5725677490234375E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

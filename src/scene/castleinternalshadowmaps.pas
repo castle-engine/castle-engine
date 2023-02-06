@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -618,8 +618,8 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
-      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionSceneDirection);
-      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionSceneDirection);
+      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionWorldDirection);
+      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionWorldDirection);
       { do not place ProjectionLocation exactly at MinCorner, it would be too close
         to ShadowCastersBox, forcing projectionNear always almost zero. }
       ProjectionLocation :=
