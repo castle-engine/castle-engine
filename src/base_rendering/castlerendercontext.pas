@@ -283,7 +283,7 @@ type
 
     { Does the current color buffer have any alpha channel.
       Some blending features depend on storing alpha in the color channel. }
-    function ColorBufferHasAlpha: Boolean;
+    function ColorBufferHasAlpha: Boolean; deprecated 'use GLFeatures.AlphaBits > 0';
 
     { Enable blending, sets also blending function.
       See https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml
@@ -693,8 +693,7 @@ end;
 
 function TRenderContext.ColorBufferHasAlpha: Boolean;
 begin
-  // TODO: cache the result, it only needs to be calculated once for context
-  Result := glGetInteger(GL_ALPHA_BITS) > 0;
+  Result := GLFeatures.AlphaBits > 0;
 end;
 
 procedure TRenderContext.BlendingEnable(

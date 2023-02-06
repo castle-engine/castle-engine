@@ -194,6 +194,9 @@ type
     FMaxViewportDimensions: TVector2Integer;
     FTextureModernFormatsAndSwizzle: Boolean;
     SupportedExtensions: AnsiString;
+    FRedBits, FGreenBits, FBlueBits, FAlphaBits, FDepthBits, FStencilBits: TGLint;
+    FDoubleBuffer: Boolean;
+    FLineWidth: TVector2;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -504,6 +507,24 @@ type
       (core extension since 3.3).
     }
     property TextureModernFormatsAndSwizzle: Boolean read FTextureModernFormatsAndSwizzle;
+
+    { Size, in bits, of the red channel of the color buffer. }
+    property RedBits: TGLint read FRedBits;
+    { Size, in bits, of the green channel of the color buffer. }
+    property GreenBits: TGLint read FGreenBits;
+    { Size, in bits, of the blue channel of the color buffer. }
+    property BlueBits: TGLint read FBlueBits;
+    { Size, in bits, of the alpha channel of the color buffer. }
+    property AlphaBits: TGLint read FAlphaBits;
+    { Size, in bits, of the depth buffer. }
+    property DepthBits: TGLint read FDepthBits;
+    { Size, in bits, of the stencil buffer. }
+    property StencilBits: TGLint read FStencilBits;
+    { Do we have double-buffer. }
+    property DoubleBuffer: Boolean read FDoubleBuffer;
+
+    { Line width granularity and maximum width. }
+    property LineWidth: TVector2 read FLineWidth;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -726,7 +747,6 @@ constructor TGLFeatures.Create;
 
 var
   LoadExtensions: Boolean;
-  StencilSize: TGLint;
 begin
   inherited;
 
@@ -950,17 +970,43 @@ begin
     {$else} HasExtension('GL_EXT_packed_depth_stencil')
     {$endif};
 
+  {$ifndef OpenGLES}
   if Version_3_2 then
   begin
-    { Based on https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer
-      how to read stencil size with OpenGL core. }
+    { Read buffer sizes with new OpenGL core
+      https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetFramebufferAttachmentParameter.xhtml
+      https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer }
     glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @StencilSize);
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, @FGreenBits);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, @FBlueBits);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, @FAlphaBits);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @FStencilBits);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+      GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, @FDepthBits);
+    FDoubleBuffer := true; // TODO: any way to query it?
   end else
-    StencilSize := glGetInteger(GL_STENCIL_BITS);
+  {$endif}
+  begin
+    FRedBits := glGetInteger(GL_RED_BITS);
+    FGreenBits := glGetInteger(GL_GREEN_BITS);
+    FBlueBits := glGetInteger(GL_BLUE_BITS);
+    FAlphaBits := glGetInteger(GL_ALPHA_BITS);
+    FStencilBits := glGetInteger(GL_STENCIL_BITS);
+    FDepthBits := glGetInteger(GL_DEPTH_BITS);
+    {$ifndef OpenGLES}
+    FDoubleBuffer := glGetBoolean(GL_DOUBLEBUFFER) <> GL_FALSE;
+    {$else}
+    FDoubleBuffer := true;
+    {$endif}
+  end;
 
   FShadowVolumesPossible :=
-    (StencilSize >= 4) and
+    (StencilBits >= 4) and
     { OpenGLES 2 always has GL_INCR/DECR_WRAP, glStencilOpSeparate:
       see bottom table at https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glStencilOpSeparate.xhtml }
     {$ifdef OpenGLES} true
@@ -1150,6 +1196,17 @@ begin
       HasExtension('GL_ARB_texture_swizzle') or
       HasExtension('GL_EXT_texture_swizzle')
     );
+
+  {$ifndef OpenGLES}
+  // set LineWidth to some reasonable default when it cannot be queried on old OpenGL
+  if not Version_2_0 then
+    FLineWidth := Vector2(1, 8)
+  else
+  {$endif}
+  begin
+    Assert(SizeOf(TGLFloat) = SizeOf(Single));
+    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
+  end;
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;

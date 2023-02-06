@@ -38,23 +38,6 @@ function GLInformationString: string;
 const
   Section = '----------------------------------------';
 
-  function GetInteger(const Param: TGLenum): String;
-  begin
-    Result := IntToStr(glGetInteger(Param));
-  end;
-
-  { Unused for now:
-  function GetInteger2(const Param: TGLenum; const Available: Boolean): String;
-  var
-    V: packed array [0..1] of TGLInt;
-  begin
-    if not Available then
-      Exit('Not Available');
-    glGetIntegerv(Param, @V);
-    Result := Format('%d %d', [V[0], V[1]]);
-  end;
-  }
-
   function GetFloat2(const Param: TGLenum; const Available: Boolean): String;
   var
     V: packed array [0..1] of TGLFloat;
@@ -63,11 +46,6 @@ const
       Exit('Not Available');
     glGetFloatv(Param, @V);
     Result := Format('%f %f', [V[0], V[1]]);
-  end;
-
-  function GetBoolean(const Param: TGLenum): String;
-  begin
-    Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
   end;
 
   function VersionReport(Version: TGenericGLVersion): string;
@@ -178,7 +156,7 @@ const
 begin
   Result :=
     {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif} +
-    ' information (detected by ' + ApplicationName +'):' + NL +
+    ' information (detected by ' + ApplicationName + '):' + NL +
     NL +
 
     Section + NL +
@@ -252,17 +230,14 @@ begin
     Section + NL +
     'Current buffers bit depths:' + NL +
     NL +
-    // TODO: modern gl adjust, also AlphaBits in context fix
-    '  Color (red / green / blue / alpha): '
-      +GetInteger(GL_RED_BITS) +' / '
-      +GetInteger(GL_GREEN_BITS) +' / '
-      +GetInteger(GL_BLUE_BITS) +' / '
-      +GetInteger(GL_ALPHA_BITS) + NL +
-    '  Depth: ' +GetInteger(GL_DEPTH_BITS) + NL +
-    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) + NL +
-    {$ifndef OpenGLES}
-    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
-    {$endif}
+    '  Color buffer (red, green, blue, alpha): '
+      + IntToStr(GLFeatures.RedBits) +' / '
+      + IntToStr(GLFeatures.GreenBits) +' / '
+      + IntToStr(GLFeatures.BlueBits) +' / '
+      + IntToStr(GLFeatures.AlphaBits) + NL +
+    '  Depth: ' + IntToStr(GLFeatures.DepthBits) + NL +
+    '  Stencil: ' + IntToStr(GLFeatures.StencilBits) + NL +
+    '  Double buffer: ' + BoolToStr(GLFeatures.DoubleBuffer, true) + NL +
     '  Multi-sampling (full-screen anti-aliasing) possible: ' +
     BoolToStr(GLFeatures.Multisample, true) + NL +
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
@@ -282,7 +257,7 @@ begin
     '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
     '  Occlusion query counter bits: ' +  GetOcclusionQueryCounterBits + NL +
     '  Max renderbuffer size: ' + IntToStr(GLFeatures.MaxRenderbufferSize) + NL +
-    '  Max line width: ' + GetFloat2(GL_ALIASED_LINE_WIDTH_RANGE, {$ifdef OpenGLES} true {$else} GLFeatures.Version_2_0 {$endif}) + NL +
+    '  Max line width: ' + GLFeatures.LineWidth.ToString + NL +
     NL +
 
     Section + NL +
