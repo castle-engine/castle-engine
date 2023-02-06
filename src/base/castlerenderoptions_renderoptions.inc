@@ -1,5 +1,4 @@
 {%MainUnit castlerenderoptions.pas}
-
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
