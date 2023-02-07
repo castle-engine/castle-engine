@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -84,11 +84,8 @@ type
     FVendorMajor: Integer;
     FVendorMinor: Integer;
     FVendorRelease: Integer;
-    FBuggyGenerateMipmap: boolean;
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
-    FBuggyLightModelTwoSide: boolean;
-    FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
     FBuggyShaderShadowMap: boolean;
     FBuggyFBOMultiSampling: boolean;
@@ -129,15 +126,6 @@ type
     { ATI GPU with ATI drivers on Linux. }
     property Fglrx: boolean read FFglrx;
 
-    { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
-
-      This was observed with software (no direct) rendering with
-      7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
-      With Mesa 7.5.1 (but tested only with radeon and radeonhd,
-      so possibly it's not really related to Mesa version! Reports welcome)
-      no problems. }
-    property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
-
     { Buggy generation of cube maps on FBO (Intel(Windows) bug).
 
       Symptoms: Parts of the cube map texture are uninitialized (left magenta).
@@ -172,11 +160,6 @@ type
       )
     }
     property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
-
-    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
-      See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
-    property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
-    property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
 
     { Buggy VBO (Intel(Windows) bug). }
     property BuggyVBO: boolean read FBuggyVBO;
@@ -490,15 +473,6 @@ begin
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
-  FBuggyGenerateMipmap :=
-    (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-    {$ifdef MSWINDOWS}
-    or
-    ( (VendorType = gvIntel) and
-      not VendorVersionAtLeast(9, 0, 0)
-    )
-    {$endif};
-
   FBuggyFBOCubeMap :=
     {$ifdef MSWINDOWS}
     ( (VendorType = gvIntel) and
@@ -515,30 +489,6 @@ begin
     )
     {$else} false
     {$endif};
-
-  { On which fglrx versions does this occur?
-
-    - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
-      (tested on MacBook Pro "chantal").
-
-    - Catalyst 9.1 (fglrx 8.573) - not known.
-      Below we only *assume* the bug started from 9.1.
-
-    - On Catalyst 9.10 and 10.3 the bug does occur.
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug confirmed also on Ubuntu 10.04 (fglrx 8.723).
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug disappeared on Ubuntu 10.10 (fglrx 8.780). Seems fixed there.
-      (fglrx bugzilla was wiped, so we don't have any official
-      confirmation about this from AMD.) }
-
-  FBuggyLightModelTwoSide := Fglrx and ReleaseExists and
-    (Release >= 8573) and (Release < 8780);
-  if BuggyLightModelTwoSide then
-    FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
-    FBuggyLightModelTwoSideMessage := '';
 
   FBuggyVBO := {$ifdef MSWINDOWS}
     { See demo_models/x3d/background_test_mobile_intel_gpu_bugs.x3d }

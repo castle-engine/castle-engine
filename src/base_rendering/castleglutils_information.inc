@@ -87,8 +87,6 @@ const
   begin
     Result :=
       Format(
-        '  Buggy glGenerateMipmap(EXT): %s' + NL +
-        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' + NL +
         '  Buggy VBO: %s' + NL +
         '  Buggy shader shadow map: %s' + NL +
         '  Buggy FBO rendering to multi-sampling texture: %s' + NL +
@@ -100,8 +98,6 @@ const
         '  Buggy Pure Shader Pipeline: %s' + NL +
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s', [
-        BoolToStr(Version.BuggyGenerateMipmap, true),
-        BoolToStr(Version.BuggyLightModelTwoSide, true),
         BoolToStr(Version.BuggyVBO, true),
         BoolToStr(Version.BuggyShaderShadowMap, true),
         BoolToStr(Version.BuggyFBOMultiSampling, true),

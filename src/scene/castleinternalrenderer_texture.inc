@@ -1177,7 +1177,7 @@ begin
     WritelnWarning('VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
-      'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for RenderedTexture');
+      'OpenGL(ES) doesn''t have glGenerateMipmap, so you cannot use mipmaps for RenderedTexture');
     Filter.Minification := minLinear;
     NeedsMipmaps := false;
   end;
@@ -1666,7 +1666,9 @@ begin
   finally FreeAndNil(Camera) end;
 
   { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
-    cannot have mipmaps regenerated. On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
+    cannot have mipmaps regenerated.
+
+    Old note: On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
     on "domek") glGenerateMipmapEXT even causes "invalid operation" OpenGL
     error (test e.g. view3dscene on rendered_texture.x3dv). }
   if NeedsMipmaps and (not DepthMap) then
@@ -1878,7 +1880,7 @@ begin
     WritelnWarning('VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
-      'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for GeneratedCubeMapTexture');
+      'OpenGL(ES) doesn''t have glGenerateMipmap, so you cannot use mipmaps for GeneratedCubeMapTexture');
     Filter.Minification := minLinear;
     NeedsMipmaps := false;
   end;

@@ -2178,10 +2178,7 @@ begin
         normalizing normals. }
     glEnable(GL_NORMALIZE);
 
-    if not GLVersion.BuggyLightModelTwoSide then
-      glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE)
-    else
-      WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   end;
   {$endif}
 end;

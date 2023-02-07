@@ -21,13 +21,13 @@
 type
   EGenerateMipmapNotAvailable = class(Exception);
 
-{ Is GenerateMipmap avaiable. This checks some GL extensions/versions that
-  give us glGenerateMipmap or glGenerateMipmapEXT call, used by GenerateMipmap. }
+{ Is GenerateMipmap call avaiable. This checks some GL extensions/versions that
+  give us glGenerateMipmap. }
 function HasGenerateMipmap: boolean;
 
-{ Call glGenerateMipmap (or analogous function from some OpenGL extension).
+{ Call glGenerateMipmap.
 
-  @raises(EGenerateMipmapNotAvailable If no glGenerateMipmap version
+  @raises(EGenerateMipmapNotAvailable If glGenerateMipmap
     is available on this OpenGL version. If you don't want to get
     this exception, you can always check HasGenerateMipmap
     before calling this.) }
@@ -41,7 +41,7 @@ procedure GenerateMipmap(target: TGLenum);
 
 function HasGenerateMipmap: boolean;
 begin
-  Result := GLFeatures.Framebuffer and (not GLVersion.BuggyGenerateMipmap);
+  Result := GLFeatures.Framebuffer;
 end;
 
 procedure GenerateMipmap(target: TGLenum);
