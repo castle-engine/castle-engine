@@ -455,9 +455,6 @@ var
 
         CalcTexCoordArray(AniFrame.TileId);
 
-        if I =0 then
-          TexCoord.FdPoint.Items.AddRange(TexCoordArray);
-
         TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
         TexCoordInterp.FdKey.Items.Add(Durations / AllDurations);
 
@@ -468,6 +465,7 @@ var
       LayerNode.AddChildren(TimeSensor);
       { Add TextureCoordinate animation }
       LayerNode.AddChildren(TexCoordInterp);
+
       LayerNode.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
       LayerNode.AddRoute(TexCoordInterp.EventValue_changed, TexCoord.FdPoint);
 
