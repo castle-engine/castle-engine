@@ -143,7 +143,6 @@ end;
 procedure TCastleTiledMap.ReloadMap;
 var
   Converter: TCastleTiledMapConverter;
-  AnimationName:string;
 begin
   FreeAndNil(FMap);
   FScene.Load(nil, true);
