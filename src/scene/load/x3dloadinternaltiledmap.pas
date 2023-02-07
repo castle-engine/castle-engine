@@ -462,12 +462,7 @@ var
 
         CalcTexCoordArray(AniFrame.TileId);
 
-        { Why does it work when multiplied by 4? }
         TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-
         TexCoordInterp.FdKey.Items.Add(Durations / AllDurations);
 
         Durations := Durations + AniFrame.Duration;
@@ -508,9 +503,17 @@ var
         Shape.Appearance := Tileset.RendererData as TAppearanceNode;
         LayerNode.AddChildren(Shape);
 
-        LastTileTileset := Tileset;
-        LastTileCoord := Coord;
-        LastTileTexCoord := TexCoord;
+        if HasAnimation then
+        begin
+          LastTileTileset := nil;
+          LastTileCoord := nil;
+          LastTileTexCoord := nil;
+        end else
+        begin
+          LastTileTileset := Tileset;
+          LastTileCoord := Coord;
+          LastTileTexCoord := TexCoord;
+        end;
       end;
 
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
