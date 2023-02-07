@@ -437,6 +437,9 @@ type
     if the scene does not change (in a significant way) between each query.
     So you can query information like @link(LocalBoundingBox),
     @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
+
+  { TCastleSceneCore }
+
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     type
@@ -2129,6 +2132,9 @@ type
       const Looping: TPlayAnimationLooping;
       const Forward: boolean = true): boolean; overload;
       deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
+
+    { For TiledMap. }
+    procedure PlayAllAnimations;
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -5696,9 +5702,7 @@ begin
     [ManifoldEdges, BorderEdges]) + NL;
 end;
 
-function TCastleSceneCore.Info(
-  ATriangleVerticesCounts,
-  ABoundingBox,
+function TCastleSceneCore.Info(ATriangleVerticesCounts, ABoundingBox: boolean;
   AManifoldAndBorderEdges: boolean): string;
 begin
   Result := '';
@@ -7551,8 +7555,8 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;
-  const WorldBox: TBox3D;
-  const RelativeCameraTransform, AllowTransitionAnimate: boolean);
+  const WorldBox: TBox3D; const RelativeCameraTransform: boolean;
+  const AllowTransitionAnimate: boolean);
 var
   APosition: TVector3;
   ADirection: TVector3;
@@ -8347,6 +8351,40 @@ begin
   end;
 
   Result := PlayAnimation(AnimationName, Loop, Forward);
+end;
+
+procedure TCastleSceneCore.PlayAllAnimations;
+var
+  Index: Integer;
+  Parameters: TPlayAnimationParameters;
+begin
+  Parameters := TPlayAnimationParameters.Create;
+  try
+    Parameters.Name := '';
+    Parameters.Loop := True;
+    Parameters.Forward := True;
+    if PlayingAnimationNode <> nil then
+      Parameters.TransitionDuration := DefaultAnimationTransition;
+
+    for Index := 0 to FAnimationsList.Count -1 do
+    begin
+      ProcessEvents := true;
+      if NewPlayingAnimationUse and (Parameters.TransitionDuration <> 0) then
+        ApplyNewPlayingAnimation;
+
+      FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
+      NewPlayingAnimationNode := FCurrentAnimation;
+      NewPlayingAnimationLoop := Parameters.Loop;
+      NewPlayingAnimationForward := Parameters.Forward;
+      NewPlayingAnimationStopNotification := Parameters.StopNotification;
+      NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
+      NewPlayingAnimationInitialTime := Parameters.InitialTime;
+      NewPlayingAnimationUse := true;
+    end;
+
+  finally
+    FreeAndNil(Parameters)
+  end;
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;

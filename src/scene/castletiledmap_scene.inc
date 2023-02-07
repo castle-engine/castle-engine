@@ -157,10 +157,7 @@ begin
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
-      for AnimationName in FScene.AnimationsList do
-      begin
-        FScene.PlayAnimation(AnimationName,True);
-      end;
+      FScene.PlayAllAnimations;
 
     finally FreeAndNil(Converter) end;
   end;

@@ -454,7 +454,12 @@ var
 
         CalcTexCoordArray(AniFrame.TileId);
 
+        { Why does it work when multiplied by 4? }
         TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+
         TexCoordInterp.FdKey.Items.Add(Durations / AllDurations);
 
         Durations := Durations + AniFrame.Duration;
