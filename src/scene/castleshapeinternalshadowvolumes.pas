@@ -382,13 +382,11 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
           (the case with more than 2 is already eliminated above).
           So we copy EdgesSingle to BorderEdges. }
         FBorderEdges.Count := EdgesSingle.Count;
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
-          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
+          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
+          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
         end;
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     finally FreeAndNil(EdgesSingle); end;
 

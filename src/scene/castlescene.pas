@@ -2022,11 +2022,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
-      Shape := TGLShape(GeneratedTextures.L[I].Shape);
-      TextureNode := GeneratedTextures.L[I].TextureNode;
-      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      Shape := TGLShape(GeneratedTextures.List^[I].Shape);
+      TextureNode := GeneratedTextures.List^[I].TextureNode;
+      GenTexFunctionality := GeneratedTextures.List^[I].Functionality;
 
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -2227,15 +2225,13 @@ var
   I: Integer;
 begin
   inherited;
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to GeneratedTextures.Count - 1 do
-    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
+    if GeneratedTextures.List^[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;
