@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis.
+  Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis, Freedomax.
 
   This file is part of "Castle Game Engine".
 
@@ -401,7 +401,7 @@ var
 
   procedure PrepareTimeSensor;
   begin
-    TimeSensor := TTimeSensorNode.Create('Layer_'+ALayer.Name);
+    TimeSensor := TTimeSensorNode.Create('TimeSensor_' + FMap.Layers.IndexOf(ALayer).ToString);
     { Add TimeSensor to Root node }
     LayerNode.AddChildren(TimeSensor);
   end;
@@ -479,8 +479,7 @@ var
       LayerNode.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
       LayerNode.AddRoute(TexCoordInterp.EventValue_changed, TexCoord.FdPoint);
 
-      TimeSensor.Loop:=True;
-
+      TimeSensor.Loop := True;
     end;
 
     procedure PrepareAnimation(const AName: string);

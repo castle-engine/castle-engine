@@ -8358,6 +8358,8 @@ var
   Index: Integer;
   Parameters: TPlayAnimationParameters;
 begin
+  ProcessEvents := true;
+
   Parameters := TPlayAnimationParameters.Create;
   try
     Parameters.Name := '';
@@ -8368,7 +8370,6 @@ begin
 
     for Index := 0 to FAnimationsList.Count -1 do
     begin
-      ProcessEvents := true;
       if NewPlayingAnimationUse and (Parameters.TransitionDuration <> 0) then
         ApplyNewPlayingAnimation;
 
@@ -8376,14 +8377,12 @@ begin
       NewPlayingAnimationNode := FCurrentAnimation;
       NewPlayingAnimationLoop := Parameters.Loop;
       NewPlayingAnimationForward := Parameters.Forward;
-      NewPlayingAnimationStopNotification := Parameters.StopNotification;
-      NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
       NewPlayingAnimationInitialTime := Parameters.InitialTime;
       NewPlayingAnimationUse := true;
     end;
 
   finally
-    FreeAndNil(Parameters)
+    FreeAndNil(Parameters);
   end;
 end;
 
