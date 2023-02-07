@@ -745,7 +745,9 @@ constructor TGLFeatures.Create;
       if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
 
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback({$ifdef FPC}@{$endif} CallbackGLDebug, nil);
+      glDebugMessageCallback(
+        {$ifndef FPC}GLDEBUGPROC(@CallbackGLDebug){$endif}
+        {$ifdef FPC}@CallbackGLDebug{$endif}, nil);
       WritelnLog('OpenGL debugging enabled, expect extra log messages');
     end;
     {$endif}
