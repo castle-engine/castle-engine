@@ -68,10 +68,12 @@ type
     gvNvidia,
     { Intel GPU with Intel drivers. }
     gvIntel,
-    { Imagination Technologies (PowerVR) GPU, common on mobile devices. }
+    { Imagination Technologies (PowerVR) GPU, found on mobile devices. }
     gvImaginationTechnologies,
-    { Qualcomm Adreno, mobile devices }
-    gvQualcomm
+    { Qualcomm Adreno, found on mobile devices. }
+    gvQualcomm,
+    { Arm, makers of Mali GPU, found on mobile devices. }
+    gvArm
   );
 
   TGLVersion = class(TGenericGLVersion)
@@ -457,18 +459,26 @@ begin
 
   { calculate FVendorType }
   if IsPrefix('NVIDIA', Vendor) then // Actually seen possible values here: 'NVIDIA Corporation'.
-    FVendorType := gvNvidia else
+    FVendorType := gvNvidia
+  else
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
   if (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI') then
-    FVendorType := gvATI else
+    FVendorType := gvATI
+  else
   if IsPrefix('Intel', Vendor) then
-    FVendorType := gvIntel else
+    FVendorType := gvIntel
+  else
   if (Vendor = 'Imagination Technologies') then
-    FVendorType := gvImaginationTechnologies else
+    FVendorType := gvImaginationTechnologies
+  else
   if (Vendor = 'Qualcomm') then
-    FVendorType := gvQualcomm else
+    FVendorType := gvQualcomm
+  else
+  if SameText(Vendor, 'Arm') then
+    FVendorType := gvArm
+  else
     FVendorType := gvUnknown;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
@@ -699,7 +709,8 @@ const
     'Nvidia',
     'Intel',
     'Imagination Technologies',
-    'Qualcomm'
+    'Qualcomm',
+    'Arm'
   );
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
