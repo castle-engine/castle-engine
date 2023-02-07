@@ -41,6 +41,7 @@ type
     procedure CastleControl1Release(Sender: TObject;
       const Event: TInputPressRelease);
     procedure CastleControl1Render(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure HelpButtonClick(Sender: TObject);
   strict private
     FBorder: TBorder;
@@ -350,6 +351,11 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
 begin
   RenderImage;
   RenderControlPoints;
+end;
+
+procedure TRegionDesignDialog.FormCreate(Sender: TObject);
+begin
+  CastleControl1.Container.BackgroundColor := Gray;
 end;
 
 procedure TRegionDesignDialog.HelpButtonClick(Sender: TObject);
