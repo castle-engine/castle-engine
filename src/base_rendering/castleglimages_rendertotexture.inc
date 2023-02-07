@@ -534,12 +534,12 @@ begin
     glGenFramebuffers(1, @Framebuffer);
     BindFramebuffer(Framebuffer);
 
-    { When GLPackedDepthStencil, and stencil is wanted
+    { When GLFeatures.PackedDepthStencil and stencil is wanted
       (a very common case!, as most GPUs have EXT_packed_depth_stencil
       and for shadow volumes we want stencil) we desperately want to
       use one renderbuffer or one texture with combined depth/stencil info.
-      Other possibilities may be not available at all (e.g. Radeon on chantal,
-      but probably most GPUs with EXT_packed_depth_stencil). }
+      Other possibilities may be not available at all,
+      as OpenGL only guarantees we can create FBO matching current screen configuration. }
     {$ifndef OpenGLES}
     if Stencil and GLFeatures.PackedDepthStencil then
     begin
