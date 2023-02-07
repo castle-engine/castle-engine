@@ -396,6 +396,15 @@ var
   LastTileTileset: TCastleTiledMapData.TTileset;
   LastTileCoord: TCoordinateNode;
   LastTileTexCoord: TTextureCoordinateNode;
+  { animations var.}
+  TimeSensor: TTimeSensorNode;
+
+  procedure PrepareTimeSensor;
+  begin
+    TimeSensor := TTimeSensorNode.Create('Layer_'+ALayer.Name);
+    { Add TimeSensor to Root node }
+    LayerNode.AddChildren(TimeSensor);
+  end;
 
   procedure RenderTile(const TilePosition: TVector2Integer);
   var
@@ -409,7 +418,6 @@ var
     TexCoord: TTextureCoordinateNode;
     TexCoordArray: TQuadTexCoords;
     { animations var.}
-    TimeSensor: TTimeSensorNode;
     TexCoordInterp : TCoordinateInterpolator2DNode;
 
     procedure CalcTexCoordArray(const TileId:Integer);
@@ -465,8 +473,6 @@ var
         Durations := Durations + AniFrame.Duration;
       end;
 
-      { Add TimeSensor to Root node }
-      LayerNode.AddChildren(TimeSensor);
       { Add TextureCoordinate animation }
       LayerNode.AddChildren(TexCoordInterp);
 
@@ -479,7 +485,6 @@ var
 
     procedure PrepareAnimation(const AName: string);
     begin
-      TimeSensor := TTimeSensorNode.Create(AName);
       TexCoordInterp := TCoordinateInterpolator2DNode.Create(AName + '_TexCoord');
       TexCoordInterp.Interpolation := inStep;
     end;
@@ -533,6 +538,7 @@ var
   X, Y: Integer;
 begin
   LastTileTileset := nil;
+  PrepareTimeSensor;
 
   for Y := Map.Height - 1 downto 0 do
     for X := 0 to Map.Width - 1 do
