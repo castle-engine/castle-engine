@@ -1,6 +1,6 @@
-{%MainUnit castleinternalglutils.pas}
+{%MainUnit castlerenderprimitives.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2023-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

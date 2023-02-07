@@ -50,7 +50,7 @@ The rendering methods tested:
 
 - `TCastleFont.Print` (uses `TDrawableImage` under the hood)
 
-- `TCastleRenderUnlitMesh` (internal CGE utility in `CastleInternalGLRenderer` right now)
+- `TCastleRenderUnlitMesh`
 
 - Screen (post-processing) effects (by `TCastleScreenEffect.AddScreenEffect`).
 

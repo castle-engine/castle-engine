@@ -19,7 +19,7 @@ unit GameMyMesh;
 interface
 
 uses SysUtils,
-  CastleInternalGLUtils, CastleBoxes, CastleTransform;
+  CastleRenderPrimitives, CastleBoxes, CastleTransform;
 
 type
   { Mesh rendered using TCastleRenderUnlitMesh, not using TCastleScene.

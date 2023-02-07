@@ -20,7 +20,7 @@ unit CastleShapeInternalRenderShadowVolumes;
 interface
 
 uses CastleVectors, CastleShapeInternalShadowVolumes,
-  CastleTriangles, CastleTransform, CastleInternalGLUtils;
+  CastleTriangles, CastleTransform, CastleRenderPrimitives;
 
 type
   TRenderShapeShadowVolumes = class helper for TShapeShadowVolumes

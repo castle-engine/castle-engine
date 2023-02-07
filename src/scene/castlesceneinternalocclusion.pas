@@ -25,7 +25,7 @@ uses
   CastleVectors, CastleSceneCore, CastleSceneInternalShape,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleRenderContext, CastleFrustum, CastleGLShaders,
-  CastleBoxes, CastleTransform, CastleInternalGLUtils;
+  CastleBoxes, CastleTransform, CastleRenderPrimitives;
 
 type
   TShapeProcedure = procedure (const Shape: TGLShape) of object;

@@ -23,7 +23,7 @@ interface
 uses
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
-  CastleInternalGLUtils;
+  CastleRenderPrimitives;
 
 type
   TGLShadowVolumeRenderer = class;

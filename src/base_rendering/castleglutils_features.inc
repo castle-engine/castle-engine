@@ -451,7 +451,7 @@ type
 
       @unorderedList(
         @item(This forces Gouraud shading.)
-        @item(It makes TDrawableImage.Draw, DrawPrimitive2D, TCastleRenderUnlitMesh
+        @item(It makes TDrawableImage, DrawPrimitive2D, TCastleRenderUnlitMesh
           use OpenGL fixed-function pipeline.)
         @item(It allows you to use fixed-function pipeline calls in the
           @link(TCastleWindow.OnRender) callback, @link(TCastleUserInterface.Render)
