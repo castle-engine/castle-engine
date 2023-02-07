@@ -43,6 +43,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRunParameterCapabilitiesForceFixedFunction: TAction;
+    ActionRunParameterCapabilitiesForceModern: TAction;
+    ActionRunParameterCapabilitiesDefault: TAction;
     ActionRunParameterDefaultWindowOrFullscreen: TAction;
     ActionRunParameterRequestWindow: TAction;
     ActionRunParameterRequestFullScreen: TAction;
@@ -111,6 +114,10 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem39: TMenuItem;
+    MenuItem40: TMenuItem;
+    Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
     MenuItemRunParameterRequestWindow: TMenuItem;
@@ -328,6 +335,10 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
+    procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
+      Sender: TObject);
+    procedure ActionRunParameterCapabilitiesForceModernExecute(Sender: TObject);
     procedure ActionRunParameterDefaultWindowOrFullscreenExecute(Sender: TObject
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
@@ -967,6 +978,24 @@ begin
     BitBtnPlayStop.Hint := 'Compile and Run (F9)';
   end;
   //BitBtnPlayStop.Checked := NowIsRunning;
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesDefaultExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesForceFixedFunctionExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesForceModernExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
 procedure TProjectForm.ActionRunParameterDefaultWindowOrFullscreenExecute(
@@ -3038,6 +3067,10 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then
       Params.Add('--window');
+    if ActionRunParameterCapabilitiesForceFixedFunction.Checked then
+      Params.Add('--capabilities=force-fixed-function');
+    if ActionRunParameterCapabilitiesForceModern.Checked then
+      Params.Add('--capabilities=force-modern');
   end;
 
 var
