@@ -404,6 +404,7 @@ var
     TimeSensor := TTimeSensorNode.Create('TimeSensor_' + FMap.Layers.IndexOf(ALayer).ToString);
     { Add TimeSensor to Root node }
     LayerNode.AddChildren(TimeSensor);
+    TimeSensor.Loop := True;
   end;
 
   procedure RenderTile(const TilePosition: TVector2Integer);
@@ -473,8 +474,6 @@ var
 
       LayerNode.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
       LayerNode.AddRoute(TexCoordInterp.EventValue_changed, TexCoord.FdPoint);
-
-      TimeSensor.Loop := True;
     end;
 
     procedure PrepareAnimation(const AName: string);
