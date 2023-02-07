@@ -847,7 +847,7 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
       IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
       IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
       IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 3]);
-      I += 4;
+      Inc(I, 4);
     end;
   end;
 
@@ -859,7 +859,7 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     while I + 3 < CoordCount do
     begin
       Arrays.Counts.Add(4);
-      I += 4;
+      Inc(I, 4);
     end;
   end;
 
