@@ -321,9 +321,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            {$ifndef FPC}{$POINTERMATH ON}{$endif}
-            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
-            {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;

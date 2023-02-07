@@ -334,10 +334,9 @@ begin
       CopyCount
     ]);
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to CopyCount - 1 do
   begin
-    Index := Indexes.L[I];
+    Index := Indexes.List^[I];
     if Index >= SourceCount then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
         Index,
@@ -353,7 +352,6 @@ begin
       Target^, SourceItemSize);
     PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,

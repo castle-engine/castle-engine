@@ -2172,12 +2172,10 @@ function TShape.AlphaChannel: TAlphaChannel;
       if Node.FdTransparency.Items.Count = 0 then
         result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
       begin
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for i := 0 to Node.FdTransparency.Items.Count-1 do
-          if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
+          if Node.FdTransparency.Items.List^[i] <= SingleEpsilon then
             Exit(false);
         result := true;
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     end;
 
@@ -2721,21 +2719,19 @@ begin
     end;
   end;
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
-      if Lights.L[I].Node is TEnvironmentLightNode then
+      if Lights.List^[I].Node is TEnvironmentLightNode then
       begin
-        HandleEnvironmentLight(TEnvironmentLightNode(Lights.L[I].Node));
+        HandleEnvironmentLight(TEnvironmentLightNode(Lights.List^[I].Node));
         if Result <> nil then Exit;
       end;
 
-      Result := HandleIDecls(Lights.L[I].Node.FdEffects);
+      Result := HandleIDecls(Lights.List^[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   if State.Effects <> nil then
     HandleIDecls(State.Effects);
@@ -2898,12 +2894,10 @@ var
     end else
       TexCoord := UnknownTexCoord;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.L[RangeBeginIndex + I1]
+      Face := Arrays.Faces.List^[RangeBeginIndex + I1]
     else
       Face := UnknownFaceIndex;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);
   end;

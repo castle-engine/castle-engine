@@ -2345,14 +2345,12 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     I: Integer;
     Lights: TLightInstancesList;
   begin
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     Lights := Shape.State.Lights;
     if Lights <> nil then
       for I := 0 to Lights.Count - 1 do
-        if Lights.L[I].Node is TEnvironmentLightNode then
+        if Lights.List^[I].Node is TEnvironmentLightNode then
           Exit(true);
     Result := false;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;

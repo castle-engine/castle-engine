@@ -335,18 +335,16 @@ begin
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if FacesNeeded then
     begin
       Arrays.Faces := TFaceIndexesList.Create;
       Arrays.Faces.Count := IndexesFromCoordIndex.Count;
       for I := 0 to Arrays.Faces.Count - 1 do
       begin
-        Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
-        Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+        Arrays.Faces.List^[I].IndexBegin := (I div 3) * 3;
+        Arrays.Faces.List^[I].IndexEnd := ((I div 3) + 1) * 3 -1;
       end;
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 end;
 
@@ -466,24 +464,22 @@ procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
@@ -678,24 +674,22 @@ procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
@@ -846,13 +840,13 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     I := 0;
     while I + 3 < CoordCount do
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
 
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 3]);
       I += 4;
     end;
   end;
@@ -961,12 +955,10 @@ procedure TAbstractLineSetGenerator.PrepareIndexesCoordsRange(
 var
   I: Integer;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Arrays.Counts.Add(EndIndex - BeginIndex);
   if CoordIndex <> nil then
     for I := BeginIndex to EndIndex - 1 do
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
 end;
 
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;

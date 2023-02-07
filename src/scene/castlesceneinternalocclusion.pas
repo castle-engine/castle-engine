@@ -310,17 +310,15 @@ var
     begin
       { Render all shapes within this leaf, taking care to render
         shape only once within this frame (FrameId is useful here). }
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
         if Shape.RenderedFrameId <> FrameId then
         begin
           RenderShape(Shape);
           Shape.RenderedFrameId := FrameId;
         end;
       end;
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end else
     begin
       { Push Node children onto TraversalStack.
@@ -367,14 +365,12 @@ var
       that's Ok and may actually speed up. }
     Box := TBox3D.Empty;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin
-      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
       if Shape.RenderedFrameId <> FrameId then
         Box.Include(Shape.BoundingBox);
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     Utils.DrawBox(Box);
     if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then

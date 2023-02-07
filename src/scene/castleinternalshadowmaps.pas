@@ -89,10 +89,9 @@ var
   I: Integer;
   LightUniqueName: string;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to Count - 1 do
-    if L[I].Light = Light then Exit(PLight(Ptr(I)));
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+    if List^[I].Light = Light then
+      Exit(PLight(Ptr(I)));
 
   { add a new TLight record }
   Result := PLight(Add);
