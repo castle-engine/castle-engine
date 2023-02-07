@@ -101,13 +101,13 @@ procedure glLoadMatrix(const m: TMatrix4); overload; //deprecated 'use other met
 { }
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4); overload;
 
+{$endif}
+
 type
   TGLIndex = {$ifdef GLIndexesShort} UInt16 {$else} UInt32 {$endif};
   TGLIndexList = {$ifdef GLIndexesShort} TUInt16List {$else} TUInt32List {$endif};
 const
   GLIndexConst = {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif};
-
-{$endif}
 
 var
   { Current color, set by glColorv and used for TCastleAbstractFont font printing

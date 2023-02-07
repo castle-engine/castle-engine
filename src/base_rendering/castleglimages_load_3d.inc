@@ -137,9 +137,9 @@ var
       Result := false;
     end;
 
-    if Result and (not GLFeatures.Version_1_2) then
+    if Result and (not GLFeatures. {$ifdef OpenGLES} VersionES_3_0 {$else} Version_1_2 {$endif}) then
     begin
-      WritelnWarning('Texture', 'Cannot load Composite image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load Composite image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Result := false;
     end;
 

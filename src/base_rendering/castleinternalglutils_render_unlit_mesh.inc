@@ -223,13 +223,21 @@ begin
 end;
 
 procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
-var
-  SavedFixedFunctionLighting: Boolean;
-  IndexPtr: Pointer;
-begin
-  SavedFixedFunctionLighting := false; // make it always defined, to silence Delphi warning
 
-  if not GLFeatures.EnableFixedFunction then
+  { Call glDrawElements or glDrawArrays.
+    IndexPtr is used only when using indexes, and should be
+    relative to VBO memory (if VBO is used). }
+  procedure RenderDrawCall(const IndexPtr: Pointer);
+  begin
+    if IndexAllocatedItems <> 0 then
+    begin
+      glDrawElements(PrimitiveModeToGL[Mode], IndexAllocatedItems, GL_UNSIGNED_SHORT, IndexPtr);
+    end else
+      glDrawArrays(PrimitiveModeToGL[Mode], 0, VertexAllocatedItems);
+  end;
+
+  { Render using modern pipeline. }
+  procedure RenderShaders;
   begin
     if VboVertex = 0 then
       raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
@@ -245,9 +253,21 @@ begin
       UniformColor.SetValue(Color);
     UniformModelViewProjectionMatrix.SetValue(ModelViewProjection);
     AttributeVertex.EnableArrayVector4(Vao, SizeOf(TVector4), 0);
-  end else
+
+    RenderDrawCall(nil);
+
+    AttributeVertex.DisableArray;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  end;
+
+  {$ifndef OpenGLES}
+  { Render using ancient fixed-function pipeline. }
+  procedure RenderFixedFunction;
+  var
+    SavedFixedFunctionLighting: Boolean;
   begin
-    {$ifndef OpenGLES}
     if FUseColor then
       glColorv(Color);
 
@@ -267,28 +287,9 @@ begin
 
     SavedFixedFunctionLighting := RenderContext.FixedFunctionLighting;
     RenderContext.FixedFunctionLighting := false;
-    {$endif}
-  end;
 
-  if IndexAllocatedItems <> 0 then
-  begin
-    if not GLFeatures.EnableFixedFunction then
-      IndexPtr := nil
-    else
-      IndexPtr := @(FixedFunctionIndexes.List^[0]);
-    glDrawElements(PrimitiveModeToGL[Mode], IndexAllocatedItems, GL_UNSIGNED_SHORT, IndexPtr);
-  end else
-    glDrawArrays(PrimitiveModeToGL[Mode], 0, VertexAllocatedItems);
+    RenderDrawCall(@(FixedFunctionIndexes.List^[0]));
 
-  if not GLFeatures.EnableFixedFunction then
-  begin
-    AttributeVertex.DisableArray;
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  end else
-  begin
-    {$ifndef OpenGLES}
     { Restore GL_PROJECTION matrix value, other drawing code may depend on it.
       Don't restore GL_MODELVIEW, no need, other drawing code has to be prepared
       to always initialize GL_MODELVIEW. }
@@ -299,8 +300,16 @@ begin
     glDisableClientState(GL_VERTEX_ARRAY);
 
     RenderContext.FixedFunctionLighting := SavedFixedFunctionLighting;
-    {$endif}
   end;
+  {$endif}
+
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+    RenderFixedFunction
+  else
+  {$endif}
+    RenderShaders;
 end;
 
 procedure TCastleRenderUnlitMesh.SetIndexes(const Indexes: array of UInt16);

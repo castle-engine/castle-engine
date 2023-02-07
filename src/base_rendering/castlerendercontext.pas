@@ -728,36 +728,38 @@ end;
 
 procedure TRenderContext.FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
 begin
-  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     if not FFixedFunctionAlphaTest then
     begin
       FFixedFunctionAlphaTest := true;
+      {$ifndef OpenGLES}
       glEnable(GL_ALPHA_TEST);
+      {$endif}
     end;
 
     if FFixedFunctionAlphaCutoff <> AlphaCutoff then
     begin
       FFixedFunctionAlphaCutoff := AlphaCutoff;
+      {$ifndef OpenGLES}
       glAlphaFunc(GL_GEQUAL, AlphaCutoff);
+      {$endif}
     end;
   end;
-  {$endif}
 end;
 
 procedure TRenderContext.FixedFunctionAlphaTestDisable;
 begin
-  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     if FFixedFunctionAlphaTest then
     begin
       FFixedFunctionAlphaTest := false;
+      {$ifndef OpenGLES}
       glDisable(GL_ALPHA_TEST);
+      {$endif}
     end;
   end;
-  {$endif}
 end;
 
 procedure TRenderContext.SetFixedFunctionLighting(const Value: boolean);

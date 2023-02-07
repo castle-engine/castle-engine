@@ -217,6 +217,15 @@ end;
 
 { TSimpleOcclusionQueryRenderer ---------------------------------------------- }
 
+const
+  QueryTarget =
+    {$ifndef OpenGLES} GL_SAMPLES_PASSED
+    { Following https://registry.khronos.org/OpenGL-Refpages/es3/html/glBeginQuery.xhtml
+      it seems better to use GL_ANY_SAMPLES_PASSED_CONSERVATIVE: it may sometimes return
+      that object is visible when it is not, but it is faster. }
+    {$else} GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+    {$endif};
+
 constructor TSimpleOcclusionQueryRenderer.Create(const AScene: TCastleSceneCore;
   const AUtils: TOcclusionQueryUtilsRenderer);
 begin
@@ -244,7 +253,7 @@ begin
     (with InShadow = true) render pass. }
 
   if Params.StencilTest = 0 then
-    glBeginQuery(GL_SAMPLES_PASSED, Shape.OcclusionQueryId);
+    glBeginQuery(QueryTarget, Shape.OcclusionQueryId);
 
     if SampleCount > 0 then
     begin
@@ -263,7 +272,7 @@ begin
 
   if Params.StencilTest = 0 then
   begin
-    glEndQuery(GL_SAMPLES_PASSED);
+    glEndQuery(QueryTarget);
     Shape.OcclusionQueryAsked := true;
   end;
 end;
@@ -488,7 +497,7 @@ begin
               Q := TOcclusionQuery.Create;
               Q.Node := Node;
 
-              glBeginQuery(GL_SAMPLES_PASSED, Q.Id);
+              glBeginQuery(QueryTarget, Q.Id);
                 if Node.IsLeaf and WasVisible then
                   TraverseNode(Node) else
                 if Node.IsLeaf then
@@ -500,7 +509,7 @@ begin
                   if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then
                     Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                 end;
-              glEndQuery(GL_SAMPLES_PASSED);
+              glEndQuery(QueryTarget);
 
               QueryQueue.Push(Q);
             end else

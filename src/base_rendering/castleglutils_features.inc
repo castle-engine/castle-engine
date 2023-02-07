@@ -611,7 +611,7 @@ begin
       Extension
     ]);
 
-  if Version_3_0 then
+  if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
   begin
     { With new OpenGL, one should use glGetStringi to enumerate over extensions,
       see https://www.khronos.org/opengl/wiki/GLAPI/glGetString }
@@ -639,7 +639,7 @@ var
   SupportedExt: AnsiString;
   I: Integer;
 begin
-  if Version_3_0 then
+  if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
   begin
     { Output in this case is a bit richer, since it was natural to implement using
       new OpenGL way to query for extensions. }
@@ -658,6 +658,7 @@ begin
   end;
 end;
 
+{$ifndef OpenGLES}
 procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
   Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
   {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
@@ -715,6 +716,7 @@ begin
   if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
     WritelnLog(MessageWhole);
 end;
+{$endif}
 
 constructor TGLFeatures.Create;
 
@@ -729,6 +731,9 @@ constructor TGLFeatures.Create;
 
   procedure InitializeDebug;
   begin
+    {$ifdef OpenGLES}
+    WritelnWarning('Debugging OpenGL context on OpenGLES not available, ignoring the debug flag');
+    {$else}
     if HasExtension('GL_KHR_debug') then
     begin
       { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
@@ -743,18 +748,23 @@ constructor TGLFeatures.Create;
       glDebugMessageCallback({$ifdef FPC}@{$endif} CallbackGLDebug, nil);
       WritelnLog('OpenGL debugging enabled, expect extra log messages');
     end;
+    {$endif}
   end;
 
+{$ifndef OpenGLES}
 var
   LoadExtensions: Boolean;
+{$endif}
 begin
   inherited;
 
+  {$ifndef OpenGLES}
   { TODO: We cannot load extensions with rcForceModern, as FPC GLExt then uses
     glGetString(GL_EXTENSIONS) which is not available.
     With new OpenGL, one should use glGetStringi to enumerate over extensions,
     see our HasExtension. }
   LoadExtensions := RequestCapabilities <> rcForceModern;
+  {$endif}
 
   {$ifndef OpenGLES}
   {$ifdef FPC}
@@ -902,8 +912,13 @@ begin
     {$endif};
 
   if OcclusionQuery then
+  begin
+    {$ifdef OpenGLES}
+    FOcclusionQueryCounterBits := 32; // just use some sensible default
+    {$else}
     glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits)
-  else
+    {$endif}
+  end else
     FOcclusionQueryCounterBits := 0;
 
   { calculate Framebuffer }
@@ -1155,8 +1170,10 @@ begin
   // RequestCapabilities = rcForceFixedFunction overrides above detection
   if RequestCapabilities = rcForceFixedFunction then
   begin
+    {$ifndef OpenGLES}
     if Version_3_1 and not HasExtension('GL_ARB_compatibility') then
       raise Exception.Create('Requested deprecated fixed-function approach, but this is a modern context without compatibility (ARB_compatibility). Cannot use fixed-function.');
+    {$endif}
 
     FEnableFixedFunction := true;
     FShaders := false;
