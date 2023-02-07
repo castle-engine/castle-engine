@@ -447,7 +447,6 @@ var
       for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
         AllDurations := AllDurations + Tileset.Tiles[Frame].Animation.Items[I].Duration;
       TimeSensor.CycleInterval := AllDurations / 1000;
-      WritelnLog('CycleInterval:%f s',[TimeSensor.CycleInterval]);
 
       for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
       begin
@@ -473,10 +472,10 @@ var
 
     end;
 
-    procedure PrepareAnimation(const Name: string);
+    procedure PrepareAnimation(const AName: string);
     begin
-      TimeSensor := TTimeSensorNode.Create(Name);
-      TexCoordInterp := TCoordinateInterpolator2DNode.Create(Name + '_TexCoord');
+      TimeSensor := TTimeSensorNode.Create(AName);
+      TexCoordInterp := TCoordinateInterpolator2DNode.Create(AName + '_TexCoord');
       TexCoordInterp.Interpolation := inStep;
     end;
 

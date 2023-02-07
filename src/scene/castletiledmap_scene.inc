@@ -143,6 +143,7 @@ end;
 procedure TCastleTiledMap.ReloadMap;
 var
   Converter: TCastleTiledMapConverter;
+  AnimationName:string;
 begin
   FreeAndNil(FMap);
   FScene.Load(nil, true);
@@ -156,6 +157,11 @@ begin
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
+      for AnimationName in FScene.AnimationsList do
+      begin
+        FScene.PlayAnimation(AnimationName,True);
+      end;
+
     finally FreeAndNil(Converter) end;
   end;
 end;
