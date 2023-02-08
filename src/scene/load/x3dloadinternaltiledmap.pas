@@ -57,6 +57,11 @@ type
     TAnimationNodes= record
       CoordNodes: TTilesetNodes;
       TexCoordInterp: TCoordinateInterpolator2DNode;
+
+      { other info,could not get from TAnimation. }
+      Tileset: TCastleTiledMapData.TTileset;
+      TileId: Cardinal;
+      { Calced result. }
       CycleIntervalMs : Cardinal;
     end;
 
@@ -505,6 +510,9 @@ var
     Result.TexCoordInterp := TCoordinateInterpolator2DNode.Create;
     Result.TexCoordInterp.Interpolation := inStep;
 
+    Result.Tileset := Tileset;
+    Result.TileId := Frame;
+
     { Calc CycleIntervel. }
     Result.CycleIntervalMs := 0;
     Durations := 0;
@@ -514,7 +522,8 @@ var
     { Get TimeSensor. }
     TimeSensor := GetOrCreateTimeSensor(Result.CycleIntervalMs);
 
-    { Add TexCoordInterp Key and KeyValues. }
+    { Add basic TexCoordInterp Key and KeyValues.
+      The calculation will be done in a unified manner at the end of BuildTileLayerNode.}
     for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
     begin
       AniFrame := Tileset.Tiles[Frame].Animation.Items[I];
@@ -595,6 +604,32 @@ var
     end;
   end;
 
+  procedure BuildAnimationInterps;
+  var
+    n ,oriCnt: Cardinal;
+    I, J :integer;
+    AniNodes : TAnimationNodes;
+  begin
+     for AniNodes in RenderContext.AnimationContext.Values do
+     begin
+       oriCnt := AniNodes.TexCoordInterp.FdKeyValue.Count ;
+       n := AniNodes.CoordNodes.TexCoord.FdPoint.Count div oriCnt;
+
+       if n <= 1 then Continue;
+
+       { Expand FdKeyValue by n times. }
+        for I := 0 to oriCnt -1 do
+        begin
+          for J := 0 to n -1  do
+          begin
+            AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[0]);
+          end;
+          AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
+        end;
+
+     end;
+  end;
+
 var
   X, Y: Integer;
 begin
@@ -604,6 +639,8 @@ begin
     for Y := Map.Height - 1 downto 0 do
       for X := 0 to Map.Width - 1 do
         RenderTile(Vector2Integer(X, Y));
+
+    BuildAnimationInterps;
 
   finally
     FreeAndNil(RenderContext);
