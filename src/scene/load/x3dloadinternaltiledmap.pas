@@ -75,7 +75,7 @@ type
       FTimeSensorContext: TTimeSensorContext;
       FAnimationContext: TAnimationContext;
     public
-      constructor Create;override;
+      constructor Create;{$ifdef FPC} override;{$endif}
       destructor Destroy;override;
       property  TimeSensorContext: TTimeSensorContext read FTimeSensorContext;
       property  AnimationContext: TAnimationContext read FAnimationContext;
@@ -473,7 +473,7 @@ var
     ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
   end;
 
-  function CreateTimeSensor(const CycleIntervelMs :Integer): TTimeSensorNode;
+  function CreateTimeSensor(const CycleIntervelMs :Cardinal): TTimeSensorNode;
   begin
     Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[FMap.Layers.IndexOf(ALayer),CycleIntervelMs]));
     Result.CycleInterval := CycleIntervelMs / 1000;
@@ -606,25 +606,40 @@ var
 
   procedure BuildAnimationInterps;
   var
-    n ,oriCnt: Cardinal;
-    I, J :integer;
+    FrameCount ,AniTileCount: Cardinal;
+    I, J, K :integer;
     AniNodes : TAnimationNodes;
   begin
      for AniNodes in RenderContext.AnimationContext.Values do
      begin
-       oriCnt := AniNodes.TexCoordInterp.FdKeyValue.Count ;
-       n := AniNodes.CoordNodes.TexCoord.FdPoint.Count div oriCnt;
+       { Note :
+         AniNodes.TexCoordInterp.FdKeyValue.Count = 4 * AnimatioinFrameCount ;
+         AniNodes.CoordNodes.TexCoord.FdPoint.Count = 4 * SameAnimatioinTileCount ;
 
-       if n <= 1 then Continue;
+         We Needs TexCoordInterp.FdKeyValue.Count => 4 * AnimatioinFrameCount * SameAnimatioinTileCount.
+       }
 
-       { Expand FdKeyValue by n times. }
-        for I := 0 to oriCnt -1 do
+        FrameCount := AniNodes.TexCoordInterp.FdKeyValue.Count div 4;
+        AniTileCount := AniNodes.CoordNodes.TexCoord.FdPoint.Count div 4;
+
+       { Expand FdKeyValue by AniTileCount times. }
+        for I := 0 to FrameCount -1 do
         begin
-          for J := 0 to n -1  do
+          for J := 0 to AniTileCount -1  do
           begin
-            AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[0]);
+            { copyed to the end of Items. }
+            for K :=0 To 3 do
+            begin
+              AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[K]);
+            end;
           end;
-          AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
+
+          { Delete after copyed. }
+          for K :=0 To 3 do
+          begin
+              AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
+          end;
+
         end;
 
      end;
