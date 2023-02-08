@@ -2133,9 +2133,6 @@ type
       const Forward: boolean = true): boolean; overload;
       deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
 
-    { For TiledMap. }
-    procedure PlayAllAnimations;
-
     { Force the model to look like the initial animation frame @italic(now).
 
       Use this after calling @link(PlayAnimation).
@@ -8351,39 +8348,6 @@ begin
   end;
 
   Result := PlayAnimation(AnimationName, Loop, Forward);
-end;
-
-procedure TCastleSceneCore.PlayAllAnimations;
-var
-  Index: Integer;
-  Parameters: TPlayAnimationParameters;
-begin
-  ProcessEvents := true;
-
-  Parameters := TPlayAnimationParameters.Create;
-  try
-    Parameters.Name := '';
-    Parameters.Loop := True;
-    Parameters.Forward := True;
-    if PlayingAnimationNode <> nil then
-      Parameters.TransitionDuration := DefaultAnimationTransition;
-
-    for Index := 0 to FAnimationsList.Count -1 do
-    begin
-      if NewPlayingAnimationUse and (Parameters.TransitionDuration <> 0) then
-        ApplyNewPlayingAnimation;
-
-      FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
-      NewPlayingAnimationNode := FCurrentAnimation;
-      NewPlayingAnimationLoop := Parameters.Loop;
-      NewPlayingAnimationForward := Parameters.Forward;
-      NewPlayingAnimationInitialTime := Parameters.InitialTime;
-      NewPlayingAnimationUse := true;
-    end;
-
-  finally
-    FreeAndNil(Parameters);
-  end;
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;

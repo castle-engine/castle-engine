@@ -21,6 +21,9 @@
 type
   { Display a map created in @url(https://www.mapeditor.org/ Tiled) in a viewport.
     See https://castle-engine.io/tiled_maps for a documentation. }
+
+  { TCastleTiledMap }
+
   TCastleTiledMap = class(TCastleTransform)
   public
     { These types and consts are synchronized with X3DLoadInternalTiledMap }
@@ -44,6 +47,7 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+    procedure PlayAnimations;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -156,7 +160,7 @@ begin
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
-      FScene.PlayAllAnimations;
+      PlayAnimations;
 
     finally FreeAndNil(Converter) end;
   end;
@@ -199,6 +203,19 @@ begin
   begin
     FLayers := Value;
     ReloadMap;
+  end;
+end;
+
+procedure TCastleTiledMap.PlayAnimations;
+var
+  I: Integer;
+  TimeSensor: TTimeSensorNode;
+begin
+  FScene.ProcessEvents := True;
+  for I := 0 to FScene.AnimationsList.Count - 1 do
+  begin
+    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor.Start(True);
   end;
 end;
 
