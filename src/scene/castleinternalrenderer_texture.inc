@@ -282,7 +282,6 @@
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
     NeedsMipmaps: boolean;
-    DepthMap: boolean;
 
     function TextureNode: TRenderedTextureNode;
 
@@ -1210,67 +1209,45 @@ begin
           Width, Height]));
   end;
 
-  { calculate DepthMap }
-  if TextureNode.FdDepthMap.Count > 0 then
-    DepthMap := TextureNode.FdDepthMap.Items[0] else
-    DepthMap := false;
-
-  if DepthMap then
+  if (TextureNode.FdDepthMap.Count > 0) and
+     TextureNode.FdDepthMap.Items[0] then
   begin
-    if not GLFeatures.TextureDepth then
-    begin
-      WritelnWarning('VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use RenderedTexture with depthMap = TRUE');
-      Exit;
-    end;
-
-    FGLName := Renderer.Cache.TextureDepth_IncReference(
-      '' { generated texture contents means empty URL },
-      TextureWrap, Width, Height);
-  end else
-  begin
-    InitialImage := TRGBImage.Create(Width, Height);
-    try
-      InitialImage.URL := 'generated:/' + TextureNode.NiceName;
-      SetTextureRGBFromImage(InitialImage);
-
-      { Fill with deliberately stupid (but constant) color,
-        to recognize easily RenderedTexture which don't have textures
-        updated. }
-      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
-
-      FGLName := Renderer.Cache.TextureImage_IncReference(
-        InitialImage,
-        '' { generated texture contents means empty URL },
-        Filter,
-        Anisotropy,
-        TextureWrap,
-        nil,
-        GUITexture,
-        false);
-
-      { RenderedTexture never has any normal / height map
-        (Hm, although it would be possible to generate some in theory
-        --- after all, we generate it from 3D data. Idea for the future.)
-      NormalMap := 0;
-      HeightMap := 0;
-      }
-    finally FreeAndNil(InitialImage) end;
+    WritelnWarning('VRML/X3D', 'RenderedTexture with depthMap = TRUE is no longer supported. For shadow maps, use dedicated CGE nodes.');
+    Exit;
   end;
+
+  InitialImage := TRGBImage.Create(Width, Height);
+  try
+    InitialImage.URL := 'generated:/' + TextureNode.NiceName;
+    SetTextureRGBFromImage(InitialImage);
+
+    { Fill with deliberately stupid (but constant) color,
+      to recognize easily RenderedTexture which don't have textures
+      updated. }
+    InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+    FGLName := Renderer.Cache.TextureImage_IncReference(
+      InitialImage,
+      '' { generated texture contents means empty URL },
+      Filter,
+      Anisotropy,
+      TextureWrap,
+      nil,
+      GUITexture,
+      false);
+
+    { RenderedTexture never has any normal / height map
+      (Hm, although it would be possible to generate some in theory
+      --- after all, we generate it from 3D data. Idea for the future.)
+    NormalMap := 0;
+    HeightMap := 0;
+    }
+  finally FreeAndNil(InitialImage) end;
 
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
   RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
-  if DepthMap then
-    RenderToTexture.Buffer := tbDepth else
-    RenderToTexture.Buffer := tbColor;
-  { TODO: This doesn't handle for now situation when we want to capture depth
-    map, and we should use stencil buffer. It's not really a useful situation
-    now... But it could be implemented:
-    - Add GLFeatures.HasStencil to detect we have stencil buffer.
-    - Change TextureDepth_IncReference to create packed depth+stencil texture
-      when requested (when GLFeatures.PackedDepthStencil and we currently
-      GLFeatures.HasStencil).
-    - set below RenderToTexture.Stencil := GLFeatures.HasStencil; }
-  RenderToTexture.Stencil := not DepthMap;
+  RenderToTexture.Buffer := tbColor;
+  RenderToTexture.Stencil := true;
   RenderToTexture.GLContextOpen;
 end;
 
@@ -1280,9 +1257,7 @@ begin
 
   if FGLName <> 0 then
   begin
-    if DepthMap then
-      Renderer.Cache.TextureDepth_DecReference(FGLName) else
-      Renderer.Cache.TextureImage_DecReference(FGLName);
+    Renderer.Cache.TextureImage_DecReference(FGLName);
     FGLName := 0;
   end;
   inherited;
@@ -1665,13 +1640,7 @@ begin
     RenderToTexture.RenderEnd;
   finally FreeAndNil(Camera) end;
 
-  { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
-    cannot have mipmaps regenerated.
-
-    Old note: On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
-    on "domek") glGenerateMipmapEXT even causes "invalid operation" OpenGL
-    error (test e.g. view3dscene on rendered_texture.x3dv). }
-  if NeedsMipmaps and (not DepthMap) then
+  if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
 
   TextureNode.EventRendering.Send(false);
@@ -2121,6 +2090,9 @@ begin
     Filter.Minification := minLinear;
   end;
 
+  if TextureNode.CompareMode <> smCompareRLEqual then
+    WritelnWarning('VRML/X3D', 'Only the standard GeneratedShadowMap.compareMode value, "COMPARE_R_LEQUAL" (in Pascal: smCompareRLEqual), is supported now. This is the only value sensible for shadow maps.');
+
   if VarianceShadowMaps then
   begin
     FGLName := Renderer.Cache.TextureFloat_IncReference(
@@ -2128,9 +2100,9 @@ begin
       Filter, TextureWrap, Size, Size, true);
   end else
   begin
-    if not GLFeatures.TextureDepth then
+    if not GLFeatures.TextureDepthCompare then
     begin
-      WritelnWarning('VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use GeneratedShadowMap nodes');
+      WritelnWarning('VRML/X3D', 'Shadow maps not supported. OpenGL(ES) doesn''t support shadow samplers with comparison (TextureDepthCompare), cannot use GeneratedShadowMap nodes.');
       Exit;
     end;
 
@@ -2142,7 +2114,8 @@ begin
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
   if VarianceShadowMaps then
-    RenderToTexture.Buffer := tbColor else
+    RenderToTexture.Buffer := tbColor
+  else
     RenderToTexture.Buffer := tbDepth;
   RenderToTexture.Stencil := false;
   RenderToTexture.GLContextOpen;
@@ -2155,7 +2128,8 @@ begin
   if FGLName <> 0 then
   begin
     if VarianceShadowMaps then
-      Renderer.Cache.TextureFloat_DecReference(FGLName) else
+      Renderer.Cache.TextureFloat_DecReference(FGLName)
+    else
       Renderer.Cache.TextureDepth_DecReference(FGLName);
     FGLName := 0;
   end;

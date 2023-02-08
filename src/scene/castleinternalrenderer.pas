@@ -373,7 +373,7 @@ type
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
 
-    { Requires GLFeatures.TextureDepth before calling this. }
+    { Requires GLFeatures.TextureDepthCompare (not just TextureDepth!) before calling this. }
     function TextureDepth_IncReference(
       const TextureFullUrl: string;
       const TextureWrap: TTextureWrap2D;
@@ -1263,6 +1263,7 @@ begin
   end;
 
   Assert(GLFeatures.TextureDepth);
+  Assert(GLFeatures.TextureDepthCompare);
 
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
@@ -1273,8 +1274,9 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
-  { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
-    or GL_UNSIGNED_INT for depth textures. }
+  { OpenGLES allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures.
+    This was true for OES_depth_texture, looks like it is true for OpenGLES 3.0 core too,
+    based on "OpenGL ES 3.2 NVIDIA 515.86.01". }
   ImageType := {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif};
   ImageFormat := {$ifdef OpenGLES} 'depth-short' {$else} 'depth-byte' {$endif};
   ImageSize := {$ifdef OpenGLES} SizeOf(TGLushort) {$else} SizeOf(TGLbyte) {$endif}
@@ -1288,16 +1290,12 @@ begin
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
     Width, Height, 1);
 
-  { On OpenGLES, the comparison "less or equal" is hardcoded in glsl/shadow_map_common.fs
-    in GLSL functions castleShadow2D and castleShadow2DProj. }
-  {$ifndef OpenGLES}
   if GLFeatures.TextureDepthCompare then
   begin
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   end else
     WritelnWarning('VRML/X3D', 'OpenGL doesn''t support GL_ARB_shadow, we cannot set depth comparison for depth texture');
-  {$endif}
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);

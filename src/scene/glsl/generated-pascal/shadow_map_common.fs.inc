@@ -9,45 +9,28 @@
 '//#define PCF4_BILINEAR' + LineEnding +
 '//#define PCF16' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'  #define sampler2DShadow sampler2D' + LineEnding +
+'float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
+'{' + LineEnding +
+'  /* On OpenGLES, we require GLSL "300 es" that allows (and requires) to query' + LineEnding +
+'     sampler2DShadow using texture*, not shadow2D* functions.' + LineEnding +
+'     See https://stackoverflow.com/a/22426507' + LineEnding +
+'     https://www.khronos.org/opengl/wiki/Sampler_(GLSL)' + LineEnding +
+'  */' + LineEnding +
+'  #ifdef GL_ES' + LineEnding +
+'  return texture(shadowMap, shadowMapCoord);' + LineEnding +
+'  #else' + LineEnding +
+'  return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  #endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
-'  // This should no longer be necessary, we use glPolygonOffset on OpenGLES' + LineEnding +
-'  // const float castleShadowBias = 0.005;' + LineEnding +
-'' + LineEnding +
-'  /* Same as shadow2D: compare shadowMap' + LineEnding +
-'     sampled at shadowMapCoord.xy' + LineEnding +
-'     with shadowMapCoord.z. */' + LineEnding +
-'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;' + LineEnding +
-'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
-'    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);' + LineEnding +
-'  }' + LineEnding +
-'' + LineEnding +
-'  /* Same as shadow2DProj: compare shadowMap' + LineEnding +
-'     sampled at shadowMapCoord.xy/shadowMapCoord.w' + LineEnding +
-'     with shadowMapCoord.z. */' + LineEnding +
-'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    /* Note that texture2DProj effectively uses' + LineEnding +
-'       "shadowMapCoord.xy / shadowMapCoord.w" as 2D coordinate.' + LineEnding +
-'       It ignores shadowMapCoord.z. */' + LineEnding +
-'    float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
-'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
-'    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);' + LineEnding +
-'  }' + LineEnding +
-'#else' + LineEnding +
-'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
-'  }' + LineEnding +
-'' + LineEnding +
-'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
-'  }' + LineEnding +
-'#endif' + LineEnding +
+'float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
+'{' + LineEnding +
+'  #ifdef GL_ES' + LineEnding +
+'  return textureProj(shadowMap, shadowMapCoord);' + LineEnding +
+'  #else' + LineEnding +
+'  return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  #endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
 'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,' + LineEnding +
 '  const in float size)' + LineEnding +

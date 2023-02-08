@@ -7,45 +7,28 @@
 //#define PCF4_BILINEAR
 //#define PCF16
 
-#ifdef GL_ES
-  #define sampler2DShadow sampler2D
+float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
+{
+  /* On OpenGLES, we require GLSL "300 es" that allows (and requires) to query
+     sampler2DShadow using texture*, not shadow2D* functions.
+     See https://stackoverflow.com/a/22426507
+     https://www.khronos.org/opengl/wiki/Sampler_(GLSL)
+  */
+  #ifdef GL_ES
+  return texture(shadowMap, shadowMapCoord);
+  #else
+  return shadow2D(shadowMap, shadowMapCoord).r;
+  #endif
+}
 
-  // This should no longer be necessary, we use glPolygonOffset on OpenGLES
-  // const float castleShadowBias = 0.005;
-
-  /* Same as shadow2D: compare shadowMap
-     sampled at shadowMapCoord.xy
-     with shadowMapCoord.z. */
-  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
-  {
-    float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;
-    // Return 0 if in shadow, 1 if not in shadow.
-    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);
-  }
-
-  /* Same as shadow2DProj: compare shadowMap
-     sampled at shadowMapCoord.xy/shadowMapCoord.w
-     with shadowMapCoord.z. */
-  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
-  {
-    /* Note that texture2DProj effectively uses
-       "shadowMapCoord.xy / shadowMapCoord.w" as 2D coordinate.
-       It ignores shadowMapCoord.z. */
-    float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;
-    // Return 0 if in shadow, 1 if not in shadow.
-    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);
-  }
-#else
-  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
-  {
-    return shadow2D(shadowMap, shadowMapCoord).r;
-  }
-
-  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
-  {
-    return shadow2DProj(shadowMap, shadowMapCoord).r;
-  }
-#endif
+float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
+{
+  #ifdef GL_ES
+  return textureProj(shadowMap, shadowMapCoord);
+  #else
+  return shadow2DProj(shadowMap, shadowMapCoord).r;
+  #endif
+}
 
 float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   const in float size)

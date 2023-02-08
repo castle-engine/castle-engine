@@ -400,10 +400,11 @@ type
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
 
-    { Ability to create depth textures (TextureDepth) and to define comparison on them:
-      GL_TEXTURE_COMPARE_MODE
-      GL_TEXTURE_COMPARE_FUNC
-      GL_COMPARE_R_TO_TEXTURE . }
+    { Ability to create depth textures (TextureDepth), to define comparison on them:
+      GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_COMPARE_FUNC, GL_COMPARE_REF_TO_TEXTURE,
+      finally to use then in shaders (sampler2DShadow).
+      On OpenGLES the GLSL constructs require that we can use "#version 300 es",
+      to access sampler2DShadow using texture / textureProj calls. }
     property TextureDepthCompare: Boolean read FTextureDepthCompare;
 
     { Are GLSL shaders supported. }
@@ -1133,7 +1134,7 @@ begin
     {$endif};
 
   FTextureDepth :=
-    {$ifdef OpenGLES} HasExtension('GL_OES_depth_texture')
+    {$ifdef OpenGLES} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
     {$endif};
 
@@ -1141,11 +1142,17 @@ begin
       LoadExtensions and Load_GL_ARB_shadow;
     and therefore it will work also with modern OpenGL where Load_GL_ARB_shadow is broken in GLExt. }
   FTextureDepthCompare :=
-    { See https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt ,
-      EXT_shadow_samplers is even a bit more than GL_ARB_shadow. }
-    {$ifdef OpenGLES} HasExtension('GL_EXT_shadow_samplers')
+    { Note that we don't look at GL_EXT_shadow_samplers, we need GLSL "300 es" anyway
+      to access shadow samplers from GLSL. }
+    {$ifdef OpenGLES} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_shadow')
     {$endif};
+
+  if FTextureDepthCompare and (not FTextureDepth) then
+  begin
+    WritelnWarning('OpenGL(ES) feature TextureDepthCompare is not possible without TextureDepth, fixing');
+    FTextureDepthCompare := false;
+  end;
 
   FShaders := {$ifdef OpenGLES} true
     {$else} Version_2_0
