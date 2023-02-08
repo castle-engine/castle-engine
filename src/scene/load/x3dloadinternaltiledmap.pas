@@ -359,6 +359,14 @@ type
     - left-top }
   TQuadTexCoords = array [0..3] of TVector2;
 
+  TTilesetNodes = record
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+  end;
+
+  TRenderContext = {$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>;
+
+
   { Flip rendering of the tile by changing texture coordinates. }
   procedure ApplyFlips(var TexCoord: TQuadTexCoords;
     const HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean);
@@ -393,11 +401,15 @@ type
   end;
 
 var
-  LastTileTileset: TCastleTiledMapData.TTileset;
-  LastTileCoord: TCoordinateNode;
-  LastTileTexCoord: TTextureCoordinateNode;
+  RenderContext: TRenderContext;
+  Nodes: TTilesetNodes;
+  Tileset: TCastleTiledMapData.TTileset;
+  Geometry: TQuadSetNode;
+  Shape: TShapeNode;
   { animations var.}
   TimeSensor: TTimeSensorNode;
+  //for test
+  AniNodeCount: Integer;
 
   procedure PrepareTimeSensor;
   begin
@@ -406,21 +418,47 @@ var
     LayerNode.AddChildren(TimeSensor);
     TimeSensor.Loop := True;
   end;
+  function CreateNodes: TTilesetNodes;
+  begin
+    Geometry := TQuadSetNode.CreateWithShape(Shape);
+    Result.Coord := TCoordinateNode.Create;
+    Geometry.Coord := Result.Coord;
+    Result.TexCoord := TTextureCoordinateNode.Create;
+    Geometry.TexCoord := Result.TexCoord;
+    Shape.Appearance := Tileset.RendererData as TAppearanceNode;
+    LayerNode.AddChildren(Shape);
+  end;
+
+  function GetAndCreateNodesForTileset :TTilesetNodes;
+  begin
+    if RenderContext.TryGetValue(Tileset , Result) then Exit;
+
+    Result := CreateNodes;
+    RenderContext.Add(Tileset, Result);
+  end;
 
   procedure RenderTile(const TilePosition: TVector2Integer);
   var
-    Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;
     HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
     CoordRect, TexCoordRect: TFloatRectangle;
-    Geometry: TQuadSetNode;
-    Shape: TShapeNode;
+
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
     TexCoordArray: TQuadTexCoords;
     { animations var.}
     TexCoordInterp : TCoordinateInterpolator2DNode;
 
+    procedure AddCoordPoints(const ATileset: TCastleTiledMapData.TTileset;const ACoord: TCoordinateNode);
+    begin
+      CoordRect := GetTileCoordRect(TilePosition, ATileset);
+      ACoord.FdPoint.Items.AddRange([
+        Vector3(CoordRect.Left , CoordRect.Bottom, 0),
+        Vector3(CoordRect.Right, CoordRect.Bottom, 0),
+        Vector3(CoordRect.Right, CoordRect.Top   , 0),
+        Vector3(CoordRect.Left , CoordRect.Top   , 0)
+      ]);
+    end;
     procedure CalcTexCoordArray(const TileId:Integer);
     begin
       if Between(TileId, 0, Tileset.Tiles.Count - 1) then
@@ -473,11 +511,14 @@ var
       LayerNode.AddChildren(TexCoordInterp);
 
       LayerNode.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
-      LayerNode.AddRoute(TexCoordInterp.EventValue_changed, TexCoord.FdPoint);
+      LayerNode.AddRoute(TexCoordInterp.EventValue_changed, Nodes.TexCoord.FdPoint);
     end;
 
     procedure PrepareAnimation(const AName: string);
     begin
+      //test
+      Inc(AniNodeCount);
+
       TexCoordInterp := TCoordinateInterpolator2DNode.Create(AName + '_TexCoord');
       TexCoordInterp.Interpolation := inStep;
     end;
@@ -486,51 +527,28 @@ var
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      if (LastTileTileset = Tileset) and (not HasAnimation) then
-      begin
-        { Append tile to last geometry node }
-        Coord := LastTileCoord;
-        TexCoord := LastTileTexCoord;
-      end else
-      begin
-        { Create new geometry node for this tile }
-        Geometry := TQuadSetNode.CreateWithShape(Shape);
-        Coord := TCoordinateNode.Create;
-        Geometry.Coord := Coord;
-        TexCoord := TTextureCoordinateNode.Create;
-        Geometry.TexCoord := TexCoord;
-        Shape.Appearance := Tileset.RendererData as TAppearanceNode;
-        LayerNode.AddChildren(Shape);
-
-        if HasAnimation then
-        begin
-          LastTileTileset := nil;
-          LastTileCoord := nil;
-          LastTileTexCoord := nil;
-        end else
-        begin
-          LastTileTileset := Tileset;
-          LastTileCoord := Coord;
-          LastTileTexCoord := TexCoord;
-        end;
-      end;
-
-      CoordRect := GetTileCoordRect(TilePosition, Tileset);
-      Coord.FdPoint.Items.AddRange([
-        Vector3(CoordRect.Left , CoordRect.Bottom, 0),
-        Vector3(CoordRect.Right, CoordRect.Bottom, 0),
-        Vector3(CoordRect.Right, CoordRect.Top   , 0),
-        Vector3(CoordRect.Left , CoordRect.Top   , 0)
-      ]);
-
-      CalcTexCoordArray(Frame);
-      TexCoord.FdPoint.Items.AddRange(TexCoordArray);
-
       if HasAnimation then
       begin
+        { Create directly, may need optimization. }
+        Nodes := CreateNodes;
+
+        AddCoordPoints(Tileset, Nodes.Coord);
+        CalcTexCoordArray(Frame);
+        Nodes.TexCoord.FdPoint.Items.AddRange(TexCoordArray);
         { load animation. }
         PrepareAnimation('Ani_' + TilePosition.X.ToString + '_' + TilePosition.Y.ToString);
         AddAnimation;
+      end else
+      begin
+        { If not Created then Create and Add to TDictionary. }
+        Nodes := GetAndCreateNodesForTileset;
+
+        Coord := Nodes.Coord;
+        TexCoord := Nodes.TexCoord;
+
+        AddCoordPoints(Tileset, Coord);
+        CalcTexCoordArray(Frame);
+        TexCoord.FdPoint.Items.AddRange(TexCoordArray);
       end;
     end;
   end;
@@ -538,12 +556,18 @@ var
 var
   X, Y: Integer;
 begin
-  LastTileTileset := nil;
   PrepareTimeSensor;
 
-  for Y := Map.Height - 1 downto 0 do
-    for X := 0 to Map.Width - 1 do
-      RenderTile(Vector2Integer(X, Y));
+  RenderContext:= TRenderContext.Create;
+  try
+    for Y := Map.Height - 1 downto 0 do
+      for X := 0 to Map.Width - 1 do
+        RenderTile(Vector2Integer(X, Y));
+
+  finally
+    FreeAndNil(RenderContext);
+  end;
+
 end;
 
 constructor TCastleTiledMapConverter.Create(const ATiledMap: TCastleTiledMapData);
