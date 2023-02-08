@@ -111,7 +111,7 @@ type
       be after the TCastleTiledMap component in the transformation tree.
       This assumption must be preserved by blending sorting done
       by @link(TCastleAbstractRootTransform.BlendingSort), if any. }
-    property AssumePerfectRenderingOrder: Boolean
+    property ExperimentalAssumePerfectRenderingOrder: Boolean
       read GetAssumePerfectRenderingOrder write SetAssumePerfectRenderingOrder default false;
   end;
 
@@ -169,7 +169,8 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'AssumePerfectRenderingOrder'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers'
+      //'AssumePerfectRenderingOrder'
      ]) then
     Result := [psBasic]
   else
