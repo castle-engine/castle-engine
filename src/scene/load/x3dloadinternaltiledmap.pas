@@ -57,12 +57,6 @@ type
     TAnimationNodes= record
       CoordNodes: TTilesetNodes;
       TexCoordInterp: TCoordinateInterpolator2DNode;
-
-      { other info,could not get from TAnimation. }
-      Tileset: TCastleTiledMapData.TTileset;
-      TileId: Cardinal;
-      { Calced result. }
-      CycleIntervalMs : Cardinal;
     end;
 
     { CycleInterval in milliseconds. }
@@ -503,6 +497,7 @@ var
   function CreateAnimationNodes: TAnimationNodes;
   var
     I: integer;
+    CycleIntervalMs: Cardinal;
     Durations: Single;
     AniFrame : TCastleTiledMapData.TFrame;
   begin
@@ -510,17 +505,15 @@ var
     Result.TexCoordInterp := TCoordinateInterpolator2DNode.Create;
     Result.TexCoordInterp.Interpolation := inStep;
 
-    Result.Tileset := Tileset;
-    Result.TileId := Frame;
 
     { Calc CycleIntervel. }
-    Result.CycleIntervalMs := 0;
+    CycleIntervalMs := 0;
     Durations := 0;
     for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
-      Result.CycleIntervalMs := Result.CycleIntervalMs + Tileset.Tiles[Frame].Animation.Items[I].Duration;
+      CycleIntervalMs := CycleIntervalMs + Tileset.Tiles[Frame].Animation.Items[I].Duration;
 
     { Get TimeSensor. }
-    TimeSensor := GetOrCreateTimeSensor(Result.CycleIntervalMs);
+    TimeSensor := GetOrCreateTimeSensor(CycleIntervalMs);
 
     { Add basic TexCoordInterp Key and KeyValues.
       The calculation will be done in a unified manner at the end of BuildTileLayerNode.}
@@ -531,7 +524,7 @@ var
       CalcTexCoordArray(AniFrame.TileId);
 
       Result.TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-      Result.TexCoordInterp.FdKey.Items.Add(Durations / Result.CycleIntervalMs);
+      Result.TexCoordInterp.FdKey.Items.Add(Durations / CycleIntervalMs);
 
       Durations := Durations + AniFrame.Duration;
     end;
