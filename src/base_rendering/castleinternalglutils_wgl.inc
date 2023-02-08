@@ -39,47 +39,34 @@ const
 var
   wglCreateContextAttribsARB: function(hDC: HDC; hShareContext: HGLRC; const attribList: PGLint): HGLRC; stdcall;
 
-function Load_WGL_ARB_create_context: Boolean;
-function Load_WGL_ARB_create_context_profile: Boolean;
+function Load_WGL_ARB_create_context(const WglExtensions: String): Boolean;
+function Load_WGL_ARB_create_context_profile(const WglExtensions: String): Boolean;
+function Load_WGL_ARB_multisample(const WglExtensions: String): Boolean;
+
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function Load_WGL_ARB_create_context: Boolean;
-var
-  extstring: AnsiString;
+function Load_WGL_ARB_create_context(const WglExtensions: String): Boolean;
 begin
-
-  Result := FALSE;
-  Pointer({$ifndef FPC}@{$endif} wglGetExtensionsStringARB) := wglGetProcAddress('wglGetExtensionsStringARB');
-  if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
-
-  if glext_ExtensionSupported('WGL_ARB_create_context', extstring) then
+  Result := false;
+  if glext_ExtensionSupported('WGL_ARB_create_context', WglExtensions) then
   begin
     Pointer({$ifndef FPC}@{$endif} wglCreateContextAttribsARB) := wglGetProcAddress('wglCreateContextAttribsARB');
     if not Assigned(wglCreateContextAttribsARB) then Exit;
-    Result := TRUE;
+    Result := true;
   end;
-
 end;
 
-function Load_WGL_ARB_create_context_profile: Boolean;
-var
-  extstring: AnsiString;
+function Load_WGL_ARB_create_context_profile(const WglExtensions: String): Boolean;
 begin
+  Result := glext_ExtensionSupported('WGL_ARB_create_context_profile', WglExtensions);
+end;
 
-  Result := FALSE;
-  Pointer({$ifndef FPC}@{$endif} wglGetExtensionsStringARB) := wglGetProcAddress('wglGetExtensionsStringARB');
-  if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
-
-  if glext_ExtensionSupported('WGL_ARB_create_context_profile', extstring) then
-  begin
-    Result := TRUE;
-  end;
-
+function Load_WGL_ARB_multisample(const WglExtensions: String): Boolean;
+begin
+  Result := glext_ExtensionSupported('WGL_ARB_multisample', WglExtensions);
 end;
 
 {$endif read_implementation}

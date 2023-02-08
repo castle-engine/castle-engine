@@ -202,16 +202,6 @@ var
 
   var
     WglExtensions: string;
-
-    { GLExt unit doesn't provide this (although it provides related
-      constants, like WGL_SAMPLE_BUFFERS_ARB). I like to check for this
-      explicitly. }
-    function Load_WGL_ARB_multisample: Boolean;
-    begin
-      Result := glext_ExtensionSupported('WGL_ARB_multisample', WglExtensions);
-    end;
-
-  var
     PixelFormat: Int32;
     ReturnedFormats: UINT;
     VisualAttr: TInt32List;
@@ -224,21 +214,17 @@ var
         (this is passed to wglGetExtensionsStringARB call).
         That's Ok, this current context is set by our  CreateTemporaryWindow. }
 
-      Has_WGL_ARB_create_context := Load_WGL_ARB_create_context;
-      Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile;
-
       if Load_WGL_ARB_extensions_string then
       begin
-        { Actually, there is no critical reason for me to check
-          WGL_ARB_extensions_string (as every other Load_WGL_Xxx will
-          check it for me anyway).
-
-          1. But I want to show WglExtensions for debug purposes.
-          2. And I want to implement Load_WGL_ARB_multisample, and reuse
-             my acquired WglExtensions there. }
+        { There is no critical reason to keep reusing WglExtensions,
+          instead each Load_WGL_Xxx could call it again.
+          But it looks simpler to reuse it. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
         WritelnLog('wgl', 'Extensions: ' + WglExtensions);
+
+        Has_WGL_ARB_create_context := Load_WGL_ARB_create_context(WglExtensions);
+        Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile(WglExtensions);
 
         if Load_WGL_ARB_pixel_format then
         begin
@@ -266,7 +252,7 @@ var
 
             if Requirements.MultiSampling > 1 then
             begin
-              if Load_WGL_ARB_multisample then
+              if Load_WGL_ARB_multisample(WglExtensions) then
               begin
                 VisualAttr.AddRange([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
