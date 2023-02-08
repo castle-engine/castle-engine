@@ -52,6 +52,8 @@ uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
 { TGLContextWGL -------------------------------------------------------------- }
 
 procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements);
+var
+  Has_WGL_ARB_create_context, Has_WGL_ARB_create_context_profile: Boolean;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -222,6 +224,9 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
         (this is passed to wglGetExtensionsStringARB call).
         That's Ok, this current context is set by our  CreateTemporaryWindow. }
 
+      Has_WGL_ARB_create_context := Load_WGL_ARB_create_context;
+      Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile;
+
       if Load_WGL_ARB_extensions_string then
       begin
         { Actually, there is no critical reason for me to check
@@ -233,7 +238,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
              my acquired WglExtensions there. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
+        WritelnLog('wgl', 'Extensions: ' + WglExtensions);
 
         if Load_WGL_ARB_pixel_format then
         begin
@@ -313,41 +318,82 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     finally DestroyTemporaryWindow end;
   end;
 
+  procedure UseCreateContextAttribsARB;
+  var
+    Attribs: TInt32List;
+    ShareContextGlrc: HGLRC;
+  begin
+    WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good');
+
+    Attribs := TInt32List.Create;
+    try
+      { Select 3.2 core context.
+        See https://registry.khronos.org/OpenGL/extensions/ARB/WGL_ARB_create_context.txt
+        https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) }
+      if TGLFeatures.RequestCapabilities = rcForceModern then
+      begin
+        Attribs.AddRange([
+          WGL_CONTEXT_MAJOR_VERSION_ARB, TGLFeatures.ModernVersionMajor,
+          WGL_CONTEXT_MINOR_VERSION_ARB, TGLFeatures.ModernVersionMinor,
+          WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB
+          { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
+            forward-compatible really only makes sense on macOS.
+            The "core" profile is what should be just used with new OpenGLs on sane
+            (non-macOS) platforms. }
+          //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        ]);
+      end;
+      { Select debug context.
+        Note that the implementation assumes nothing above passes WGL_CONTEXT_FLAGS_ARB. }
+      if TGLFeatures.Debug then
+      begin
+        Attribs.AddRange([
+          WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB
+        ]);
+      end;
+      Attribs.AddRange([0]);
+      Assert(SizeOf(TGLint) = SizeOf(Int32)); // make sure Attribs match PGLint type
+
+      if SharedContext <> nil then
+        ShareContextGlrc := (SharedContext as TGLContextWGL).h_GLRc
+      else
+        ShareContextGlrc := 0;
+
+      h_GLRc := wglCreateContextAttribsARB(h_Dc, ShareContextGlrc, PGLint(Attribs.List));
+      OSCheck(h_GLRc <> 0, 'wglCreateContextAttribsARB');
+    finally FreeAndNil(Attribs) end;
+  end;
+
+  procedure UseCreateContext;
+  begin
+    { create gl context and make it current }
+    h_GLRc := wglCreateContext(h_Dc);
+    OSCheck(h_GLRc <> 0, 'wglCreateContext');
+
+    { We need wglShareLists.
+      Testcase: see if examples/window/multi_window.lpr
+      shows font in all windows. }
+    if SharedContext <> nil then
+      OSCheck(wglShareLists((SharedContext as TGLContextWGL).h_GLRc, h_GLRc), 'wglShareLists');
+  end;
+
 begin
   HasDoubleBuffer := Requirements.DoubleBuffer;
 
-  { Actually, everything is implemented such that I can just call
-    here SetPixelFormat_WGLChoose. SetPixelFormat_WGLChoose will eventually
-    fall back to SetPixelFormat_ClassicChoose, if needed.
+  // will be initialized once SetPixelFormat_WGLChoose has a temporary context
+  Has_WGL_ARB_create_context := false;
+  Has_WGL_ARB_create_context_profile := false;
 
-    For now, SetPixelFormat_ClassicChoose is simply more tested, and
-    SetPixelFormat_WGLChoose is needed only in case of multi-sampling.
-    So, to play it safe, for view3dscene 2.4.0 and engine 1.3.0 release
-    I just call SetPixelFormat_WGLChoose only if multisampling is requested.
-
-    So in the future I may simplify this "if" to just call SetPixelFormat_WGLChoose
-    always. }
-  if Requirements.MultiSampling > 1 then
-    SetPixelFormat_WGLChoose
-  else
-    SetPixelFormat_ClassicChoose;
+  SetPixelFormat_WGLChoose;
 
   if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
-    raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
+    raise EGLContextNotPossible.Create('This device is paletted, bad display settings');
 
-  { TODO: below we should enable context sharing.
-    If WGL_ARB_create_context_profile is available, then we can use
-    wglCreateContextAttribsARB instead of wglCreateContext.
-    Otherwise, we still use wglCreateContext but follow with wglShareLists.
-    Testcase: see if examples/window/multi_window.lpr
-    shows font in all windows. }
-
-  { create gl context and make it current }
-  h_GLRc := wglCreateContext(h_Dc);
-  OSCheck(h_GLRc <> 0, 'wglCreateContext');
-
-  if SharedContext <> nil then
-    OSCheck(wglShareLists((SharedContext as TGLContextWGL).h_GLRc, h_GLRc), 'wglShareLists');
+  if Has_WGL_ARB_create_context and
+     Has_WGL_ARB_create_context_profile then
+    UseCreateContextAttribsARB
+  else
+    UseCreateContext;
 end;
 
 procedure TGLContextWGL.ContextDestroy;

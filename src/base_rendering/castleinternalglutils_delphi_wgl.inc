@@ -71,16 +71,34 @@ const
   WGL_SAMPLE_BUFFERS_ARB = $2041;
   WGL_SAMPLES_ARB = $2042;
 
+  // WGL_ARB_create_context
+  WGL_CONTEXT_DEBUG_BIT_ARB = $00000001;
+  WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB = $00000002;
+  WGL_CONTEXT_MAJOR_VERSION_ARB = $2091;
+  WGL_CONTEXT_MINOR_VERSION_ARB = $2092;
+  WGL_CONTEXT_LAYER_PLANE_ARB = $2093;
+  WGL_CONTEXT_FLAGS_ARB = $2094;
+  ERROR_INVALID_VERSION_ARB = $2095;
+
+  // WGL_ARB_create_context_profile
+  WGL_CONTEXT_PROFILE_MASK_ARB = $9126;
+  WGL_CONTEXT_CORE_PROFILE_BIT_ARB = $00000001;
+  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB = $00000002;
+  ERROR_INVALID_PROFILE_ARB = $2096;
+
 var
   wglGetExtensionsStringARB: function(hdc: HDC): PAnsiChar; stdcall;
   wglGetPixelFormatAttribivARB: function(hdc: HDC; iPixelFormat: GLint; iLayerPlane: GLint; nAttributes: GLuint; const piAttributes: PGLint; piValues: PGLint): BOOL; stdcall;
   wglGetPixelFormatAttribfvARB: function(hdc: HDC; iPixelFormat: GLint; iLayerPlane: GLint; nAttributes: GLuint; const piAttributes: PGLint; pfValues: PGLfloat): BOOL; stdcall;
   wglChoosePixelFormatARB: function(hdc: HDC; const piAttribIList: PGLint; const pfAttribFList: PGLfloat; nMaxFormats: GLuint; piFormats: PGLint; nNumFormats: PGLuint): BOOL; stdcall;
+  wglCreateContextAttribsARB: function(hDC: HDC; hShareContext: HGLRC; const attribList: PGLint): HGLRC; stdcall;
 
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 function Load_GL_ARB_texture_multisample(LoadAsCore: boolean = false): Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
 function Load_WGL_ARB_pixel_format: Boolean;
+function Load_WGL_ARB_create_context: Boolean;
+function Load_WGL_ARB_create_context_profile: Boolean;
 
 {$endif read_interface}
 
@@ -178,6 +196,42 @@ begin
     if not Assigned(wglGetPixelFormatAttribfvARB) then Exit;
     wglChoosePixelFormatARB := wglGetProcAddress('wglChoosePixelFormatARB');
     if not Assigned(wglChoosePixelFormatARB) then Exit;
+    Result := TRUE;
+  end;
+
+end;
+
+function Load_WGL_ARB_create_context: Boolean;
+var
+  extstring: AnsiString;
+begin
+
+  Result := FALSE;
+  wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
+  if not Assigned(wglGetExtensionsStringARB) then Exit;
+  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
+
+  if glext_ExtensionSupported('WGL_ARB_create_context', extstring) then
+  begin
+    wglCreateContextAttribsARB := wglGetProcAddress('wglCreateContextAttribsARB');
+    if not Assigned(wglCreateContextAttribsARB) then Exit;
+    Result := TRUE;
+  end;
+
+end;
+
+function Load_WGL_ARB_create_context_profile: Boolean;
+var
+  extstring: AnsiString;
+begin
+
+  Result := FALSE;
+  wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
+  if not Assigned(wglGetExtensionsStringARB) then Exit;
+  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
+
+  if glext_ExtensionSupported('WGL_ARB_create_context_profile', extstring) then
+  begin
     Result := TRUE;
   end;
 
