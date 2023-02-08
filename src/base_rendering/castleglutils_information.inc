@@ -195,7 +195,6 @@ begin
     'Features:' + NL +
     NL +
     '  Shaders (GLSL): ' + BoolToStr(GLFeatures.Shaders, true) + NL +
-    '  Necessary to use deprecated (fixed-function): ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
     '  Framebuffer Object: ' + BoolToStr(GLFeatures.Framebuffer, true) + NL +
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
@@ -209,10 +208,13 @@ begin
     '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) + NL +
     '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
+    '  Shadow samplers (necessary for shadow maps): ' + BoolToStr(GLFeatures.TextureDepthCompare, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
     '  Texture Modern Formats + Swizzle: ' + BoolToStr(GLFeatures.TextureModernFormatsAndSwizzle, true) + NL +
     '  Shadow Volumes Possible (stencil buffer, two-sided stencil operations): ' + BoolToStr(GLFeatures.ShadowVolumesPossible, true) + NL +
     '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
+    NL +
+    '  Necessary to use deprecated fixed-function pipeline: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     NL +
     '  All extensions: ' + GLFeatures.AllExtensions + NL +
     NL +
