@@ -271,6 +271,12 @@ begin
   end;
 end;
 
+function TargetIsCubeMapSide(const Target: TGLenum): Boolean;
+begin
+  { We rely on the fact that 6 relevant constants are consecutive. }
+  Result := Between(Target, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+end;
+
 { Call glTexImage2D to load given image.
   Takes care of OpenGL(ES) unpacking (alignment etc.).
   Assumes that image already has the right size
@@ -284,7 +290,7 @@ end;
 procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Image: TCastleImage;
   var LoadedSize: Int64);
 var
-  ImageFormat, ImageInternalFormat: TGLenum;
+  ImageFormat, ImageInternalFormat, SwizzleTarget: TGLenum;
   ImageSwizzle: TVector4Integer;
 begin
   BeforeUnpackImage(Image);
@@ -304,7 +310,15 @@ begin
     LoadedSize := LoadedSize + Image.Size;
 
     if GLFeatures.TextureModernFormatsAndSwizzle then
-      glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+    begin
+      { We cannot use cubemap side as swizzle target,
+        we need to use GL_TEXTURE_CUBE_MAP,
+        following https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexParameter.xhtml . }
+      SwizzleTarget := Target;
+      if TargetIsCubeMapSide(SwizzleTarget) then
+        SwizzleTarget := GL_TEXTURE_CUBE_MAP;
+      glTexParameteriv(SwizzleTarget, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+    end;
 
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
