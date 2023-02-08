@@ -408,8 +408,6 @@ var
   Shape: TShapeNode;
   { animations var.}
   TimeSensor: TTimeSensorNode;
-  //for test
-  AniNodeCount: Integer;
 
   procedure PrepareTimeSensor;
   begin
@@ -516,9 +514,6 @@ var
 
     procedure PrepareAnimation(const AName: string);
     begin
-      //test
-      Inc(AniNodeCount);
-
       TexCoordInterp := TCoordinateInterpolator2DNode.Create(AName + '_TexCoord');
       TexCoordInterp.Interpolation := inStep;
     end;
@@ -528,27 +523,21 @@ var
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
       if HasAnimation then
-      begin
-        { Create directly, may need optimization. }
-        Nodes := CreateNodes;
+        Nodes := CreateNodes { Create directly, may need optimization. }
+      else
+        Nodes := GetAndCreateNodesForTileset; { If not Created then Create and Add to TDictionary. }
 
-        AddCoordPoints(Tileset, Nodes.Coord);
-        CalcTexCoordArray(Frame);
-        Nodes.TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+      Coord := Nodes.Coord;
+      TexCoord := Nodes.TexCoord;
+      AddCoordPoints(Tileset, Coord);
+      CalcTexCoordArray(Frame);
+      TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+
+      if HasAnimation then
+      begin
         { load animation. }
         PrepareAnimation('Ani_' + TilePosition.X.ToString + '_' + TilePosition.Y.ToString);
         AddAnimation;
-      end else
-      begin
-        { If not Created then Create and Add to TDictionary. }
-        Nodes := GetAndCreateNodesForTileset;
-
-        Coord := Nodes.Coord;
-        TexCoord := Nodes.TexCoord;
-
-        AddCoordPoints(Tileset, Coord);
-        CalcTexCoordArray(Frame);
-        TexCoord.FdPoint.Items.AddRange(TexCoordArray);
       end;
     end;
   end;
