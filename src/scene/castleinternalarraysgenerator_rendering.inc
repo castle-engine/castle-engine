@@ -1,3 +1,4 @@
+{%MainUnit castleinternalarraysgenerator.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -317,21 +318,6 @@ end;
 procedure TTriangleSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
@@ -349,18 +335,16 @@ begin
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if FacesNeeded then
     begin
       Arrays.Faces := TFaceIndexesList.Create;
       Arrays.Faces.Count := IndexesFromCoordIndex.Count;
       for I := 0 to Arrays.Faces.Count - 1 do
       begin
-        Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
-        Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+        Arrays.Faces.List^[I].IndexBegin := (I div 3) * 3;
+        Arrays.Faces.List^[I].IndexEnd := ((I div 3) + 1) * 3 -1;
       end;
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 end;
 
@@ -464,24 +448,6 @@ end;
 procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is NOT correct
-      (as vertexes are shared between triangles; so in smooth shading,
-      face normals will be incorrectly distributed among vertexes).
-
-    Which means that colors mixed with per-face normals simply don't work.
-    Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-  if (NorImplementation = niNone) and (Color = nil) then
-    Arrays.ForceFlatShading := true else
-  begin
-    Arrays.ForceFlatShading := false;
-    if NorImplementation = niNone then
-      WarningShadingProblems(true, false);
-  end;
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesPrimitives;
@@ -498,24 +464,22 @@ procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
@@ -693,29 +657,6 @@ begin
     { Already calculated in constructor, pass to Arrays now }
     Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
     Arrays.CullFace := VRML1CullFace;
-
-    { When generating, we always generate flat normals for IndexedTriangleMesh
-      (I don't know if I should use anything like "creaseAngle"?) }
-    Arrays.ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
-  end else
-  begin
-    { About shading:
-      - we have to use smooth shading if we have colors
-        (colors are always per vertex for triangle sets).
-      - we have to use smooth shading if we have normals per vertex
-      - if we have normals per face, smooth shading is NOT correct
-        (as vertexes are shared between triangles; so in smooth shading,
-        face normals will be incorrectly distributed among vertexes).
-
-      Which means that colors mixed with per-face normals simply don't work.
-      Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-    if (NorImplementation = niNone) and (Color = nil) then
-      Arrays.ForceFlatShading := true else
-    begin
-      Arrays.ForceFlatShading := false;
-      if NorImplementation = niNone then
-        WarningShadingProblems(true, false);
-    end;
   end;
 end;
 
@@ -733,24 +674,22 @@ procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
@@ -888,26 +827,10 @@ end;
 procedure TQuadSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for quad sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 
-  {$ifdef OpenGLES}
   { Calculate IndexesFromCoordIndex for triangle primitive
     from CoordIndex for quad primitive. }
   procedure CalculateIndexesFromCoordIndexForTriangles;
@@ -917,14 +840,14 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     I := 0;
     while I + 3 < CoordCount do
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
 
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
-      I += 4;
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 3]);
+      Inc(I, 4);
     end;
   end;
 
@@ -936,15 +859,13 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     while I + 3 < CoordCount do
     begin
       Arrays.Counts.Add(4);
-      I += 4;
+      Inc(I, 4);
     end;
   end;
-  {$endif}
 
 begin
-  {$ifdef OpenGLES}
-  { On OpenGLES, we don't have GL_QUADS primitive. So render quads
-    by splitting them into triangles. }
+  { On OpenGLES and modern OpenGL ( https://docs.gl/gl3/glDrawArrays ),
+    we don't have GL_QUADS primitive. So render quads by splitting them into triangles. }
   if CoordIndex <> nil then
   begin
     Arrays.Primitive := gpTriangles;
@@ -952,8 +873,7 @@ begin
     CalculateIndexesFromCoordIndexForTriangles;
   end else
   begin
-    { This means we have QuadSet (no indexes, so not IndexedQuadSet) on OpenGLES
-      (where no gpQuads primitive is available).
+    { This means we have QuadSet (no indexes, so not IndexedQuadSet).
       We want to generate 2 triangles for each quad.
 
       We cannot do it by generating IndexesFromCoordIndex, as
@@ -967,20 +887,6 @@ begin
     Arrays.Counts := TCardinalList.Create;
     CalculateCountsForTriangleFan;
   end;
-
-  {$else}
-  Arrays.Primitive := gpQuads;
-
-  if CoordIndex <> nil then
-  begin
-    { indexes are just directly from CoordIndex in this case. }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
-    IndexesFromCoordIndex.Assign(CoordIndex.Items);
-    { make sure we have only full quads (although nothing really
-      requires or promises that, but for the future). }
-    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
-  end;
-  {$endif}
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -1049,12 +955,10 @@ procedure TAbstractLineSetGenerator.PrepareIndexesCoordsRange(
 var
   I: Integer;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Arrays.Counts.Add(EndIndex - BeginIndex);
   if CoordIndex <> nil then
     for I := BeginIndex to EndIndex - 1 do
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
 end;
 
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;

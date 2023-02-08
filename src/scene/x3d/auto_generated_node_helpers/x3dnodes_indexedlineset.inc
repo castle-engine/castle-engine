@@ -82,9 +82,9 @@
     { Internal wrapper for property @link(ColorIndex). This wrapper API may change, we advise to access simpler @link(ColorIndex) instead. }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
     {  }
-    procedure SetColorIndex(const Value: array of LongInt); overload;
+    procedure SetColorIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetColorIndex(const Value: TLongIntList); overload;
+    procedure SetColorIndex(const Value: TInt32List); overload;
 
     strict private FFdColorPerVertex: TSFBool;
     { Internal wrapper for property @link(ColorPerVertex). This wrapper API may change, we advise to access simpler @link(ColorPerVertex) instead. }
@@ -96,9 +96,9 @@
     { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
-    procedure SetCoordIndex(const Value: array of LongInt); overload;
+    procedure SetCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetCoordIndex(const Value: TLongIntList); overload;
+    procedure SetCoordIndex(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -161,12 +161,12 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
-procedure TIndexedLineSetNode.SetColorIndex(const Value: array of LongInt);
+procedure TIndexedLineSetNode.SetColorIndex(const Value: array of Int32);
 begin
   FdColorIndex.Send(Value);
 end;
 
-procedure TIndexedLineSetNode.SetColorIndex(const Value: TLongIntList);
+procedure TIndexedLineSetNode.SetColorIndex(const Value: TInt32List);
 begin
   FdColorIndex.Send(Value);
 end;
@@ -181,12 +181,12 @@ begin
   FdColorPerVertex.Send(Value);
 end;
 
-procedure TIndexedLineSetNode.SetCoordIndex(const Value: array of LongInt);
+procedure TIndexedLineSetNode.SetCoordIndex(const Value: array of Int32);
 begin
   FdCoordIndex.Send(Value);
 end;
 
-procedure TIndexedLineSetNode.SetCoordIndex(const Value: TLongIntList);
+procedure TIndexedLineSetNode.SetCoordIndex(const Value: TInt32List);
 begin
   FdCoordIndex.Send(Value);
 end;

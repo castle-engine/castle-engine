@@ -112,18 +112,11 @@ end;
 procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
 
   function GetSceneModelView: TMatrix4;
-  var
-    CameraMatrix: PMatrix4;
   begin
-    if Params.RenderingCamera.RotationOnly then
-      CameraMatrix := @Params.RenderingCamera.RotationMatrix
-    else
-      CameraMatrix := @Params.RenderingCamera.Matrix;
-
     if Params.TransformIdentity then
-      Result := CameraMatrix^
+      Result := Params.RenderingCamera.CurrentMatrix
     else
-      Result := CameraMatrix^ * Params.Transform^;
+      Result := Params.RenderingCamera.CurrentMatrix * Params.Transform^;
   end;
 
   function PrimitiveToStr(const Primitive: TGeometryPrimitive): string;

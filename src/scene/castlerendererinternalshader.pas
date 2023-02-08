@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,7 @@ type
   TFogCoordinateSource = (
     { Fog is determined by depth (distance to camera). }
     fcDepth,
-    { Fog is determined by explicit coordinate (per-vertex glFogCoord*). }
+    { Fog is determined by explicit coordinate (per-vertex castle_FogCoord attribute). }
     fcPassedCoordinate);
 
   TBoundingBoxEvent = function: TBox3D of object;
@@ -296,7 +296,8 @@ type
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
+      var UsesShadowMaps: Boolean); virtual;
   end;
 
   { Setup the necessary shader things to query a texture using texture coordinates. }
@@ -326,7 +327,8 @@ type
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
+      var UsesShadowMaps: Boolean); override;
   end;
 
   TTextureCoordinateShaderList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
@@ -426,6 +428,7 @@ type
     NeedsNormalsForTexGen: Boolean;
     FPhongShading: boolean;
     FLightingModel: TLightingModel;
+    FAlphaTest: Boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -666,6 +669,9 @@ type
 
     { Current shape bbox, in world coordinates. }
     function ShapeBoundingBoxInWorld: TBox3D;
+
+    { Is alpha testing enabled by EnableAlphaTest. }
+    property AlphaTest: Boolean read FAlphaTest;
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -677,7 +683,7 @@ implementation
 uses SysUtils, StrUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion,
-  CastleScreenEffects, CastleInternalX3DLexer;
+  CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 
 {$ifndef OpenGLES}
 var
@@ -691,9 +697,6 @@ var
     unreachable code, in practice we use this as a constant. }
   ForceOpenGLESClipPlanes: Boolean = false;
 {$endif}
-
-const
-  Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};
 
 function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 begin
@@ -1533,7 +1536,8 @@ procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer; con
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
+  var UsesShadowMaps: Boolean);
 var
   TexCoordName, TexMatrixName: string;
 begin
@@ -1776,10 +1780,11 @@ procedure TTextureShader.Enable(const MainTextureMapping: Integer; const MultiTe
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
+  var UsesShadowMaps: Boolean);
 const
   SamplerFromTextureType: array [TTextureType] of string =
-  ('sampler2D', Sampler2DShadow, 'samplerCube', 'sampler3D', '');
+  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
   TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
@@ -1807,6 +1812,7 @@ begin
      (ShadowLight <> nil) and
      Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
   begin
+    UsesShadowMaps := true;
     Shader.Plug(stFragment, Format(
       'uniform %s %s;' +NL+
       {$ifdef OpenGLES}
@@ -2057,6 +2063,7 @@ begin
   MainTextureMapping := -1;
   ColorSpaceLinear := false;
   MultiTextureColor := White;
+  FAlphaTest := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2360,7 +2367,8 @@ var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
-  TextureUniformsSet: boolean;
+  TextureUniformsSet: Boolean;
+  UsesShadowMaps: Boolean;
 
 const
   Structures: array [TLightingModel] of String = (
@@ -2473,13 +2481,15 @@ const
     GeometryVertexZero := '';
     GeometryVertexAdd := '';
     TextureUniformsSet := true;
+    UsesShadowMaps := false;
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(MainTextureMapping, MultiTextureColor,
         TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd,
+        UsesShadowMaps);
   end;
 
   { Applies to shader necessary clip plane code, using ClipPlanes value. }
@@ -2619,10 +2629,12 @@ const
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         TextureVaryingDeclareFragment + NL +
         TextureUniformsDeclare + NL +
-        DeclareShadowFunctions, false) and
+        Iff(UsesShadowMaps, DeclareShadowFunctions, ''),
+        false) and
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
         UniformsDeclare +
-        TextureAttributeDeclare + NL + TextureVaryingDeclareVertex, false) ) then
+        TextureAttributeDeclare + NL + TextureVaryingDeclareVertex,
+        false) ) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
         base shader from ComposedShader. In this case, forcing
@@ -2644,7 +2656,8 @@ const
     if (Source[stFragment].Count <> 0) and
        (SelectedNode = nil) then
     begin
-      Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
+      if UsesShadowMaps then
+        Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
       Source[stFragment].Add(ToneMappingFunctions);
     end;
   end;
@@ -2973,6 +2986,40 @@ var
         '/* CASTLE-COMMON-CODE */', {$I common.fs.inc}, [rfReplaceAll]);
   end;
 
+  { To use sampler2DShadow, and call texture and textureProj on it,
+    on OpenGLES we need to require higher GLSL version. }
+  procedure EnableShadowSamplers;
+  begin
+    {$ifdef OpenGLES}
+    if UsesShadowMaps then
+    begin
+      Assert(GLFeatures.TextureDepthCompare);
+
+      if Source[stVertex].Count > 0 then
+        Source[stVertex  ][0] := '#version 300 es' + NL +
+          '#define attribute in' + NL +
+          '#define varying out' + NL +
+          '#define texture2D texture' + NL +
+          '#define texture2DProj textureProj' + NL +
+          { Otherwise each sampler2DShadow would have to contain precision specifier.
+            EXT_shadow_samplers says that lowp is default, so presumably it is OK:
+            https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
+          'precision lowp sampler2DShadow;' + NL +
+          Source[stVertex  ][0];
+
+      if Source[stFragment].Count > 0 then
+        Source[stFragment][0] := '#version 300 es' + NL +
+          '#define varying in' + NL +
+          '#define texture2D texture' + NL +
+          '#define texture2DProj textureProj' + NL +
+          '#define gl_FragColor castle_FragColor' + NL +
+          'out mediump vec4 castle_FragColor;' + NL +
+          'precision lowp sampler2DShadow;' + NL +
+          Source[stFragment][0];
+    end;
+    {$endif}
+  end;
+
 var
   ShaderType: TShaderType;
   GeometryInputSize: string;
@@ -2998,6 +3045,7 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
   EnableMirrorPlaneTexCoords;
+  EnableShadowSamplers;
 
   if HasGeometryMain then
   begin
@@ -3341,18 +3389,18 @@ end;
 
 procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     { Disable for fixed-function pipeline }
     if GLFeatures.UseMultiTexturing then
       glActiveTexture(GL_TEXTURE0 + TextureUnit);
-    {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
-    {$endif}
   end;
+  {$endif}
 end;
 
 procedure TShader.EnableTextureTransform(const TextureUnit: Cardinal;
@@ -3473,6 +3521,8 @@ procedure TShader.EnableAlphaTest(const AlphaCutoff: Single);
 var
   AlphaCutoffStr: String;
 begin
+  FAlphaTest := true;
+
   { Convert float to be a valid GLSL constant.
     Make sure to use dot, and a fixed notation. }
   AlphaCutoffStr := FloatToStrFDot(AlphaCutoff, ffFixed, { ignored } 0, 4);
@@ -3716,12 +3766,10 @@ end;
 function TShader.DeclareShadowFunctions: string;
 const
   ShadowDeclare: array [boolean { vsm? }] of string =
-  ('float shadow(' + Sampler2DShadow + ' shadowMap, const vec4 shadowMapCoord, const in float size);',
+  ('float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);',
    'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
-  ShadowDepthDeclare =
-   'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
 begin
-  Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps] + NL + ShadowDepthDeclare;
+  Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps];
 end;
 
 procedure TShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);

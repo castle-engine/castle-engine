@@ -96,9 +96,9 @@
     { Internal wrapper for property @link(SkinCoordIndex). This wrapper API may change, we advise to access simpler @link(SkinCoordIndex) instead. }
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
     {  }
-    procedure SetSkinCoordIndex(const Value: array of LongInt); overload;
+    procedure SetSkinCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetSkinCoordIndex(const Value: TLongIntList); overload;
+    procedure SetSkinCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdSkinCoordWeight: TMFFloat;
     { Internal wrapper for property @link(SkinCoordWeight). This wrapper API may change, we advise to access simpler @link(SkinCoordWeight) instead. }
@@ -218,12 +218,12 @@ begin
   FdScaleOrientation.Send(Value);
 end;
 
-procedure THAnimJointNode.SetSkinCoordIndex(const Value: array of LongInt);
+procedure THAnimJointNode.SetSkinCoordIndex(const Value: array of Int32);
 begin
   FdSkinCoordIndex.Send(Value);
 end;
 
-procedure THAnimJointNode.SetSkinCoordIndex(const Value: TLongIntList);
+procedure THAnimJointNode.SetSkinCoordIndex(const Value: TInt32List);
 begin
   FdSkinCoordIndex.Send(Value);
 end;

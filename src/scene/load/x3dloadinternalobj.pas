@@ -214,7 +214,7 @@ type
   end;
 
   TWavefrontFace = class
-    VertIndices, TexCoordIndices, NormalIndices: TLongIntList;
+    VertIndices, TexCoordIndices, NormalIndices: TInt32List;
     HasTexCoords: boolean;
     HasNormals: boolean;
 
@@ -325,9 +325,9 @@ end;
 constructor TWavefrontFace.Create;
 begin
   inherited;
-  VertIndices := TLongIntList.Create;
-  TexCoordIndices := TLongIntList.Create;
-  NormalIndices := TLongIntList.Create;
+  VertIndices := TInt32List.Create;
+  TexCoordIndices := TInt32List.Create;
+  NormalIndices := TInt32List.Create;
 end;
 
 destructor TWavefrontFace.Destroy;
@@ -361,7 +361,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
       procedure ReadIndex(out IndiceExists: boolean;
-        const IndexList: TLongIntList; const Count: Cardinal);
+        const IndexList: TInt32List; const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
         Index: Integer;

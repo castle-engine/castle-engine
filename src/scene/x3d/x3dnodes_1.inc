@@ -1271,7 +1271,7 @@ procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionWorldLocation, ProjectionWorldDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode_1.Scope: TLightScope;

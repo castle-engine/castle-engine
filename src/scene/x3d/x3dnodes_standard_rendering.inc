@@ -60,7 +60,7 @@
       Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
       are mainly to generate proper warnings by MakeCoordRanges. }
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
@@ -640,7 +640,7 @@
   TLineSetNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
@@ -706,7 +706,7 @@
     to compose vertexes into triangles. }
   TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   protected
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
@@ -738,7 +738,7 @@
     to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   protected
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
@@ -832,7 +832,7 @@ begin
 end;
 
 function TAbstractGeometryNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -845,7 +845,7 @@ procedure TAbstractGeometryNode.InternalMakeCoordRanges(
 var
   BeginIndex, EndIndex: Integer;
   RangeNumber: Cardinal;
-  RangeCount: TLongIntList;
+  RangeCount: TInt32List;
   SRanges, SRangeName: string;
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
@@ -1464,7 +1464,7 @@ begin
 end;
 
 function TLineSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -1596,7 +1596,7 @@ end;
 { TTriangleFanSetNode -------------------------------------------------------- }
 
 function TTriangleFanSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -1610,7 +1610,7 @@ end;
 { TTriangleStripSetNode ------------------------------------------------------ }
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin

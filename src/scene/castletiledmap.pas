@@ -47,7 +47,7 @@ uses
 implementation
 
 uses Math,
-  CastleComponentSerialize, CastleImages,
+  CastleComponentSerialize, CastleImages, CastleRenderContext,
   X3DLoadInternalTiledMap, CastleGLUtils, CastleDownload;
 
 {$define read_implementation}

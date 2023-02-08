@@ -103,8 +103,10 @@ begin
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
     'URL', TTransformDesignURLPropertyEditor);
+  {$warnings off} // define to support deprecated, for now
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
+  {$warnings on}
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
     'URL', TTiledMapURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
