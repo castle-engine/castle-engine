@@ -467,10 +467,10 @@ var
     ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
   end;
 
-  function CreateTimeSensor(const CycleIntervelMs :Cardinal): TTimeSensorNode;
+  function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
   begin
-    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[FMap.Layers.IndexOf(ALayer),CycleIntervelMs]));
-    Result.CycleInterval := CycleIntervelMs / 1000;
+    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[FMap.Layers.IndexOf(ALayer),CycleIntervalMs]));
+    Result.CycleInterval := CycleIntervalMs / 1000;
     { Add TimeSensor to Root node }
     LayerNode.AddChildren(Result);
     Result.Loop := True;
@@ -486,12 +486,12 @@ var
     LayerNode.AddChildren(Shape);
   end;
 
-  function GetOrCreateTimeSensor(const CycleIntervelMs:Cardinal) :TTimeSensorNode;
+  function GetOrCreateTimeSensor(const CycleIntervalMs:Cardinal) :TTimeSensorNode;
   begin
-    if RenderContext.TimeSensorContext.TryGetValue(CycleIntervelMs , Result) then Exit;
+    if RenderContext.TimeSensorContext.TryGetValue(CycleIntervalMs , Result) then Exit;
 
-    Result := CreateTimeSensor(CycleIntervelMs);
-    RenderContext.TimeSensorContext.Add(CycleIntervelMs, Result);
+    Result := CreateTimeSensor(CycleIntervalMs);
+    RenderContext.TimeSensorContext.Add(CycleIntervalMs, Result);
   end;
 
   function CreateAnimationNodes: TAnimationNodes;
@@ -506,7 +506,7 @@ var
     Result.TexCoordInterp.Interpolation := inStep;
 
 
-    { Calc CycleIntervel. }
+    { Calc CycleInterval. }
     CycleIntervalMs := 0;
     Durations := 0;
     for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
