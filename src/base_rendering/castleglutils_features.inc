@@ -925,7 +925,7 @@ begin
 
   { calculate Framebuffer }
   FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
-    {$else} Version_3_0
+    {$else} Version_3_0 or HasExtension('GL_ARB_framebuffer_object')
     {$endif};
 
   if Framebuffer then
