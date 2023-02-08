@@ -578,7 +578,7 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
       Exit;
     end;
 
-    if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
+    if searchIn = '' then extensions := PGLChar(glGetString(GL_EXTENSIONS))
     else extensions := PChar(searchIn);
     start := extensions;
     while TRUE do
@@ -618,7 +618,7 @@ begin
       see https://www.khronos.org/opengl/wiki/GLAPI/glGetString }
     for I := 0 to glGetInteger(GL_NUM_EXTENSIONS) - 1 do
     begin
-      SupportedExt := PChar(glGetStringi(GL_EXTENSIONS, I));
+      SupportedExt := PGLChar(glGetStringi(GL_EXTENSIONS, I));
       if SupportedExt = Extension then
       begin
         // WritelnLog('Detected extension as supported: ' + Extension);
@@ -648,7 +648,7 @@ begin
     Result := Format('%d extensions: ', [NumExtensions]);
     for I := 0 to glGetInteger(GL_NUM_EXTENSIONS) - 1 do
     begin
-      SupportedExt := PChar(glGetStringi(GL_EXTENSIONS, I));
+      SupportedExt := PGLChar(glGetStringi(GL_EXTENSIONS, I));
       Result := Result + Format('(%d) %s ', [I, SupportedExt]);
     end;
   end else
