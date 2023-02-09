@@ -437,7 +437,6 @@ type
     if the scene does not change (in a significant way) between each query.
     So you can query information like @link(LocalBoundingBox),
     @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
-
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     type
@@ -5697,7 +5696,9 @@ begin
     [ManifoldEdges, BorderEdges]) + NL;
 end;
 
-function TCastleSceneCore.Info(ATriangleVerticesCounts, ABoundingBox: boolean;
+function TCastleSceneCore.Info(
+  ATriangleVerticesCounts,
+  ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
 begin
   Result := '';
@@ -7550,8 +7551,8 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;
-  const WorldBox: TBox3D; const RelativeCameraTransform: boolean;
-  const AllowTransitionAnimate: boolean);
+  const WorldBox: TBox3D;
+  const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
   APosition: TVector3;
   ADirection: TVector3;
