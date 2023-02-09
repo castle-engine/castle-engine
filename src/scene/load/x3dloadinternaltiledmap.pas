@@ -456,6 +456,8 @@ var
   CoordRect, TexCoordRect: TFloatRectangle;
   TexCoordArray: TQuadTexCoords;
   HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+  { Render order. }
+  CurrentZ: Single;
   { animations var.}
   TimeSensor: TTimeSensorNode;
 
@@ -586,10 +588,10 @@ var
     begin
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
       Coord.FdPoint.Items.AddRange([
-        Vector3(CoordRect.Left , CoordRect.Bottom, 0),
-        Vector3(CoordRect.Right, CoordRect.Bottom, 0),
-        Vector3(CoordRect.Right, CoordRect.Top   , 0),
-        Vector3(CoordRect.Left , CoordRect.Top   , 0)
+        Vector3(CoordRect.Left , CoordRect.Bottom, CurrentZ),
+        Vector3(CoordRect.Right, CoordRect.Bottom, CurrentZ),
+        Vector3(CoordRect.Right, CoordRect.Top   , CurrentZ),
+        Vector3(CoordRect.Left , CoordRect.Top   , CurrentZ)
       ]);
     end;
 
@@ -614,6 +616,7 @@ var
         Exit;
       end;
 
+      CurrentZ := CurrentZ +0.000001;
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
         Nodes := GetOrCreateNodesForAnimation.CoordNodes
@@ -666,13 +669,13 @@ var
           end;
 
         end;
-
      end;
   end;
 
 var
   X, Y: Integer;
 begin
+  CurrentZ := 0;
   RenderContext:= TRenderContext.Create;
 
   try
