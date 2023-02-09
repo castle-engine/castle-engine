@@ -59,10 +59,15 @@ type
       TexCoordInterp: TCoordinateInterpolator2DNode;
     end;
 
+    TAnimationWithFlips = record
+      Animation : TCastleTiledMapData.TAnimation;
+      HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+    end;
+
     { CycleInterval in milliseconds. }
     TTimeSensorContext = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
 
-    TAnimationContext = {$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TAnimation,TAnimationNodes>;
+    TAnimationContext = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
 
     TRenderContext =class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
     strict private
@@ -472,6 +477,14 @@ var
     ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
   end;
 
+  function AnimationWithFlips:TAnimationWithFlips;
+  begin
+     Result.Animation := Tileset.Tiles[Frame].Animation;
+     Result.DiagonalFlip := DiagonalFlip;
+     Result.HorizontalFlip := HorizontalFlip;
+     Result.VerticalFlip := VerticalFlip;
+  end;
+
   function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
   begin
     Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[FMap.Layers.IndexOf(ALayer),CycleIntervalMs]));
@@ -548,11 +561,14 @@ var
   end;
 
   function GetOrCreateNodesForAnimation() :TAnimationNodes;
+  var
+    vAnimationWithFlips: TAnimationWithFlips;
   begin
-    if RenderContext.AnimationContext.TryGetValue(Tileset.Tiles[Frame].Animation, Result) then Exit;
+    vAnimationWithFlips := AnimationWithFlips;
+    if RenderContext.AnimationContext.TryGetValue(vAnimationWithFlips, Result) then Exit;
 
     Result := CreateAnimationNodes;
-    RenderContext.AnimationContext.Add(Tileset.Tiles[Frame].Animation, Result);
+    RenderContext.AnimationContext.Add(vAnimationWithFlips, Result);
   end;
 
 
