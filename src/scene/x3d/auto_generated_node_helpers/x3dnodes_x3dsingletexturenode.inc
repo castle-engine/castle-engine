@@ -124,7 +124,7 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);

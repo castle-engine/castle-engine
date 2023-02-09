@@ -138,7 +138,7 @@ begin
   AddField(FFdCoordIndex);
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdDisplacements := TMFVec3f.Create(Self, True, 'displacements', []);

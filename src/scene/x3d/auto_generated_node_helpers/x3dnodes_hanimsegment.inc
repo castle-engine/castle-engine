@@ -235,7 +235,7 @@ begin
   AddField(FFdCoord);
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdDisplacers := TMFNode.Create(Self, True, 'displacers', [THAnimDisplacerNode]);

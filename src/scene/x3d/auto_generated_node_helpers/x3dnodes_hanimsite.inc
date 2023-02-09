@@ -174,7 +174,7 @@ begin
   AddField(FFdCenter);
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdName := TSFString.Create(Self, True, 'name', '');
