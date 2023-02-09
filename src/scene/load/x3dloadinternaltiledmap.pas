@@ -49,41 +49,42 @@ type
   TCastleTiledMapConverter = class
   strict private
     type
-    TTilesetNodes = record
-      Coord: TCoordinateNode;
-      TexCoord: TTextureCoordinateNode;
-    end;
+      TTilesetNodes = record
+        Coord: TCoordinateNode;
+        TexCoord: TTextureCoordinateNode;
+      end;
 
-    TAnimationNodes= record
-      CoordNodes: TTilesetNodes;
-      TexCoordInterp: TCoordinateInterpolator2DNode;
-    end;
+      TAnimationNodes = record
+        CoordNodes: TTilesetNodes;
+        TexCoordInterp: TCoordinateInterpolator2DNode;
+      end;
 
-    TAnimationWithFlips = record
-      Animation : TCastleTiledMapData.TAnimation;
-      HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
-    end;
+      TAnimationWithFlips = record
+        Animation: TCastleTiledMapData.TAnimation;
+        HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+      end;
 
-    { CycleInterval in milliseconds. }
-    TTimeSensorContext = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
+      { CycleInterval in milliseconds. }
+      TTimeSensorContext = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
 
-    TAnimationContext = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
+      TAnimationContext = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
 
-    TRenderContext =class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
-    strict private
-      FTimeSensorContext: TTimeSensorContext;
-      FAnimationContext: TAnimationContext;
-    public
-      constructor Create;{$ifdef FPC} override;{$endif}
-      destructor Destroy;override;
-      property  TimeSensorContext: TTimeSensorContext read FTimeSensorContext;
-      property  AnimationContext: TAnimationContext read FAnimationContext;
+      TRenderContext = class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
+      strict private
+        FTimeSensorContext: TTimeSensorContext;
+        FAnimationContext: TAnimationContext;
+      public
+        constructor Create;{$ifdef FPC} override;{$endif}
+        destructor Destroy;override;
+        property  TimeSensorContext: TTimeSensorContext read FTimeSensorContext;
+        property  AnimationContext: TAnimationContext read FAnimationContext;
 
-    end;
+      end;
+
     var
-    FMap: TCastleTiledMapData;
-    FMapNode: TTransformNode;
-    FRootNode: TX3DRootNode;
+      FMap: TCastleTiledMapData;
+      FMapNode: TTransformNode;
+      FRootNode: TX3DRootNode;
 
     { Fills every TTileset.RendererData with TAppearanceNode with texture of this tileset. }
     procedure PrepareTilesets;
