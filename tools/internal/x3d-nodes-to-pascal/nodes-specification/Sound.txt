@@ -6,6 +6,7 @@ X3DSoundSourceNode : X3DTimeDependentNode {
   default-container-field: children
 
   SFString [in,out] description      ""
+    change: chNone
   SFFloat  [in,out] pitch            1.0
     range: (0,Inf)
   SFTime   [out]    duration_changed
