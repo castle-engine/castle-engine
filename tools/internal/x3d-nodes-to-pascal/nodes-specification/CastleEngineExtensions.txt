@@ -121,8 +121,6 @@ RenderedTexture : X3DSingleTextureNode {
   MFNode     [in,out]      targets               []
     range: X3DTextureNode
     change: chTextureRendererProperties
-  SFString   [in,out]      description           ""
-    change: chNone
   SFMatrix4f [out]         viewing
   SFMatrix4f [out]         projection
   SFString   [in,out]      frameBufferMode       "AUTO"
