@@ -64,8 +64,6 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
-  SFString [in,out] description       ""
-    change: chNone
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0
     range: (-Inf,Inf)
