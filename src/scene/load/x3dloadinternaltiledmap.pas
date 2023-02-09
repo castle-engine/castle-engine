@@ -65,19 +65,19 @@ type
       end;
 
       { CycleInterval in milliseconds. }
-      TTimeSensorContext = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
+      TLayerTimeSensors = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
 
-      TAnimationContext = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
+      TLayerAnimations = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
 
-      TRenderContext = class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
+      TLayerConversion = class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
       strict private
-        FTimeSensorContext: TTimeSensorContext;
-        FAnimationContext: TAnimationContext;
+        FLayerTimeSensors: TLayerTimeSensors;
+        FLayerAnimations: TLayerAnimations;
       public
         constructor Create;{$ifdef FPC} override;{$endif}
         destructor Destroy;override;
-        property  TimeSensorContext: TTimeSensorContext read FTimeSensorContext;
-        property  AnimationContext: TAnimationContext read FAnimationContext;
+        property  LayerTimeSensors: TLayerTimeSensors read FLayerTimeSensors;
+        property  LayerAnimations: TLayerAnimations read FLayerAnimations;
 
       end;
 
@@ -144,18 +144,18 @@ uses
   CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages, CastleURIUtils;
 
-constructor TCastleTiledMapConverter.TRenderContext.Create;
+constructor TCastleTiledMapConverter.TLayerConversion.Create;
 begin
   inherited;
 
-  FTimeSensorContext:= TTimeSensorContext.Create;
-  FAnimationContext:= TAnimationContext.Create;
+  FLayerTimeSensors:= TLayerTimeSensors.Create;
+  FLayerAnimations:= TLayerAnimations.Create;
 end;
 
-destructor TCastleTiledMapConverter.TRenderContext.Destroy;
+destructor TCastleTiledMapConverter.TLayerConversion.Destroy;
 begin
-  FTimeSensorContext.Free;
-  FAnimationContext.Free;
+  FLayerTimeSensors.Free;
+  FLayerAnimations.Free;
 
   inherited;
 end;
@@ -230,7 +230,7 @@ const
   { Distance between Tiled layers in Z. Layers are rendered as 3D objects
     and need some distance to avoid Z-fighting.
 
-    This could be avoided when using RenderContext.DepthFunc := fdAlways,
+    This could be avoided when using LayerConversion.DepthFunc := fdAlways,
     but it comes with it's own disadvantages,
     see TCastleTiledMap.AssumePerfectRenderingOrder docs.
     So we always apply this layer Z distance, to work regardless
@@ -448,7 +448,7 @@ type
   end;
 
 var
-  RenderContext: TRenderContext;
+  LayerConversion: TLayerConversion;
   Nodes: TTilesetNodes;
   Tileset: TCastleTiledMapData.TTileset;
   Geometry: TQuadSetNode;
@@ -515,10 +515,10 @@ var
 
   function GetOrCreateTimeSensor(const CycleIntervalMs:Cardinal) :TTimeSensorNode;
   begin
-    if RenderContext.TimeSensorContext.TryGetValue(CycleIntervalMs , Result) then Exit;
+    if LayerConversion.LayerTimeSensors.TryGetValue(CycleIntervalMs , Result) then Exit;
 
     Result := CreateTimeSensor(CycleIntervalMs);
-    RenderContext.TimeSensorContext.Add(CycleIntervalMs, Result);
+    LayerConversion.LayerTimeSensors.Add(CycleIntervalMs, Result);
   end;
 
   function CreateAnimationNodes: TAnimationNodes;
@@ -562,10 +562,10 @@ var
 
   function GetOrCreateNodesForTileset: TTilesetNodes;
   begin
-    if RenderContext.TryGetValue(Tileset , Result) then Exit;
+    if LayerConversion.TryGetValue(Tileset , Result) then Exit;
 
     Result := CreateNodes;
-    RenderContext.Add(Tileset, Result);
+    LayerConversion.Add(Tileset, Result);
   end;
 
   function GetOrCreateNodesForAnimation() :TAnimationNodes;
@@ -573,10 +573,10 @@ var
     vAnimationWithFlips: TAnimationWithFlips;
   begin
     vAnimationWithFlips := AnimationWithFlips;
-    if RenderContext.AnimationContext.TryGetValue(vAnimationWithFlips, Result) then Exit;
+    if LayerConversion.LayerAnimations.TryGetValue(vAnimationWithFlips, Result) then Exit;
 
     Result := CreateAnimationNodes;
-    RenderContext.AnimationContext.Add(vAnimationWithFlips, Result);
+    LayerConversion.LayerAnimations.Add(vAnimationWithFlips, Result);
   end;
 
 
@@ -639,7 +639,7 @@ var
     I, J, K :integer;
     AniNodes : TAnimationNodes;
   begin
-     for AniNodes in RenderContext.AnimationContext.Values do
+     for AniNodes in LayerConversion.LayerAnimations.Values do
      begin
        { Note :
          AniNodes.TexCoordInterp.FdKeyValue.Count = 4 * AnimatioinFrameCount ;
@@ -676,7 +676,7 @@ var
   X, Y: Integer;
 begin
   CurrentZ := 0;
-  RenderContext:= TRenderContext.Create;
+  LayerConversion:= TLayerConversion.Create;
 
   try
     for Y := Map.Height - 1 downto 0 do
@@ -686,7 +686,7 @@ begin
     BuildAnimationInterps;
 
   finally
-    FreeAndNil(RenderContext);
+    FreeAndNil(LayerConversion);
   end;
 end;
 
