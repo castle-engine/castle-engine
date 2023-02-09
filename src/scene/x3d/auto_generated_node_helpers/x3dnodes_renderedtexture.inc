@@ -40,8 +40,6 @@
     procedure SetRepeatT(const Value: Boolean);
     function GetRepeatR: Boolean;
     procedure SetRepeatR(const Value: Boolean);
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetFrameBufferMode: String;
     procedure SetFrameBufferMode(const Value: String);
     function GetTriggerName: String;
@@ -139,12 +137,6 @@
     public property FdTargets: TMFNode read FFdTargets;
     {  }
     procedure SetTargets(const Value: array of TAbstractTextureNode);
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FEventViewing: TSFMatrix4fEvent;
     {  }
@@ -318,16 +310,6 @@ begin
   FdTargets.Send(A);
 end;
 
-function TRenderedTextureNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TRenderedTextureNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
-
 function TRenderedTextureNode.GetFrameBufferMode: String;
 begin
   Result := FdFrameBufferMode.Value;
@@ -416,10 +398,6 @@ begin
   FFdTargets := TMFNode.Create(Self, True, 'targets', [TAbstractTextureNode]);
    FdTargets.ChangeAlways := chTextureRendererProperties;
   AddField(FFdTargets);
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
 
   FEventViewing := TSFMatrix4fEvent.Create(Self, 'viewing', false);
   AddEvent(FEventViewing);

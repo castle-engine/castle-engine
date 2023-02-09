@@ -24,6 +24,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
     function GetNameField: String;
     procedure SetNameField(const Value: String);
     function GetWeight: Single;
@@ -39,6 +41,12 @@
     procedure SetCoordIndex(const Value: array of Int32); overload;
     {  }
     procedure SetCoordIndex(const Value: TInt32List); overload;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplacements: TMFVec3f;
     { Internal wrapper for property @link(Displacements). This wrapper API may change, we advise to access simpler @link(Displacements) instead. }
@@ -74,6 +82,16 @@ end;
 procedure THAnimDisplacerNode.SetCoordIndex(const Value: TInt32List);
 begin
   FdCoordIndex.Send(Value);
+end;
+
+function THAnimDisplacerNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure THAnimDisplacerNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
 end;
 
 procedure THAnimDisplacerNode.SetDisplacements(const Value: array of TVector3);
@@ -118,6 +136,10 @@ begin
   FFdCoordIndex := TMFInt32.Create(Self, True, 'coordIndex', []);
    FdCoordIndex.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCoordIndex);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 
   FFdDisplacements := TMFVec3f.Create(Self, True, 'displacements', []);
    FdDisplacements.ChangeAlways := chVisibleNonGeometry;

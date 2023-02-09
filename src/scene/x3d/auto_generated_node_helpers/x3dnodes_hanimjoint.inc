@@ -26,6 +26,8 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
     function GetLimitOrientation: TVector4;
     procedure SetLimitOrientation(const Value: TVector4);
     function GetNameField: String;
@@ -47,6 +49,12 @@
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplacers: TMFNode;
     { Internal wrapper for property @link(Displacers). This wrapper API may change, we advise to access simpler @link(Displacers) instead. }
@@ -144,6 +152,16 @@ end;
 procedure THAnimJointNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
+end;
+
+function THAnimJointNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure THAnimJointNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
 end;
 
 procedure THAnimJointNode.SetDisplacers(const Value: array of THAnimDisplacerNode);
@@ -280,6 +298,10 @@ begin
   FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
    FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 
   FFdDisplacers := TMFNode.Create(Self, True, 'displacers', [THAnimDisplacerNode]);
    FdDisplacers.ChangeAlways := chVisibleNonGeometry;
