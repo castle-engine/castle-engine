@@ -21,7 +21,6 @@
   The external code will get notified about our events using LibraryCallbackProc. }
 
 {$ifdef read_interface_uses}
-CTypes,
 {$endif}
 
 {$ifdef read_implementation_uses}

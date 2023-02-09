@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,8 +53,8 @@ begin
   end;
 end;
 
-procedure ReadLongIntList(const Json: TJSONObject; const Name: string;
-  const List: TLongIntList);
+procedure ReadInt32List(const Json: TJSONObject; const Name: string;
+  const List: TInt32List);
 var
   JsonArray: TJSONArray;
   I: Integer;

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,9 +61,9 @@
   public
     Coord: TCoordinateNode;
     UVs: TVector2List;
-    Triangles: TLongIntList;
+    Triangles: TInt32List;
     Vertices: TVector2List;
-    Edges: TLongIntList; //< unused for now
+    Edges: TInt32List; //< unused for now
     { Unused for now.
       Looking as official Spine runtime in spine-csharp and spine-unity,
       it is also unused there. }
@@ -327,9 +327,9 @@ constructor TAbstractMeshAttachment.Create;
 begin
   inherited;
   UVs := TVector2List.Create;
-  Triangles := TLongIntList.Create;
+  Triangles := TInt32List.Create;
   Vertices := TVector2List.Create;
-  Edges := TLongIntList.Create;
+  Edges := TInt32List.Create;
 end;
 
 destructor TAbstractMeshAttachment.Destroy;
@@ -346,13 +346,13 @@ begin
   inherited;
   ReadVector2List(Json, 'uvs', UVs);
 
-  ReadLongIntList(Json, 'triangles', Triangles);
+  ReadInt32List(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
     WritelnWarning('Spine', 'Triangles list ends in the middle of the triangle');
   if Triangles.Count = 0 then
     WritelnWarning('Spine', 'Triangles empty, mesh is empty');
 
-  ReadLongIntList(Json, 'edges', Edges);
+  ReadInt32List(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
 end;
 

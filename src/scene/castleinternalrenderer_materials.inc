@@ -1,5 +1,6 @@
+{%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -132,7 +133,7 @@ begin
   // calculate Lighting ("whether anything requires lighting calculation")
   Lighting := RenderOptions.Lighting and MaterialAndShapeLit and
     (RenderOptions.Mode = rmFull);
-  FixedFunctionLighting := Lighting;
+  RenderContext.FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 

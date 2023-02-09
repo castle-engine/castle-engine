@@ -36,9 +36,9 @@
     { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
-    procedure SetCoordIndex(const Value: array of LongInt); overload;
+    procedure SetCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetCoordIndex(const Value: TLongIntList); overload;
+    procedure SetCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdDisplacements: TMFVec3f;
     { Internal wrapper for property @link(Displacements). This wrapper API may change, we advise to access simpler @link(Displacements) instead. }
@@ -66,12 +66,12 @@
 
 { THAnimDisplacerNode ----------------------------------------------- }
 
-procedure THAnimDisplacerNode.SetCoordIndex(const Value: array of LongInt);
+procedure THAnimDisplacerNode.SetCoordIndex(const Value: array of Int32);
 begin
   FdCoordIndex.Send(Value);
 end;
 
-procedure THAnimDisplacerNode.SetCoordIndex(const Value: TLongIntList);
+procedure THAnimDisplacerNode.SetCoordIndex(const Value: TInt32List);
 begin
   FdCoordIndex.Send(Value);
 end;

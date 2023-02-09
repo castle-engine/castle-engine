@@ -14,7 +14,7 @@
 }
 
 { Make a sphere. }
-procedure Sphere_Proxy(CoordIndex: TLongIntList;
+procedure Sphere_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List;
   const Radius: Single;
@@ -170,7 +170,7 @@ begin
 end;
 
 { Make a wireframe sphere. }
-procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
+procedure SphereWireframe_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 

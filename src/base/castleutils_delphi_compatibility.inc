@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,6 +47,8 @@ type
   PtrInt = NativeInt;
   PtrUInt = NativeUInt;
   WINBOOL = longbool;
+  PUInt16 = ^UInt16;
+  PInt32 = ^Int32;
   TGetVendorNameEvent  = function: string;
   TGetAppNameEvent  = function: string;
   TEventType = (etCustom, etInfo, etWarning, etError, etDebug);
