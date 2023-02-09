@@ -459,9 +459,14 @@ var
   { animations var.}
   TimeSensor: TTimeSensorNode;
 
+  function ValidTileId(const vTileId : Cardinal):Boolean;
+  begin
+    Result := Between(vTileId, 0, Tileset.Tiles.Count - 1);
+  end;
+
   procedure CalcTexCoordArray(const TileId:Integer);
   begin
-    if Between(TileId, 0, Tileset.Tiles.Count - 1) then
+    if ValidTileId(TileId) then
       TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[TileId], Tileset)
     else
     begin
@@ -603,6 +608,8 @@ var
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
+      if not ValidTileId(Frame) then Exit;
+
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
         Nodes := GetOrCreateNodesForAnimation.CoordNodes
