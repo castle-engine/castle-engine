@@ -608,7 +608,11 @@ var
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
-      if not ValidTileId(Frame) then Exit;
+      if not ValidTileId(Frame) then
+      begin
+        WritelnWarning('Invalid TileId:%d TilePosition:'+TilePosition.ToString, [Frame]);
+        Exit;
+      end;
 
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
