@@ -39,9 +39,6 @@
         some image).)
     )
   }
-
-  { TCastleImagePersistent }
-
   TCastleImagePersistent = class(TPersistent)
   strict private
     FURL: string;
@@ -563,16 +560,16 @@ function TCastleImagePersistent.Width: Cardinal;
 begin
   if Clipped then
     Result := Min(Floor(FRegion.Width), FDrawableImage.Width)
-    else
-      Result := FDrawableImage.Width;
+  else
+    Result := FDrawableImage.Width;
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
 begin
   if Clipped then
     Result := Min(Floor(FRegion.Height), FDrawableImage.Height)
-    else
-      Result := FDrawableImage.Height;
+  else
+    Result := FDrawableImage.Height;
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
@@ -699,8 +696,9 @@ begin
         FDrawableImage.Width - FRegion.Right,
         FRegion.Bottom,
         FRegion.Left
-      ) else
-        SrcSidesVector := TVector4.Zero;
+      ) 
+	else
+      SrcSidesVector := TVector4.Zero;
 
     FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcSidesVector);
 

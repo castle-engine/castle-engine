@@ -28,7 +28,6 @@ uses
 
 type
   TDesignMode = (ModeRegion, ModeBorder);
-  { TRegionDesignDialog }
 
   TRegionDesignDialog = class(TForm)
     ButtonPanel1: TButtonPanel;
@@ -57,8 +56,6 @@ type
       StartTranslation: TVector2;
       StartMousePoint: TVector2;
     end;
-
-    { TControlPointRec }
 
     TControlPointRec = record
       Adjusting: boolean;
@@ -428,7 +425,6 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
     if beIncrease then
     begin
       { When FScale is less than 6, it increases linearly, otherwise it increases exponentially. }
-
       if FScale < 1 then
         FScale := FScale + 0.1
       else if FScale < 2 then
@@ -447,7 +443,6 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
         Between 0.5 and 6 : linearly,
         otherwise : exponentially.
       }
-
       if FScale > 6 then FScale := FScale * PX
       else if FScale > 2 then
         FScale := FScale - 0.4

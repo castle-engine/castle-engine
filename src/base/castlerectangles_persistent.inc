@@ -22,8 +22,6 @@ type
   TGetFloatRectangleEvent = function: TFloatRectangle of object;
   TSetFloatRectangleEvent = procedure (const Value: TFloatRectangle) of object;
 
-  { TFloatRectanglePersistent }
-
   TFloatRectanglePersistent = class(TCastleComponent)
   strict private
     { During IsLoading, Set* only modifies ScheduledSetValue,
