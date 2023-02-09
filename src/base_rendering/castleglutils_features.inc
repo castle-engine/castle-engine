@@ -470,8 +470,17 @@ type
 
       This is a class property and it can only change before OpenGL(ES)
       context is initialized, which means before TCastleWindow.Open
-      occurs, which means before @link(GLFeatures) instance is initialized. }
-    class property RequestCapabilities: TGLRequestCapabilities read FRequestCapabilities write SetRequestCapabilities;
+      occurs, which means before @link(GLFeatures) instance is initialized.
+
+      The routines that initialize OpenGL(ES) context, like using wgl (on Windows) or glX (on Unix)
+      should look at this setting and honour it.
+
+      Normal code using OpenGL(ES) should not look at this property:
+      instead, detect the current OpenGL(ES) capabilities looking at properties of current
+      @link(TGLFeatures) instance, like @link(TGLFeatures.Framebuffer), @link(TGLFeatures.Version_4_0) etc.
+      This way, we should use modern features both when rcForceFixedFunction and rcAutomatic is set. }
+    class property RequestCapabilities: TGLRequestCapabilities
+      read FRequestCapabilities write SetRequestCapabilities;
 
     { Request debug OpenGL(ES) context.
       OpenGL will report a lot of information and errors to log,
