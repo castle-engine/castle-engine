@@ -14,6 +14,8 @@ X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
 }
 
 X3DSingleTextureNode : X3DTextureNode {
+  SFString [in,out] description    ""
+
   # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []   effects          []
     range: Effect
