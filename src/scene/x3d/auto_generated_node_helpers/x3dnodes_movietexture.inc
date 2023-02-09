@@ -222,7 +222,7 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdLoop := TSFBool.Create(Self, True, 'loop', false);

@@ -66,7 +66,7 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);

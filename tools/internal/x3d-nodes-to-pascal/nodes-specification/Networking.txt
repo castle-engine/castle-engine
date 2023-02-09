@@ -8,6 +8,7 @@ X3DUrlObject {
 
 Anchor : X3DGroupingNode {
   SFString [in,out] description    ""
+    change: chNone
   MFString [in,out] parameter      []
   MFString [in,out] url            []
     range: [url or urn]
