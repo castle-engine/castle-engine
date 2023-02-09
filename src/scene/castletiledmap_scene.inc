@@ -21,7 +21,6 @@
 type
   { Display a map created in @url(https://www.mapeditor.org/ Tiled) in a viewport.
     See https://castle-engine.io/tiled_maps for a documentation. }
-
   TCastleTiledMap = class(TCastleTransform)
   public
     { These types and consts are synchronized with X3DLoadInternalTiledMap }

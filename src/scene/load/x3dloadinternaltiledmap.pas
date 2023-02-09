@@ -500,6 +500,7 @@ var
     LayerNode.AddChildren(Result);
     Result.Loop := True;
   end;
+  
   function CreateNodes: TTilesetNodes;
   begin
     Geometry := TQuadSetNode.CreateWithShape(Shape);
@@ -529,7 +530,6 @@ var
     Result.CoordNodes := CreateNodes;
     Result.TexCoordInterp := TCoordinateInterpolator2DNode.Create;
     Result.TexCoordInterp.Interpolation := inStep;
-
 
     { Calc CycleInterval. }
     CycleIntervalMs := 0;
@@ -617,6 +617,7 @@ var
       end;
 
       CurrentZ := CurrentZ +0.000001;
+	  
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
         Nodes := GetOrCreateNodesForAnimation.CoordNodes
@@ -628,7 +629,6 @@ var
 
       AddCoordPoints;
       AddTexCoordPoints;
-
     end;
   end;
 
@@ -667,7 +667,6 @@ var
           begin
               AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
           end;
-
         end;
      end;
   end;
@@ -688,7 +687,6 @@ begin
   finally
     FreeAndNil(RenderContext);
   end;
-
 end;
 
 constructor TCastleTiledMapConverter.Create(const ATiledMap: TCastleTiledMapData);
