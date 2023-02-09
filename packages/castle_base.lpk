@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1056">
+    <Files Count="1057">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -583,6 +583,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleinternalglutils_errors.inc"/>
         <Type Value="Include"/>
       </Item127>
+      <Item128>
+        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
+        <Type Value="Include"/>
+      </Item128>
       <Item129>
         <Filename Value="../src/base_rendering/castleglutils_features.inc"/>
         <Type Value="Include"/>
@@ -705,6 +709,10 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGenericLists"/>
       </Item157>
+      <Item158>
+        <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
+        <Type Value="Include"/>
+      </Item158>
       <Item159>
         <Filename Value="../src/deprecated_units/castleglcontainer.pas"/>
         <AddToUsesPkgSection Value="False"/>
@@ -968,6 +976,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/fonts/castleinternalfreetypeh.pas"/>
         <UnitName Value="CastleInternalFreeTypeH"/>
       </Item219>
+      <Item220>
+        <Filename Value="../src/base_rendering/castleglutils_vertex_array_object.inc"/>
+        <Type Value="Include"/>
+      </Item220>
       <Item221>
         <Filename Value="../src/fonts/castleinternalrichtext.pas"/>
         <UnitName Value="CastleInternalRichText"/>
@@ -4233,6 +4245,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castlevectors_matrix_decompose.inc"/>
         <Type Value="Include"/>
       </Item1035>
+      <Item1036>
+        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
+        <Type Value="Include"/>
+      </Item1036>
       <Item1037>
         <Filename Value="../src/transform/castleinternalphysicsvisualization.pas"/>
         <UnitName Value="CastleInternalPhysicsVisualization"/>
@@ -4277,10 +4293,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castletransform_joints.inc"/>
         <Type Value="Include"/>
       </Item1047>
-      <Item1036>
-        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
-        <Type Value="Include"/>
-      </Item1036>
       <Item1048>
         <Filename Value="../src/base/castleinternalclassutils.pas"/>
         <UnitName Value="CastleInternalClassUtils"/>
@@ -4304,24 +4316,12 @@ See https://castle-engine.io/license.php for details.
       </Item1052>
       <Item1053>
         <Filename Value="../src/base_rendering/castleinternalglutils.pas"/>
-        <UnitName Value="CastleGLUtils"/>
+        <UnitName Value="castleinternalglutils"/>
       </Item1053>
       <Item1054>
         <Filename Value="../src/base_rendering/castlerenderprimitives_render_unlit_mesh.inc"/>
         <Type Value="Include"/>
       </Item1054>
-      <Item158>
-        <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
-        <Type Value="Include"/>
-      </Item158>
-      <Item128>
-        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
-        <Type Value="Include"/>
-      </Item128>
-      <Item220>
-        <Filename Value="../src/base_rendering/castleglutils_vertex_array_object.inc"/>
-        <Type Value="Include"/>
-      </Item220>
       <Item1055>
         <Filename Value="../src/base_rendering/castlerenderprimitives.pas"/>
         <UnitName Value="CastleRenderPrimitives"/>
@@ -4330,6 +4330,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
         <Type Value="Include"/>
       </Item1056>
+      <Item1057>
+        <Filename Value="../src/base/castlerectangles_persistent.inc"/>
+        <Type Value="Include"/>
+      </Item1057>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
