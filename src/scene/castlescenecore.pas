@@ -438,8 +438,6 @@ type
     So you can query information like @link(LocalBoundingBox),
     @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
 
-  { TCastleSceneCore }
-
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     type
