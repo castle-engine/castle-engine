@@ -454,7 +454,7 @@ type
   end;
 
 const
-  AreaSize:Cardinal = 2000;
+  AreaSize: Cardinal = 2000;
 var
   LayerConversion: TLayerConversion;
   Nodes: TTilesetNodes;
@@ -631,7 +631,7 @@ var
 
     function GetAreaId : Cardinal;
     var
-      Row, Column, AreaColumnCount, AreaRowCount :Cardinal;
+      Row, Column, AreaColumnCount, AreaRowCount: Cardinal;
     begin
       AreaRowCount := 1 + FMap.Height * FMap.TileHeight div AreaSize ;
       AreaColumnCount := 1 + FMap.Width * FMap.TileWidth div AreaSize ;
@@ -674,9 +674,9 @@ var
 
   procedure BuildAnimationInterps;
   var
-    FrameCount ,AniTileCount: Cardinal;
-    I, J, K :integer;
-    AniNodes : TAnimationNodes;
+    FrameCount, AniTileCount: Cardinal;
+    I, J, K: integer;
+    AniNodes: TAnimationNodes;
   begin
      for AniNodes in LayerConversion.LayerAnimations.Values do
      begin
@@ -696,14 +696,14 @@ var
           for J := 0 to AniTileCount -1  do
           begin
             { copyed to the end of Items. }
-            for K :=0 To 3 do
+            for K := 0 To 3 do
             begin
               AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[K]);
             end;
           end;
 
           { Delete after copyed. }
-          for K :=0 To 3 do
+          for K := 0 To 3 do
           begin
               AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
           end;
@@ -715,7 +715,7 @@ var
   X, Y: Integer;
 begin
   CurrentZ := 0;
-  LayerConversion:= TLayerConversion.Create;
+  LayerConversion := TLayerConversion.Create;
 
   try
     for Y := Map.Height - 1 downto 0 do
