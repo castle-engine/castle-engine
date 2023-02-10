@@ -635,9 +635,9 @@ var
 
   procedure BuildAnimationInterps;
   var
-    FrameCount ,AniTileCount: Cardinal;
-    I, J, K :integer;
-    AniNodes : TAnimationNodes;
+    FrameCount, AniTileCount: Cardinal;
+    I, J, K: integer;
+    AniNodes: TAnimationNodes;
   begin
      for AniNodes in LayerConversion.LayerAnimations.Values do
      begin
@@ -648,35 +648,37 @@ var
          We Needs TexCoordInterp.FdKeyValue.Count => 4 * AnimatioinFrameCount * SameAnimatioinTileCount.
        }
 
-        FrameCount := AniNodes.TexCoordInterp.FdKeyValue.Count div 4;
-        AniTileCount := AniNodes.CoordNodes.TexCoord.FdPoint.Count div 4;
+       FrameCount := AniNodes.TexCoordInterp.FdKeyValue.Count div 4;
+       AniTileCount := AniNodes.CoordNodes.TexCoord.FdPoint.Count div 4;
 
        { Expand FdKeyValue by AniTileCount times. }
-        for I := 0 to FrameCount -1 do
+       for I := 0 to FrameCount -1 do
+       begin
+        for J := 0 to AniTileCount -1  do
         begin
-          for J := 0 to AniTileCount -1  do
+          { copyed to the end of Items. }
+          for K := 0 To 3 do
           begin
-            { copyed to the end of Items. }
-            for K :=0 To 3 do
-            begin
-              AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[K]);
-            end;
-          end;
-
-          { Delete after copyed. }
-          for K :=0 To 3 do
-          begin
-              AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
+            AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[K]);
           end;
         end;
-     end;
+
+        { Delete after copyed. }
+        for K := 0 To 3 do
+        begin
+          AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
+        end;
+      end;
+
+    end;
+
   end;
 
 var
   X, Y: Integer;
 begin
   CurrentZ := 0;
-  LayerConversion:= TLayerConversion.Create;
+  LayerConversion := TLayerConversion.Create;
 
   try
     for Y := Map.Height - 1 downto 0 do
