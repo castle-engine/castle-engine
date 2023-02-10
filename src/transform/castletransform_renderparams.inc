@@ -49,7 +49,7 @@
       to glDrawElements and glDrawArrays. }
     DrawCalls: Cardinal;
 
-    { Present the statistics information as a multi-line string.
+    { Present the statistics information as a string (without any newlines).
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
   end;

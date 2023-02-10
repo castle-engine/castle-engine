@@ -43,7 +43,7 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
-  TIsRunningEvent = function: Boolean of object;
+  TBooleanEvent = function: Boolean of object;
 
   TMode = (
     moInteract,
@@ -181,8 +181,8 @@ type
           UiDraggingMode: TUiDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when UiDraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when UiDraggingMode=dmResize
-          LabelHover, LabelSelected: TCastleLabel;
-          RectHover, RectSelected: TCastleRectangleControl;
+          LabelHover, LabelSelected, LabelStatistics: TCastleLabel;
+          RectHover, RectSelected, RectStatistics: TCastleRectangleControl;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -478,7 +478,8 @@ type
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
     OnRunningToggle, OnApiReferenceOfCurrent: TNotifyEvent;
-    OnIsRunning: TIsRunningEvent;
+    OnIsRunning: TBooleanEvent;
+    OnShowStatistics: TBooleanEvent;
 
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
@@ -646,6 +647,25 @@ begin
   LabelSelected.FontSize := 15;
   LabelSelected.EnableUIScaling := false;
   RectSelected.InsertFront(LabelSelected);
+
+  RectStatistics := TCastleRectangleControl.Create(Self);
+  RectStatistics.Color := Vector4(0, 0, 0, 0.25);
+  RectStatistics.Exists := false;
+  RectStatistics.EnableUIScaling := false;
+  RectStatistics.Anchor(hpRight, -5);
+  RectStatistics.Anchor(vpTop, -5);
+  RectStatistics.AutoSizeToChildren := true;
+  InsertFront(RectStatistics);
+
+  LabelStatistics := TCastleLabel.Create(Self);
+  LabelStatistics.Border.AllSides := 5;
+  LabelStatistics.Anchor(hpMiddle);
+  LabelStatistics.Anchor(vpMiddle);
+  LabelStatistics.FontSize := 15;
+  LabelStatistics.EnableUIScaling := false;
+  LabelStatistics.Color := White;
+  LabelStatistics.Alignment := hpRight;
+  RectStatistics.InsertFront(LabelStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
@@ -1322,6 +1342,15 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Exists := false;
   end;
 
+  function StatisticsToString: String;
+  begin
+    Result := Container.Fps.ToString;
+    if Frame.CurrentViewport <> nil then
+      Result := Result + NL +
+        'Viewport "' + Frame.CurrentViewport.Name + '":' + NL +
+        Frame.CurrentViewport.Statistics.ToString;
+  end;
+
 var
   SelectedUI, HoverUI: TCastleUserInterface;
   SelectedUIRect, HoverUIRect: TFloatRectangle;
@@ -1381,6 +1410,12 @@ begin
     begin
       RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
+  end;
+
+  RectStatistics.Exists := Frame.OnShowStatistics();
+  if RectStatistics.Exists then
+  begin
+    LabelStatistics.Caption := StatisticsToString;
   end;
 end;
 
