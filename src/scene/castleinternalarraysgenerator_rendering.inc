@@ -34,7 +34,10 @@ type
     constructor Create(AShape: TShape); override;
   end;
 
-  { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
+  { Generator for X3D IndexedTriangleSet, TriangleSet, QuadSet nodes.
+
+    QuadSet is treated much like IndexedTriangleSet,
+    thanks to TQuadSetNode.InternalTrianglesCoordIndex. }
   TTriangleSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     TriFaceNormal: TVector3;
@@ -97,7 +100,7 @@ type
     class function BumpMappingAllowed: boolean; override;
   end;
 
-  { Generator for X3D IndexedQuadSet and QuadSet nodes. }
+  { Generator for X3D IndexedQuadSet nodes. }
   TQuadSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     QuadFaceNormal: TVector3;
@@ -280,6 +283,12 @@ begin
   begin
     TexCoordIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
     ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
+  end else
+  if Geometry is TQuadSetNode then
+  begin
+    CoordIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
+    TexCoordIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
+    ColorIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
@@ -290,7 +299,7 @@ begin
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
-    if Geometry is TIndexedTriangleSetNode then
+    if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed
     else
       NorImplementation := niPerVertexNonIndexed;
@@ -302,8 +311,8 @@ begin
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
-    { In this case, per-face normals are generated (for non-indexed
-      TriangleSet normals are always generated per-face, since they
+    { In this case, per-face normals are generated (for
+      TriangleSet and QuadSet normals are always generated per-face, since they
       cannot share vertex indexes anyway).
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
@@ -363,7 +372,8 @@ procedure TTriangleSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Intege
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
-    N := TriFaceNormal else
+    N := TriFaceNormal
+  else
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
@@ -782,11 +792,9 @@ begin
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TIndexedQuadSetNode then
-  begin
-    TexCoordIndex := TIndexedQuadSetNode(Geometry).FdIndex;
-    ColorIndex := TIndexedQuadSetNode(Geometry).FdIndex;
-  end;
+  Assert(Geometry is TIndexedQuadSetNode);
+  TexCoordIndex := TIndexedQuadSetNode(Geometry).FdIndex;
+  ColorIndex := TIndexedQuadSetNode(Geometry).FdIndex;
 
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
@@ -799,21 +807,24 @@ begin
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),
       as far as I understand X3D spec. }
+    {
     if Geometry is TIndexedQuadSetNode then
       NorImplementation := niPerVertexCoordIndexed
     else
       NorImplementation := niPerVertexNonIndexed;
+    }
+
+    Assert(Geometry is TIndexedQuadSetNode);
+    NorImplementation := niPerVertexCoordIndexed;
   end else
-  if (Geometry is TIndexedQuadSetNode) and
+  if {(Geometry is TIndexedQuadSetNode) and}
      TIndexedQuadSetNode(Geometry).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
-    { In this case, per-face normals are generated (for non-indexed
-      QuadSet normals are always generated per-face, since they
-      cannot share vertex indexes anyway).
+    { In this case, per-face normals are generated.
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
@@ -866,27 +877,12 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 begin
   { On OpenGLES and modern OpenGL ( https://docs.gl/gl3/glDrawArrays ),
     we don't have GL_QUADS primitive. So render quads by splitting them into triangles. }
-  if CoordIndex <> nil then
-  begin
-    Arrays.Primitive := gpTriangles;
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
-    CalculateIndexesFromCoordIndexForTriangles;
-  end else
-  begin
-    { This means we have QuadSet (no indexes, so not IndexedQuadSet).
-      We want to generate 2 triangles for each quad.
 
-      We cannot do it by generating IndexesFromCoordIndex, as
-      CastleInternalArraysGenerator assumes that IndexesFromCoordIndex may be <> nil
-      only when CoordIndex <> nil. (and changing this restriction looks
-      complicated for now...)
+  Assert(CoordIndex <> nil); // we only handle TIndexedQuadSetNode here
 
-      So instead generate a sequence of gpTriangleFan primitives.
-    }
-    Arrays.Primitive := gpTriangleFan;
-    Arrays.Counts := TCardinalList.Create;
-    CalculateCountsForTriangleFan;
-  end;
+  Arrays.Primitive := gpTriangles;
+  IndexesFromCoordIndex := TGeometryIndexList.Create;
+  CalculateIndexesFromCoordIndexForTriangles;
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -904,7 +900,8 @@ procedure TQuadSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
-    N := QuadFaceNormal else
+    N := QuadFaceNormal
+  else
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
@@ -925,24 +922,17 @@ begin
 
     CalculateTangentVectors(I, I + 1, I + 2);
 
-    if Arrays.Primitive = gpTriangles then
-    begin
-      { call GenerateVertex in the same order as you places vertexes
-        on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
-      GenerateVertex(I    );
-      GenerateVertex(I + 1);
-      GenerateVertex(I + 2);
+    Assert(Arrays.Primitive = gpTriangles);
 
-      GenerateVertex(I    );
-      GenerateVertex(I + 2);
-      GenerateVertex(I + 3);
-    end else
-    begin
-      GenerateVertex(I    );
-      GenerateVertex(I + 1);
-      GenerateVertex(I + 2);
-      GenerateVertex(I + 3);
-    end;
+    { call GenerateVertex in the same order as you places vertexes
+      on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
+    GenerateVertex(I    );
+    GenerateVertex(I + 1);
+    GenerateVertex(I + 2);
+
+    GenerateVertex(I    );
+    GenerateVertex(I + 2);
+    GenerateVertex(I + 3);
 
     Inc(I, 4);
   end;
