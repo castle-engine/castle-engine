@@ -54,28 +54,22 @@ type
         TexCoord: TTextureCoordinateNode;
       end;
 
-      TTilesetKey = record
-        Tileset: TCastleTiledMapData.TTileset;
-        AreaId: Cardinal;
-      end;
-
       TAnimationNodes = record
         CoordNodes: TTilesetNodes;
         TexCoordInterp: TCoordinateInterpolator2DNode;
       end;
 
-      TAnimationKey = record
+      TAnimationWithFlips = record
         Animation: TCastleTiledMapData.TAnimation;
         HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
-        AreaId: Cardinal;
       end;
 
       { CycleInterval in milliseconds. }
       TLayerTimeSensors = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
 
-      TLayerAnimations = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationKey,TAnimationNodes>;
+      TLayerAnimations = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
 
-      TLayerConversion = class ({$ifdef FPC}specialize{$endif} TDictionary<TTilesetKey,TTilesetNodes>)
+      TLayerConversion = class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
       strict private
         FLayerTimeSensors: TLayerTimeSensors;
         FLayerAnimations: TLayerAnimations;
@@ -453,8 +447,6 @@ type
     end;
   end;
 
-const
-  AreaSize:Cardinal = 2000;
 var
   LayerConversion: TLayerConversion;
   Nodes: TTilesetNodes;
@@ -469,8 +461,6 @@ var
   CurrentZ: Single;
   { animations var.}
   TimeSensor: TTimeSensorNode;
-  { Block render nodes. }
-  AreaId : Cardinal;
 
   function ValidTileId(const vTileId : Cardinal):Boolean;
   begin
@@ -495,19 +485,12 @@ var
     ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
   end;
 
-  function AnimationKey: TAnimationKey;
+  function AnimationWithFlips:TAnimationWithFlips;
   begin
-    Result.Animation := Tileset.Tiles[Frame].Animation;
-    Result.DiagonalFlip := DiagonalFlip;
-    Result.HorizontalFlip := HorizontalFlip;
-    Result.VerticalFlip := VerticalFlip;
-    Result.AreaId := AreaId;
-  end;
-
-  function TilesetKey: TTilesetKey;
-  begin
-    Result.Tileset := Tileset;
-    Result.AreaId := AreaId;
+     Result.Animation := Tileset.Tiles[Frame].Animation;
+     Result.DiagonalFlip := DiagonalFlip;
+     Result.HorizontalFlip := HorizontalFlip;
+     Result.VerticalFlip := VerticalFlip;
   end;
 
   function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
@@ -578,27 +561,22 @@ var
   end;
 
   function GetOrCreateNodesForTileset: TTilesetNodes;
-  var
-    ATilesetKey: TTilesetKey;
   begin
-    ATilesetKey := TilesetKey;
-    if LayerConversion.TryGetValue(ATilesetKey , Result) then Exit;
+    if LayerConversion.TryGetValue(Tileset , Result) then Exit;
 
     Result := CreateNodes;
-    LayerConversion.Add(ATilesetKey, Result);
+    LayerConversion.Add(Tileset, Result);
   end;
 
   function GetOrCreateNodesForAnimation() :TAnimationNodes;
   var
-    vAnimationKey: TAnimationKey;
+    vAnimationWithFlips: TAnimationWithFlips;
   begin
-    vAnimationKey := AnimationKey;
-    if LayerConversion.LayerAnimations.TryGetValue(vAnimationKey, Result) then Exit;
+    vAnimationWithFlips := AnimationWithFlips;
+    if LayerConversion.LayerAnimations.TryGetValue(vAnimationWithFlips, Result) then Exit;
 
-    { Leave for test. }
-    //WritelnLog('AreaId:%d,FrameCnt:%d,D:%s,F:%s,V:%s',[AreaId,vAnimationKey.Animation.Count,vAnimationKey.DiagonalFlip.ToString(True),vAnimationKey.HorizontalFlip.ToString(True),vAnimationKey.VerticalFlip.ToString(True)]);
     Result := CreateAnimationNodes;
-    LayerConversion.LayerAnimations.Add(vAnimationKey, Result);
+    LayerConversion.LayerAnimations.Add(vAnimationWithFlips, Result);
   end;
 
 
@@ -629,21 +607,6 @@ var
       Result := Tileset.Tiles[Frame].Animation.Count > 0;
     end;
 
-    function GetAreaId : Cardinal;
-    var
-      Row, Column, AreaColumnCount, AreaRowCount :Cardinal;
-    begin
-      AreaRowCount := 1 + FMap.Height * FMap.TileHeight div AreaSize ;
-      AreaColumnCount := 1 + FMap.Width * FMap.TileWidth div AreaSize ;
-
-      Row := (FMap.Height - 1 - TilePosition.Y) * Fmap.TileHeight div AreaSize;
-      Column := TilePosition.X * FMap.TileWidth div AreaSize;
-
-      Row := Min(Row,AreaRowCount - 1);
-      Column := Min(Column,AreaColumnCount - 1);
-      Result := Row * AreaColumnCount + Column;
-    end;
-
   begin
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
@@ -654,9 +617,7 @@ var
         Exit;
       end;
 
-      { Prepare data. }
       CurrentZ := CurrentZ +0.000001;
-      AreaId := GetAreaId;
 	  
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
