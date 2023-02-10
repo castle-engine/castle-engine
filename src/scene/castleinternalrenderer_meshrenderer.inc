@@ -525,6 +525,12 @@ begin
           end;
       end;
 
+      { update Renderer.Statistics.DrawCalls }
+      if Arrays.Counts = nil then
+        Inc(Renderer.Statistics^.DrawCalls)
+      else
+        Inc(Renderer.Statistics^.DrawCalls, Arrays.Counts.Count);
+
       { We disable arrays explicitly. We could alternatively try
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
         1. it makes Mesa 7.2 segfault

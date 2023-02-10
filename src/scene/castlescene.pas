@@ -1250,7 +1250,7 @@ begin
     ReceivedGlobalLights := nil;
 
   Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass, @Params.Statistics);
   try
     case RenderOptions.Mode of
       rmDepth:
@@ -1312,9 +1312,12 @@ procedure TCastleScene.PrepareResources(
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     I: Integer;
+    DummyStatistics: TRenderStatistics;
   begin
     if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
+
+    FillChar(DummyStatistics, SizeOf(DummyStatistics), #0);
 
     { Note: we prepare also not visible shapes, in case they become visible. }
     ShapeList := Shapes.TraverseList(false, false);
@@ -1358,7 +1361,7 @@ procedure TCastleScene.PrepareResources(
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0);
+      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
 
       for Shape in ShapeList do
       begin

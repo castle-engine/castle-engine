@@ -45,10 +45,16 @@
     { TCastleScene rendered vs all visible. }
     ScenesRendered, ScenesVisible: Cardinal;
 
+    { Draw calls done, in case of OpenGL this literally counts the number of calls
+      to glDrawElements and glDrawArrays. }
+    DrawCalls: Cardinal;
+
     { Present the statistics information as a multi-line string.
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
   end;
+
+  PRenderStatistics = ^TRenderStatistics;
 
   { @exclude Internal.
 
@@ -314,12 +320,13 @@ begin
   else
     OcclusionStats := '';
 
-  Result := Format('Shapes %d%s / %d, Scenes: %d / %d', [
+  Result := Format('Shapes %d%s / %d, Scenes: %d / %d, Draw calls: %d', [
     ShapesRendered,
     OcclusionStats,
     ShapesVisible,
     ScenesRendered,
-    ScenesVisible
+    ScenesVisible,
+    DrawCalls
   ]);
 end;
 
