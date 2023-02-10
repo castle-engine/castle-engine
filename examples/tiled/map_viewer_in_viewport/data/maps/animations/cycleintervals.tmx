@@ -118,7 +118,7 @@
    </animation>
   </tile>
  </tileset>
- <layer id="1" name="图块层 1" width="8" height="8">
+ <layer id="1" name="1" width="8" height="8">
   <data encoding="csv">
 1,2,3,0,7,8,7,0,
 0,0,0,0,8,9,8,0,
