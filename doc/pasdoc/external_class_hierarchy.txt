@@ -189,3 +189,9 @@ TX3DShaderProgram=TX3DShaderProgramBase
 
 TMOFile=TObject
 TCastleAlive=TCastleTransform
+
+TComponentEditorDesigner=TObject
+TCustomControl=TObject
+TPresentedControl=TObject
+TCustomOpenGLControl=TObject
+TStringPropertyEditor=TObject

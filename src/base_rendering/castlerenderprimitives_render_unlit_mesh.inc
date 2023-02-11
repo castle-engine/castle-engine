@@ -75,15 +75,6 @@ type
         It is up to you to decide how to hide from user the undefined effect
         this has on the color buffer.
       )
-
-      @item(
-        TODO: Maybe in the future it will be extended to optionally use a provided Shader.
-        Potential docs:
-
-        Uses the provided @link(Shader) for shading, which must be linked when calling @link(Draw).
-        If the OpenGL(ES) does not support shaders or @link(Shader) is @nil,
-        this will use built-in shader based on @link(UseColor).
-      )
     )
 
     Example usage:

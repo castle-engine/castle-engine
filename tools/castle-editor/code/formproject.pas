@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
     ActionRunParameterCapabilitiesForceModern: TAction;
     ActionRunParameterCapabilitiesDefault: TAction;
@@ -117,6 +118,7 @@ type
     MenuItem33: TMenuItem;
     MenuItem39: TMenuItem;
     MenuItem40: TMenuItem;
+    MenuItem41: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
@@ -544,6 +546,7 @@ type
       Selected: Boolean);
     procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
       const UnitOutputDirFromFileBrowser: Boolean);
+    function ShowStatistics: Boolean;
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -1429,6 +1432,11 @@ begin
   end;
 end;
 
+function TProjectForm.ShowStatistics: Boolean;
+begin
+  Result := ActionShowStatistics.Checked;
+end;
+
 procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
   E: Exception);
 begin
@@ -2274,6 +2282,7 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
+  ActionShowStatistics.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2333,6 +2342,7 @@ begin
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
     Design.OnIsRunning  := @IsRunning;
+    Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
 

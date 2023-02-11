@@ -391,6 +391,10 @@ object ProjectForm: TProjectForm
           Action = ActionModeScale
         end
       end
+      object MenuItem41: TMenuItem
+        Action = ActionShowStatistics
+        AutoCheck = True
+      end
     end
     object MenuItemViewport: TMenuItem
       Caption = 'Viewport'
@@ -1345,6 +1349,13 @@ object ProjectForm: TProjectForm
       Caption = 'Force Ancient Rendering Context (--capabilities=force-fixed-function)'
       GroupIndex = 145
       OnExecute = ActionRunParameterCapabilitiesForceFixedFunctionExecute
+    end
+    object ActionShowStatistics: TAction
+      Category = 'Edit'
+      AutoCheck = True
+      Caption = 'Show Statistics (FPS and more)'
+      DisableIfNoHandler = False
+      ShortCut = 119
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

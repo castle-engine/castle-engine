@@ -38,7 +38,6 @@ type
 
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
-    FCoordIndex: TMFLong;
 
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
@@ -106,6 +105,14 @@ type
     { Generated TGeometryArrays instance, available inside GenerateCoordinate*. }
     Arrays: TGeometryArrays;
 
+    { Coordinate index, taken from Geometry.CoordIndex.
+
+      If @nil, then GenerateVertex (and all other
+      routines taking some index) will just directly index Coord
+      (this is useful for non-indexed geometry, like TriangleSet
+      instead of IndexedTriangleSet). }
+    CoordIndex: TMFLong;
+
     { Current shape properties, constant for the whole
       lifetime of the generator, set in constructor.
       @groupBegin }
@@ -122,14 +129,6 @@ type
       from Geometry, using TAbstractGeometryNode.Coord and
       TAbstractGeometryNode.CoordIndex values. }
     property Coord: TMFVec3f read FCoord;
-
-    { Coordinate index, taken from Geometry.CoordIndex.
-
-      If @nil, then GenerateVertex (and all other
-      routines taking some index) will just directly index Coord
-      (this is useful for non-indexed geometry, like TriangleSet
-      instead of IndexedTriangleSet). }
-    property CoordIndex: TMFLong read FCoordIndex;
 
     { Generate arrays content for given vertex.
       Given IndexNum indexes Coord, or (if CoordIndex is assigned)
@@ -778,7 +777,7 @@ begin
 
   Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
-  FCoordIndex := Geometry.CoordIndexField;
+  CoordIndex := Geometry.CoordIndexField;
 end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
@@ -2386,7 +2385,11 @@ begin
   if AGeometry is TPointSetNode then
     Result := TPointSetGenerator else
   if (AGeometry is TTriangleSetNode) or
-     (AGeometry is TIndexedTriangleSetNode) then
+     (AGeometry is TIndexedTriangleSetNode) or
+     { That is correct, TQuadSetNode goes to TTriangleSetGenerator,
+       as TQuadSetNode.InternalTrianglesCoordIndex allows to treat it pretty much
+       like TIndexedTriangleSetNode. }
+     (AGeometry is TQuadSetNode) then
     Result := TTriangleSetGenerator else
   if (AGeometry is TTriangleFanSetNode) or
      (AGeometry is TIndexedTriangleFanSetNode) then
@@ -2394,8 +2397,7 @@ begin
   if (AGeometry is TTriangleStripSetNode) or
      (AGeometry is TIndexedTriangleStripSetNode) then
     Result := TTriangleStripSetGenerator else
-  if (AGeometry is TQuadSetNode) or
-     (AGeometry is TIndexedQuadSetNode) then
+  if (AGeometry is TIndexedQuadSetNode) then
     Result := TQuadSetGenerator else
     Result := nil;
 end;
