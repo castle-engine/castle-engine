@@ -45,7 +45,7 @@
   {$else}
     // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
     {$if CompilerVersion < 20}
-      {$error Use FPC (Free Pascal Compiler) or Delphi >= 2009 to compile Castle Game Engine. The older Delphi versions are not supported (we need generics).}
+      {message error 'Use Delphi >= 2009 compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php'}
     {$endif}
   {$endif}
 {$endif}
@@ -363,10 +363,13 @@
     and it works on all platforms.
 
     The downside is that it is not optimal.
-    In particular FpImage is extremely slow (LibPng results in drastically faster
-    PNG loading than FpImage; 4x speedup was observed on desktops;
-    10x speedup was observed on Android).
-    TODO: Do speed tests on PngImage, Vampyre -- how do they compare to LibPng?
+    In particular FpImage is extremely slow:
+    - LibPng results in drastically faster PNG loading than FpImage
+    - LibPng gives 4x speedup on desktops over FpImage
+    - LibPng gives 10x speedup on Android over FpImage
+    Vampyre PNG reading is faster, though LibPng is still ~2x faster than Vampyre.
+
+    Use examples/images_videos/image_display/ to measure the speed.
 
   2.If CASTLE_PNG_DYNAMIC is defined and libpng exists,
     we use libpng from a dynamic library (.so or .dll).
