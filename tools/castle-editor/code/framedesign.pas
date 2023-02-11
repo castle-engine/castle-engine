@@ -71,6 +71,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -115,9 +116,9 @@ type
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
+    SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
-    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAll: TTabSheet;
