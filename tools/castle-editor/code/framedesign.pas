@@ -1344,7 +1344,7 @@ procedure TDesignFrame.TDesignerLayer.Render;
 
   function StatisticsToString: String;
   begin
-    Result := Container.Fps.ToString;
+    Result := 'FPS: ' + Container.Fps.ToString;
     if Frame.CurrentViewport <> nil then
       Result := Result + NL +
         'Viewport "' + Frame.CurrentViewport.Name + '":' + NL +
