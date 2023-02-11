@@ -45,7 +45,7 @@
   {$else}
     // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
     {$if CompilerVersion < 20}
-      {message error 'Use Delphi >= 2009 compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php'}
+      {message fatal 'Use Delphi >= 2009 compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php'}
     {$endif}
   {$endif}
 {$endif}

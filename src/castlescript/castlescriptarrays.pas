@@ -18,6 +18,10 @@ unit CastleScriptArrays;
 
 {$I castleconf.inc}
 
+{$ifndef FPC}
+  {$message fatal 'This unit is not yet ported to Delphi'}
+{$endif}
+
 interface
 
 uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils,
