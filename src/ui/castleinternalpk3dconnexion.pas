@@ -885,7 +885,7 @@ type
       destructor Destroy; override;
       procedure GetSensorRotation(var X, Y, Z, Angle: Double);
       procedure GetSensorTranslation(var X, Y, Z, Length: Double);
-   published
+   //published
       property Loaded: boolean read FLoaded;
    end;
 
