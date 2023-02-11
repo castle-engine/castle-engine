@@ -74,7 +74,7 @@
         <DCC_DcpOutput>./output</DCC_DcpOutput>
         <DCC_BplOutput>./output</DCC_BplOutput>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
-        <DCC_IMPLICIT_IMPORT>error</DCC_IMPLICIT_IMPORT>
+        <DCC_Define>CASTLE_DELPHI_PACKAGE;$(DCC_Define)</DCC_Define>
         <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
