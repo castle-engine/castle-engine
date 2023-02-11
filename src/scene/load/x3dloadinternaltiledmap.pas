@@ -457,14 +457,15 @@ var
   CoordRect, TexCoordRect: TFloatRectangle;
   TexCoordArray: TQuadTexCoords;
   HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+  LayerIndex : Integer;
   { Render order. }
   CurrentZ: Single;
   { animations var.}
   TimeSensor: TTimeSensorNode;
 
-  function ValidTileId(const vTileId : Cardinal):Boolean;
+  function ValidTileId(const TileId : Integer):Boolean;
   begin
-    Result := Between(vTileId, 0, Tileset.Tiles.Count - 1);
+    Result := Between(TileId, 0, Tileset.Tiles.Count - 1);
   end;
 
   procedure CalcTexCoordArray(const TileId:Integer);
@@ -495,7 +496,7 @@ var
 
   function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
   begin
-    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[FMap.Layers.IndexOf(ALayer),CycleIntervalMs]));
+    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[LayerIndex,CycleIntervalMs]));
     Result.CycleInterval := CycleIntervalMs / 1000;
     { Add TimeSensor to Root node }
     LayerNode.AddChildren(Result);
@@ -674,10 +675,16 @@ var
 
   end;
 
+  procedure PrepareData;
+  begin
+    CurrentZ := 0;
+    LayerIndex := FMap.Layers.IndexOf(ALayer);
+  end;
+
 var
   X, Y: Integer;
 begin
-  CurrentZ := 0;
+  PrepareData;
   LayerConversion := TLayerConversion.Create;
 
   try
