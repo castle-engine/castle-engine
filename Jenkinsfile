@@ -41,6 +41,7 @@ pipeline {
                According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
                this should be supported. */
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}:${WORKSPACE}/steamworks_sdk/redistributable_bin/linux64
           }
           stages {
             stage('(Docker) Cleanup') {
@@ -60,6 +61,12 @@ pipeline {
             stage('(Docker) Build Tools (Default FPC)') {
               steps {
                 sh 'make clean tools'
+              }
+            }
+            stage('Pull external dependencies') {
+              steps {
+                copyArtifacts(projectName: 'castle_game_engine_organization/proprietary-external-components/master', filter: 'steamworks_sdk.zip')
+                sh 'unzip steamworks_sdk.zip'
               }
             }
             stage('(Docker) Build Examples (Default FPC)') {
