@@ -146,7 +146,7 @@ var
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
           nil { don't pass anything to WM_CREATE } );
-        Check( Temp_H_Wnd <> 0, 'CreateWindowEx failed');
+        Check( Temp_H_Wnd <> 0, 'Creating temporary window (CreateWindowExW) to query WGL extensions failed');
 
         { create Temp_h_Dc }
         Temp_h_Dc := GetDC(Temp_h_Wnd);
