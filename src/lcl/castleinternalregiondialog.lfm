@@ -3,7 +3,6 @@ object RegionDesignDialog: TRegionDesignDialog
   Height = 638
   Top = 316
   Width = 1024
-  BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Edit Region To Show'
   ClientHeight = 638
   ClientWidth = 1024
