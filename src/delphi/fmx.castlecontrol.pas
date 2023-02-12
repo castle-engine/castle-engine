@@ -116,7 +116,7 @@ procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types,
+uses FMX.Presentation.Factory, Types, FMX.Graphics,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils;
 
@@ -330,6 +330,8 @@ begin
 end;
 
 procedure TCastleControl.Paint;
+var
+  R: TRectF;
 begin
   { See our constructor comments:
     looks like native drawing at design-time in FMX is just not possible reliably. }
@@ -337,6 +339,16 @@ begin
   if csDesigning in ComponentState then
   begin
     inherited;
+    R := LocalRect;
+
+    Canvas.Fill.Kind := TBrushKind.Solid;
+    Canvas.Fill.Color := $A0909090;
+    Canvas.FillRect(R, 1.0);
+
+    Canvas.Fill.Color := TAlphaColors.Yellow;
+    Canvas.FillText(R,
+      'Run the project to see actual rendering of ' + Name + ' (' + ClassName + ')',
+      true, 1.0, [], TTextAlign.Center);
   end else
   begin
     // inherited not needed, and possibly causes something unnecessary
