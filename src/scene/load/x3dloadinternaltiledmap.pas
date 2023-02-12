@@ -57,17 +57,13 @@ type
       TAnimationNodes = record
         CoordNodes: TTilesetNodes;
         TexCoordInterp: TCoordinateInterpolator2DNode;
-      end;
-
-      TAnimationWithFlips = record
-        Animation: TCastleTiledMapData.TAnimation;
-        HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+        CycleIntervalMs: Cardinal;
       end;
 
       { CycleInterval in milliseconds. }
       TLayerTimeSensors = {$ifdef FPC}specialize{$endif} TDictionary<Cardinal,TTimeSensorNode>;
 
-      TLayerAnimations = {$ifdef FPC}specialize{$endif} TDictionary<TAnimationWithFlips,TAnimationNodes>;
+      TLayerAnimations = {$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TAnimation,TAnimationNodes>;
 
       TLayerConversion = class ({$ifdef FPC}specialize{$endif} TDictionary<TCastleTiledMapData.TTileset,TTilesetNodes>)
       strict private
@@ -486,14 +482,6 @@ var
     ApplyFlips(TexCoordArray, HorizontalFlip, VerticalFlip, DiagonalFlip);
   end;
 
-  function AnimationWithFlips:TAnimationWithFlips;
-  begin
-     Result.Animation := Tileset.Tiles[Frame].Animation;
-     Result.DiagonalFlip := DiagonalFlip;
-     Result.HorizontalFlip := HorizontalFlip;
-     Result.VerticalFlip := VerticalFlip;
-  end;
-
   function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
   begin
     Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d', [LayerIndex,CycleIntervalMs]));
@@ -522,40 +510,59 @@ var
     LayerConversion.LayerTimeSensors.Add(CycleIntervalMs, Result);
   end;
 
+  procedure AddToTexCoordInterp(const AnimationNodes: TAnimationNodes; const bCreate: Boolean);
+  var
+    I, StartIndex, Step, FrameCount: Int64;
+    Durations: Single;
+    AniFrame: TCastleTiledMapData.TFrame;
+  begin
+    Durations := 0;
+    FrameCount := Tileset.Tiles[Frame].Animation.Count;
+
+    if not bCreate then
+    begin
+      Step := AnimationNodes.TexCoordInterp.FdKeyValue.Items.Count div FrameCount;
+      StartIndex := Step;
+    end;
+
+    for I := 0 to FrameCount - 1 do
+    begin
+      AniFrame := Tileset.Tiles[Frame].Animation.Items[I];
+
+      CalcTexCoordArray(AniFrame.TileId);
+
+      if bCreate then
+      begin
+        AnimationNodes.TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
+        AnimationNodes.TexCoordInterp.FdKey.Items.Add(Durations / AnimationNodes.CycleIntervalMs);
+      end else
+      begin
+        AnimationNodes.TexCoordInterp.FdKeyValue.Items.InsertRange(StartIndex, TexCoordArray);
+        StartIndex := StartIndex + Step + 4;
+      end;
+
+      Durations := Durations + AniFrame.Duration;
+    end;
+  end;
+
   function CreateAnimationNodes: TAnimationNodes;
   var
     I: integer;
-    CycleIntervalMs: Cardinal;
-    Durations: Single;
-    AniFrame : TCastleTiledMapData.TFrame;
   begin
     Result.CoordNodes := CreateNodes;
     Result.TexCoordInterp := TCoordinateInterpolator2DNode.Create;
     Result.TexCoordInterp.Interpolation := inStep;
 
     { Calc CycleInterval. }
-    CycleIntervalMs := 0;
-    Durations := 0;
+    Result.CycleIntervalMs := 0;
     for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
-      CycleIntervalMs := CycleIntervalMs + Tileset.Tiles[Frame].Animation.Items[I].Duration;
+      Result.CycleIntervalMs := Result.CycleIntervalMs + Tileset.Tiles[Frame].Animation.Items[I].Duration;
 
     { Get TimeSensor. }
-    TimeSensor := GetOrCreateTimeSensor(CycleIntervalMs);
+    TimeSensor := GetOrCreateTimeSensor(Result.CycleIntervalMs);
 
-    { Add basic TexCoordInterp Key and KeyValues.
-      The calculation will be done in a unified manner at the end of BuildTileLayerNode.}
-    for I := 0 to Tileset.Tiles[Frame].Animation.Count - 1 do
-    begin
-      AniFrame := Tileset.Tiles[Frame].Animation.Items[I];
-
-      CalcTexCoordArray(AniFrame.TileId);
-
-      Result.TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-      Result.TexCoordInterp.FdKey.Items.Add(Durations / CycleIntervalMs);
-
-      Durations := Durations + AniFrame.Duration;
-    end;
-
+    AddToTexCoordInterp(Result, True);
+    { Add to rootnode. }
     LayerNode.AddChildren(Result.TexCoordInterp);
     LayerNode.AddRoute(TimeSensor.EventFraction_changed, Result.TexCoordInterp.EventSet_fraction);
     LayerNode.AddRoute(Result.TexCoordInterp.EventValue_changed, Result.CoordNodes.TexCoord.FdPoint);
@@ -570,14 +577,15 @@ var
   end;
 
   function GetOrCreateNodesForAnimation() :TAnimationNodes;
-  var
-    vAnimationWithFlips: TAnimationWithFlips;
   begin
-    vAnimationWithFlips := AnimationWithFlips;
-    if LayerConversion.LayerAnimations.TryGetValue(vAnimationWithFlips, Result) then Exit;
+    if LayerConversion.LayerAnimations.TryGetValue(Tileset.Tiles[Frame].Animation, Result) then
+    begin
+      AddToTexCoordInterp(Result, False);
+      Exit;
+    end;
 
     Result := CreateAnimationNodes;
-    LayerConversion.LayerAnimations.Add(vAnimationWithFlips, Result);
+    LayerConversion.LayerAnimations.Add(Tileset.Tiles[Frame].Animation, Result);
   end;
 
 
@@ -634,47 +642,6 @@ var
     end;
   end;
 
-  procedure BuildAnimationInterps;
-  var
-    FrameCount, AniTileCount: Cardinal;
-    I, J, K: integer;
-    AniNodes: TAnimationNodes;
-  begin
-     for AniNodes in LayerConversion.LayerAnimations.Values do
-     begin
-       { Note :
-         AniNodes.TexCoordInterp.FdKeyValue.Count = 4 * AnimatioinFrameCount ;
-         AniNodes.CoordNodes.TexCoord.FdPoint.Count = 4 * SameAnimatioinTileCount ;
-
-         We Needs TexCoordInterp.FdKeyValue.Count => 4 * AnimatioinFrameCount * SameAnimatioinTileCount.
-       }
-
-       FrameCount := AniNodes.TexCoordInterp.FdKeyValue.Count div 4;
-       AniTileCount := AniNodes.CoordNodes.TexCoord.FdPoint.Count div 4;
-
-       { Expand FdKeyValue by AniTileCount times. }
-       for I := 0 to FrameCount -1 do
-       begin
-        for J := 0 to AniTileCount -1  do
-        begin
-          { copyed to the end of Items. }
-          for K := 0 To 3 do
-          begin
-            AniNodes.TexCoordInterp.FdKeyValue.Items.Add(AniNodes.TexCoordInterp.FdKeyValue.Items[K]);
-          end;
-        end;
-
-        { Delete after copyed. }
-        for K := 0 To 3 do
-        begin
-          AniNodes.TexCoordInterp.FdKeyValue.Items.Delete(0);
-        end;
-      end;
-
-    end;
-
-  end;
-
   procedure PrepareData;
   begin
     CurrentZ := 0;
@@ -691,8 +658,6 @@ begin
     for Y := Map.Height - 1 downto 0 do
       for X := 0 to Map.Width - 1 do
         RenderTile(Vector2Integer(X, Y));
-
-    BuildAnimationInterps;
 
   finally
     FreeAndNil(LayerConversion);
