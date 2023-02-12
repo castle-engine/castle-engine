@@ -512,7 +512,7 @@ var
 
   procedure AddToTexCoordInterp(const AnimationNodes: TAnimationNodes; const bCreate: Boolean);
   var
-    I, StartIndex, Step, FrameCount: Int64;
+    I, StartIndex, Step, FrameCount: SizeInt;
     Durations: Single;
     AniFrame: TCastleTiledMapData.TFrame;
   begin
