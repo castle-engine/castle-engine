@@ -516,14 +516,16 @@ var
     Durations: Single;
     AniFrame: TCastleTiledMapData.TFrame;
   begin
-    Durations := 0;
     FrameCount := Tileset.Tiles[Frame].Animation.Count;
 
-    if not bCreate then
-    begin
-      Step := AnimationNodes.TexCoordInterp.FdKeyValue.Items.Count div FrameCount;
-      StartIndex := Step;
-    end;
+    if bCreate then
+      Durations := 0
+    else
+      begin
+        Step := AnimationNodes.TexCoordInterp.FdKeyValue.Items.Count div FrameCount;
+        StartIndex := Step;
+        Step := Step + 4;
+      end;
 
     for I := 0 to FrameCount - 1 do
     begin
@@ -535,13 +537,13 @@ var
       begin
         AnimationNodes.TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
         AnimationNodes.TexCoordInterp.FdKey.Items.Add(Durations / AnimationNodes.CycleIntervalMs);
+        Durations := Durations + AniFrame.Duration;
       end else
       begin
         AnimationNodes.TexCoordInterp.FdKeyValue.Items.InsertRange(StartIndex, TexCoordArray);
-        StartIndex := StartIndex + Step + 4;
+        StartIndex := StartIndex + Step;
       end;
 
-      Durations := Durations + AniFrame.Duration;
     end;
   end;
 
