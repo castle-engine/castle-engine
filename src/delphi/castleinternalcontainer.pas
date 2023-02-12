@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -176,8 +176,6 @@ begin
   FRequirements.SetSubComponent(true);
 
   FContext := TGLContextWGL.Create;
-  FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
-  FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
 
   FAutoRedisplay := true;
 
