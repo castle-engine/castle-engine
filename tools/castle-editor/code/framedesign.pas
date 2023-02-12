@@ -5364,6 +5364,13 @@ begin
   FixButtonSquare(ButtonPlayStop);
   FixButtonSquare(ButtonSimulationPlayStop);
   FixButtonSquare(ButtonSimulationPause);
+
+  { Make ButtonApiReferenceForCurrent square, with size following
+    LabelControlSelected.Height.
+    Fixes the button being larger than LabelControlSelected,
+    which looks bad. }
+  ButtonApiReferenceForCurrent.Width := LabelControlSelected.Height;
+  ButtonApiReferenceForCurrent.Height := LabelControlSelected.Height;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);

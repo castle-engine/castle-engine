@@ -355,7 +355,6 @@ object DesignFrame: TDesignFrame
       Action = ActionApiReferenceOfCurrent
       AllowAllUp = True
       Anchors = [akTop, akRight]
-      AutoSize = True
       Constraints.MinHeight = 34
       Constraints.MinWidth = 34
       Images = Icons.ToolbarIcons
