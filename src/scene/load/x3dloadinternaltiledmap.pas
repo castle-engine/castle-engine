@@ -496,7 +496,7 @@ var
 
   function CreateTimeSensor(const CycleIntervalMs :Cardinal): TTimeSensorNode;
   begin
-    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d',[LayerIndex,CycleIntervalMs]));
+    Result := TTimeSensorNode.Create(Format('TimeSensor_%d_%d', [LayerIndex,CycleIntervalMs]));
     Result.CycleInterval := CycleIntervalMs / 1000;
     { Add TimeSensor to Root node }
     LayerNode.AddChildren(Result);
@@ -516,7 +516,7 @@ var
 
   function GetOrCreateTimeSensor(const CycleIntervalMs:Cardinal) :TTimeSensorNode;
   begin
-    if LayerConversion.LayerTimeSensors.TryGetValue(CycleIntervalMs , Result) then Exit;
+    if LayerConversion.LayerTimeSensors.TryGetValue(CycleIntervalMs, Result) then Exit;
 
     Result := CreateTimeSensor(CycleIntervalMs);
     LayerConversion.LayerTimeSensors.Add(CycleIntervalMs, Result);
@@ -563,7 +563,7 @@ var
 
   function GetOrCreateNodesForTileset: TTilesetNodes;
   begin
-    if LayerConversion.TryGetValue(Tileset , Result) then Exit;
+    if LayerConversion.TryGetValue(Tileset, Result) then Exit;
 
     Result := CreateNodes;
     LayerConversion.Add(Tileset, Result);
@@ -614,11 +614,11 @@ var
     begin
       if not ValidTileId(Frame) then
       begin
-        WritelnWarning('Invalid TileId:%d TilePosition:'+TilePosition.ToString, [Frame]);
+        WritelnWarning('Invalid TileId:%d TilePosition:' + TilePosition.ToString, [Frame]);
         Exit;
       end;
 
-      CurrentZ := CurrentZ +0.000001;
+      CurrentZ := CurrentZ + 0.000001;
 	  
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
