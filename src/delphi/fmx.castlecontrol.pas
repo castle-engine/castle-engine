@@ -24,7 +24,7 @@ uses SysUtils, Classes, Windows,
   FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
   FMX.Types, UITypes,
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextWgl, CastleInternalContainer;
+  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -42,7 +42,7 @@ type
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
-        procedure AdjustContext(const AContext: TGLContextWGL); override;
+        procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
@@ -168,15 +168,21 @@ begin
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
+{$ifdef MSWINDOWS}
+var
+  WinContext: TGLContextWGL;
 begin
   inherited;
-
-  AContext.WndPtr := (Parent.Presentation as TWinNativeGLControl).Handle;
-  if AContext.WndPtr = 0 then
+  WinContext := PlatformContext as TGLContextWGL;
+  WinContext.WndPtr :=
+    (Parent.Presentation as TWinNativeGLControl).Handle;
+  if WinContext.WndPtr = 0 then
     raise Exception.Create('Native handle not ready when calling TCastleControl.TContainer.AdjustContext');
-
-  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
+  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+{$else}
+begin
+{$endif}
 end;
 
 function TCastleControl.TContainer.Dpi: Single;
