@@ -153,6 +153,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
@@ -5341,6 +5342,28 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moInteract);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.FrameResize(Sender: TObject);
+
+  { Buttons on top panel are resized by LCL to have height equal panel height,
+    but this makes them non-square. Fix them to be square.
+    Fixes problem observed on Windows. }
+  procedure FixButtonSquare(const B: TSpeedButton);
+  begin
+    if B.Width < B.Height then
+      B.Constraints.MinWidth := B.Height;
+  end;
+
+begin
+  FixButtonSquare(ButtonInteractMode);
+  FixButtonSquare(ButtonSelectMode);
+  FixButtonSquare(ButtonTranslateMode);
+  FixButtonSquare(ButtonRotateMode);
+  FixButtonSquare(ButtonScaleMode);
+  FixButtonSquare(ButtonPlayStop);
+  FixButtonSquare(ButtonSimulationPlayStop);
+  FixButtonSquare(ButtonSimulationPause);
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);
