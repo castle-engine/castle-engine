@@ -224,7 +224,7 @@ var
           But it looks simpler to reuse it. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        WritelnLog('wgl', 'Extensions: ' + WglExtensions);
+        // WritelnLog('wgl', 'Extensions: ' + WglExtensions);  // too verbose
 
         Has_WGL_ARB_create_context := Load_WGL_ARB_create_context(WglExtensions);
         Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile(WglExtensions);
@@ -312,7 +312,7 @@ var
     Attribs: TInt32List;
     ShareContextGlrc: HGLRC;
   begin
-    WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good');
+    // WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good'); // too verbose
 
     Attribs := TInt32List.Create;
     try
