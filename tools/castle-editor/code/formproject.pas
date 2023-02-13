@@ -656,8 +656,13 @@ begin
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
+  begin
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 
   { On GTK, this happens when we open a dialog box, like open/save.
     It's important to stop treating keys/mouse as pressed then.
@@ -691,7 +696,12 @@ begin
   if Design.DesignUrl = '' then
     MenuItemSaveAsDesignClick(Sender)
   else
+  begin
     Design.SaveDesign(Design.DesignUrl);
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
