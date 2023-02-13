@@ -291,16 +291,6 @@ begin
 
     WritelnLog('ZLib detected (version %s).', [zlibVersionpchar()]);
   end;
-
-  if not CastleZLibInitialized then
-    WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
-      '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
-      {$ifdef MSWINDOWS} +
-      NL +
-      '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
-      '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
-      {$endif}
-    );
 end;
 
 initialization

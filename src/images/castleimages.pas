@@ -2027,7 +2027,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
       VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
     ImagingExtFileFormats,
   {$endif}
-  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
+  CastleInternalZLib, CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
 {$warnings on}

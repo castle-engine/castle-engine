@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,48 @@
 
 { Handle PNG format. }
 
+var
+  WarningNoLibPngDone: Boolean;
+
+{ Lack of LibPng is important to report, as it causes PNG loading to be much slower.
+
+  Note that this warning shall be done only if you load PNG,
+  lack of LibPng is harmless if your application doesn't load PNG (and in this case
+  our build tool would not copy libpng DLL into the project on Windows,
+  so CastlePngInitialized will rightly fail). }
+procedure WarningNoLibPng;
+begin
+  if not WarningNoLibPngDone then
+  begin
+    WarningNoLibPngDone := true;
+
+    {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+    if not CastleZLibInitialized then
+      WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
+        '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
+        {$ifdef MSWINDOWS} +
+        NL +
+        '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+        '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+        {$endif}
+      );
+
+    if not CastlePngInitialized then
+      WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
+        '  Loading PNG will use a slower approach.'
+        {$ifdef MSWINDOWS} +
+        NL +
+        '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+        '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+        {$endif}
+      );
+    {$else}
+    WritelnWarning('Initializing LibPng failed, LibPng support not compiled-in.' + NL +
+      '  Loading PNG will use a slower approach.');
+    {$endif}
+  end;
+end;
+
 function LoadPNG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
@@ -29,6 +71,7 @@ begin
   end else
   {$endif}
   begin
+    WarningNoLibPng;
     {$if defined(USE_VAMPYRE_IMAGING)} // fallback LibPng -> Vampyre
     Result := Load_VampyreImaging(Stream, AllowedImageClasses);
     {$elseif defined(FPC)} // fallback LibPng -> FpImage (FPC only)
