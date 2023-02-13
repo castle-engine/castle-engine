@@ -390,7 +390,7 @@ procedure TCastleTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransfor
     );
 
     if SmoothScalingSafeBorder then
-      Result := Result.Grow(-0.51);
+      Result := Result.Grow(-0.51) else Result := Result.Grow(-0.01);
 
     { fix Result to be in 0..1 range }
     Result.Left := Result.Left / Tileset.Image.Width;
