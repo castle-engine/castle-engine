@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1056">
+    <Files Count="1061">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4330,6 +4330,26 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
         <Type Value="Include"/>
       </Item1056>
+      <Item1057>
+        <Filename Value="../src/services/steam/castleinternalsteamapi.pas"/>
+        <UnitName Value="CastleInternalSteamApi"/>
+      </Item1057>
+      <Item1058>
+        <Filename Value="../src/services/steam/castleinternalsteamconstantsandtypes.pas"/>
+        <UnitName Value="CastleInternalSteamConstantsAndTypes"/>
+      </Item1058>
+      <Item1059>
+        <Filename Value="../src/services/steam/castlesteam.pas"/>
+        <UnitName Value="CastleSteam"/>
+      </Item1059>
+      <Item1060>
+        <Filename Value="../src/services/steam/steamcallback.pas"/>
+        <UnitName Value="SteamCallback"/>
+      </Item1060>
+      <Item1061>
+        <Filename Value="../src/base_rendering/castleglutils_vertex_array_object.inc"/>
+        <Type Value="Include"/>
+      </Item1061>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
