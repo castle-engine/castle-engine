@@ -51,13 +51,16 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
-    procedure PlayAnimations;
     function GetAssumePerfectRenderingOrder: Boolean;
     procedure SetAssumePerfectRenderingOrder(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    procedure PlayAnimations;
+    procedure StopAnimations;
+
 
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
@@ -249,7 +252,6 @@ begin
   end;
 end;
 
-
 procedure TCastleTiledMap.PlayAnimations;
 var
   I: Integer;
@@ -260,6 +262,18 @@ begin
   begin
     TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
     TimeSensor.Start(True);
+  end;
+end;
+
+procedure TCastleTiledMap.StopAnimations;
+var
+  I: Integer;
+  TimeSensor: TTimeSensorNode;
+begin
+  for I := 0 to FScene.AnimationsList.Count - 1 do
+  begin
+    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor.Stop;
   end;
 end;
 
