@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1038,9 +1038,50 @@
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
 
+    { Damping means that the velocity will decrease over time.
+      AngularVelocityDamp causes AngularVelocity to decrease over time.
+      For the exact equations how it works, see @link(LinearVelocityDamp). }
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaxAngularVelocity: Single read FMaxAngularVelocity write SetMaxAngularVelocity;
 
+    { Damping means that the velocity will decrease over time.
+      LinearVelocityDamp causes LinearVelocity to decrease over time,
+      similar AngularVelocityDamp causes AngularVelocity to decrease over time.
+
+      Values from 0.0 up to infinity make sense.
+
+      Exact interpretation:
+
+      The damping is applied every "physics frame" following this equation:
+
+      @code(LinearVelocity := LinearVelocity * 1 / (1 + LinearVelocityDamp * 1/PhysicsProperties.Frequency))
+
+      Where @code(PhysicsProperties.Frequency) is by default 60,
+      and can be customized for each viewport using @link(TPhysicsProperties.Frequency
+      Viewport.Items.PhysicsProperties.Frequency). The frequency also determines how
+      often do "physics frames" occur.
+
+      In effect, damping = 0 means that no damping occurs.
+
+      Damping values > 0 means that LinearVelocity decreases with time,
+      larger LinearVelocityDamp -> the faster LinearVelocity will decrease.
+
+      The meaning of damping = 1.0 depends on @link(TPhysicsProperties.Frequency
+      Viewport.Items.PhysicsProperties.Frequency):
+
+      @unorderedList(
+        @item(With TPhysicsProperties.Frequency = 60 (default), the XxxVelocityDamp = 1.0 implies that
+          the velocity drops to ~0.37 of original after 1 second.)
+
+        @item(With TPhysicsProperties.Frequency = 1
+          (crazy small, just giving it as example),
+          the XxxVelocityDamp = 1.0 implies that the velocity drops to half of original after 1 second.)
+
+        @item(With TPhysicsProperties.Frequency = 10000
+          (crazy large, just giving it as example),
+          the XxxVelocityDamp = 1.0 implies that the velocity drops to ~0.36 of original after 1 second.)
+      )
+    }
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaxLinearVelocity: Single read FMaxLinearVelocity write SetMaxLinearVelocity;
 
