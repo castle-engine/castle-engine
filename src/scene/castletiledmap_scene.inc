@@ -59,8 +59,8 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure PlayAnimations;
-    procedure StopAnimations;
-
+    procedure StopAnimations(const ResetAnimations: Boolean);
+    function AnimationsCount: Integer;
 
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
@@ -265,7 +265,7 @@ begin
   end;
 end;
 
-procedure TCastleTiledMap.StopAnimations;
+procedure TCastleTiledMap.StopAnimations(const ResetAnimations: Boolean);
 var
   I: Integer;
   TimeSensor: TTimeSensorNode;
@@ -274,7 +274,14 @@ begin
   begin
     TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
     TimeSensor.Stop;
+    if ResetAnimations then
+      TimeSensor.FakeTime(0, False, True);
   end;
+end;
+
+function TCastleTiledMap.AnimationsCount: Integer;
+begin
+  Result := FScene.AnimationsList.Count;
 end;
 
 function TCastleTiledMap.GetAssumePerfectRenderingOrder: Boolean;
