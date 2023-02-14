@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -82,6 +82,7 @@ function Vector4(const V: TVector4Double): TVector4; overload; {$ifdef INLINE_GE
 { Construct an initialized TVector4Double value. }
 function Vector4Double(const X, Y, Z, W: Double): TVector4Double; overload; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 function Vector4Double(const V: TVector4): TVector4Double; overload; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+function Vector4Double(const V: TVector3Double; const W: Double): TVector4Double; overload; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
 { Convert between Double-precision and Single-precision matrix. }
 function Matrix3(const V: TMatrix3Double): TMatrix3;
@@ -246,6 +247,14 @@ begin
   Result.Y := V.Y;
   Result.Z := V.Z;
   Result.W := V.W;
+end;
+
+function Vector4Double(const V: TVector3Double; const W: Double): TVector4Double;
+begin
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := W;
 end;
 
 { Convert matrix ------------------------------------------------------------- }

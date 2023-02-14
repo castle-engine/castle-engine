@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).

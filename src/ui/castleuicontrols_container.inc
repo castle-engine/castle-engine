@@ -1840,29 +1840,31 @@ class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRecta
 begin
   if GLFeatures.EnableFixedFunction then
   begin
-    { Set state that is guaranteed for Render2D calls,
+    { Set OpenGL state that is guaranteed for TCastleUserInterface.Render calls,
       but TCastleUserInterface.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
-    glDisable(GL_LIGHTING);
+    RenderContext.FixedFunctionLighting := false;
     glDisable(GL_FOG);
     {$endif}
-    GLEnableTexture(CastleGLUtils.etNone);
+    GLEnableTexture(etNone);
   end;
 
-  glDisable(GL_DEPTH_TEST);
+  RenderContext.DepthTest := false;
 
   RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     { Set OpenGL state that may be changed carelessly, and has some
-      guaranteed value, for Render2d calls. }
-    {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      guaranteed value, for TCastleUserInterface.Render calls. }
+    glLoadIdentity;
     {$warnings off}
-    CastleGLUtils.WindowPos := Vector2Integer(0, 0);
+    CastleInternalGLUtils.WindowPos := Vector2Integer(0, 0);
     {$warnings on}
   end;
+  {$endif}
 end;
 
 procedure TCastleContainer.EventRender;

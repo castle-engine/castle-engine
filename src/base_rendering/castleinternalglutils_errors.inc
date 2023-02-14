@@ -1,5 +1,6 @@
+{%MainUnit castleinternalglutils.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,11 +25,13 @@ type
     can also result in this error.
 
     Note: @link(EOpenGLOutOfMemoryError) may happen regardless
-    of what we do, and depends on the device. }
+    of what we do, and depends on the device.
+
+    You can call it with overloaded ancestor Create / CreateFmt that take just string,
+    not ErrorCode: TGLenum, this is a feature. }
   EOpenGLError = class(Exception)
   public
-    ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = ''); overload;
   end;
 
   { GPU memory is not sufficient.
@@ -71,14 +74,6 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
   @raises EOpenGLError }
 procedure CheckGLErrors(const AdditionalComment: string = '');
 
-{ Raise EOpenGLError for given OpenGL error code.
-  This has calling convention suitable for registering this procedure
-  as GLU_TESS_ERROR for gluTessCallback, or GLU_ERROR for gluQuadricCallback. }
-procedure GLErrorRaise(ErrorCode: TGLenum);
-  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
-  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
-  deprecated 'this function is no longer useful, as you should not use GLU in cross-platform programs';
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -112,8 +107,7 @@ end;
 
 constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
 begin
-  ErrorCode := AErrorCode;
-  inherited Create(GLErrorString(ErrorCode, AdditionalComment));
+  inherited Create(GLErrorString(AErrorCode, AdditionalComment));
 end;
 
 procedure GLOutOfMemory(const AdditionalComment: string);
@@ -140,15 +134,6 @@ begin
       raise EOpenGLError.Create(ErrorCode, AdditionalComment);
       {$endif}
   end;
-end;
-
-procedure GLErrorRaise(ErrorCode: TGLenum);
-  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
-  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
-begin
-  if ErrorCode = GL_OUT_OF_MEMORY then
-    GLOutOfMemory else
-    raise EOpenGLError.Create(ErrorCode);
 end;
 
 {$endif read_implementation}

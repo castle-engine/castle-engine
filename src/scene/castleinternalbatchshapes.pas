@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -769,7 +769,7 @@ var
   MeshTarget, MeshSource: TAbstractComposedGeometryNode;
   CoordTarget, CoordSource: TMFVec3f;
   TexCoordTarget, TexCoordSource: TMFVec2f;
-  IndexTarget, IndexSource: TLongIntList;
+  IndexTarget, IndexSource: TInt32List;
   OldCoordCount, I: Integer;
 begin
   StateTarget := Target.State;
@@ -834,7 +834,7 @@ var
   MeshTarget: TAbstractComposedGeometryNode;
   CoordTarget: TMFVec3f;
   TexCoordTarget: TMFVec2f;
-  IndexTarget: TLongIntList;
+  IndexTarget: TInt32List;
 begin
   StateTarget := Target.State;
   MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;

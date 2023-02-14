@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,7 +71,8 @@ begin
            '  image-to-pascal [OPTIONS...] UnitName image_name1.png...' +NL+
            nl+
            'Available options are:' +NL+
-           HelpOptionHelp +NL+
+           OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+           OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
            '  --no-show-progress    Do not show progress on stderr.' +NL+
            '  -o / --output DIRECTORY' +NL+
            '                        Place output unit files inside this dir.' +NL+

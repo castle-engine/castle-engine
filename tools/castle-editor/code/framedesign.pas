@@ -43,7 +43,7 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
-  TIsRunningEvent = function: Boolean of object;
+  TBooleanEvent = function: Boolean of object;
 
   TMode = (
     moInteract,
@@ -71,6 +71,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -115,9 +116,9 @@ type
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
+    SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
-    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAll: TTabSheet;
@@ -152,6 +153,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
@@ -181,8 +183,8 @@ type
           UiDraggingMode: TUiDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when UiDraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when UiDraggingMode=dmResize
-          LabelHover, LabelSelected: TCastleLabel;
-          RectHover, RectSelected: TCastleRectangleControl;
+          LabelHover, LabelSelected, LabelStatistics: TCastleLabel;
+          RectHover, RectSelected, RectStatistics: TCastleRectangleControl;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -478,7 +480,8 @@ type
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
     OnRunningToggle, OnApiReferenceOfCurrent: TNotifyEvent;
-    OnIsRunning: TIsRunningEvent;
+    OnIsRunning: TBooleanEvent;
+    OnShowStatistics: TBooleanEvent;
 
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
@@ -646,6 +649,25 @@ begin
   LabelSelected.FontSize := 15;
   LabelSelected.EnableUIScaling := false;
   RectSelected.InsertFront(LabelSelected);
+
+  RectStatistics := TCastleRectangleControl.Create(Self);
+  RectStatistics.Color := Vector4(0, 0, 0, 0.25);
+  RectStatistics.Exists := false;
+  RectStatistics.EnableUIScaling := false;
+  RectStatistics.Anchor(hpRight, -5);
+  RectStatistics.Anchor(vpTop, -5);
+  RectStatistics.AutoSizeToChildren := true;
+  InsertFront(RectStatistics);
+
+  LabelStatistics := TCastleLabel.Create(Self);
+  LabelStatistics.Border.AllSides := 5;
+  LabelStatistics.Anchor(hpMiddle);
+  LabelStatistics.Anchor(vpMiddle);
+  LabelStatistics.FontSize := 15;
+  LabelStatistics.EnableUIScaling := false;
+  LabelStatistics.Color := White;
+  LabelStatistics.Alignment := hpRight;
+  RectStatistics.InsertFront(LabelStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
@@ -1322,6 +1344,15 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Exists := false;
   end;
 
+  function StatisticsToString: String;
+  begin
+    Result := 'FPS: ' + Container.Fps.ToString;
+    if Frame.CurrentViewport <> nil then
+      Result := Result + NL +
+        'Viewport "' + Frame.CurrentViewport.Name + '":' + NL +
+        Frame.CurrentViewport.Statistics.ToString;
+  end;
+
 var
   SelectedUI, HoverUI: TCastleUserInterface;
   SelectedUIRect, HoverUIRect: TFloatRectangle;
@@ -1381,6 +1412,12 @@ begin
     begin
       RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
+  end;
+
+  RectStatistics.Exists := Frame.OnShowStatistics();
+  if RectStatistics.Exists then
+  begin
+    LabelStatistics.Caption := StatisticsToString;
   end;
 end;
 
@@ -5305,6 +5342,35 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moInteract);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.FrameResize(Sender: TObject);
+
+  { Buttons on top panel are resized by LCL to have height equal panel height,
+    but this makes them non-square. Fix them to be square.
+    Fixes problem observed on Windows. }
+  procedure FixButtonSquare(const B: TSpeedButton);
+  begin
+    if B.Width < B.Height then
+      B.Constraints.MinWidth := B.Height;
+  end;
+
+begin
+  FixButtonSquare(ButtonInteractMode);
+  FixButtonSquare(ButtonSelectMode);
+  FixButtonSquare(ButtonTranslateMode);
+  FixButtonSquare(ButtonRotateMode);
+  FixButtonSquare(ButtonScaleMode);
+  FixButtonSquare(ButtonPlayStop);
+  FixButtonSquare(ButtonSimulationPlayStop);
+  FixButtonSquare(ButtonSimulationPause);
+
+  { Make ButtonApiReferenceForCurrent square, with size following
+    LabelControlSelected.Height.
+    Fixes the button being larger than LabelControlSelected,
+    which looks bad. }
+  ButtonApiReferenceForCurrent.Width := LabelControlSelected.Height;
+  ButtonApiReferenceForCurrent.Height := LabelControlSelected.Height;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);

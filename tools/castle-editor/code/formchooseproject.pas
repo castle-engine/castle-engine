@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -76,7 +76,8 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
-  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
+  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
+  CastleApplicationProperties,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -383,8 +384,39 @@ begin
   end;
 end;
 
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: begin
+         InfoWrite(
+           'castle-editor: Create, build and design Castle Game Engine applications.' + NL +
+           NL +
+           'Usually run without any command-line paramaters, to present to user a choice' + NL +
+           'which project to open. But you can also specify project to open' + NL +
+           '(provide a full path, including the CastleEngineManifest.xml file).' + NL +
+           NL +
+           'Other available options are:' + NL +
+           OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+           OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
+           OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.') + NL +
+           NL +
+           ApplicationProperties.Description);
+         Halt;
+       end;
+    1: begin
+         // include ApplicationName in version, good for help2man
+         InfoWrite(ApplicationName + ' ' + ApplicationProperties.Version);
+         Halt;
+       end;
+    2: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
+  end;
+end;
+
 procedure TChooseProjectForm.OpenProjectFromCommandLine;
 
+  {$ifdef DARWIN}
   { On macOS, on the first run (after accepting "open application downloaded from the Internet")
     we may get additional command-line parameter -psn_...,
     which stands for "Process Serial Number".
@@ -398,7 +430,6 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
 
     We have to remove it, to not confuse it with a project name. }
   procedure RemoveMacOsProcessSerialNumber;
-  {$ifdef DARWIN}
   var
     I: Integer;
   begin
@@ -408,16 +439,27 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
         Parameters.Delete(I);
         Exit;
       end;
-  {$else}
-  begin
-  {$endif}
   end;
+  {$endif}
+
+const
+  Options: array [0..2] of TOption =
+  (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+  );
 
 begin
   if CommandLineHandled then Exit;
   CommandLineHandled := true;
 
+  {$ifdef DARWIN}
   RemoveMacOsProcessSerialNumber;
+  {$endif}
+
+  Parameters.Parse(Options, @OptionProc, nil, true);
+
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
   begin
@@ -431,4 +473,7 @@ begin
   end;
 end;
 
+initialization
+  ApplicationProperties.ApplicationName := 'castle-editor';
+  ApplicationProperties.Version := CastleEngineVersion;
 end.

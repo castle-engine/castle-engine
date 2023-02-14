@@ -38,7 +38,6 @@ type
 
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
-    FCoordIndex: TMFLong;
 
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
@@ -106,6 +105,14 @@ type
     { Generated TGeometryArrays instance, available inside GenerateCoordinate*. }
     Arrays: TGeometryArrays;
 
+    { Coordinate index, taken from Geometry.CoordIndex.
+
+      If @nil, then GenerateVertex (and all other
+      routines taking some index) will just directly index Coord
+      (this is useful for non-indexed geometry, like TriangleSet
+      instead of IndexedTriangleSet). }
+    CoordIndex: TMFLong;
+
     { Current shape properties, constant for the whole
       lifetime of the generator, set in constructor.
       @groupBegin }
@@ -113,9 +120,6 @@ type
     property State: TX3DGraphTraverseState read FState;
     property Geometry: TAbstractGeometryNode read FGeometry;
     { @groupEnd }
-
-    procedure WarningShadingProblems(
-      const ColorPerVertex, NormalPerVertex: boolean);
 
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -125,14 +129,6 @@ type
       from Geometry, using TAbstractGeometryNode.Coord and
       TAbstractGeometryNode.CoordIndex values. }
     property Coord: TMFVec3f read FCoord;
-
-    { Coordinate index, taken from Geometry.CoordIndex.
-
-      If @nil, then GenerateVertex (and all other
-      routines taking some index) will just directly index Coord
-      (this is useful for non-indexed geometry, like TriangleSet
-      instead of IndexedTriangleSet). }
-    property CoordIndex: TMFLong read FCoordIndex;
 
     { Generate arrays content for given vertex.
       Given IndexNum indexes Coord, or (if CoordIndex is assigned)
@@ -337,10 +333,9 @@ begin
       CopyCount
     ]);
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to CopyCount - 1 do
   begin
-    Index := Indexes.L[I];
+    Index := Indexes.List^[I];
     if Index >= SourceCount then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
         Index,
@@ -356,7 +351,6 @@ begin
       Target^, SourceItemSize);
     PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,
@@ -783,18 +777,7 @@ begin
 
   Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
-  FCoordIndex := Geometry.CoordIndexField;
-end;
-
-procedure TArraysGenerator.WarningShadingProblems(
-  const ColorPerVertex, NormalPerVertex: boolean);
-const
-  SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
-begin
-  WritelnWarning('X3D', Format(
-    'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
-    [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
-      Geometry.X3DType]));
+  CoordIndex := Geometry.CoordIndexField;
 end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
@@ -973,15 +956,13 @@ end;
 
 procedure TArraysGenerator.GenerateVertex(IndexNum: integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if CoordIndex <> nil then
   begin
     if Arrays.Indexes = nil then
       Inc(ArrayIndexNum) else
-      ArrayIndexNum := CoordIndex.Items.L[IndexNum];
+      ArrayIndexNum := CoordIndex.Items.List^[IndexNum];
   end else
     ArrayIndexNum := IndexNum;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TArraysGenerator.GetVertex(IndexNum: integer): TVector3;
@@ -990,17 +971,17 @@ begin
     of the programmer. }
   Assert(IndexNum < CoordCount);
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if CoordIndex <> nil then
-    Result := Coord.ItemsSafe[CoordIndex.Items.L[IndexNum]] else
-    Result := Coord.Items.L[IndexNum];
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+    Result := Coord.ItemsSafe[CoordIndex.Items.List^[IndexNum]]
+  else
+    Result := Coord.Items.List^[IndexNum];
 end;
 
 function TArraysGenerator.CoordCount: Integer;
 begin
   if CoordIndex <> nil then
-    Result := CoordIndex.Items.Count else
+    Result := CoordIndex.Items.Count
+  else
     Result := Coord.Items.Count;
 end;
 
@@ -1578,23 +1559,21 @@ begin
 
     if Arrays.TexCoords[TextureUnit].Generation = tgExplicit then
     begin
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       case TexImplementation of
         tcTexIndexed:
           { tcTexIndexed is set only if
             TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
             is Ok for sure. That's why we don't do "ItemsSafe"
             for TexCoordIndex. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.L[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.List^[IndexNum]);
         tcCoordIndexed:
           { We already checked that IndexNum < CoordCount, so the first index
             is Ok for sure. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.L[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.List^[IndexNum]);
         tcNonIndexed:
           SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, IndexNum);
         else raise EInternalError.Create('TAbstractTextureCoordinateGenerator.GetTextureCoord?');
       end;
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end else
       Tex := GenerateTexCoord(Arrays.TexCoords[TextureUnit]);
   end;
@@ -1636,7 +1615,7 @@ begin
 
     I considered optimizing tcTexIndexed, but it would hurt the common case.
 
-    - We would need to extend AssignAttributeOrCoordinate to handle "IndexForSource: TLongIntList".
+    - We would need to extend AssignAttributeOrCoordinate to handle "IndexForSource: TInt32List".
 
     - To implement IndexForSource, we must know how indexes (from coordIndex) map
       to vertexes. This information is no longer present in IndexesFromCoordIndex,
@@ -1648,15 +1627,15 @@ begin
     - So it would require creating IndexesFromCoordIndexMap, that maps index of indexes -> where to find it.
       E.g. instead of this:
 
-        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[BeginIndex]; Inc(IFSNextIndex);
-        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 1];      Inc(IFSNextIndex);
-        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 2];      Inc(IFSNextIndex);
+        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[BeginIndex]; Inc(IFSNextIndex);
+        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 1];      Inc(IFSNextIndex);
+        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 2];      Inc(IFSNextIndex);
 
       => we would need this:
 
-        IndexesFromCoordIndexMap.L[IFSNextIndex] := BeginIndex; Inc(IFSNextIndex);
-        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 1;      Inc(IFSNextIndex);
-        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 2;      Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.List^[IFSNextIndex] := BeginIndex; Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.List^[IFSNextIndex] := I + 1;      Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.List^[IFSNextIndex] := I + 2;      Inc(IFSNextIndex);
 
     - However, in many cases this IndexesFromCoordIndexMap would be useless.
       For tcNonIndexed or tcCoordIndexed it would be useless.
@@ -1670,10 +1649,8 @@ begin
       It would require extra iteration instead of simple "IndexesFromCoordIndex.Assign"
       to create IndexedTriangleSetNode.
   }
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if TexImplementation = tcTexIndexed then
-    DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+    DoTexCoord(TexCoordIndex.Items.List^[IndexNum]);
 end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
@@ -1690,14 +1667,12 @@ procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     Result :=
       (MFIndexes.Count > 0) and
       { For VRML 1.0, [-1] value is default for materialIndex
         and should be treated as "empty", as far as I understand
         the spec. }
-      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.L[0] = -1)));
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.List^[0] = -1)));
   end;
 
 begin
@@ -1774,9 +1749,7 @@ begin
     miPerFace:
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
-      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.L[RangeNumber]);
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.List^[RangeNumber]);
     else ;
   end;
 end;
@@ -1915,10 +1888,9 @@ begin
   if (Normals = nil) or (NormalIndex = nil) then
     Exit;
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
         Result := niPerVertexNormalIndexed;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
@@ -1929,10 +1901,9 @@ begin
     BIND_PER_PART, BIND_PER_FACE:
       Result := niPerFace;
     BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
         Result := niPerFaceNormalIndexed;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   { If no normals are provided (for VRML 1.0, this means that last Normal
     node was empty, or it's the default empty node from VRML1DefaultState)
@@ -1944,38 +1915,34 @@ end;
 
 function TAbstractNormalGenerator.NormalsSafe(const Index: Integer): TVector3;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if Index < Normals.Count then
-    Result := Normals.L[Index]
+    Result := Normals.List^[Index]
   else
     Result := TVector3.Zero;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractNormalGenerator.GetNormal(
   IndexNum: Integer; RangeNumber: Integer; out N: TVector3);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   case NorImplementation of
     niOverall:
-      N := Normals.L[0];
+      N := Normals.List^[0];
     niUnlit:
       N := TVector3.Zero; // return anything defined
     niPerVertexNonIndexed:
-      N := Normals.L[IndexNum];
+      N := Normals.List^[IndexNum];
     niPerVertexCoordIndexed:
-      N := Normals.L[CoordIndex.Items.L[IndexNum]];
+      N := Normals.List^[CoordIndex.Items.List^[IndexNum]];
     niPerVertexNormalIndexed:
-      N := Normals.L[NormalIndex.ItemsSafe[IndexNum]];
+      N := Normals.List^[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
-      N := Normals.L[RangeNumber];
+      N := Normals.List^[RangeNumber];
     niPerFaceNormalIndexed:
-      N := Normals.L[NormalIndex.ItemsSafe[RangeNumber]];
+      N := Normals.List^[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TAbstractNormalGenerator.NormalsFlat: boolean;
@@ -2076,29 +2043,29 @@ procedure TAbstractFogGenerator.GenerateVertex(
 
   function GetFogCoord: Single;
   begin
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     { make IndexNum independent of coordIndex, always work like index to coords }
     if CoordIndex <> nil then
-      IndexNum := CoordIndex.Items.L[IndexNum];
+      IndexNum := CoordIndex.Items.List^[IndexNum];
 
     { calculate Fog, based on FogCoord and IndexNum }
     if IndexNum < FogCoord.Count then
-      Result := FogCoord.L[IndexNum] else
+      Result := FogCoord.List^[IndexNum]
+    else
     if FogCoord.Count <> 0 then
-      Result := FogCoord.Last else
+      Result := FogCoord.Last
+    else
       Result := 0; //< some default
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function GetFogVolumetric: Single;
   var
     Position, Projected: TVector3;
   begin
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     { calculate global vertex position }
     if CoordIndex <> nil then
-      Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
-      Position := Coord.Items.L[IndexNum];
+      Position := Coord.Items.List^[CoordIndex.Items.List^[IndexNum]]
+    else
+      Position := Coord.Items.List^[IndexNum];
     Position := State.Transformation.Transform.MultPoint(Position);
 
     Projected := PointOnLineClosestToPoint(
@@ -2113,7 +2080,6 @@ procedure TAbstractFogGenerator.GenerateVertex(
         (so that Result = FogVolumetricVisibilityStart +
         FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
     Result := Result - FogVolumetricVisibilityStart;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   procedure SetFog(const Fog: Single);
@@ -2419,7 +2385,11 @@ begin
   if AGeometry is TPointSetNode then
     Result := TPointSetGenerator else
   if (AGeometry is TTriangleSetNode) or
-     (AGeometry is TIndexedTriangleSetNode) then
+     (AGeometry is TIndexedTriangleSetNode) or
+     { That is correct, TQuadSetNode goes to TTriangleSetGenerator,
+       as TQuadSetNode.InternalTrianglesCoordIndex allows to treat it pretty much
+       like TIndexedTriangleSetNode. }
+     (AGeometry is TQuadSetNode) then
     Result := TTriangleSetGenerator else
   if (AGeometry is TTriangleFanSetNode) or
      (AGeometry is TIndexedTriangleFanSetNode) then
@@ -2427,8 +2397,7 @@ begin
   if (AGeometry is TTriangleStripSetNode) or
      (AGeometry is TIndexedTriangleStripSetNode) then
     Result := TTriangleStripSetGenerator else
-  if (AGeometry is TQuadSetNode) or
-     (AGeometry is TIndexedQuadSetNode) then
+  if (AGeometry is TIndexedQuadSetNode) then
     Result := TQuadSetGenerator else
     Result := nil;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,7 +67,10 @@
     procedure EventLocationReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { Location expressed in Scene coordinate-space, that is: transformed
-      by X3D transformations in this X3D scene graph. }
+      by X3D transformations in this X3D scene graph.
+
+      TODO: This may need to be renamed to WorldLocation and transformed by scene transformation.
+      Test how it behaves in TCastleScene that has some transformation. }
     function SceneLocation: TVector3;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;

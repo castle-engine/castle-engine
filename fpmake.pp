@@ -288,7 +288,6 @@ begin
     P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
-    P.Targets.AddUnit('castleglboxes.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
@@ -344,11 +343,13 @@ begin
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
-    P.Targets.AddUnit('castleglversion.pas');
     P.Targets.AddUnit('castleglimages.pas');
-    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
+    P.Targets.AddUnit('castleglutils.pas');
+    P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
+    P.Targets.AddUnit('castlerenderprimitives.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');

@@ -70,10 +70,18 @@ type
     - handle keys and mouse presses using CGE API.
   }
   TUiTest = class(TCastleUserInterface)
+    constructor Create(Owner: TComponent); override;
     procedure Render; override;
     procedure GLContextOpen; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
+
+constructor TUiTest.Create(Owner: TComponent);
+begin
+  inherited;
+  // keep in front, to not be obscured by designs we load using CastleControl.Container.DesignUrl
+  KeepInFront := true;
+end;
 
 procedure TUiTest.GLContextOpen;
 begin

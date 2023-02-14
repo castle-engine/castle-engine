@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleScript" -*-
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -434,7 +434,7 @@ begin
     Vars.Add(TCasScriptFloat.Create(true, 3.14));
     Vars.Add(TCasScriptBoolean.Create(true, false));
     Vars.Add(TCasScriptString.Create(true, 'foo'));
-    Vars.Add(TCasScriptLongIntArray.Create(true));
+    Vars.Add(TCasScriptInt32Array.Create(true));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';

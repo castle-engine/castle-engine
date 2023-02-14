@@ -29,7 +29,7 @@
     { Make sure all 6 sides are loaded.
       Make sure that all 6 fields for each cube map side are assigned,
       are TAbstractTexture2DNode instance (X3D spec requires it),
-      load them, and check are they TCastleImage (we cannot suport
+      load them, and check are they TCastleImage (we cannot support
       TGPUCompressedImage when loading cubemaps this way,
       as we have to rotate images from ComposedCubeMapTextureNode
       when passing them to GPU, which is only possible for TCastleImage).

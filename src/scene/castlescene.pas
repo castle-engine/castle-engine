@@ -112,7 +112,7 @@ type
         Shader: TX3DShaderProgramBase;
         ShaderAlphaTest: TX3DShaderProgramBase;
         procedure Initialize(const VertexCode, FragmentCode: string);
-        procedure Free;
+        procedure Finalize;
       end;
 
       TSceneRenderOptions = class(TCastleRenderOptions)
@@ -628,7 +628,7 @@ implementation
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes,
-  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
+  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.TCustomShaders.Free;
+procedure TCastleScene.TCustomShaders.Finalize;
 begin
   FreeAndNil(Shader);
   FreeAndNil(ShaderAlphaTest);
@@ -917,8 +917,8 @@ begin
   if Renderer <> nil then
     Renderer.UnprepareAll;
 
-  VarianceShadowMapsProgram.Free;
-  ShadowMapsProgram.Free;
+  VarianceShadowMapsProgram.Finalize;
+  ShadowMapsProgram.Finalize;
 
   ScheduleUpdateGeneratedTextures;
 
@@ -1063,18 +1063,11 @@ procedure TCastleScene.LocalRenderInside(
   { Transformation of Params.Transform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
-  var
-    CameraMatrix: PMatrix4;
   begin
-    if Params.RenderingCamera.RotationOnly then
-      CameraMatrix := @Params.RenderingCamera.RotationMatrix
-    else
-      CameraMatrix := @Params.RenderingCamera.Matrix;
-
     if Params.TransformIdentity then
-      Result := CameraMatrix^
+      Result := Params.RenderingCamera.CurrentMatrix
     else
-      Result := CameraMatrix^ * Params.Transform^;
+      Result := Params.RenderingCamera.CurrentMatrix * Params.Transform^;
   end;
 
   procedure BatchingCommit;
@@ -1240,7 +1233,7 @@ begin
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * Render_ModelView;
-    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+    //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
   end;
 
   {$ifndef OpenGLES}
@@ -1257,7 +1250,7 @@ begin
     ReceivedGlobalLights := nil;
 
   Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass, @Params.Statistics);
   try
     case RenderOptions.Mode of
       rmDepth:
@@ -1319,9 +1312,12 @@ procedure TCastleScene.PrepareResources(
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     I: Integer;
+    DummyStatistics: TRenderStatistics;
   begin
     if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
+
+    FillChar(DummyStatistics, SizeOf(DummyStatistics), #0);
 
     { Note: we prepare also not visible shapes, in case they become visible. }
     ShapeList := Shapes.TraverseList(false, false);
@@ -1365,7 +1361,7 @@ procedure TCastleScene.PrepareResources(
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0);
+      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
 
       for Shape in ShapeList do
       begin
@@ -1627,24 +1623,16 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
-      {$ifdef FPC}
-      {$warnings off}
-      SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
-      SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
-      RenderOptions.CustomShader          := NewShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      SavedShaders.Shader          := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
+      SavedShaders.ShaderAlphaTest := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase;
+      RenderOptions.InternalCustomShader          := NewShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
 
       RenderWithWireframeEffect;
 
       RenderOptions.Mode := SavedMode;
-      {$ifdef FPC}
-      {$warnings off}
-      RenderOptions.CustomShader          := SavedShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      RenderOptions.InternalCustomShader          := SavedShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end else
     begin
       RenderWithWireframeEffect;
@@ -1809,6 +1797,7 @@ begin
             T := Params.Transform^ * Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
+            SVRenderer.Mesh,
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
@@ -2036,11 +2025,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
-      Shape := TGLShape(GeneratedTextures.L[I].Shape);
-      TextureNode := GeneratedTextures.L[I].TextureNode;
-      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      Shape := TGLShape(GeneratedTextures.List^[I].Shape);
+      TextureNode := GeneratedTextures.List^[I].TextureNode;
+      GenTexFunctionality := GeneratedTextures.List^[I].Functionality;
 
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -2241,15 +2228,13 @@ var
   I: Integer;
 begin
   inherited;
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to GeneratedTextures.Count - 1 do
-    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
+    if GeneratedTextures.List^[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;

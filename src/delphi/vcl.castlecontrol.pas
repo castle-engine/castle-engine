@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,8 @@ unit Vcl.CastleControl;
 interface
 
 uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
-  CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
+  CastleGLVersion, CastleGLUtils,
+  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer,
   CastleVectors, CastleKeysMouse;
 
 type
@@ -40,7 +41,7 @@ type
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
-        procedure AdjustContext(const AContext: TGLContextWGL); override;
+        procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
@@ -133,11 +134,18 @@ begin
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
+{$ifdef MSWINDOWS}
+var
+  WinContext: TGLContextWGL;
 begin
   inherited;
-  AContext.WndPtr := Parent.Handle;
-  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
+  WinContext := PlatformContext as TGLContextWGL;
+  WinContext.WndPtr := Parent.Handle;
+  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+{$else}
+begin
+{$endif}
 end;
 
 function TCastleControl.TContainer.Dpi: Single;

@@ -43,6 +43,10 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionShowStatistics: TAction;
+    ActionRunParameterCapabilitiesForceFixedFunction: TAction;
+    ActionRunParameterCapabilitiesForceModern: TAction;
+    ActionRunParameterCapabilitiesDefault: TAction;
     ActionRunParameterDefaultWindowOrFullscreen: TAction;
     ActionRunParameterRequestWindow: TAction;
     ActionRunParameterRequestFullScreen: TAction;
@@ -111,6 +115,11 @@ type
     MenuItem27: TMenuItem;
     MenuItem2888888: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem39: TMenuItem;
+    MenuItem40: TMenuItem;
+    MenuItem41: TMenuItem;
+    Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
     MenuItemRunParameterRequestWindow: TMenuItem;
@@ -328,6 +337,10 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
+    procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
+      Sender: TObject);
+    procedure ActionRunParameterCapabilitiesForceModernExecute(Sender: TObject);
     procedure ActionRunParameterDefaultWindowOrFullscreenExecute(Sender: TObject
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
@@ -533,6 +546,7 @@ type
       Selected: Boolean);
     procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
       const UnitOutputDirFromFileBrowser: Boolean);
+    function ShowStatistics: Boolean;
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -642,8 +656,13 @@ begin
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
+  begin
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 
   { On GTK, this happens when we open a dialog box, like open/save.
     It's important to stop treating keys/mouse as pressed then.
@@ -677,7 +696,12 @@ begin
   if Design.DesignUrl = '' then
     MenuItemSaveAsDesignClick(Sender)
   else
+  begin
     Design.SaveDesign(Design.DesignUrl);
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
@@ -967,6 +991,24 @@ begin
     BitBtnPlayStop.Hint := 'Compile and Run (F9)';
   end;
   //BitBtnPlayStop.Checked := NowIsRunning;
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesDefaultExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesForceFixedFunctionExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionRunParameterCapabilitiesForceModernExecute(
+  Sender: TObject);
+begin
+  (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
 procedure TProjectForm.ActionRunParameterDefaultWindowOrFullscreenExecute(
@@ -1398,6 +1440,11 @@ begin
     ProposeToOpenNewFile;
     RefreshFiles(rfFilesInCurrentDir);
   end;
+end;
+
+function TProjectForm.ShowStatistics: Boolean;
+begin
+  Result := ActionShowStatistics.Checked;
 end;
 
 procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
@@ -2245,6 +2292,7 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
+  ActionShowStatistics.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2304,6 +2352,7 @@ begin
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
     Design.OnIsRunning  := @IsRunning;
+    Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
 
@@ -3038,6 +3087,10 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then
       Params.Add('--window');
+    if ActionRunParameterCapabilitiesForceFixedFunction.Checked then
+      Params.Add('--capabilities=force-fixed-function');
+    if ActionRunParameterCapabilitiesForceModern.Checked then
+      Params.Add('--capabilities=force-modern');
   end;
 
 var

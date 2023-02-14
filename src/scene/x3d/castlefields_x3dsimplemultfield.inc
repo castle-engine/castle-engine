@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -116,9 +116,11 @@
 
     procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return false, Set will do nothing,
-      and both will produce clear WritelnWarning. }
+    { Access items, making nice warning in case of an invalid index.
+      In case of an invalid index,
+      getting will return default value (filled with zeroes),
+      setting will do nothing,
+      and both will emit user-friendly WritelnWarning. }
     property ItemsSafe[Index: Integer]: TItem read GetItemsSafe write SetItemsSafe;
 
     { Set the field's value in a correct way (by sending X3D event, or at least notifying
@@ -535,19 +537,7 @@ begin
     Result := Items.{$ifdef FPC}L[Index]{$else}InternalGetItem(Index){$endif} else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
-    { Using the Default(TItem) crashes FPC 3.0.0 and 3.0.2 (on Linux x86_64).
-      The output seems truncated, without any error message:
-
-        Compiling /home/michalis/sources/castle-engine/castle-engine/src/castlescript/castlescriptvectors.pas
-        Compiling /hoError: /home/michalis/installed/fpclazarus/3.0.0/fpc/bin/x86_64-linux/ppcx64 can't be executed, error message: Failed to execute "/home/michalis/installed/fpclazarus/3.0.0/fpc/bin/x86_64-linux/ppcx64", error code: -11
-
-      Works fine with FPC 3.1.1, so I assume it's something already fixed.
-    }
-    {$ifdef VER3_0}
-    FillChar(Result, SizeOf(Result), 0);
-    {$else}
     Result := Default(TItem);
-    {$endif}
   end;
 end;
 

@@ -254,6 +254,8 @@ function TActivityRecognition.MessageReceived(const Received: TCastleStringList;
   begin
     Exclude(Activities, uaUnknown);
 
+    LastA := uaStationary; // just to silence Delphi warning
+
     C := 0;
     for A in Activities do
     begin
