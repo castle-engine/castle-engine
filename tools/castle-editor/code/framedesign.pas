@@ -209,8 +209,13 @@ type
 
           Note: In most cases, prefer to call HoverComponent.
           HoverUserInterface *does not* consider transforms within TCastleViewport,
-          it will just return TCastleViewport if mouse is over it. }
-        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+          it will just return TCastleViewport if mouse is over it.
+
+          @param(EnterNestedDesigns If @true, we enter children loaded by TCastleDesign,
+            in TCastleDesign.Design. This should almost never be used: such children
+            are not selectable, their names may collide with names in main design etc.) }
+        function HoverUserInterface(const AMousePosition: TVector2;
+          const EnterNestedDesigns: Boolean = false): TCastleUserInterface;
 
         { UI or transform under given mouse position.
           AMousePosition is like for HoverUserInterface. }
@@ -544,6 +549,11 @@ type
       as easily as possible, to avoid the "selection of viewport" being an extra step
       user needs to remember to do.
 
+      Note that this viewport may not be Selectable.
+      It may be an internal viewport (in case of .castle-transform files)
+      or a viewport inside TCastleDesign.Design (testcase when it's needed:
+      examples/physics/physics_joints_3d/ ).
+
       @nil if none. }
     property CurrentViewport: TCastleViewport read FCurrentViewport;
 
@@ -671,7 +681,8 @@ begin
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
-  const AMousePosition: TVector2): TCastleUserInterface;
+  const AMousePosition: TVector2;
+  const EnterNestedDesigns: Boolean): TCastleUserInterface;
 
   { Like TCastleUserInterface.CapturesEventsAtPosition, but
     - ignores CapturesEvents
@@ -684,6 +695,15 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       Result := UI.RenderRectWithBorder.Contains(Position)
     else
       Result := UI.RenderRect.Contains(Position);
+  end;
+
+  { Is C selectable, or we should enter it anyway because of EnterNestedDesigns. }
+  function Enter(const Parent, C: TCastleUserInterface): Boolean;
+  begin
+    Result := TDesignFrame.Selectable(C) or
+      ( EnterNestedDesigns and
+        (Parent is TCastleDesign) and
+        (TCastleDesign(Parent).InternalDesign = C) );
   end;
 
   function ControlUnder(const C: TCastleUserInterface;
@@ -708,7 +728,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
         control if we merely point at its border). This allows to find controls
         places on another control's border. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, false);
           if Result <> nil then Exit;
@@ -717,7 +737,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       { Next try to find children, with TestWithBorder=true, so it tries harder
         to find something. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, true);
           if Result <> nil then Exit;
@@ -801,7 +821,10 @@ begin
 
     Also, unlike CurrentViewport,
     we don't want to remember last hovered/selected viewport here,
-    it would be weird for user here. }
+    it would be weird for user here.
+
+    Also, unlike CurrentViewport, we don't pass EnterNestedDesigns as
+    UpdateCurrentViewport does. We don't need to look for viewport that aggressive. }
 
   Result := HoverUserInterface(AMousePosition);
   if Result is TCastleViewport then // also checks Result <> nil
@@ -2608,7 +2631,7 @@ begin
   if NewCurrentViewport = nil then
   begin
     { try HoverUserInterface as TCastleViewport }
-    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
+    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition, true);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
       NewCurrentViewport := TCastleViewport(HoverUi)
     else
