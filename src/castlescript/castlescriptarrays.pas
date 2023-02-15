@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,10 @@
 unit CastleScriptArrays;
 
 {$I castleconf.inc}
+
+{$ifndef FPC}
+  {$message fatal 'This unit is not yet ported to Delphi'}
+{$endif}
 
 interface
 
@@ -43,8 +47,8 @@ type
       FValue: TXxxList;
 
     { Create and make Value an instance of TSelfClass.
-      This makes Value an instance of the self class, like TCasScriptLongIntArray,
-      when this generic is specialized to TCasScriptLongIntArray. }
+      This makes Value an instance of the self class, like TCasScriptInt32Array,
+      when this generic is specialized to TCasScriptInt32Array. }
     class function CreateValueIfNeededSelf(var Value: TCasScriptValue;
       var ParentOfValue: boolean): TSelfClass;
 
@@ -67,8 +71,8 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptLongIntArray = class({$ifdef FPC}specialize{$endif} TCasScriptArray<
-    TLongIntList,
+  TCasScriptInt32Array = class({$ifdef FPC}specialize{$endif} TCasScriptArray<
+    TInt32List,
     TCasScriptInteger,
     TCasScriptArrayFun>)
   end;
@@ -615,7 +619,7 @@ begin
 end;
 
 initialization
-  TCasScriptLongIntArray.RegisterFunctions;
+  TCasScriptInt32Array.RegisterFunctions;
   TCasScriptSingleArray.RegisterFunctions;
   TCasScriptDoubleArray.RegisterFunctions;
   TCasScriptBooleanArray.RegisterFunctions;

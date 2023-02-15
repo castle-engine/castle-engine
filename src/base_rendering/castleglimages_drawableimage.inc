@@ -1,3 +1,4 @@
+{%MainUnit castleglimages.pas}
 {
   Copyright 2001-2023 Michalis Kamburelis.
 
@@ -79,6 +80,7 @@
       TVboStorage = record
         PointsVbo, IndexesVbo: TGLuint;
         PointsVboSize, IndexesVboSize: Cardinal;
+        Vao: TVertexArrayObject;
       end;
       PVboStorage = ^TVboStorage;
 
@@ -109,7 +111,7 @@
       VboStorageNext: Cardinal;
       { Point VBO contents, reused in every Draw. }
       Points: array of TPoint;
-      Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
+      Indexes: array of TGLIndex;
 
       { Used only in shader pipeline }
       Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram;
@@ -199,7 +201,6 @@
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
-    class function UseShaders: Boolean; static;
   public
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -881,11 +882,6 @@ begin
   FImage := AImage;
 end;
 
-class function TDrawableImage.UseShaders: Boolean;
-begin
-  Result := GLFeatures.Shaders <> gsNone;
-end;
-
 class procedure TDrawableImage.StaticGLContextOpen;
 var
   AlphaTestShader, ClipLineShader: boolean;
@@ -894,20 +890,18 @@ var
   VS, FS: string;
   I: Integer;
 begin
-  // Some Intel GPUs may not support VBO
-  if GLFeatures.VertexBufferObject then
+  if not GLFeatures.EnableFixedFunction then
   begin
     for I := Low(VboStorage) to High(VboStorage) do
     begin
-      if (VboStorage[I].PointsVbo = 0) then
+      if VboStorage[I].PointsVbo = 0 then
         glGenBuffers(1, @VboStorage[I].PointsVbo);
-      if (VboStorage[I].IndexesVbo = 0) then
+      if VboStorage[I].IndexesVbo = 0 then
         glGenBuffers(1, @VboStorage[I].IndexesVbo);
+      if VboStorage[I].Vao = nil then
+        VboStorage[I].Vao := TVertexArrayObject.Create;
     end;
-  end;
 
-  if UseShaders then
-  begin
     { create programs }
     for AlphaTestShader := Low(boolean) to High(boolean) do
       for ClipLineShader := Low(boolean) to High(boolean) do
@@ -950,13 +944,17 @@ begin
   begin
     glFreeBuffer(VboStorage[I].PointsVbo);
     glFreeBuffer(VboStorage[I].IndexesVbo);
+    FreeAndNil(VboStorage[I].Vao);
     VboStorage[I].PointsVboSize := 0;
     VboStorage[I].IndexesVboSize := 0;
   end;
 
-  { free below regardless of UseShaders,
-    to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
-  // if UseShaders then
+  { Free below regardless of GLFeatures.EnableFixedFunction,
+    in case user toggles GLFeatures.EnableFixedFunction at runtime.
+    Note: This robustness is not really unnecessary now,
+    as GLFeatures.EnableFixedFunction and TGLFeatures.RequestCapabilities
+    cannot change once GL context is initialized. }
+  //if not GLFeatures.EnableFixedFunction then
   for AlphaTestShader := Low(boolean) to High(boolean) do
     for ClipLineShader := Low(boolean) to High(boolean) do
       for ColorTreatment := Low(TColorTreatment) to High(TColorTreatment) do
@@ -1074,14 +1072,7 @@ procedure TDrawableImage.DrawNoBatch(
   procedure AlphaBegin;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest:
-        if not UseShaders then
-        begin
-          glAlphaFunc(GL_GEQUAL, 0.5);
-          glEnable(GL_ALPHA_TEST);
-        end;
-      {$endif not OpenGLES}
+      acTest: RenderContext.FixedFunctionAlphaTestEnable;
       acBlending:
         begin
           if GLFeatures.BlendConstant and
@@ -1099,8 +1090,7 @@ procedure TDrawableImage.DrawNoBatch(
               BlendingConstantColor[3]);
           end;
 
-          GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
-          glEnable(GL_BLEND);
+          RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
         end;
       else ;
     end;
@@ -1109,10 +1099,8 @@ procedure TDrawableImage.DrawNoBatch(
   procedure AlphaEnd;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest: if not UseShaders then glDisable(GL_ALPHA_TEST);
-      {$endif not OpenGLES}
-      acBlending: glDisable(GL_BLEND);
+      acTest: RenderContext.FixedFunctionAlphaTestDisable;
+      acBlending: RenderContext.BlendingDisable;
       else ;
     end;
   end;
@@ -1169,6 +1157,7 @@ var
     end;
   end;
 
+  { Bind the given buffer and update contents. }
   procedure LoadBuffer(const Target: TGLenum;
     const Vbo: TGLuint; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
@@ -1193,6 +1182,7 @@ var
   Prog: TImageProgram;
   I: Integer;
   Vbo: PVboStorage;
+  IndexPtr: Pointer;
 begin
   if (Count = 0) or
      ((Count = 1) and
@@ -1236,12 +1226,19 @@ begin
   for I := 0 to Count - 1 do
     SetupQuadPoints(ScreenRects^[I], ImageRects^[I], @Points[I * 4]);
 
-  if GLFeatures.VertexBufferObject then
+  AlphaBegin;
+
+  if not GLFeatures.EnableFixedFunction then
   begin
+    // initialize VBO
     Vbo := @VboStorage[VboStorageNext];
     Inc(VboStorageNext);
     if VboStorageNext = High(VboStorage) + 1 then
       VboStorageNext := 0;
+
+    { VAO must be bound before binding VBOs,
+      esp. important for GL_ELEMENT_ARRAY_BUFFER whose VBO isn't bound later. }
+    RenderContext.CurrentVao := Vbo^.Vao;
 
     LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
@@ -1249,12 +1246,9 @@ begin
     if Count <> 1 then
       LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
-  end;
 
-  AlphaBegin;
+    // initialize shaders
 
-  if UseShaders then
-  begin
     if TextureHasOnlyAlpha then
       ColorTreatment := ctColorMultipliesTextureAlpha else
     if not TCastleColor.PerfectlyEquals(Color, White) then
@@ -1269,10 +1263,10 @@ begin
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
     RenderContext.CurrentProgram := Prog.Prog;
-    Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
-    Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
+    Prog.AttribVertex.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
+    Prog.AttribTexCoord.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
 
     if (RenderContext.Viewport.Left <> 0) or
        (RenderContext.Viewport.Bottom <> 0) then
@@ -1288,23 +1282,15 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    RenderContext.CurrentProgram := nil;
+    Assert(RenderContext.CurrentProgram = nil); // when EnableFixedFunction, this should always stay nil
     glLoadIdentity();
     glColorv(Color);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    if GLFeatures.VertexBufferObject then
-    begin
-      glVertexPointer(2, GL_FLOAT,
-        SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
-      glTexCoordPointer(2, GL_FLOAT,
-        SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
-    end else
-    begin
-      glVertexPointer  (2, GL_FLOAT, SizeOf(TPoint), @(Points[0].Position));
-      glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
-    end;
+    glVertexPointer  (2, GL_FLOAT, SizeOf(TPoint), @(Points[0].Position));
+    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
+
     if Clip then
     begin
       { TODO: Clip not implemented in this case yet.
@@ -1319,26 +1305,24 @@ begin
 
   if Count <> 1 then
   begin
-    if GLFeatures.VertexBufferObject then
-    begin
-      { No need to call glBindBuffer below, it is already bound by
-        LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, ...) above. }
-      //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
-    end else
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, @Indexes[0]);
+    if not GLFeatures.EnableFixedFunction then
+      IndexPtr := nil
+    else
+      IndexPtr := @Indexes[0];
+    glDrawElements(GL_TRIANGLES, Length(Indexes), GLIndexConst, IndexPtr);
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-  if UseShaders then
+  if not GLFeatures.EnableFixedFunction then
   begin
     // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TDrawableImage
     { attribute arrays are enabled independent from GLSL program, so we need
       to disable them separately }
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end else
   begin
     {$ifndef OpenGLES}
@@ -1348,18 +1332,12 @@ begin
     }
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    GLEnableTexture(etNone);
     {$endif not OpenGLES}
   end;
 
   AlphaEnd;
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  end;
-
-  GLEnableTexture(etNone);
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TRectangle;

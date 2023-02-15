@@ -82,7 +82,7 @@ type
       @raises(EInvalidChar If some string contains invalid characters.
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
-    procedure Event(const Category, Action, ALabel: string; const Value: Int64);
+    procedure Event(const Category, Action, ALabel: string; const Value: Int64); overload;
 
     { Send to analytics a general event, along with a custom dimension.
       DimensionIndex must be > 0.
@@ -100,7 +100,7 @@ type
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
     procedure Event(const Category, Action, ALabel: string; const Value: Int64;
-      const DimensionIndex: Cardinal; const DimensionValue: string);
+      const DimensionIndex: Cardinal; const DimensionValue: string); overload;
 
     { Send to analytics a timing event.
 
@@ -127,13 +127,13 @@ uses SysUtils,
 constructor TAnalytics.Create(AOwner: TComponent);
 begin
   inherited;
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  ApplicationProperties.OnInitializeJavaActivity.Add({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TAnalytics.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   inherited;
 end;
 

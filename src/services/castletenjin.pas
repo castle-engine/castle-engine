@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,13 +60,13 @@ uses CastleApplicationProperties, CastleMessaging;
 constructor TCastleTenjin.Create(AOwner: TComponent);
 begin
   inherited;
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  ApplicationProperties.OnInitializeJavaActivity.Add({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TCastleTenjin.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   inherited;
 end;
 

@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -196,7 +196,7 @@ type
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
-
+  TCubicBezier3DPointsArray = array of TCubicBezier3DPoints;
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
     is a cubic Bezier curve (Bezier with 4 control points,
@@ -212,12 +212,14 @@ type
   }
   TPiecewiseCubicBezier = class(TControlPointsCurve)
   strict private
-    BezierCurves: array of TCubicBezier3DPoints;
+    BezierCurves: TCubicBezier3DPointsArray;
     ConvexHullPoints: TVector3List;
     FBoundingBox: TBox3D;
   strict protected
     function CreateConvexHullPoints: TVector3List; override;
     procedure DestroyConvexHullPoints(Points: TVector3List); override;
+    { Calculating additional points. }
+    procedure UpdateBezierCurves(var ABezierCurves: TCubicBezier3DPointsArray); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -458,8 +460,8 @@ begin
       P := PointOfSegment(i, SegmentsForBoundingBox);
       for k := 0 to 2 do
       begin
-        FBoundingBox.Data[0].Data[k] := Min(FBoundingBox.Data[0].Data[k], P[k]);
-        FBoundingBox.Data[1].Data[k] := Max(FBoundingBox.Data[1].Data[k], P[k]);
+        FBoundingBox.Data[0].InternalData[k] := Min(FBoundingBox.Data[0].InternalData[k], P[k]);
+        FBoundingBox.Data[1].InternalData[k] := Max(FBoundingBox.Data[1].InternalData[k], P[k]);
       end;
     end;
   end;
@@ -674,62 +676,62 @@ begin
   Result := CubicBezier3D(TInsidePiece, BezierCurves[IndexBefore]);
 end;
 
-procedure TPiecewiseCubicBezier.UpdateControlPoints;
+procedure TPiecewiseCubicBezier.UpdateBezierCurves(var ABezierCurves: TCubicBezier3DPointsArray);
+var
+  S: TVector3List;
+  C: TVector3List;
+  I: Integer;
+  PointBegin, PointEnd: TVector3;
+begin
+  { Normal calculations cannot be done when
+    ControlPoints.Count = 2:
+    C.Count would be 1, S.Count would be 2,
+    S[0] would be calculated based on C[0] and S[1],
+    S[1] would be calculated based on C[0] and S[0].
+    So we can't calculate S[0] and S[1] using given equations when
+    ControlPoints.Count = 2.
 
-  procedure UpdateBezierCurves;
-  var
-    S: TVector3List;
-    C: TVector3List;
-    I: Integer;
-    PointBegin, PointEnd: TVector3;
-  begin
-    { Normal calculations cannot be done when
-      ControlPoints.Count = 2:
-      C.Count would be 1, S.Count would be 2,
-      S[0] would be calculated based on C[0] and S[1],
-      S[1] would be calculated based on C[0] and S[0].
-      So we can't calculate S[0] and S[1] using given equations when
-      ControlPoints.Count = 2.
+    Point() method implements a special case for ControlPoints.Count = 2,
+    it just does Lerp then. }
+  if ControlPoints.Count <= 2 then
+    Exit;
 
-      Point() method implements a special case for ControlPoints.Count = 2,
-      it just does Lerp then. }
-    if ControlPoints.Count <= 2 then
-      Exit;
+  { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
+  C := nil;
+  S := nil;
+  try
+    C := TVector3List.Create;
+    C.Count := ControlPoints.Count - 1;
+    { calculate C values }
+    for I := 0 to C.Count - 1 do
+      C[I] := ControlPoints[I + 1] - ControlPoints[I];
 
-    { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
-    C := nil;
-    S := nil;
-    try
-      C := TVector3List.Create;
-      C.Count := ControlPoints.Count - 1;
-      { calculate C values }
-      for I := 0 to C.Count - 1 do
-        C[I] := ControlPoints[I + 1] - ControlPoints[I];
+    S := TVector3List.Create;
+    S.Count := ControlPoints.Count;
+    { calculate S values }
+    for I := 1 to S.Count - 2 do
+      S[I] := (C[I-1] + C[I]) / 2;
+    S[0        ] := C[0        ] * 2 - S[1        ];
+    S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
 
-      S := TVector3List.Create;
-      S.Count := ControlPoints.Count;
-      { calculate S values }
-      for I := 1 to S.Count - 2 do
-        S[I] := (C[I-1] + C[I]) / 2;
-      S[0        ] := C[0        ] * 2 - S[1        ];
-      S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
+    SetLength(ABezierCurves, ControlPoints.Count - 1);
 
-      SetLength(BezierCurves, ControlPoints.Count - 1);
-
-      for I := 1 to ControlPoints.Count - 1 do
-      begin
-        PointBegin := ControlPoints.List^[I - 1];
-        PointEnd   := ControlPoints.List^[I];
-        BezierCurves[I - 1][0] := PointBegin;
-        BezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
-        BezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
-        BezierCurves[I - 1][3] := PointEnd;
-      end;
-    finally
-      C.Free;
-      S.Free;
+    for I := 1 to ControlPoints.Count - 1 do
+    begin
+      PointBegin := ControlPoints.List^[I - 1];
+      PointEnd   := ControlPoints.List^[I];
+      ABezierCurves[I - 1][0] := PointBegin;
+      ABezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
+      ABezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
+      ABezierCurves[I - 1][3] := PointEnd;
     end;
+  finally
+    C.Free;
+    S.Free;
   end;
+end;
+
+procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateConvexHullPoints;
   var
@@ -753,7 +755,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
 begin
   inherited;
-  UpdateBezierCurves;
+  UpdateBezierCurves(BezierCurves);
   UpdateConvexHullPoints;
   UpdateBoundingBox;
 end;

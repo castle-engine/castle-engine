@@ -107,7 +107,7 @@ begin
       if LowerCase(Setting.Key) = 'height' then
         FHeight := StrToInt(Setting.Value)
       else
-        WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.',
+        WritelnWarning('LoadNode(Image)', 'Unknown setting (%s) in "%s" anchor.',
           [Setting.Key, FDisplayUrl]);
     end;
   finally

@@ -188,14 +188,6 @@
     {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
 
-  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType). }
-  TLineType = (
-    ltSolid,
-    ltDashed,
-    ltDotted,
-    ltDashedDotted,
-    ltDashDotDot);
-
   { Additional visible properties to be applied to all line geometry. }
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
   strict private
@@ -1092,7 +1084,7 @@ procedure TShapeNode.GenerateTangents;
     const TexCoords: TVector2List;
     const Tangents: TVector3List);
   var
-    TriangleIndexes: TLongIntList;
+    TriangleIndexes: TInt32List;
     Tangent: TVector3;
     I, Index0, Index1, Index2: Integer;
     TriangleCoord: TTriangle3;

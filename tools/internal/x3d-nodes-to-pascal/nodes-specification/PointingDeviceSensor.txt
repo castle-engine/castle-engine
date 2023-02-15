@@ -1,5 +1,6 @@
 X3DPointingDeviceSensorNode : X3DSensorNode {
   SFString [in,out] description ""
+    change: chNone
   SFBool   [out]    isOver
 }
 

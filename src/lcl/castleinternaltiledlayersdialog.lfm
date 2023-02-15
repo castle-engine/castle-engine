@@ -1,0 +1,65 @@
+object TiledLayersDialog: TTiledLayersDialog
+  Left = 713
+  Height = 416
+  Top = 316
+  Width = 572
+  Caption = 'Edit Tiled Layers To Show'
+  ClientHeight = 416
+  ClientWidth = 572
+  DesignTimePPI = 115
+  OnCloseQuery = FormCloseQuery
+  Position = poMainFormCenter
+  LCLVersion = '2.2.2.0'
+  object ButtonPanel1: TButtonPanel
+    Left = 8
+    Height = 45
+    Top = 363
+    Width = 556
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.Caption = '&Select All'
+    HelpButton.OnClick = SelectAllButtonClick
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel, pbHelp]
+    ShowGlyphs = [pbOK, pbCancel, pbClose]
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 21
+    Top = 8
+    Width = 552
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Select layers to show.'
+    ParentColor = False
+    WordWrap = True
+  end
+  object CheckLayers: TScrollBox
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel1
+    Left = 8
+    Height = 318
+    Top = 37
+    Width = 555
+    HorzScrollBar.Page = 1
+    VertScrollBar.Page = 1
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 8
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    Color = clWindow
+    ParentColor = False
+    TabOrder = 1
+  end
+end

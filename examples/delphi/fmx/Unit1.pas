@@ -61,9 +61,17 @@ uses Windows, FMX.Presentation.Win,
 
 type
   TUiTest = class(TCastleUserInterface)
+    constructor Create(Owner: TComponent); override;
     procedure Render; override;
     procedure GLContextOpen; override;
   end;
+
+constructor TUiTest.Create(Owner: TComponent);
+begin
+  inherited;
+  // keep in front, to not be obscured by designs we load using CastleControl.Container.DesignUrl
+  KeepInFront := true;
+end;
 
 procedure TUiTest.GLContextOpen;
 begin

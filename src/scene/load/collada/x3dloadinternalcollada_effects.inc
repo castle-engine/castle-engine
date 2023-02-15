@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -147,7 +147,7 @@ begin
     { Collada 1.4 spefication about A_ONE:
       Takes the transparency information from the color’s
       alpha channel, where the value 1.0 is opaque. }
-    Result := 1 - Color.Data[3];
+    Result := 1 - Color.W;
   end else
   if OpaqueMode = 'RGB_ZERO' then
   begin

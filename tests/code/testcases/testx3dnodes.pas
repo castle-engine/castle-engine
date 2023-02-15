@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -388,10 +388,10 @@ begin
       begin
         CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             (K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             not N.Events[K].IsName(CurrentName));
       end;
 
@@ -399,10 +399,10 @@ begin
       begin
         CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             (K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;

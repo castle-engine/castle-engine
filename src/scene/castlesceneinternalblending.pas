@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,6 @@ type
   TBlendingRenderer = class
   private
     SceneCore: TCastleSceneCore;
-    SourceFactorSet: TBlendingSourceFactor;
-    DestinationFactorSet: TBlendingDestinationFactor;
     Active: Boolean; //< between RenderBegin and RenderEnd
     function DefaultSourceFactor: TBlendingSourceFactor;
     function DefaultDestinationFactor: TBlendingDestinationFactor;
@@ -87,12 +85,7 @@ begin
   Active := true;
 
   RenderContext.DepthBufferUpdate := false;
-  glEnable(GL_BLEND);
-
-  { Set glBlendFunc using RenderOptions.BlendingXxxFactor }
-  SourceFactorSet := DefaultSourceFactor;
-  DestinationFactorSet := DefaultDestinationFactor;
-  GLBlendFunction(SourceFactorSet, DestinationFactorSet);
+  RenderContext.BlendingEnable(DefaultSourceFactor, DefaultDestinationFactor);
 end;
 
 procedure TBlendingRenderer.RenderEnd;
@@ -103,15 +96,13 @@ begin
 
   { restore glDepthMask and blending state to default values }
   RenderContext.DepthBufferUpdate := true;
-  glDisable(GL_BLEND);
+  RenderContext.BlendingDisable;
 end;
 
 procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
 
 { Looks at Scene.RenderOptions.BlendingXxx and Appearance.BlendMode of X3D node.
-  If different than currently set, then changes BlendingXxxFactorSet and updates
-  by glBlendFunc. This way, we avoid calling glBlendFunc too often
-  (which is potentially costly, since it changes GL state). }
+  If different than currently set, then changes blending mode. }
 
 const
   SrcConstColor = [bsConstantColor, bsOneMinusConstantColor];
@@ -142,13 +133,7 @@ begin
     NeedsConstAlpha := false;
   end;
 
-  if (SourceFactorSet <> NewSrc) or
-     (DestinationFactorSet <> NewDest) then
-  begin
-    SourceFactorSet := NewSrc;
-    DestinationFactorSet := NewDest;
-    GLBlendFunction(SourceFactorSet, DestinationFactorSet);
-  end;
+  RenderContext.BlendingEnable(NewSrc, NewDest);
 
   { We track last source/dest factor, but we don't track last constant color/alpha.
     So just set them always, if needed. }

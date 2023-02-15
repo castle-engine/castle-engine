@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -216,11 +216,11 @@ var
   Material: TUnlitMaterialNode;
   Shape: TShapeNode;
   RootNode: TX3DRootNode;
-  VertexCount: TLongIntList;
+  VertexCount: TInt32List;
 begin
   RootNode := TX3DRootNode.Create;
 
-  VertexCount := TLongIntList.Create;
+  VertexCount := TInt32List.Create;
   try
     VertexCount.AddDuplicate(2, RigidBodies.Count);
 

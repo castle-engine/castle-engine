@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,7 @@ unit CastleShapeInternalRenderShadowVolumes;
 interface
 
 uses CastleVectors, CastleShapeInternalShadowVolumes,
-  CastleTriangles, CastleTransform;
+  CastleTriangles, CastleTransform, CastleRenderPrimitives;
 
 type
   TRenderShapeShadowVolumes = class helper for TShapeShadowVolumes
@@ -57,6 +57,7 @@ type
     }
     procedure RenderSilhouetteShadowVolume(
       const Params: TRenderParams;
+      const Mesh: TCastleRenderUnlitMesh;
       const LightPos: TVector4;
       const Transform: TMatrix4;
       const LightCap, DarkCap: boolean;
@@ -67,38 +68,7 @@ implementation
 
 uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
-  CastleRenderContext;
-
-{$ifndef OpenGLES}
-{ Rendering in this unit for now uses fixed-function pipeline,
-  and it requires fixed-function matrix set up. }
-procedure PushMatrix(const Params: TRenderParams);
-var
-  CameraMatrix: PMatrix4;
-begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix;
-  glLoadMatrix(RenderContext.ProjectionMatrix);
-
-  if Params.RenderingCamera.RotationOnly then
-    CameraMatrix := @Params.RenderingCamera.RotationMatrix
-  else
-    CameraMatrix := @Params.RenderingCamera.Matrix;
-
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix;
-  glLoadMatrix(CameraMatrix^);
-end;
-
-procedure PopMatrix;
-begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix;
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix;
-end;
-{$endif not OpenGLES}
+  CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext;
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.
@@ -136,12 +106,11 @@ end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const Params: TRenderParams;
+  const Mesh: TCastleRenderUnlitMesh;
   const LightPos: TVector4;
   const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
   const ForceOpaque, WholeSceneManifold: boolean);
-
-{$ifndef OpenGLES} //TODO-es
 
 { Is it worth preparing ManifoldEdges list: yes.
 
@@ -172,54 +141,74 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
 
 var
   Triangles: TTrianglesShadowCastersList;
+  Vertexes: TVector4List;
 
-  procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
-    const P0Index, P1Index: Cardinal); overload;
+  { Render shadow quad from edge given by 2 points. }
+  procedure RenderShadowQuad_Edge(const EdgeV0, EdgeV1: TVector3);
   var
-    V0, V1: TVector3;
-    EdgeV0, EdgeV1: PVector3;
+    V0_3D, V1_3D: TVector3;
+    V0, V1, V2, V3: TVector4;
+  begin
+    V0_3D := Transform.MultPoint(EdgeV0);
+    V1_3D := Transform.MultPoint(EdgeV1);
+    V0 := Vector4(V0_3D, 1);
+    V1 := Vector4(V1_3D, 1);
+
+    Vertexes.Add(V0);
+    Vertexes.Add(V1);
+
+    if LightPos[3] <> 0 then
+    begin
+      V2 := ExtrudeVertex(V1_3D, LightPos);
+      V3 := ExtrudeVertex(V0_3D, LightPos);
+
+      { Render quad V0..V3 (as 2 triangles, as modern OpenGL doesn't have quads). }
+      Vertexes.Add(V2);
+
+      Vertexes.Add(V0);
+      Vertexes.Add(V2);
+      Vertexes.Add(V3);
+    end else
+      { finish triangle }
+      Vertexes.Add(LightPos);
+  end;
+
+  { Render shadow quad from edge given by PManifoldEdge. }
+  procedure RenderShadowQuad_ManifoldEdge(const EdgePtr: PManifoldEdge;
+    const P0Index, P1Index: Cardinal);
+  var
     TrianglePtr: PTriangle3;
   begin
     TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.Triangles[0]));
-    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
-    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
-
-    V0 := Transform.MultPoint(EdgeV0^);
-    V1 := Transform.MultPoint(EdgeV1^);
-
-    glVertexv(V0);
-    glVertexv(V1);
-
-    if LightPos[3] <> 0 then
-    begin
-      glVertexv(ExtrudeVertex(V1, LightPos));
-      glVertexv(ExtrudeVertex(V0, LightPos));
-    end else
-      glVertexv(LightPos);
+    RenderShadowQuad_Edge(
+      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3],
+      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3]
+    );
   end;
 
-  procedure RenderShadowQuad(EdgePtr: PBorderEdge;
-    const P0Index, P1Index: Cardinal); overload;
+  { Render shadow quad from edge given by PBorderEdge. }
+  procedure RenderShadowQuad_BorderEdge(const EdgePtr: PBorderEdge;
+    const P0Index, P1Index: Cardinal);
   var
-    V0, V1: TVector3;
-    EdgeV0, EdgeV1: PVector3;
     TrianglePtr: PTriangle3;
   begin
     TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.TriangleIndex));
-    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
-    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
+    RenderShadowQuad_Edge(
+      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3],
+      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3]
+    );
+  end;
 
-    V0 := Transform.MultPoint(EdgeV0^);
-    V1 := Transform.MultPoint(EdgeV1^);
-
-    glVertexv(V0);
-    glVertexv(V1);
-    if LightPos[3] <> 0 then
+  { Render remaining Vertexes, if any.
+    The Vertexes list is always empty after this. }
+  procedure FlushVertexes;
+  begin
+    if Vertexes.Count <> 0 then
     begin
-      glVertexv(ExtrudeVertex(V1, LightPos));
-      glVertexv(ExtrudeVertex(V0, LightPos));
-    end else
-      glVertexv(LightPos);
+      Mesh.SetVertexes(Vertexes, true);
+      Mesh.Render(pmTriangles);
+      Vertexes.Clear;
+    end;
   end;
 
   { We initialize TrianglesPlaneSide and render caps in one step,
@@ -234,16 +223,16 @@ var
     begin
       if LightCap then
       begin
-        glVertexv(T.Data[0]);
-        glVertexv(T.Data[1]);
-        glVertexv(T.Data[2]);
+        Vertexes.Add(Vector4(T.Data[0], 1));
+        Vertexes.Add(Vector4(T.Data[1], 1));
+        Vertexes.Add(Vector4(T.Data[2], 1));
       end;
 
       if DarkCap then
       begin
-        glVertexv(ExtrudeVertex(T.Data[2], LightPos));
-        glVertexv(ExtrudeVertex(T.Data[1], LightPos));
-        glVertexv(ExtrudeVertex(T.Data[0], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[2], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[1], LightPos));
+        Vertexes.Add(ExtrudeVertex(T.Data[0], LightPos));
       end;
     end;
 
@@ -281,8 +270,7 @@ var
       good for speed.
 
       Some papers propose other solution:
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(1, 1);
+        RenderContext.PolygonOffsetEnable(1, 1);
       but this is no good for use, because it cannot be applied
       to DarkCap (otherwise DarkCap in infinity (as done by ExtrudeVertex)
       would go outside of depth range (even for infinite projection,
@@ -322,8 +310,7 @@ var
       - What to do?
 
         The trick
-          glEnable(GL_POLYGON_OFFSET_FILL);
-          glPolygonOffset(1, 1);
+          RenderContext.PolygonOffsetEnable(1, 1);
         makes light cap rendering working for both transparent and opaque
         objects, but it's not applicable to dark cap. Moreover,
         using glPolygonOffset always feels dirty.
@@ -354,13 +341,17 @@ var
         TODO: implement above.
     }
 
+  var
+    SavedDepthFunc: TDepthFunction;
+
     procedure OpaqueTrianglesBegin;
     begin
       if LightCap or DarkCap then
       begin
-        glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
-        glDepthFunc(GL_NEVER);
-        glBegin(GL_TRIANGLES);
+        FlushVertexes;
+
+        SavedDepthFunc := RenderContext.DepthFunc;
+        RenderContext.DepthFunc := dfNever;
       end;
     end;
 
@@ -368,8 +359,9 @@ var
     begin
       if LightCap or DarkCap then
       begin
-        glEnd;
-        glPopAttrib;
+        FlushVertexes;
+
+        RenderContext.DepthFunc := SavedDepthFunc;
       end;
     end;
 
@@ -379,13 +371,10 @@ var
         Well, for dark cap we can avoid them if the light is directional. }
       LightCap := true;
       DarkCap := LightPos.W <> 0;
-
-      glBegin(GL_TRIANGLES);
     end;
 
     procedure TransparentTrianglesEnd;
     begin
-      glEnd;
     end;
 
   var
@@ -399,19 +388,19 @@ var
     DarkCap := DarkCap and (LightPos.W <> 0);
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
-      OpaqueTrianglesBegin else
+      OpaqueTrianglesBegin
+    else
       TransparentTrianglesBegin;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     for I := 0 to Triangles.Count - 1 do
     begin
-      TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
+      TrianglesPlaneSide.List^[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
-      OpaqueTrianglesEnd else
+      OpaqueTrianglesEnd
+    else
       TransparentTrianglesEnd;
   end;
 
@@ -434,99 +423,96 @@ begin
      (not WholeSceneManifold) then
     Exit;
 
+  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix * Params.RenderingCamera.CurrentMatrix;
+
   Triangles := TrianglesListShadowCasters;
 
-  PushMatrix(Params);
+  { Nil local variables, to later free by one finally clause. }
+  TrianglesPlaneSide := nil;
+  Vertexes := nil;
 
-  TrianglesPlaneSide := TBooleanList.Create;
   try
+    TrianglesPlaneSide := TBooleanList.Create;
+    Vertexes := TVector4List.Create;
+
     InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
       LightCap, DarkCap);
 
-    if LightPos[3] <> 0 then
-      glBegin(GL_QUADS) else
-      glBegin(GL_TRIANGLES);
+    { for each 2-manifold edge, possibly render it's shadow quad }
+    ManifoldEdgesNow := ManifoldEdges;
+    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
+    for I := 0 to ManifoldEdgesNow.Count - 1 do
+    begin
+      PlaneSide0 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[0]];
+      PlaneSide1 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[1]];
 
-      { for each 2-manifold edge, possibly render it's shadow quad }
-      ManifoldEdgesNow := ManifoldEdges;
-      ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
-      for I := 0 to ManifoldEdgesNow.Count - 1 do
-      begin
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
-        PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
+        so only then render it's shadow quad.
 
-        { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
-          so only then render it's shadow quad.
+        We want to have consistent CCW orientation of shadow quads faces,
+        so that face is oriented CCW <=> you're looking at it from outside
+        (i.e. it's considered front face of this shadow quad).
+        This is needed, since user of this method may want to do culling
+        to eliminate back or front faces.
 
-          We want to have consistent CCW orientation of shadow quads faces,
-          so that face is oriented CCW <=> you're looking at it from outside
-          (i.e. it's considered front face of this shadow quad).
-          This is needed, since user of this method may want to do culling
-          to eliminate back or front faces.
+        TriangleDirection(T) indicates direction that goes from CCW triangle side
+        (that's guaranteed by the way TriangleDir calculates plane dir).
+        So PlaneSideX is @true if LightPos is on CCW side of appropriate
+        triangle. So if PlaneSide0 the shadow quad is extended
+        in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
+        Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
 
-          TriangleDirection(T) indicates direction that goes from CCW triangle side
-          (that's guaranteed by the way TriangleDir calculates plane dir).
-          So PlaneSideX is @true if LightPos is on CCW side of appropriate
-          triangle. So if PlaneSide0 the shadow quad is extended
-          in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
-          Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
+        Just draw it, the triangle corners numbered with 0,1,2 in CCW and
+        imagine that you want the shadow quad to be also CCW on the outside,
+        it will make sense then :) }
+      if PlaneSide0 and not PlaneSide1 then
+        RenderShadowQuad_ManifoldEdge(ManifoldEdgePtr, 1, 0)
+      else
+      if PlaneSide1 and not PlaneSide0 then
+        RenderShadowQuad_ManifoldEdge(ManifoldEdgePtr, 0, 1);
 
-          Just draw it, the triangle corners numbered with 0,1,2 in CCW and
-          imagine that you want the shadow quad to be also CCW on the outside,
-          it will make sense then :) }
-        if PlaneSide0 and not PlaneSide1 then
-          RenderShadowQuad(ManifoldEdgePtr, 1, 0) else
-        if PlaneSide1 and not PlaneSide0 then
-          RenderShadowQuad(ManifoldEdgePtr, 0, 1);
+      Inc(ManifoldEdgePtr);
+    end;
 
-        Inc(ManifoldEdgePtr);
-      end;
+    { For each border edge, always render it's shadow quad.
+      THIS CODE IS NEVER USED NOW (at the beginning of this method,
+      we exit if BorderEdges.Count <> 0). That's because rendering
+      the shadow quads from border edges doesn't solve the problem fully:
+      artifacts are still possible.
 
-      { For each border edge, always render it's shadow quad.
-        THIS CODE IS NEVER USED NOW (at the beginning of this method,
-        we exit if BorderEdges.Count <> 0). That's because rendering
-        the shadow quads from border edges doesn't solve the problem fully:
-        artifacts are still possible.
+      See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch11.html
+      for more involved approach. Rendering shadow quads from border edges,
+      like below, is only part of the solution. }
+    BorderEdgesNow := BorderEdges;
+    BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
+    for I := 0 to BorderEdgesNow.Count - 1 do
+    begin
+      PlaneSide0 := TrianglesPlaneSide.List^[BorderEdgePtr^.TriangleIndex];
 
-        See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch11.html
-        for more involved approach. Rendering shadow quads from border edges,
-        like below, is only part of the solution. }
-      BorderEdgesNow := BorderEdges;
-      BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
-      for I := 0 to BorderEdgesNow.Count - 1 do
-      begin
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
-        PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      { We want to have consistent CCW orientation of shadow quads faces,
+        so that face is oriented CCW <=> you're looking at it from outside
+        (i.e. it's considered front face of this shadow quad).
+        This is needed, since user of this method may want to do culling
+        to eliminate back or front faces.
 
-        { We want to have consistent CCW orientation of shadow quads faces,
-          so that face is oriented CCW <=> you're looking at it from outside
-          (i.e. it's considered front face of this shadow quad).
-          This is needed, since user of this method may want to do culling
-          to eliminate back or front faces.
+        TriangleDirection(T) indicates direction that goes from CCW triangle side
+        (that's guaranteed by the way TriangleDir calculates plane dir).
+        So PlaneSide0 is true if LightPos is on CCW side of appropriate
+        triangle. So if PlaneSide0, the shadow quad is extended
+        in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
+      if PlaneSide0 then
+        RenderShadowQuad_BorderEdge(BorderEdgePtr, 1, 0)
+      else
+        RenderShadowQuad_BorderEdge(BorderEdgePtr, 0, 1);
 
-          TriangleDirection(T) indicates direction that goes from CCW triangle side
-          (that's guaranteed by the way TriangleDir calculates plane dir).
-          So PlaneSide0 is true if LightPos is on CCW side of appropriate
-          triangle. So if PlaneSide0, the shadow quad is extended
-          in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
-        if PlaneSide0 then
-          RenderShadowQuad(BorderEdgePtr, 1, 0) else
-          RenderShadowQuad(BorderEdgePtr, 0, 1);
+      Inc(BorderEdgePtr);
+    end;
 
-        Inc(BorderEdgePtr);
-      end;
-
-    glEnd;
-
-  finally FreeAndNil(TrianglesPlaneSide) end;
-
-  PopMatrix;
-{$else}
-begin
-{$endif}
+    FlushVertexes;
+  finally
+    FreeAndNil(TrianglesPlaneSide);
+    FreeAndNil(Vertexes);
+  end;
 end;
 
 end.

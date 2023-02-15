@@ -1,3 +1,4 @@
+{%MainUnit castleglimages.pas}
 {
   Copyright 2001-2023 Michalis Kamburelis.
 
@@ -270,6 +271,12 @@ begin
   end;
 end;
 
+function TargetIsCubeMapSide(const Target: TGLenum): Boolean;
+begin
+  { We rely on the fact that 6 relevant constants are consecutive. }
+  Result := Between(Target, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+end;
+
 { Call glTexImage2D to load given image.
   Takes care of OpenGL(ES) unpacking (alignment etc.).
   Assumes that image already has the right size
@@ -282,6 +289,9 @@ end;
   LoadedSize will be increased. }
 procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Image: TCastleImage;
   var LoadedSize: Int64);
+var
+  ImageFormat, ImageInternalFormat, SwizzleTarget: TGLenum;
+  ImageSwizzle: TVector4Integer;
 begin
   BeforeUnpackImage(Image);
   try
@@ -293,10 +303,22 @@ begin
       glPushAttrib(GL_ENABLE_BIT);
     {$endif}
 
-    glTexImage2D(Target, Level, ImageGLInternalFormat(Image),
-      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+    UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
+    glTexImage2D(Target, Level, ImageInternalFormat,
+      Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
       Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
+
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      { We cannot use cubemap side as swizzle target,
+        we need to use GL_TEXTURE_CUBE_MAP,
+        following https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexParameter.xhtml . }
+      SwizzleTarget := Target;
+      if TargetIsCubeMapSide(SwizzleTarget) then
+        SwizzleTarget := GL_TEXTURE_CUBE_MAP;
+      glTexParameteriv(SwizzleTarget, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+    end;
 
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
@@ -425,9 +447,8 @@ begin
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
-  {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
-    (GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
-      Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
+  glCompressedTexImage2D(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
+    Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
   LoadedSize := LoadedSize + Image.Size;
 end;
 

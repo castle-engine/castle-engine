@@ -1,3 +1,7 @@
+{$ifdef CASTLE_DELPHI_PACKAGE}
+  {$message fatal 'This unit should not be included in CGE Delphi package, which for now is only for Windows OpenGL.'}
+{$endif}
+
 { OpenGL ES 3.x headers.
 
   A modified version of OpenGL ES 2.0 headers by Trung Le (kagamma), which adds

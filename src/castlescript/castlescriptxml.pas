@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,10 @@
 unit CastleScriptXML;
 
 {$I castleconf.inc}
+
+{$ifndef FPC}
+  {$message fatal 'This unit is not yet ported to Delphi'}
+{$endif}
 
 interface
 

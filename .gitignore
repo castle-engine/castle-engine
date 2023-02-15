@@ -84,6 +84,7 @@ castle-game-engine-*.fpm
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
+/examples/eye_of_beholder/eye_of_beholder
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text
@@ -161,6 +162,7 @@ castle-game-engine-*.fpm
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
 /examples/research_special_rendering_methods/transform_feedback/transform_feedback
+/examples/research_special_rendering_methods/test_rendering_opengl_capabilities/test_rendering_opengl_capabilities
 /examples/screen_effects_demo/screen_effects_demo
 /examples/short_api_samples/animation_stop_notification/animation_stop_notification
 /examples/short_api_samples/metadata/metadata_use
@@ -173,6 +175,7 @@ castle-game-engine-*.fpm
 /examples/test_local_filename_chars/test_local_filename_chars
 /examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer
+/examples/tiled/map_viewer_in_viewport/map_viewer_in_viewport
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/custom_cursor/custom_cursor
 /examples/user_interface/dragging_test/dragging_test
