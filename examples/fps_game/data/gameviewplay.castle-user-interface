@@ -129,9 +129,9 @@
                     },
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : -1.3550644874572754E+001,
-                      "Y" : 2.9727935791015625E-002,
-                      "Z" : -1.9130344390869141E+001
+                      "X" : -1.2391562461853027E+001,
+                      "Y" : 4.2333602905273438E-002,
+                      "Z" : -1.5694005966186523E+001
                     },
                     "$Behaviors" : [
                       {
@@ -1489,6 +1489,73 @@
                 ]
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "ArmatureAction",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "Door01",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2136423587799072E+000,
+              "Y" : 1.9104719161987305E-001,
+              "Z" : -6.2677322387695312E+001
+            },
+            "URL" : "castle-data:/level/Door.gltf",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "ArmatureAction",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Door2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -5.8411717414855957E-002,
+                  "Y" : -7.8714728355407715E-002,
+                  "Z" : -2.1622358322143555E+001
+                },
+                "URL" : "castle-data:/level/Door.gltf"
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "ArmatureAction",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Door3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.7750515937805176E+000,
+                  "X" : -8.7422748151766427E-008,
+                  "Y" : 9.9999934434890747E-001,
+                  "Z" : -9.3080060992178915E-008
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 8.4451074600219727E+000,
+                  "Y" : 3.6714613437652588E-002,
+                  "Z" : -3.0696132659912109E+001
+                },
+                "URL" : "castle-data:/level/Door.gltf"
+              }
+            ]
           }
         ],
         "$Behaviors" : [
@@ -1567,25 +1634,26 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 6.5168422460556030E-001,
-          "X" : -9.0565896034240723E-001,
-          "Y" : 4.0528026223182678E-001,
-          "Z" : 1.2461829185485840E-001
+          "W" : 3.4102890491485596E+000,
+          "X" : -3.0200828332453966E-003,
+          "Y" : 9.9979883432388306E-001,
+          "Z" : -1.9827723503112793E-002
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 9.9999994039535522E-001
+          "X" : 9.9999994039535522E-001,
+          "Y" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.4800728797912598E+001,
-          "Y" : 6.1296558380126953E+001,
-          "Z" : 5.2619781494140625E+001
+          "X" : 6.5312862396240234E-001,
+          "Y" : 2.0971159934997559E+000,
+          "Z" : -9.1287734985351562E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
-        "MoveSpeed" : 4.2986621856689453E+001,
+        "MoveSpeed" : 4.6415885925292969E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {
@@ -1601,6 +1669,7 @@
     },
     {
       "$$ClassName" : "TCastleDesign",
+      "Exists" : false,
       "FullSize" : true,
       "Height" : 7.8000000000000000E+002,
       "Name" : "DesignHud",
