@@ -1473,35 +1473,52 @@ procedure TCastleScene.LocalRenderOutside(
   end;
 
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
   begin
-    glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-      if UseWireframeColor then
-      begin
-        SavedMode := RenderOptions.Mode;
-        SavedSolidColor := RenderOptions.SolidColor;
-        RenderOptions.Mode := rmSolidColor;
-        RenderOptions.SolidColor := RenderOptions.WireframeColor;
+    if UseWireframeColor then
+    begin
+      SavedMode := RenderOptions.Mode;
+      SavedSolidColor := RenderOptions.SolidColor;
+      RenderOptions.Mode := rmSolidColor;
+      RenderOptions.SolidColor := RenderOptions.WireframeColor;
 
-        RenderNormal;
+      RenderNormal;
 
-        RenderOptions.Mode := SavedMode;
-        RenderOptions.SolidColor := SavedSolidColor;
-      end else
-      begin
-        RenderNormal;
-      end;
+      RenderOptions.Mode := SavedMode;
+      RenderOptions.SolidColor := SavedSolidColor;
+    end else
+    begin
+      RenderNormal;
+    end;
 
-    glPopAttrib;
+    { We restore by just assuming that default mode is GL_FILL.
+      Nothing else in CGE changes glPolygonMode for now, so this is trivially true.
+
+      This way we avoid using glPushAttrib / glPopAttrib to save state.
+      They are
+
+      1. deprecated,
+      2. using them would break RenderContext state knowledge, causing problems later.
+
+         Testcase:
+         - in CGE editor,
+         - activate shadow volumes on 1 light,
+         - add 2nd light, not casting shadows (maybe not needed to reproduce),
+         - make plane larger 100x100 (maybe not needed to reproduce),
+         - add sphere and box,
+         - add on them sphere and box collider,
+         - activate "Physics -> Show Colliders".
+
+         Using glPushAttrib / glPopAttrib would break rendering, making some
+         objects weirdly wireframe depending on what was last hovered-over
+         with a mouse in editor.  }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   end;
-  {$warnings on}
   {$endif}
 
   { Render taking RenderOptions.WireframeEffect into account.
