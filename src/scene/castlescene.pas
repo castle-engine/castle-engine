@@ -1472,13 +1472,14 @@ procedure TCastleScene.LocalRenderOutside(
     LocalRenderInside(TestShapeVisibility, Params);
   end;
 
-  {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
   begin
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    {$endif}
 
     if UseWireframeColor then
     begin
@@ -1517,21 +1518,20 @@ procedure TCastleScene.LocalRenderOutside(
          Using glPushAttrib / glPopAttrib would break rendering, making some
          objects weirdly wireframe depending on what was last hovered-over
          with a mouse in editor.  }
+
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    {$endif}
   end;
-  {$endif}
 
   { Render taking RenderOptions.WireframeEffect into account.
     Also controls InternalScenePass,
     this way shaders from RenderNormal and RenderWireframe can coexist,
     which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
   procedure RenderWithWireframeEffect;
-  // TODO-es For OpenGLES, wireframe must be done differently
-  {$ifndef OpenGLES}
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   var
     WireframeEffect: TWireframeEffect;
+    SavedPolygonOffset: TPolygonOffset;
   begin
     WireframeEffect := RenderOptions.WireframeEffect;
     if InternalForceWireframe <> weNormal then
@@ -1557,14 +1557,10 @@ procedure TCastleScene.LocalRenderOutside(
       weSolidWireframe:
         begin
           InternalScenePass := 0;
-          glPushAttrib(GL_POLYGON_BIT);
-            { enable polygon offset for everything (whole scene) }
-            glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
-            RenderNormal;
-          glPopAttrib;
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias);
+          RenderNormal;
+          RenderContext.PolygonOffset := SavedPolygonOffset;
 
           InternalScenePass := 1;
           RenderWireframe(true);
@@ -1575,42 +1571,35 @@ procedure TCastleScene.LocalRenderOutside(
           RenderNormal;
 
           InternalScenePass := 1;
-          glPushAttrib(GL_POLYGON_BIT);
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias);
 
-            (* Old idea, may be resurrected one day:
+          (* Old idea, may be resurrected one day:
 
-            { rmSolidColor still does backface culling.
-              This is very good in this case. When rmSolidColor and weSilhouette,
-              and objects are solid (so backface culling is used) we can
-              significantly improve the effect by reverting glFrontFace,
-              this way we will cull *front* faces. This will not be noticed
-              in case of rmSolidColor will single solid color, and it will
-              improve the silhouette look, since front-face edges will not be
-              rendered at all (no need to even hide them by glPolygonOffset,
-              which is somewhat sloppy).
+          { rmSolidColor still does backface culling.
+            This is very good in this case. When rmSolidColor and weSilhouette,
+            and objects are solid (so backface culling is used) we can
+            significantly improve the effect by reverting glFrontFace,
+            this way we will cull *front* faces. This will not be noticed
+            in case of rmSolidColor will single solid color, and it will
+            improve the silhouette look, since front-face edges will not be
+            rendered at all (no need to even hide them by glPolygonOffset,
+            which is somewhat sloppy).
 
-              TODO: this is probably incorrect now, that some meshes
-              may have FrontFaceCcw = false.
-              What we really would like to is to negate the FrontFaceCcw
-              interpretation inside this RenderWireframe call.
-            }
-            if RenderOptions.Mode = rmSolidColor then
-              glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
-            *)
+            TODO: this is probably incorrect now, that some meshes
+            may have FrontFaceCcw = false.
+            What we really would like to is to negate the FrontFaceCcw
+            interpretation inside this RenderWireframe call.
+          }
+          if RenderOptions.Mode = rmSolidColor then
+            glFrontFace(GL_CW);
+          *)
 
-            RenderWireframe(true);
-          glPopAttrib;
+          RenderWireframe(true);
+          RenderContext.PolygonOffset := SavedPolygonOffset;
         end;
       else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
     end;
-  {$warnings on}
-  {$else}
-  begin
-    InternalScenePass := 0;
-    RenderNormal;
-  {$endif}
   end;
 
   { Render, doing some special tricks when rendering to shadow maps. }
