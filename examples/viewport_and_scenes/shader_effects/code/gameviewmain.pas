@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,19 +25,28 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    ButtonRandomizeColor: TCastleButton;
-    SceneForEffects: TCastleScene;
+    ButtonRandomizeColor, ButtonChangeTexture: TCastleButton;
+    SceneForColorEffect, SceneForTextureEffect: TCastleScene;
     RectCurrentColor: TCastleRectangleControl;
-
-    Effect: TEffectNode;
+  private
+    { Control effect affecting SceneForColorEffect }
     EffectColorField: TSFVec3f;
+
+    { Control effect affecting SceneForTextureEffect }
+    EffectTextureField: TSFNode;
+    TestTexture1: TImageTextureNode;
+    TestTexture2: TImageTextureNode;
+
     procedure ClickRandomizeColor(Sender: TObject);
+    procedure ClickChangeTexture(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -59,9 +68,16 @@ end;
 
 procedure TViewMain.Start;
 
-  { Create Effect, add it to given Scene. }
-  procedure CreateEffect(const Scene: TCastleScene);
+  { Create Effect changing a color, exposing a 'color' uniform shader variable
+    using X3D field EffectColorField.
+
+    You can change such uniform shader variable at any time.
+    You can even change it very often (e.g. every frame),
+    changing uniform values is cheap.
+    See TViewMain.ClickRandomizeColor . }
+  procedure CreateColorEffect(const Scene: TCastleScene);
   var
+    Effect: TEffectNode;
     EffectPart: TEffectPartNode;
   begin
     Effect := TEffectNode.Create;
@@ -83,8 +99,63 @@ procedure TViewMain.Start;
       It is possible to be more selective:
 
       - You can apply effect only for given TAppearanceNode
-        (will be limited to shapes using this TAppearanceNode),
-        see examples/terrain/terrainscene.pas .
+        (will be limited to shapes using this TAppearanceNode).
+
+      - Effects can also be applied on a specific texture or light source.
+        See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
+
+      See https://castle-engine.io/compositing_shaders.php and in particular
+      https://castle-engine.io/compositing_shaders_doc/html/ about shader effects. }
+    Scene.RootNode.AddChildren([Effect]);
+
+    // adding node to Scene turns off animation set by AutoAnimation, run it again
+    Scene.PlayAnimation('Walk', true);
+  end;
+
+  { Create Effect using a texture, provided as uniform shader variable 'testTexture'
+    using X3D field EffectTextureField.
+    The point of it is to show how to pass a texture to a shader in CGE.
+
+    You can change the texture at runtime, it will change the texture passed to shader
+    correctly. See TViewMain.ClickChangeTexture lower for example. }
+  procedure CreateTextureEffect(const Scene: TCastleScene);
+  var
+    Effect: TEffectNode;
+    EffectPartFragment, EffectPartVertex: TEffectPartNode;
+  begin
+    Effect := TEffectNode.Create;
+    Effect.Language := slGLSL;
+
+    TestTexture1 := TImageTextureNode.Create;
+    TestTexture1.SetUrl(['castle-data:/test_textures/handpaintedwall2.png']);
+    TestTexture1.KeepExistingBegin; // do not auto-free when unused
+
+    TestTexture2 := TImageTextureNode.Create;
+    TestTexture2.SetUrl(['castle-data:/test_textures/mountain.png']);
+    TestTexture2.KeepExistingBegin; // do not auto-free when unused
+
+    { Add custom field (maps to GLSL uniform "texture") }
+    EffectTextureField := TSFNode.Create(Effect, true, 'testTexture', [TImageTextureNode], TestTexture1);
+    Effect.AddCustomField(EffectTextureField);
+
+    { Add 2x TEffectPartNode which actually contains shader code.
+      You can load shader code from file,
+      you could also set it explicitly from string using EffectPart.Contents := '...'; }
+    EffectPartFragment := TEffectPartNode.Create;
+    EffectPartFragment.ShaderType := stFragment;
+    EffectPartFragment.SetUrl(['castle-data:/shaders/texture_effect.fs']);
+
+    EffectPartVertex := TEffectPartNode.Create;
+    EffectPartVertex.ShaderType := stVertex;
+    EffectPartVertex.SetUrl(['castle-data:/shaders/texture_effect.vs']);
+
+    Effect.SetParts([EffectPartFragment, EffectPartVertex]);
+
+    { Using "RootNode.AddChildren" applies effect for everything in the scene.
+      It is possible to be more selective:
+
+      - You can apply effect only for given TAppearanceNode
+        (will be limited to shapes using this TAppearanceNode).
 
       - Effects can also be applied on a specific texture or light source.
         See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
@@ -100,15 +171,21 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonRandomizeColor := DesignedComponent('ButtonRandomizeColor') as TCastleButton;
-  SceneForEffects := DesignedComponent('SceneForEffects') as TCastleScene;
-  RectCurrentColor := DesignedComponent('RectCurrentColor') as TCastleRectangleControl;
+  CreateColorEffect(SceneForColorEffect);
 
-  CreateEffect(SceneForEffects);
+  CreateTextureEffect(SceneForTextureEffect);
 
   ButtonRandomizeColor.OnClick := {$ifdef FPC}@{$endif} ClickRandomizeColor;
+  ButtonChangeTexture.OnClick := {$ifdef FPC}@{$endif} ClickChangeTexture;
+end;
+
+procedure TViewMain.Stop;
+begin
+  TestTexture1.KeepExistingEnd;
+  TestTexture2.KeepExistingEnd;
+  FreeIfUnusedAndNil(TestTexture1);
+  FreeIfUnusedAndNil(TestTexture2);
+  inherited;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -125,6 +202,15 @@ begin
   NewColor := Vector3(Random, Random, Random);
   RectCurrentColor.Color := Vector4(NewColor, 1);
   EffectColorField.Send(NewColor);
+end;
+
+procedure TViewMain.ClickChangeTexture(Sender: TObject);
+begin
+  { TODO: TestTexture2 is not loaded properly to OpenGL at this point, fix. }
+  if EffectTextureField.Value = TestTexture1 then
+    EffectTextureField.Send(TestTexture2)
+  else
+    EffectTextureField.Send(TestTexture1);
 end;
 
 end.
