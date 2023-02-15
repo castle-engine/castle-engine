@@ -206,11 +206,18 @@ end;
 
 procedure TViewMain.ClickChangeTexture(Sender: TObject);
 begin
-  { TODO: TestTexture2 is not loaded properly to OpenGL at this point, fix. }
   if EffectTextureField.Value = TestTexture1 then
     EffectTextureField.Send(TestTexture2)
   else
     EffectTextureField.Send(TestTexture1);
+
+  { TODO: The GLContextClose call is needed for now, to load TestTexture2 properly to OpenGL
+    next time the scene is rendered.
+    The GLContextClose should not be necessary, the reload should happen automatically,
+    TCastleSceneCore should realize that shapes using EffectTextureField
+    (and textures used by these shapes) need to be prepared again,
+    i.e. passed to TGLRenderer.Prepare. }
+  SceneForTextureEffect.GLContextClose;
 end;
 
 end.
