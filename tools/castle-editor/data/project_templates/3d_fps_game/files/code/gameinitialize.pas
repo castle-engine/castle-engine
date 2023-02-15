@@ -12,7 +12,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleSoundEngine
+  CastleWindow, CastleLog, CastleUIControls, CastleSoundEngine, GameSound
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMenu
@@ -37,8 +37,8 @@ begin
 
   Window.Container.View := ViewMenu;
 
-  SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');
+  InitializeSounds;
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MainMusic');
 end;
 
 initialization
