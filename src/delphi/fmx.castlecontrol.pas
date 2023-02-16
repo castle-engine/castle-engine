@@ -58,7 +58,12 @@ type
       FContainer: TContainer;
       FMousePosition: TVector2;
 
-    { Call whenever you have new knowledge about new shift state.
+    function GetCurrentShift: TShiftState;
+    procedure SetCurrentShift(const Value: TShiftState);
+
+    { Current knowledge about shift state, based on Container.Pressed.
+
+      Call this whenever you have new new shift state.
 
       Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -66,18 +71,14 @@ type
       but not keyup for it, and DoExit will not be called,
       so ReleaseAllKeysAndMouse will not be called.
 
-      To counteract this, call this method when Shift state is known,
-      to update Pressed when needed. }
-    procedure UpdateShiftState(const Shift: TShiftState);
+      To counteract this, set this whenever Shift state is known,
+      to update Container.Pressed when needed. }
+    property CurrentShift: TShiftState
+      read GetCurrentShift write SetCurrentShift;
   private
     procedure CreateHandle;
     procedure DestroyHandle;
   protected
-    { // TODO
-    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure KeyPress(var Key: Char); override;
-    }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Single); override;
@@ -110,6 +111,9 @@ type
     property Size;
     property Position;
     property Margins;
+    property TabStop default true;
+    property TabOrder;
+    property CanFocus default True;
   end;
 
 procedure Register;
@@ -118,7 +122,8 @@ implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils;
+  CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
+  CastleLog;
 
 procedure Register;
 begin
@@ -259,6 +264,8 @@ begin
     before we actually create window by setting ControlType. }
   TabStop := true;
 
+  CanFocus := True;
+
   { Makes the Presentation be TWinNativeGLControl, which has HWND.
     Do this after FContainer is initialized, as it may call CreateHandle,
     which in turn requires FContainer to be created.
@@ -381,11 +388,22 @@ begin
   DoUpdateEverything;
 end;
 
-procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
+function TCastleControl.GetCurrentShift: TShiftState;
 begin
-  Container.Pressed.Keys[keyShift] := ssShift in Shift;
-  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
-  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+  Result := [];
+  if Container.Pressed.Keys[keyShift] then
+    Include(Result, ssShift);
+  if Container.Pressed.Keys[keyAlt] then
+    Include(Result, ssAlt);
+  if Container.Pressed.Keys[keyCtrl] then
+    Include(Result, ssCtrl);
+end;
+
+procedure TCastleControl.SetCurrentShift(const Value: TShiftState);
+begin
+  Container.Pressed.Keys[keyShift] := ssShift in Value;
+  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Value;
+  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Value;
 end;
 
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
@@ -403,7 +421,7 @@ begin
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.EventPress(InputMouseButton(FMousePosition, MyButton, 0,
@@ -420,7 +438,7 @@ begin
   // change FMousePosition *after* EventMotion, callbacks may depend on it
   FMousePosition := Vector2(NewX, Height - 1 - NewY);
 
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 end;
 
 procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
@@ -435,7 +453,7 @@ begin
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
@@ -459,7 +477,7 @@ var
   CastleEvent: TInputPressRelease;
 begin
   inherited;
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 
   if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
   begin
@@ -493,7 +511,7 @@ var
   CastleEvent: TInputPressRelease;
 begin
   inherited;
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 
   if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
   begin

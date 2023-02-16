@@ -29,7 +29,7 @@ uses
 type
   TTestCgeControl = class(TForm)
     Timer1: TTimer;
-    Panel1: TPanel;
+    PanelSideBar: TPanel;
     Memo1: TMemo;
     Button2D: TButton;
     ButtonUI: TButton;
@@ -107,7 +107,7 @@ begin
   // Call this to have UI scaling, same as in editor
   CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
+  CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
 
   // adding a component created by code, doing manual rendering in TUiTest.Render
   CastleControl.Container.Controls.InsertFront(TUiTest.Create(Self));
