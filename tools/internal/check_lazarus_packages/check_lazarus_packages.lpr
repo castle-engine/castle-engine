@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile --mode=release && castle-engine run -- ../../../" -*-
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,9 +74,22 @@ type
 constructor TLazarusPackage.Create(const ALpkFileName: String);
 var
   Doc: TXMLDocument;
-  FilesElement, FileElement: TDOMElement;
+  FilesElement: TDOMElement;
+
+  procedure ProcessFileElement(const FileElement: TDOMElement);
+  var
+    FileName: String;
+  begin
+    FileName := FileElement.Child('Filename').AttributeString('Value');
+    if not IsPrefix('../src/', FileName, not FileNameCaseSensitive) then
+      PackageWarning('All filenames in lpk must be in CGE src, invalid: %s', [FileName]);
+    FileName := PrefixRemove('../src/', FileName, not FileNameCaseSensitive);
+    Files.Append(FileName);
+  end;
+
+var
   I, FilesCount: Cardinal;
-  FileName: String;
+  Iterator: TXMLElementIterator;
 begin
   inherited Create;
   Files := TCastleStringList.Create;
@@ -86,15 +99,45 @@ begin
   Doc := URLReadXML(FLpkFileName);
   try
     FilesElement := Doc.DocumentElement.Child('Package').Child('Files');
-    FilesCount := FilesElement.AttributeCardinal('Count');
-    for I := 1 to FilesCount do
+
+    if FilesElement.HasAttribute('Count') then
     begin
-      FileElement := FilesElement.Child('Item' + IntToStr(I));
-      FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../src/', FileName, not FileNameCaseSensitive) then
-        PackageWarning('All filenames in lpk must be in CGE src, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../src/', FileName, not FileNameCaseSensitive);
-      Files.Append(FileName);
+      { Compatibility-mode LPK format, like
+          <Files Count="...">
+            <Item1>
+              <Filename Value="..."/>
+              <UnitName Value="..."/>
+            </Item1>
+            <Item2>
+              <Filename Value="..."/>
+              <UnitName Value="..."/>
+            </Item2>
+            ...
+          </Files>
+      }
+      FilesCount := FilesElement.AttributeCardinal('Count');
+      for I := 1 to FilesCount do
+        ProcessFileElement(FilesElement.Child('Item' + IntToStr(I)));
+    end else
+    begin
+      { New LPK format, friendly to version control merges:
+          <Files>
+            <Item>
+              <Filename Value="..."/>
+              <UnitName Value="..."/>
+            </Item>
+            <Item>
+              <Filename Value="..."/>
+              <UnitName Value="..."/>
+            </Item>
+            ...
+          </Files>
+      }
+      Iterator := FilesElement.ChildrenIterator('Item');
+      try
+        while Iterator.GetNext do
+          ProcessFileElement(Iterator.Current);
+      finally FreeAndNil(Iterator) end;
     end;
   finally FreeAndNil(Doc) end;
 
