@@ -21,7 +21,6 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Platform.Win,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
   FMX.Memo,
   Fmx.CastleControl,
@@ -53,7 +52,7 @@ implementation
 
 {$R *.fmx}
 
-uses Windows, FMX.Presentation.Win,
+uses
   CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
   CastleVectors;
 
