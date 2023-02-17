@@ -199,33 +199,16 @@ begin
 
   if FURL <> '' then
   begin
-    Converter := nil;
-
+    FMap := TCastleTiledMapData.Create(URL);
+    Converter := TCastleTiledMapConverter.Create(FMap);
     try
-      FMap := TCastleTiledMapData.Create(URL);
-      Converter := TCastleTiledMapConverter.Create(FMap);
-
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
       PlayAnimations;
-    except
-      { If loading file failed, and we're inside CGE editor,
-        merely report a warning. This allows deserializing in CGE editor
-        designs with broken URLs. }
-      on E: Exception do
-      begin
-        FreeAndNil(Converter);
-        if CastleDesignMode then
-          WritelnWarning('TCastleTiledMap', 'Failed to load tiledmap "%s": %s',
-            [URIDisplay(URL), ExceptMessage(E)])
-        else
-          raise;
-        Exit;
-      end;
-    end;
-    FreeAndNil(Converter);
+
+    finally FreeAndNil(Converter) end;
   end;
 end;
 
