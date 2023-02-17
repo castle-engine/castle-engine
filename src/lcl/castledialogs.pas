@@ -382,6 +382,7 @@ end;
 procedure TCastleOpenDialog.SetURL(AValue: string);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
+  InitialDir := ExtractFileDir(FileName);
 end;
 
 function TCastleOpenDialog.DoExecute: boolean;
