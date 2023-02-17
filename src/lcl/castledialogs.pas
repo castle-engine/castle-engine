@@ -270,6 +270,7 @@ end;
 procedure TCastleSaveImageDialog.SetURL(AValue: string);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
+  InitialDir := ExtractFileDir(FileName);
 end;
 
 function TCastleSaveImageDialog.StoreFilterAndFilterIndex: boolean;
@@ -315,6 +316,7 @@ end;
 procedure TCastleOpenImageDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
+  InitialDir := ExtractFileDir(FileName);
 end;
 
 function TCastleOpenImageDialog.StoreFilterAndFilterIndex: boolean;
@@ -355,6 +357,7 @@ end;
 procedure TCastleSaveDialog.SetURL(AValue: string);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
+  InitialDir := ExtractFileDir(FileName);
 end;
 
 function TCastleSaveDialog.DoExecute: boolean;
