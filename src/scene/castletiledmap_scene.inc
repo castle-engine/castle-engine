@@ -186,7 +186,23 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
-    ReloadMap;
+    try
+      ReloadMap;
+    except
+      { If loading file failed, and we're inside CGE editor,
+        merely report a warning. This allows deserializing in CGE editor
+        designs with broken URLs. }
+      on E: Exception do
+      begin
+        if CastleDesignMode then
+        begin
+          WritelnWarning('TCastleTiledMap', 'Failed to load tiledmap "%s": %s',
+            [URIDisplay(Value), ExceptMessage(E)]);
+          Exit;
+        end else
+          raise;
+      end;
+    end;
   end;
 end;
 
