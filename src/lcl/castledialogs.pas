@@ -234,6 +234,7 @@ end;
 procedure TCastleOpen3DDialog.SetURL(AValue: string);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
+  InitialDir := ExtractFileDir(FileName);
 end;
 
 function TCastleOpen3DDialog.StoreFilterAndFilterIndex: boolean;
