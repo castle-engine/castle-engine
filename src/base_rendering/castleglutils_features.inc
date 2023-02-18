@@ -932,7 +932,7 @@ begin
     {$ifdef OpenGLES}
     FOcclusionQueryCounterBits := 32; // just use some sensible default
     {$else}
-    glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits)
+    glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits);
     {$endif}
   end else
     FOcclusionQueryCounterBits := 0;
@@ -1044,8 +1044,10 @@ begin
     {$else} Version_2_0
     {$endif};
 
-  FTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two') {$endif};
+  FTextureNonPowerOfTwo :=
+    {$ifdef OpenGLES} true
+    {$else} Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two')
+    {$endif};
 
   FTextureCompression := [];
 
@@ -1247,7 +1249,10 @@ begin
     glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
   end;
 
-  FTextureMaxLevel := {$ifdef OpenGLES} VersionES_3_0 {$else} Version_1_2 {$endif};
+  FTextureMaxLevel :=
+    {$ifdef OpenGLES} VersionES_3_0
+    {$else} Version_1_2
+    {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;
