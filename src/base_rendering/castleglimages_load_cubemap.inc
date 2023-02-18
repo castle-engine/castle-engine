@@ -280,16 +280,11 @@ var
       Exit(false);
     end;
 
-    {$ifdef OpenGLES}
-    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
-    Exit(false);
-    {$else}
-    if not GLFeatures.Version_1_2 then
+    if not GLFeatures.TextureMaxLevel then
     begin
-      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Exit(false);
     end;
-    {$endif}
   end;
 
   { Load mipmaps from Composite. Assume HasMipmapsFromComposite was true. }
@@ -306,9 +301,6 @@ var
     end;
 
   begin
-    {$ifdef OpenGLES}
-    raise EInternalError.Create('HasMipmapsFromComposite should always return false on OpenGLES');
-    {$else}
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, csPositiveX);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, csNegativeX);
@@ -316,7 +308,6 @@ var
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, csNegativeY);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, csPositiveZ);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, csNegativeZ);
-    {$endif}
   end;
 
 begin

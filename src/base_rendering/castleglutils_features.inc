@@ -197,6 +197,7 @@ type
     FRedBits, FGreenBits, FBlueBits, FAlphaBits, FDepthBits, FStencilBits: TGLint;
     FDoubleBuffer: Boolean;
     FLineWidth: TVector2;
+    FTextureMaxLevel: Boolean;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -535,6 +536,9 @@ type
 
     { Line width granularity and maximum width. }
     property LineWidth: TVector2 read FLineWidth;
+
+    { Supports glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, ...); }
+    property TextureMaxLevel: Boolean read FTextureMaxLevel;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1242,6 +1246,8 @@ begin
     Assert(SizeOf(TGLFloat) = SizeOf(Single));
     glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
   end;
+
+  FTextureMaxLevel := {$ifdef OpenGLES} VersionES_3_0 {$else} Version_1_2 {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;
