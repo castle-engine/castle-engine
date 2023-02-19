@@ -179,6 +179,7 @@ begin
     Assert(GLFeatures.Shaders); // EnableFixedFunction and Shaders are now synchronized
 
     Shader := TGLSLProgram.Create;
+    Shader.Name := 'TCastleRenderUnlitMesh';
     Shader.AttachShader(stVertex, SimplestVS);
 
     if AUseColor then

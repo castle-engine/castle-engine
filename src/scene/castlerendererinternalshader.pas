@@ -2988,36 +2988,6 @@ var
     AProgram.Disable;
   end;
 
-  procedure DoLogShaders;
-  const
-    ShaderTypeNameX3D: array [TShaderType] of string =
-    ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
-  var
-    ShaderType: TShaderType;
-    LogStr, LogStrPart: string;
-    I: Integer;
-  begin
-    LogStr :=
-      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
-      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
-      'shaders ComposedShader {' + NL +
-      '  language "GLSL"' + NL +
-      '  parts [' + NL;
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-      begin
-        LogStrPart := Source[ShaderType][I];
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
-        LogStr := LogStr + '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
-          '" url "data:text/plain,' +
-          StringToX3DClassic(LogStrPart, false) + '"' + NL +
-          '    }';
-      end;
-    LogStr := LogStr + '  ]' + NL + '}';
-    WritelnLogMultiline('Generated Shader', LogStr);
-  end;
-
   procedure EnableMirrorPlaneTexCoords;
   begin
     if NeedsMirrorPlaneTexCoords then
@@ -3032,46 +3002,6 @@ var
     if Source[stFragment].Count > 0 then
       Source[stFragment][0] := StringReplace(Source[stFragment][0],
         '/* CASTLE-COMMON-CODE */', {$I common.fs.inc}, [rfReplaceAll]);
-  end;
-
-  { To use sampler2DShadow, and call texture and textureProj on it,
-    on OpenGLES we need to require higher GLSL version. }
-  procedure EnableShadowSamplers;
-  begin
-    {$ifdef OpenGLES}
-    if UsesShadowMaps then
-    begin
-      Assert(GLFeatures.TextureDepthCompare);
-
-      if Source[stVertex].Count > 0 then
-        Source[stVertex  ][0] := '#version 300 es' + NL +
-          '#define attribute in' + NL +
-          '#define varying out' + NL +
-          '#define texture2D texture' + NL +
-          '#define texture3D texture' + NL +
-          '#define textureCube texture' + NL +
-          '#define texture2DProj textureProj' + NL +
-          '#define texture3DProj textureProj' + NL +
-          { Otherwise each sampler2DShadow would have to contain precision specifier.
-            EXT_shadow_samplers says that lowp is default, so presumably it is OK:
-            https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
-          'precision lowp sampler2DShadow;' + NL +
-          Source[stVertex  ][0];
-
-      if Source[stFragment].Count > 0 then
-        Source[stFragment][0] := '#version 300 es' + NL +
-          '#define varying in' + NL +
-          '#define texture2D texture' + NL +
-          '#define texture3D texture' + NL +
-          '#define textureCube texture' + NL +
-          '#define texture2DProj textureProj' + NL +
-          '#define texture3DProj textureProj' + NL +
-          '#define gl_FragColor castle_FragColor' + NL +
-          'out mediump vec4 castle_FragColor;' + NL +
-          'precision lowp sampler2DShadow;' + NL +
-          Source[stFragment][0];
-    end;
-    {$endif}
   end;
 
 var
@@ -3099,7 +3029,6 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
   EnableMirrorPlaneTexCoords;
-  EnableShadowSamplers;
 
   if HasGeometryMain then
   begin
@@ -3141,9 +3070,6 @@ begin
       end;
   end;
 
-  if LogShaders then
-    DoLogShaders;
-
   try
     if (Source[stVertex].Count = 0) and
        (Source[stFragment].Count = 0) then
@@ -3151,6 +3077,7 @@ begin
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
+    AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
 
     if SelectedNode <> nil then
@@ -3182,10 +3109,7 @@ const
   VS = {$I fallback.vs.inc};
   FS = {$I fallback.fs.inc};
 begin
-  if LogShaders then
-    WritelnLogMultiline('Using Fallback GLSL shaders',
-      'Fallback vertex shader:' + NL +  VS + NL +
-      'Fallback fragment shader:' + NL + FS);
+  AProgram.Name := 'TShader:Fallback';
   AProgram.AttachShader(stVertex, VS);
   AProgram.AttachShader(stFragment, FS);
   AProgram.Link;
