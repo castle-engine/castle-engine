@@ -588,7 +588,9 @@ var
     Set this to @false to disable it -- useful to test
     that shaders also work fine on older OpenGL(ES) versions than what you have.
     Note that resulting shaders may not work in OpenGL "core" profile (only compatibility)
-    and some features (like shadow samplers on OpenGLES) may be missing. }
+    and some features (like shadow samplers on OpenGLES) may be missing.
+
+    @exlucde }
   InternalUpgradeGlslVersion: Boolean = true;
 
 implementation
