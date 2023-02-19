@@ -1075,6 +1075,7 @@ function TGLRendererContextCache.TextureCubeMap_IncReference(
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
+  DisableMipmaps: Boolean;
 begin
   if TextureFullUrl <> '' then // never share texture with FullUrl = '', e.g. from GeneratedCubeMapTexture
     for I := 0 to TextureCubeMapCaches.Count - 1 do
@@ -1107,7 +1108,14 @@ begin
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
     CompositeForMipmaps,
-    Filter.NeedsMipmaps);
+    Filter.NeedsMipmaps,
+    DisableMipmaps);
+
+  if DisableMipmaps then
+  begin
+    Filter.DisableMipmaps;
+    SetTextureFilter(GL_TEXTURE_CUBE_MAP, Filter);
+  end;
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP, Anisotropy);
 
