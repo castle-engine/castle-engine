@@ -939,7 +939,9 @@ begin
 
   { calculate Framebuffer }
   FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
-    {$else} Version_3_0 or HasExtension('GL_ARB_framebuffer_object')
+    { Note: Do not change Load_GL_ARB_framebuffer_object to HasExtension('GL_ARB_framebuffer_object')
+      here, as we need to load entry points (like glGenerateMipmap) in this case. }
+    {$else} Version_3_0 or (LoadExtensions and Load_GL_ARB_framebuffer_object)
     {$endif};
 
   if Framebuffer then
