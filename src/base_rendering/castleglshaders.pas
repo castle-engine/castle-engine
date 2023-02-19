@@ -1352,7 +1352,10 @@ const
     '#define attribute in' + NL +
     '#define varying out' + NL +
     '#define texture2D texture' + NL +
-    '#define texture2DProj textureProj' + NL,
+    '#define texture3D texture' + NL +
+    '#define textureCube texture' + NL +
+    '#define texture2DProj textureProj' + NL +
+    '#define texture3DProj textureProj' + NL,
 
     // geometry
     '#version 150' + NL,
@@ -1361,7 +1364,10 @@ const
     '#version 140' + NL +
     '#define varying in' + NL +
     '#define texture2D texture' + NL +
+    '#define texture3D texture' + NL +
+    '#define textureCube texture' + NL +
     '#define texture2DProj textureProj' + NL +
+    '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL
   );

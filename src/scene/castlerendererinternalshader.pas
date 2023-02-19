@@ -3048,7 +3048,10 @@ var
           '#define attribute in' + NL +
           '#define varying out' + NL +
           '#define texture2D texture' + NL +
+          '#define texture3D texture' + NL +
+          '#define textureCube texture' + NL +
           '#define texture2DProj textureProj' + NL +
+          '#define texture3DProj textureProj' + NL +
           { Otherwise each sampler2DShadow would have to contain precision specifier.
             EXT_shadow_samplers says that lowp is default, so presumably it is OK:
             https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
@@ -3059,7 +3062,10 @@ var
         Source[stFragment][0] := '#version 300 es' + NL +
           '#define varying in' + NL +
           '#define texture2D texture' + NL +
+          '#define texture3D texture' + NL +
+          '#define textureCube texture' + NL +
           '#define texture2DProj textureProj' + NL +
+          '#define texture3DProj textureProj' + NL +
           '#define gl_FragColor castle_FragColor' + NL +
           'out mediump vec4 castle_FragColor;' + NL +
           'precision lowp sampler2DShadow;' + NL +
