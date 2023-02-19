@@ -268,7 +268,7 @@ begin
     '  Current for Textures: ' + IntToStrUnknown(GLFeatures.Memory.CurrentTexture) + NL +
     '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
 
-  CheckGLErrors;
+  CheckGLErrors('End of GLInformationString');
 end;
 
 function GLInformationStringSummary: String;

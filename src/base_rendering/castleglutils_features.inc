@@ -672,7 +672,6 @@ begin
   end;
 end;
 
-{$ifndef OpenGLES}
 procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
   Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
   {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
@@ -730,7 +729,6 @@ begin
   if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
     WritelnLog(MessageWhole);
 end;
-{$endif}
 
 constructor TGLFeatures.Create;
 
@@ -745,26 +743,28 @@ constructor TGLFeatures.Create;
 
   procedure InitializeDebug;
   begin
-    {$ifdef OpenGLES}
-    WritelnWarning('Debugging OpenGL context on OpenGLES not available, ignoring the debug flag');
-    {$else}
     if HasExtension('GL_KHR_debug') then
     begin
+      {$ifndef OpenGLES}
       { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
-        glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually. }
+        glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
+        Note that we don't really use glDebugMessageControl now, but we load+check it too,
+        for consistency.
+        This is not necessary on OpenGLES, our CastleGLES just always loads all entry points now,
+        without even checking GL_KHR_debug. }
       Pointer({$ifndef FPC}@{$endif} glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
-      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
-      // Note that we don't really use glDebugMessageControl now
       Pointer({$ifndef FPC}@{$endif} glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
+      {$endif}
+
+      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
       if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
 
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
       glDebugMessageCallback(
         {$ifndef FPC}GLDEBUGPROC(@CallbackGLDebug){$endif}
         {$ifdef FPC}@CallbackGLDebug{$endif}, nil);
-      WritelnLog('OpenGL debugging enabled, expect extra log messages');
+      WritelnLog('OpenGL(ES) debugging enabled, expect extra log messages');
     end;
-    {$endif}
   end;
 
 {$ifndef OpenGLES}
@@ -837,13 +837,6 @@ begin
   FVersion_4_0 := GLVersion.AtLeast(4, 0);
   InitOpenGLext; // TODO: check that later
   {$endif}
-
-  { Do this as early as possible, which means: after Version_3_2 is defined,
-    to debug even errors below in TGLFeatures initialization. }
-  if Debug then
-    InitializeDebug;
-
-  FNV_multisample_filter_hint := HasExtension('GL_NV_multisample_filter_hint');
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
@@ -853,6 +846,13 @@ begin
   if not VersionES_2_0 then
     raise Exception.Create('We only support OpenGL ES versions >= 2.0');
   {$endif}
+
+  { Do this as early as possible, which means: after Version_3_2 is defined,
+    to debug even errors below in TGLFeatures initialization. }
+  if Debug then
+    InitializeDebug;
+
+  FNV_multisample_filter_hint := HasExtension('GL_NV_multisample_filter_hint');
 
   {$ifdef OpenGLES}
   FCLAMP_TO_EDGE := GL_CLAMP_TO_EDGE;
@@ -1261,6 +1261,8 @@ begin
 
   if (RequestCapabilities = rcForceModern) and EnableFixedFunction then
     raise Exception.Create('Requested modern context, but it was detected that we have to use fixed-function. We failed to really get modern context.');
+
+  CheckGLErrors('End of TGLFeatures.Create');
 end;
 
 destructor TGLFeatures.Destroy;
