@@ -340,6 +340,10 @@ begin
     begin
       if WasCompressed then
       begin
+        { We cannot generate mipmaps when sides used GPU compression.
+          See https://docs.gl/es2/glGenerateMipmap ,
+          "GL_INVALID_OPERATION is generated if the zero level array is stored in a compressed internal format."
+        }
         WritelnWarning('Cubemap is loaded from a GPU-compressed texture, without mipmaps. Disabling mipmaps usage, as we cannot use GenerateMipmap on GPU-compressed cube map.');
         DisableMipmaps := true;
       end else
