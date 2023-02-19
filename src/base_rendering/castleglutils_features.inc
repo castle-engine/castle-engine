@@ -828,13 +828,16 @@ begin
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
   FVersion_1_5 := GLVersion.AtLeast(1, 5);
-  FVersion_2_0 := GLVersion.AtLeast(2, 0);
-  FVersion_2_1 := GLVersion.AtLeast(2, 1);
-  FVersion_3_0 := GLVersion.AtLeast(3, 0);
-  FVersion_3_1 := GLVersion.AtLeast(3, 1);
-  FVersion_3_2 := GLVersion.AtLeast(3, 2);
-  FVersion_3_3 := GLVersion.AtLeast(3, 3);
-  FVersion_4_0 := GLVersion.AtLeast(4, 0);
+  if RequestCapabilities <> rcForceFixedFunction then
+  begin
+    FVersion_2_0 := GLVersion.AtLeast(2, 0);
+    FVersion_2_1 := GLVersion.AtLeast(2, 1);
+    FVersion_3_0 := GLVersion.AtLeast(3, 0);
+    FVersion_3_1 := GLVersion.AtLeast(3, 1);
+    FVersion_3_2 := GLVersion.AtLeast(3, 2);
+    FVersion_3_3 := GLVersion.AtLeast(3, 3);
+    FVersion_4_0 := GLVersion.AtLeast(4, 0);
+  end;
   InitOpenGLext; // TODO: check that later
   {$endif}
   {$else}
