@@ -1,11 +1,11 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "image.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/image.fs" }
 '#ifdef GL_ES' + LineEnding +
 'precision mediump float;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 'varying vec2 tex_coord_frag;' + LineEnding +
-'uniform sampler2D texture;' + LineEnding +
+'uniform sampler2D image_texture;' + LineEnding +
 '' + LineEnding +
 '#ifdef COLOR_UNIFORM' + LineEnding +
 'uniform vec4 color;' + LineEnding +
@@ -23,12 +23,12 @@
 '#ifdef COLOR_UNIFORM' + LineEnding +
 '  gl_FragColor = color;' + LineEnding +
 '#ifdef TEXTURE_HAS_ONLY_ALPHA' + LineEnding +
-'  gl_FragColor.a *= texture2D(texture, tex_coord_frag).a;' + LineEnding +
+'  gl_FragColor.a *= texture2D(image_texture, tex_coord_frag).a;' + LineEnding +
 '#else' + LineEnding +
-'  gl_FragColor *= texture2D(texture, tex_coord_frag);' + LineEnding +
+'  gl_FragColor *= texture2D(image_texture, tex_coord_frag);' + LineEnding +
 '#endif' + LineEnding +
 '#else' + LineEnding +
-'  gl_FragColor = texture2D(texture, tex_coord_frag);' + LineEnding +
+'  gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef ALPHA_TEST' + LineEnding +

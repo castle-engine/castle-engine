@@ -32,6 +32,25 @@
 
       Both cases are automatically handled inside, so usually you
       do not have to care about these details.)
+
+    @item(
+      GLSL version:
+
+      For maximum portability, write vertex and fragment shaders such that they work with oldest GLSL versions.
+      This means targeting ancient GLSL 1.10 version for desktop OpenGL (introduced in OpenGL 2.0)
+      and targeting GLSL 1.00 for OpenGLES (introduced in OpenGLES 2.0).
+      When building, we will add a #version statement to the shader,
+      bumping the #version as necessary for the OpenGL 3.1 core profile
+      (without any deprecated features) and adding a few macros to provide
+      compatibility (e.g. "attribute" will be replaced with "in").
+
+      If you know you want to target only newer OpenGL(ES) versions,
+      you can also specify #version in shader code explicitly.
+      We will not add another #version then.
+
+      For geometry shaders, you can assume GLSL >= 1.50 (OpenGL 3.2).
+      We do not support geometry shaders with older versions.
+    )
   )
 }
 unit CastleGLShaders;
@@ -77,6 +96,7 @@ type
 
   TGLSLProgram = class;
 
+  { GLSL uniform provides information to shader that is constant for a given shader execution. }
   TGLSLUniform = record
   public
     Owner: TGLSLProgram;
@@ -132,6 +152,7 @@ type
     { @groupEnd }
   end;
 
+  { GLSL attribute provides per-vertex information to the shader. }
   TGLSLAttribute = record
   public
     type
@@ -217,7 +238,7 @@ type
 
   TLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLint>;
 
-  { Easily handle program in GLSL (OpenGL Shading Language). }
+  { Manage (build, use) a program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
     ProgramId: TGLuint;
@@ -255,7 +276,7 @@ type
     procedure AttachVertexShader(const S: string);
     procedure AttachGeometryShader(const S: string);
     procedure AttachFragmentShader(const S: string);
-    procedure AttachShader(const ShaderType: TShaderType; const S: string); overload;
+    procedure AttachShader(const ShaderType: TShaderType; S: string); overload;
     { @groupEnd }
 
     { Attach multiple shader parts for given type.
@@ -1249,7 +1270,7 @@ begin
     BoolToStr(RunningInHardware, true) ;
 end;
 
-procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
+procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; S: string);
 var
   AType: TGLenum;
 
@@ -1323,6 +1344,29 @@ var
       ReportCompileError(GetShaderInfoLog(Result));
   end;
 
+{$ifndef OpenGLES}
+const
+  VersionCoreHeader: array [TShaderType] of String = (
+    // vertex
+    '#version 140' + NL +
+    '#define attribute in' + NL +
+    '#define varying out' + NL +
+    '#define texture2D texture' + NL +
+    '#define texture2DProj textureProj' + NL,
+
+    // geometry
+    '#version 150' + NL,
+
+    // fragment
+    '#version 140' + NL +
+    '#define varying in' + NL +
+    '#define texture2D texture' + NL +
+    '#define texture2DProj textureProj' + NL +
+    '#define gl_FragColor castle_FragColor' + NL +
+    'out mediump vec4 castle_FragColor;' + NL
+  );
+{$endif}
+
 const
   { FPC < 2.4.4 doesn't have it defined }
   GL_GEOMETRY_SHADER = $8DD9;
@@ -1332,6 +1376,14 @@ begin
   { When shaders not supported, TGLSLProgram does nothing, silently. }
   if not GLFeatures.Shaders then
     Exit;
+
+  {$ifndef OpenGLES}
+  if GLFeatures.Version_3_1 and
+     (Pos(#13 + '#version', S) = 0) and
+     (Pos(#10 + '#version', S) = 0) and
+     (not IsPrefix('#version', S, false)) then
+    S := VersionCoreHeader[ShaderType] + S;
+  {$endif}
 
   { calculate AType }
   case ShaderType of

@@ -3,7 +3,7 @@ precision mediump float;
 #endif
 
 varying vec2 tex_coord_frag;
-uniform sampler2D texture;
+uniform sampler2D image_texture;
 
 #ifdef COLOR_UNIFORM
 uniform vec4 color;
@@ -21,12 +21,12 @@ void main(void)
 #ifdef COLOR_UNIFORM
   gl_FragColor = color;
 #ifdef TEXTURE_HAS_ONLY_ALPHA
-  gl_FragColor.a *= texture2D(texture, tex_coord_frag).a;
+  gl_FragColor.a *= texture2D(image_texture, tex_coord_frag).a;
 #else
-  gl_FragColor *= texture2D(texture, tex_coord_frag);
+  gl_FragColor *= texture2D(image_texture, tex_coord_frag);
 #endif
 #else
-  gl_FragColor = texture2D(texture, tex_coord_frag);
+  gl_FragColor = texture2D(image_texture, tex_coord_frag);
 #endif
 
 #ifdef ALPHA_TEST
