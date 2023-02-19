@@ -302,9 +302,12 @@ type
     property Multisample: Boolean read FMultisample;
 
     { Number of texture units available for fixed-function pipeline.
-      Equal to 0 on OpenGLES (that doesn't have fixed-function pipeline).
-      Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
-      available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
+
+      Since querying glGetInteger(GL_MAX_TEXTURE_UNITS) is deprecated
+      (or not even possible in case of OpenGLES or "core" profile)
+      and we want to keep fixed-function support as simple as possible,
+      we just assume 2 (the only number guaranteed) if only multi-texturing
+      is available (UseMultiTexturing). }
     property MaxTextureUnitsFixedFunction: Cardinal read FMaxTextureUnitsFixedFunction;
 
     { Number of texture units available for shader pipeline. }
@@ -870,22 +873,16 @@ begin
   if GLVersion.BuggyTextureSizeAbove2048 then
     FMaxTextureSize := Min(FMaxTextureSize, 2048);
 
-  FMaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
+  { Querying glGetInteger(GL_MAX_LIGHTS) is deprecated in core profile,
+    as it makes sense only for fixed-function.
+    Just assume 8 now. }
+  FMaxLights := 8;
 
   { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
     which is usually much smaller (may even be 0).
     But most of our texture uses do not access the texture from the vertex shader,
     only fragment shader. }
   FMaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
-
-  {$ifdef OpenGLES}
-  FMaxTextureUnitsFixedFunction := 0;
-  {$else}
-  if Version_1_3 then
-    FMaxTextureUnitsFixedFunction := glGetInteger(GL_MAX_TEXTURE_UNITS)
-  else
-    FMaxTextureUnitsFixedFunction := 1;
-  {$endif}
 
   FTextureCubeMap := {$ifdef OpenGLES} true
     {$else} Version_1_3
@@ -976,6 +973,11 @@ begin
   FUseMultiTexturing := {$ifdef OpenGLES} true
     {$else} Version_1_3
     {$endif};
+
+  if FUseMultiTexturing then
+    FMaxTextureUnitsFixedFunction := 2
+  else
+    FMaxTextureUnitsFixedFunction := 1;
 
   FFBOMultiSampling := {$ifdef OpenGLES} false
     {$else}
