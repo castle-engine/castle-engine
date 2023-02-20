@@ -895,7 +895,8 @@ end;
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  if not Closed then
+    ref.setTitle(NSSTR(GetWholeCaption));
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;
