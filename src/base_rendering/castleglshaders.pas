@@ -52,6 +52,15 @@
     )
 
     @item(
+      Precision on OpenGLES:
+
+      We automatically add "precision mediump float;" to fragment shader on OpenGLES,
+      if no declaration "precision mediump/lowp/highp float;" is found in the code.
+      This is practically universally needed for OpenGLES fragment shader,
+      that have no default precision.
+    )
+
+    @item(
       Creating/destroying the TGLSLProgram instance immediately creates/destroys
       appropriate program on GPU. So be sure to create/destroy it only
       when you have OpenGL context available (for example, create in TCastleWindow.OnOpen
@@ -1436,6 +1445,15 @@ const
   );
   {$endif}
 
+  { Does shader code Text has a line starting with LinePrefix. }
+  function HasLine(const LinePrefix: String; const Text: String): Boolean;
+  begin
+    Result :=
+      (Pos(#13 + LinePrefix, S) <> 0) or
+      (Pos(#10 + LinePrefix, S) <> 0) or
+      IsPrefix(LinePrefix, S, false);
+  end;
+
 const
   { FPC < 2.4.4 doesn't have it defined }
   GL_GEOMETRY_SHADER = $8DD9;
@@ -1445,14 +1463,6 @@ begin
   { When shaders not supported, TGLSLProgram does nothing, silently. }
   if not GLFeatures.Shaders then
     Exit;
-
-  if InternalUpgradeGlslVersion and
-     GLFeatures. {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_1 {$endif} and
-     (Pos(#13 + '#version', S) = 0) and
-     (Pos(#10 + '#version', S) = 0) and
-     (not IsPrefix('#version', S, false)) then
-    S := {$ifdef OpenGLES} GLES30CoreHeader {$else} GL31CoreHeader {$endif}
-      [ShaderType] + S;
 
   { calculate AType }
   case ShaderType of
@@ -1466,11 +1476,28 @@ begin
           raise EGLSLShaderCompileError.Create('Geometry shaders not supported by your OpenGL version');
       end;
     stFragment:
-      AType := GL_FRAGMENT_SHADER;
+      begin
+        AType := GL_FRAGMENT_SHADER;
+        {$ifdef OpenGLES}
+        if (not HasLine('precision mediump float;', S)) and
+           (not HasLine('precision lowp float;', S)) and
+           (not HasLine('precision highp float;', S)) then
+          S := 'precision mediump float;' + NL + S;
+        {$endif}
+      end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TGLSLProgram.AttachShader ShaderType?');
     {$endif}
   end;
+
+  { Add #version.
+    Done after adding "precision ..." for OpenGLES fragment shader,
+    as #version must be earlier. }
+  if InternalUpgradeGlslVersion and
+     GLFeatures. {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_1 {$endif} and
+     (not HasLine('#version ', S)) then
+    S := {$ifdef OpenGLES} GLES30CoreHeader {$else} GL31CoreHeader {$endif}
+      [ShaderType] + S;
 
   ShaderId := CreateShader(S);
   glAttachShader(ProgramId, ShaderId);
