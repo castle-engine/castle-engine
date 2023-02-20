@@ -961,6 +961,16 @@ begin
   FKeyPressHandler.OnPress := @KeyPressHandlerPress;
   StencilBits := DefaultStencilBits;
 
+  {$ifdef DARWIN}
+  { On macOS, request "core" OpenGL context, otherwise we'll never get newer OpenGL than 2.1 }
+  OpenGLMajorVersion := 3;
+  OpenGLMinorVersion := 2;
+  { Just like in castlewindow_cocoa.inc, force modern at this point,
+    to avoid TGLFeatures using GLExt functions that use deprecated
+    OpenGL glGetString(GL_EXTENSIONS). }
+  TGLFeatures.RequestCapabilities := rcForceModern;
+  {$endif}
+
   FContainer := TCastleControlContainer.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
     so no troubles) are necessary to store it in LFM and display in object inspector
