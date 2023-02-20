@@ -384,7 +384,6 @@ type
     FrustumDimensions: TFloatRectangle;
   end;
 
-type
   { Possible ways to implement clip planes. }
   TClipPlaneAlgorithm = (
     {$ifndef OpenGLES}
