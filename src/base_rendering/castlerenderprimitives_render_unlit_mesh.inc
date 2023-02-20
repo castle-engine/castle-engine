@@ -120,7 +120,8 @@ type
       FixedFunctionIndexes: TUInt16List;
       Vao: TVertexArrayObject;
 
-    class procedure PrapareShader(const AUseColor: Boolean);
+    class procedure PrepareShader(const AUseColor: Boolean);
+    procedure SetUseColor(const Value: Boolean);
   private
     class procedure StaticGLContextClose;
   public
@@ -151,7 +152,7 @@ type
       const UsageDynamic: Boolean); overload;
 
     { Should we render with @link(Color) (if @false, output color is undefined). }
-    property UseColor: Boolean read FUseColor write FUseColor;
+    property UseColor: Boolean read FUseColor write SetUseColor;
 
     { Color used for unlit rendering, if only UseColor is @true. Opaque white by default. }
     property Color: TCastleColor read FColor write FColor;
@@ -183,7 +184,7 @@ begin
   inherited Create;
   FUseColor := AUseColor;
   FColor := White;
-  PrapareShader(AUseColor);
+  PrepareShader(AUseColor);
   Vao := TVertexArrayObject.Create;
 end;
 
@@ -195,7 +196,7 @@ begin
   inherited;
 end;
 
-class procedure TCastleRenderUnlitMesh.PrapareShader(const AUseColor: Boolean);
+class procedure TCastleRenderUnlitMesh.PrepareShader(const AUseColor: Boolean);
 const
   SimplestVS = {$I simplest.vs.inc};
   SimplestFS = {$I simplest.fs.inc};
@@ -429,6 +430,15 @@ procedure TCastleRenderUnlitMesh.SetVertexes(const Vertexes: TVector4List;
   const UsageDynamic: Boolean);
 begin
   SetVertexes(PVector4(Vertexes.L), Vertexes.Count, UsageDynamic);
+end;
+
+procedure TCastleRenderUnlitMesh.SetUseColor(const Value: Boolean);
+begin
+  if FUseColor <> Value then
+  begin
+    FUseColor := Value;
+    PrepareShader(Value);
+  end;
 end;
 
 {$endif read_implementation}
