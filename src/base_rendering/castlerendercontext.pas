@@ -424,7 +424,10 @@ begin
   if FLineWidth <> Value then
   begin
     FLineWidth := Value;
+    {$if (not defined(DARWIN)) or defined(OpenGLES)}
+    // on desktop macOS, glLineWidth raise GL_INVALID_VALUE for parameters <> 1.0
     glLineWidth(Value);
+    {$endif}
   end;
 end;
 
