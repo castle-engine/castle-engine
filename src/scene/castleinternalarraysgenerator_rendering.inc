@@ -243,6 +243,11 @@ begin
     Note that if a Color/ColorRGBA nodes are used, they will override
     the ForcedUnlitColor (because that's how UnlitMaterial), which also satisfies
     PointSet spec about Color/ColorRGBA.
+
+    TODO: This should change for X3D 4 and glTF,
+    points can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#PointSet
   }
 
   Arrays.ForceUnlit := true;
@@ -1045,10 +1050,17 @@ begin
 
   { Implement "one color for the whole lineset" case here.
 
-    Follows X3D spec:
+    Follows X3D 3 spec:
     If the color field is NULL and there is a Material defined for the
     Appearance affecting this LineSet, the emissiveColor of the Material
     shall be used to draw the lines.
+
+    https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#LineSet
+
+    TODO: This should change for X3D 4 and glTF,
+    lines can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#LineSet
 
     IndexedLineSet color may come from various places:
     1. Color node, for each vertex or polyline, if it's not NULL
