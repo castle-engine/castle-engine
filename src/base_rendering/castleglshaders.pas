@@ -1620,6 +1620,7 @@ procedure TGLSLProgram.Link;
     Result := Result +
       'End of shader source code -------------------------------------------------------';
   {$else}
+  begin
     Result := '';
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
   end;
