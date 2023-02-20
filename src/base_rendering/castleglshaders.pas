@@ -1390,6 +1390,7 @@ const
   GLES30CoreHeader: array [TShaderType] of String = (
     // vertex
     '#version 300 es' + NL +
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL +
     '#define attribute in' + NL +
     '#define varying out' + NL +
     '#define texture2D texture' + NL +
@@ -1403,10 +1404,11 @@ const
     'precision lowp sampler2DShadow;' + NL,
 
     // geometry - not supported by OpenGLES
-    '',
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL,
 
     // fragment
     '#version 300 es' + NL +
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL +
     '#define varying in' + NL +
     '#define texture2D texture' + NL +
     '#define texture3D texture' + NL +
@@ -1421,6 +1423,7 @@ const
   GL31CoreHeader: array [TShaderType] of String = (
     // vertex
     '#version 140' + NL +
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL +
     '#define attribute in' + NL +
     '#define varying out' + NL +
     '#define texture2D texture' + NL +
@@ -1430,10 +1433,12 @@ const
     '#define texture3DProj textureProj' + NL,
 
     // geometry
-    '#version 150' + NL,
+    '#version 150' + NL +
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL,
 
     // fragment
     '#version 140' + NL +
+    '#define CASTLE_GLSL_VERSION_UPGRADE' + NL +
     '#define varying in' + NL +
     '#define texture2D texture' + NL +
     '#define texture3D texture' + NL +

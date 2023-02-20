@@ -13,8 +13,10 @@ float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
      sampler2DShadow using texture*, not shadow2D* functions.
      See https://stackoverflow.com/a/22426507
      https://www.khronos.org/opengl/wiki/Sampler_(GLSL)
+
+     Modern GLSL (from #version 140) also requires it.
   */
-  #ifdef GL_ES
+  #ifdef CASTLE_GLSL_VERSION_UPGRADE
   return texture(shadowMap, shadowMapCoord);
   #else
   return shadow2D(shadowMap, shadowMapCoord).r;
@@ -23,7 +25,7 @@ float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
 
 float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
 {
-  #ifdef GL_ES
+  #ifdef CASTLE_GLSL_VERSION_UPGRADE
   return textureProj(shadowMap, shadowMapCoord);
   #else
   return shadow2DProj(shadowMap, shadowMapCoord).r;

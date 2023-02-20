@@ -88,7 +88,6 @@ const
     Result :=
       Format(
         '  Buggy VBO: %s' + NL +
-        '  Buggy shader shadow map: %s' + NL +
         '  Buggy FBO rendering to multi-sampling texture: %s' + NL +
         '  Buggy FBO rendering to cube map texture: %s' + NL +
         '  Buggy swap buffers with non-standard glViewport: %s' + NL +
@@ -99,7 +98,6 @@ const
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s', [
         BoolToStr(Version.BuggyVBO, true),
-        BoolToStr(Version.BuggyShaderShadowMap, true),
         BoolToStr(Version.BuggyFBOMultiSampling, true),
         BoolToStr(Version.BuggyFBOCubeMap, true),
         BoolToStr(Version.BuggySwapNonStandardViewport, true),

@@ -3172,9 +3172,7 @@ begin
   { Enable for shader pipeline }
 
   TextureShader := TTextureShader.Create;
-  TextureShader.HasMatrixTransform :=
-    (TextureMatrix.IndexOf(TextureUnit) <> -1)
-    and not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow));
+  TextureShader.HasMatrixTransform := (TextureMatrix.IndexOf(TextureUnit) <> -1);
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
