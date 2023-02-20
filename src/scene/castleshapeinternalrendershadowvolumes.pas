@@ -415,11 +415,6 @@ var
 begin
   Assert(ManifoldEdges <> nil);
 
-  { TODO: For unknown reason, shadow volumes cause errors with macOS, glDrawArrays makes error }
-  {$if defined(DARWIN) and not defined(OpenGLES)}
-  Exit;
-  {$endif}
-
   { if the model is not perfect 2-manifold, do not render it's shadow volumes.
     We still have here some code to handle BorderEdges, but in practice:
     this just has no chance to work 100% reliably with BorderEdges.

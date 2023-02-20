@@ -222,8 +222,11 @@ begin
   end else
   begin
     { On desktop OpenGL, fragment shader doesn't need to exist now.
-      https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional }
-    {$ifdef OpenGLES}
+      https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional
+      It still has to exist with OpenGLES.
+      Also macOS requires it always (in "core" profile), otherwise rendering shadow volumes
+      makes GL error at glDrawArrays in this unit. }
+    {$if defined(OpenGLES) or defined(DARWIN)}
     Shader.AttachShader(stFragment, SimplestFS);
     {$endif}
   end;
