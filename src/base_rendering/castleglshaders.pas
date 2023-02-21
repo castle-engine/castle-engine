@@ -599,7 +599,7 @@ var
     Note that resulting shaders may not work in OpenGL "core" profile (only compatibility)
     and some features (like shadow samplers on OpenGLES) may be missing.
 
-    @exlucde }
+    @exclude }
   InternalUpgradeGlslVersion: Boolean = true;
 
 implementation
