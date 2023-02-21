@@ -2469,13 +2469,57 @@ begin
 end;
 
 function TDesignFrame.SelectedViewport: TCastleViewport;
+
+  { Return viewport indicated by T, or @nil if none. }
+  function ViewportOfTransform(const T: TCastleTransform): TCastleViewport;
+  begin
+    if T.World <> nil then
+      Result := T.World.Owner as TCastleViewport
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by B, or @nil if none. }
+  function ViewportOfBehavior(const B: TCastleBehavior): TCastleViewport;
+  begin
+    if B.Parent <> nil then
+      Result := ViewportOfTransform(B.Parent)
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by C, or @nil if none. }
+  function ViewportOfComponent(const C: TComponent): TCastleViewport;
+  var
+    ViewportChild: TCastleUserInterface;
+  begin
+    Result := nil;
+
+    if C is TCastleViewport then
+    begin
+      Result := C as TCastleViewport;
+    end else
+    if C is TCastleUserInterface then
+    begin
+      { When hovering over TCastleNavigation, or TCastleTouchNavigation,
+        or really any UI as viewport child -> select viewport. }
+      ViewportChild := C as TCastleUserInterface;
+      if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
+      begin
+        Result := ViewportChild.Parent as TCastleViewport;
+      end;
+    end else
+    if C is TCastleTransform then
+      Result := ViewportOfTransform(C as TCastleTransform)
+    else
+    if C is TCastleBehavior then
+      Result := ViewportOfBehavior(C as TCastleBehavior);
+  end;
+
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TCastleAbstractRootTransform;
-  Sel: TComponent;
   NewResult: TCastleViewport;
-  ViewportChild: TCastleUserInterface;
 begin
   Result := nil;
 
@@ -2483,41 +2527,13 @@ begin
   try
     for I := 0 to SelectedCount - 1 do
     begin
-      Sel := Selected[I];
-      if Sel is TCastleViewport then
+      NewResult := ViewportOfComponent(Selected[I]);
+
+      if NewResult <> nil then
       begin
-        NewResult := Sel as TCastleViewport;
         if (Result <> nil) and (Result <> NewResult) then
           Exit(nil); // multiple viewports selected
         Result := NewResult;
-      end else
-      if Sel is TCastleUserInterface then
-      begin
-        { When hovering over TCastleNavigation, or TCastleTouchNavigation,
-          or really any UI over viewport -> select viewport. }
-        ViewportChild := Sel as TCastleUserInterface;
-        if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
-        begin
-          NewResult := ViewportChild.Parent as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      if Sel is TCastleTransform then
-      begin
-        World := (Sel as TCastleTransform).World;
-        if World <> nil then
-        begin
-          NewResult := World.Owner as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      begin
-        // UI that is not viewport selected
-        Exit(nil);
       end;
     end;
   finally FreeAndNil(Selected) end;
