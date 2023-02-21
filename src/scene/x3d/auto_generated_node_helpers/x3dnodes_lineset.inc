@@ -199,7 +199,7 @@ begin
   AddField(FFdVertexCount);
 
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', @LineModeNames, Ord(High(LineModeNames)) + 1, Ord(lmStrip));
-   FdMode.ChangeAlways := chVisibleNonGeometry;
+   FdMode.ChangeAlways := chGeometry;
   AddField(FFdMode);
 end;
 

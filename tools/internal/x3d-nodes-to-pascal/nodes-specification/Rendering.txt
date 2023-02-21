@@ -116,6 +116,7 @@ IndexedLineSet : X3DGeometryNode {
     range: ["STRIP","PAIR","LOOP"]
     enumerated-type: TLineMode LineModeNames lmStrip
     doc: How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details.
+    change: chGeometry
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
@@ -164,6 +165,7 @@ LineSet : X3DGeometryNode {
     range: ["STRIP","LOOP","PAIR"]
     enumerated-type: TLineMode LineModeNames lmStrip
     doc: How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details.
+    change: chGeometry
 }
 
 Normal : X3DNormalNode {
