@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1741,10 +1741,17 @@ var
     if Primitive.Indices <> -1 then
     begin
       case Primitive.Mode of
-        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
+          begin
+            Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+            TIndexedLineSetNode(Geometry).Mode := lmPair;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     :
+          begin
+            Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+            TIndexedLineSetNode(Geometry).Mode := lmLoop;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TIndexedTriangleSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TIndexedTriangleStripSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TIndexedTriangleFanSetNode.CreateWithShape(Shape);
@@ -1757,10 +1764,17 @@ var
     end else
     begin
       case Primitive.Mode of
-        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TLineSetNode.CreateWithShape(Shape);
-        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
+          begin
+            Geometry := TLineSetNode.CreateWithShape(Shape);
+            TLineSetNode(Geometry).Mode := lmPair;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     :
+          begin
+            Geometry := TLineSetNode.CreateWithShape(Shape);
+            TLineSetNode(Geometry).Mode := lmLoop;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TLineSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TTriangleSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TTriangleStripSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TTriangleFanSetNode.CreateWithShape(Shape);
@@ -1790,6 +1804,11 @@ var
         AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
         Geometry.CoordField.Value := Coord;
         Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+        { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
+          put it in VertexCount. }
+        if (Geometry is TLineSetNode) and
+           (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
+          TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
       end else
       if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
       begin

@@ -26,7 +26,15 @@ uses Generics.Collections,
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
-  TGeometryPrimitive = (gpTriangles, gpTriangleFan, gpTriangleStrip, gpLineStrip, gpPoints);
+  TGeometryPrimitive = (
+    gpTriangles,
+    gpTriangleFan,
+    gpTriangleStrip,
+    gpLineStrip,
+    gpLineLoop,
+    gpLines,
+    gpPoints
+  );
 
   TTexCoordDimensions = 2..4;
 

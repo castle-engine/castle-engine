@@ -123,6 +123,7 @@ type
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
+    function LineMode: TLineMode;
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
@@ -956,9 +957,28 @@ begin
       IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
 end;
 
+function TAbstractLineSetGenerator.LineMode: TLineMode;
+begin
+  if Geometry is TIndexedLineSetNode then
+    Result := TIndexedLineSetNode(Geometry).Mode
+  else
+  if Geometry is TLineSetNode then
+    Result := TLineSetNode(Geometry).Mode
+  else
+    Result := lmStrip;
+end;
+
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;
 begin
-  Arrays.Primitive := gpLineStrip;
+  case LineMode of
+    lmStrip: Arrays.Primitive := gpLineStrip;
+    lmLoop : Arrays.Primitive := gpLineLoop;
+    lmPair : Arrays.Primitive := gpLines;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('LineMode?');
+    {$endif}
+  end;
+
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
