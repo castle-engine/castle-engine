@@ -1518,7 +1518,7 @@ begin
   begin
     { For lmPair, return just the count of coordinates.
       These vertexes form one big "lines primitive" for rendering. }
-    if FVertexCountForPair <> nil then
+    if FVertexCountForPair = nil then
       FVertexCountForPair := TInt32List.Create;
     if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
       CoordCount := TCoordinateNode(FdCoord.Value).FdPoint.Count
