@@ -3223,7 +3223,7 @@ begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  { Rest of code code fixed-function pipeline
+  { Rest of code for fixed-function pipeline
     (glTexGeni and glEnable(GL_TEXTURE_GEN_*)) is below }
 
   TexCoordName := TTextureShader.CoordName(TextureUnit);
