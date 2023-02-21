@@ -151,6 +151,16 @@ type
   TGltfAppearanceNode = class(TAppearanceNode)
   public
     DoubleSided: Boolean;
+    { Some glTF geometry is using this.
+      Deliberately defined such that default @false is OK,
+      and during import it may be set to @true. }
+    Used: Boolean;
+    { Some glTF geometry that is possibly lit is using this.
+      All geometries are "lit" except lines and points without normals,
+      see https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#point-and-line-materials .
+      Deliberately defined such that default @false is OK,
+      and during import it may be set to @true. }
+    UsedAsLit: Boolean;
   end;
 
 { TSkinToInitialize ---------------------------------------------------------- }
@@ -1508,6 +1518,29 @@ var
     finally FreeAndNil(TexTransforms) end;
   end;
 
+  procedure FixAppearances;
+  var
+    I: Integer;
+    App: TGltfAppearanceNode;
+    Mat: TPhysicalMaterialNode;
+  begin
+    for I := 0 to Appearances.Count - 1 do
+    begin
+      App := Appearances[I] as TGltfAppearanceNode;
+      { When rendering unlit points and lines, glTF says to sum base and emissive color,
+        see https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#point-and-line-materials .
+        X3D doesn't do this, as it is a bit weird (we also don't always have "base", our
+        UnlitMaterial just has emissive).
+        As a crude fix, we correct materials that we know are only used by unlit things,
+        to have better emissiveColor. }
+      if App.Used and (not App.UsedAsLit) and (App.Material is TPhysicalMaterialNode) then
+      begin
+        Mat := TPhysicalMaterialNode(App.Material);
+        Mat.EmissiveColor := Mat.EmissiveColor + Mat.BaseColor;
+      end;
+    end;
+  end;
+
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
   begin
     Result := GetEnumName(TypeInfo(TPasGLTF.TAccessor.TType), Ord(AccessorType));
@@ -1719,6 +1752,15 @@ var
       TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
   end;
 
+  function PossiblyLitGeometry(const Geometry: TAbstractGeometryNode): Boolean;
+  begin
+    Result := not (
+      (Geometry is TPointSetNode) or
+      (Geometry is TIndexedLineSetNode) or
+      (Geometry is TLineSetNode)
+    );
+  end;
+
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
     const ParentGroup: TGroupNode);
   var
@@ -1741,6 +1783,8 @@ var
     if Primitive.Indices <> -1 then
     begin
       case Primitive.Mode of
+        // TODO: We don't have indexed points in X3D.
+        TPasGLTF.TMesh.TPrimitive.TMode.Points       : Geometry := TPointSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
           begin
             Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
@@ -1764,6 +1808,7 @@ var
     end else
     begin
       case Primitive.Mode of
+        TPasGLTF.TMesh.TPrimitive.TMode.Points       : Geometry := TPointSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
           begin
             Geometry := TLineSetNode.CreateWithShape(Shape);
@@ -1881,6 +1926,8 @@ var
         WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
           [Primitive.Material]);
     end;
+    Appearance.Used := true;
+    Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
     Shape.Appearance := Appearance;
 
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
@@ -2814,6 +2861,9 @@ begin
         WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
         ReadScene(0, Result);
       end;
+
+      // once appearances Used, UsedAsLit are set, fix them
+      FixAppearances;
 
       // read animations
       for Animation in Document.Animations do
