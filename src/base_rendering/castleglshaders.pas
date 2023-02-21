@@ -272,8 +272,8 @@ type
     ShaderIds: TGLuintList;
 
     FUniformMissing: TUniformMissing;
-
     FUniformLocations, FAttributeLocations: TLocationCache;
+    FUniformReportedMissing: TStringList;
 
     {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource: array [TShaderType] of TStringList;
@@ -1120,6 +1120,7 @@ begin
   FreeAndNil(ShaderIds);
   FreeAndNil(FUniformLocations);
   FreeAndNil(FAttributeLocations);
+  FreeAndNil(FUniformReportedMissing);
 
   inherited;
 end;
@@ -1697,6 +1698,16 @@ function TGLSLProgram.Uniform(const AName: string; const AUniformMissing: TUnifo
     end;
 
   begin
+    if FUniformReportedMissing = nil then
+    begin
+      FUniformReportedMissing := TStringList.Create;
+      FUniformReportedMissing.CaseSensitive := true; // GLSL uniform names are case-sensitive
+    end;
+    // don't spam the log with warning "Uniform variable "%s" not found (or not used)"... every frame
+    if FUniformReportedMissing.IndexOf(AName) <> -1 then
+      Exit;
+    FUniformReportedMissing.Add(AName);
+
     case AUniformMissing of
       umWarning  : WritelnWarning('GLSL', ErrMessage);
       // This was implemented in the past, but was not useful - we converted it to warnings anyway
