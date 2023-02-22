@@ -838,15 +838,20 @@ begin
           Exit; { leave Arrays created but empty }
         end;
 
+        {$ifdef GLIndexesShort}
         { In case our indexes could not be expressed using TGeometryIndexList,
           do not use indexes (i.e. leave Arrays.Indexes = nil).
           This is important in case we have to use 16-bit indexes for OpenGLES
           (when GLIndexesShort is defined and TGLIndex = UInt16)
           but our input data needs larger indexes.
 
+          This code would actually compile when GLIndexesShort is not defined too,
+          but the condition is then always false (and causes FPC warning).
+
           See GLIndexesShort notes for other approaches to it in the future. }
         if MaxIndex > High(TGLIndex) then
           AllowIndexed := false;
+        {$endif}
       end;
     end;
 
