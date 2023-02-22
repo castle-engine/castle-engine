@@ -306,10 +306,14 @@ end;
 function TCastleScrollViewCustom.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'CustomScrollbar') or
+  if (PropertyName = 'ScrollBarWidth') or
+     (PropertyName = 'CustomScrollbar') or
      (PropertyName = 'CustomScrollbarFrame') or
-     (PropertyName = 'CustomScrollbarSlider') then
+     (PropertyName = 'CustomScrollbarSlider') or
+     (PropertyName = 'DrawFrameUnderButton') then
     Result := [psBasic]
+  else if (PropertyName = 'SpaceForButton') then
+    Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
 end;
@@ -386,7 +390,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
       FScrollBarVisible := false
     else
     begin
-      ScrollbarSlider.Height := GetPageSize * SR.Height / GetCompleteSize;
+      ScrollbarSlider.Height := GetPageSize * ScrollbarFrame.Height / GetCompleteSize;
       ScrollbarSlider.Height := Max(
         Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSlider.Height);
       // limit ScrollbarSlider.Height to not be taller then this control
