@@ -68,7 +68,7 @@ begin
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 
-  { Create game views and set initial view }
+  { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewIntro := TViewIntro.Create(Application);

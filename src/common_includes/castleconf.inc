@@ -298,7 +298,7 @@
   The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
   You can simplify it in a particular application, if you don't support e.g. both FPC and Delphi.
 *)
-{ $define OpenGLES}
+{$define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
 
