@@ -733,6 +733,14 @@ begin
     WritelnLog(MessageWhole);
 end;
 
+{$ifndef OpenGLES}
+{ Workaround GLExt in FPC missing "extdecl" for these routines,
+  see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
+var
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+{$endif}
+
 constructor TGLFeatures.Create;
 
   function GetVector2Integer(const Param: TGLenum): TVector2Integer;
@@ -749,8 +757,11 @@ constructor TGLFeatures.Create;
     if HasExtension('GL_KHR_debug') then
     begin
       {$ifndef OpenGLES}
-      { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
-        glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
+      { Initialize manually to:
+        - Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
+          glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
+        - Workaround that we define them in this unit, to have proper stdcall/cdecl,
+          see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 .
         Note that we don't really use glDebugMessageControl now, but we load+check it too,
         for consistency.
         This is not necessary on OpenGLES, our CastleGLES just always loads all entry points now,
