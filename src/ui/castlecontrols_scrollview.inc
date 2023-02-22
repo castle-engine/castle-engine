@@ -26,6 +26,7 @@
     FCustomScrollbarSlider: TCastleImagePersistent;
     FScroll: Single;
     FScrollbarVisible: Boolean;
+    FSpaceForButton: Single;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
@@ -40,6 +41,7 @@
     procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
+    procedure SetSpaceForButton(const AValue: Single);
   protected
     FScrollbarLeft: Boolean;
 
@@ -134,8 +136,10 @@
     property Scroll: Single read FScroll write SetScroll {$ifdef FPC}default 0{$endif};
 
     property CustomScrollbar: Boolean read FCustomScrollbar write SetCustomScrollbar {$ifdef FPC}default False{$endif};
-    property CustomScrollbarFrame : TCastleImagePersistent read FCustomScrollbarFrame;
-    property CustomScrollbarSlider : TCastleImagePersistent read FCustomScrollbarSlider;
+    property CustomScrollbarFrame: TCastleImagePersistent read FCustomScrollbarFrame;
+    property CustomScrollbarSlider: TCastleImagePersistent read FCustomScrollbarSlider;
+    { Space left for scrollup/down buttons }
+    property SpaceForButton: Single read FSpaceForButton write SetSpaceForButton {$ifdef FPC}default 0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -333,6 +337,14 @@ procedure TCastleScrollViewCustom.ResetInertialForce;
 begin
   DragSpeed := 0;
   TimeSinceDraggingStopped := 0;
+end;
+
+procedure TCastleScrollViewCustom.SetSpaceForButton(const AValue: Single);
+begin
+  if FSpaceForButton=AValue then Exit;
+
+  FSpaceForButton:=AValue;
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
