@@ -200,8 +200,15 @@
       AutoSizeMinThickness: Single;
 
       { Minimum collider thickness used by @link(AutoSize) in 2D mode (when @link(Mode2D) = @true).
+        This is used for axis other than Z (like X, Y, or collider radiuses that affect size
+        in a few axis).
         Changing this only affects new size calculations.}
       AutoSizeMinThickness2D: Single;
+
+      { Minimum collider thickness used by @link(AutoSize) in 2D mode (when @link(Mode2D) = @true) for Z.
+        This is used only by TCastleBoxCollider now, as only that collider has specific size in Z.
+        Changing this only affects new size calculations.}
+      AutoSizeMinThickness2DDepth: Single;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -326,7 +333,9 @@
 
         @item(@link(AutoSize) assumes a bit larger "minimum thickness" for 2D,
           because typical 2D worlds use larger units.
-          See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
+          Moreover, it assumes even larger thickness in Z, to avoid too thin boxes
+          (that would not be detected as collidable).
+          See @link(AutoSizeMinThickness), @link(AutoSizeMinThickness2D), @link(AutoSizeMinThickness2DDepth).)
 
         @item(Non-uniform scale (coming from accumulated TCastleTransform.Scale on all our parents)
           is handled differently. When Mode2D = @true, the non-uniform scale is converted
@@ -1900,32 +1909,32 @@ procedure TCastleBoxCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   TempSize: TVector3;
-  MinThickness: Single;
+  MinThickness: TVector3;
 begin
   inherited; // resets Translation, Rotation
 
   if Mode2D then
-    MinThickness := AutoSizeMinThickness2D
+    MinThickness := Vector3(AutoSizeMinThickness2D, AutoSizeMinThickness2D, AutoSizeMinThickness2DDepth)
   else
-    MinThickness := AutoSizeMinThickness;
+    MinThickness := Vector3(AutoSizeMinThickness, AutoSizeMinThickness, AutoSizeMinThickness);
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Size := CastleVectors.Vector3(MinThickness, MinThickness, MinThickness);
+    Size := MinThickness;
     Exit;
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
   TempSize := LocalBoundingBox.Size;
 
-  if TempSize.X < MinThickness then
-    TempSize.X := MinThickness;
+  if TempSize.X < MinThickness.X then
+    TempSize.X := MinThickness.X;
 
-  if TempSize.Y < MinThickness then
-    TempSize.Y := MinThickness;
+  if TempSize.Y < MinThickness.Y then
+    TempSize.Y := MinThickness.Y;
 
-  if TempSize.Z < MinThickness then
-    TempSize.Z := MinThickness;
+  if TempSize.Z < MinThickness.Z then
+    TempSize.Z := MinThickness.Z;
 
   Size := TempSize;
   Translation := LocalBoundingBox.Center;
