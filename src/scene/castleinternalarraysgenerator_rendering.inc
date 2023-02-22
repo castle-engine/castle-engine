@@ -346,7 +346,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
@@ -471,7 +471,7 @@ begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -681,7 +681,7 @@ begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -887,7 +887,7 @@ begin
   Assert(CoordIndex <> nil); // we only handle TIndexedQuadSetNode here
 
   Arrays.Primitive := gpTriangles;
-  IndexesFromCoordIndex := TGeometryIndexList.Create;
+  IndexesFromCoordIndex := TUInt32List.Create;
   CalculateIndexesFromCoordIndexForTriangles;
 end;
 
@@ -981,7 +981,7 @@ begin
 
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;

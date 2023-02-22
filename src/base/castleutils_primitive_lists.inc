@@ -22,6 +22,7 @@ type
   TSingleList = class;
   TDoubleList = class;
   TInt32List = class;
+  TUInt32List = class;
 
   { Raised by various AssignLerp implementations on lists,
     like @link(TStructList.AssignLerp),
@@ -33,6 +34,7 @@ type
   public
     function Max: Word;
     procedure Assign(const Source: TInt32List);
+    procedure Assign(const Source: TUInt32List);
   end;
 
   TUInt16List = TWordList;
@@ -198,6 +200,23 @@ var
 begin
   Count := Source.Count;
   Src := PInt32(Source.L);
+  Dest := PWord(L);
+  for I := 0 to Count - 1 do
+  begin
+    Dest^ := Src^;
+    Inc(Src);
+    Inc(Dest);
+  end;
+end;
+
+procedure TWordList.Assign(const Source: TUInt32List);
+var
+  I: TListSize;
+  Src: PUInt32;
+  Dest: PWord;
+begin
+  Count := Source.Count;
+  Src := PUInt32(Source.L);
   Dest := PWord(L);
   for I := 0 to Count - 1 do
   begin
