@@ -856,17 +856,20 @@ begin
       Arrays.CoordinatePreserveGeometryOrder := AllowIndexed or (IndexesFromCoordIndex = nil);
       if Arrays.CoordinatePreserveGeometryOrder then
       begin
-        { Set Arrays.Indexes to be equal to IndexesFromCoordIndex }
-        {$ifdef GLIndexesShort}
-        { Convert 32-bit indexes in IndexesFromCoordIndex into 16-bit indexes in Arrays.Indexes }
-        Arrays.Indexes := TGeometryIndexList.Create;
-        Arrays.Indexes.Assign(IndexesFromCoordIndex);
-        FreeAndNil(IndexesFromCoordIndex);
-        {$else}
-        { Just use 32-bit indexes in IndexesFromCoordIndex as Arrays.Indexes }
-        Arrays.Indexes := IndexesFromCoordIndex;
-        IndexesFromCoordIndex := nil;
-        {$endif}
+        if IndexesFromCoordIndex <> nil then
+        begin
+          { Set Arrays.Indexes to be equal to IndexesFromCoordIndex }
+          {$ifdef GLIndexesShort}
+          { Convert 32-bit indexes in IndexesFromCoordIndex into 16-bit indexes in Arrays.Indexes }
+          Arrays.Indexes := TGeometryIndexList.Create;
+          Arrays.Indexes.Assign(IndexesFromCoordIndex);
+          FreeAndNil(IndexesFromCoordIndex);
+          {$else}
+          { Just use 32-bit indexes in IndexesFromCoordIndex as Arrays.Indexes }
+          Arrays.Indexes := IndexesFromCoordIndex;
+          IndexesFromCoordIndex := nil;
+          {$endif}
+        end;
 
         Arrays.Count := Coord.Count;
       end else
