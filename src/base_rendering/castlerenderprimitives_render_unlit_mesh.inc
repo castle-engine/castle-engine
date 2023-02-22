@@ -32,12 +32,22 @@ type
 
     This is suitable to render only trivial unlit (or invisible) meshes.
     @italic(This is not a full-featured mesh renderer.)
-    It doesn't define any per-vertex attributes other than vertex positions.
-    It limits rendering to 16-bit indexes, and always passed vectors as 4D (in homogeneous
-    coordinates).
-    It follows some current @link(RenderContext) state,
-    like @link(TRenderContext.DepthTest),
-    @link(TRenderContext.LineWidth) -- it doesn't control this state.
+    Some deliberate limitations / hardcoded assumptions to keep this class simple:
+
+    @unorderedList(
+      @item(It doesn't define any per-vertex attributes other than vertex positions.)
+
+      @item(If it uses indexes, it always uses 16-bit indexes, not 32-bit.
+        So it works even with OpenGLES 2.0 (not 3.0) or WebGL 1.0.)
+
+      @item(Always passes vectors as 4D (in homogeneous coordinates).
+        4D coordinates are useful e.g. for shadow volume quads.)
+
+      @item(It follows various current @link(RenderContext) state,
+        like @link(TRenderContext.DepthTest),
+        @link(TRenderContext.LineWidth) -- it doesn't control this state.)
+    )
+
     For a full-featured mesh rendering, just use TCastleScene, and construct your
     mesh as TIndexedTriangleSetNode or TIndexedFaceSetNode, see
     https://castle-engine.io/viewport_and_scenes_from_code#_building_a_mesh_using_code .
