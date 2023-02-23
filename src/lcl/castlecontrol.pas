@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils,
-  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,CustomTimer,
+  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType, CustomTimer,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleRenderOptions,
   CastleImages, CastleGLVersion, CastleLCLUtils,
@@ -153,7 +153,7 @@ type
     FOnUpdate: TNotifyEvent;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
-    FPaintTimer:TCustomTimer;
+    FPaintTimer: TCustomTimer;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -245,7 +245,7 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
-    procedure OnTimerPaint(Sender : TObject);
+    procedure OnTimerPaint(Sender: TObject);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
