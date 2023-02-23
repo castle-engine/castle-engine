@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils,
-  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
+  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,CustomTimer,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleRenderOptions,
   CastleImages, CastleGLVersion, CastleLCLUtils,
@@ -153,6 +153,7 @@ type
     FOnUpdate: TNotifyEvent;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
+    FPaintTimer:TCustomTimer;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -244,6 +245,7 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
+    procedure OnTimerPaint(Sender : TObject);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -985,6 +987,11 @@ begin
     SharedControl := ControlsList[0] as TCastleControl;
   ControlsList.Add(Self);
 
+  FPaintTimer := TCustomTimer.Create(Self);
+  FPaintTimer.Interval := 1000 div 60;
+  FPaintTimer.OnTimer := {$Ifdef fpc}@{$endif}OnTimerPaint;
+  FPaintTimer.Enabled := True;
+
   Invalidated := false;
 
   { Note that we can depend that csDesigning is already set in constructor.
@@ -1015,6 +1022,7 @@ begin
     Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
   end;
 
+  FreeAndNil(FPaintTimer);
   FreeAndNil(FContainer);
   FreeAndNil(FKeyPressHandler);
   inherited;
@@ -1106,7 +1114,9 @@ end;
 procedure TCastleControl.Invalidate;
 begin
   Invalidated := true;
-  inherited;
+  { invalidate is executed by PaintTimer
+  //inherited;
+  }
 end;
 
 procedure TCastleControl.ReleaseAllKeysAndMouse;
@@ -1460,6 +1470,12 @@ begin
   else
     Result := nil;
   {$warnings on}
+end;
+
+procedure TCastleControl.OnTimerPaint(Sender: TObject);
+begin
+  if Invalidated then
+    Inherited Invalidate;
 end;
 
 function TCastleControl.GetDesignUrl: String;
