@@ -266,6 +266,8 @@ end;
 procedure TCastleScrollViewCustom.RenderOverChildren;
 var
   Color: TCastleColor;
+  vScrollbarFrame: TCastleImagePersistent;
+  vScrollbarSlider: TCastleImagePersistent;
 begin
   if ScrollBarVisible then
   begin
@@ -274,20 +276,28 @@ begin
     { FScrollbarFrame can be empty }
     if (not FScrollbarSlider.Empty) then
     begin
-      if (not FScrollbarFrame.Empty) then
-      begin
-        FScrollbarFrame.Color := Color;
-        FScrollbarFrame.ScaleCorners := UIScale;
-        FScrollbarFrame.Draw(ScrollbarFrameRect);
-      end;
-      FScrollbarSlider.Color := Color;
-      FScrollbarSlider.ScaleCorners := UIScale;
-      FScrollbarSlider.Draw(ScrollbarSliderRect);
+      vScrollbarFrame := FScrollbarFrame;
+      vScrollbarSlider := FScrollbarSlider;
     end else
     begin
-      Theme.Draw(ScrollbarFrameRect, tiScrollbarFrame, UIScale, Color);
-      Theme.Draw(ScrollbarSliderRect, tiScrollbarSlider, UIScale, Color);
+      vScrollbarFrame := Theme.ImagesPersistent[tiScrollbarFrame];
+      vScrollbarSlider := Theme.ImagesPersistent[tiScrollbarSlider];
     end;
+
+    if (not vScrollbarFrame.Empty) then
+    begin
+      vScrollbarFrame.Color := Color;
+      vScrollbarFrame.ScaleCorners := UIScale;
+      vScrollbarFrame.Draw(ScrollbarFrameRect);
+    end;
+
+    if (not vScrollbarSlider.Empty) then
+    begin
+      vScrollbarSlider.Color := Color;
+      vScrollbarSlider.ScaleCorners := UIScale;
+      vScrollbarSlider.Draw(ScrollbarSliderRect);
+    end;
+
   end;
   inherited;
 end;
