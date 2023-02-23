@@ -24,7 +24,6 @@
     FCustomScrollbar: Boolean;
     FCustomScrollbarFrame: TCastleImagePersistent;
     FCustomScrollbarSlider: TCastleImagePersistent;
-    FDrawFrameUnderButton: Boolean;
     FScroll: Single;
     FScrollbarVisible: Boolean;
     FSpaceForButton: Single;
@@ -39,7 +38,6 @@
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
     procedure SetCustomScrollbar(const AValue: Boolean);
-    procedure SetDrawFrameUnderButton(const AValue: Boolean);
     procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
@@ -142,7 +140,6 @@
     property CustomScrollbarSlider: TCastleImagePersistent read FCustomScrollbarSlider;
     { Space left for scrollup/down buttons }
     property SpaceForButton: Single read FSpaceForButton write SetSpaceForButton {$ifdef FPC}default 0{$endif};
-    property DrawFrameUnderButton: Boolean read FDrawFrameUnderButton write SetDrawFrameUnderButton {$ifdef FPC}default False{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -272,15 +269,10 @@ end;
 procedure TCastleScrollViewCustom.RenderOverChildren;
 var
   Color: TCastleColor;
-  FixScrollbarFrame: TFloatRectangle;
 begin
   if ScrollBarVisible then
   begin
     Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
-    if FDrawFrameUnderButton then
-      FixScrollbarFrame := ScrollbarFrame.Grow(0, FSpaceForButton * UIScale)
-    else
-      FixScrollbarFrame := ScrollbarFrame;
 
     { FCustomScrollbarFrame can be empty }
     if FCustomScrollbar and (not FCustomScrollbarSlider.Empty) then
@@ -289,14 +281,14 @@ begin
       begin
         FCustomScrollbarFrame.Color := Color;
         FCustomScrollbarFrame.ScaleCorners := UIScale;
-        FCustomScrollbarFrame.Draw(FixScrollbarFrame);
+        FCustomScrollbarFrame.Draw(ScrollbarFrame);
       end;
       FCustomScrollbarSlider.Color := Color;
       FCustomScrollbarSlider.ScaleCorners := UIScale;
       FCustomScrollbarSlider.Draw(ScrollbarSlider);
     end else
     begin
-      Theme.Draw(FixScrollbarFrame, tiScrollbarFrame, UIScale, Color);
+      Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale, Color);
       Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale, Color);
     end;
   end;
@@ -309,8 +301,7 @@ begin
   if (PropertyName = 'ScrollBarWidth') or
      (PropertyName = 'CustomScrollbar') or
      (PropertyName = 'CustomScrollbarFrame') or
-     (PropertyName = 'CustomScrollbarSlider') or
-     (PropertyName = 'DrawFrameUnderButton') then
+     (PropertyName = 'CustomScrollbarSlider') then
     Result := [psBasic]
   else if (PropertyName = 'SpaceForButton') then
     Result := [psBasic, psLayout]
@@ -342,15 +333,6 @@ begin
   if FCustomScrollbar=AValue then Exit;
 
   FCustomScrollbar:=AValue;
-  VisibleChange([chRender]);
-end;
-
-procedure TCastleScrollViewCustom.SetDrawFrameUnderButton(const AValue: Boolean
-  );
-begin
-  if FDrawFrameUnderButton=AValue then Exit;
-
-  FDrawFrameUnderButton:=AValue;
   VisibleChange([chRender]);
 end;
 
