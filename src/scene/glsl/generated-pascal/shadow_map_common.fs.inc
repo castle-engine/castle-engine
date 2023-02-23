@@ -40,13 +40,15 @@
 '  /* Avoid back-projecting shadows. */' + LineEnding +
 '  if (shadowMapCoord.z < 0.0) return 0.0;' + LineEnding +
 '' + LineEnding +
-'  /* When coord2 is outside (0, 0) - (1, 1) square,' + LineEnding +
-'     it''s always in the shadow. Otherwise shadows would be stretched' + LineEnding +
-'     over whole scene, due to clamping. */' + LineEnding +
+'  /* When coord2 is outside (0, 0) - (1, 1) square, it''s never in the shadow.' + LineEnding +
+'     This makes sense, see' + LineEnding +
+'     https://github.com/castle-engine/castle-engine/issues/308' + LineEnding +
+'     and demo-models/shadow_maps/explicit_projection_parameters/' + LineEnding +
+'  */' + LineEnding +
 '  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding +
 '  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding +
 '      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding +
-'    return 0.0;' + LineEnding +
+'    return 1.0;' + LineEnding +
 '' + LineEnding +
 '#ifdef PCF4_BILINEAR' + LineEnding +
 '' + LineEnding +
