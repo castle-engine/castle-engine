@@ -21,9 +21,8 @@
     which is a more comfortable descendant of this class. }
   TCastleScrollViewCustom = class(TCastleUserInterface)
   strict private
-    FCustomScrollbar: Boolean;
-    FCustomScrollbarFrame: TCastleImagePersistent;
-    FCustomScrollbarSlider: TCastleImagePersistent;
+    FScrollbarFrame: TCastleImagePersistent;
+    FScrollbarSlider: TCastleImagePersistent;
     FScroll: Single;
     FScrollbarVisible: Boolean;
     FSpaceForButton: Single;
@@ -37,7 +36,6 @@
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
-    procedure SetCustomScrollbar(const AValue: Boolean);
     procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
@@ -135,9 +133,8 @@
       and interpret this value in whatever way you want. }
     property Scroll: Single read FScroll write SetScroll {$ifdef FPC}default 0{$endif};
 
-    property CustomScrollbar: Boolean read FCustomScrollbar write SetCustomScrollbar {$ifdef FPC}default False{$endif};
-    property CustomScrollbarFrame: TCastleImagePersistent read FCustomScrollbarFrame;
-    property CustomScrollbarSlider: TCastleImagePersistent read FCustomScrollbarSlider;
+    property ScrollbarFrame: TCastleImagePersistent read FScrollbarFrame;
+    property ScrollbarSlider: TCastleImagePersistent read FScrollbarSlider;
     { Space left for scrollup/down buttons }
     property SpaceForButton: Single read FSpaceForButton write SetSpaceForButton {$ifdef FPC}default 0{$endif};
 
@@ -245,10 +242,10 @@ begin
   FWheelScrollSpeed := DefaultWheelScrollSpeed;
   FTintScrollBarInactive := White;
 
-  FCustomScrollbarFrame := TCastleImagePersistent.Create;
-  FCustomScrollbarFrame.OnChange := {$Ifdef fpc}@{$endif}CustomScrollBarChanged;
-  FCustomScrollbarSlider := TCastleImagePersistent.Create;
-  FCustomScrollbarSlider.OnChange := {$Ifdef fpc}@{$endif}CustomScrollBarChanged;
+  FScrollbarFrame := TCastleImagePersistent.Create;
+  FScrollbarFrame.OnChange := {$Ifdef fpc}@{$endif}CustomScrollBarChanged;
+  FScrollbarSlider := TCastleImagePersistent.Create;
+  FScrollbarSlider.OnChange := {$Ifdef fpc}@{$endif}CustomScrollBarChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -257,8 +254,8 @@ end;
 
 destructor TCastleScrollViewCustom.Destroy;
 begin
-  FreeAndNil(FCustomScrollbarFrame);
-  FreeAndNil(FCustomScrollbarSlider);
+  FreeAndNil(FScrollbarFrame);
+  FreeAndNil(FScrollbarSlider);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -274,18 +271,18 @@ begin
   begin
     Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
 
-    { FCustomScrollbarFrame can be empty }
-    if FCustomScrollbar and (not FCustomScrollbarSlider.Empty) then
+    { FScrollbarFrame can be empty }
+    if (not FScrollbarSlider.Empty) then
     begin
-      if (not FCustomScrollbarFrame.Empty) then
+      if (not FScrollbarFrame.Empty) then
       begin
-        FCustomScrollbarFrame.Color := Color;
-        FCustomScrollbarFrame.ScaleCorners := UIScale;
-        FCustomScrollbarFrame.Draw(ScrollbarFrameRect);
+        FScrollbarFrame.Color := Color;
+        FScrollbarFrame.ScaleCorners := UIScale;
+        FScrollbarFrame.Draw(ScrollbarFrameRect);
       end;
-      FCustomScrollbarSlider.Color := Color;
-      FCustomScrollbarSlider.ScaleCorners := UIScale;
-      FCustomScrollbarSlider.Draw(ScrollbarSliderRect);
+      FScrollbarSlider.Color := Color;
+      FScrollbarSlider.ScaleCorners := UIScale;
+      FScrollbarSlider.Draw(ScrollbarSliderRect);
     end else
     begin
       Theme.Draw(ScrollbarFrameRect, tiScrollbarFrame, UIScale, Color);
@@ -299,9 +296,8 @@ function TCastleScrollViewCustom.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if (PropertyName = 'ScrollBarWidth') or
-     (PropertyName = 'CustomScrollbar') or
-     (PropertyName = 'CustomScrollbarFrame') or
-     (PropertyName = 'CustomScrollbarSlider') then
+     (PropertyName = 'ScrollbarFrame') or
+     (PropertyName = 'ScrollbarSlider') then
     Result := [psBasic]
   else if (PropertyName = 'SpaceForButton') then
     Result := [psBasic, psLayout]
@@ -328,14 +324,6 @@ begin
   end;
 end;
 
-procedure TCastleScrollViewCustom.SetCustomScrollbar(const AValue: Boolean);
-begin
-  if FCustomScrollbar=AValue then Exit;
-
-  FCustomScrollbar:=AValue;
-  VisibleChange([chRender]);
-end;
-
 procedure TCastleScrollViewCustom.ResetInertialForce;
 begin
   DragSpeed := 0;
@@ -344,10 +332,11 @@ end;
 
 procedure TCastleScrollViewCustom.SetSpaceForButton(const AValue: Single);
 begin
-  if FSpaceForButton=AValue then Exit;
-
-  FSpaceForButton:=AValue;
-  VisibleChange([chRender]);
+  if FSpaceForButton <> AValue then
+  begin
+    FSpaceForButton:=AValue;
+    VisibleChange([chRender]);
+  end;
 end;
 
 procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
