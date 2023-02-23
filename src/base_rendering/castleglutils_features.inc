@@ -737,7 +737,7 @@ end;
 { Workaround GLExt in FPC missing "extdecl" for these routines,
   see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
 var
-  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
   glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 {$endif}
 
