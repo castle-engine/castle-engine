@@ -200,6 +200,8 @@ begin
 
   ScrollView := TCastleScrollView.Create(Self);
   ScrollView.ScrollArea.InsertFront(TDialogScrollArea.Create(Self));
+  // we will set size explicitly in TViewDialog.TDialog.UpdateSizes
+  ScrollView.ScrollArea.AutoSizeToChildren := false;
   ScrollView.EnableDragging := true;
   InsertFront(ScrollView);
 end;
