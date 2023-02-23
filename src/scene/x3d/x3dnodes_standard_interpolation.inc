@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,12 @@
 {$ifdef read_interface}
   { Interpolation mode, for @link(TAbstractInterpolatorNode.Interpolation). }
   TInterpolation = (
-    { The value changes linearly from previous to next. }
+    { The value changes linearly from previous to next.
+      Some interpolators have a specific algorithm for "linear change",
+      for example colors are interpolated in HSV (LerpRgbInHsv),
+      rotations are interpolated using Slerp. }
     inLinear,
+
     { The value changes immediately from previous to next,
       at the time of next key.
       Before the time of 1st key, the value is equal to the 1st value.
@@ -556,19 +560,35 @@ end;
 
 procedure TOrientationInterpolatorNode.InterpolatorLerp(const Target: TSFRotation;
   const A: Single; const Index1, Index2: Integer);
+var
+  Q1, Q2, QResult: TQuaternion;
 begin
   { In my tests, NLerp works as good as SLerp here.
     Although NLerp doesn't guarantee constant velocity, and should be
     faster --- neither of these qualities seem to be noticeable
     in practice. }
-  Target.Value := SLerp(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+
+  if KeyValueQuaternions then
+  begin
+    // interpolate on quaternions, assuming our inputs are unit quaternions
+    Q1.Data.Vector4 := FdKeyValue.Items.List^[Index1];
+    Q2.Data.Vector4 := FdKeyValue.Items.List^[Index2];
+    QResult := SLerp(A, Q1, Q2);
+    Target.Value := QResult.ToAxisAngle;
+  end else
+  begin
+    Target.Value := SLerp(A,
+      FdKeyValue.Items.List^[Index1],
+      FdKeyValue.Items.List^[Index2]);
+  end;
 end;
 
 procedure TOrientationInterpolatorNode.InterpolatorSet(const Target: TSFRotation; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  if KeyValueQuaternions then
+    Target.Value := Quaternion(FdKeyValue.Items.List^[Index]).ToAxisAngle
+  else
+    Target.Value := FdKeyValue.Items.List^[Index];
 end;
 
 function TOrientationInterpolatorNode.CreateOutputField: TSFRotation;

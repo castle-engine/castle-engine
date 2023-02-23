@@ -124,6 +124,12 @@ const
   QuatIdentityRot: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1))
     deprecated 'use TQuaternion.ZeroRotation';
 
+{ Quaternion with given vector.
+  See TQuaternion and SLerp for useful things you can do with quaternions.
+  See QuatFromAxisAngle if instead you want to initialize quternion with axis+angle vector.
+  @seealso QuatFromAxisAngle }
+function Quaternion(const V: TVector4): TQuaternion;
+
 { Calculate unit quaternion representing rotation around Axis
   by AngleRad angle (in radians).
 
@@ -395,6 +401,11 @@ begin
 end;
 
 { routines ------------------------------------------------------------------- }
+
+function Quaternion(const V: TVector4): TQuaternion;
+begin
+  Result.Data.Vector4 := V;
+end;
 
 function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;

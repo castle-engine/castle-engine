@@ -322,14 +322,28 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
     KeyValue: TVector4List;
   begin
     KeyValue := Interpolator.FdKeyValue.Items;
-    if Range = 0 then
-      Result := KeyValue[0]
-    else
-    if Range = KeyValue.Count then
-      Result := KeyValue[KeyValue.Count - 1]
-    else
-      // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
-      Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
+
+    if Interpolator.KeyValueQuaternions then
+    begin
+      if Range = 0 then
+        Result := Quaternion(KeyValue[0]).ToAxisAngle
+      else
+      if Range = KeyValue.Count then
+        Result := Quaternion(KeyValue[KeyValue.Count - 1]).ToAxisAngle
+      else
+        // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
+        Result := SLerp(T, Quaternion(KeyValue[Range - 1]), Quaternion(KeyValue[Range])).ToAxisAngle;
+    end else
+    begin
+      if Range = 0 then
+        Result := KeyValue[0]
+      else
+      if Range = KeyValue.Count then
+        Result := KeyValue[KeyValue.Count - 1]
+      else
+        // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
+        Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
+    end;
   end;
 
   { Update all CurrentXxx values affected by this animation. }
@@ -1697,7 +1711,8 @@ var
     end;
   end;
 
-  procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean);
+  procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean;
+    const ReturnQuaternions: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
     A: TPasGLTF.TVector4DynamicArray;
@@ -1709,9 +1724,18 @@ var
       A := Accessor.DecodeAsVector4Array(ForVertex);
       Len := Length(A);
       Field.Count := Len;
-      // convert glTF rotation to X3D
-      for I := 0 to Len - 1 do
-        Field.Items.List^[I] := RotationFromGltf(A[I]);
+      if ReturnQuaternions then
+      begin
+        { Return exact quaternions, without converting to axis-angle.
+          This will cooperate with TOrientationInterpolatorNode.KeyValueQuaternions. }
+        for I := 0 to Len - 1 do
+          Field.Items.List^[I] := Vector4FromGltf(A[I]);
+      end else
+      begin
+        // convert glTF rotation to X3D
+        for I := 0 to Len - 1 do
+          Field.Items.List^[I] := RotationFromGltf(A[I]);
+      end;
     end;
   end;
 
@@ -2171,7 +2195,8 @@ var
           InterpolateOrientation := TOrientationInterpolatorNode.Create;
           Interpolator := InterpolateOrientation;
           InterpolatorOutputEvent := InterpolateOrientation.EventValue_changed;
-          AccessorToRotation(Sampler.Output, InterpolateOrientation.FdKeyValue, false);
+          AccessorToRotation(Sampler.Output, InterpolateOrientation.FdKeyValue, false, CastleX3dExtensions);
+          InterpolateOrientation.KeyValueQuaternions := CastleX3dExtensions;
           TargetField := Node.FdRotation;
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
