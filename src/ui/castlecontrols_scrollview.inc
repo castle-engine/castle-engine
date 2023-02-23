@@ -29,7 +29,7 @@
     FSpaceForButton: Single;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
-    ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
+    ScrollbarFrameRect, ScrollbarSliderRect: TFloatRectangle;
     ScrollBarDragging: Boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Single;
@@ -281,15 +281,15 @@ begin
       begin
         FCustomScrollbarFrame.Color := Color;
         FCustomScrollbarFrame.ScaleCorners := UIScale;
-        FCustomScrollbarFrame.Draw(ScrollbarFrame);
+        FCustomScrollbarFrame.Draw(ScrollbarFrameRect);
       end;
       FCustomScrollbarSlider.Color := Color;
       FCustomScrollbarSlider.ScaleCorners := UIScale;
-      FCustomScrollbarSlider.Draw(ScrollbarSlider);
+      FCustomScrollbarSlider.Draw(ScrollbarSliderRect);
     end else
     begin
-      Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale, Color);
-      Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale, Color);
+      Theme.Draw(ScrollbarFrameRect, tiScrollbarFrame, UIScale, Color);
+      Theme.Draw(ScrollbarSliderRect, tiScrollbarSlider, UIScale, Color);
     end;
   end;
   inherited;
@@ -361,25 +361,25 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     SR := RenderRect;
 
     if FScrollbarLeft then
-      ScrollbarFrame := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
+      ScrollbarFrameRect := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
     else
-      ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
+      ScrollbarFrameRect := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
-    ScrollbarFrame := ScrollbarFrame.Grow(0, - FSpaceForButton * UIScale);
+    ScrollbarFrameRect := ScrollbarFrameRect.Grow(0, - FSpaceForButton * UIScale);
 
-    ScrollbarSlider := ScrollbarFrame;
+    ScrollbarSliderRect := ScrollbarFrameRect;
     if GetCompleteSize = 0 then
       FScrollBarVisible := false
     else
     begin
-      ScrollbarSlider.Height := GetPageSize * ScrollbarFrame.Height / GetCompleteSize;
-      ScrollbarSlider.Height := Max(
-        Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSlider.Height);
-      // limit ScrollbarSlider.Height to not be taller then this control
-      ScrollbarSlider.Height := Min(
-        EffectiveHeightForChildren * UIScale, ScrollbarSlider.Height);
+      ScrollbarSliderRect.Height := GetPageSize * ScrollbarFrameRect.Height / GetCompleteSize;
+      ScrollbarSliderRect.Height := Max(
+        Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSliderRect.Height);
+      // limit ScrollbarSliderRect.Height to not be taller then this control
+      ScrollbarSliderRect.Height := Min(
+        EffectiveHeightForChildren * UIScale, ScrollbarSliderRect.Height);
 
-      FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height + SingleEpsilon;
+      FScrollBarVisible := ScrollbarFrameRect.Height > ScrollbarSliderRect.Height + SingleEpsilon;
       { equivalent would be to set
           ScrollBarVisible := GetPageSize < GetCompleteSize;
         But this way makes it clear that MapRange below is valid,
@@ -388,10 +388,10 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     if FScrollBarVisible then
     begin
       { above calculation of FScrollBarVisible must guarantee this. }
-      Assert(ScrollbarFrame.Height > ScrollbarSlider.Height);
-      ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
+      Assert(ScrollbarFrameRect.Height > ScrollbarSliderRect.Height);
+      ScrollbarSliderRect.Bottom := ScrollbarSliderRect.Bottom +
         (MapRange(Scroll, ScrollMin, ScrollMax,
-          ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
+          ScrollbarFrameRect.Height - ScrollbarSliderRect.Height, 0));
     end else
     begin
       ScrollBarDragging := false;
@@ -509,20 +509,20 @@ begin
   if Result then Exit;
 
   { Process clicks in PreviewPress,
-    since we draw ScrollbarFrame in RenderOverChildren.
-    So clicking on ScrollbarFrame should be captured, before passing them
+    since we draw ScrollbarFrameRect in RenderOverChildren.
+    So clicking on ScrollbarFrameRect should be captured, before passing them
     to children (e.g. TCastleButton inside ScrollArea). }
 
   if ScrollBarVisible and
      Event.IsMouseButton(buttonLeft) and
-     ScrollbarFrame.Contains(Event.Position) then
+     ScrollbarFrameRect.Contains(Event.Position) then
   begin
-    if Event.Position[1] < ScrollbarSlider.Bottom then
+    if Event.Position[1] < ScrollbarSliderRect.Bottom then
     begin
       Scroll := Scroll + GetPageSize;
       ResetInertialForce;
     end else
-    if Event.Position[1] >= ScrollbarSlider.Top then
+    if Event.Position[1] >= ScrollbarSliderRect.Top then
     begin
       Scroll := Scroll - GetPageSize;
       ResetInertialForce;
@@ -588,7 +588,7 @@ begin
 
   { We do not process mouse button clicks (or touches) here
     (not on an entire TCastleScrollViewCustom area -- the code in PreviewPress
-    handles clicks inside ScrollbarFrame only).
+    handles clicks inside ScrollbarFrameRect only).
     We only process dragging (with buttonLeft) inside TCastleScrollViewCustom.Update
     and TCastleScrollViewCustom.Motion.
 
@@ -627,10 +627,10 @@ begin
 
   if ScrollBarDragging then
   begin
-    { In scaled pixels, dragging by ScrollbarFrame.Height equals changing
+    { In scaled pixels, dragging by ScrollbarFrameRect.Height equals changing
       Scroll by GetCompleteSize. }
     Scroll := Scroll + GetCompleteSize *
-      (Event.OldPosition[1] - Event.Position[1]) / ScrollbarFrame.Height;
+      (Event.OldPosition[1] - Event.Position[1]) / ScrollbarFrameRect.Height;
     ResetInertialForce;
     Result := ExclusiveEvents;
   end else
