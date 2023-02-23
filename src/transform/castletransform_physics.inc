@@ -1914,9 +1914,9 @@ begin
   inherited; // resets Translation, Rotation
 
   if Mode2D then
-    MinThickness := Vector3(AutoSizeMinThickness2D, AutoSizeMinThickness2D, AutoSizeMinThickness2DDepth)
+    MinThickness := CastleVectors.Vector3(AutoSizeMinThickness2D, AutoSizeMinThickness2D, AutoSizeMinThickness2DDepth)
   else
-    MinThickness := Vector3(AutoSizeMinThickness, AutoSizeMinThickness, AutoSizeMinThickness);
+    MinThickness := CastleVectors.Vector3(AutoSizeMinThickness, AutoSizeMinThickness, AutoSizeMinThickness);
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
