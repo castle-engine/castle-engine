@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -477,6 +477,11 @@ end;
   http://en.wikipedia.org/wiki/Slerp
 }
 function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+const
+  { Do not make this Epsilon too large.
+    See https://github.com/castle-engine/castle-engine/issues/342
+    and TTestCastleQuaternions.TestSlerpEpsilon }
+  Epsilon = 1E-6;
 var
   W1, W2, NegateOneQuaternion: Single;
   CosTheta, Theta: Float;
@@ -508,7 +513,7 @@ begin
 
   Theta := ArcCos(CosTheta);
   SinTheta := Sin(Theta);
-  if SinTheta > 0.001 then
+  if SinTheta > Epsilon then
   begin
     W1 := NegateOneQuaternion * Sin( (1-A) * Theta ) / SinTheta;
     W2 :=                       Sin(    A  * Theta ) / SinTheta;
