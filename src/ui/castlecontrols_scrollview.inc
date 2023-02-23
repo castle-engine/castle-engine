@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,8 +131,13 @@
   {$undef read_interface_class}
   end;
 
-  { @exclude Internal class to represent @link(TCastleScrollView.ScrollArea). }
-  TInternalCastleScrollArea = class(TCastleUserInterface)
+  { Class that represents scrollable area inside @link(TCastleScrollView.ScrollArea).
+    Never create instances of this class directly -- it should only be created by TCastleScrollView. }
+  TCastleScrollArea = class(TCastleUserInterface)
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property AutoSizeToChildren default true;
     { Do not store VerticalAnchorXxx properties, they should be only controlled
       using @link(TCastleScrollViewCustom.Scroll).
       Note: we cannot prevent storing (duplicated in this case)
@@ -149,7 +154,7 @@
     dragging the whole area - see @link(EnableDragging)). }
   TCastleScrollView = class(TCastleScrollViewCustom)
   strict private
-    FScrollArea: TInternalCastleScrollArea;
+    FScrollArea: TCastleScrollArea;
   protected
     function GetPageSize: Single; override;
     function GetCompleteSize: Single; override;
@@ -171,7 +176,7 @@
         @item(Leave the ScrollArea anchors as default: ScrollArea should be
           anchored to the top-left corner of the parent.)
       ) }
-    property ScrollArea: TInternalCastleScrollArea read FScrollArea;
+    property ScrollArea: TCastleScrollArea read FScrollArea;
   end;
 
   { Control with a scrollbar.
@@ -589,16 +594,31 @@ end;
 {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+{ TCastleScrollArea ---------------------------------------------------------- }
+
+constructor TCastleScrollArea.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  if not (
+      (AOwner is TCastleScrollView) and
+      (TCastleScrollView(AOwner).ScrollArea = nil)
+     ) then
+    raise Exception.Create('TCastleScrollArea can only be created as a subcomponent of TCastleScrollView, do not create it yourself');
+
+  AutoSizeToChildren := true;
+  Anchor(vpTop);
+end;
+
 { TCastleScrollView ---------------------------------------------------------- }
 
 constructor TCastleScrollView.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FScrollArea := TInternalCastleScrollArea.Create(Self);
+  FScrollArea := TCastleScrollArea.Create(Self);
   FScrollArea.SetSubComponent(true);
   FScrollArea.Name := 'ScrollArea';
-  FScrollArea.Anchor(vpTop);
   InsertFront(FScrollArea);
 
   ClipChildren := true;
