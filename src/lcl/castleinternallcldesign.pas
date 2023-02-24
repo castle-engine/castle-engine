@@ -50,10 +50,17 @@ begin
     Doing it now, when DesignUrl seems needed (
     by dialog box that sets DesignUrl,
     by setting TCastleControl.DesignUrl in deserialization)
-    is not a clean way to do this (because we may miss some situations). }
+    is not a clean way to do this (because we may miss some situations).
 
-  if CastleDesignMode and
-     (LazarusIDE <> nil) and
+    Note: We don't check "CastleDesignMode and ..." here now.
+    This was preventing FixApplicationDataInIDE from setting path
+    when we open the dialog to load DesignUrl for the first time in project
+    in Lazarus IDE
+    (testcase: open in Lazarus examples/lazarus/multiple_views/ , open form,
+    try to set DesignUrl by clicking on "..." near it).
+    Our InternalCastleApplicationMode is not yet set at this point.
+  }
+  if (LazarusIDE <> nil) and
      (LazarusIDE.ActiveProject <> nil) then
   begin
     { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
