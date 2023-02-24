@@ -297,62 +297,11 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       end;
   end;
 
-  { Perform PositionInterpolator interpolation.
-    Range and T are like results of KeyRange call. }
-  function InterpolatePosition(const Interpolator: TPositionInterpolatorNode;
-    const Range: Integer; const T: Single): TVector3;
-  var
-    KeyValue: TVector3List;
-  begin
-    KeyValue := Interpolator.FdKeyValue.Items;
-    if Range = 0 then
-      Result := KeyValue[0]
-    else
-    if Range = KeyValue.Count then
-      Result := KeyValue[KeyValue.Count - 1]
-    else
-      Result := TVector3.Lerp(T, KeyValue[Range - 1], KeyValue[Range]);
-  end;
-
-  { Perform OrientationInterpolator interpolation.
-    Range and T are like results of KeyRange call. }
-  function InterpolateOrientation(const Interpolator: TOrientationInterpolatorNode;
-    const Range: Integer; const T: Single): TVector4;
-  var
-    KeyValue: TVector4List;
-  begin
-    KeyValue := Interpolator.FdKeyValue.Items;
-
-    if Interpolator.KeyValueQuaternions then
-    begin
-      if Range = 0 then
-        Result := Quaternion(KeyValue[0]).ToAxisAngle
-      else
-      if Range = KeyValue.Count then
-        Result := Quaternion(KeyValue[KeyValue.Count - 1]).ToAxisAngle
-      else
-        // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
-        Result := SLerp(T, Quaternion(KeyValue[Range - 1]), Quaternion(KeyValue[Range])).ToAxisAngle;
-    end else
-    begin
-      if Range = 0 then
-        Result := KeyValue[0]
-      else
-      if Range = KeyValue.Count then
-        Result := KeyValue[KeyValue.Count - 1]
-      else
-        // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
-        Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
-    end;
-  end;
-
   { Update all CurrentXxx values affected by this animation. }
   procedure UpdateCurrentTransformation;
   var
     Interpolator: TInterpolator;
-    T: Single;
-    Range, TargetIndex: Integer;
-    Key: TSingleList;
+    TargetIndex: Integer;
   begin
     for Interpolator in Animation.Interpolators do
     begin
@@ -360,23 +309,19 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       if TargetIndex = -1 then
         raise EInternalError.Create('Interpolator.Target not on Nodes list');
 
-      { Below we process time,
+      { Below we process Time,
         similar to TAbstractSingleInterpolatorNode.EventSet_FractionReceive. }
 
-      Key := Interpolator.Node.FdKey.Items;
-      if Key.Count = 0 then
-        // Interpolator nodes containing no keys in the key field shall not produce any events.
-        Exit;
-
-      Range := KeyRange(Key, Time, T);
-
       case Interpolator.Path of
-        gsTranslation: CurrentTranslation[TargetIndex] :=
-          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
-        gsRotation: CurrentRotation[TargetIndex] :=
-          InterpolateOrientation(Interpolator.Node as TOrientationInterpolatorNode, Range, T);
-        gsScale: CurrentScale[TargetIndex] :=
-          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
+        gsTranslation:
+          CurrentTranslation[TargetIndex] :=
+            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
+        gsRotation:
+          CurrentRotation[TargetIndex] :=
+            (Interpolator.Node as TOrientationInterpolatorNode).Interpolate(Time);
+        gsScale:
+          CurrentScale[TargetIndex] :=
+            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Unexpected glTF Interpolator.Path value');
         {$endif}
