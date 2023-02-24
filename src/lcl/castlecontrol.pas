@@ -39,6 +39,55 @@ uses
   {$endif}
 {$endif}
 
+{ Define to use a timer (with Interval = 1) to update the control.
+  If not defined, we will use Application.AddOnIdleHandler.
+  Unfortunately there's no perfect solution:
+
+  - Using Application.AddOnIdleHandler means that we need to install
+    idle handler that always sets "Done := false" (to prevent Lazarus
+    TApplication.Idle from doing WidgetSet.AppWaitMessage
+    in lazarus/lcl/include/application.inc ).
+
+    Disadvantages:
+
+    This approach blocks events registered later by Application.AddOnIdleHandler
+    from working. (because the first idle event with "Done := false" breaks
+    execution of idle events.)
+    This hurts in case you have other components using
+    LCL Application.AddOnIdleHandler.
+
+    We also should not do it at design-time in Lazarus IDE
+    (so e.g. TCastleControl cannot play animations at design-time in Lazarus IDE).
+
+    If you want to reliably do some continuous work, use Castle Game Engine
+    features to do it. There are various alternative ways:
+
+    - Register an event on @link(OnUpdate) of this component,
+
+    - Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
+      with overridden @link(TCastleUserInterface.Update) method,)
+
+    - Register an event on @link(TCastleApplicationProperties.OnUpdate
+      ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
+      unit.
+
+    The advantage of Application.AddOnIdleHandler is that it always works,
+    it reliably prevents LCL from calling WidgetSet.AppWaitMessage that hangs
+    indefinitely long.
+
+  - Using timer means that we don't have to define idle handler.
+
+    This removes problems of idle:
+    We don't block other idle handlers (or timers).
+    We can animate at design-time in Lazarus IDE.
+
+    Disadvantage: It simply doesn't work with GTK widgetset.
+    The timer execution doesn't break the WidgetSet.AppWaitMessage
+    on GTK, and so timer with Interval=1 can in fact hang for an arbitrarily
+    long time if you don't make any event (like mouse movement).
+}
+{.$define CASTLE_CONTROL_UPDATE_TIMER}
+
 type
   TCastleControl = class;
 
@@ -154,9 +203,16 @@ type
       { "Updating" means that the mechanism to call DoUpdateEverything
         continuosly is set up. }
       UpdatingEnabled: Boolean;
-      UpdatingTimer: TCustomTimer;
 
+      {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+      UpdatingTimer: TCustomTimer;
+      {$endif}
+
+    {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
     class procedure UpdatingTimerEvent(Sender: TObject);
+    {$else}
+    class procedure UpdatingIdleEvent(Sender: TObject; var Done: Boolean);
+    {$endif}
     class procedure UpdatingEnable;
     class procedure UpdatingDisable;
     class procedure DoUpdateEverything;
@@ -938,21 +994,37 @@ end;
 class procedure TCastleControl.UpdatingEnable;
 begin
   inherited;
+  {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
   UpdatingTimer := TCustomTimer.Create(nil);
   UpdatingTimer.Interval := 1;
   UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+  {$else}
+  Application.AddOnIdleHandler({$ifdef FPC}@{$endif} UpdatingIdleEvent);
+  {$endif}
 end;
 
 class procedure TCastleControl.UpdatingDisable;
 begin
+  {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
   FreeAndNil(UpdatingTimer);
+  {$else}
+  Application.RemoveOnIdleHandler({$ifdef FPC}@{$endif} UpdatingIdleEvent);
+  {$endif}
   inherited;
 end;
 
+{$ifdef CASTLE_CONTROL_UPDATE_TIMER}
 class procedure TCastleControl.UpdatingTimerEvent(Sender: TObject);
 begin
   DoUpdateEverything;
 end;
+{$else}
+class procedure TCastleControl.UpdatingIdleEvent(Sender: TObject; var Done: Boolean);
+begin
+  DoUpdateEverything;
+  Done := false;
+end;
+{$endif}
 
 procedure TCastleControl.SetAutoRedisplay(const Value: boolean);
 begin
