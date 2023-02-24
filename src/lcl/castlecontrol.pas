@@ -39,10 +39,6 @@ uses
   {$endif}
 {$endif}
 
-const
-  DefaultLimitFPS = TCastleApplicationProperties.DefaultLimitFPS
-    deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
-
 type
   TCastleControl = class;
 
