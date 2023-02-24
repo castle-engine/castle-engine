@@ -41,6 +41,7 @@
   }
   TCastleImagePersistent = class(TPersistent)
   strict private
+    FScaleProtectedSides: Single;
     FURL: string;
     FCache: boolean;
     FScaleFromUrl: Single;
@@ -79,6 +80,7 @@
     procedure SetCache(const Value: Boolean);
     procedure SetRegion(const AValue: TRegion);
     procedure SetRegionEnabled(const AValue: Boolean);
+    procedure SetScaleProtectedSides(const AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -301,6 +303,7 @@
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
+    property ScaleProtectedSides: Single read FScaleProtectedSides write SetScaleProtectedSides {$Ifdef fpc}default 1{$endif};
     property RegionEnabled: Boolean read FRegionEnabled write SetRegionEnabled default false;
 
   {$define read_interface_class}
@@ -321,6 +324,7 @@ begin
   FRotationCenter := Vector2(0.5, 0.5);
   FColor := White;
   FScaleCorners := 1;
+  FScaleProtectedSides := 1;
   FScaleFromUrl := 1;
   FInternalVisualizeProtectedSides := true;
   FRegion := TFloatRectangle.Empty;
@@ -480,10 +484,20 @@ end;
 
 procedure TCastleImagePersistent.SetRegionEnabled(const AValue: Boolean);
 begin
-  if FRegionEnabled = AValue then Exit;
+  if FRegionEnabled <> AValue then
+  begin
+    FRegionEnabled := AValue;
+    DoChange;
+  end;
+end;
 
-  FRegionEnabled := AValue;
-  DoChange;
+procedure TCastleImagePersistent.SetScaleProtectedSides(const AValue: Single);
+begin
+  if FScaleProtectedSides <> AValue then
+  begin
+    FScaleProtectedSides:=AValue;
+    DoChange;
+  end;
 end;
 
 function TCastleImagePersistent.GetImage: TEncodedImage;
@@ -700,7 +714,7 @@ begin
 	else
       SrcSidesVector := TVector4.Zero;
 
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcSidesVector);
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcSidesVector, FScaleProtectedSides);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;
