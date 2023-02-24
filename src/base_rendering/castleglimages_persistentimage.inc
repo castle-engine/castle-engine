@@ -642,10 +642,10 @@ procedure TCastleImagePersistent.Draw(
   var
     L, R, B, T: Single;
   begin
-    L := ProtectedSides.TotalLeft   * ScaleCorners;
-    R := ProtectedSides.TotalRight  * ScaleCorners;
-    B := ProtectedSides.TotalBottom * ScaleCorners;
-    T := ProtectedSides.TotalTop    * ScaleCorners;
+    L := ProtectedSides.TotalLeft   * ScaleCorners * ScaleProtectedSides;
+    R := ProtectedSides.TotalRight  * ScaleCorners * ScaleProtectedSides;
+    B := ProtectedSides.TotalBottom * ScaleCorners * ScaleProtectedSides;
+    T := ProtectedSides.TotalTop    * ScaleCorners * ScaleProtectedSides;
 
     FitWithin(L, R, ScreenRectangle.Width);
     FitWithin(B, T, ScreenRectangle.Height);
