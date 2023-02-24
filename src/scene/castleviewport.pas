@@ -921,7 +921,7 @@ type
       Or you can leave it as @nil. }
     property Navigation: TCastleNavigation read GetNavigation write SetNavigation
       stored false;
-      {$ifdef FPC}deprecated 'no need to set this, instead add TCastleNavigation like "MyViewport.InsertBack(MyNavigation)"';{$endif}
+      {$ifdef FPC}deprecated 'instead of this property: to get, just remember current navigation instance on your side; to set, add it like "MyViewport.InsertBack(MyNavigation)"';{$endif}
 
     { Check collisions (for move) with whole world (except AvoidNavigationCollisions).
       Given parameters are in world coordinates.
