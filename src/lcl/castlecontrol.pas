@@ -1077,8 +1077,18 @@ begin
     Resize; // will call Container.EventResize
     Invalidate;
 
-    // do this even at design-time, to allow animating in Lazarus IDE
-    if {(not (csDesigning in ComponentState)) and} (not UpdatingEnabled) then
+    { When using Application.AddOnIdleHandler:
+      Do not add it at design-time, to not block other idle handlers in Lazarus IDE.
+
+      When using TCustomTimer:
+      It is OK to let it work at design-time too.
+      And then we will have animations in Lazarus IDE in TCastleControl
+      (e.g. if you load design with animated TCastleScene in TCastleControl.DesignUrl). }
+
+    if {$ifndef CASTLE_CONTROL_UPDATE_TIMER}
+       (not (csDesigning in ComponentState)) and
+       {$endif}
+       (not UpdatingEnabled) then
     begin
       UpdatingEnabled := true;
       UpdatingEnable;
