@@ -17,6 +17,14 @@
 { Test CastleScript unit. }
 unit TestCastleScript;
 
+{ Parts of CastleScript implementation right now use Pascal generics
+  in ways that don't compile with Delphi.
+  Symbol CASTLE_SCRIPT_FPC is in practice equal to just FPC,
+  but having a dedicated symbol allows to easier grep for it and eventually fix. }
+{$ifdef FPC}
+  {$define CASTLE_SCRIPT_FPC}
+{$endif}
+
 interface
 
 uses
@@ -31,7 +39,9 @@ type
     procedure TestInheritsFrom;
     procedure TestFloatPrograms;
     procedure TestVariousTypesPrograms;
+    {$ifdef CASTLE_SCRIPT_FPC}
     procedure TestArrays;
+    {$endif CASTLE_SCRIPT_FPC}
     procedure TestBools;
     procedure TestParseConstantIntExpression;
     procedure TestInvalidOps;
@@ -411,6 +421,7 @@ begin
   end;
 end;
 
+{$ifdef CASTLE_SCRIPT_FPC}
 procedure TTestCastleScript.TestArrays;
 var
   Prog: TCasScriptProgram;
@@ -469,6 +480,7 @@ begin
     FreeAndNil(Vars);
   end;
 end;
+{$endif CASTLE_SCRIPT_FPC}
 
 procedure TTestCastleScript.TestBools;
 begin
