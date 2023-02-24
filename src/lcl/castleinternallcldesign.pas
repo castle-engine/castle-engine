@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@
 
   This does:
   - make castle-data: work in Lazarus IDE,
-  - send CGE warnings to  messages.
+  - send CGE warnings to LCL messages window.
 }
 unit CastleInternalLclDesign;
 
