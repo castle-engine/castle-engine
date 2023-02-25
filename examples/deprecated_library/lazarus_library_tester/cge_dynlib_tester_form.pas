@@ -320,6 +320,14 @@ procedure TForm1.BtnOpenClick(Sender: TObject);
 var
   csFile: array[0..260] of char;
 begin
+  { Note about OpenDialog1 (TOpenDialog) usage:
+    In a "real" Castle Game Engine application using LCL, we recommend to use
+    component TCastleOpen3DDialog (from castle_components.lpk) 
+    to have a dialog box to select a file to load in TCastleScene.
+    However, in case of this application, it deliberately *does not* use CGE in a normal
+    way (through Lazarus packages or Pascal units), it only accesses CGE as a shared library.
+    That's why we decided to define OpenDialog1 as TOpenDialog, not TCastleOpen3DDialog. }
+    
   if OpenDialog1.Execute then
   begin
     StrPCopy(csFile, OpenDialog1.Filename);
