@@ -573,47 +573,47 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     end;
   end;
 
-  function Handle_IME:Boolean;
+  function Handle_IME: Boolean;
   var
     vhIMC: HIMC;
-    vSize:integer;
+    vSize: Integer;
     vBuffer: TBytes;
     KeyString: UnicodeString;
     //vLogFont: TLogFont;
     vCF: TCompositionForm;
     pt: TPoint;
   begin
-    result:=False;
+    Result := false;
     case uMsg of
-    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
-      begin
-        { adjusted composition window's position and font/caret size }
-        vhIMC := ImmGetContext(self.h_Wnd);
-        if vhIMC = 0 then Exit;
-        try
-          ImmSetOpenStatus(vhIMC, True);
-          {
-          ImmGetCompositionFont(vhIMC, @vLogFont);
-          vLogFont.lfHeight := Font.Height;
-          ImmSetCompositionFont(vhIMC, @vLogFont);
-          }
-          { should get focused edit's position,not done }
-          GetCursorPos(pt);
-          ScreenToClient(self.h_Wnd,pt);
-          pt.Offset(0,25);
-          vCF.ptCurrentPos := pt;
-          vCF.dwStyle := CFS_RECT;
-          vCF.rcArea := TRect.Create(0,0,self.Width,self.Height);
-          ImmSetCompositionWindow(vhIMC, @vCF);
-        finally
-          ImmReleaseContext(self.h_Wnd, vhIMC);
+      WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
+        begin
+          { adjusted composition window's position and font/caret size }
+          vhIMC := ImmGetContext(h_Wnd);
+          if vhIMC = 0 then Exit;
+          try
+            ImmSetOpenStatus(vhIMC, true);
+            {
+            ImmGetCompositionFont(vhIMC, @vLogFont);
+            vLogFont.lfHeight := Font.Height;
+            ImmSetCompositionFont(vhIMC, @vLogFont);
+            }
+            { should get focused edit's position, not done }
+            GetCursorPos(pt);
+            ScreenToClient(h_Wnd, pt);
+            pt.Offset(0,25);
+            vCF.ptCurrentPos := pt;
+            vCF.dwStyle := CFS_RECT;
+            vCF.rcArea := TRect.Create(0, 0, Width, Height);
+            ImmSetCompositionWindow(vhIMC, @vCF);
+          finally
+            ImmReleaseContext(h_Wnd, vhIMC);
+          end;
         end;
-      end;
-    WM_IME_COMPOSITION:
-      begin
-          if ( LParm and GCS_RESULTSTR) <> 0 then
+      WM_IME_COMPOSITION:
+        begin
+          if (LParm and GCS_RESULTSTR) <> 0 then
           begin
-            vhIMC := ImmGetContext(self.h_Wnd);
+            vhIMC := ImmGetContext(h_Wnd);
             if vhIMC <> 0 then
             begin
               try
@@ -629,12 +629,12 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
                   end;
                 end;
               finally
-                ImmReleaseContext(self.h_Wnd, vhIMC);
+                ImmReleaseContext(h_Wnd, vhIMC);
               end;
-              result:=True;
+              Result := true;
             end;
           end;
-      end;
+        end;
     end;
   end;
 
@@ -697,9 +697,11 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
-    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION,WM_IME_COMPOSITION:
+    WM_IME_STARTCOMPOSITION,
+    WM_IME_ENDCOMPOSITION,
+    WM_IME_COMPOSITION:
       begin
-        if Handle_IME then  Exit(0);
+        if Handle_IME then Exit(0);
       end;
     // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
