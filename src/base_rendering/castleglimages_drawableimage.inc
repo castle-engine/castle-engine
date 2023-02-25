@@ -1416,12 +1416,14 @@ var
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
   DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
   SrcWidth,SrcHeight: Single;
-const
+
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
-  Epsilon = 0.51;
+  Epsilon : Single;
 begin
+  if SmoothScaling then Epsilon := 0.51 else Epsilon := 0.01;
+
   SrcWidth := Width - SrcLeft - SrcRight;
   SrcHeight := Height - SrcBottom - SrcTop;
 
