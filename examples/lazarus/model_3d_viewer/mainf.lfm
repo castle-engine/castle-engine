@@ -1,66 +1,70 @@
 object Main: TMain
-  Left = 385
-  Height = 562
-  Top = 89
-  Width = 693
+  Left = 658
+  Height = 630
+  Top = 182
+  Width = 854
   ActiveControl = Browser
-  Caption = 'Main'
-  ClientHeight = 531
-  ClientWidth = 693
-  DesignTimePPI = 120
+  Caption = 'Castle Game Engine - Lazarus Model Viewer'
+  ClientHeight = 601
+  ClientWidth = 854
+  DesignTimePPI = 115
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
   Position = poDefaultPosOnly
-  LCLVersion = '2.0.8.0'
+  LCLVersion = '2.2.2.0'
   object PanelBottom: TPanel
     Left = 0
-    Height = 230
-    Top = 301
-    Width = 693
+    Height = 274
+    Top = 327
+    Width = 854
     Align = alBottom
     AutoSize = True
-    ClientHeight = 230
-    ClientWidth = 693
+    ClientHeight = 274
+    ClientWidth = 854
     ParentFont = False
     TabOrder = 1
     object GroupBoxCamera: TGroupBox
-      Left = 8
-      Height = 144
-      Top = 8
-      Width = 423
-      AutoSize = True
-      BorderSpacing.Around = 7
-      BorderSpacing.InnerBorder = 7
+      Left = 11
+      Height = 165
+      Top = 11
+      Width = 597
+      BorderSpacing.Around = 10
       Caption = 'Camera vectors'
-      ClientHeight = 120
-      ClientWidth = 421
+      ClientHeight = 143
+      ClientWidth = 595
       ParentFont = False
       TabOrder = 0
       object LabelPosition: TLabel
-        Left = 3
+        AnchorSideLeft.Control = LabelDirection
+        Left = 10
         Height = 21
         Top = 9
-        Width = 72
+        Width = 67
         Caption = 'Position:'
         ParentColor = False
         ParentFont = False
       end
       object LabelDirection: TLabel
-        Left = 0
+        AnchorSideTop.Control = EditDirectionX
+        AnchorSideTop.Side = asrCenter
+        Left = 10
         Height = 21
-        Top = 42
-        Width = 81
+        Top = 57
+        Width = 77
         Caption = 'Direction:'
         ParentColor = False
         ParentFont = False
       end
       object LabelUp: TLabel
-        Left = 3
+        AnchorSideLeft.Control = LabelDirection
+        AnchorSideTop.Control = EditUpX
+        AnchorSideTop.Side = asrCenter
+        Left = 10
         Height = 21
-        Top = 76
-        Width = 28
+        Top = 105
+        Width = 26
         Caption = 'Up:'
         ParentColor = False
         ParentFont = False
@@ -70,11 +74,11 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 39
+        Left = 97
+        Height = 38
         Top = 0
-        Width = 69
-        BorderSpacing.Left = 9
+        Width = 100
+        BorderSpacing.Left = 10
         ParentFont = False
         TabOrder = 0
       end
@@ -84,11 +88,11 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 168
-        Height = 39
+        Left = 202
+        Height = 38
         Top = 0
-        Width = 69
-        BorderSpacing.Left = 9
+        Width = 100
+        BorderSpacing.Left = 5
         ParentFont = False
         TabOrder = 1
       end
@@ -98,24 +102,25 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 246
-        Height = 39
+        Left = 307
+        Height = 38
         Top = 0
-        Width = 69
-        BorderSpacing.Left = 9
+        Width = 100
+        BorderSpacing.Left = 5
         ParentFont = False
         TabOrder = 2
       end
       object EditDirectionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelDirection
-        AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 39
-        Top = 33
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditPositionX
+        AnchorSideTop.Side = asrBottom
+        Left = 97
+        Height = 38
+        Top = 48
+        Width = 100
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 3
       end
@@ -123,13 +128,14 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditDirectionX
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelDirection
-        AnchorSideTop.Side = asrCenter
-        Left = 168
-        Height = 39
-        Top = 33
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditPositionY
+        AnchorSideTop.Side = asrBottom
+        Left = 202
+        Height = 38
+        Top = 48
+        Width = 100
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 4
       end
@@ -137,26 +143,28 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditDirectionY
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelDirection
-        AnchorSideTop.Side = asrCenter
-        Left = 246
-        Height = 39
-        Top = 33
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditPositionZ
+        AnchorSideTop.Side = asrBottom
+        Left = 307
+        Height = 38
+        Top = 48
+        Width = 100
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 5
       end
       object EditUpX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelUp
-        AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 39
-        Top = 67
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditDirectionX
+        AnchorSideTop.Side = asrBottom
+        Left = 97
+        Height = 38
+        Top = 96
+        Width = 100
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 6
       end
@@ -164,13 +172,14 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditUpX
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelUp
-        AnchorSideTop.Side = asrCenter
-        Left = 168
-        Height = 39
-        Top = 67
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditDirectionY
+        AnchorSideTop.Side = asrBottom
+        Left = 202
+        Height = 38
+        Top = 96
+        Width = 100
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 7
       end
@@ -178,13 +187,14 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditUpY
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelUp
-        AnchorSideTop.Side = asrCenter
-        Left = 246
-        Height = 39
-        Top = 67
-        Width = 69
-        BorderSpacing.Left = 9
+        AnchorSideTop.Control = EditDirectionZ
+        AnchorSideTop.Side = asrBottom
+        Left = 307
+        Height = 38
+        Top = 96
+        Width = 100
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 10
         ParentFont = False
         TabOrder = 8
       end
@@ -193,10 +203,10 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideBottom.Control = EditUpZ
         AnchorSideBottom.Side = asrBottom
-        Left = 324
-        Height = 45
-        Top = 61
-        Width = 83
+        Left = 416
+        Height = 43
+        Top = 91
+        Width = 82
         Anchors = [akLeft, akBottom]
         AutoSize = True
         BorderSpacing.Left = 9
@@ -209,10 +219,10 @@ object Main: TMain
     end
     object ButtonScreenshot: TBitBtn
       AnchorSideTop.Control = ImagePoweredBy
-      Left = 547
+      Left = 712
       Height = 41
-      Top = 9
-      Width = 138
+      Top = 14
+      Width = 134
       Anchors = [akRight]
       AutoSize = True
       BorderSpacing.Top = 7
@@ -307,23 +317,24 @@ object Main: TMain
     object GroupNavigationType: TGroupBox
       AnchorSideTop.Control = GroupBoxCamera
       AnchorSideTop.Side = asrBottom
-      Left = 9
-      Height = 63
-      Top = 159
-      Width = 532
+      Left = 11
+      Height = 80
+      Top = 186
+      Width = 361
       AutoSize = True
       BorderSpacing.Around = 7
       Caption = 'Navigation type'
-      ClientHeight = 39
-      ClientWidth = 530
+      ClientHeight = 58
+      ClientWidth = 359
       ParentFont = False
       TabOrder = 2
       object ButtonExamine: TSpeedButton
-        Left = 7
-        Height = 25
-        Top = 7
-        Width = 142
-        BorderSpacing.Around = 7
+        Left = 10
+        Height = 38
+        Top = 10
+        Width = 113
+        AutoSize = True
+        BorderSpacing.Around = 10
         Caption = 'Examine'
         Down = True
         Glyph.Data = {
@@ -411,11 +422,12 @@ object Main: TMain
         AnchorSideLeft.Control = ButtonExamine
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Side = asrBottom
-        Left = 156
-        Height = 25
-        Top = 7
-        Width = 112
-        BorderSpacing.Around = 7
+        Left = 133
+        Height = 38
+        Top = 10
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Around = 10
         Caption = 'Walk'
         Glyph.Data = {
           B6050000424DB605000000000000360000002800000010000000160000000100
@@ -474,11 +486,12 @@ object Main: TMain
         AnchorSideLeft.Control = ButtonWalk
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 25
-        Top = 7
-        Width = 105
-        BorderSpacing.Around = 7
+        Left = 218
+        Height = 38
+        Top = 10
+        Width = 62
+        AutoSize = True
+        BorderSpacing.Around = 10
         Caption = 'Fly'
         Glyph.Data = {
           BE060000424DBE06000000000000360000002800000013000000160000000100
@@ -546,11 +559,12 @@ object Main: TMain
         AnchorSideLeft.Control = ButtonFly
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Side = asrBottom
-        Left = 387
-        Height = 25
-        Top = 7
-        Width = 136
-        BorderSpacing.Around = 7
+        Left = 290
+        Height = 37
+        Top = 10
+        Width = 59
+        AutoSize = True
+        BorderSpacing.Around = 10
         Caption = 'None'
         GroupIndex = 1
         Margin = 8
@@ -561,9 +575,9 @@ object Main: TMain
     object ImagePoweredBy: TImage
       AnchorSideTop.Control = ButtonScreenshot
       AnchorSideTop.Side = asrBottom
-      Left = 505
+      Left = 666
       Height = 42
-      Top = 57
+      Top = 62
       Width = 178
       Anchors = [akTop, akRight]
       AutoSize = True
@@ -872,20 +886,29 @@ object Main: TMain
         44AE426082
       }
     end
+    object LabelFps: TLabel
+      Left = 711
+      Height = 21
+      Top = 240
+      Width = 126
+      Anchors = [akTop, akRight]
+      Caption = 'FPS: xxx xxx xxx'
+      ParentColor = False
+    end
   end
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 301
+    Height = 327
     Top = 0
-    Width = 693
+    Width = 854
     Align = alClient
     Options = []
     TabOrder = 0
   end
   object MainMenu1: TMainMenu
-    Left = 69
-    Top = 117
+    Left = 72
+    Top = 136
     object MenuFile: TMenuItem
       Caption = '&File'
       object MenuOpen: TMenuItem
@@ -912,6 +935,7 @@ object Main: TMain
       end
       object MenuFocusGLControl: TMenuItem
         Caption = 'Switch &focus to 3D area'
+        ShortCut = 27
         OnClick = MenuFocusGLControlClick
       end
       object MenuShowConsole: TMenuItem
@@ -938,22 +962,22 @@ object Main: TMain
   end
   object OpenDialog1: TCastleOpen3DDialog
     Title = 'Open Scene'
-    Left = 71
-    Top = 171
+    Left = 72
+    Top = 208
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 71
-    Top = 63
+    Left = 64
+    Top = 36
   end
   object ApplicationProperties1: TApplicationProperties
-    Left = 230
-    Top = 38
+    Left = 220
+    Top = 36
   end
   object SaveScreenshotDialog: TCastleSaveImageDialog
     Title = 'Save Screenshot As'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
-    Left = 158
-    Top = 178
+    Left = 264
+    Top = 176
   end
 end

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,9 +31,9 @@
     { Internal wrapper for property @link(FanCount). This wrapper API may change, we advise to access simpler @link(FanCount) instead. }
     public property FdFanCount: TMFInt32 read FFdFanCount;
     {  }
-    procedure SetFanCount(const Value: array of LongInt); overload;
+    procedure SetFanCount(const Value: array of Int32); overload;
     {  }
-    procedure SetFanCount(const Value: TLongIntList); overload;
+    procedure SetFanCount(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -41,12 +41,12 @@
 
 { TTriangleFanSetNode ----------------------------------------------- }
 
-procedure TTriangleFanSetNode.SetFanCount(const Value: array of LongInt);
+procedure TTriangleFanSetNode.SetFanCount(const Value: array of Int32);
 begin
   FdFanCount.Send(Value);
 end;
 
-procedure TTriangleFanSetNode.SetFanCount(const Value: TLongIntList);
+procedure TTriangleFanSetNode.SetFanCount(const Value: TInt32List);
 begin
   FdFanCount.Send(Value);
 end;

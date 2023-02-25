@@ -38,6 +38,9 @@
     and accessing the @link(TCastleTransform.Parent) from a child.
   }
   TCastleBehavior = class(TCastleComponent)
+  strict private
+    FListenWorldChange: Boolean;
+    procedure SetListenWorldChange(const Value: Boolean);
   private
     FParent: TCastleTransform;
   protected
@@ -51,6 +54,33 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
+      deprecated 'Use ParentAfterAttach / ParentBeforeDetach or WorldAfterAttach / WorldBeforeDetach';
+
+    { Called after @link(Parent) changed, e.g. at the end of @link(TCastleTransform.AddBehavior). }
+    procedure ParentAfterAttach; virtual;
+
+    { Called before @link(Parent) changed, e.g. at the beginning of @link(TCastleTransform.RemoveBehavior).
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
+    procedure ParentBeforeDetach; virtual;
+
+    { Called after @link(Parent) became part of @link(World).
+      Called only if ListenWorldChange is @true. }
+    procedure WorldAfterAttach; virtual;
+
+    { Called before @link(Parent) stops being part of @link(World).
+      Called only if ListenWorldChange is @true.
+
+      This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
+      Even in this case, we guarantee that @link(Parent) is still valid during this call,
+      and not in half-destroyed state.
+      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      and set Parent to @nil. }
+    procedure WorldBeforeDetach; virtual;
 
     { Check can this behavior be added to NewParent.
       When this returns @false, it has to set also ReasonWhyCannot.
@@ -75,13 +105,34 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
+    procedure BeforeDestruction; override;
+
+    (*
+    // Not used in the end, for now the TransformDesigning and these methods are commented out.
+
+    { Create design-time things that are not displayed in the hierarchy
+      so can be created after behavior selection in editor hierarchy }
+    procedure DesigningBegin; virtual;
+
+    { Destroy design-time stuff. }
+    procedure DesigningEnd; virtual;
+    *)
+
+    function World: TCastleAbstractRootTransform;
+
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior).
 
       @nil if this behavior is not yet added to a parent. }
     property Parent: TCastleTransform read FParent;
+
+    { Set this to @true to receive WorldBeforeDetach, WorldAfterAttach calls. }
+    property ListenWorldChange: Boolean
+      read FListenWorldChange write SetListenWorldChange;
   end;
+
+  TCastleBehaviorList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleBehavior>;
 
 {$endif read_interface}
 
@@ -118,12 +169,48 @@ end;
 
 { TCastleBehavior ------------------------------------------------------------ }
 
+procedure TCastleBehavior.SetListenWorldChange(const Value: Boolean);
+begin
+  if FListenWorldChange <> Value then
+  begin
+    FListenWorldChange := Value;
+    if Parent <> nil then
+    begin
+      if Value then
+        Parent.AddWorldChangeNotification(Self)
+      else
+        Parent.RemoveWorldChangeNotification(Self)
+    end;
+  end;
+end;
+
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
 end;
 
 procedure TCastleBehavior.ParentChanged;
 begin
+
+end;
+
+procedure TCastleBehavior.ParentAfterAttach;
+begin
+
+end;
+
+procedure TCastleBehavior.ParentBeforeDetach;
+begin
+
+end;
+
+procedure TCastleBehavior.WorldAfterAttach;
+begin
+
+end;
+
+procedure TCastleBehavior.WorldBeforeDetach;
+begin
+
 end;
 
 function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
@@ -131,6 +218,69 @@ function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
 begin
   ReasonWhyCannot := '';
   Result := true;
+end;
+
+procedure TCastleBehavior.BeforeDestruction;
+begin
+  (*
+  // The TransformDesigning mechanism works, but it unused for now.
+  DesigningEnd;
+  *)
+
+  { Imagine this:
+
+      TMyBehavior = class(TCastleBehavior)
+        MyStuff: TObject;
+        constructor Create;
+        destructor Destroy; override;
+        procedure BeforeParentDetach; override;
+      end;
+
+      constructor TMyBehavior.Create;
+      begin
+        inherited;
+        MyStuff := TObject.Create;
+      end;
+
+      destructor TMyBehavior.Destroy;
+      begin
+        FreeAndNil(MyStuff);
+        inherited;
+      end;
+
+      procedure TMyBehavior.BeforeParentDetach;
+      begin
+        MyStuff.Xxx := ...; // <- this is safe, because BeforeParentDetach is done from BeforeBehaviorDestroy
+        inherited;
+      end;
+
+      var
+        B: TMyBehavior;
+      begin
+        ..
+        FreeAndNil(B);
+      end;
+
+    Thanks to calling Parent.BeforeBehaviorDestroy in TCastleBehavior.BeforeDestruction
+    (and not TCastleBehavior.Destroy) accessing MyStuff in TMyBehavior.BeforeParentDetach
+    is safe.
+  }
+
+  if Parent <> nil then
+  begin
+    Parent.BeforeBehaviorDestroy(Self);
+    Assert(Parent = nil);
+  end;
+
+  inherited BeforeDestruction;
+end;
+
+function TCastleBehavior.World: TCastleAbstractRootTransform;
+begin
+  if Parent <> nil then
+    Result := Parent.World
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

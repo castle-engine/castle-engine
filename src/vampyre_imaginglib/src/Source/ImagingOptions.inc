@@ -205,7 +205,8 @@
 
 {$IFDEF DELPHI}
   {$UNDEF COMPONENT_SET_LCL}
-  {$DEFINE COMPONENT_SET_VCL}
+  { Castle Game Engine undefined -- we want to support FMX too. }
+  {.$DEFINE COMPONENT_SET_VCL}
 {$ENDIF}
 
 { More compiler options }

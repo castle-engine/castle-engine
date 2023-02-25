@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="zombie_fighter"
+  caption="Zombie Fighter"
+  qualified_name="io.castleengine.zombie.fighter.alternative"
+  standalone_source="zombie_fighter_standalone.dpr"
+  game_units="GameInitialize"
+  author="Michalis Kamburelis"
+>
+  <version value="1.0" code="1" />
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

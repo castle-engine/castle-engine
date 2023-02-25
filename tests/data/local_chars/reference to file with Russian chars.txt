@@ -1,0 +1,1 @@
+castle-data:/local_chars/name with Russian chars образец русского текста.txt

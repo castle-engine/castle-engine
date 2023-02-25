@@ -14,9 +14,8 @@ uses
   castleboxes,
   castlecameras,
   castlefrustum,
-  castlenurbs,
+  castleinternalnurbs,
   castlequaternions,
-  castlerandom,
   castlesectors,
   castletransform,
   castletriangles,
@@ -105,7 +104,6 @@ uses
   castlefonts,
   castleinternalfreetype,
   castleinternalfreetypeh,
-  castleinternalftfont,
   castleinternalrichtext,
   castletexturefont_dejavusans_10,
   castletexturefont_dejavusansmono_18,
@@ -144,7 +142,7 @@ uses
 
   // src/ui
   castlecontrols,
-  castledialogstates,
+  castledialogviews,
   castleflasheffect,
   castleinputs,
   castlejoysticks,
@@ -152,7 +150,6 @@ uses
   castlenotifications,
   castletiledmap,
   castleuicontrols,
-  castleuistate,
 
   // src/window
   castlemessages,

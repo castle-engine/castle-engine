@@ -993,13 +993,11 @@ end;
 }
 
 function TCastleManifest.SearchPascalUnit(const AUnitName: String): String;
-var
-  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
-begin
-  for SearchPath in SearchPaths do
-  begin
-    SearchPathAbsolute := CombinePaths(Path, SearchPath);
 
+  function SearchInPath(const SearchPathAbsolute: String): String;
+  var
+    FileNameAbsolute: String;
+  begin
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, AUnitName + '.pas');
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
@@ -1018,23 +1016,51 @@ begin
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pp');
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
+
+    Result := '';
   end;
-  Result := '';
+
+var
+  SearchPath: String;
+begin
+  Result := SearchInPath(Path);
+  if Result <> '' then
+    Exit;
+
+  for SearchPath in SearchPaths do
+  begin
+    Result := SearchInPath(CombinePaths(Path, SearchPath));
+    if Result <> '' then
+      Exit;
+  end;
 end;
 
 function TCastleManifest.SearchPascalFile(const ABaseFileName: String): String;
-var
-  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
-begin
-  for SearchPath in SearchPaths do
-  begin
-    SearchPathAbsolute := CombinePaths(Path, SearchPath);
 
+  function SearchInPath(const SearchPathAbsolute: String): String;
+  var
+    FileNameAbsolute: String;
+  begin
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, ABaseFileName);
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
+
+    Result := '';
   end;
-  Result := '';
+
+var
+  SearchPath: String;
+begin
+  Result := SearchInPath(Path);
+  if Result <> '' then
+    Exit;
+
+  for SearchPath in SearchPaths do
+  begin
+    Result := SearchInPath(CombinePaths(Path, SearchPath));
+    if Result <> '' then
+      Exit;
+  end;
 end;
 
 function TCastleManifest.FindPascalFiles: TStringList;

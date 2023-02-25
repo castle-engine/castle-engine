@@ -7,6 +7,7 @@ object ChooseProjectForm: TChooseProjectForm
   Caption = 'Choose Project | Castle Game Engine Editor'
   ClientHeight = 670
   ClientWidth = 928
+  DefaultMonitor = dmPrimary
   DesignTimePPI = 120
   OnCreate = FormCreate
   OnDestroy = FormDestroy

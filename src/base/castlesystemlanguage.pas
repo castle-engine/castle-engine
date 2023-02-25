@@ -18,6 +18,10 @@ unit CastleSystemLanguage;
 
 {$I castleconf.inc}
 
+{$ifndef FPC}
+  {$message fatal 'This unit is only for FPC, not Delphi.'}
+{$endif}
+
 interface
 
 uses

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,9 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Spin, Buttons, Menus, Contnrs, Generics.Collections,
+  Spin, Buttons, Menus, ActnList, Contnrs, Generics.Collections,
+  // for icons
+  DataModuleIcons, ImgList,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   CollectionPropEditForm, ComponentEditors,
@@ -32,14 +34,16 @@ uses
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
-  CastleColors, CastleScene,
+  CastleColors, CastleScene, CastleRenderOptions,
   // editor units
-  FrameAnchors, CastleShellCtrls,
+  FrameAnchors, CastleShellCtrls, EditorUtils,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
   DesignObjectInspector;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
+
+  TBooleanEvent = function: Boolean of object;
 
   TMode = (
     moInteract,
@@ -51,12 +55,23 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionApiReferenceOfCurrent: TAction;
+    ActionPlayStop: TAction;
+    ActionSimulationPauseUnpause: TAction;
+    ActionSimulationPlayStop: TAction;
+    ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
-    ButtonClearAnchorDeltas: TButton;
+    ButtonClearTranslation: TButton;
+    ButtonPlayStop: TSpeedButton;
+    ButtonApiReferenceForCurrent: TSpeedButton;
+    LabelPhysics: TLabel;
+    LabelPlayStop: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
+    LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -88,7 +103,6 @@ type
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
-    LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
     PanelMiddleTop: TPanel;
@@ -96,13 +110,15 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ButtonInteractMode: TSpeedButton;
+    ButtonSimulationPlayStop: TSpeedButton;
+    ButtonSimulationPause: TSpeedButton;
     ButtonSelectMode: TSpeedButton;
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
+    SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
-    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAll: TTabSheet;
@@ -110,7 +126,14 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
-    procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
+    procedure ActionPlayStopExecute(Sender: TObject);
+    procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
+    procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+    procedure ActionSimulationPlayStopExecute(Sender: TObject);
+    procedure ActionSimulationPlayStopUpdate(Sender: TObject);
+    procedure ButtonClearTranslationClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonRotateModeClick(Sender: TObject);
     procedure ButtonScaleModeClick(Sender: TObject);
@@ -130,6 +153,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
@@ -159,8 +183,8 @@ type
           UiDraggingMode: TUiDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when UiDraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when UiDraggingMode=dmResize
-          LabelHover, LabelSelected: TCastleLabel;
-          RectHover, RectSelected: TCastleRectangleControl;
+          LabelHover, LabelSelected, LabelStatistics: TCastleLabel;
+          RectHover, RectSelected, RectStatistics: TCastleRectangleControl;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -170,6 +194,9 @@ type
           out Vertical: TVerticalPosition): Boolean;
       public
         Frame: TDesignFrame;
+        LayerPhysicsSimulation: TCastleUserInterface;
+        LabelPhysicsSimulationRunning: TCastleLabel;
+        LabelPhysicsSimulationPaused: TCastleLabel;
         constructor Create(AOwner: TComponent); override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Release(const Event: TInputPressRelease): Boolean; override;
@@ -182,8 +209,13 @@ type
 
           Note: In most cases, prefer to call HoverComponent.
           HoverUserInterface *does not* consider transforms within TCastleViewport,
-          it will just return TCastleViewport if mouse is over it. }
-        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+          it will just return TCastleViewport if mouse is over it.
+
+          @param(EnterNestedDesigns If @true, we enter children loaded by TCastleDesign,
+            in TCastleDesign.Design. This should almost never be used: such children
+            are not selectable, their names may collide with names in main design etc.) }
+        function HoverUserInterface(const AMousePosition: TVector2;
+          const EnterNestedDesigns: Boolean = false): TCastleUserInterface;
 
         { UI or transform under given mouse position.
           AMousePosition is like for HoverUserInterface. }
@@ -193,7 +225,7 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
+      TTreeNodeSide = (tnsInside, tnsBottom, tnsTop);
 
       TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
@@ -225,9 +257,18 @@ type
       VisualizeTransformHover: TVisualizeTransformHover;
       VisualizeTransformSelected: TVisualizeTransformSelected;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
+      DesignStateBeforePhysicsRun: String;
+      DesignModifiedBeforePhysicsRun: Boolean;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
       FComponentEditorDesigner: TComponentEditorDesigner;
+      (*
+      // The TransformDesigning mechanism works, but it unused for now.
+      FTransformDesigning: TCastleTransform;
+      FTransformDesigningObserver: TFreeNotificationObserver;
+      *)
+      LastSelected: TComponentList;
+      FShowColliders: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -242,6 +283,17 @@ type
     function ShellListComponentClass(
       const SourceShellList: TCastleShellListView;
       const ParentComponent: TComponent): TComponentClass;
+
+    (*
+    // The TransformDesigning mechanism works, but it unused for now.
+
+    procedure SetTransformDesigning(const Value: TCastleTransform);
+    procedure TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
+    { For this transform we display design-time helpers (e.g. to edit joints' anchors),
+      using TCastleBehavior.DesigningBegin and TCastleBehavior.DesigningEnd. }
+    property TransformDesigning: TCastleTransform
+      read FTransformDesigning write SetTransformDesigning;
+    *)
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
@@ -293,6 +345,7 @@ type
     { Look at current selection and hover and possibly change CurrentViewport,
       calling also OnCurrentViewportChanged. }
     procedure UpdateCurrentViewport;
+    procedure SetCurrentViewport(const Value: TCastleViewport);
 
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
@@ -386,7 +439,43 @@ type
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
 
+    { Single selected item, e.g. for rename operation.
+
+      Use this instead of ControlsTree.Selected which is not reliable to use
+      on a TTreeView with multi-selection.
+
+      - it is not synchronized with ControlsTree.SelectionCount,
+        ControlsTree.Selections after doing "ControlsTree.Selected := nil".
+        The ControlsTree.SelectionCount may be left > 0.
+
+      - it is not synchronized with ControlsTree.SelectionCount,
+        ControlsTree.Selections after selecting multiple components with Shift and Ctrl.
+        E.g.
+        - select one tree node.
+          click on it again with Ctrl.
+          Effect: ControlsTree.Selected <> nil,
+          but ControlsTree.SelectionCount = 0.
+        - select one tree node.
+          select 3 more with Shift.
+          unselect 3 more with Ctrl.
+          Effect: ControlsTree.Selected = nil,
+          but ControlsTree.SelectionCount > 0.
+
+      - adding / removing nodes also don't seem to always synchronized them...
+
+      Note: Also never set ControlsTree.Selected.
+      Do ControlsTree.ClearSelection that makes multi-selection properly cleared.
+    }
+    function ControlsTreeOneSelected: TTreeNode;
+    function GetInspectorForActiveTab: TOIPropertyGrid;
+    function GetSavedSelection: TSavedSelection;
+    procedure RestoreSavedSelection(const S: TSavedSelection);
     procedure MenuItemChangeClassClick(Sender: TObject);
+    procedure SetShowColliders(const AValue: Boolean);
+    { Show / hide colliders following FShowColliders setting.
+      If T = nil, updates everywhere (TODO: for now,
+      only in CurrentViewport). Otherwise updates only in T. }
+    procedure UpdateColliders(T: TCastleTransform = nil);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -395,6 +484,10 @@ type
     { Called always when CurrentViewport value changed. }
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
+    OnRunningToggle, OnApiReferenceOfCurrent: TNotifyEvent;
+    OnIsRunning: TBooleanEvent;
+    OnShowStatistics: TBooleanEvent;
+
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -439,7 +532,7 @@ type
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
     procedure RecordUndo(const UndoComment: String;
-      const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+      const UndoCommentPriority: TUndoCommentPriority);
 
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
@@ -456,6 +549,11 @@ type
       as easily as possible, to avoid the "selection of viewport" being an extra step
       user needs to remember to do.
 
+      Note that this viewport may not be Selectable.
+      It may be an internal viewport (in case of .castle-transform files)
+      or a viewport inside TCastleDesign.Design (testcase when it's needed:
+      examples/physics/physics_joints_3d/ ).
+
       @nil if none. }
     property CurrentViewport: TCastleViewport read FCurrentViewport;
 
@@ -463,15 +561,22 @@ type
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
     procedure ViewportSetup2D;
-    procedure ViewportSort2D;
+    procedure ViewportSort(const BlendingSort: TBlendingSort);
     procedure ViewportToggleProjection;
     procedure ViewportAlignViewToCamera;
     procedure ViewportAlignCameraToView;
+
+    { Physics stuff. } { }
+    procedure SimulationPlayStop;
+    procedure SimulationPauseUnpause;
+    property ShowColliders: Boolean read FShowColliders write SetShowColliders;
 
     procedure ReleaseAllKeysAndMouse;
 
     procedure FocusDesign;
     procedure ChangeMode(const NewMode: TMode);
+    procedure ShowAllJointsTools;
+    procedure HideAllJointsTools;
   end;
 
 implementation
@@ -484,13 +589,13 @@ uses
   { CGE units }
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
-  CastleURIUtils, X3DLoad, CastleFilesUtils,
+  CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
-  EditorUtils, FormProject, CastleComponentEditorDesigner;
+  FormProject, CastleComponentEditorDesigner;
 
 {$R *.lfm}
 
@@ -521,6 +626,12 @@ begin
   inherited Create(AOwner);
   FullSize := true;
 
+  LayerPhysicsSimulation := UserInterfaceLoad(InternalCastleDesignData + 'layer_physics_simulation.castle-user-interface', Self);
+  LayerPhysicsSimulation.Exists := false;
+  LabelPhysicsSimulationRunning := FindRequiredComponent('LabelRunning') as TCastleLabel;
+  LabelPhysicsSimulationPaused := FindRequiredComponent('LabelPaused') as TCastleLabel;
+  InsertFront(LayerPhysicsSimulation);
+
   RectHover := TCastleRectangleControl.Create(Self);
   RectHover.Color := Vector4(0, 0, 0, 0.25);
   RectHover.Exists := false;
@@ -548,10 +659,30 @@ begin
   LabelSelected.FontSize := 15;
   LabelSelected.EnableUIScaling := false;
   RectSelected.InsertFront(LabelSelected);
+
+  RectStatistics := TCastleRectangleControl.Create(Self);
+  RectStatistics.Color := Vector4(0, 0, 0, 0.25);
+  RectStatistics.Exists := false;
+  RectStatistics.EnableUIScaling := false;
+  RectStatistics.Anchor(hpRight, -5);
+  RectStatistics.Anchor(vpTop, -5);
+  RectStatistics.AutoSizeToChildren := true;
+  InsertFront(RectStatistics);
+
+  LabelStatistics := TCastleLabel.Create(Self);
+  LabelStatistics.Border.AllSides := 5;
+  LabelStatistics.Anchor(hpMiddle);
+  LabelStatistics.Anchor(vpMiddle);
+  LabelStatistics.FontSize := 15;
+  LabelStatistics.EnableUIScaling := false;
+  LabelStatistics.Color := White;
+  LabelStatistics.Alignment := hpRight;
+  RectStatistics.InsertFront(LabelStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
-  const AMousePosition: TVector2): TCastleUserInterface;
+  const AMousePosition: TVector2;
+  const EnterNestedDesigns: Boolean): TCastleUserInterface;
 
   { Like TCastleUserInterface.CapturesEventsAtPosition, but
     - ignores CapturesEvents
@@ -564,6 +695,15 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       Result := UI.RenderRectWithBorder.Contains(Position)
     else
       Result := UI.RenderRect.Contains(Position);
+  end;
+
+  { Is C selectable, or we should enter it anyway because of EnterNestedDesigns. }
+  function Enter(const Parent, C: TCastleUserInterface): Boolean;
+  begin
+    Result := TDesignFrame.Selectable(C) or
+      ( EnterNestedDesigns and
+        (Parent is TCastleDesign) and
+        (TCastleDesign(Parent).InternalDesign = C) );
   end;
 
   function ControlUnder(const C: TCastleUserInterface;
@@ -588,7 +728,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
         control if we merely point at its border). This allows to find controls
         places on another control's border. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, false);
           if Result <> nil then Exit;
@@ -597,7 +737,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       { Next try to find children, with TestWithBorder=true, so it tries harder
         to find something. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, true);
           if Result <> nil then Exit;
@@ -681,7 +821,10 @@ begin
 
     Also, unlike CurrentViewport,
     we don't want to remember last hovered/selected viewport here,
-    it would be weird for user here. }
+    it would be weird for user here.
+
+    Also, unlike CurrentViewport, we don't pass EnterNestedDesigns as
+    UpdateCurrentViewport does. We don't need to look for viewport that aggressive. }
 
   Result := HoverUserInterface(AMousePosition);
   if Result is TCastleViewport then // also checks Result <> nil
@@ -799,30 +942,6 @@ var
 begin
   Result := inherited Press(Event);
   if Result then Exit;
-
-  { We have a few shortcuts that should only work when the focus is over viewport
-    (that is, if they reach TDesignerLayer.Press),
-    because otherwise they would conflict with editing text in OI or names in hierarchy. }
-  if Event.IsKey(CtrlZ) and (not (mkShift in Event.ModifiersDown)) then
-  begin
-    Frame.PerformUndo;
-    Exit(ExclusiveEvents);
-  end;
-  if Event.IsKey(CtrlZ) and (mkShift in Event.ModifiersDown) then
-  begin
-    Frame.PerformRedo;
-    Exit(ExclusiveEvents);
-  end;
-  if Event.IsKey(keyF) then
-  begin
-    Frame.ViewportViewSelected;
-    Exit(ExclusiveEvents);
-  end;
-  if Event.IsKey(keyHome) then
-  begin
-    Frame.ViewportViewAll;
-    Exit(ExclusiveEvents);
-  end;
 
   { Avoid handling mouse events over CameraPreview, to avoid messing with clicking
     on CameraPreview buttons, and using gizmos in CameraPreview viewport. }
@@ -949,7 +1068,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
         end;
       dmResize:
         begin
-          {$warnings off} // TODO: using deprecated Horizontal/VerticalAnchorDelta
           case ResizingHorizontal of
             hpLeft:
               begin
@@ -959,9 +1077,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Width := UI.Width - X;
 
                 case UI.HorizontalAnchorSelf of
-                  hpLeft  : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
-                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
-                  //hpRight : UI.HorizontalAnchorDelta := no need to change
+                  hpLeft  : UI.Translation := UI.Translation + Vector2(X, 0);
+                  hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
+                  //hpRight : UI.Translation := no need to change
                 end;
               end;
             hpRight:
@@ -972,9 +1090,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Width := UI.Width + X;
 
                 case UI.HorizontalAnchorSelf of
-                  // hpLeft  : UI.HorizontalAnchorDelta := no need to change
-                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
-                  hpRight : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
+                  // hpLeft  : UI.Translation := no need to change
+                  hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
+                  hpRight : UI.Translation := UI.Translation + Vector2(X, 0);
                 end;
               end;
           end;
@@ -987,9 +1105,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Height := UI.Height - Y;
 
                 case UI.VerticalAnchorSelf of
-                  vpBottom: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
-                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
-                  //vpTop : UI.VerticalAnchorDelta := no need to change
+                  vpBottom: UI.Translation := UI.Translation + Vector2(0, Y);
+                  vpMiddle: UI.Translation := UI.Translation + Vector2(0, Y / 2);
+                  //vpTop : UI.Translation := no need to change
                 end;
               end;
             vpTop:
@@ -1000,13 +1118,12 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                 UI.Height := UI.Height + Y;
 
                 case UI.VerticalAnchorSelf of
-                  //vpBottom: UI.VerticalAnchorDelta := no need to change
-                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
-                  vpTop   : UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
+                  //vpBottom: UI.Translation := no need to change
+                  vpMiddle: UI.Translation := UI.Translation + Vector2(0, Y / 2);
+                  vpTop   : UI.Translation := UI.Translation + Vector2(0, Y);
                 end;
               end;
           end;
-          {$warnings on}
         end;
     end;
 
@@ -1112,7 +1229,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
   procedure ChangeDraggedUI(var UI: TCastleUserInterface);
   begin
     if (UiDraggingMode in [dmResize, dmTranslate]) and
-       UI.FullSize and
+       UI.EffectiveFullSize and
        (UI.Parent <> nil) then
     begin
       UI := UI.Parent;
@@ -1250,6 +1367,15 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Exists := false;
   end;
 
+  function StatisticsToString: String;
+  begin
+    Result := 'FPS: ' + Container.Fps.ToString;
+    if Frame.CurrentViewport <> nil then
+      Result := Result + NL +
+        'Viewport "' + Frame.CurrentViewport.Name + '":' + NL +
+        Frame.CurrentViewport.Statistics.ToString;
+  end;
+
 var
   SelectedUI, HoverUI: TCastleUserInterface;
   SelectedUIRect, HoverUIRect: TFloatRectangle;
@@ -1272,7 +1398,7 @@ begin
 
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
-    if not UI.FullSize then
+    if not UI.EffectiveFullSize then
     begin
       // show desired Width / Height, useful e.g. for TCastleImageControl
       R.Width  := UI.Width  * UI.UIScale;
@@ -1310,6 +1436,12 @@ begin
       RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
   end;
+
+  RectStatistics.Exists := Frame.OnShowStatistics();
+  if RectStatistics.Exists then
+  begin
+    LabelStatistics.Caption := StatisticsToString;
+  end;
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
@@ -1327,10 +1459,20 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
     Result.ReadOnlyColor := clWindowText;
+
+    if UseIconsAndColorsForDarkTheme then
+    begin
+      Result.GutterColor := $9EFFFF;
+      Result.ValueFont.Color := $9EFFFF;
+      Result.SubPropertiesColor := clWindowText;
+      Result.ReferencesColor := $9EFFFF;
+    end;
   end;
 
 begin
   inherited;
+
+  LastSelected := TComponentList.Create(false);
 
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
@@ -1410,6 +1552,15 @@ begin
 
   FCurrentViewportObserver := TFreeNotificationObserver.Create(Self);
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
+
+  // needed to set right action state maybe lazarus bug?
+  ActionSimulationPauseUnpause.Update;
+
+  (*
+  // The TransformDesigning mechanism works, but it unused for now.
+  FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
+  FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
+  *)
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1419,6 +1570,7 @@ begin
   FreeAndNil(TreeNodeMap);
   FreeAndNil(CameraPreview);
   FreeAndNil(FComponentEditorDesigner);
+  FreeAndNil(LastSelected);
 
   if CollectionPropertyEditorForm <> nil then
   begin
@@ -1470,7 +1622,8 @@ end;
 procedure TDesignFrame.ClearDesign;
 begin
   // ControlsTree.Items.Clear; // do not clear, we will always rebuild ControlsTree to just apply differences
-  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it in some cases
+
+  ControlsTree.ClearSelection; // TODO: for now we reset selection, though maybe we could preserve it in some cases
 
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
@@ -1482,19 +1635,6 @@ begin
 end;
 
 procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
-
-  function GetInspectorForActiveTab: TCastleObjectInspector;
-  var
-    InspectorType: TInspectorType;
-  begin
-    for InspectorType in TInspectorType do
-    begin
-      if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
-        Exit(Inspector[InspectorType]);
-    end;
-    Result := nil;
-  end;
-
 var
   NewDesignOwner, NewDesignRoot: TComponent;
   InspectorType: TInspectorType;
@@ -1512,13 +1652,110 @@ begin
     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
   finally FreeAndNil(LoadInfo) end;
 
-  if UHE.Selected <> '' then
-    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
-  if UHE.ItemIndex >= 0 then
+  RestoreSavedSelection(UHE.Selection);
+end;
+
+function TDesignFrame.GetInspectorForActiveTab: TOIPropertyGrid;
+var
+  InspectorType: TInspectorType;
+begin
+  for InspectorType in TInspectorType do
   begin
-    ControlProperties.TabIndex := UHE.TabIndex;
-    GetInspectorForActiveTab.SetItemIndexAndFocus(UHE.ItemIndex);
+    if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
+      Exit(Inspector[InspectorType]);
   end;
+  Result := nil;
+end;
+
+function TDesignFrame.GetSavedSelection: TSavedSelection;
+var
+  SelectedC: TComponent;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  SelectedC := GetSelectedComponent;
+  { In case of modifying subcomponent, like TCastleViewport.Items,
+    the currently selected component is not owned by whole design owner,
+    so it will not be later found by name in RestoreSavedSelection. }
+  if (SelectedC <> nil) and
+     (SelectedC.Owner = DesignOwner) then
+    Result.SelectedComponent := SelectedC.Name
+  else
+    Result.SelectedComponent := '';
+
+  if (CurrentViewport <> nil) and
+     (CurrentViewport.Owner = DesignOwner) then
+    Result.CurrentViewport := CurrentViewport.Name
+  else
+    Result.CurrentViewport := '';
+
+  Result.TabIndex := ControlProperties.TabIndex;
+
+  ActiveInspector := GetInspectorForActiveTab;
+  if ActiveInspector <> nil then
+    Result.ItemIndex := ActiveInspector.ItemIndex
+  else
+    Result.ItemIndex := -1;
+end;
+
+procedure TDesignFrame.RestoreSavedSelection(const S: TSavedSelection);
+var
+  C: TComponent;
+  V: TCastleViewport;
+  ActiveInspector: TOIPropertyGrid;
+begin
+  if S.SelectedComponent <> '' then
+  begin
+    C := DesignOwner.FindComponent(S.SelectedComponent);
+    if C = nil then
+    begin
+      WritelnLog('Cannot restore selection, as component "%s" no longer exists. This is normal if e.g. stopping physics removes an object added during physics simulation.', [
+        S.SelectedComponent
+      ]);
+    end else
+    begin
+      SetSelectedComponent(C);
+
+      { Restore object inspector state only if we could restore SelectedComponent,
+        as object inspector should show the selected component. }
+      if S.ItemIndex >= 0 then
+      begin
+        ControlProperties.TabIndex := S.TabIndex;
+
+        ActiveInspector := GetInspectorForActiveTab;
+        if ActiveInspector <> nil then
+          ActiveInspector.SetItemIndexAndFocus(S.ItemIndex)
+        else
+          WritelnWarning('Cannot restore selection inspector ItemIndex, because inspector not found');
+      end;
+    end;
+  end;
+
+  if S.CurrentViewport <> '' then
+  begin
+    { We restore CurrentViewport, otherwise stopping physics would set CurrentViewport
+      to nil if it was previously made non-nil because of hovering over a viewport
+      (and not selecting viewport or something inside viewport). }
+    C := DesignOwner.FindComponent(S.CurrentViewport);
+    if (C = nil) or not (C is TCastleViewport) then
+    begin
+      WritelnLog('Cannot restore CurrentViewport, as viewport "%s" no longer exists or is no longer a TCastleViewport.', [
+        S.CurrentViewport
+      ]);
+    end else
+    begin
+      V := C as TCastleViewport;
+      SetCurrentViewport(V);
+      { Note: This will also update FShowColliders on viewport,
+        so e.g. Stop of physics will keep showing colliders. }
+    end;
+  end;
+
+  { After restoring design, reliably focus the CastleControl,
+    not the edit box of some property
+    (which is optionally done by ActiveInspector.SetItemIndexAndFocus above).
+    This allows using our general shortcuts, like Ctrl+Z, reliably after RestoreSavedSelection,
+    in particular you can use Ctrl+Z after Ctrl+Z. }
+  FocusDesign;
 end;
 
 procedure TDesignFrame.PerformRedo;
@@ -1776,6 +2013,15 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
   end;
 
+  procedure AutoCreateRigidBody(const Collider: TCastleCollider; const ParentComponent: TCastleTransform);
+  var
+    RBody: TCastleRigidBody;
+  begin
+    RBody := AddComponent(ParentComponent, TCastleRigidBody, nil) as TCastleRigidBody;
+    if Collider.Mode2D then
+      RBody.Setup2D;
+  end;
+
   function AddToTransform(const ParentComponent: TCastleTransform): TComponent;
   begin
     if ComponentClass.InheritsFrom(TCastleTransform) then
@@ -1793,7 +2039,27 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     begin
       Result := CreateComponent;
       ParentComponent.AddBehavior(Result as TCastleBehavior);
-      FinishAddingComponent(Result);
+      try
+        { Show colliders on newly added component }
+        if (Result is TCastleCollider) and FShowColliders then
+          UpdateColliders(ParentComponent);
+        { If component is TCastleMeshCollider try to set Scene property to parent }
+        if (Result is TCastleMeshCollider) and ParentComponent.HasColliderMesh then
+          (Result as TCastleMeshCollider).Mesh := ParentComponent;
+        (*
+        // The TransformDesigning mechanism works, but it unused for now.
+        { When creating new behavior under selected transform, call DesigningBegin.
+          This way temporary anchors appear immediately on newly added physics joint. }
+        if ParentComponent = TransformDesigning then
+          (Result as TCastleBehavior).DesigningBegin;
+        *)
+        { auto-create TCastleRigidBody after adding collider }
+        if (Result is TCastleCollider) and
+           (ParentComponent.FindBehavior(TCastleRigidBody) = nil) then
+          AutoCreateRigidBody(TCastleCollider(Result), ParentComponent);
+      finally
+        FinishAddingComponent(Result);
+      end;
     end else
     begin
       Result := CreateComponent;
@@ -1858,8 +2124,8 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
 begin
   { Cancel editing the component name, when adding a component.
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
-  if ControlsTree.Selected <> nil then
-    ControlsTree.Selected.EndEdit(true);
+  if ControlsTreeOneSelected <> nil then
+    ControlsTreeOneSelected.EndEdit(true);
 
   if ParentComponent is TCastleUserInterface then
   begin
@@ -1941,12 +2207,37 @@ begin
       end;
     end;
   end;
+  { Remove designing objects before delete behavior }
+//  if C is TCastleBehavior then
+//    TCastleBehavior(C).DesigningEnd;
   C.Free;
 
   UpdateDesign;
 end;
 
 procedure TDesignFrame.DeleteComponent;
+
+  { Explain to user why C cannot be deleted.
+    We know that Deletable(C) = false at this point. }
+  function ReasonWhyNotDeletable(const C: TComponent): String;
+  var
+    ReasonStart: String;
+  begin
+    ReasonStart := 'Cannot remove "' + C.Name + '":' + NL + NL;
+
+    // This analyzes some conditions of Deletable and Selectable
+    if C is TCastleToolTransform then
+      Exit(ReasonStart + 'This is a temporary (tool) component, helpful to edit something, but it is not part of the final design. Use "Hide Joint Tools" to hide it.');
+    if csTransient in C.ComponentStyle then
+      Exit(ReasonStart + 'This is an internal component, you should not be able to even select it.');
+    if csSubComponent in C.ComponentStyle then
+      Exit(ReasonStart + 'This is a subcomponent, and subcomponents cannot be removed because owner depends that they always exist.');
+    if C = DesignRoot then
+      Exit(ReasonStart + 'This is the root component of the design. Design must always have a root component. You can only change it to something else using "Change Class".');
+
+    // Shorter error message, if we don't know any specific reason
+    Result := 'Cannot remove "' + C.Name + '".';
+  end;
 
   function FirstDeletableComponent(const List: TComponentList): TComponent;
   var
@@ -1972,6 +2263,14 @@ begin
         UndoSummary := Selected[0].Name
       else
         UndoSummary := SelectedCount.ToString + ' components';
+
+      if (SelectedCount = 1) and not Deletable(Selected[0]) then
+      begin
+        { In this case we will not remove anything.
+          Be vocal to user to explain "why", e.g. why root components cannot be removed. }
+        ErrorBox(ReasonWhyNotDeletable(Selected[0]));
+        Exit;
+      end;
 
       { We depend on the fact TComponentList observes freed items,
         and removes them automatically.
@@ -2064,6 +2363,17 @@ begin
       Exit;
     end;
     (ParentComponent as TCastleTransform).Add(NewComponent as TCastleTransform);
+    FinishAddingComponent(NewComponent);
+  end else
+  if NewComponent is TCastleBehavior then
+  begin
+    if not (ParentComponent is TCastleTransform) then
+    begin
+      ErrorBox('Clipboard contains a TCastleTransform instance, you need to select a TCastleTransform as a parent before doing "Paste Component"');
+      FreeAndNil(NewComponent);
+      Exit;
+    end;
+    (ParentComponent as TCastleTransform).AddBehavior(NewComponent as TCastleBehavior);
     FinishAddingComponent(NewComponent);
   end else
   begin
@@ -2159,13 +2469,57 @@ begin
 end;
 
 function TDesignFrame.SelectedViewport: TCastleViewport;
+
+  { Return viewport indicated by T, or @nil if none. }
+  function ViewportOfTransform(const T: TCastleTransform): TCastleViewport;
+  begin
+    if T.World <> nil then
+      Result := T.World.Owner as TCastleViewport
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by B, or @nil if none. }
+  function ViewportOfBehavior(const B: TCastleBehavior): TCastleViewport;
+  begin
+    if B.Parent <> nil then
+      Result := ViewportOfTransform(B.Parent)
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by C, or @nil if none. }
+  function ViewportOfComponent(const C: TComponent): TCastleViewport;
+  var
+    ViewportChild: TCastleUserInterface;
+  begin
+    Result := nil;
+
+    if C is TCastleViewport then
+    begin
+      Result := C as TCastleViewport;
+    end else
+    if C is TCastleUserInterface then
+    begin
+      { When hovering over TCastleNavigation, or TCastleTouchNavigation,
+        or really any UI as viewport child -> select viewport. }
+      ViewportChild := C as TCastleUserInterface;
+      if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
+      begin
+        Result := ViewportChild.Parent as TCastleViewport;
+      end;
+    end else
+    if C is TCastleTransform then
+      Result := ViewportOfTransform(C as TCastleTransform)
+    else
+    if C is TCastleBehavior then
+      Result := ViewportOfBehavior(C as TCastleBehavior);
+  end;
+
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TCastleAbstractRootTransform;
-  Sel: TComponent;
   NewResult: TCastleViewport;
-  ViewportChild: TCastleUserInterface;
 begin
   Result := nil;
 
@@ -2173,41 +2527,13 @@ begin
   try
     for I := 0 to SelectedCount - 1 do
     begin
-      Sel := Selected[I];
-      if Sel is TCastleViewport then
+      NewResult := ViewportOfComponent(Selected[I]);
+
+      if NewResult <> nil then
       begin
-        NewResult := Sel as TCastleViewport;
         if (Result <> nil) and (Result <> NewResult) then
           Exit(nil); // multiple viewports selected
         Result := NewResult;
-      end else
-      if Sel is TCastleUserInterface then
-      begin
-        { When hovering over TCastleNavigation, or TCastleTouchNavigation,
-          or really any UI over viewport -> select viewport. }
-        ViewportChild := Sel as TCastleUserInterface;
-        if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
-        begin
-          NewResult := ViewportChild.Parent as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      if Sel is TCastleTransform then
-      begin
-        World := (Sel as TCastleTransform).World;
-        if World <> nil then
-        begin
-          NewResult := World.Owner as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      begin
-        // UI that is not viewport selected
-        Exit(nil);
       end;
     end;
   finally FreeAndNil(Selected) end;
@@ -2271,12 +2597,32 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
       Result := false;
   end;
 
+  function GetFirstSelected: TComponent;
+  var
+    Selected: TComponentList;
+    SelectedCount: Integer;
+  begin
+    Result := SelectedComponent;
+
+    { In case multiple components are selected, try to return something non-nil:
+      namely return the 1st component. This makes pressing F1 when a property is selected
+      with multiple components sensible. They usually have equal class. }
+    if Result = nil then
+    begin
+      GetSelected(Selected, SelectedCount);
+      try
+        if SelectedCount >= 1 then
+          Result := Selected[0];
+      finally FreeAndNil(Selected) end;
+    end;
+  end;
+
 var
   C: TComponent;
   PropertyInstance: TObject;
   PropertyName, PropertyNameForLink: String;
 begin
-  C := SelectedComponent;
+  C := GetFirstSelected;
   if C <> nil then
   begin
     { We do not use C for PropertyInstance, because in case of property
@@ -2301,7 +2647,7 @@ begin
   if NewCurrentViewport = nil then
   begin
     { try HoverUserInterface as TCastleViewport }
-    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
+    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition, true);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
       NewCurrentViewport := TCastleViewport(HoverUi)
     else
@@ -2310,15 +2656,25 @@ begin
       NewCurrentViewport := TCastleViewport(HoverUi.Parent);
   end;
 
-  if (NewCurrentViewport <> nil) and
-     (FCurrentViewport <> NewCurrentViewport) then
+  if NewCurrentViewport <> nil then
+    SetCurrentViewport(NewCurrentViewport);
+  { otherwise keep using FCurrentViewport we had so far }
+end;
+
+procedure TDesignFrame.SetCurrentViewport(const Value: TCastleViewport);
+begin
+  if FCurrentViewport <> Value then
   begin
-    FCurrentViewport := NewCurrentViewport;
-    FCurrentViewportObserver.Observed := NewCurrentViewport;
+    FCurrentViewport := Value;
+    FCurrentViewportObserver.Observed := Value;
+    { After changing CurrentViewport, show colliders on new viewport.
+      TODO: It would be better if toggling this checkbox
+      set them already properly on all viewports. }
+    if Value <> nil then
+      UpdateColliders;
     if Assigned(OnCurrentViewportChanged) then
       OnCurrentViewportChanged(Self);
   end;
-  { otherwise keep using FCurrentViewport we had so far }
 end;
 
 procedure TDesignFrame.CurrentViewportFreeNotification(
@@ -2484,10 +2840,12 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlResize(Sender: TObject);
-var
-  CalculatedUIScale: Single;
-  H, CalculatedUIScaleStr: String;
+//var
+//  CalculatedUIScale: Single;
+//  H, CalculatedUIScaleStr: String;
 begin
+  // TODO: where to display UI scaling effect nicely?
+  {
   // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
@@ -2520,6 +2878,7 @@ begin
        CastleControl.Container.UnscaledHeight]);
   end;
   LabelUIScaling.Hint := H;
+  }
 end;
 
 procedure TDesignFrame.CastleControlOpen(Sender: TObject);
@@ -2616,6 +2975,36 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
       DesignNavigationStr;
   end;
 
+  (*
+  Unused debug routine to dump current selection of ControlsTree,
+  derived from various properties.
+
+  procedure DebugControlsTreeSelection;
+  var
+    S: String;
+    I: Integer;
+  begin
+    S := '';
+
+    if ControlsTree.Selected <> nil then
+      S := S + 'Selected non-nil: ' + ControlsTree.Selected.Text + LineEnding
+    else
+      S := S + 'Selected nil' + LineEnding;
+
+    if ControlsTreeOneSelected <> nil then
+      S := S + 'OneSelected non-nil: ' + ControlsTreeOneSelected.Text + LineEnding
+    else
+      S := S + 'OneSelected nil' + LineEnding;
+
+    S := S + 'SelectionCount: ' + IntToStr(ControlsTree.SelectionCount) + LineEnding;
+
+    for I := 0 to ControlsTree.SelectionCount - 1 do
+      S := S + IntToStr(I) + ': ' + ControlsTree.Selections[I].Text + LineEnding;
+
+    LabelTreeDEbug.Caption := S;
+  end;
+  *)
+
 var
   SavedErrorBox: String;
 begin
@@ -2656,6 +3045,10 @@ begin
   LabelViewport.Visible := FCurrentViewport <> nil;
   if FCurrentViewport <> nil then
     LabelViewport.Caption := ViewportDebugInfo(FCurrentViewport);
+
+  FDesignerLayer.LayerPhysicsSimulation.Exists := CastleApplicationMode in [appSimulation, appSimulationPaused];
+  FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
+  FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -2966,16 +3359,35 @@ begin
   end;
 end;
 
+procedure TDesignFrame.SetShowColliders(const AValue: Boolean);
+begin
+  if FShowColliders <> AValue then
+  begin
+    FShowColliders := AValue;
+    UpdateColliders;
+  end;
+end;
+
 procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
 var
   NewDesignOwner, NewDesignRoot, Sel: TComponent;
   LoadInfo: TInternalComponentLoadInfo;
   R: TRegisteredComponent;
+  SavedSelection: TSavedSelection;
 begin
   Sel := SelectedComponent;
   Assert(Sel <> nil); // menu item should be disabled otherwise
 
   R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
+  if Sel.ClassType = R.ComponentClass then
+  begin
+    ErrorBox(Format('Component "%s" already has class "%s", no change is necessary.', [
+        Sel.Name,
+        Sel.ClassName
+      ]));
+    Exit;
+  end;
 
   if YesNoBox('Change Component Class',
        Format('Changing component class is a potentially dangerous operation. All the properties you set in the current class that don''t exist in new class will be simply discarded.' + NL +
@@ -2986,20 +3398,22 @@ begin
          R.ComponentClass.ClassName
        ])) then
   begin
-    // TODO preserve state
+    SavedSelection := GetSavedSelection;
 
     LoadInfo := TInternalComponentLoadInfo.Create;
     try
-     LoadInfo.ChangeClassName := Sel.Name;
-     LoadInfo.ChangeClassClass := R.ComponentClass;
+      LoadInfo.ChangeClassName := Sel.Name;
+      LoadInfo.ChangeClassClass := R.ComponentClass;
 
-     { To change class, we reload whole design, this way
-       all references to Sel.Name will remain correct. }
+      { To change class, we reload whole design, this way
+        all references to Sel.Name will remain correct. }
 
-     NewDesignOwner := TComponent.Create(Self);
-     NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
-     OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
-   finally FreeAndNil(LoadInfo) end;
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(ComponentToString(DesignRoot), NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
+    RestoreSavedSelection(SavedSelection);
   end;
 end;
 
@@ -3191,7 +3605,7 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
           RecordUndo(
             UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
             TOICustomPropertyGrid(Sender).CurrentEditValue, SelectedCount),
-            ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+            ucHigh);
         end else
         { Sender is nil when PropertyGridModified is called
           by ModifiedOutsideObjectInspector. }
@@ -3312,25 +3726,13 @@ begin
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
-  const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+  const UndoCommentPriority: TUndoCommentPriority);
 var
   StartTimer: TTimerResult;
-  SelectedName: String;
-  SelectedC: TComponent;
 begin
   StartTimer := Timer;
-
-  SelectedC := GetSelectedComponent;
-  { In case of modifying subcomponent, like TCastleViewport.Items,
-    the currently selected component is not owned by whole design owner,
-    so it could not be later found by name in PerformUndoRedo. }
-  if (SelectedC <> nil) and (SelectedC.Owner = DesignOwner) then
-    SelectedName := SelectedC.Name
-  else
-    SelectedName := '';
-
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
-  UndoSystem.DoLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), GetSavedSelection, UndoComment, UndoCommentPriority);
+  UndoSystem.DoLog('Undo "%s" recorded in %fs.', [UndoComment, StartTimer.ElapsedTime]);
 end;
 
 procedure TDesignFrame.SaveSelected;
@@ -3367,18 +3769,31 @@ end;
 
 class function TDesignFrame.Selectable(const Child: TComponent): Boolean;
 begin
-  { Do not show in hierarchy the TCastleDesign loaded hierarchy,
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable (not being selectable
+    also makes it not deletable). }
+
+  { csTransient reason:
+
+    Do not show in hierarchy the TCastleDesign loaded hierarchy,
     as it will not be saved.
     Same for TCastleCheckbox children.
-    Consequently, do not allow to select stuff inside. }
-  Result := not (csTransient in Child.ComponentStyle);
+    Consequently, do not allow to select stuff inside.
+
+    However, show TCastleToolTransform, even though it is csTransient.
+    We want to allow selecting joint tools.
+  }
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
 begin
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable. }
+
   Result := Selectable(Child) and
     (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot);
+    (Child <> DesignRoot) and (not (Child is TCastleToolTransform));
 end;
 
 type
@@ -3676,13 +4091,34 @@ begin
     if DesignRoot is TCastleTransform then
       AddTransform(nil, ChildrenNodesCount, DesignRoot as TCastleTransform)
     else
+    if DesignRoot <> nil then
       AddNonVisualComponent(nil, ChildrenNodesCount, DesignRoot);
     EnsureChildrenNodesCount(nil, ChildrenNodesCount);
 
     if not Validate then
     begin
       for O in NodesToExpand do
+      begin
+        { Expand also parent.
+          Reason: we want the parent (which is a node that existed before) to expand,
+          to show newly added child.
+
+          Testcase:
+          - add TCastleTransformDesign, with no children, with URL pointing to something,
+          - and then use "Edit (Copy Here) Referenced Design".
+          - the TCastleTransformDesign is initially added and without any children in the hierarchy.
+            It gets a call to "Expand(false)", but it doesn't actually do anything it seems.
+          - later, we add some children to TCastleTransformDesign.
+            The children are on NodesToExpand list, but not the TCastleTransformDesign itself.
+            So calling Expand(false) on children does not make them visible,
+            as TCastleTransformDesign is collapsed.
+          - So we need to access parent to expand that TCastleTransformDesign.
+        }
+        if TTreeNode(O).Parent <> nil then
+          TTreeNode(O).Parent.Expand(false);
+
         TTreeNode(O).Expand(false); // no need for recurse=true, because we will call this on children too
+      end;
     end;
   finally
     FreeAndNil(NodesToExpand);
@@ -3690,20 +4126,62 @@ begin
 end;
 
 procedure TDesignFrame.UpdateDesign;
+
+  { Set ControlsTree selection to given components.
+    Selected may be @nil indicating "select nothing". }
+  procedure ControlsTreeSetSelection(const Selected: TComponentList);
+  var
+    SelectedNodes: TList; // TTreeNode list
+    SelectedNode: TTreeNode;
+    I: Integer;
+  begin
+    if (Selected <> nil) and
+       (Selected.Count <> 0) then
+    begin
+      SelectedNodes := TList.Create;
+      try
+        for I := 0 to Selected.Count - 1 do
+          if TreeNodeMap.TryGetValue(Selected[I], SelectedNode) then
+            SelectedNodes.Add(SelectedNode);
+        ControlsTree.Select(SelectedNodes);
+      finally FreeAndNil(SelectedNodes) end;
+    end else
+      ControlsTree.ClearSelection;
+  end;
+
 begin
-  // temporarily disable this event, as some pointers are invalid now
+  { Note that we cannot do GetSelected now to save current selection state.
+    At this point, our tree may contain invalid pointers.
+    Imagine that we just deleted a (selected) hinge component,
+    that also freed related anchor (TCastleTransform).
+    Neither hinge component, nor anchor (TCastleTransform), exist anymore.
+    So we just use LastSelected to restore. }
+
+  // temporarily disable events, as some pointers in ControlsTree data are invalid now
   ControlsTree.OnSelectionChanged := nil;
-  ControlsTree.Selected := nil; // TODO: for now we reset selection, though maybe we could preserve it
 
   TreeNodeMap.Clear; // ValidateOrUpdateHierarchy(false) will fill TreeNodeMap
 
   ValidateOrUpdateHierarchy(false);
 
+  { Restore selection.
+    Without this (if we would clear selection like ControlsTree.ClearSelection),
+    selecting physics joint would not work,
+    as selecting it would reset selection making it unselected again. }
+  ControlsTreeSetSelection(LastSelected);
+
+  // restore events
   ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
-  UpdateSelectedControl;
-
   InternalCastleDesignInvalidate := false;
+
+  { Note that this sets (maybe changes to nil if unselected) TransformDesigning,
+    calling some DesigningBegin / DesigningEnd.
+    They in turn may create / destroy something, and set
+    InternalCastleDesignInvalidate :=  true and it shoud cause UpdateDesign again.
+    It actually should not happen anymore (because we save/restore selection,
+    so TransformDesigning should remain the same) but better be secure from it. }
+  UpdateSelectedControl;
 end;
 
 function TDesignFrame.ValidateHierarchy: Boolean;
@@ -3774,9 +4252,14 @@ begin
   end;
 
   if Selected <> nil then
-    SelectedCount := Selected.Count
-  else
+  begin
+    SelectedCount := Selected.Count;
+    LastSelected.Assign(Selected);
+  end else
+  begin
     SelectedCount := 0;
+    LastSelected.Clear;
+  end;
 end;
 
 function TDesignFrame.GetSelectedUserInterface: TCastleUserInterface;
@@ -3853,7 +4336,7 @@ begin
       begin
         if Result <> C then
         begin
-          { more than one component selected -> exit nil }
+          { more than one component selected -> exit nil, do not update LastSelected }
           // Assert(nil = GetSelectedComponentNaive);
           Exit(nil);
         end;
@@ -3866,18 +4349,50 @@ begin
     end;
   end;
 
+  { Update LastSelected to 0 or 1 components }
+  LastSelected.Clear;
+  if Result <> nil then
+    LastSelected.Add(Result);
+
   // Assert(Result = GetSelectedComponentNaive);
+end;
+
+function TDesignFrame.ControlsTreeOneSelected: TTreeNode;
+begin
+  if ControlsTree.SelectionCount = 1 then
+    Result := ControlsTree.Selections[0]
+  else
+    Result := nil;
 end;
 
 procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
+  { Disabling OnSelectionChanged is safest because ControlsTree.Select
+    first calls ClearSelection which, in turn, calls OnSelectionChanged.
+
+    If OnSelectionChanged would cause ControlsTreeSelectionChanged then
+    - UpdateSelectedControl gets called
+    - in turn TransformDesigning is set
+    - which may cause some DesigningEnd calls on hinges
+    - which may free some TTreeNode.Data pointers invalid
+
+    There's nothing inherently bad in above (it would be bad only if TTreeNode
+    instance would become invalid in the middle of ControlsTree.Select),
+    but still it seems safer to avoid such cascade in the middle of ControlsTree.Select.
+  }
+
+  ControlsTree.OnSelectionChanged := nil;
+
   if Value = nil then
     ControlsTree.Select([])
   else
   if TreeNodeMap.TryGetValue(Value, Node) then
     ControlsTree.Select([Node]);
+
+  ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
+  ControlsTreeSelectionChanged(nil);
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
@@ -3990,6 +4505,17 @@ begin
       T := SelectedTransform;
     SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
+    (*
+    // The TransformDesigning mechanism works, but it's unused for now.
+
+    if SelectedComponent is TCastleToolTransform then
+      { Design parent of TCastleToolTransform,
+        otherwise TCastleToolTransform would disappear as soon as we select it. }
+      TransformDesigning := TCastleToolTransform(SelectedComponent).Parent
+    else
+      TransformDesigning := T;
+    *)
+
     VisualizeTransformSelected.SetSelectedParents(Selected);
     if T is TCastleAbstractRootTransform then
     begin
@@ -4011,6 +4537,37 @@ begin
   UpdateCurrentViewport;
 end;
 
+(*
+// The TransformDesigning mechanism works, but it unused for now.
+procedure TDesignFrame.TransformDesigningFreeNotification(const Value: TFreeNotificationObserver);
+begin
+  TransformDesigning := nil;
+end;
+
+procedure TDesignFrame.SetTransformDesigning(const Value: TCastleTransform);
+var
+  B: TCastleBehavior;
+begin
+  if FTransformDesigning <> Value then
+  begin
+    if FTransformDesigning <> nil then
+    begin
+      for B in FTransformDesigning.BehaviorsEnumerate do
+        B.DesigningEnd;
+    end;
+
+    FTransformDesigning := Value;
+    FTransformDesigningObserver.Observed := Value;
+
+    if FTransformDesigning <> nil then
+    begin
+      for B in FTransformDesigning.BehaviorsEnumerate do
+        B.DesigningBegin;
+    end;
+  end;
+end;
+*)
+
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
 begin
   UpdateSelectedControl;
@@ -4024,13 +4581,13 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
     R: TRect;
   begin
     R := Node.DisplayRect(false);
-    if X > R.SplitRect(srRight, 0.33).Left then
-      Result := tnsRight
+    if Y < Lerp(0.75, R.Bottom, R.Top) then
+      Result := tnsTop
     else
-    if Y > R.CenterPoint.Y then
+    if Y > Lerp(0.25, R.Bottom, R.Top) then
       Result := tnsBottom
     else
-      Result := tnsTop;
+      Result := tnsInside;
   end;
 
 var
@@ -4040,7 +4597,7 @@ begin
   if Source = ControlsTree then
   begin
     // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
-    Src := ControlsTree.Selected;
+    Src := ControlsTreeOneSelected;
     Dst := ControlsTree.GetNodeAt(X, Y);
     ControlsTreeNodeUnderMouse := Dst;
 
@@ -4123,13 +4680,14 @@ begin
   Result := (Src <> nil) and (Dst <> nil) and (Src <> Dst);
   if Result then
   begin
-    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
-      or root component. }
+    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea),
+      root component or temporary transforms. }
     SrcComponent := TObject(Src.Data) as TComponent;
     // SrcComponent is nil if you try to drag special tree items "Behaviors" or "Non-Visual Components"
     if (SrcComponent <> nil) and
        ( (SrcComponent = DesignRoot) or
-         (csSubComponent in SrcComponent.ComponentStyle) ) then
+         (csSubComponent in SrcComponent.ComponentStyle) or
+         (SrcComponent is TCastleToolTransform) ) then
       Result := false;
   end;
 end;
@@ -4193,23 +4751,37 @@ end;
 
 function TDesignFrame.RenamePossible: Boolean;
 begin
-  { Note: do not check GetSelectedComponent <> nil,
-    as a component may also be selected indirectly by selecting
-    special tree items "Behaviors" or "Non-Visual Components" underneath.
-    For rename, it has to be selected directly. }
+  { Notes:
+
+    - We do not check "GetSelectedComponent <> nil",
+      as a component may also be selected indirectly by selecting
+      special tree items "Behaviors" or "Non-Visual Components" underneath.
+      For rename, it has to be selected directly.
+
+    - We do not check "ControlsTree.SelectionCount > 0" or "ControlsTree.Selected <> nil".
+
+    We rely on ControlsTreeOneSelected which is also used by rename operation.
+    Currently it underneath checks "ControlsTree.SelectionCount = 1".
+  }
   Result :=
-    (ControlsTree.SelectionCount = 1) and
-    (ControlsTree.Selections[0].Data <> nil);
+    (ControlsTreeOneSelected <> nil) and
+    (ControlsTreeOneSelected.Data <> nil);
 end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
   if RenamePossible then
-    ControlsTree.Selected.EditText;
+    ControlsTreeOneSelected.EditText;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
+
+  { Preserve UI or TCastleTransform transformation when changing parent. }
+  function PreserveTransformation: Boolean;
+  begin
+    Result := not (ssCtrl in GetKeyShiftState);
+  end;
 
   procedure MoveOnlyTreeNodes; forward;
 
@@ -4250,14 +4822,15 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     OldRect := Src.RenderRectWithBorder;
 
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
             if Src.Parent <> nil then
               Src.Parent.RemoveControl(Src);
             Dst.InsertFront(Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4273,7 +4846,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.InsertControl(Index, Src);
-            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
+            if PreserveTransformation then
+              AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4284,15 +4858,29 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
+    FinalPreserveTransformation: Boolean;
+    WorldPos, WorldDir, WorldUp: TVector3;
   begin
+    FinalPreserveTransformation := PreserveTransformation and
+      Src.HasWorldTransform and
+      { Do it only when scale is identity, otherwise GetWorldView/SetWorldView would
+        not preserve scale. }
+      TVector3.Equals(ScaleFromMatrix(Src.WorldTransform), NoScale) and
+      Dst.HasWorldTransform and
+      TVector3.Equals(ScaleFromMatrix(Dst.WorldTransform), NoScale);
+    if FinalPreserveTransformation then
+      Src.GetWorldView(WorldPos, WorldDir, WorldUp);
+
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
+            if FinalPreserveTransformation then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4308,6 +4896,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
+            if FinalPreserveTransformation then
+              Src.SetWorldView(WorldPos, WorldDir, WorldUp);
             MoveOnlyTreeNodes;
           end;
         end;
@@ -4318,7 +4908,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           Src.Parent.RemoveBehavior(Src);
           Dst.AddBehavior(Src);
@@ -4335,7 +4925,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     const Dst: TCastleComponent);
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           SrcParentComponent.RemoveNonVisualComponent(Src);
           Dst.AddNonVisualComponent(Src);
@@ -4377,10 +4967,10 @@ var
     DestinationName: String;
   begin
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
+      tnsInside:
         begin
           { Special treatment when inserting UI into TCastleViewport,
-            testcase: try to drag some UI into TCastleViewport (with tnsRight),
+            testcase: try to drag some UI into TCastleViewport (with tnsInside),
             it should be added right before "Items" node. }
           if (DstComponent is TCastleViewport) and
              (SrcComponent is TCastleUserInterface) then
@@ -4407,7 +4997,7 @@ var
 begin
   if Source = ControlsTree then
   begin
-    Src := ControlsTree.Selected;
+    Src := ControlsTreeOneSelected;
     Dst := ControlsTreeNodeUnderMouse;
     { Paranoidally check ControlsTreeAllowDrag again.
       It happens that Src is nil, in my tests. }
@@ -4424,8 +5014,11 @@ begin
         { Fixes selection after drag'n'drop.
           I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
           is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect }
-        ControlsTree.Selected := Src;
+          selection but TTreeView.Selected state is incorect.
+
+          Later: we no longer use TTreeView.Selected, we update multi-selection.
+          TODO: Update above comment, understand if this operation is still necessary. }
+        ControlsTree.Select([Src]);
       end else
       if (SrcComponent is TCastleTransform) and
          (DstComponent is TCastleTransform) then
@@ -4436,8 +5029,11 @@ begin
         { Fixes selection after drag'n'drop.
           I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
           is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect }
-        ControlsTree.Selected := Src;
+          selection but TTreeView.Selected state is incorect.
+
+          Later: we no longer use TTreeView.Selected, we update multi-selection.
+          TODO: Update above comment, understand if this operation is still necessary. }
+        ControlsTree.Select([Src]);
       end else
       if (SrcComponent is TCastleBehavior) and
          (DstComponent is TCastleTransform) then
@@ -4503,7 +5099,7 @@ var
     C.Brush.Style := bsClear;
     C.Rectangle(NodeRect);
 
-    if ControlsTreeNodeUnderMouseSide = tnsRight then
+    if ControlsTreeNodeUnderMouseSide = tnsInside then
     begin
       R := NodeRect.SplitRect(srRight, NodeRect.Height);
       R.Inflate(-5, -5);
@@ -4551,7 +5147,17 @@ begin
         if Node = ControlsTreeNodeUnderMouse then
           DrawTreeNodeUnderMouse;
 
-        if Node.Data <> nil then
+        { When InternalCastleDesignInvalidate, don't trust that pointers
+          on Node.Data are valid. This may happen if you freed joint,
+          which also freed associated anchor.
+
+          TODO: understand better why this is possible.
+          After FreeComponentRecursively, we immediately do UpdateDesign
+          and at that point the InternalCastleDesignInvalidate should be already
+          resolved? }
+
+        if (not InternalCastleDesignInvalidate) and
+           (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
   end;
@@ -4582,7 +5188,7 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ButtonClearAnchorDeltasClick(Sender: TObject);
+procedure TDesignFrame.ButtonClearTranslationClick(Sender: TObject);
 var
   UI: TCastleUserInterface;
 begin
@@ -4592,6 +5198,137 @@ begin
     UI.Translation := TVector2.Zero;
     ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, ucHigh);
   end;
+end;
+
+procedure TDesignFrame.SimulationPlayStop;
+var
+  NewDesignOwner, NewDesignRoot: TComponent;
+  SavedSelection: TSavedSelection;
+  LoadInfo: TInternalComponentLoadInfo;
+begin
+  if InternalCastleApplicationMode in [appSimulation, appSimulationPaused] then
+    InternalCastleApplicationMode := appDesign
+  else
+    InternalCastleApplicationMode := appSimulation;
+
+  if CastleApplicationMode = appSimulation then
+  begin
+    DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
+    DesignModifiedBeforePhysicsRun := FDesignModified;
+  end else
+  begin
+    SavedSelection := GetSavedSelection;
+
+    LoadInfo := TInternalComponentLoadInfo.Create;
+    try
+      LoadInfo.PreserveDataAcrossUndo := DesignOwner;
+
+      NewDesignOwner := TComponent.Create(Self);
+      NewDesignRoot := InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, LoadInfo);
+      OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
+    finally FreeAndNil(LoadInfo) end;
+
+    FDesignModified := DesignModifiedBeforePhysicsRun;
+    OnUpdateFormCaption(Self);
+
+    RestoreSavedSelection(SavedSelection);
+  end;
+
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
+end;
+
+procedure TDesignFrame.ShowAllJointsTools;
+var
+  V: TCastleViewport;
+  BehList: TCastleBehaviorList;
+  B: TCastleBehavior;
+begin
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  BehList := V.Items.FindAllBehaviors(TCastleAbstractJoint);
+  try
+    for B in BehList do
+      TCastleAbstractJoint(B).InternalCreateGizmos;
+  finally FreeAndNil(BehList) end;
+end;
+
+procedure TDesignFrame.SimulationPauseUnpause;
+begin
+  if InternalCastleApplicationMode = appSimulationPaused then
+    InternalCastleApplicationMode := appSimulation
+  else
+  if InternalCastleApplicationMode = appSimulation then
+    InternalCastleApplicationMode := appSimulationPaused;
+
+  // TODO: why is this not called automatically?
+  ActionSimulationPlayStopUpdate(ActionSimulationPlayStop);
+  ActionSimulationPauseUnpauseUpdate(ActionSimulationPauseUnpause);
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopExecute(Sender: TObject);
+begin
+  SimulationPlayStop;
+end;
+
+procedure TDesignFrame.ActionSimulationPlayStopUpdate(Sender: TObject);
+begin
+  if CastleApplicationMode = appDesign then
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationPlay)
+  else
+    ActionSimulationPlayStop.ImageIndex := TImageIndex(iiSimulationStop);
+  ActionSimulationPlayStop.Checked := CastleApplicationMode in [appSimulation, appSimulationPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseUpdate(Sender: TObject);
+begin
+  ActionSimulationPauseUnpause.Checked := CastleApplicationMode = appSimulationPaused;
+  ActionSimulationPauseUnpause.Visible := CastleApplicationMode in [appSimulation, appSimulationPaused];
+end;
+
+procedure TDesignFrame.ActionSimulationPauseUnpauseExecute(Sender: TObject);
+begin
+  SimulationPauseUnpause;
+end;
+
+procedure TDesignFrame.HideAllJointsTools;
+var
+  V: TCastleViewport;
+  BehList: TCastleBehaviorList;
+  B: TCastleBehavior;
+begin
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  BehList := V.Items.FindAllBehaviors(TCastleAbstractJoint);
+  try
+    for B in BehList do
+      TCastleAbstractJoint(B).InternalDestroyGizmos;
+  finally FreeAndNil(BehList) end;
+end;
+
+procedure TDesignFrame.ActionPlayStopExecute(Sender: TObject);
+begin
+  OnRunningToggle(Self);
+end;
+
+procedure TDesignFrame.ActionApiReferenceOfCurrentExecute(Sender: TObject);
+begin
+  OnApiReferenceOfCurrent(Self);
+end;
+
+procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
+var
+  IsRunning: Boolean;
+begin
+  IsRunning := OnIsRunning();
+  if IsRunning then
+    ActionPlayStop.ImageIndex := TImageIndex(iiStop)
+  else
+    ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
+  ActionPlayStop.Checked := IsRunning;
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
@@ -4644,6 +5381,35 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moInteract);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.FrameResize(Sender: TObject);
+
+  { Buttons on top panel are resized by LCL to have height equal panel height,
+    but this makes them non-square. Fix them to be square.
+    Fixes problem observed on Windows. }
+  procedure FixButtonSquare(const B: TSpeedButton);
+  begin
+    if B.Width < B.Height then
+      B.Constraints.MinWidth := B.Height;
+  end;
+
+begin
+  FixButtonSquare(ButtonInteractMode);
+  FixButtonSquare(ButtonSelectMode);
+  FixButtonSquare(ButtonTranslateMode);
+  FixButtonSquare(ButtonRotateMode);
+  FixButtonSquare(ButtonScaleMode);
+  FixButtonSquare(ButtonPlayStop);
+  FixButtonSquare(ButtonSimulationPlayStop);
+  FixButtonSquare(ButtonSimulationPause);
+
+  { Make ButtonApiReferenceForCurrent square, with size following
+    LabelControlSelected.Height.
+    Fixes the button being larger than LabelControlSelected,
+    which looks bad. }
+  ButtonApiReferenceForCurrent.Width := LabelControlSelected.Height;
+  ButtonApiReferenceForCurrent.Height := LabelControlSelected.Height;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);
@@ -4812,16 +5578,16 @@ begin
   ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
 end;
 
-procedure TDesignFrame.ViewportSort2D;
+procedure TDesignFrame.ViewportSort(const BlendingSort: TBlendingSort);
 var
   V: TCastleViewport;
 begin
   V := CurrentViewport;
   if V = nil then Exit;
 
-  V.Items.SortBackToFront2D;
+  V.Items.SortBackToFront(BlendingSort, V.InternalCamera.WorldTranslation);
   UpdateDesign; // make the tree reflect new order
-  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
+  ModifiedOutsideObjectInspector('Sort Items for Correct Blending: ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.ViewportToggleProjection;
@@ -4915,6 +5681,29 @@ begin
   C := CameraToSynchronize(V);
   if C <> nil then
     CameraSynchronize(V.InternalCamera, C, true);
+end;
+
+procedure TDesignFrame.UpdateColliders(T: TCastleTransform);
+var
+  BehList: TCastleBehaviorList;
+  V: TCastleViewport;
+  B: TCastleBehavior;
+begin
+  if T = nil then
+  begin
+    V := CurrentViewport;
+    if V = nil then Exit;
+    T := V.Items;
+  end;
+
+  BehList := T.FindAllBehaviors(TCastleCollider);
+  try
+    for B in BehList do
+      if FShowColliders then
+        TCastleCollider(B).InternalDesigningBegin
+      else
+        TCastleCollider(B).InternalDesigningEnd;
+  finally FreeAndNil(BehList) end;
 end;
 
 {
@@ -5034,7 +5823,7 @@ begin
   for InspectorType in TInspectorType do
     Inspector[InspectorType].RefreshPropertyValues;
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
-  if ControlsTree.Selected <> nil then
+  if ControlsTree.SelectionCount <> 0 then
     PropertyGridModified(nil);
 
   MarkModified;
@@ -5085,5 +5874,6 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  CastleDesignMode := true;
+  { Inside CGE editor, CastleApplicationMode is never appRunning. }
+  InternalCastleApplicationMode := appDesign;
 end.

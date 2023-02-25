@@ -21,6 +21,7 @@
   TCastleTransform = class;
   TRenderingCamera = class;
   TRigidBody = class;
+  TCastleRigidBody = class;
   TPhysicsProperties = class;
   TCastleCamera = class;
 
@@ -260,9 +261,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-const
-  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
 
 { TRayCollision --------------------------------------------------------------- }
 

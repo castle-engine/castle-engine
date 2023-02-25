@@ -1,0 +1,34 @@
+border-all.svg
+compress.svg
+heart-solid.svg
+pause-solid.svg
+play-solid.svg
+stop-solid.svg
+info-solid.svg
+
+  from https://fontawesome.com/
+  License: https://fontawesome.com/license/free
+
+  Note: heart modified (Patreon color of FieryCoal).
+
+alert-triangle.svg
+edit.svg
+folder.svg
+menu.svg
+mouse-pointer.svg
+move.svg
+rotate-cw.svg
+settings.svg
+square.svg
+trash-2.svg
+
+old/plus-square.svg
+old/pause-circle.svg
+old/pause.svg
+old/play-circle.svg
+old/play.svg
+old/stop-circle.svg
+
+  from https://github.com/feathericons/feather/blob/master/icons/settings.svg
+  See https://feathericons.com/
+  Licence: MIT License (https://github.com/feathericons/feather/blob/master/LICENSE)

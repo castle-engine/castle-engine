@@ -60,6 +60,9 @@ begin
   if CastleDesignMode then
   begin
     FGizmo := TInternalCastleEditorGizmo.Create(Self);
+    { The features shown by light gizmo are not affected by scale,
+      and we don't want light icon to get huge/small because of scaling. }
+    FGizmo.InternalIgnoreParentScale := true;
     Add(FGizmo);
   end;
 end;
@@ -84,10 +87,12 @@ end;
 
 function TCastleAbstractLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  // PropertySections not necessary for now in this class.
-  // if (PropertyName = 'xxx') then
-  //   Result := [psBasic]
-  // else
+  if ArrayContainsString(PropertyName, [
+       'CastShadows', 'RenderLayer'
+     ]) then
+    // Hide some properties inherited from TCastleTransform that actually do nothing for light sources
+    Result := []
+  else
     Result := inherited PropertySections(PropertyName);
 end;
 

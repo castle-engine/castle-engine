@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,8 +40,6 @@
     procedure SetRepeatT(const Value: Boolean);
     function GetRepeatR: Boolean;
     procedure SetRepeatR(const Value: Boolean);
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetFrameBufferMode: String;
     procedure SetFrameBufferMode(const Value: String);
     function GetTriggerName: String;
@@ -80,9 +78,9 @@
     { Internal wrapper for property @link(Dimensions). This wrapper API may change, we advise to access simpler @link(Dimensions) instead. }
     public property FdDimensions: TMFInt32 read FFdDimensions;
     {  }
-    procedure SetDimensions(const Value: array of LongInt); overload;
+    procedure SetDimensions(const Value: array of Int32); overload;
     {  }
-    procedure SetDimensions(const Value: TLongIntList); overload;
+    procedure SetDimensions(const Value: TInt32List); overload;
 
     strict private FFdUpdate: TSFStringEnum;
     { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
@@ -130,21 +128,15 @@
     { Internal wrapper for property @link(ZOffset). This wrapper API may change, we advise to access simpler @link(ZOffset) instead. }
     public property FdZOffset: TMFInt32 read FFdZOffset;
     {  }
-    procedure SetZOffset(const Value: array of LongInt); overload;
+    procedure SetZOffset(const Value: array of Int32); overload;
     {  }
-    procedure SetZOffset(const Value: TLongIntList); overload;
+    procedure SetZOffset(const Value: TInt32List); overload;
 
     strict private FFdTargets: TMFNode;
     { Internal wrapper for property @link(Targets). This wrapper API may change, we advise to access simpler @link(Targets) instead. }
     public property FdTargets: TMFNode read FFdTargets;
     {  }
     procedure SetTargets(const Value: array of TAbstractTextureNode);
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FEventViewing: TSFMatrix4fEvent;
     {  }
@@ -223,12 +215,12 @@ begin
   FdScene.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetDimensions(const Value: array of LongInt);
+procedure TRenderedTextureNode.SetDimensions(const Value: array of Int32);
 begin
   FdDimensions.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
+procedure TRenderedTextureNode.SetDimensions(const Value: TInt32List);
 begin
   FdDimensions.Send(Value);
 end;
@@ -296,12 +288,12 @@ begin
   FdDepthMap.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetZOffset(const Value: array of LongInt);
+procedure TRenderedTextureNode.SetZOffset(const Value: array of Int32);
 begin
   FdZOffset.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetZOffset(const Value: TLongIntList);
+procedure TRenderedTextureNode.SetZOffset(const Value: TInt32List);
 begin
   FdZOffset.Send(Value);
 end;
@@ -316,16 +308,6 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractTextureNode));
   FdTargets.Send(A);
-end;
-
-function TRenderedTextureNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TRenderedTextureNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
 end;
 
 function TRenderedTextureNode.GetFrameBufferMode: String;
@@ -416,10 +398,6 @@ begin
   FFdTargets := TMFNode.Create(Self, True, 'targets', [TAbstractTextureNode]);
    FdTargets.ChangeAlways := chTextureRendererProperties;
   AddField(FFdTargets);
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
 
   FEventViewing := TSFMatrix4fEvent.Create(Self, 'viewing', false);
   AddEvent(FEventViewing);

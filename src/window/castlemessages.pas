@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -281,6 +281,7 @@ function MessageInputQueryCardinalHex(Window: TCastleWindow; const Title: string
   const Html: boolean = false): boolean;
 
 { Ask user to input a floating-point number.
+  Number can use CastleScript expressions, so e.g. "1/30", "2+2" or "pi/2" are allowed too.
 
   If you give non-empty ValueAsString, it will be used to show
   the initial value for the user. Otherwise, we will just show
@@ -321,8 +322,8 @@ function MessageInputQueryVector4(
   const Html: boolean = false): boolean;
 
 var
-  { Change MessageOK behavior to create @link(TStateDialogOK)
-    and push it (using @link(TUIState.Push))
+  { Change MessageOK behavior to create @link(TViewDialogOK)
+    and push it (using @link(TCastleContainer.PushView))
     and immediately return, without waiting for user confirmation.
 
     Why you may want to use this (or not to use this)?
@@ -335,7 +336,7 @@ var
       @item(
         This looks a little better in case user may resize the window while
         the MessageOK is running, or when something animates under MessageOK.
-        When this is @true, the state underneath redraws properly, so it can adjust
+        When this is @true, the view underneath redraws properly, so it can adjust
         to window size and animate. Otherwise, all MessageXxx methods in this unit
         only show a static screenshot underneath, that is scaled if needed.)
 
@@ -343,67 +344,96 @@ var
         On the other hand, the notification about unhandled exceptions
         (done by CastleWindow automatically, using MessageOK) is a little safer
         when this is @false. When this is @false, there's a greater chance that
-        the problematic code (e.g. the update method of some other TUIState)
+        the problematic code (e.g. the update method of some other TCastleView)
         it disabled during the display of the error messsage.)
     )
 
     If you turn this on, then you should organize your whole application
-    into states using TUIState. You can even pause the running game
-    in overridden @link(TUIState.Pause), to make game paused when
+    into views using TCastleView. You can even pause the running game
+    in overridden @link(TCastleView.Pause), to make game paused when
     the message dialog is displayed.
 
     Note that this feature doesn't change other routines in CastleMessages.
     For example @link(MessageYesNo) is still a modal function (it waits
     for user input), and it simply doesn't work on iOS.
-    If you want to use TUIState to manage all dialogs,
-    then use explicitly states like @link(TStateDialogYesNo) from
-    the @link(CastleDialogStates) unit.
+    If you want to use TCastleView to manage all dialogs,
+    then use explicitly views like @link(TViewDialogYesNo) from
+    the @link(CastleDialogViews) unit.
   }
-  MessageOKPushesState: boolean;
+  MessageOKPushesView: boolean;
 
 implementation
 
 uses SysUtils,
   CastleImages, CastleClassUtils, CastleInternalWindowModes, CastleLog,
-  CastleUIControls, CastleUIState, CastleDialogStates;
+  CastleUIControls, CastleDialogViews, CastleScriptParser;
 
 { MessageCore ---------------------------------------------------------------- }
 
-{ Show a modal dialod window. Uses TGLMode to temporarily replace
+{ Show a modal dialog window. Uses TGLMode to temporarily replace
   normal event processing (on this Window),
   to wait until the dialog is answered by the user. }
-procedure MessageCore(const Window: TCastleWindow; const State: TStateDialog);
+procedure MessageCore(const Window: TCastleWindow; const View: TViewDialog);
 var
   SavedMode: TGLMode;
 begin
   // WritelnLogMultiline('Message', TextList.Text);
 
-  State.BackgroundScreenshot := true;
-  State.PopOnAnswered := false;
-  State.OverrrideContainer := Window.Container;
-  State.Start; // get a screenshot before TGLMode.CreateReset
+  { TODO:
+    This way of starting the View manually is a hack.
+
+    This hack avoids calling InternalStart / InternalStop,
+    which modify container view stack (we don't want this)
+    and do other useful things (we don't need it *for now*) like
+
+    - handling WaitingForRender
+    - handling DesignUrl
+    - freeing FFreeAtStop
+    - setting FStartContainer
+
+    A cleaner way would be to use it like a proper view.
+    - set View.PopOnAnswered := true;
+    - do not call
+        View.Start;
+        ...
+        Window.Controls.InsertFront(View);
+      explicitly.
+    - do call
+        Window.Container.View := View;
+
+    Problem of the cleaner solution: it means we'll change container FViewStack,
+    wel'll do stop (and later start) on the user TCastleView descendants.
+    We don't want this, MessageOK (esp. when it is used to display a debug message
+    in case of unhandled exception on mobile) should avoid calling user code of views
+    (as user views may be in bad view). }
+
+  View.BackgroundScreenshot := true;
+  View.PopOnAnswered := false;
+  View.SaveScreenIfNecessary(Window.Container); // get a screenshot before TGLMode.CreateReset
+  View.Start;
 
   { Using @NoClose below allows to safely use MessageXxx inside own OnCloseQuery,
     like "if MessageYesNo('Are you sure ?') then Window.Close;" }
   SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
   try
-    { use State directly as UI control, not using TUIState.Push or TUIState.Current,
+    { use View directly as UI control, not using TCastleContainer.PushView
+      nor setting TCastleContainer.View,
       because we can (TGLMode already took care to pause everything),
-      and this way we don't mess TUIState stack (in case game is using it). }
-    Window.Controls.InsertFront(State);
+      and this way we don't mess TCastleView stack (in case game is using it). }
+    Window.Controls.InsertFront(View);
 
     repeat
       { WaitForMessage = false is necessary, otherwise SecondsPassed
         for update would be large. }
       Application.ProcessMessage(false, true)
-    until State.Answered;
+    until View.Answered;
   finally
     FreeAndNil(SavedMode);
-    { Message boxes should not leave the keys in false/strange pressed state. }
+    { Message boxes should not leave the keys in false/strange pressed view. }
     Window.Pressed.Clear;
   end;
 
-  State.Stop;
+  View.Stop;
 end;
 
 { MessageOK ------------------------------------------------------------------ }
@@ -438,19 +468,19 @@ procedure MessageOK(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false);
 var
-  State: TStateDialogOK;
+  View: TViewDialogOK;
 begin
-  State := TStateDialogOK.Create(Window);
-  State.Text.Assign(TextList);
-  State.Alignment := Alignment;
-  State.Html := Html;
-  if MessageOKPushesState then
+  View := TViewDialogOK.Create(Window);
+  View.Text.Assign(TextList);
+  View.Alignment := Alignment;
+  View.Html := Html;
+  if MessageOKPushesView then
   begin
-    TUIState.Push(State);
+    Window.Container.PushView(View);
   end else
   begin
-    MessageCore(Window, State);
-    FreeAndNil(State);
+    MessageCore(Window, View);
+    FreeAndNil(View);
   end;
 end;
 
@@ -480,22 +510,22 @@ function MessageInput(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition;
   const Html: boolean): string;
 var
-  State: TStateDialogInput;
+  View: TViewDialogInput;
 begin
-  State := TStateDialogInput.Create(Window);
+  View := TViewDialogInput.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    State.MinLength := MinLength;
-    State.MaxLength := MaxLength;
-    State.AllowedChars := AllowedChars;
-    State.Answer := AnswerDefault;
-    State.CanCancel := false;
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    View.MinLength := MinLength;
+    View.MaxLength := MaxLength;
+    View.AllowedChars := AllowedChars;
+    View.Answer := AnswerDefault;
+    View.CanCancel := false;
 
-    MessageCore(Window, State);
-    Result := State.Answer;
-  finally FreeAndNil(State) end;
+    MessageCore(Window, View);
+    Result := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 function MessageInputQuery(Window: TCastleWindow; const s: string;
@@ -522,24 +552,24 @@ function MessageInputQuery(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition;
   const Html: boolean): boolean;
 var
-  State: TStateDialogInput;
+  View: TViewDialogInput;
 begin
-  State := TStateDialogInput.Create(Window);
+  View := TViewDialogInput.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    State.MinLength := MinLength;
-    State.MaxLength := MaxLength;
-    State.AllowedChars := AllowedChars;
-    State.Answer := Answer;
-    State.CanCancel := true;
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    View.MinLength := MinLength;
+    View.MaxLength := MaxLength;
+    View.AllowedChars := AllowedChars;
+    View.Answer := Answer;
+    View.CanCancel := true;
 
-    MessageCore(Window, State);
-    Result := not State.AnswerCancelled;
+    MessageCore(Window, View);
+    Result := not View.AnswerCancelled;
     if Result then // modify Answer only if not cancelled
-      Answer := State.Answer;
-  finally FreeAndNil(State) end;
+      Answer := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 { MessageChoice -------------------------------------------------------------- }
@@ -579,26 +609,26 @@ function MessageChoice(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition;
   const Html, AllowCancel: boolean): char; overload;
 var
-  State: TStateDialogChoice;
+  View: TViewDialogChoice;
   I: Integer;
 begin
-  State := TStateDialogChoice.Create(Window);
+  View := TViewDialogChoice.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    //State.ButtonCaptions := ButtonCaptions;
-    SetLength(State.ButtonCaptions, High(ButtonCaptions) + 1);
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    //View.ButtonCaptions := ButtonCaptions;
+    SetLength(View.ButtonCaptions, High(ButtonCaptions) + 1);
     for I := 0 to High(ButtonCaptions) do
-      State.ButtonCaptions[I] := ButtonCaptions[I];
-    //State.ButtonChars := ButtonChars;
-    SetLength(State.ButtonChars, High(ButtonChars) + 1);
+      View.ButtonCaptions[I] := ButtonCaptions[I];
+    //View.ButtonChars := ButtonChars;
+    SetLength(View.ButtonChars, High(ButtonChars) + 1);
     for I := 0 to High(ButtonChars) do
-      State.ButtonChars[I] := ButtonChars[I];
-    State.AllowCancel := AllowCancel;
-    MessageCore(Window, State);
-    Result := State.Answer;
-  finally FreeAndNil(State) end;
+      View.ButtonChars[I] := ButtonChars[I];
+    View.AllowCancel := AllowCancel;
+    MessageCore(Window, View);
+    Result := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 { MessageKey ----------------------------------------------------------------- }
@@ -633,16 +663,16 @@ function MessageKey(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition;
   const Html: boolean): TKey;
 var
-  State: TStateDialogKey;
+  View: TViewDialogKey;
 begin
-  State := TStateDialogKey.Create(Window);
+  View := TViewDialogKey.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    MessageCore(Window, State);
-    Result := State.Answer;
-  finally FreeAndNil(State) end;
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    MessageCore(Window, View);
+    Result := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 { MessageKeyMouse ------------------------------------------------------------ }
@@ -662,16 +692,16 @@ end;
 function MessageKeyMouse(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition; const Html: boolean): TInputPressRelease;
 var
-  State: TStateDialogPressEvent;
+  View: TViewDialogPressEvent;
 begin
-  State := TStateDialogPressEvent.Create(Window);
+  View := TViewDialogPressEvent.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    MessageCore(Window, State);
-    Result := State.Answer;
-  finally FreeAndNil(State) end;
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    MessageCore(Window, View);
+    Result := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindow; const S: string;
@@ -720,16 +750,16 @@ function MessageYesNo(Window: TCastleWindow; TextList: TStringList;
   const Alignment: THorizontalPosition;
   const Html: boolean): boolean; overload;
 var
-  State: TStateDialogYesNo;
+  View: TViewDialogYesNo;
 begin
-  State := TStateDialogYesNo.Create(Window);
+  View := TViewDialogYesNo.Create(Window);
   try
-    State.Text.Assign(TextList);
-    State.Alignment := Alignment;
-    State.Html := Html;
-    MessageCore(Window, State);
-    Result := State.Answer;
-  finally FreeAndNil(State) end;
+    View.Text.Assign(TextList);
+    View.Alignment := Alignment;
+    View.Html := Html;
+    MessageCore(Window, View);
+    Result := View.Answer;
+  finally FreeAndNil(View) end;
 end;
 
 { MessageInputCardinal ------------------------------------------------------- }
@@ -793,7 +823,7 @@ begin
   if MessageInputQuery(Window, Title, S, 0, 0, AllChars, Alignment, Html) then
   begin
     try
-      Value := StrToFloatDot(s);
+      Value := ParseConstantFloatExpression(s);
       Result := true;
     except
       on E: EConvertError do

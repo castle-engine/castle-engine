@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,7 +112,7 @@ type
         Shader: TX3DShaderProgramBase;
         ShaderAlphaTest: TX3DShaderProgramBase;
         procedure Initialize(const VertexCode, FragmentCode: string);
-        procedure Free;
+        procedure Finalize;
       end;
 
       TSceneRenderOptions = class(TCastleRenderOptions)
@@ -380,6 +380,11 @@ type
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
+    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
+    function HasColliderMesh: Boolean; override;
+    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
+
     { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
       which is good when your transparent objects have proper order along the Z axis
       (useful e.g. for Spine animations). }
@@ -623,7 +628,7 @@ implementation
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes,
-  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
+  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -709,7 +714,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.TCustomShaders.Free;
+procedure TCastleScene.TCustomShaders.Finalize;
 begin
   FreeAndNil(Shader);
   FreeAndNil(ShaderAlphaTest);
@@ -912,8 +917,8 @@ begin
   if Renderer <> nil then
     Renderer.UnprepareAll;
 
-  VarianceShadowMapsProgram.Free;
-  ShadowMapsProgram.Free;
+  VarianceShadowMapsProgram.Finalize;
+  ShadowMapsProgram.Finalize;
 
   ScheduleUpdateGeneratedTextures;
 
@@ -944,9 +949,11 @@ begin
      (NavigationInfoStack.Top.BlendingSort <> obsDefault) then
   begin
     case NavigationInfoStack.Top.BlendingSort of
-      obsNone: Result := bsNone;
-      obs2D  : Result := bs2D;
-      obs3D  : Result := bs3D;
+      obsNone    : Result := bsNone;
+      obs2D      : Result := bs2D;
+      obs3D      : Result := bs3D;
+      obs3DOrigin: Result := bs3DOrigin;
+      obs3DGround: Result := bs3DGround;
       else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
     end;
   end else
@@ -1056,18 +1063,11 @@ procedure TCastleScene.LocalRenderInside(
   { Transformation of Params.Transform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
-  var
-    CameraMatrix: PMatrix4;
   begin
-    if Params.RenderingCamera.RotationOnly then
-      CameraMatrix := @Params.RenderingCamera.RotationMatrix
-    else
-      CameraMatrix := @Params.RenderingCamera.Matrix;
-
     if Params.TransformIdentity then
-      Result := CameraMatrix^
+      Result := Params.RenderingCamera.CurrentMatrix
     else
-      Result := CameraMatrix^ * Params.Transform^;
+      Result := Params.RenderingCamera.CurrentMatrix * Params.Transform^;
   end;
 
   procedure BatchingCommit;
@@ -1188,7 +1188,7 @@ procedure TCastleScene.LocalRenderInside(
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort);
             if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
@@ -1233,7 +1233,7 @@ begin
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * Render_ModelView;
-    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+    //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
   end;
 
   {$ifndef OpenGLES}
@@ -1250,7 +1250,7 @@ begin
     ReceivedGlobalLights := nil;
 
   Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass, @Params.Statistics);
   try
     case RenderOptions.Mode of
       rmDepth:
@@ -1312,9 +1312,12 @@ procedure TCastleScene.PrepareResources(
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     I: Integer;
+    DummyStatistics: TRenderStatistics;
   begin
     if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
+
+    FillChar(DummyStatistics, SizeOf(DummyStatistics), #0);
 
     { Note: we prepare also not visible shapes, in case they become visible. }
     ShapeList := Shapes.TraverseList(false, false);
@@ -1358,7 +1361,7 @@ procedure TCastleScene.PrepareResources(
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0);
+      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
 
       for Shape in ShapeList do
       begin
@@ -1469,49 +1472,66 @@ procedure TCastleScene.LocalRenderOutside(
     LocalRenderInside(TestShapeVisibility, Params);
   end;
 
-  {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
   begin
-    glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    {$endif}
 
-      if UseWireframeColor then
-      begin
-        SavedMode := RenderOptions.Mode;
-        SavedSolidColor := RenderOptions.SolidColor;
-        RenderOptions.Mode := rmSolidColor;
-        RenderOptions.SolidColor := RenderOptions.WireframeColor;
+    if UseWireframeColor then
+    begin
+      SavedMode := RenderOptions.Mode;
+      SavedSolidColor := RenderOptions.SolidColor;
+      RenderOptions.Mode := rmSolidColor;
+      RenderOptions.SolidColor := RenderOptions.WireframeColor;
 
-        RenderNormal;
+      RenderNormal;
 
-        RenderOptions.Mode := SavedMode;
-        RenderOptions.SolidColor := SavedSolidColor;
-      end else
-      begin
-        RenderNormal;
-      end;
+      RenderOptions.Mode := SavedMode;
+      RenderOptions.SolidColor := SavedSolidColor;
+    end else
+    begin
+      RenderNormal;
+    end;
 
-    glPopAttrib;
+    { We restore by just assuming that default mode is GL_FILL.
+      Nothing else in CGE changes glPolygonMode for now, so this is trivially true.
+
+      This way we avoid using glPushAttrib / glPopAttrib to save state.
+      They are
+
+      1. deprecated,
+      2. using them would break RenderContext state knowledge, causing problems later.
+
+         Testcase:
+         - in CGE editor,
+         - activate shadow volumes on 1 light,
+         - add 2nd light, not casting shadows (maybe not needed to reproduce),
+         - make plane larger 100x100 (maybe not needed to reproduce),
+         - add sphere and box,
+         - add on them sphere and box collider,
+         - activate "Physics -> Show Colliders".
+
+         Using glPushAttrib / glPopAttrib would break rendering, making some
+         objects weirdly wireframe depending on what was last hovered-over
+         with a mouse in editor.  }
+
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    {$endif}
   end;
-  {$warnings on}
-  {$endif}
 
   { Render taking RenderOptions.WireframeEffect into account.
     Also controls InternalScenePass,
     this way shaders from RenderNormal and RenderWireframe can coexist,
     which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
   procedure RenderWithWireframeEffect;
-  // TODO-es For OpenGLES, wireframe must be done differently
-  {$ifndef OpenGLES}
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   var
     WireframeEffect: TWireframeEffect;
+    SavedPolygonOffset: TPolygonOffset;
   begin
     WireframeEffect := RenderOptions.WireframeEffect;
     if InternalForceWireframe <> weNormal then
@@ -1537,14 +1557,10 @@ procedure TCastleScene.LocalRenderOutside(
       weSolidWireframe:
         begin
           InternalScenePass := 0;
-          glPushAttrib(GL_POLYGON_BIT);
-            { enable polygon offset for everything (whole scene) }
-            glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
-            RenderNormal;
-          glPopAttrib;
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias);
+          RenderNormal;
+          RenderContext.PolygonOffset := SavedPolygonOffset;
 
           InternalScenePass := 1;
           RenderWireframe(true);
@@ -1555,42 +1571,35 @@ procedure TCastleScene.LocalRenderOutside(
           RenderNormal;
 
           InternalScenePass := 1;
-          glPushAttrib(GL_POLYGON_BIT);
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias);
 
-            (* Old idea, may be resurrected one day:
+          (* Old idea, may be resurrected one day:
 
-            { rmSolidColor still does backface culling.
-              This is very good in this case. When rmSolidColor and weSilhouette,
-              and objects are solid (so backface culling is used) we can
-              significantly improve the effect by reverting glFrontFace,
-              this way we will cull *front* faces. This will not be noticed
-              in case of rmSolidColor will single solid color, and it will
-              improve the silhouette look, since front-face edges will not be
-              rendered at all (no need to even hide them by glPolygonOffset,
-              which is somewhat sloppy).
+          { rmSolidColor still does backface culling.
+            This is very good in this case. When rmSolidColor and weSilhouette,
+            and objects are solid (so backface culling is used) we can
+            significantly improve the effect by reverting glFrontFace,
+            this way we will cull *front* faces. This will not be noticed
+            in case of rmSolidColor will single solid color, and it will
+            improve the silhouette look, since front-face edges will not be
+            rendered at all (no need to even hide them by glPolygonOffset,
+            which is somewhat sloppy).
 
-              TODO: this is probably incorrect now, that some meshes
-              may have FrontFaceCcw = false.
-              What we really would like to is to negate the FrontFaceCcw
-              interpretation inside this RenderWireframe call.
-            }
-            if RenderOptions.Mode = rmSolidColor then
-              glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
-            *)
+            TODO: this is probably incorrect now, that some meshes
+            may have FrontFaceCcw = false.
+            What we really would like to is to negate the FrontFaceCcw
+            interpretation inside this RenderWireframe call.
+          }
+          if RenderOptions.Mode = rmSolidColor then
+            glFrontFace(GL_CW);
+          *)
 
-            RenderWireframe(true);
-          glPopAttrib;
+          RenderWireframe(true);
+          RenderContext.PolygonOffset := SavedPolygonOffset;
         end;
       else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
     end;
-  {$warnings on}
-  {$else}
-  begin
-    InternalScenePass := 0;
-    RenderNormal;
-  {$endif}
   end;
 
   { Render, doing some special tricks when rendering to shadow maps. }
@@ -1620,24 +1629,16 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
-      {$ifdef FPC}
-      {$warnings off}
-      SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
-      SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
-      RenderOptions.CustomShader          := NewShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      SavedShaders.Shader          := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
+      SavedShaders.ShaderAlphaTest := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase;
+      RenderOptions.InternalCustomShader          := NewShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
 
       RenderWithWireframeEffect;
 
       RenderOptions.Mode := SavedMode;
-      {$ifdef FPC}
-      {$warnings off}
-      RenderOptions.CustomShader          := SavedShaders.Shader;
-      RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
-      {$warnings on}
-      {$endif}
+      RenderOptions.InternalCustomShader          := SavedShaders.Shader;
+      RenderOptions.InternalCustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end else
     begin
       RenderWithWireframeEffect;
@@ -1728,6 +1729,24 @@ begin
   inherited;
 end;
 
+function TCastleScene.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleScene.ColliderMesh(const TriangleEvent: TTriangleEvent);
+var
+  ShapesList: TShapeList;
+  I: Integer;
+begin
+  inherited ColliderMesh(TriangleEvent);
+
+  ShapesList := Shapes.TraverseList(true);
+    for I := 0 to ShapesList.Count - 1 do
+      if ShapesList[I].Collidable then
+        ShapesList[I].Triangulate(TriangleEvent);
+end;
+
 { Shadow volumes ------------------------------------------------------------- }
 
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
@@ -1775,7 +1794,8 @@ begin
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
-        if SVRenderer.CasterShadowPossiblyVisible then
+        if RenderOptions.WholeSceneManifold or
+           SVRenderer.CasterShadowPossiblyVisible then
         begin
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1783,10 +1803,12 @@ begin
             T := Params.Transform^ * Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
+            SVRenderer.Mesh,
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
-            ForceOpaque);
+            ForceOpaque,
+            RenderOptions.WholeSceneManifold);
         end;
       end;
     end;
@@ -2009,11 +2031,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
-      Shape := TGLShape(GeneratedTextures.L[I].Shape);
-      TextureNode := GeneratedTextures.L[I].TextureNode;
-      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      Shape := TGLShape(GeneratedTextures.List^[I].Shape);
+      TextureNode := GeneratedTextures.List^[I].TextureNode;
+      GenTexFunctionality := GeneratedTextures.List^[I].Functionality;
 
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -2214,15 +2234,13 @@ var
   I: Integer;
 begin
   inherited;
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to GeneratedTextures.Count - 1 do
-    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
+    if GeneratedTextures.List^[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;
@@ -2402,8 +2420,8 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Optimal Blending for 2D Models)';
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.Caption := ['Scene (Optimal Blending for 2D Models)'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleBox, 'Box');
@@ -2415,11 +2433,11 @@ initialization
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
   RegisterSerializableComponent(TCastleFog, 'Fog');
-  RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
-  RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
-  RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');
+  RegisterSerializableComponent(TCastlePointLight, ['Light', 'Point']);
+  RegisterSerializableComponent(TCastleDirectionalLight, ['Light', 'Directional']);
+  RegisterSerializableComponent(TCastleSpotLight, ['Light', 'Spot']);
   {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Light/Environment');
+  RegisterSerializableComponent(TCastleEnvironmentLight, ['Light', 'Environment']);
   {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);

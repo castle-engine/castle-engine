@@ -272,7 +272,7 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FRotationPersistent: TCastleVector4Persistent;
+  FRotationPersistent: TCastleVector4RotationPersistent;
   function GetRotationForPersistent: TVector4;
   procedure SetRotationForPersistent(const AValue: TVector4);
 published
@@ -282,7 +282,7 @@ published
     instead read or write @link(Rotation) directly.
 
     @seealso Rotation }
-  property RotationPersistent: TCastleVector4Persistent read FRotationPersistent ;
+  property RotationPersistent: TCastleVector4RotationPersistent read FRotationPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -298,7 +298,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRotationPersistent := TCastleVector4Persistent.Create;
+  FRotationPersistent := TCastleVector4RotationPersistent.Create;
   FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
   FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default

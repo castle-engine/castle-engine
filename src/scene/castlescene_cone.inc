@@ -93,6 +93,7 @@ begin
   begin
     FBottomRadius := Value;
     ConeNode.BottomRadius := FBottomRadius;
+    UpdateCollider;
   end;
 end;
 
@@ -102,6 +103,7 @@ begin
   begin
     FHeight := Value;
     ConeNode.Height := FHeight;
+    UpdateCollider;
   end;
 end;
 

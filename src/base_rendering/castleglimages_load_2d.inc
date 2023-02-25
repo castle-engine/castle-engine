@@ -1,5 +1,6 @@
+{%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -186,7 +187,7 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
   @raises(ECannotLoadCompressedTexture If we cannot decompress, for example
     because we cannot load to OpenGL this compressed texture (for example
     because appropriate OpenGL extensions are not available, or such).) }
-function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
+function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$endif read_interface_func}
 
@@ -270,6 +271,12 @@ begin
   end;
 end;
 
+function TargetIsCubeMapSide(const Target: TGLenum): Boolean;
+begin
+  { We rely on the fact that 6 relevant constants are consecutive. }
+  Result := Between(Target, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+end;
+
 { Call glTexImage2D to load given image.
   Takes care of OpenGL(ES) unpacking (alignment etc.).
   Assumes that image already has the right size
@@ -282,6 +289,9 @@ end;
   LoadedSize will be increased. }
 procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Image: TCastleImage;
   var LoadedSize: Int64);
+var
+  ImageFormat, ImageInternalFormat, SwizzleTarget: TGLenum;
+  ImageSwizzle: TVector4Integer;
 begin
   BeforeUnpackImage(Image);
   try
@@ -293,10 +303,22 @@ begin
       glPushAttrib(GL_ENABLE_BIT);
     {$endif}
 
-    glTexImage2D(Target, Level, ImageGLInternalFormat(Image),
-      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+    UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
+    glTexImage2D(Target, Level, ImageInternalFormat,
+      Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
       Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
+
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      { We cannot use cubemap side as swizzle target,
+        we need to use GL_TEXTURE_CUBE_MAP,
+        following https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexParameter.xhtml . }
+      SwizzleTarget := Target;
+      if TargetIsCubeMapSide(SwizzleTarget) then
+        SwizzleTarget := GL_TEXTURE_CUBE_MAP;
+      glTexParameteriv(SwizzleTarget, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+    end;
 
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
@@ -425,9 +447,8 @@ begin
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
-  {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
-    (GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
-      Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
+  glCompressedTexImage2D(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
+    Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
   LoadedSize := LoadedSize + Image.Size;
 end;
 
@@ -478,12 +499,10 @@ var
     gets used.
     Using LoadBase automatically workarounds this. }
   function LoadMipmapsFromComposite(Composite: TCompositeImage; LoadBase: boolean): boolean;
-  {$ifndef OpenGLES}
   var
     I, FromLevel: Integer;
     ImageRightSize: TCastleImage;
     ImageRightSizeFree: boolean;
-  {$endif}
   begin
     Result := (Composite <> nil) and Composite.Mipmaps;
     if not Result then Exit;
@@ -494,19 +513,16 @@ var
       Exit(false);
     end;
 
-    {$ifdef OpenGLES}
-    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
-    Exit(false);
-    {$else}
-    if not GLFeatures.Version_1_2 then
+    if not GLFeatures.TextureMaxLevel then
     begin
-      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Exit(false);
     end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
     if LoadBase then
-      FromLevel := 0 else
+      FromLevel := 0
+    else
       FromLevel := 1;
     for I := FromLevel to Composite.MipmapsCount - 1 do
       if Composite.Images[I] is TCastleImage then
@@ -523,9 +539,9 @@ var
         end;
       end else
       if Composite.Images[I] is TGPUCompressedImage then
-        glCompressedTextureImage2D(TGPUCompressedImage(Composite.Images[I]), I, LoadedSize) else
+        glCompressedTextureImage2D(TGPUCompressedImage(Composite.Images[I]), I, LoadedSize)
+      else
         raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
-    {$endif}
   end;
 
   procedure LoadMipmapped(const Image: TCastleImage);
@@ -643,7 +659,7 @@ end;
 
 { GLDecompressTexture ------------------------------------------------------------- }
 
-function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
+function GLDecompressTexture(const Image: TGPUCompressedImage): TCastleImage;
 
 {$ifndef OpenGLES}
 var

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,6 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetLoop: Boolean;
     procedure SetLoop(const Value: Boolean);
     function GetPauseTime: TFloatTime;
@@ -43,12 +41,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FFdLoop: TSFBool;
     { Internal wrapper for property @link(Loop). This wrapper API may change, we advise to access simpler @link(Loop) instead. }
@@ -121,16 +113,6 @@
 {$ifdef read_implementation}
 
 { TMovieTextureNode ----------------------------------------------- }
-
-function TMovieTextureNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TMovieTextureNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
 
 function TMovieTextureNode.GetLoop: Boolean;
 begin
@@ -220,10 +202,6 @@ end;
 procedure TMovieTextureNode.CreateNode;
 begin
   inherited;
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDescription);
 
   FFdLoop := TSFBool.Create(Self, True, 'loop', false);
    FdLoop.ChangeAlways := chVisibleNonGeometry;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,7 +90,7 @@ type
 
     Note that you don't really @italic(need) to use any TCastleNavigation to manipulate
     the camera. You can just access @link(TCastleViewport.Camera) from anywhere
-    (like TUIState code) and move, rotate it as you wish.
+    (like TCastleView code) and move, rotate it as you wish.
     TCastleNavigation is just a comfortable way to encapsulate
     some navigation methods, but it's not the only way to manipulate the camera.
 
@@ -679,9 +679,10 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function Motion(const Event: TInputMotion): boolean; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     function InternalUsingMouseLook: Boolean;
-
+  published
     { Use mouse look to navigate (rotate the camera).
 
       This also makes mouse cursor of Container hidden, and forces
@@ -2818,6 +2819,18 @@ begin
     But it is OK now: our TCastleWalkNavigationDesign makes mouse look intuitive to use. }
 end;
 
+function TCastleMouseLookNavigation.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'MouseLook', 'MouseLookHorizontalSensitivity', 'MouseLookVerticalSensitivity',
+       'InvertVerticalMouseLook'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+
+end;
+
 { TCastleWalkNavigation ---------------------------------------------------------------- }
 
 constructor TCastleWalkNavigation.Create(AOwner: TComponent);
@@ -4242,23 +4255,13 @@ end;
 function TCastleWalkNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Gravity') or
-     (PropertyName = 'MoveSpeed') or
-     (PropertyName = 'Radius') or
-     (PropertyName = 'CrouchHeight') or
-     (PropertyName = 'PreferredHeight') or
-     (PropertyName = 'MoveHorizontalSpeed') or
-     (PropertyName = 'MoveVerticalSpeed') or
-     (PropertyName = 'MouseDraggingHorizontalRotationSpeed' ) or
-     (PropertyName = 'MouseDraggingVerticalRotationSpeed' ) or
-     (PropertyName = 'MouseDraggingMoveSpeed') or
-     (PropertyName = 'MouseDragMode') or
-     (PropertyName = 'RotationHorizontalSpeed') or
-     (PropertyName = 'RotationVerticalSpeed') or
-     (PropertyName = 'MouseLook') or
-     (PropertyName = 'MouseLookHorizontalSensitivity') or
-     (PropertyName = 'MouseLookVerticalSensitivity') or
-     (PropertyName = 'InvertVerticalMouseLook') then
+  if ArrayContainsString(PropertyName, [
+       'Gravity', 'MoveSpeed', 'Radius', 'CrouchHeight', 'PreferredHeight',
+       'MoveHorizontalSpeed', 'MoveVerticalSpeed',
+       'MouseDraggingHorizontalRotationSpeed', 'MouseDraggingVerticalRotationSpeed',
+       'MouseDraggingMoveSpeed', 'MouseDragMode', 'RotationHorizontalSpeed',
+       'RotationVerticalSpeed'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4307,11 +4310,11 @@ var
 initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
-  R.Caption := 'Navigation/Fly (Walk with Gravity=false)';
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
+  R.Caption := ['Navigation', 'Fly (Walk with Gravity=false)'];
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation.CreateComponentFly;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleWalkNavigation, 'Navigation/Walk');
-  RegisterSerializableComponent(TCastleExamineNavigation, 'Navigation/Examine');
-  RegisterSerializableComponent(TCastle2DNavigation, 'Navigation/2D');
+  RegisterSerializableComponent(TCastleWalkNavigation, ['Navigation', 'Walk']);
+  RegisterSerializableComponent(TCastleExamineNavigation, ['Navigation', 'Examine']);
+  RegisterSerializableComponent(TCastle2DNavigation, ['Navigation', '2D']);
 end.

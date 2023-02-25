@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,10 @@
 unit Castle2DSceneManager deprecated 'use CastleViewport';
 
 {$I castleconf.inc}
+
+// This whole unit is deprecated and refers to some deprecated items, don't warn about it
+{$warn symbol_deprecated off}
+{$warn unit_deprecated off}
 
 interface
 
@@ -294,7 +298,7 @@ initialization
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
   R.ComponentClass := TCastle2DSceneManager;
   {$warnings on}
-  R.Caption := '2D Scene Manager';
+  R.Caption := ['2D Scene Manager'];
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
@@ -302,7 +306,7 @@ initialization
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
   R.ComponentClass := TCastle2DScene;
   {$warnings on}
-  R.Caption := '2D Scene';
+  R.Caption := ['2D Scene'];
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 end.

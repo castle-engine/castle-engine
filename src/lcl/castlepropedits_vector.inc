@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -214,6 +214,12 @@ end;
 { TScalePropertyEditor ------------------------------------------------- }
 
 type
+  { Editor for TVector3 properties, that accepts also a single float as input
+    -- the float is interpreted as if it was repeated 3x.
+    E.g. "2" works the same as "2 2 2".
+
+    This is nice for 3D size / scale properties,
+    like TCastleTransform.Scale, TCastleBox.Size. }
   TScalePropertyEditor = class(TCastleVector3PropertyEditor)
     procedure SetValue(const NewValue: String); override;
   end;
@@ -224,8 +230,7 @@ var
   V: TVector3;
 begin
   try
-    { accept just a single float as input, so e.g. "2" works the same as "2 2 2" }
-    F := StrToFloat(NewValue);
+    F := StrToFloatDot(NewValue);
     V := Vector3(F, F, F);
   except
     on EConvertError do

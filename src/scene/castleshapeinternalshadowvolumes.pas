@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -321,9 +321,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            {$ifndef FPC}{$POINTERMATH ON}{$endif}
-            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
-            {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -384,13 +382,11 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
           (the case with more than 2 is already eliminated above).
           So we copy EdgesSingle to BorderEdges. }
         FBorderEdges.Count := EdgesSingle.Count;
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
-          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
+          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
+          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
         end;
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     finally FreeAndNil(EdgesSingle); end;
 

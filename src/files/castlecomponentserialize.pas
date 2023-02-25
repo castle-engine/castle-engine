@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -76,7 +76,7 @@ type
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
     { Nice caption to show user in the editor. }
-    Caption: String;
+    Caption: array of String;
     { Called by the editor always after creating this component. }
     OnCreate: TNotifyEvent;
     { Should correspond to whether class is declared as "deprecated" in Pascal
@@ -91,7 +91,9 @@ type
   the TRegisteredComponent instance becomes internally owned in this unit
   (do not free it yourself). }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String); overload;
+  const Caption: array of String); overload;
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String); overload;
 procedure RegisterSerializableComponent(const C: TRegisteredComponent); overload;
 
 { Read-only list of currently registered
@@ -196,18 +198,65 @@ begin
 end;
 
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
+  const Caption: array of String);
+var
+  R: TRegisteredComponent;
+  I: Integer;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  SetLength(R.Caption, High(Caption) + 1);
+  for I := 0 to High(Caption) do
+    R.Caption[I] := Caption[I];
+  RegisteredComponents.Add(R);
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const CaptionOnePart: String);
 var
   R: TRegisteredComponent;
 begin
   R := TRegisteredComponent.Create;
   R.ComponentClass := ComponentClass;
-  R.Caption := Caption;
+  R.Caption := [CaptionOnePart];
   RegisteredComponents.Add(R);
 end;
 
 procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+
+  function InsertSpacesBeforeUpperLetters(const S: String): String;
+  var
+    StrBuild: TStringBuilder;
+    I: Integer;
+  begin
+    StrBuild := TStringBuilder.Create;
+    try
+      for I := 1 to Length(S) do
+      begin
+        if (I > 1) and (S[I] in ['A'..'Z']) then
+          StrBuild.Append(' ');
+        StrBuild.Append(S[I]);
+      end;
+      Result := StrBuild.ToString;
+    finally FreeAndNil(StrBuild) end;
+  end;
+
+var
+  GuessedCaption: String;
 begin
+  if C.ComponentClass = nil then
+    raise Exception.Create('RegisterSerializableComponent: ComponentClass not assigned');
+
+  if (Length(C.Caption) = 0) or (C.Caption[0] = '') then
+  begin
+    GuessedCaption := InsertSpacesBeforeUpperLetters(
+      PrefixRemove('Castle', PrefixRemove('T', C.ComponentClass.ClassName, true), true));
+    C.Caption := [GuessedCaption];
+    WritelnWarning('RegisterSerializableComponent: component Caption at registration cannot be empty, setting a placeholder "%s"', [
+      GuessedCaption
+    ]);
+  end;
+
   RegisteredComponents.Add(C);
 end;
 
@@ -1065,6 +1114,29 @@ end;
 
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
+
+  { Serialize to JSON a set of values from 0 to Highest. }
+  function SerializeSet(
+    { Note that GetOrdProp result type for each compiler is different:
+      - Int64 https://www.freepascal.org/docs-html/rtl/typinfo/getordprop.html
+      - NativeInt https://docwiki.embarcadero.com/Libraries/Sydney/en/System.TypInfo.GetOrdProp
+      It seems we can reliably handle at most 32 bits.
+      Actually TCastleTiledMap.TLayerIndex limits itself to 31 bits for now,
+      to avoid worrying about whether negative values are passed through the API OK.
+    }
+    const ValueOfSet: UInt32;
+    const Highest: Integer): TJsonArray;
+  type
+    TIntegerSet = set of 0..31;
+  var
+    I: Integer;
+  begin
+    Result := TJSONArray.Create;
+    for I := 0 to Highest do
+      if I in TIntegerSet(ValueOfSet) then
+        TJSONArray(Result).Add(I);
+  end;
+
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1108,6 +1180,31 @@ begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
     Exit;
+  end;
+
+  { Custom support for sets of integers (T3DCoords, TLayers) serialization.
+
+    By default FpJsonRtti has a bug in this case:
+    It tries to do "GetEnumName" on integers 0..max, and serializes weird thing
+
+      "LockRotation" : [
+        "\u0000",
+        ""
+      ]
+
+    .. that it cannot deserialize back.
+    The code below does serialization as if "jsoSetEnumeratedAsInteger in Options"
+    but only for this type. We don't want to change serialization of sets of enums.
+  }
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
+  begin
+    FreeAndNil(Res);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 2 { manually synchronized with T3DCoord });
+  end;
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'TLayers')  then
+  begin
+    FreeAndNil(Res);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 30 { manually synchronized with TCastleTiledMap.TLayerIndex });
   end;
 end;
 

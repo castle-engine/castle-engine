@@ -23,4 +23,18 @@ do_test_qualified_name ()
   fi
 }
 
+# Test that examples have no leftover "public domain" header.
+# Examples are under BSD.
+# See https://castle-engine.io/coding_conventions#_examples .
+do_test_examples_copyright ()
+{
+  if grep --exclude='*~' --recursive --fixed-strings 'This code is in public domain, unlike most other CGE code' examples/; then
+    exit 1
+  fi
+  if grep --exclude='*~' --recursive --fixed-strings 'This template code is in public domain, unlike most other CGE code' examples/; then
+    exit 1
+  fi
+}
+
 do_test_qualified_name
+do_test_examples_copyright

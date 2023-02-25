@@ -9,45 +9,30 @@
 '//#define PCF4_BILINEAR' + LineEnding +
 '//#define PCF16' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'  #define sampler2DShadow sampler2D' + LineEnding +
+'float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
+'{' + LineEnding +
+'  /* On OpenGLES, we require GLSL "300 es" that allows (and requires) to query' + LineEnding +
+'     sampler2DShadow using texture*, not shadow2D* functions.' + LineEnding +
+'     See https://stackoverflow.com/a/22426507' + LineEnding +
+'     https://www.khronos.org/opengl/wiki/Sampler_(GLSL)' + LineEnding +
 '' + LineEnding +
-'  // This should no longer be necessary, we use glPolygonOffset on OpenGLES' + LineEnding +
-'  // const float castleShadowBias = 0.005;' + LineEnding +
+'     Modern GLSL (from #version 140) also requires it.' + LineEnding +
+'  */' + LineEnding +
+'  #ifdef CASTLE_GLSL_VERSION_UPGRADE' + LineEnding +
+'  return texture(shadowMap, shadowMapCoord);' + LineEnding +
+'  #else' + LineEnding +
+'  return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  #endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
-'  /* Same as shadow2D: compare shadowMap' + LineEnding +
-'     sampled at shadowMapCoord.xy' + LineEnding +
-'     with shadowMapCoord.z. */' + LineEnding +
-'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;' + LineEnding +
-'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
-'    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);' + LineEnding +
-'  }' + LineEnding +
-'' + LineEnding +
-'  /* Same as shadow2DProj: compare shadowMap' + LineEnding +
-'     sampled at shadowMapCoord.xy/shadowMapCoord.w' + LineEnding +
-'     with shadowMapCoord.z. */' + LineEnding +
-'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    /* Note that texture2DProj effectively uses' + LineEnding +
-'       "shadowMapCoord.xy / shadowMapCoord.w" as 2D coordinate.' + LineEnding +
-'       It ignores shadowMapCoord.z. */' + LineEnding +
-'    float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
-'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
-'    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);' + LineEnding +
-'  }' + LineEnding +
-'#else' + LineEnding +
-'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
-'  }' + LineEnding +
-'' + LineEnding +
-'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'  {' + LineEnding +
-'    return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
-'  }' + LineEnding +
-'#endif' + LineEnding +
+'float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
+'{' + LineEnding +
+'  #ifdef CASTLE_GLSL_VERSION_UPGRADE' + LineEnding +
+'  return textureProj(shadowMap, shadowMapCoord);' + LineEnding +
+'  #else' + LineEnding +
+'  return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  #endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
 'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,' + LineEnding +
 '  const in float size)' + LineEnding +
@@ -55,13 +40,15 @@
 '  /* Avoid back-projecting shadows. */' + LineEnding +
 '  if (shadowMapCoord.z < 0.0) return 0.0;' + LineEnding +
 '' + LineEnding +
-'  /* When coord2 is outside (0, 0) - (1, 1) square,' + LineEnding +
-'     it''s always in the shadow. Otherwise shadows would be stretched' + LineEnding +
-'     over whole scene, due to clamping. */' + LineEnding +
+'  /* When coord2 is outside (0, 0) - (1, 1) square, it''s never in the shadow.' + LineEnding +
+'     This makes sense, see' + LineEnding +
+'     https://github.com/castle-engine/castle-engine/issues/308' + LineEnding +
+'     and demo-models/shadow_maps/explicit_projection_parameters/' + LineEnding +
+'  */' + LineEnding +
 '  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding +
 '  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding +
 '      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding +
-'    return 0.0;' + LineEnding +
+'    return 1.0;' + LineEnding +
 '' + LineEnding +
 '#ifdef PCF4_BILINEAR' + LineEnding +
 '' + LineEnding +
@@ -123,28 +110,5 @@
 '  return castleShadow2DProj(shadowMap, shadowMapCoord);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'}' + LineEnding +
-'' + LineEnding +
-'/* Debug function, to display depth (distances) of the texture directly.' + LineEnding +
-'' + LineEnding +
-'   Note that you have to use compareMode "NONE" inside GeneratedShadowMap' + LineEnding +
-'   (otherwise getting it as sampler2D may not be sensible, depends on GPU;' + LineEnding +
-'   Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).' + LineEnding +
-'*/' + LineEnding +
-'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord)' + LineEnding +
-'{' + LineEnding +
-'  /* Avoid back-projecting shadows. */' + LineEnding +
-'  if (shadowMapCoord.z < 0.0) return 0.0;' + LineEnding +
-'' + LineEnding +
-'  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding +
-'' + LineEnding +
-'  /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.' + LineEnding +
-'     Otherwise texture would be visible stretched due to clamping. */' + LineEnding +
-'  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding +
-'      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding +
-'    return 0.0; else' + LineEnding +
-'    return texture2D(shadowMap, coord2).z;' + LineEnding +
-'' + LineEnding +
-'  // d = pow(d, 4.0); // makes shadows a little more contrasting' + LineEnding +
 '}' + LineEnding +
 ''

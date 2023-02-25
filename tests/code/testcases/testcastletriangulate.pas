@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleTriangulate" -*-
 {
-  Copyright 2011-2022 Michalis Kamburelis.
+  Copyright 2011-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,7 +28,7 @@ type
   TTestCastleTriangulate = class(TCastleTestCase)
   private
     { private vars for Face callback }
-    Vertexes: PVector3;
+    Vertexes: PVector3Array;
     CountVertexes: Integer;
     procedure Face(const Tri: TVector3Integer);
   published
@@ -71,11 +71,9 @@ procedure TTestCastleTriangulate.Face(const Tri: TVector3Integer);
 var
   V0, V1, V2, EarNormal: TVector3;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
-  V0 := Vertexes[Tri[0]];
-  V1 := Vertexes[Tri[1]];
-  V2 := Vertexes[Tri[2]];
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+  V0 := Vertexes^[Tri[0]];
+  V1 := Vertexes^[Tri[1]];
+  V2 := Vertexes^[Tri[2]];
   EarNormal := TriangleDirection(V0, V1, V2);
   AssertTrue(not EarNormal.IsZero);
 end;
@@ -89,13 +87,11 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
   begin
     Vertexes := @AVertexes;
     CountVertexes := High(AVertexes) + 1;
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if RevertOrder then
       for I := 0 to CountVertexes div 2 - 1 do
-        SwapValues(Vertexes[I], Vertexes[CountVertexes - 1 - I]);
+        SwapValues(Vertexes^[I], Vertexes^[CountVertexes - 1 - I]);
 
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
-     TriangulateFace(nil, CountVertexes, PVector3Array(Vertexes), CountVertexes, {$ifdef FPC}@{$endif}Face, 0);
+    TriangulateFace(nil, CountVertexes, PVector3Array(Vertexes), CountVertexes, {$ifdef FPC}@{$endif}Face, 0);
   end;
 
 type

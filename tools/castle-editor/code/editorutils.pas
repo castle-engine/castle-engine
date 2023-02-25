@@ -16,12 +16,14 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
+{$I editorconf.inc}
+
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs,
   CastleStringUtils,
-  ToolArchitectures, ToolManifest;
+  ToolArchitectures, ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -59,7 +61,7 @@ type
       Avoids adding empty lines at the very end (since they would
       make the look uglier; instead,
       we make nice separators with AddSeparator). }
-    procedure SplitAddLines(const S: String; const Kind: TOutputKind);
+    //procedure SplitAddLines(const S: String; const Kind: TOutputKind);
     procedure AddSeparator;
     procedure Clear;
   end;
@@ -74,6 +76,8 @@ type
     FRunning: Boolean;
     FExitStatus: Integer;
     Environment: TStringList;
+    { Additional process id to kill, when killing Process. }
+    ChildProcessId: TProcessId;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -90,6 +94,11 @@ type
 
     { Defined only after callling Start, once Running turned false. }
     property ExitStatus: Integer read FExitStatus;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   { Call asynchronous processes, one after another, until the end
@@ -124,6 +133,11 @@ type
     procedure Start;
     procedure Update;
     function Running: Boolean;
+
+    { On some platforms, if you want to make sure to kill children
+      (like child of "castle-engine run") you should run this before
+      freeing the process. }
+    procedure TerminateChildrenHarder;
   end;
 
   TPlatformInfo = class
@@ -236,11 +250,31 @@ function CgePathStatus(const CgePath: String): Boolean;
 procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog;
   const ComponentToSave: TComponent);
 
+{ Should we use colors and icons for dark theme. Based on luminance. }
+function UseIconsAndColorsForDarkTheme: Boolean;
+
+type
+  { Saved selection state,
+    that can be restored even after loading a new version of design from file.
+    We save component by a Name (String) to avoid worrying about references
+    to freed component, and to be able to restore it even on new design file. }
+  TSavedSelection = record
+    SelectedComponent: String;
+    CurrentViewport: String;
+    { Index of the value selected/edited in the Object Inspector. }
+    ItemIndex: Integer;
+    { Index of the tab of Object Inspector. }
+    TabIndex: Integer;
+    class function Equals(const A, B: TSavedSelection): Boolean; static;
+  end;
+
 implementation
 
-uses SysUtils, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
+uses
+  SysUtils, Graphics, TypInfo, Generics.Defaults, Math,
+  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
+  CastleColors,
   ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
@@ -347,6 +381,12 @@ begin
   Result := (FQueuePosition >= 0) and (FQueuePosition < Queue.Count);
 end;
 
+procedure TAsynchronousProcessQueue.TerminateChildrenHarder;
+begin
+  if (AsyncProcess <> nil) and AsyncProcess.Running then
+    AsyncProcess.TerminateChildrenHarder;
+end;
+
 { TAsynchronousProcess ------------------------------------------------------- }
 
 constructor TAsynchronousProcess.Create;
@@ -426,6 +466,34 @@ begin
 end;
 
 procedure TAsynchronousProcess.Update;
+
+  function LineProcessInternalInfo(const Line: String): Boolean;
+  const
+    Prefix = 'Castle Game Engine Internal: ProcessID: ';
+  var
+    ParsedProcessId: TProcessId;
+  begin
+    Result := false;
+    if IsPrefix(Prefix, Line, false) and
+       TryStrToInt64(PrefixRemove(Prefix, Line, false), ParsedProcessId) then
+    begin
+      ChildProcessId := ParsedProcessId;
+      Result := true;
+    end;
+  end;
+
+  function LineOutputKind(const Line: String): TOutputKind;
+  begin
+    if (Pos(') Error', Line) <> 0) or
+       (Pos(') Fatal', Line) <> 0) then
+      Result := okError
+    else
+    if (Pos(') Warning', Line) <> 0) then
+      Result := okWarning
+    else
+      Result := okInfo;
+  end;
+
 const
   ReadMaxSize = 65536;
 var
@@ -458,7 +526,8 @@ begin
       dump the remaining PendingLines as last line. }
     if (not Process.Running) and (Length(PendingLines) <> 0) then
     begin
-      OutputList.AddLine(PendingLines, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(PendingLines, LineOutputKind(PendingLines));
       PendingLines := '';
     end;
     Exit;
@@ -493,7 +562,8 @@ begin
       if SCharIs(PendingLines, NewLinePos - 1, #13) then
         Dec(NewLinePos);
       Line := Copy(PendingLines, 1, NewLinePos - 1);
-      OutputList.AddLine(Line, okInfo);
+      if not LineProcessInternalInfo(Line) then
+        OutputList.AddLine(Line, LineOutputKind(Line));
 
       PendingLines := SEnding(PendingLines, ProcessedLength + 1);
     end else
@@ -503,6 +573,15 @@ begin
   // if we get a lot of output, maybe more than ReadMaxSize, then keep reading!
   if ReadMaxSize = ReadBytes then
     Update;
+end;
+
+procedure TAsynchronousProcess.TerminateChildrenHarder;
+begin
+  if ChildProcessId <> 0 then
+  begin
+    OutputList.AddLine(Format('Stopping child process (id: %d)', [ChildProcessId]), okInfo);
+    StopProcess(ChildProcessId);
+  end;
 end;
 
 { TOutputList --------------------------------------------------------------- }
@@ -584,8 +663,19 @@ begin
   begin
     case OutputInfo.Kind of
       okImportantInfo: C.Font.Bold := true;
-      okWarning      : C.Brush.Color := clYellow;
-      okError        : C.Brush.Color := clRed;
+      okWarning:
+        begin
+          C.Brush.Color := clYellow;
+          { If the font color is too light on yellow, change it }
+          if GrayscaleValue(ColorToVector3(C.Font.Color)) > 0.75 then
+          begin
+            if List.ItemIndex = Index then
+              C.Font.Color := clBlue
+            else
+              C.Font.Color := clBlack;
+          end;
+        end;
+      okError: C.Brush.Color := clRed;
     end;
   end else
   begin
@@ -666,6 +756,8 @@ begin
     List.TopIndex := List.Items.Count - 1;
 end;
 
+(* Unused:
+
 procedure TOutputList.SplitAddLines(const S: String; const Kind: TOutputKind);
 var
   SL: TStringList;
@@ -681,6 +773,7 @@ begin
       AddLine(Line, Kind);
   finally FreeAndNil(SL) end;
 end;
+*)
 
 procedure TOutputList.AddSeparator;
 begin
@@ -818,9 +911,20 @@ begin
   end;
 end;
 
-function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+function CompareRegisteredComponent({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TRegisteredComponent): Integer;
+var
+  I: Integer;
 begin
-  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+  for I := 0 to Min(Length(Left.Caption), Length(Right.Caption)) - 1 do
+  begin
+    Result := AnsiCompareStr(Left.Caption[I], Right.Caption[I]);
+    if Result <> 0 then Exit;
+  end;
+
+  { When all common parts are the same, let the shorter one be considered smaller.
+    So < 0 when Length(Left.Caption) < Length(Right.Caption). }
+  Result := Length(Left.Caption) - Length(Right.Caption);
 end;
 
 procedure BuildComponentsMenu(
@@ -828,20 +932,37 @@ procedure BuildComponentsMenu(
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
-    const R: TRegisteredComponent): TMenuItem;
+    const R: TRegisteredComponent; const CaptionPart: Integer = 0): TMenuItem;
   var
     S: String;
   begin
     if OwnerAndParent = nil then
       Exit; // exit if relevant ParentXxx is nil
-    Result := TMenuItem.Create(OwnerAndParent);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-    Result.OnClick := OnClickEvent;
-    OwnerAndParent.Add(Result);
+
+    if CaptionPart = Length(R.Caption) - 1 then
+    begin
+      { create last part, to actually invoke OnClickEvent }
+      Result := TMenuItem.Create(OwnerAndParent);
+      S := R.Caption[CaptionPart] + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+      Result.OnClick := OnClickEvent;
+      OwnerAndParent.Add(Result);
+    end else
+    begin
+      { create intermediate submenu part }
+      Result := OwnerAndParent.Find(R.Caption[CaptionPart]);
+      if Result = nil then
+      begin
+        Result := TMenuItem.Create(OwnerAndParent);
+        Result.Caption := R.Caption[CaptionPart];
+        OwnerAndParent.Add(Result);
+      end;
+      { recursive call to create deeper menu level }
+      CreateMenuItemForComponent(Result, R, CaptionPart + 1);
+    end;
   end;
 
 type
@@ -1066,6 +1187,23 @@ begin
     SaveDialog.DefaultExt := 'castle-component';
     SaveDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
   end;
+end;
+
+function UseIconsAndColorsForDarkTheme: Boolean;
+var
+  Luminance: Single;
+begin
+  Luminance := GrayscaleValue(ColorToVector3(clForm));
+  Result := Luminance < 180 / 255;
+end;
+
+class function TSavedSelection.Equals(const A, B: TSavedSelection): Boolean; static;
+begin
+  Result :=
+    (A.SelectedComponent = B.SelectedComponent) and
+    (A.CurrentViewport = B.CurrentViewport) and
+    (A.ItemIndex = B.ItemIndex) and
+    (A.TabIndex = B.TabIndex);
 end;
 
 end.

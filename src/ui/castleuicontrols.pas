@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2009-2022 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2023 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,7 @@ type
   {$I castleuicontrols_container.inc}
   {$I castleuicontrols_userinterface.inc}
   {$I castleuicontrols_userinterfacelist.inc}
+  {$I castleuicontrols_view.inc}
   {$I castleuicontrols_internalchildrencontrols.inc}
   {$I castleuicontrols_deprecated.inc}
   {$I castleuicontrols_theme.inc} // ends the "type" clause
@@ -52,7 +53,7 @@ uses DOM, TypInfo, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInternalInspector, CastleInternalControlsImages;
+  CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castleuicontrols_initial_types.inc}
@@ -61,6 +62,7 @@ uses DOM, TypInfo, Math,
 {$I castleuicontrols_container.inc}
 {$I castleuicontrols_userinterface.inc}
 {$I castleuicontrols_userinterfacelist.inc}
+{$I castleuicontrols_view.inc}
 {$I castleuicontrols_internalchildrencontrols.inc}
 {$I castleuicontrols_deprecated.inc}
 {$I castleuicontrols_theme.inc}

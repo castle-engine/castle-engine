@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -82,9 +82,9 @@
     { Internal wrapper for property @link(Data). This wrapper API may change, we advise to access simpler @link(Data) instead. }
     public property FdData: TMFInt32 read FFdData;
     {  }
-    procedure SetData(const Value: array of LongInt); overload;
+    procedure SetData(const Value: array of Int32); overload;
     {  }
-    procedure SetData(const Value: TLongIntList); overload;
+    procedure SetData(const Value: TInt32List); overload;
 
     strict private FFdDataLength: TSFInt32;
     { Internal wrapper for property @link(DataLength). This wrapper API may change, we advise to access simpler @link(DataLength) instead. }
@@ -238,12 +238,12 @@ begin
   FdApplicationID.Send(Value);
 end;
 
-procedure TSignalPduNode.SetData(const Value: array of LongInt);
+procedure TSignalPduNode.SetData(const Value: array of Int32);
 begin
   FdData.Send(Value);
 end;
 
-procedure TSignalPduNode.SetData(const Value: TLongIntList);
+procedure TSignalPduNode.SetData(const Value: TInt32List);
 begin
   FdData.Send(Value);
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Make a sphere. }
-procedure Sphere_Proxy(CoordIndex: TLongIntList;
+procedure Sphere_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List;
   const Radius: Single;
@@ -170,7 +170,7 @@ begin
 end;
 
 { Make a wireframe sphere. }
-procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
+procedure SphereWireframe_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 
@@ -337,6 +337,7 @@ begin
     SphereFilled;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -393,3 +394,4 @@ begin
     IFS.FdTextureCoordIndex.Items.Assign(IFS.FdCoordIndex.Items);
   except FreeAndNil(Result); raise end;
 end;
+{$warnings on}

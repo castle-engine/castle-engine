@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -224,7 +224,7 @@
     function RectWithAnchors(
       const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
     { How to translate local coordinates to the container.
-      Looks at our and parent's anchors (AnchorDelta) and positon (Left, Bottom).
+      Looks at our and parent's anchors (@link(Translation)) and positon (Left, Bottom).
 
       As such it is useful to modify the children UI control position.
 
@@ -250,6 +250,10 @@
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
     procedure Loaded; override;
+
+    { Show and hide UI used to render tooltip (may come from user TooltipControl or some internal component).
+      @exclude }
+    procedure InternalSetTooltipExists(const Value: Boolean); virtual;
 
     { Container sizes.
       @groupBegin }
@@ -589,7 +593,7 @@
       See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
-      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
       that will take care of freeing it. }
     procedure RemoveControl(const Item: TCastleUserInterface);
 
@@ -607,7 +611,7 @@
       See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
-      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
       that will take care of freeing it. }
     procedure ClearControls;
 
@@ -931,7 +935,7 @@
       of this UI control.
 
       The exact definition is that using the result of this to set our child
-      AnchorDelta, assuming the child is anchored to the left-bottom (the default state)
+      @link(Translation), assuming the child is anchored to the left-bottom (the default state)
       and child has Left = Bottom = 0, sets child position exactly to
       the indicated point on the container.
 
@@ -1194,6 +1198,12 @@
       be done in the future releases. }
     property OnInternalMouseLeave: TUiNotifyEvent
       read FOnInternalMouseLeave write FOnInternalMouseLeave;
+
+    { Is the @link(FullSize) actually active.
+      Checks @link(FullSize) and not @link(AutoSizeToChildren),
+      i.e. it accounts that AutoSizeToChildren overrides FullSize
+      (since they cannot both work at the same time). }
+    function EffectiveFullSize: Boolean;
   published
     { Mouse cursor over this control.
       When user moves mouse over the Container, the currently focused
@@ -1381,7 +1391,8 @@
       because you usually do not want to show it until we start showing it as a tooltip.
 
       If TooltipControl is assigned then TCastleUserInterfaceFont
-      no longer does tooltip rendering. The @link(Tooltip) text is ignored.
+      no longer does tooltip rendering.
+      The @link(TCastleUserInterfaceFont.Tooltip) text is ignored.
 
       The visual parent of TooltipControl can be whatever is comfortable.
       That is, it is OK to make TooltipControl parent of this control,
@@ -1528,7 +1539,7 @@ begin
     OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
   if Parent <> nil then
     Parent.VisibleChange(Changes, true);
-  if [chRectangle, chChildren] * Changes <> [] then
+  if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
     FSizeFromChildrenValid := false;
 end;
 
@@ -2443,6 +2454,11 @@ begin
     Result := RectWithoutAnchors;
 end;
 
+function TCastleUserInterface.EffectiveFullSize: Boolean;
+begin
+  Result := FullSize and not AutoSizeToChildren;
+end;
+
 function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
   PR: TFloatRectangle;
@@ -2457,7 +2473,7 @@ begin
   Result := FastRectWithoutAnchors;
 
   { apply my Anchors and parent Border }
-  if not FullSize then
+  if not EffectiveFullSize then
   begin
     PR := ParentRect;
     Result.Left := Result.Left +
@@ -2866,6 +2882,12 @@ begin
       Name
     ]);
   {$warnings on}
+end;
+
+procedure TCastleUserInterface.InternalSetTooltipExists(const Value: Boolean);
+begin
+  if TooltipControl <> nil then
+    TooltipControl.Exists := Value;
 end;
 
 {$define read_implementation_methods}

@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
-  Thanks to this manifest file, CGE editor is itself a "regular"
-  CGE project that:
+Thanks to this manifest file, CGE editor is itself a "regular"
+CGE project that:
 
-  - can be compiled using CGE build tool
+- can be compiled using CGE build tool
 
-      Because of build_using_lazbuild="true", in this case CGE build tool
-      when called as "castle-engine compile"
-      just executes "lazbuild castle_editor.lpi" and not much more.
+    Because of build_using_lazbuild="true", in this case CGE build tool
+    when called as "castle-engine compile"
+    just executes "lazbuild castle_editor.lpi" and not much more.
 
-  - can be opened inside CGE editor.
+- can be opened inside CGE editor.
+
+See https://castle-engine.io/project_manifest for documentation of this file.
 -->
+
 <project name="castle-editor"
   lazarus_project="castle_editor.lpi"
   build_using_lazbuild="true"

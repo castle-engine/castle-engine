@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,7 +74,7 @@ implementation
 
 uses Math,
   CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages,
-  CastleRenderContext, CastleRenderOptions;
+  CastleRenderContext, CastleRenderOptions, CastleInternalGLUtils;
 
 const
   { Background rendering doesn't use the same projection near/far as other content.

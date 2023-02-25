@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -146,7 +146,7 @@
     { Scales the projection size derived from @link(Width) and @link(Height).
 
       The effect of this scale is also affected by the @link(Origin).
-      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
+      When @link(Origin) is zero, this behaves like scaling around left-bottom corner
       of the viewport.
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
@@ -369,16 +369,19 @@
       out RayOrigin, RayDirection: TVector3);
 
     { Animate a camera smoothly into another camera settings.
-      This will gradually change our settings (only the most important
-      settings, that determine actual camera view, i.e. @link(Matrix) result)
-      into another camera.
+      This will gradually change our settings (position, direction, up)
+      to match the target vectors (in world coordinate space).
 
+      If you use overload with OtherCamera:
       Current OtherCamera settings will be internally copied during this call.
       So you can even free OtherCamera instance immediately after calling this.
 
       Calling AnimateTo while the previous animation didn't finish yet
       is OK. This simply cancels the previous animation,
       and starts the new animation from the current position.
+
+      Check @link(Animation) to see if we're currently during the camera
+      animation.
 
       @groupBegin }
     procedure AnimateTo(const OtherCamera: TCastleCamera;
@@ -387,12 +390,7 @@
       const Time: TFloatTime); overload;
     { @groupEnd }
 
-    { Are we currently during animation (caused by @link(AnimateTo)).
-
-      TCastleNavigation descendants may use it to abort normal
-      input handling. E.g. when camera is animating,
-      then the gravity in TCastleWalkNavigation should not work,
-      key/mouse handling in TCastleWalkNavigation shoult not work etc. }
+    { Are we currently during animation (caused by @link(AnimateTo)). }
     function Animation: boolean;
 
     procedure Init(const AInitialPosition, AInitialDirection, AInitialUp,
@@ -629,16 +627,32 @@ begin
   inherited;
   ScaleValue := 1;
   SerializationProcess.ReadWriteSingle('Scale', ScaleValue, false);
-  if ScaleValue <> 1 then
+
+  { Scale property is not published anymore, we read it in CustomSerialization
+    and apply by multiplying Width / Height.
+
+    Note that we rely on the fact that CustomSerialization is done
+    after reading all published properties, so Width and Height are already surely read from design file. }
+
+  if not SameValue(ScaleValue, 1.0) then
   begin
-    WritelnWarning('Upgrading deprecated TCastleOrthographic.Scale to just multiply TCastleOrthographic.Width and TCastleOrthographic.Height. Width x Height: old %f x %f -> new %f x %f.', [
-      Width,
-      Height,
-      Width * ScaleValue,
-      Height * ScaleValue
-    ]);
-    Width  := Width * ScaleValue;
-    Height := Height * ScaleValue;
+    if (Width = 0) and (Height = 0) then
+    begin
+      WritelnWarning('Deprecated TCastleOrthographic.Scale value %f will be lost. Set to non-zero TCastleOrthographic.Width or TCastleOrthographic.Height to control the viewport field of view', [
+        ScaleValue
+      ]);
+    end else
+    begin
+      WritelnWarning('Upgrading deprecated TCastleOrthographic.Scale %f to just multiply TCastleOrthographic.Width and TCastleOrthographic.Height. Width x Height: old %f x %f -> new %f x %f.', [
+        ScaleValue,
+        Width,
+        Height,
+        Width * ScaleValue,
+        Height * ScaleValue
+      ]);
+      Width  := Width * ScaleValue;
+      Height := Height * ScaleValue;
+    end;
   end;
 end;
 
@@ -715,6 +729,7 @@ begin
   if AShowGizmo then
   begin
     Gizmo := TInternalCastleEditorGizmo.Create(Self);
+    Gizmo.InternalIgnoreParentScale := true;
     Gizmo.LoadVisualization(BuildGizmo);
     Gizmo.SelectBoxTranslation := CastleVectors.Vector3(0, 0, -0.5); // matches nicely our visualization set by UpdateGizmoCoord
     { No need for icon anymore, gizmo is recognizeable enough.
@@ -941,14 +956,26 @@ end;
 
 function TCastleCamera.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'GravityUpPersistent') or
-     (PropertyName = 'ProjectionFar') or
-     (PropertyName = 'ProjectionNear') or
-     (PropertyName = 'ProjectionType') or
-     (PropertyName = 'Orthographic') or
-     (PropertyName = 'Perspective') then
+  if ArrayContainsString(PropertyName, [
+       'GravityUpPersistent',
+       'ProjectionFar', 'ProjectionNear', 'ProjectionType',
+       'Orthographic', 'Perspective'
+     ]) then
     Result := [psBasic]
   else
+
+  { Bad idea to move it to "Layout" only for camera -
+    as Direction, Up are on all TCastleTransform,
+    including on camera's parent transformations,
+    and then make sense there.
+
+  if ArrayContainsString(PropertyName, [
+       'DirectionPersistent', 'UpPersistent'
+     ]) then
+    Result := [psLayout]
+  else
+  }
+
     Result := inherited PropertySections(PropertyName);
 end;
 

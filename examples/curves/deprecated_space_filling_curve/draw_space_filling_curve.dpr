@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -142,7 +142,7 @@ begin
   Window.OnResize := @Resize2D;
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
-  Window.ParseParameters(StandardParseOptions);
+  Window.ParseParameters;
   Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Open;
 

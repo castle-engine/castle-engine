@@ -41,7 +41,7 @@ with border = 0 width (I didn't like border effect in this case).
 
 The corroded version of wild_road also used
 "Script-Fu -> Ornaments -> Coffe stains" effect
-(with accidentaly nicely positioned stain).
+(with accidentally nicely positioned stain).
 
 The corroded version of human_beach was first (before oldphotography)
 processed by "Filters -> Glass effects -> Glass tiles" effect

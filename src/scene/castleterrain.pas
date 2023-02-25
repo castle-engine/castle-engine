@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,7 +83,7 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors;
+  CastleColors, CastleTriangles;
 
 type
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -628,6 +628,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function HasColliderMesh: Boolean; override;
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
     { How dense is the mesh.
       By default this is (DefaultSubdivisions,DefaultSubdivisions).
@@ -886,7 +888,7 @@ procedure TCastleTerrainData.UpdateTriangulatedNode(const Node: TAbstractChildNo
 var
   SubdivisionsPlus1: TVector2Cardinal;
   Coord, Normal: TVector3List;
-  Index: TLongIntList;
+  Index: TInt32List;
   FaceNormals: TVector3List;
   SubdivisionsX, SubdivisionsZ: Cardinal;
 
@@ -956,7 +958,7 @@ var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
   I, J: Cardinal;
-  IndexPtr: PLongInt;
+  IndexPtr: PInt32;
 begin
   { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
   Transform := Node as TTransformNode;
@@ -1011,7 +1013,7 @@ begin
 
   { calculate Index }
   Index.Count := (SubdivisionsX - 1) * (SubdivisionsZ * 2 + 1);
-  IndexPtr := PLongInt(Index.List);
+  IndexPtr := PInt32(Index.List);
   for I := 1 to SubdivisionsX - 1 do
   begin
     for J := 0 to SubdivisionsZ - 1 do
@@ -1024,7 +1026,7 @@ begin
     Inc(IndexPtr);
   end;
   // make sure our Index.Count was set exactly to what we needed
-  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(LongInt) = Index.Count);
+  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(Int32) = Index.Count);
   Geometry.FdIndex.Changed;
 end;
 
@@ -1824,6 +1826,16 @@ procedure TCastleTerrain.UpdateGeometry;
     Result := Transform;
   end;
 
+  { Update associated collider, e.g. to update TCastleMeshCollider to reflect new terrain. }
+  procedure UpdateCollider;
+  var
+    C: TCastleCollider;
+  begin
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
+  end;
+
 var
   Root: TX3DRootNode;
   Range: TFloatRectangle;
@@ -1868,6 +1880,8 @@ begin
       assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
     TerrainNode := nil;
   end;
+
+  UpdateCollider;
 end;
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -1996,13 +2010,23 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleTerrain.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
+begin
+  Scene.ColliderMesh(TriangleEvent);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 initialization
-  RegisterSerializableComponent(TCastleTerrainImage, 'Terrain Data (Experimental)/Image Data');
-  RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain Data (Experimental)/Noise Data');
-  RegisterSerializableComponent(TCastleTerrainCombine, 'Terrain Data (Experimental)/Combine Data');
-  RegisterSerializableComponent(TCastleTerrain, 'Terrain (Experimental)/Terrain');
+  RegisterSerializableComponent(TCastleTerrainImage, ['Terrain Data (Experimental)', 'Image Data']);
+  RegisterSerializableComponent(TCastleTerrainNoise, ['Terrain Data (Experimental)', 'Noise Data']);
+  RegisterSerializableComponent(TCastleTerrainCombine, ['Terrain Data (Experimental)', 'Combine Data']);
+  RegisterSerializableComponent(TCastleTerrain, ['Terrain (Experimental)']);
 end.

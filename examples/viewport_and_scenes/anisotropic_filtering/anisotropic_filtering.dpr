@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,7 +79,7 @@ begin
   Scene := TCastleScene.Create(nil);
   // Scene.Load('castle-data:/test_environment.gltf'); // load directly, without anisotropic filtering
   Scene.Load(Node, true);
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.PreciseCollisions := true;
   { We set MainScene := Scene, this way automatic camera (initialized thanks
     to Viewport.AutoCamera=true) will follow camera set in Blender, in test_environment.gltf . }
   Viewport.Items.MainScene := Scene;

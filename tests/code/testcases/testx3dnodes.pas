@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -103,6 +103,7 @@ type
     procedure TestGenericFind;
     {$endif}
     procedure TestProtoExpansion;
+    procedure TestSolidField;
   end;
 
 implementation
@@ -388,10 +389,10 @@ begin
       begin
         CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             (K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             not N.Events[K].IsName(CurrentName));
       end;
 
@@ -399,10 +400,10 @@ begin
       begin
         CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             (K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
@@ -2385,6 +2386,25 @@ begin
     CheckProtoInstance(0, 'palette1.png');
     CheckProtoInstance(1, 'palette2.png');
   finally FreeAndNil(RootNode) end;
+end;
+
+procedure TTestX3DNodes.TestSolidField;
+var
+  I, J: Integer;
+  N: TAbstractGeometryNode;
+begin
+  for I := 0 to InstantiableNodes.Count - 1 do
+  begin
+    if InstantiableNodes[I].InheritsFrom(TAbstractGeometryNode) then
+    begin
+      N := InstantiableNodes[I].Create as TAbstractGeometryNode;
+      try
+        for J := 0 to N.FieldsCount - 1 do
+          if N.Fields[J].X3DName = 'solid' then
+            AssertTrue('SolidField overridden correctly for ' + N.X3DType, N.SolidField = N.Fields[J]);
+      finally FreeAndNil(N) end;
+    end;
+  end;
 end;
 
 initialization

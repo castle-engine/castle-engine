@@ -1,5 +1,6 @@
+{%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,11 +19,13 @@
 
 {$ifdef read_interface_const}
 const
-  PixelsImageClasses: array [0..3] of TEncodedImageClass = (
+  PixelsImageClasses: array [0..4] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
-    TGrayscaleAlphaImage);
+    TGrayscaleAlphaImage,
+    TGPUCompressedImage
+  );
 {$endif read_interface_const}
 
 {$ifdef read_interface_func}
@@ -76,35 +79,153 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 
 {$ifdef read_implementation}
 
-function ImageGLFormat(const Img: TCastleImage): TGLenum;
+{ Missing from FPC OpenGL units. }
+const
+  GL_TEXTURE_SWIZZLE_RGBA = $8E46;
+
+{ Get OpenGL enums for "format" and "internalFormat" for OpenGL routines like
+  https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
+  that load uncompressed images. }
+procedure UncompressedGLFormatAndInternalFormat(const Img: TCastleImage;
+  out ImageFormat: TGLenum;
+  out ImageInternalFormat: TGLenum;
+  out ImageSwizzle: TVector4Integer);
+
+{ Missing from FPC OpenGL units. }
+const
+  GL_R8 = $8229;
+  GL_RG = $8227;
+  GL_RG8 = $822B;
+
+{ For all image types, we have
+
+  - Modern enum, required by OpenGL "core" profile,
+    see https://www.khronos.org/opengl/wiki/Image_Format .
+    We can use it if GLFeatures.TextureModernFormatsAndSwizzle .
+
+  - Compatibility enum: name accepted by OpenGL ES 2 (
+    https://registry.khronos.org/OpenGL-Refpages/es2.0/xhtml/glTexImage2D.xml )
+    and latest OpenGL in compatibility mode.
+
+  - Moreover, when GLFeatures.EnableFixedFunction, we adjust to OpenGL 1.x where
+    the "internal format" for glTexImage2d was just a number,
+    like 2,3,4.
+
+    In OpenGLES >= 2 and in OpenGL >= 3.2 "core" profile this is not allowed
+    anymore.
+}
+
 begin
+  { ImageSwizzle passing depends on it. }
+  Assert(SizeOf(Integer) = SizeOf(TGLint));
+
   if Img is TRGBImage then
-    Result := GL_RGB else
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RGB;
+      ImageInternalFormat := GL_RGB8;
+    end else
+    begin
+      ImageFormat := GL_RGB;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TRGBAlphaImage then
-    Result := GL_RGBA else
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RGBA;
+      ImageInternalFormat := GL_RGBA8;
+    end else
+    begin
+      ImageFormat := GL_RGBA;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TGrayscaleImage then
   begin
+    { Use texture swizzle to load texture 1st channel (red) -> as luminance (fill RGB) or alpha. }
     if TGrayscaleImage(Img).TreatAsAlpha then
-      Result := GL_ALPHA else
-      Result := GL_LUMINANCE;
+      ImageSwizzle := Vector4Integer(GL_ONE, GL_ONE, GL_ONE, GL_RED)
+    else
+      ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RED;
+      ImageInternalFormat := GL_R8;
+    end else
+    begin
+      ImageFormat := Iff(TGrayscaleImage(Img).TreatAsAlpha, GL_ALPHA, GL_LUMINANCE);
+      if GLFeatures.EnableFixedFunction and (not TGrayscaleImage(Img).TreatAsAlpha) then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
   end else
   if Img is TGrayscaleAlphaImage then
-    Result := GL_LUMINANCE_ALPHA else
+  begin
+    { Use texture swizzle to load texture
+      - 1st channel (red) -> RBG
+      - 2nd channel (green) -> alpha }
+    ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RG;
+      ImageInternalFormat := GL_RG8;
+    end else
+    begin
+      ImageFormat := GL_LUMINANCE_ALPHA;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TRGBFloatImage then
-    Result := GL_RGB else
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RGB;
+      ImageInternalFormat := GL_RGB32F;
+    end else
+    begin
+      ImageFormat := GL_RGB;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL', [Img.ClassName]);
+end;
+
+function ImageGLFormat(const Img: TCastleImage): TGLenum;
+var
+  IgnoredImageInternalFormat: TGLenum;
+  IgnoredImageSwizzle: TVector4Integer;
+begin
+  UncompressedGLFormatAndInternalFormat(Img, Result, IgnoredImageInternalFormat, IgnoredImageSwizzle);
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 {$I gl_texture_compression_constants.inc}
+var
+  IgnoredImageFormat: TGLenum;
+  IgnoredImageSwizzle: TVector4Integer;
 begin
   if Img is TCastleImage then
   begin
-    if (Img is TGrayscaleImage) and TGrayscaleImage(Img).TreatAsAlpha then
-      Result := GL_ALPHA else
-      Result := {$ifdef OpenGLES} ImageGLFormat(TCastleImage(Img))
-                {$else} TCastleImage(Img).ColorComponentsCount
-                {$endif};
+    UncompressedGLFormatAndInternalFormat(TCastleImage(Img), IgnoredImageFormat, Result, IgnoredImageSwizzle);
   end else
   if Img is TGPUCompressedImage then
   begin
@@ -171,9 +292,11 @@ begin
      (Img is TRGBAlphaImage) or
      (Img is TGrayscaleImage) or
      (Img is TGrayscaleAlphaImage) then
-    Result := GL_UNSIGNED_BYTE else
+    Result := GL_UNSIGNED_BYTE
+  else
   if Img is TRGBFloatImage then
-    Result := GL_FLOAT else
+    Result := GL_FLOAT
+  else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);
 end;
@@ -208,9 +331,9 @@ end;
 
 procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 begin
-  if GLFeatures.EXT_texture_filter_anisotropic then
+  if GLFeatures.TextureFilterAnisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-      Min(GLFeatures.MaxTextureMaxAnisotropyEXT, Anisotropy));
+      Min(GLFeatures.MaxTextureMaxAnisotropy, Anisotropy));
 end;
 
 {$endif read_implementation}

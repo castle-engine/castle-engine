@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,8 +27,7 @@
   or wait for 10 seconds displaying some animation, etc.
 
   This unit is internal, and in time may be removed.
-  For users, we recommend using CastleUIState as a way to implement user-interface
-  states. }
+  We recommend using TCastleView(s) instances to organize your user-interface. }
 unit CastleInternalWindowModes;
 
 {$I castleconf.inc}
@@ -506,7 +505,9 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindow);
     BackgroundRect := TCastleRectangleControl.Create(BackgroundControls);
     BackgroundRect.Color := BackgroundColor;
     BackgroundRect.FullSize := true;
+    {$warnings off} // using deprecated, but this whole TGLMode is hacky, we should rather use TCastleView and TCastleView.InterceptInput
     BackgroundRect.InterceptInput := true;
+    {$warnings on}
     BackgroundControls.InsertFront(BackgroundRect);
   end;
 

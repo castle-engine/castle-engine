@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,8 +79,13 @@ uses SysUtils, Classes, Math, Generics.Collections,
   FPReadPNM, FPWritePNM,
   FPReadPNG, FPWritePNG,
   {$else}
-  { Delphi units }
-  Vcl.Imaging.PngImage,
+    { Delphi units }
+    {$ifndef USE_VAMPYRE_IMAGING}
+    { Vcl.Imaging.PngImage works fine, but disabled now:
+      CastleImages must be used with FMX too,
+      without depending on VCL units. }
+    Vcl.Imaging.PngImage,
+    {$endif}
   {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
@@ -1032,8 +1037,9 @@ type
 
     { Decompress the image.
 
-      This uses DecompressTexture variable, so you have to initialialize it
-      first (for example to CastleGLImages.GLDecompressTexture) before using this.
+      This uses DecompressTexture routine.
+      By default, it is assigned only when OpenGL(ES) context is available
+      and can decompress textures with the help of OpenGL(ES).
 
       @raises(ECannotDecompressTexture If we cannot decompress the texture,
         because decompressor is not set or there was some other error
@@ -1056,7 +1062,7 @@ type
 
   ECannotDecompressTexture = class(Exception);
 
-  TDecompressTextureFunction = function (Image: TGPUCompressedImage): TCastleImage;
+  TDecompressTextureFunction = function (const Image: TGPUCompressedImage): TCastleImage;
 
 var
   { Assign here texture decompression function that is available.
@@ -1463,22 +1469,28 @@ type
     { Should we treat grayscale image as pure alpha channel (without any color
       information) when using this as a texture.
 
-      This property is meaningful only for a small subset of operations.
+      This property is meaningful for some operations:
 
       @orderedList(
         @item(
           When creating OpenGL texture from this image.
-          If @true, then the grayscale pixel data will be loaded as alpha channel
-          contents (GL_ALPHA texture for OpenGL,
-          it modifies only the fragments alpha value,
-          it doesn't have any "color" in the normal sense).
-          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+          If @true, then the grayscale pixel data will be loaded as alpha channel contents.
+          When the texture is read by shaders, the RGB is (1,1,1) and alpha comes from the image.
+
+          Note the we don't pass ColorWhenTreatedAsAlpha to OpenGL,
+          as we don't have this functionality (e.g. https://www.khronos.org/opengl/wiki/Texture#Swizzle_mask
+          cannot express an arbitrary but constant color on some channels.)
+        )
 
         @item(
           When using @link(DrawFrom) / @link(DrawTo) methods or being assigned to something using @link(Assign).
           If @true, this image is drawn like an RGBA image,
           with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
           taken from contents of this image.)
+
+        @item(
+          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+
       )
     }
     property TreatAsAlpha: boolean
@@ -2015,7 +2027,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
       VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
     ImagingExtFileFormats,
   {$endif}
-  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
+  CastleInternalZLib, CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
 {$warnings on}
@@ -3041,6 +3053,9 @@ end;
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
+  WritelnLog('Decompressing GPU-compressed "%s", this is usually a waste of time for normal games that should load textures in format (compressed or not) suitable for current GPU', [
+    URL
+  ]);
   if Assigned(DecompressTexture) then
     Result := DecompressTexture(Self)
   else

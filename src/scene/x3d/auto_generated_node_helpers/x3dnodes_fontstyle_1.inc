@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -98,9 +98,7 @@ begin
    FdSize.MustBeNonnegative := true;
   AddField(FFdSize);
 
-  {$warnings off} // using deprecated FSFAMILY_SERIF in deprecated VRML 1 node
   FFdFamily := TSFEnum.Create(Self, True, 'family', @FamilyNames1, Ord(High(FamilyNames1)) + 1, FSFAMILY_SERIF);
-  {$warnings on}
    FdFamily.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFamily);
 

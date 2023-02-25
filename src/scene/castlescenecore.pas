@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,8 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
-  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection;
+  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
+  CastleComponentSerialize;
 
 type
   { These are various features that may be freed by
@@ -992,7 +993,12 @@ type
     procedure Loaded; override;
 
     { Called before changing one node into another,
-      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode.
+
+      Both OldNode and NewNode may be @nil, this method can handle it.
+
+      It is allowed to call this even when OldNode = NewNode, which means that nothing
+      really changes. }
     procedure InternalMoveShapeAssociations(
       const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
 
@@ -2569,7 +2575,7 @@ type
   end;
 
   {$define read_interface}
-  {$I castlescenecore_physics.inc}
+  {$I castlescenecore_physics_deprecated.inc}
   {$undef read_interface}
 
 var
@@ -2613,7 +2619,7 @@ uses Math, DateUtils,
   X3DLoad, CastleURIUtils, CastleQuaternions;
 
 {$define read_implementation}
-{$I castlescenecore_physics.inc}
+{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
@@ -3519,9 +3525,22 @@ begin
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
+var
+  C: TCastleCollider;
 begin
   if AValue <> FURL then
+  begin
     Load(AValue);
+
+    { After loading a new model we need to
+      - update sizes calculated by AutoSize for simple colliders
+      - update triangles used by TCastleMeshCollider (note that this code
+        will only update TCastleMeshCollider that is our behavior,
+        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
+  end;
 end;
 
 (* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
@@ -3858,7 +3877,7 @@ begin
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
     if (ssDynamicCollisions in ParentScene.FSpatial) and
-       Shape.Collidable then
+      Shape.Collidable then
     begin
       Shape.InternalSpatial := [ssTriangles];
     end;
@@ -4125,6 +4144,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
 var
   Traverser: TChangedAllTraverser;
+  TimeStart: TCastleProfilerTime;
 begin
   { Whether this is called by EndChangesSchedule, or from other places,
     we can always reset the ChangedAllScheduled flag.
@@ -4134,6 +4154,9 @@ begin
     So ChangedAllScheduled flag must be ready for this,
     so it should be reset early, at the very beginning of ChangedAll implementation. }
   ChangedAllScheduled := false;
+
+  TimeStart := Profiler.Start('ChangedAll for ' + Name + ' from ' + URIDisplay(URL));
+  try
 
   { We really need to use InternalDirty here, to forbid rendering during this.
 
@@ -4279,6 +4302,8 @@ begin
     WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(InternalDirty) end;
+
+  finally Profiler.Stop(TimeStart, true, true) end;
 end;
 
 type
@@ -5573,9 +5598,7 @@ var
   L: TShapeTreeList;
   I: Integer;
 begin
-  Assert(OldNode <> NewNode); // should be checked before calling InternalMoveShapeAssociations
-
-  if ContainingShapes <> nil then
+  if (OldNode <> NewNode) and (ContainingShapes <> nil) then
   begin
     { For shapes on ContainingShapes, they should be removed from OldNode,
       and added to NewNode.
@@ -5738,22 +5761,15 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
             Shape.TriangleOctreeLimits :=
           Our own TriangleOctreeLimits properties may be *not* suitable
           for this (as our properties are for global octrees).
-
-          Just let programmer change per-shape properties if he wants,
-          or user to change this per-shape by
-          [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-        }
+          Just let programmer change per-shape properties if (s)he wants. }
 
         Shape.InternalSpatial := Value;
-        { prepare OctreeTriangles. Not really needed, but otherwise
-          shape's octrees would be updated (even on static scenes!)
-          when the model runs. }
-        Shape.InternalOctreeTriangles;
       end;
   end;
 
 var
-  Old, New: boolean;
+  Old, New: Boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   if Value <> FSpatial then
   begin
@@ -5786,10 +5802,15 @@ begin
     end else
     if New and not Old then
     begin
-      { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
-        since in CreateShapeOctree we iterate over OnlyActive shapes,
-        but SetShapeSpatial must iterate over all shapes. }
-      SetShapeSpatial([ssTriangles], true);
+      TimeStart := Profiler.Start('Creating octrees for all shapes from Scene.Spatial := [...]');
+      try
+        { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
+          since in CreateShapeOctree we iterate over OnlyActive shapes,
+          but SetShapeSpatial must iterate over all shapes. }
+        SetShapeSpatial([ssTriangles], true);
+      finally
+        Profiler.Stop(TimeStart, true, true);
+      end;
     end;
 
     { Handle OctreeVisibleTriangles }

@@ -1,0 +1,2 @@
+Most 3D modeling by Adrianna Matejek
+  License: same as CGE examples, permissive "modified BSD (3-clause)", see https://castle-engine.io/license

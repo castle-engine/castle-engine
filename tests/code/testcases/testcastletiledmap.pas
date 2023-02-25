@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleTiledMap" -*-
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,31 +26,53 @@ uses
 type
   TTestCastleTiledMap = class(TCastleTestCase)
   published
-    procedure TestLoading;
+    procedure TestLoadingUi;
+    procedure TestLoadingTransform;
   end;
 
 implementation
 
 uses CastleTiledMap;
 
-procedure TTestCastleTiledMap.TestLoading;
+const
+  TestMaps: array [0..12] of String = (
+    'castle-data:/tiled-maps/desert.tmx',
+    'castle-data:/tiled-maps/desert_with_objects.tmx',
+    'castle-data:/tiled-maps/hexagonal-mini.tmx',
+    'castle-data:/tiled-maps/isometric_grass_and_water.tmx',
+    'castle-data:/tiled-maps/orthogonal-outside.tmx',
+    'castle-data:/tiled-maps/perspective_walls.tmx',
+    'castle-data:/tiled-maps/sewers.tmx',
+    // See https://github.com/castle-engine/castle-engine/pull/438
+    'castle-data:/tiled-maps/desert_with_empty_objects_layer.tmx',
+    'castle-data:/tiled-maps2/map-hexagonal.tmx',
+    'castle-data:/tiled-maps2/map-isometric-staggered.tmx',
+    'castle-data:/tiled-maps2/map-isometric-test-non-square.tmx',
+    'castle-data:/tiled-maps2/map-isometric.tmx',
+    'castle-data:/tiled-maps2/map-orthogonal.tmx'
+  );
+
+procedure TTestCastleTiledMap.TestLoadingUi;
 var
   Map: TCastleTiledMapControl;
+  MapUrl: String;
 begin
   Map := TCastleTiledMapControl.Create(nil);
   try
-    Map.Url := 'castle-data:/tiled-maps/desert.tmx';
-    Map.Url := 'castle-data:/tiled-maps/desert_with_objects.tmx';
-    Map.Url := 'castle-data:/tiled-maps/hexagonal-mini.tmx';
-    Map.Url := 'castle-data:/tiled-maps/isometric_grass_and_water.tmx';
-    Map.Url := 'castle-data:/tiled-maps/orthogonal-outside.tmx';
-    Map.Url := 'castle-data:/tiled-maps/perspective_walls.tmx';
-    Map.Url := 'castle-data:/tiled-maps/sewers.tmx';
-    Map.Url := 'castle-data:/tiled-maps2/map-hexagonal.tmx';
-    Map.Url := 'castle-data:/tiled-maps2/map-isometric-staggered.tmx';
-    Map.Url := 'castle-data:/tiled-maps2/map-isometric-test-non-square.tmx';
-    Map.Url := 'castle-data:/tiled-maps2/map-isometric.tmx';
-    Map.Url := 'castle-data:/tiled-maps2/map-orthogonal.tmx';
+    for MapUrl in TestMaps do
+      Map.Url := MapUrl;
+  finally FreeAndNil(Map) end;
+end;
+
+procedure TTestCastleTiledMap.TestLoadingTransform;
+var
+  Map: TCastleTiledMap;
+  MapUrl: String;
+begin
+  Map := TCastleTiledMap.Create(nil);
+  try
+    for MapUrl in TestMaps do
+      Map.Url := MapUrl;
   finally FreeAndNil(Map) end;
 end;
 

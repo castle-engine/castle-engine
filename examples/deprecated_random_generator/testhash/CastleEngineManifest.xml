@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="testhash"
-  lazarus_project="testhash.lpi"
-  build_using_lazbuild="true"
->
-  <data exists="false" />
-</project>

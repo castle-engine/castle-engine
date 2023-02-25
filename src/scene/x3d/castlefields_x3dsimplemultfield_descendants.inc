@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,15 +32,15 @@
   end;
 
   TMFLong = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
-    LongInt,
+    Int32,
     TSFLong,
-    TLongIntList>)
+    TInt32List>)
   strict private
     FSaveToStreamLineUptoNegative: boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    procedure AddToList(const ItemList: TLongIntList; const Item: TSFLong); override;
+    procedure AddToList(const ItemList: TInt32List; const Item: TSFLong); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFLong; override;
   public
@@ -425,7 +425,7 @@ begin
   Result := IntToStr(Items[ItemNum])
 end;
 
-procedure TMFLong.AddToList(const ItemList: TLongIntList; const Item: TSFLong);
+procedure TMFLong.AddToList(const ItemList: TInt32List; const Item: TSFLong);
 begin
   Items.Add(Item.Value);
 end;
@@ -454,7 +454,8 @@ begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
     WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s (not enough points in Coordinate node defined: index is %d, we have only %d vertices)',
-      [GeometryX3DType, VertexNum, CoordCount])) else
+      [GeometryX3DType, VertexNum, CoordCount]))
+  else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
     WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryX3DType, WrongVertexIndexWarnings]));

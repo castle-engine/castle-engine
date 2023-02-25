@@ -742,7 +742,9 @@ begin
       https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Unicode%E2%9D%A4%E2%99%BBTest
   }
 
- result:=aUTF16String;
+  {$warnings off}
+  result:=aUTF16String;
+  {$warnings on}
 end;
 
 constructor EPasJSONSyntaxError.Create(const aMessage:string;const aPosition:TPasJSONSizeInt);

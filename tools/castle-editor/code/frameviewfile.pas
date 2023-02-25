@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -299,7 +299,7 @@ begin
       raise Exception.Create('Sound engine backend cannot be initialized.' + NL +
         SoundEngine.Information);
 
-    FSuccessMessage := Format(
+    FSuccessMessage := FormatDot(
       'Duration: %f' + NL +
       'Format: %s' + NL +
       'Frequency: %d', [
@@ -331,7 +331,7 @@ begin
     if RunningApplication and MuteOnRun then
       S := S + ' (application running)';
   end else
-    S := Format('Volume: %f', [SoundEngine.Volume]);
+    S := FormatDot('Volume: %f', [SoundEngine.Volume]);
   LabelVolume.Caption := S;
 end;
 

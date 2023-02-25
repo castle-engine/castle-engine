@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis and FPC team.
+  Copyright 2014-2023 Michalis Kamburelis and FPC team.
 
   This file is part of "Castle Game Engine".
 
@@ -118,13 +118,13 @@ Const
   );
 
 function TargetToString(const Target: TTarget): String;
-Function CPUToString(CPU: TCPU) : String;
-Function OSToString(OS: TOS) : String;
+function CPUToString(const CPU: TCPU): String;
+function OSToString(const OS: TOS): String;
 function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU): String;
 
-function StringToTarget(const S : String): TTarget;
-Function StringToCPU(const S : String) : TCPU;
-Function StringToOS(const S : String) : TOS;
+function StringToTarget(const S: String): TTarget;
+function StringToCPU(const S: String): TCPU;
+function StringToOS(const S: String): TOS;
 
 const
   DefaultCPU: TCPU =
@@ -196,39 +196,39 @@ implementation
 uses TypInfo, SysUtils,
   CastleUtils, CastleParameters;
 
-ResourceString
+resourcestring
   SErrInvalidTarget     = 'Invalid target name "%s"';
   SErrInvalidCPU        = 'Invalid CPU name "%s"';
   SErrInvalidOS         = 'Invalid OS name "%s"';
 
-Function CPUToString(CPU: TCPU) : String;
+function CPUToString(const CPU: TCPU): String;
 begin
-  Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));
+  Result := LowerCase(GetEnumName(TypeInfo(TCPU), Ord(CPU)));
 end;
 
-Function OSToString(OS: TOS) : String;
+function OSToString(const OS: TOS): String;
 begin
-  Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));
+  Result := LowerCase(GetEnumName(TypeInfo(TOS), Ord(OS)));
 end;
 
-Function StringToCPU(const S : String) : TCPU;
-Var
+function StringToCPU(const S : String) : TCPU;
+var
   I : Integer;
 begin
-  I:=GetEnumValue(TypeInfo(TCPU),S);
-  if (I=-1) then
-    Raise Exception.CreateFmt(SErrInvalidCPU,[S]);
-  Result:=TCPU(I);
+  I := GetEnumValue(TypeInfo(TCPU), S);
+  if I = -1 then
+    raise Exception.CreateFmt(SErrInvalidCPU, [S]);
+  Result := TCPU(I);
 end;
 
-Function StringToOS(const S : String) : TOS;
-Var
+function StringToOS(const S : String) : TOS;
+var
   I : Integer;
 begin
-  I:=GetEnumValue(TypeInfo(TOS),S);
-  if (I=-1) then
-    Raise Exception.CreateFmt(SErrInvalidOS,[S]);
-  Result:=TOS(I);
+  I := GetEnumValue(TypeInfo(TOS), S);
+  if I = -1 then
+    raise Exception.CreateFmt(SErrInvalidOS, [S]);
+  Result := TOS(I);
 end;
 
 const

@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,13 +25,13 @@ uses SysUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleWindowProgress,
   CastleProgress, CastleGameNotifications, CastleVectors, CastleSoundEngine,
-  CastleTransform, CastleConfig, CastleUIState,
+  CastleTransform, CastleConfig,
   GameSound, GameConfiguration, GameCreatures, GameLocations
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameStateIntro
-  , GameStateMainMenu
-  , GameStatePlay
+  , GameViewIntro
+  , GameViewMainMenu
+  , GameViewPlay
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -68,30 +68,59 @@ begin
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 
-  { Create game states and set initial state }
-  {$region 'Castle State Creation'}
+  { Create views (see https://castle-engine.io/views ). }
+  {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
-  StateIntro := TStateIntro.Create(Application);
-  StateMainMenu := TStateMainMenu.Create(Application);
-  StatePlay := TStatePlay.Create(Application);
-  {$endregion 'Castle State Creation'}
+  ViewIntro := TViewIntro.Create(Application);
+  ViewMainMenu := TViewMainMenu.Create(Application);
+  ViewPlay := TViewPlay.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  TUIState.Current := StateIntro;
+  Window.Container.View := ViewIntro;
 end;
 
 initialization
-  { Initialize Application.OnInitialize. }
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
+
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-  { Assign initial window size and configuration.
-    This can be overridden by parsing command-line options for standalone platform. }
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
   Window.FpsShowOnCaption := true;
   Window.Width := DefaultWindowWidth;
   Window.Height := DefaultWindowHeight;
   Window.FullScreen := true;
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 end.

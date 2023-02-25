@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,9 +31,9 @@
     { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
     {  }
-    procedure SetKeyValue(const Value: array of LongInt); overload;
+    procedure SetKeyValue(const Value: array of Int32); overload;
     {  }
-    procedure SetKeyValue(const Value: TLongIntList); overload;
+    procedure SetKeyValue(const Value: TInt32List); overload;
 
     strict private FEventValue_changed: TSFInt32Event;
     {  }
@@ -45,12 +45,12 @@
 
 { TIntegerSequencerNode ----------------------------------------------- }
 
-procedure TIntegerSequencerNode.SetKeyValue(const Value: array of LongInt);
+procedure TIntegerSequencerNode.SetKeyValue(const Value: array of Int32);
 begin
   FdKeyValue.Send(Value);
 end;
 
-procedure TIntegerSequencerNode.SetKeyValue(const Value: TLongIntList);
+procedure TIntegerSequencerNode.SetKeyValue(const Value: TInt32List);
 begin
   FdKeyValue.Send(Value);
 end;

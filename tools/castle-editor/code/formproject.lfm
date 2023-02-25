@@ -1,11 +1,11 @@
 object ProjectForm: TProjectForm
-  Left = 1044
-  Height = 485
-  Top = 258
-  Width = 876
+  Left = 646
+  Height = 650
+  Top = 234
+  Width = 1184
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 456
-  ClientWidth = 876
+  ClientHeight = 621
+  ClientWidth = 1184
   DesignTimePPI = 115
   KeyPreview = True
   Menu = MainMenu1
@@ -22,17 +22,17 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 215
-    Top = 241
-    Width = 876
-    ActivePage = TabWarnings
+    Top = 406
+    Width = 1184
+    ActivePage = TabOutput
     Align = alBottom
     ParentFont = False
-    TabIndex = 2
-    TabOrder = 0
+    TabIndex = 1
+    TabOrder = 2
     object TabFiles: TTabSheet
       Caption = 'Files'
       ClientHeight = 180
-      ClientWidth = 866
+      ClientWidth = 1174
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
@@ -44,16 +44,15 @@ object ProjectForm: TProjectForm
     object TabOutput: TTabSheet
       Caption = 'Output'
       ClientHeight = 180
-      ClientWidth = 866
+      ClientWidth = 1174
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
         Height = 180
         Top = 0
-        Width = 866
+        Width = 1174
         Align = alClient
         ItemHeight = 20
-        OnClick = ListOutputClick
         OnDblClick = ListOutputDblClick
         ParentFont = False
         PopupMenu = OutputPopup
@@ -66,14 +65,14 @@ object ProjectForm: TProjectForm
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
       ClientHeight = 180
-      ClientWidth = 866
+      ClientWidth = 1174
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
         Height = 179
         Top = 1
-        Width = 866
+        Width = 1174
         Align = alClient
         ItemHeight = 0
         ParentFont = False
@@ -86,7 +85,7 @@ object ProjectForm: TProjectForm
         Left = 0
         Height = 1
         Top = 0
-        Width = 866
+        Width = 1174
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
@@ -99,44 +98,137 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 235
-    Width = 876
+    Top = 400
+    Width = 1184
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 235
+    Height = 400
     Top = 0
-    Width = 876
+    Width = 1184
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 235
-    ClientWidth = 876
+    ClientHeight = 400
+    ClientWidth = 1184
     ParentFont = False
-    TabOrder = 2
-    object LabelNoDesign: TLabel
-      AnchorSideLeft.Control = PanelAboveTabs
-      AnchorSideLeft.Side = asrCenter
-      AnchorSideTop.Control = PanelAboveTabs
-      AnchorSideTop.Side = asrCenter
-      AnchorSideRight.Side = asrCenter
-      AnchorSideBottom.Side = asrCenter
-      Left = 228
-      Height = 116
-      Top = 59
-      Width = 421
-      Alignment = taCenter
-      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
-      Font.Height = -25
-      ParentColor = False
-      ParentFont = False
-      WordWrap = True
+    TabOrder = 0
+    object PanelNoDesign: TPanel
+      Left = 0
+      Height = 400
+      Top = 0
+      Width = 1184
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 400
+      ClientWidth = 1184
+      TabOrder = 0
+      object PanelNoDesignTop: TPanel
+        Left = 5
+        Height = 65
+        Top = 5
+        Width = 1174
+        Align = alTop
+        AutoSize = True
+        BorderSpacing.Around = 5
+        BevelOuter = bvNone
+        ChildSizing.HorizontalSpacing = 5
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 100
+        ClientHeight = 65
+        ClientWidth = 1174
+        TabOrder = 0
+        object BitBtnNewView: TBitBtn
+          Left = 0
+          Height = 65
+          Top = 0
+          Width = 150
+          Action = ActionNewUnitView
+          AutoSize = True
+          Caption = 'New View...'
+          Constraints.MinWidth = 150
+          GlyphShowMode = gsmAlways
+          Layout = blGlyphTop
+          Images = Icons.ToolbarIcons
+          ImageIndex = 11
+          TabOrder = 0
+        end
+        object BitBtnPlayStop: TBitBtn
+          Left = 155
+          Height = 65
+          Top = 0
+          Width = 180
+          Action = ActionPlayStop
+          AutoSize = True
+          Caption = 'Build and Run'
+          Constraints.MinWidth = 180
+          GlyphShowMode = gsmAlways
+          Layout = blGlyphTop
+          Images = Icons.ToolbarIcons
+          ImageIndex = 5
+          TabOrder = 1
+        end
+      end
+      object PanelOpenExistingView: TPanel
+        Left = 0
+        Height = 325
+        Top = 75
+        Width = 1184
+        Align = alClient
+        BevelOuter = bvNone
+        ClientHeight = 325
+        ClientWidth = 1184
+        TabOrder = 1
+        object LabelOpenExistingView: TLabel
+          Left = 10
+          Height = 21
+          Top = 10
+          Width = 1174
+          Align = alTop
+          BorderSpacing.Left = 10
+          BorderSpacing.Top = 10
+          Caption = 'Open Existing View (gameview*.castle-user-interface) :'
+          ParentColor = False
+        end
+        object ListOpenExistingView: TListView
+          Left = 10
+          Height = 274
+          Top = 41
+          Width = 1164
+          Align = alClient
+          AutoSortIndicator = True
+          AutoWidthLastColumn = True
+          BorderSpacing.Around = 10
+          Columns = <          
+            item
+              AutoSize = True
+              Caption = 'Name'
+              MinWidth = 200
+              Width = 200
+            end          
+            item
+              Caption = 'File'
+              Width = 600
+            end          
+            item
+              Caption = 'Last Modified'
+              Width = 362
+              SortIndicator = siDescending
+            end>
+          RowSelect = True
+          ScrollBars = ssAutoBoth
+          SortType = stText
+          TabOrder = 0
+          ViewStyle = vsReport
+          OnDblClick = ListOpenExistingViewDblClick
+        end
+      end
     end
   end
   object MainMenu1: TMainMenu
-    Left = 42
-    Top = 23
+    Left = 424
+    Top = 528
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -165,6 +257,13 @@ object ProjectForm: TProjectForm
     end
     object MenuItemDesign: TMenuItem
       Caption = '&Design'
+      object MenuItem38: TMenuItem
+        Action = ActionNewUnitView
+        Caption = 'New View (User Interface connected with Pascal code)...'
+      end
+      object Separator9: TMenuItem
+        Caption = '-'
+      end
       object MenuItemDesignNewUserInterfaceRect: TMenuItem
         Caption = 'New User Interface (Empty Rectangle as Root)'
         OnClick = MenuItemDesignNewUserInterfaceRectClick
@@ -208,6 +307,7 @@ object ProjectForm: TProjectForm
       end
       object MenuItemDesignClose: TMenuItem
         Caption = 'Close'
+        ShortCut = 16471
         OnClick = MenuItemDesignCloseClick
       end
     end
@@ -290,6 +390,10 @@ object ProjectForm: TProjectForm
         object MenuItem32: TMenuItem
           Action = ActionModeScale
         end
+      end
+      object MenuItem41: TMenuItem
+        Action = ActionShowStatistics
+        AutoCheck = True
       end
     end
     object MenuItemViewport: TMenuItem
@@ -397,6 +501,33 @@ object ProjectForm: TProjectForm
         Action = ActionViewportSort2D
       end
     end
+    object MenuItemPhysics: TMenuItem
+      Caption = 'Physics'
+      object MenuItemSimulationPlayStop: TMenuItem
+        Action = ActionSimulationPlayStop
+        ShowAlwaysCheckable = True
+      end
+      object MenuItemSimulationPauseUnpause: TMenuItem
+        Action = ActionSimulationPauseUnpause
+        ShowAlwaysCheckable = True
+      end
+      object SeparatorBeforeShowColliders: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemShowColliders: TMenuItem
+        Action = ActionShowColliders
+        ShowAlwaysCheckable = True
+      end
+      object Separator888888: TMenuItem
+        Caption = '-'
+      end
+      object MenuShowJointTools28: TMenuItem
+        Action = ActionPhysicsShowAllJointsTools
+      end
+      object MenuItem2888888: TMenuItem
+        Action = ActionPhysicsHideAllJointsTools
+      end
+    end
     object MenuItemCode: TMenuItem
       Caption = 'Code'
       object MenuItemOpenProjectCode: TMenuItem
@@ -419,8 +550,11 @@ object ProjectForm: TProjectForm
         object MenuItemNewUnitClass: TMenuItem
           Action = ActionNewUnitClass
         end
-        object MenuItemNewUnitState: TMenuItem
-          Action = ActionNewUnitState
+        object MenuItemNewUnitView: TMenuItem
+          Action = ActionNewUnitView
+        end
+        object MenuItemNewUnitBehavior: TMenuItem
+          Action = ActionNewUnitBehavior
         end
       end
       object MenuItemSeparator123123345: TMenuItem
@@ -438,7 +572,7 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemCompileClick
       end
       object MenuItemCompileRun: TMenuItem
-        Caption = 'Compile And Run'
+        Caption = 'Compile and Run'
         ShortCut = 120
         OnClick = MenuItemCompileRunClick
       end
@@ -446,6 +580,51 @@ object ProjectForm: TProjectForm
         Caption = 'Run (Without Compiling)'
         ShortCut = 8312
         OnClick = MenuItemOnlyRunClick
+      end
+      object MenuItemRunParameters: TMenuItem
+        Caption = 'Run Parameters'
+        object MenuItemRunParameterDisableSound: TMenuItem
+          Action = ActionRunParameterDisableSound
+        end
+        object MenuItemRunParameterDisableFpsLimit: TMenuItem
+          Action = ActionRunParameterDisableFpsLimit
+        end
+        object Separator11: TMenuItem
+          Caption = '-'
+        end
+        object MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem
+          Action = ActionRunParameterDefaultWindowOrFullscreen
+          GroupIndex = 45
+          RadioItem = True
+        end
+        object MenuItemRunParameterRequestFullScreen: TMenuItem
+          Action = ActionRunParameterRequestFullScreen
+          GroupIndex = 45
+          RadioItem = True
+        end
+        object MenuItemRunParameterRequestWindow: TMenuItem
+          Action = ActionRunParameterRequestWindow
+          GroupIndex = 45
+          RadioItem = True
+        end
+        object Separator12: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem33: TMenuItem
+          Action = ActionRunParameterCapabilitiesDefault
+          GroupIndex = 145
+          RadioItem = True
+        end
+        object MenuItem39: TMenuItem
+          Action = ActionRunParameterCapabilitiesForceModern
+          GroupIndex = 145
+          RadioItem = True
+        end
+        object MenuItem40: TMenuItem
+          Action = ActionRunParameterCapabilitiesForceFixedFunction
+          GroupIndex = 145
+          RadioItem = True
+        end
       end
       object MenuItemSeprator100: TMenuItem
         Caption = '-'
@@ -461,13 +640,14 @@ object ProjectForm: TProjectForm
         Caption = 'Release Mode'
         GroupIndex = 1
         RadioItem = True
+        ShowAlwaysCheckable = True
         OnClick = MenuItemModeReleaseClick
       end
       object MenuItemSeparator12312131: TMenuItem
         Caption = '-'
       end
       object MenuItemPlatform: TMenuItem
-        Caption = 'Platform (To Build And Run)'
+        Caption = 'Platform (To Compile and Run)'
       end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
@@ -511,10 +691,10 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator101: TMenuItem
         Caption = '-'
       end
-      object MenuItemBreakProcess: TMenuItem
-        Caption = 'Forcefully Kill External Process'
+      object MenuItemStopProcess: TMenuItem
+        Caption = 'Stop External Process'
         ShortCut = 16497
-        OnClick = MenuItemBreakProcessClick
+        OnClick = MenuItemStopProcessClick
       end
       object SeparatorBeforeCache: TMenuItem
         Caption = '-'
@@ -583,7 +763,7 @@ object ProjectForm: TProjectForm
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
       object MenuItemReferenceOfCurrent: TMenuItem
-        Caption = 'API Reference of Current Component / Property'
+        Caption = 'Help (API Reference) for Current Component / Property'
         ShortCut = 112
         OnClick = MenuItemReferenceOfCurrentClick
       end
@@ -620,27 +800,27 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    Left = 111
-    Top = 17
+    Left = 944
+    Top = 544
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    Left = 111
-    Top = 126
+    Left = 616
+    Top = 520
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 111
-    Top = 73
+    Left = 608
+    Top = 464
   end
   object ShellListPopupMenu: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 77
-    Top = 291
+    Left = 104
+    Top = 456
     object MenuItemOpenDefault: TMenuItem
       Caption = 'Open'
       Default = True
@@ -685,14 +865,17 @@ object ProjectForm: TProjectForm
       object MenuItemPopupNewUnitClass: TMenuItem
         Action = ActionNewUnitHereClass
       end
-      object MenuItemPopupNewUnitState: TMenuItem
-        Action = ActionNewUnitHereState
+      object MenuItemPopupNewUnitView: TMenuItem
+        Action = ActionNewUnitHereView
+      end
+      object MenuItemPopupNewUnitBehavior: TMenuItem
+        Action = ActionNewUnitHereBehavior
       end
     end
   end
   object ShellTreePopupMenu: TPopupMenu
-    Left = 77
-    Top = 360
+    Left = 96
+    Top = 536
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
@@ -708,8 +891,8 @@ object ProjectForm: TProjectForm
   object ShellIcons: TImageList
     Height = 24
     Width = 24
-    Left = 291
-    Top = 360
+    Left = 296
+    Top = 536
     Bitmap = {
       4C7A010000001800000018000000860000000000000078DA63601816801D88BB
       80F81910FFC7824F02310705E677E13017197750603ECCDD5658E4CC81F80F14
@@ -722,12 +905,13 @@ object ProjectForm: TProjectForm
     OnActivate = ApplicationProperties1Activate
     OnDeactivate = ApplicationProperties1Deactivate
     OnException = ApplicationProperties1Exception
-    Left = 264
-    Top = 17
+    Left = 960
+    Top = 472
   end
   object ActionList: TActionList
-    Left = 381
-    Top = 18
+    Images = Icons.ToolbarIcons
+    Left = 784
+    Top = 464
     object ActionNewSpriteSheet: TAction
       Category = 'Data'
       Caption = 'New Sprite Sheet...'
@@ -750,13 +934,18 @@ object ProjectForm: TProjectForm
     end
     object ActionNewUnitClass: TAction
       Category = 'Code'
-      Caption = 'Unit With Class...'
+      Caption = 'Class...'
       OnExecute = ActionNewUnitClassExecute
     end
-    object ActionNewUnitState: TAction
+    object ActionNewUnitView: TAction
       Category = 'Code'
-      Caption = 'Unit With State...'
-      OnExecute = ActionNewUnitStateExecute
+      Caption = 'View...'
+      OnExecute = ActionNewUnitViewExecute
+    end
+    object ActionNewUnitBehavior: TAction
+      Category = 'Code'
+      Caption = 'Behavior...'
+      OnExecute = ActionNewUnitBehaviorExecute
     end
     object ActionNewUnitHereEmpty: TAction
       Category = 'PopupFiles'
@@ -765,13 +954,18 @@ object ProjectForm: TProjectForm
     end
     object ActionNewUnitHereClass: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With Class...'
+      Caption = 'Class...'
       OnExecute = ActionNewUnitHereClassExecute
     end
-    object ActionNewUnitHereState: TAction
+    object ActionNewUnitHereView: TAction
       Category = 'PopupFiles'
-      Caption = 'Unit With State...'
-      OnExecute = ActionNewUnitHereStateExecute
+      Caption = 'View...'
+      OnExecute = ActionNewUnitHereViewExecute
+    end
+    object ActionNewUnitHereBehavior: TAction
+      Category = 'PopupFiles'
+      Caption = 'Behavior...'
+      OnExecute = ActionNewUnitHereBehaviorExecute
     end
     object ActionEditAssociatedUnit: TAction
       Category = 'Code'
@@ -1068,15 +1262,110 @@ object ProjectForm: TProjectForm
       OnExecute = ActionViewportRenderNextExecute
       ShortCut = 32858
     end
+    object ActionPhysicsShowAllJointsTools: TAction
+      Category = 'Viewport'
+      Caption = 'Show All Joint Tools'
+      OnExecute = ActionPhysicsShowAllJointsToolsExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionPhysicsHideAllJointsTools: TAction
+      Category = 'Viewport'
+      Caption = 'Hide All Joint Tools'
+      OnExecute = ActionPhysicsHideAllJointsToolsExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionShowColliders: TAction
+      Category = 'Physics'
+      Caption = 'Show Colliders'
+      OnExecute = ActionShowCollidersExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionSimulationPlayStop: TAction
+      Category = 'Physics'
+      Caption = 'Play Simulation'
+      ImageIndex = 5
+      OnExecute = ActionSimulationPlayStopExecute
+      OnUpdate = ActionSimulationPlayStopUpdate
+      ShortCut = 16464
+    end
+    object ActionSimulationPauseUnpause: TAction
+      Category = 'Physics'
+      Caption = 'Pause Simulation'
+      ImageIndex = 7
+      OnExecute = ActionSimulationPauseUnpauseExecute
+      OnUpdate = ActionSimulationPauseUnpauseUpdate
+    end
+    object ActionPlayStop: TAction
+      Category = 'Run'
+      Caption = 'Play / Stop'
+      ImageIndex = 8
+      OnExecute = ActionPlayStopExecute
+      OnUpdate = ActionPlayStopUpdate
+    end
+    object ActionRunParameterDisableSound: TAction
+      Category = 'Run'
+      Caption = 'Disable Sound (--no-sound)'
+      OnExecute = ActionRunParameterDisableSoundExecute
+    end
+    object ActionRunParameterDisableFpsLimit: TAction
+      Category = 'Run'
+      Caption = 'Disable FPS limit (--no-limit-fps)'
+      OnExecute = ActionRunParameterDisableFpsLimitExecute
+    end
+    object ActionRunParameterRequestFullScreen: TAction
+      Category = 'Run'
+      Caption = 'Request FullScreen (--fullscreen)'
+      GroupIndex = 45
+      OnExecute = ActionRunParameterRequestFullScreenExecute
+    end
+    object ActionRunParameterRequestWindow: TAction
+      Category = 'Run'
+      Caption = 'Request Window (--window)'
+      GroupIndex = 45
+      OnExecute = ActionRunParameterRequestWindowExecute
+    end
+    object ActionRunParameterDefaultWindowOrFullscreen: TAction
+      Category = 'Run'
+      Caption = 'Default Window / FullScreen Mode'
+      Checked = True
+      GroupIndex = 45
+      OnExecute = ActionRunParameterDefaultWindowOrFullscreenExecute
+    end
+    object ActionRunParameterCapabilitiesDefault: TAction
+      Category = 'Run'
+      Caption = 'Default Rendering Context'
+      Checked = True
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesDefaultExecute
+    end
+    object ActionRunParameterCapabilitiesForceModern: TAction
+      Category = 'Run'
+      Caption = 'Force Modern Rendering Context (--capabilities=force-modern)'
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesForceModernExecute
+    end
+    object ActionRunParameterCapabilitiesForceFixedFunction: TAction
+      Category = 'Run'
+      Caption = 'Force Ancient Rendering Context (--capabilities=force-fixed-function)'
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesForceFixedFunctionExecute
+    end
+    object ActionShowStatistics: TAction
+      Category = 'Edit'
+      AutoCheck = True
+      Caption = 'Show Statistics (FPS and more)'
+      DisableIfNoHandler = False
+      ShortCut = 119
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 272
-    Top = 121
+    Left = 784
+    Top = 536
   end
   object OutputPopup: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 279
-    Top = 279
+    Left = 288
+    Top = 464
     object MenuItemOutputClean: TMenuItem
       Action = ActionOutputClean
     end
@@ -1091,8 +1380,8 @@ object ProjectForm: TProjectForm
     end
   end
   object WarningsPopup: TPopupMenu
-    Left = 432
-    Top = 280
+    Left = 424
+    Top = 464
     object MenuItem22: TMenuItem
       Action = ActionWarningsClean
     end

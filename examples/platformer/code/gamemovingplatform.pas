@@ -25,6 +25,7 @@ type
   TMovingPlatform = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     MoveDirection: Integer; // Always 1 or -1
     StartPoint: TVector3;
     StopPoint: TVector3;
@@ -32,7 +33,7 @@ type
     function IsVerticalMove: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -42,7 +43,7 @@ implementation
 
 uses
   CastleLog,
-  GameStatePlay;
+  GameViewPlay;
 
 { TMovingPlatform ------------------------------------------------------------ }
 
@@ -57,7 +58,29 @@ begin
   MoveDirection := -1;
 end;
 
-procedure TMovingPlatform.ParentChanged;
+procedure TMovingPlatform.ParentAfterAttach;
+
+  procedure ConfigurePhysics;
+  var
+    Collider: TCastleCollider;
+  begin
+    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    Assert(RBody <> nil, 'No TCastleRigidBody in TMovingPlatform Parent');
+
+    RBody.Dynamic := true;
+    if Scene.Tag > 0 then
+      RBody.LockTranslation := [1, 2]
+    else
+    if Scene.Tag < 0 then
+      RBody.LockTranslation := [0, 2];
+
+    Collider := Scene.FindBehavior(TCastleCollider) as TCastleCollider;
+
+    Assert(Collider <> nil, 'No Castle Collider in Parent');
+    Collider.Friction := 100;
+    Collider.Restitution := 0;
+  end;
+
 var
   Distance: Single;
 begin
@@ -77,6 +100,8 @@ begin
     StopPoint := StartPoint + Vector3(0, Distance, 0)  // vertical move
   else
     StopPoint := StartPoint + Vector3(Distance, 0, 0); // horizontal move
+
+  ConfigurePhysics;
 end;
 
 procedure TMovingPlatform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -103,15 +128,17 @@ begin
       MoveDirection := 1;
   end;
 
-  Vel := Scene.RigidBody.LinearVelocity;
+  if RBody <> nil then
+  begin
+    Vel := RBody.LinearVelocity;
 
-  if IsVerticalMove then
-    Vel.Y := MoveDirection * MovingSpeed
-  else
-    Vel.X := MoveDirection * MovingSpeed;
+    if IsVerticalMove then
+      Vel.Y := MoveDirection * MovingSpeed
+    else
+      Vel.X := MoveDirection * MovingSpeed;
 
-  Scene.RigidBody.LinearVelocity := Vel;
+    RBody.LinearVelocity := Vel;
+  end;
 end;
 
 end.
-

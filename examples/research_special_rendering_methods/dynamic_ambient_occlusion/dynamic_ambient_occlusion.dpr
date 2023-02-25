@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -84,7 +84,7 @@ var
 type
   TElementsCalculator = class
   public
-    CoordIndex: TLongIntList;
+    CoordIndex: TInt32List;
     Coord: TVector3List;
     ShapeElements: PAOElement;
 
@@ -95,9 +95,9 @@ procedure TElementsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
   FaceNormal: TVector3;
-  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+  { DirectIndexes is Int32, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
-  DirectIndexes: array of LongInt;
+  DirectIndexes: array of Int32;
   I: Integer;
   FaceArea: Single;
 begin
@@ -113,7 +113,7 @@ begin
   end;
 
   FaceNormal := IndexedConvexPolygonNormal(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
@@ -124,7 +124,7 @@ begin
     have to be. But this will be a good approximation anyway, usually. }
 
   FaceArea := IndexedConvexPolygonArea(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
@@ -521,6 +521,7 @@ type
 var
   Viewport: TMyViewport;
   RectVbo: TGLuint;
+  RectVao: TVertexArrayObject;
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
@@ -555,6 +556,10 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       Points[2] := Vector2(Rect.Right, Rect.Top);
       Points[3] := Vector2(Rect.Left , Rect.Top);
 
+      if RectVao = nil then
+        RectVao := TVertexArrayObject.Create;
+      RenderContext.CurrentVao := RectVao;
+
       if RectVbo = 0 then
         glGenBuffers(1, @RectVbo);
       glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
@@ -563,7 +568,7 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
       AttribVertex := RenderContext.CurrentProgram.Attribute('vertex');
 
-      AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
+      AttribVertex.EnableArrayVector2(RectVao, SizeOf(TVector2), 0);
       UniformViewportSize.SetValue(Vector2(
         RenderContext.Viewport.Width,
         RenderContext.Viewport.Height
@@ -665,7 +670,7 @@ procedure Open(Container: TCastleContainer);
 var
   FragmentShader, VertexShader: string;
 begin
-  if GLFeatures.Shaders = gsNone then
+  if not GLFeatures.Shaders then
   begin
     Error('This GPU cannot handle dynamic ambient occlusion. GLSL shaders not supported.');
     Exit;
@@ -892,19 +897,23 @@ begin
     { inititalize Viewport }
     Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
-    Viewport.AutoCamera := true;
     Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
     Window.Controls.InsertFront(Viewport);
 
     { initialize Scene }
     Scene := TCastleScene.Create(Application);
     Scene.Load(ModelURL);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.ProcessEvents := true; { allow Scene animation }
     CalculateElements;
-    Viewport.Items.MainScene := Scene;
     Viewport.Items.Add(Scene);
+
+    // headlight
+    Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+    // nice initial camera position
+    Viewport.AssignDefaultCamera;
 
     { initialize SceneElements }
     SceneElements := TCastleScene.Create(Application);

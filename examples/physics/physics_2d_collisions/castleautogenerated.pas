@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'physics_2d_collisions';
-  ApplicationProperties.Caption := 'physics_2d_collisions';
+  ApplicationProperties.Caption := 'Physics 2D collisions';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

@@ -121,11 +121,11 @@ end;
 procedure TTestCastleViewport.TestCameraNonDesign;
 var
   V: TCastleViewport;
-  SavedCastleDesignMode: Boolean;
+  SavedApplicationMode: TCastleApplicationMode;
 begin
   // fake design-mode (CGE editor) for test
-  SavedCastleDesignMode := CastleDesignMode;
-  CastleDesignMode := true;
+  SavedApplicationMode := InternalCastleApplicationMode;
+  InternalCastleApplicationMode := appDesign;
   try
     V := TCastleViewport.InternalCreateNonDesign(nil);
     try
@@ -135,7 +135,7 @@ begin
       AssertTrue(V.Camera.Count = 0);
       AssertTrue(V.Items.BoundingBox.IsEmpty);
     finally FreeAndNil(V) end;
-  finally CastleDesignMode := SavedCastleDesignMode end;
+  finally InternalCastleApplicationMode := SavedApplicationMode end;
 end;
 
 procedure TTestCastleViewport.TestAutoCameraIgnoresGizmos;
@@ -143,13 +143,13 @@ var
   V: TCastleViewport;
   C: TCastleCamera;
   L: TCastlePointLight;
-  SavedCastleDesignMode: Boolean;
+  SavedApplicationMode: TCastleApplicationMode;
 begin
   // fake design-mode (CGE editor) for test
-  SavedCastleDesignMode := CastleDesignMode;
+  SavedApplicationMode := InternalCastleApplicationMode;
   // TODO: should be done globally at some place where tests start
   InternalCastleDesignData := 'castle-data:/editor-data/';
-  CastleDesignMode := true;
+  InternalCastleApplicationMode := appDesign;
   try
     V := TCastleViewport.Create(nil);
     try
@@ -182,7 +182,7 @@ begin
 
       AssertVectorEquals(Vector3(0.00, 0.00, 5.00), C.Translation);
     finally FreeAndNil(V) end;
-  finally CastleDesignMode := SavedCastleDesignMode end;
+  finally InternalCastleApplicationMode := SavedApplicationMode end;
 end;
 
 type

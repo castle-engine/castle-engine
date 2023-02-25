@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -119,7 +119,6 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
@@ -135,34 +134,65 @@ begin
   ExampleImage.URL := 'castle-data:/example_image.png';
   // This also works:
   // 'my-packed-data:/example_image.png';
-  ExampleImage.Bottom := 100;
-  ExampleImage.Left := 100;
+  ExampleImage.Anchor(vpBottom, 100);
+  ExampleImage.Anchor(hpLeft, 100);
   Window.Controls.InsertFront(ExampleImage);
 
   { Show a 3D object (TCastleScene) inside a Viewport
     (which acts as a full-screen viewport by default). }
   ExampleScene := TCastleScene.Create(Application);
   ExampleScene.Load('castle-data:/example_scene.x3dv');
-  ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
-  ExampleScene.ProcessEvents := true;
+  ExampleScene.PreciseCollisions := true;
 
   Viewport.Items.Add(ExampleScene);
-  Viewport.Items.MainScene := ExampleScene;
+
+  // headlight
+  Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+  // nice initial camera position
+  Viewport.AssignDefaultCamera;
 end;
 
 initialization
-  { Initialize Application.OnInitialize. }
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
+
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
-  { You should not need to do *anything* more in the unit "initialization" section.
-    Most of your game initialization should happen inside ApplicationInitialize.
-    In particular, it is not allowed to read files before ApplicationInitialize
-    (in case of non-desktop platforms, some necessary may not be prepared yet). }
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 finalization
   FreeAndNil(PackedDataReader);
 end.

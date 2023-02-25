@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,7 +60,7 @@
       Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
       are mainly to generate proper warnings by MakeCoordRanges. }
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
@@ -495,6 +495,8 @@
 
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
+  strict private
+    procedure SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -553,6 +555,34 @@
     function CoordCount: Cardinal; override;
   {$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
   end;
+
+  { Mode for line primitive defined by TIndexedLineSetNode or TLineSetNode. }
+  TLineMode = (
+    { Lines form a strip (polyline).
+
+      In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
+      may to be separated by -1 to define many strips
+      in an TIndexedLineSetNode.
+
+      In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
+      defines how many vertexes are for each strip. }
+    lmStrip,
+
+    { Lines form a loop (closed polyline).
+      In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
+      may to be separated by -1 to define many loop
+      in an TIndexedLineSetNode.
+
+      In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
+      defines how many vertexes are for each loop. }
+    lmLoop,
+
+    { Each pair of vertexes forms a line.
+      If the number of vertexes is odd, the last (unmatched) vertex is ignored.
+      In case of TIndexedLineSetNode, all indexes must be >= 0.
+      In case of TLineSetNode, vertexCount is ignored. }
+    lmPair
+  );
 
   { Geometry formed by constructing polylines from 3D vertices. }
   TIndexedLineSetNode = class(TAbstractGeometryNode)
@@ -636,12 +666,15 @@
 
   { Lines. }
   TLineSetNode = class(TAbstractGeometryNode)
+  strict private
+    FVertexCountForPair: TInt32List;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
+    destructor Destroy; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
@@ -704,7 +737,7 @@
     to compose vertexes into triangles. }
   TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   protected
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
@@ -736,7 +769,7 @@
     to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   protected
-    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+    function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
@@ -753,8 +786,13 @@
 {$ifdef read_implementation}
 
 const
-  ColorModeNames: array [TColorMode] of string =
-  ('REPLACE', 'MODULATE');
+  ColorModeNames: array [TColorMode] of String = (
+    'REPLACE', 'MODULATE'
+  );
+
+  LineModeNames: array [TLineMode] of String = (
+    'STRIP', 'LOOP', 'PAIR'
+  );
 
 { TAbstractGeometryNode ---------------------------------------------------------- }
 
@@ -830,7 +868,7 @@ begin
 end;
 
 function TAbstractGeometryNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -843,7 +881,7 @@ procedure TAbstractGeometryNode.InternalMakeCoordRanges(
 var
   BeginIndex, EndIndex: Integer;
   RangeNumber: Cardinal;
-  RangeCount: TLongIntList;
+  RangeCount: TInt32List;
   SRanges, SRangeName: string;
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
@@ -1163,6 +1201,12 @@ end;
 
 { TAbstractComposedGeometryNode ------------------------------------------------------ }
 
+procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(FdTexCoord.Value, Value, InternalSceneShape);
+end;
+
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
@@ -1419,6 +1463,14 @@ begin
   Result := inherited;
 end;
 
+{ TLineSetNode --------------------------------------------------------------- }
+
+destructor TLineSetNode.Destroy;
+begin
+  FreeAndNil(FVertexCountForPair);
+  inherited;
+end;
+
 function TLineSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
@@ -1456,11 +1508,28 @@ begin
 end;
 
 function TLineSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
+var
+  CoordCount: Integer;
 begin
-  RangeCount := FdVertexCount.Items;
+  if Mode = lmPair then
+  begin
+    { For lmPair, return just the count of coordinates.
+      These vertexes form one big "lines primitive" for rendering. }
+    if FVertexCountForPair = nil then
+      FVertexCountForPair := TInt32List.Create;
+    if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
+      CoordCount := TCoordinateNode(FdCoord.Value).FdPoint.Count
+    else
+      CoordCount := 0;
+    FVertexCountForPair.Count := 1;
+    FVertexCountForPair[0] := CoordCount;
+    RangeCount := FVertexCountForPair;
+  end else
+    RangeCount := FdVertexCount.Items;
+
   SRanges := 'lines';
   SRangeName := 'Vertex count';
   RangeMinimumCount := 2;
@@ -1588,7 +1657,7 @@ end;
 { TTriangleFanSetNode -------------------------------------------------------- }
 
 function TTriangleFanSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -1602,7 +1671,7 @@ end;
 { TTriangleStripSetNode ------------------------------------------------------ }
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(
-  out RangeCount: TLongIntList;
+  out RangeCount: TInt32List;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin

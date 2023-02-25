@@ -180,7 +180,7 @@ begin
   FShadowedImage := TDrawableImage.Create(ShadowedImageURL, [TRGBImage]);
 
   FScene := TLocationScene.Create(nil);
-  FScene.Spatial := [ssRendering, ssDynamicCollisions];
+  FScene.PreciseCollisions := true;
   // two-sided lighting
   FScene.RenderOptions.PhongShading := true;
   { The shadows are already drawn on location Image,

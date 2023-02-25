@@ -449,7 +449,7 @@ begin
   Form.Width := Width;
   Form.Height := Height;
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
-  Form.Cursor := CursorCastleToLCL[InternalCursor]; // SetCursor may also change it later
+  Form.Cursor := CursorCastleToLCL(InternalCursor); // SetCursor may also change it later
 
   UpdateFullScreenForm;
 
@@ -617,7 +617,7 @@ begin
     if not Closed then
       { Do not use Form.Cursor for this, e.g. hiding the cursor would not work
         then on Carbon. }
-      OpenGLControl.Cursor := CursorCastleToLCL[Value];
+      OpenGLControl.Cursor := CursorCastleToLCL(Value);
   end;
 end;
 

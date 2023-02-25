@@ -1,0 +1,55 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Adds on test_terrain.gltf simple effect that applies additional texture layers.
+
+Effect {
+  initializeOnly SFNode texture_1 ImageTexture {
+    url "textures/dirt%201.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  initializeOnly SFNode texture_2 ImageTexture {
+    url "textures/paving%205.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  initializeOnly SFNode texture_3 ImageTexture {
+    url "textures/paving%206.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  initializeOnly SFNode texture_with_alpha ImageTexture {
+    url "textures/tex_alpha.png"
+    flipVertically TRUE # adjust to glTF texture coordinates
+  }
+  parts [
+    EffectPart {
+      type "FRAGMENT"
+      url "data:text/plain,
+        #ifndef GL_ES
+        // avoid redeclaring castle_TexCoord0 when GLSL doesn't support separate compilation units
+        varying vec4 castle_TexCoord0;
+        #endif
+
+        uniform sampler2D texture_1;
+        uniform sampler2D texture_2;
+        uniform sampler2D texture_3;
+        uniform sampler2D texture_with_alpha;
+
+        void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal_eye)
+        {
+          vec4 col_1 = texture2D(texture_1, castle_TexCoord0.xy * 2);
+          fragment_color.rgb += col_1.rgb;
+
+          vec4 col_2 = texture2D(texture_2, castle_TexCoord0.xy* 3);
+          fragment_color.rgb += col_2.rgb;
+
+          vec4 col_3 = texture2D(texture_3, castle_TexCoord0.xy * 5);
+          fragment_color.rgb += col_3.rgb;
+
+          vec4 col_with_alpha = texture2D(texture_with_alpha, castle_TexCoord0.xy * 0.33);
+          fragment_color.rgb = mix(fragment_color.rgb, col_with_alpha.rgb, col_with_alpha.a);
+        }"
+    }
+  ]
+}
+
+Inline { url "test_terrain.gltf" }

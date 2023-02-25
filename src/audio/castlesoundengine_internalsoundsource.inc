@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -374,7 +374,7 @@ end;
 
 { TInternalSoundSourceList ----------------------------------------------------- }
 
-function IsSmallerByPriority({$ifdef FPC}constref{$else}const{$endif} AA, BB: TInternalSoundSource): Integer;
+function IsSmallerByPriority({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AA, BB: TInternalSoundSource): Integer;
 begin
   if (AA.Used and (not BB.Used)) or
      (AA.Used and BB.Used and (AA.Priority > BB.Priority)) then

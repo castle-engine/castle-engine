@@ -17,6 +17,17 @@
 {$ifdef read_interface}
 
 //type
+  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+    @link(TCastleRigidBody.PhysicsRayCast). }
+  TPhysicsRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+    Transform: TCastleTransform;
+    { Distance from ray origin to the hit point. }
+    Distance: Single;
+    Point, Normal: TVector3;
+  end;
+
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
@@ -32,9 +43,14 @@
     FMainCamera: TCastleCamera;
     FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
+    FBlendingSort: TBlendingSort;
+    FSortedList: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+    { Check all conditions (EnablePhysics, CastleApplicationMode) to find out
+      is physics running. }
+    function IsPhysicsRunning: Boolean;
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -51,6 +67,7 @@
       this to RayCollision and such. }
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
+    function GetRenderList(const Params: TRenderParams): TCastleTransformList; override;
   public
     OnCursorChange: TNotifyEvent;
 
@@ -239,6 +256,30 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
+    { Cast a ray using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given RayOrigin, RayDirection, Distance are in the world coordinate system.
+
+      It returns TPhysicsRayCastResult, with information there
+      also in the world coordinate system.
+
+      This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role will be filled by layers. }
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single = MaxSingle;
+      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
@@ -362,6 +403,61 @@
         )
       ) }
     property Paused: boolean read FPaused write SetPaused default false;
+
+    { When rendering, sort all the children,
+      making blending correct when there are multiple partially-transparent objects
+      in the world.
+
+      This is a simple way to achieve correct blending order when rendering multiple objects.
+      You need this when multiple objects (like TCastleScene and TCastleImageTransform)
+      use blending (partial transparency) within the world.
+      Note that inside each scene (TCastleScene) the partially-transparent
+      shapes are also sorted, following TCastleRenderOptions.BlendingSort,
+      with each TCastleScene having own TCastleRenderOptions instance.
+
+      TODO: This is a simple approach to have correct blending.
+      But it is not the most efficient approach, it is also not the most capable one.
+      However, it is really simple to use and likely is enough in many practical cases.
+
+      Future: We plan to have a rendering that gathers all partially-transparent shapes
+      from all the objects, and sorts them.
+      This will make the sorting process more efficient (it will only sort partially-transparent shapes)
+      and more capable (each shape will be ordered).
+
+      Drawbacks of current approach:
+
+      @unorderedList(
+
+        @item(
+          The sorting is repeated at every render call.
+          This is not optimal in case of 2D, where it would be more efficient
+          to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
+          objects from the world.
+
+          To avoid this overhead, just leave this property at bsNone
+          and call @link(SortBackToFront2D) when necessary.
+        )
+
+        @item(
+          The sorting accounts for all objects (not only partially transparent).
+          This is not optimal (but we cannot be more efficient because each scene
+          may contain something partially transparent).)
+
+        @item(
+          The sorting puts each TCastleScene completely in front or completely behind
+          other TCastleScene. This is not good enough when multiple TCastleScene instances
+          have multiple partially-transparent shapes and the correct order would mix their
+          shapes.)
+
+        @item(
+          The sorting is not recursive (to avoid making it really not efficient, in particular
+          to recalculate camera for each transform and to sort in each tree TCastleTransform).
+
+          This means it is not capable of dealing with some cases. It assumes that all things
+          where the order matters are direct children of TCastleAbstractRootTransform.)
+      )
+    }
+    property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
   end;
 
 {$endif read_interface}
@@ -394,6 +490,7 @@ destructor TCastleAbstractRootTransform.Destroy;
 begin
   DestroyPhysicsEngine;
   FreeAndNil(FInternalPressReleaseListeners);
+  FreeAndNil(FSortedList);
   inherited;
 end;
 
@@ -428,6 +525,14 @@ end;
 function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
+end;
+
+function TCastleAbstractRootTransform.IsPhysicsRunning: Boolean;
+begin
+  Result :=
+    EnablePhysics and
+    (FKraftEngine <> nil) and
+    (CastleApplicationMode in [appRunning, appSimulation]);
 end;
 
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
@@ -572,11 +677,25 @@ end;
 
 function TCastleAbstractRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'TimeScale') or
-     (PropertyName = 'Paused') then
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
+  if ArrayContainsString(PropertyName, [
+       'TimeScale', 'Paused', 'BlendingSort', 'PhysicsProperties'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleAbstractRootTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
+begin
+  if BlendingSort <> bsNone then
+  begin
+    if FSortedList = nil then // create on-demand
+      FSortedList := TCastleTransformList.Create(false);
+    FSortedList.Assign(List);
+    FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
+    Result := FSortedList;
+  end else
+    Result := inherited;
 end;
 
 {$endif read_implementation}

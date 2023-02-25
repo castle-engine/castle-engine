@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -271,6 +271,7 @@ begin
     Viewport.Items := nil;
     Viewport.Camera := nil;
     Viewport.Background := nil;
+    Viewport.Fog := nil;
 
     // unpin when hiding, this is most natural
     Pinned := false;
@@ -297,6 +298,7 @@ begin
 
     Viewport.Background := Viewport.SelectedViewport.Background;
     Viewport.BackgroundColor := Viewport.SelectedViewport.BackgroundColor;
+    Viewport.Fog := Viewport.SelectedViewport.Fog;
     Viewport.Transparent := Viewport.SelectedViewport.Transparent;
   end;
 end;

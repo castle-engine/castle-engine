@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -134,7 +134,8 @@ procedure RunCommandSimple(
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: string;
@@ -699,6 +700,10 @@ procedure RunCommandSimple(
       end;
 
       P.Execute;
+
+      Writeln('Castle Game Engine Internal: ProcessID: ', P.ProcessID);
+      Flush(Output);
+
       P.WaitOnExit;
 
       ExitStatus := P.ExitStatus;
@@ -712,7 +717,7 @@ var
   ProcessStatus: Integer;
   AbsoluteExeName: string;
 begin
-  { use FindExe to use our fixed PathFileSearch that does not accidentaly find
+  { use FindExe to use our fixed PathFileSearch that does not accidentally find
     "ant" directory as "ant" executable }
   if IsPathAbsolute(ExeName) then
     AbsoluteExeName := ExeName
@@ -773,7 +778,8 @@ end;
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 var
   P: TProcess;
   I: Integer;
@@ -823,6 +829,8 @@ begin
     P.ShowWindow := swoShow;
     if rcNoConsole in Flags then
       P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
 
     WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
     WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);

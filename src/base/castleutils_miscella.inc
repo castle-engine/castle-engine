@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -177,13 +178,41 @@ function StrToFloatDot(const S: String): Extended;
   and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
 
+type
+  { Application mode. }
+  TCastleApplicationMode = (
+    { Application is running.
+      We are not inside any editor (CGE editor, LCL/Delphi designer). }
+    appRunning,
+
+    { We are designing the application in CGE editor (or LCL/Delphi designer).
+      Simulation is not started. }
+    appDesign,
+
+    { We are designing the application and simulation has been started by user.
+      The main feature of simulation right now is to test the physics at design-time.
+      More features may be unlocked in particular components. }
+    appSimulation,
+
+    { We are designing the application and simulation has been started and paused by the user. }
+    appSimulationPaused
+  );
+
+{ Current application mode, see TCastleApplicationMode for various possible values. }
+function CastleApplicationMode: TCastleApplicationMode;
+
+{ Are we in design-time now. Shortcut for CastleApplicationMode <> appRunning. }
+function CastleDesignMode: Boolean;
+
 var
-  { Are we inside Castle Game Engine designer mode,
-    or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
-  CastleDesignMode: Boolean;
+  { @exclude Write-able version of CastleApplicationMode. }
+  InternalCastleApplicationMode: TCastleApplicationMode;
 
   { @exclude Path to editor data, in design mode.
-    Useful e.g. to initialize gizmo textures. }
+    Useful e.g. to initialize gizmo textures.
+
+    Note: always be prepared it may not be initialized (empty),
+    e.g. it is not initialized when using TCastleControl in Delphi IDE. }
   InternalCastleDesignData: String;
 
   { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
@@ -466,6 +495,16 @@ begin
   Val(S, Result, Err);
   if Err <> 0 then
     Result := Default;
+end;
+
+function CastleApplicationMode: TCastleApplicationMode;
+begin
+  Result := InternalCastleApplicationMode;
+end;
+
+function CastleDesignMode: Boolean;
+begin
+  Result := InternalCastleApplicationMode <> appRunning;
 end;
 
 {$endif read_implementation}

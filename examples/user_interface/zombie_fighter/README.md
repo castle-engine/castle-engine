@@ -1,6 +1,6 @@
 # Zombie fighter - game with multiple states
 
-Demo of Castle Game Engine states (`TUIState`) to define various game states, like
+Demo of Castle Game Engine states (`TCastleView`) to define various game states, like
 
 - main menu
 - playing the game

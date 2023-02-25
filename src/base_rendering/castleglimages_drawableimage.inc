@@ -1,5 +1,6 @@
+{%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,6 +80,7 @@
       TVboStorage = record
         PointsVbo, IndexesVbo: TGLuint;
         PointsVboSize, IndexesVboSize: Cardinal;
+        Vao: TVertexArrayObject;
       end;
       PVboStorage = ^TVboStorage;
 
@@ -109,7 +111,7 @@
       VboStorageNext: Cardinal;
       { Point VBO contents, reused in every Draw. }
       Points: array of TPoint;
-      Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
+      Indexes: array of TGLIndex;
 
       { Used only in shader pipeline }
       Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram;
@@ -118,7 +120,6 @@
       FWidth: Cardinal;
       FHeight: Cardinal;
       FAlpha: TAutoAlphaChannel;
-      FIgnoreTooLargeCorners: boolean;
       FColor: TCastleColor;
       FSmoothScaling: boolean;
       FScaleCorners: Single;
@@ -165,18 +166,75 @@
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
     procedure SetURL(const Value: String);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetRotation(const Value: Single);
+    procedure SetRotationCenter(const Value: TVector2);
+    procedure SetAlpha(const Value: TAutoAlphaChannel);
+    procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
+    procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
+    procedure SetBlendingConstantColor(const Value: TVector4);
+    procedure SetClip(const Value: Boolean);
+    procedure SetClipLine(const Value: TVector3);
+    { If this image state affects current batching operation, flush batching. }
+    procedure BatchingFlushIfNeeded;
+    procedure DrawNoBatch(
+      const ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
   private
     class var
-      StaticResourcesReady: boolean;
+      StaticResourcesReady: Boolean;
+
+      { 0 means we're not in batching mode, > 1 means we are between BatchingBegin and BatchingEnd. }
+      BatchingLevel: Cardinal;
+
+      { Pending image to draw with BatchingLastScreenRects, BatchingLastImageRects.
+        Conditions:
+        - May be @nil if none.
+        - Always @nil if BatchingLevel = 0. }
+      BatchingLastImage: TDrawableImage;
+
+      { Pending rectangles to draw.
+        Conditions:
+        - Always @nil if BatchingLevel = 0, never @nil otherwise.
+        - Always empty (count = 0) and non-@nil if (BatchingLevel > 0) and (BatchingLastImage = @nil).  }
+      BatchingLastScreenRects, BatchingLastImageRects: TFloatRectangleList;
+
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
-    class function UseShaders: Boolean; static;
   public
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
       DefaultBlendingConstantColor: TVector4 = (X: 1; Y: 1; Z: 1; W: 1);
+
+    { Start batching that optimizes further @link(TDrawableImage.Draw) calls by grouping them.
+
+      All subsequent calls to @link(TDrawableImage.Draw) are delayed, to be grouped in case
+      you execute @link(TDrawableImage.Draw) multiple times on the same image,
+      in which case it is more efficient to draw multiple rectangles in one "draw call" for OpenGL.
+
+      The images are actually drawn only when you try to draw a different image,
+      or when you execute @link(BatchingEnd).
+
+      Some other operations also flush the last batch to to the screen:
+      rendering using @link(DrawPrimitive2D) and friends like @link(DrawRectangle),
+      changing the parameters or last image that affect rendering (like image contents,
+      @link(TDrawableImage.Color) or @link(TDrawableImage.Rotation)), freeing last image.
+      This fact should be transparent to you, we try to flush as seldom as possible
+      to have as big groups (and thus effective batching) as possible.
+
+      Calling BatchingBegin with matching BatchingEnd when the batching is already in progress
+      is gracefully handled, i.e. we assume you just continue larger-scope batching.
+      So the "inner" BatchingBegin + BatchingEnd calls are ignored, but you always must match
+      one BatchingBegin with one BatchingEnd.
+    }
+    class procedure BatchingBegin;
+    class procedure BatchingEnd;
+
+    { If we are during batching, then flush the pending drawing now.
+      You should never need to call this, unless you do direct rendering outside of TDrawableImage
+      or DrawPrimitive2D (and friends in CastleGLUtils). }
+    class procedure BatchingFlush;
 
     { Prepare image for drawing.
 
@@ -327,19 +385,19 @@
       an alpha channel (e.g. use LoadAsClass=[TRGBImage]
       to force RGB image without alpha, use LoadAsClass=[TRGBAlphaImage]
       to force alpha channel). }
-    property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
+    property Alpha: TAutoAlphaChannel read FAlpha write SetAlpha
       default acAuto;
 
     { Blending source factor, if we use blending (see @link(Alpha)). }
     property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor
-      write FBlendingSourceFactor
+      write SetBlendingSourceFactor
       default DefaultBlendingSourceFactor;
 
     { Blending destination factor, if we use blending (see @link(Alpha)). }
     property BlendingDestinationFactor: TBlendingDestinationFactor
       read FBlendingDestinationFactor
-      write FBlendingDestinationFactor
+      write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
 
     { For some blending source or destination factors (see
@@ -347,9 +405,9 @@
       this constant color (or it's alpha value) take part
       in the blending equation. Used only if blending (see @link(Alpha)).
       By default, opaque white. }
-    property BlendingConstantColor: TVector4
+    property BlendingConstantColor: TCastleColor
       read FBlendingConstantColor
-      write FBlendingConstantColor;
+      write SetBlendingConstantColor;
 
     { Draw the image as 2D on screen.
 
@@ -400,7 +458,7 @@
     procedure Draw(const ScreenRect, ImageRect: TRectangle); overload;
 
     procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
-      const Count: Integer); overload; virtual;
+      Count: Integer); overload; virtual;
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRect: TRectangle;
@@ -436,7 +494,7 @@
       )
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
+      CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
@@ -461,19 +519,6 @@
       const Side: TVector2Integer);
     *)
 
-    { Ignore (do not log to CastleLog) situations when Draw3x3
-      cannot work because corners are larger than draw area size.
-      Set this to @true when it's perfectly possible (you do not want to even
-      see it in log) for Draw3x3 calls to fail because corners
-      are larger than draw area size.
-
-      This is @true by default now, since it's safer for UI rendering.
-      Otherwise causing this problem makes a flood of errors to the log file,
-      and it's easy to make this problem when your UI adjusts to the screen size.
-    }
-    property IgnoreTooLargeCorners: boolean
-      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default true;
-
     { Color to multiply the texture contents (all RGBA channels).
       By default this is White, which is (1, 1, 1, 1) as RGBA,
       and it means that texture contents are not actually modified.
@@ -486,7 +531,7 @@
       Note that if you use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
-    property Color: TCastleColor read FColor write FColor;
+    property Color: TCastleColor read FColor write SetColor;
 
     { Load the given image contents.
       Use this to efficiently replace the image contents on GPU.
@@ -553,16 +598,16 @@
       Expressed as a fraction within the drawn ScreenRectangle,
       (0,0) means bottom-left corner, (1,1) means top-right corner.
       Default (0.5,0.5). }
-    property RotationCenter: TVector2 read FRotationCenter write FRotationCenter;
+    property RotationCenter: TVector2 read FRotationCenter write SetRotationCenter;
 
     { Rotation in radians. Increase to rotate in a counter-clockwise direction.
       Hint: use function like ArcTan2 from Math unit to convert 2D direction
       into a rotation angle. }
     property Rotation: Single
-      read FRotation write FRotation {$ifdef FPC}default 0{$endif};
+      read FRotation write SetRotation {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read FClip write FClip;
+    property Clip: Boolean read FClip write SetClip;
 
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
@@ -576,7 +621,7 @@
       where @code(1 * x + 0 * y - 0.5 < 0). In other words,
       we reject pixels where @code(x < 0.5), so we reject
       the left half of the image. }
-    property ClipLine: TVector3 read FClipLine write FClipLine;
+    property ClipLine: TVector3 read FClipLine write SetClipLine;
 
     { Get the image contents from GPU to CPU.
       @raises(ECannotSaveTextureContents If we cannot get texture contents
@@ -713,7 +758,6 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingConstantColor := DefaultBlendingConstantColor;
-  FIgnoreTooLargeCorners := true;
 
   Load(AImage);
 
@@ -760,6 +804,8 @@ end;
 
 destructor TDrawableImage.Destroy;
 begin
+  BatchingFlushIfNeeded;
+
   if FOwnsImage then
     FreeAndNil(FImage)
   else
@@ -802,6 +848,8 @@ end;
 
 procedure TDrawableImage.Load(const AImage: TEncodedImage);
 begin
+  BatchingFlushIfNeeded;
+
   if FOwnsImage and (FImage <> AImage) then
     FreeAndNil(FImage)
   else
@@ -834,11 +882,6 @@ begin
   FImage := AImage;
 end;
 
-class function TDrawableImage.UseShaders: Boolean;
-begin
-  Result := GLFeatures.Shaders <> gsNone;
-end;
-
 class procedure TDrawableImage.StaticGLContextOpen;
 var
   AlphaTestShader, ClipLineShader: boolean;
@@ -847,20 +890,18 @@ var
   VS, FS: string;
   I: Integer;
 begin
-  // Some Intel GPUs may not support VBO
-  if GLFeatures.VertexBufferObject then
+  if not GLFeatures.EnableFixedFunction then
   begin
     for I := Low(VboStorage) to High(VboStorage) do
     begin
-      if (VboStorage[I].PointsVbo = 0) then
+      if VboStorage[I].PointsVbo = 0 then
         glGenBuffers(1, @VboStorage[I].PointsVbo);
-      if (VboStorage[I].IndexesVbo = 0) then
+      if VboStorage[I].IndexesVbo = 0 then
         glGenBuffers(1, @VboStorage[I].IndexesVbo);
+      if VboStorage[I].Vao = nil then
+        VboStorage[I].Vao := TVertexArrayObject.Create;
     end;
-  end;
 
-  if UseShaders then
-  begin
     { create programs }
     for AlphaTestShader := Low(boolean) to High(boolean) do
       for ClipLineShader := Low(boolean) to High(boolean) do
@@ -874,13 +915,9 @@ begin
                   Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
                   Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
                   {$I image.fs.inc};
-            if LogShaders then
-            begin
-              WritelnLogMultiline('TDrawableImage GLSL vertex shader', VS);
-              WritelnLogMultiline('TDrawableImage GLSL fragment shader', FS);
-            end;
 
             NewProgram.Prog := TGLSLProgram.Create;
+            NewProgram.Prog.Name := 'TDrawableImage';
             NewProgram.Prog.AttachVertexShader(VS);
             NewProgram.Prog.AttachFragmentShader(FS);
             NewProgram.Prog.Link;
@@ -903,13 +940,17 @@ begin
   begin
     glFreeBuffer(VboStorage[I].PointsVbo);
     glFreeBuffer(VboStorage[I].IndexesVbo);
+    FreeAndNil(VboStorage[I].Vao);
     VboStorage[I].PointsVboSize := 0;
     VboStorage[I].IndexesVboSize := 0;
   end;
 
-  { free below regardless of UseShaders,
-    to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
-  // if UseShaders then
+  { Free below regardless of GLFeatures.EnableFixedFunction,
+    in case user toggles GLFeatures.EnableFixedFunction at runtime.
+    Note: This robustness is not really unnecessary now,
+    as GLFeatures.EnableFixedFunction and TGLFeatures.RequestCapabilities
+    cannot change once GL context is initialized. }
+  //if not GLFeatures.EnableFixedFunction then
   for AlphaTestShader := Low(boolean) to High(boolean) do
     for ClipLineShader := Low(boolean) to High(boolean) do
       for ColorTreatment := Low(TColorTreatment) to High(TColorTreatment) do
@@ -993,19 +1034,41 @@ begin
 end;
 
 procedure TDrawableImage.Draw(
-  ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
+  ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
+begin
+  if BatchingLevel <> 0 then
+  begin
+    if (BatchingLastImage <> nil) and (BatchingLastImage <> Self) then
+      BatchingFlush; // will change BatchingLastImage to nil
+    if BatchingLastImage = nil then
+    begin
+      Assert(BatchingLastScreenRects.Count = 0);
+      Assert(BatchingLastImageRects.Count = 0);
+      BatchingLastImage := Self;
+    end;
+    // add to last batch
+    if BatchingLastImage = Self then
+    begin
+      while Count > 0 do
+      begin
+        BatchingLastScreenRects.Add(ScreenRects^[0]);
+        BatchingLastImageRects.Add(ImageRects^[0]);
+        Inc(ScreenRects);
+        Inc(ImageRects);
+        Dec(Count);
+      end;
+    end;
+  end else
+    DrawNoBatch(ScreenRects, ImageRects, Count);
+end;
+
+procedure TDrawableImage.DrawNoBatch(
+  const ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
 
   procedure AlphaBegin;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest:
-        if not UseShaders then
-        begin
-          glAlphaFunc(GL_GEQUAL, 0.5);
-          glEnable(GL_ALPHA_TEST);
-        end;
-      {$endif not OpenGLES}
+      acTest: RenderContext.FixedFunctionAlphaTestEnable;
       acBlending:
         begin
           if GLFeatures.BlendConstant and
@@ -1023,8 +1086,7 @@ procedure TDrawableImage.Draw(
               BlendingConstantColor[3]);
           end;
 
-          GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
-          glEnable(GL_BLEND);
+          RenderContext.BlendingEnable(BlendingSourceFactor, BlendingDestinationFactor);
         end;
       else ;
     end;
@@ -1033,10 +1095,8 @@ procedure TDrawableImage.Draw(
   procedure AlphaEnd;
   begin
     case FinalAlpha of
-      {$ifndef OpenGLES}
-      acTest: if not UseShaders then glDisable(GL_ALPHA_TEST);
-      {$endif not OpenGLES}
-      acBlending: glDisable(GL_BLEND);
+      acTest: RenderContext.FixedFunctionAlphaTestDisable;
+      acBlending: RenderContext.BlendingDisable;
       else ;
     end;
   end;
@@ -1093,6 +1153,7 @@ var
     end;
   end;
 
+  { Bind the given buffer and update contents. }
   procedure LoadBuffer(const Target: TGLenum;
     const Vbo: TGLuint; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
@@ -1117,6 +1178,7 @@ var
   Prog: TImageProgram;
   I: Integer;
   Vbo: PVboStorage;
+  IndexPtr: Pointer;
 begin
   if (Count = 0) or
      ((Count = 1) and
@@ -1160,12 +1222,19 @@ begin
   for I := 0 to Count - 1 do
     SetupQuadPoints(ScreenRects^[I], ImageRects^[I], @Points[I * 4]);
 
-  if GLFeatures.VertexBufferObject then
+  AlphaBegin;
+
+  if not GLFeatures.EnableFixedFunction then
   begin
+    // initialize VBO
     Vbo := @VboStorage[VboStorageNext];
     Inc(VboStorageNext);
     if VboStorageNext = High(VboStorage) + 1 then
       VboStorageNext := 0;
+
+    { VAO must be bound before binding VBOs,
+      esp. important for GL_ELEMENT_ARRAY_BUFFER whose VBO isn't bound later. }
+    RenderContext.CurrentVao := Vbo^.Vao;
 
     LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
@@ -1173,12 +1242,9 @@ begin
     if Count <> 1 then
       LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
-  end;
 
-  AlphaBegin;
+    // initialize shaders
 
-  if UseShaders then
-  begin
     if TextureHasOnlyAlpha then
       ColorTreatment := ctColorMultipliesTextureAlpha else
     if not TCastleColor.PerfectlyEquals(Color, White) then
@@ -1193,10 +1259,10 @@ begin
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
     RenderContext.CurrentProgram := Prog.Prog;
-    Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
-    Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-      SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
+    Prog.AttribVertex.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
+    Prog.AttribTexCoord.EnableArrayVector2(
+      Vbo^.Vao, SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
 
     if (RenderContext.Viewport.Left <> 0) or
        (RenderContext.Viewport.Bottom <> 0) then
@@ -1212,23 +1278,15 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    RenderContext.CurrentProgram := nil;
+    Assert(RenderContext.CurrentProgram = nil); // when EnableFixedFunction, this should always stay nil
     glLoadIdentity();
     glColorv(Color);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    if GLFeatures.VertexBufferObject then
-    begin
-      glVertexPointer(2, GL_FLOAT,
-        SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
-      glTexCoordPointer(2, GL_FLOAT,
-        SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
-    end else
-    begin
-      glVertexPointer  (2, GL_FLOAT, SizeOf(TPoint), @(Points[0].Position));
-      glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
-    end;
+    glVertexPointer  (2, GL_FLOAT, SizeOf(TPoint), @(Points[0].Position));
+    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
+
     if Clip then
     begin
       { TODO: Clip not implemented in this case yet.
@@ -1243,26 +1301,24 @@ begin
 
   if Count <> 1 then
   begin
-    if GLFeatures.VertexBufferObject then
-    begin
-      { No need to call glBindBuffer below, it is already bound by
-        LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, ...) above. }
-      //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
-    end else
-      glDrawElements(GL_TRIANGLES, Length(Indexes),
-        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, @Indexes[0]);
+    if not GLFeatures.EnableFixedFunction then
+      IndexPtr := nil
+    else
+      IndexPtr := @Indexes[0];
+    glDrawElements(GL_TRIANGLES, Length(Indexes), GLIndexConst, IndexPtr);
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-  if UseShaders then
+  if not GLFeatures.EnableFixedFunction then
   begin
     // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TDrawableImage
     { attribute arrays are enabled independent from GLSL program, so we need
       to disable them separately }
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end else
   begin
     {$ifndef OpenGLES}
@@ -1272,18 +1328,12 @@ begin
     }
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    GLEnableTexture(etNone);
     {$endif not OpenGLES}
   end;
 
   AlphaEnd;
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  end;
-
-  GLEnableTexture(etNone);
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TRectangle;
@@ -1318,7 +1368,7 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
+  CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
@@ -1334,6 +1384,22 @@ var
     Inc(DrawAddCount);
   end;
 
+  { Make A + B <= Max.
+    If A + B are too large, decrease them, but preserving A to B ratio.
+    In effect e.g.
+      A = 10, B = 100, MaxSize = 1
+    ->
+      A := 1/11, B = 10/11
+  }
+  procedure FitWithin(var A, B: Single; const Max: Single);
+  begin
+    if A + B > Max then
+    begin
+      A := Max * A / (A + B);
+      B := Max * B / (A + B);
+    end;
+  end;
+
 var
   XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
     HorizontalScreenSize, VerticalScreenSize: Single;
@@ -1347,23 +1413,16 @@ const
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
+  FitWithin(CornerLeft, CornerRight, Width);
+  FitWithin(CornerBottom, CornerTop, Height);
+
   DrawCornerTop    := CornerTop    * ScaleCorners;
   DrawCornerRight  := CornerRight  * ScaleCorners;
   DrawCornerBottom := CornerBottom * ScaleCorners;
   DrawCornerLeft   := CornerLeft   * ScaleCorners;
 
-  if not ( (    CornerLeft +     CornerRight <     Width) and
-           (DrawCornerLeft + DrawCornerRight < DrawWidth) and
-           (    CornerBottom +     CornerTop <     Height) and
-           (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
-  begin
-    if not IgnoreTooLargeCorners then
-      WritelnLog('TDrawableImage.Draw3x3', 'Image corners are too large to draw it: corners are %f %f %f %f, image size is %d %d, draw area size is %f %f',
-        [CornerTop, CornerRight, CornerBottom, CornerLeft,
-         Width, Height,
-         DrawWidth, DrawHeight]);
-    Exit;
-  end;
+  FitWithin(DrawCornerLeft, DrawCornerRight, DrawWidth);
+  FitWithin(DrawCornerBottom, DrawCornerTop, DrawHeight);
 
   XScreenLeft := X;
   XImageLeft := 0;
@@ -1490,6 +1549,7 @@ procedure TDrawableImage.SetSmoothScaling(const Value: boolean);
 begin
   if FSmoothScaling <> Value then
   begin
+    BatchingFlushIfNeeded;
     FSmoothScaling := Value;
     if FTexture <> 0 then
     begin
@@ -1599,18 +1659,19 @@ end;
 
 procedure TDrawableImage.SetCenterX(const Value: Single);
 begin
-  FRotationCenter.X := Value;
+  RotationCenter := Vector2(Value, RotationCenter.Y);
 end;
 
 procedure TDrawableImage.SetCenterY(const Value: Single);
 begin
-  FRotationCenter.Y := Value;
+  RotationCenter := Vector2(RotationCenter.X, Value);
 end;
 
 procedure TDrawableImage.SetRepeatS(const Value: Boolean);
 begin
   if FRepeatS <> Value then
   begin
+    BatchingFlushIfNeeded;
     FRepeatS := Value;
     if FTexture <> 0 then
     begin
@@ -1624,6 +1685,7 @@ procedure TDrawableImage.SetRepeatT(const Value: Boolean);
 begin
   if FRepeatT <> Value then
   begin
+    BatchingFlushIfNeeded;
     FRepeatT := Value;
     if FTexture <> 0 then
     begin
@@ -1652,6 +1714,147 @@ begin
       Load(NewImage);
       FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
     end;
+  end;
+end;
+
+procedure TDrawableImage.SetColor(const Value: TCastleColor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FColor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetRotation(const Value: Single);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FRotation <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FRotation := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetRotationCenter(const Value: TVector2);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TVector2.PerfectlyEquals(FRotationCenter, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FRotationCenter := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetAlpha(const Value: TAutoAlphaChannel);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FAlpha <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FAlpha := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FBlendingSourceFactor <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingSourceFactor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FBlendingDestinationFactor <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingDestinationFactor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetBlendingConstantColor(const Value: TCastleColor);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TCastleColor.PerfectlyEquals(FBlendingConstantColor, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FBlendingConstantColor := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetClip(const Value: Boolean);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if FClip <> Value then
+  begin
+    BatchingFlushIfNeeded;
+    FClip := Value;
+  end;
+end;
+
+procedure TDrawableImage.SetClipLine(const Value: TVector3);
+begin
+  { Assign field, calling BatchingFlushIfNeeded }
+  if not TVector3.PerfectlyEquals(FClipLine, Value) then
+  begin
+    BatchingFlushIfNeeded;
+    FClipLine := Value;
+  end;
+end;
+
+procedure TDrawableImage.BatchingFlushIfNeeded;
+begin
+  if (BatchingLevel <> 0) and (BatchingLastImage = Self) then
+    BatchingFlush;
+end;
+
+class procedure TDrawableImage.BatchingBegin;
+begin
+  if BatchingLevel = 0 then
+  begin
+    Assert(BatchingLastImage = nil);
+    Assert(BatchingLastImageRects = nil);
+    Assert(BatchingLastScreenRects = nil);
+
+    BatchingLastImageRects := TFloatRectangleList.Create;
+    BatchingLastScreenRects := TFloatRectangleList.Create;
+  end;
+
+  Inc(BatchingLevel);
+end;
+
+class procedure TDrawableImage.BatchingEnd;
+begin
+  case BatchingLevel of
+    0: raise Exception.Create('Calling BatchingEnd without matching BatchingBegin');
+    1: begin
+         BatchingFlush;
+         Assert(BatchingLastImage = nil);
+         FreeAndNil(BatchingLastImageRects);
+         FreeAndNil(BatchingLastScreenRects);
+       end;
+    else ; // no nothing
+  end;
+  Dec(BatchingLevel);
+end;
+
+class procedure TDrawableImage.BatchingFlush;
+begin
+  if BatchingLastImage <> nil then
+  begin
+    Assert(BatchingLastImageRects.Count = BatchingLastScreenRects.Count);
+    BatchingLastImage.DrawNoBatch(
+      PFloatRectangleArray(BatchingLastScreenRects.List),
+      PFloatRectangleArray(BatchingLastImageRects.List),
+      BatchingLastImageRects.Count);
+    BatchingLastScreenRects.Clear;
+    BatchingLastImageRects.Clear;
+    BatchingLastImage := nil;
   end;
 end;
 

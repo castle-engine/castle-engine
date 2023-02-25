@@ -1605,7 +1605,7 @@ Var
 begin
   Val(FValue,Result,C);
   If (C<>0) then
-    If Not TryStrToFloat(FValue,Result) then
+    If Not TryStrToFloatDot(FValue,Result) then
       Raise EConvertError.CreateFmt(SErrInvalidFloat,[FValue]);
 end;
 
@@ -1656,7 +1656,7 @@ end;
 
 procedure TJSONString.SetAsFloat(const AValue: TJSONFloat);
 begin
-  FValue:=FloatToStr(AValue);
+  FValue:=FloatToStrDot(AValue);
 end;
 
 procedure TJSONString.SetAsInteger(const AValue: Integer);

@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -573,47 +573,47 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     end;
   end;
 
-  function Handle_IME:Boolean;
+  function Handle_IME: Boolean;
   var
     vhIMC: HIMC;
-    vSize:integer;
+    vSize: Integer;
     vBuffer: TBytes;
     KeyString: UnicodeString;
     //vLogFont: TLogFont;
     vCF: TCompositionForm;
     pt: TPoint;
   begin
-    result:=False;
+    Result := false;
     case uMsg of
-    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
-      begin
-        { adjusted composition window's position and font/caret size }
-        vhIMC := ImmGetContext(self.h_Wnd);
-        if vhIMC = 0 then Exit;
-        try
-          ImmSetOpenStatus(vhIMC, True);
-          {
-          ImmGetCompositionFont(vhIMC, @vLogFont);
-          vLogFont.lfHeight := Font.Height;
-          ImmSetCompositionFont(vhIMC, @vLogFont);
-          }
-          { should get focused edit's position,not done }
-          GetCursorPos(pt);
-          ScreenToClient(self.h_Wnd,pt);
-          pt.Offset(0,25);
-          vCF.ptCurrentPos := pt;
-          vCF.dwStyle := CFS_RECT;
-          vCF.rcArea := TRect.Create(0,0,self.Width,self.Height);
-          ImmSetCompositionWindow(vhIMC, @vCF);
-        finally
-          ImmReleaseContext(self.h_Wnd, vhIMC);
+      WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
+        begin
+          { adjusted composition window's position and font/caret size }
+          vhIMC := ImmGetContext(h_Wnd);
+          if vhIMC = 0 then Exit;
+          try
+            ImmSetOpenStatus(vhIMC, true);
+            {
+            ImmGetCompositionFont(vhIMC, @vLogFont);
+            vLogFont.lfHeight := Font.Height;
+            ImmSetCompositionFont(vhIMC, @vLogFont);
+            }
+            { should get focused edit's position, not done }
+            GetCursorPos(pt);
+            ScreenToClient(h_Wnd, pt);
+            pt.Offset(0,25);
+            vCF.ptCurrentPos := pt;
+            vCF.dwStyle := CFS_RECT;
+            vCF.rcArea := TRect.Create(0, 0, Width, Height);
+            ImmSetCompositionWindow(vhIMC, @vCF);
+          finally
+            ImmReleaseContext(h_Wnd, vhIMC);
+          end;
         end;
-      end;
-    WM_IME_COMPOSITION:
-      begin
-          if ( LParm and GCS_RESULTSTR) <> 0 then
+      WM_IME_COMPOSITION:
+        begin
+          if (LParm and GCS_RESULTSTR) <> 0 then
           begin
-            vhIMC := ImmGetContext(self.h_Wnd);
+            vhIMC := ImmGetContext(h_Wnd);
             if vhIMC <> 0 then
             begin
               try
@@ -629,12 +629,12 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
                   end;
                 end;
               finally
-                ImmReleaseContext(self.h_Wnd, vhIMC);
+                ImmReleaseContext(h_Wnd, vhIMC);
               end;
-              result:=True;
+              Result := true;
             end;
           end;
-      end;
+        end;
     end;
   end;
 
@@ -697,9 +697,11 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
-    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION,WM_IME_COMPOSITION:
+    WM_IME_STARTCOMPOSITION,
+    WM_IME_ENDCOMPOSITION,
+    WM_IME_COMPOSITION:
       begin
-        if Handle_IME then  Exit(0);
+        if Handle_IME then Exit(0);
       end;
     // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
@@ -1151,23 +1153,10 @@ begin
     dwExStyle := WS_EX_APPWINDOW or WS_EX_WINDOWEDGE;
     if ResizeAllowed = raAllowed then
     begin
-      { jezeli rozmiary ekranu nie spelniaja wymagan min/max Width/Height to nie dajemy
-        przycisku MAXIMIZE dla okienka. Ponizszy test nie jest precyzyjny bo okienko
-        zmaksymalizowane ma wewnetrzna szerokosc / wysokosc troche mniejsze od
-        ScreenW/ScreemH. Ale szczerze mowiac nie mam ochoty sie babrac w badaniu
-        szerokosci ramki zmaksymalizowanego okienka. Po prostu - jezeli ponizszy check
-        spowoduje ze nie bedzie przycisku MAXIMIZE mimo ze moglby byc to trudno, to tylko
-        drobna niewygoda dla usera. Jezeli spowoduje ze przycisk MAXIMIZE bedzie mimo ze
-        nie powinno go byc to obwarowane checkami DoResize zignoruje nieprawidlowy rozmiar
-        i juz. }
-      if (not between(Application.ScreenWidth, minWidth, maxWidth)) or
-         (not between(Application.ScreenHeight, minHeight, maxHeight)) then
-        dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX or WS_THICKFRAME else
-        dwStyle := WS_OVERLAPPEDWINDOW;
+      dwStyle := WS_OVERLAPPEDWINDOW;
     end else
-      { dwStyle jest tu dokladnien taki sam jak WS_OVERLAPPEDWINDOW ale bez
-        WS_THICKFRAME i WS_MAXIMIZEBOX czyli nie mozna resizowac okna. }
-      dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX;
+      { Just like WS_OVERLAPPEDWINDOW, but without flags that would allow to resize the window). }
+      dwStyle := WS_OVERLAPPEDWINDOW and not (WS_THICKFRAME or WS_MAXIMIZEBOX);
 
     { Adjust WindowRect - so that ClientRect will hold the requested size and
       position. Whole WindowRect will be a bit larger (depends on dwStyle,
@@ -1219,7 +1208,7 @@ begin
     0 { no parent window }, H_Menu, hInstance,
     nil { don't pass anything to WM_CREATE } );
 
-  Check(h_Wnd <> 0, 'Creating window (H_wnd) failed');
+  Check(h_Wnd <> 0, 'Creating window (CreateWindowExW) failed');
 
   { calculate correct Left and Top, required e.g. by SetCursorPos }
   if FullScreen then

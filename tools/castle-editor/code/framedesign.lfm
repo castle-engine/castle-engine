@@ -1,37 +1,38 @@
 object DesignFrame: TDesignFrame
   Left = 0
-  Height = 489
+  Height = 522
   Top = 0
-  Width = 1208
-  ClientHeight = 489
-  ClientWidth = 1208
+  Width = 1237
+  ClientHeight = 522
+  ClientWidth = 1237
   DesignTimePPI = 115
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 397
-  DesignTop = 238
+  DesignLeft = 403
+  DesignTop = 237
+  OnResize = FrameResize
   object SplitterLeft: TSplitter
     Left = 255
-    Height = 489
+    Height = 522
     Top = 0
     Width = 8
   end
   object SplitterRight: TSplitter
-    Left = 888
-    Height = 489
+    Left = 917
+    Height = 522
     Top = 0
     Width = 8
     Align = alRight
     ResizeAnchor = akRight
   end
   object PanelRight: TPanel
-    Left = 896
-    Height = 489
+    Left = 925
+    Height = 522
     Top = 0
     Width = 312
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 489
+    ClientHeight = 522
     ClientWidth = 312
     ParentFont = False
     TabOrder = 2
@@ -48,7 +49,7 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 437
+      Height = 470
       Top = 52
       Width = 312
       ActivePage = TabLayout
@@ -62,7 +63,7 @@ object DesignFrame: TDesignFrame
       end
       object TabLayout: TTabSheet
         Caption = 'Layout'
-        ClientHeight = 402
+        ClientHeight = 435
         ClientWidth = 302
         ParentFont = False
         object PanelLayoutTop: TPanel
@@ -109,7 +110,7 @@ object DesignFrame: TDesignFrame
             end
             inline SelfAnchorsFrame: TAnchorsFrame
               AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideTop.Side = asrBottom
               Left = 8
               Height = 169
@@ -179,7 +180,7 @@ object DesignFrame: TDesignFrame
             inline ParentAnchorsFrame: TAnchorsFrame
               AnchorSideLeft.Control = SelfAnchorsFrame
               AnchorSideLeft.Side = asrBottom
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideTop.Side = asrBottom
               Left = 164
               Height = 169
@@ -248,7 +249,7 @@ object DesignFrame: TDesignFrame
                 end
               end
             end
-            object ButtonClearAnchorDeltas: TButton
+            object ButtonClearTranslation: TButton
               AnchorSideLeft.Control = SelfAnchorsFrame
               Left = 8
               Height = 37
@@ -256,14 +257,14 @@ object DesignFrame: TDesignFrame
               Width = 170
               AutoSize = True
               Caption = 'Move to the anchor'
-              OnClick = ButtonClearAnchorDeltasClick
+              OnClick = ButtonClearTranslationClick
               ParentFont = False
               TabOrder = 3
             end
             object LabelSizeInfo: TLabel
-              AnchorSideLeft.Control = ButtonClearAnchorDeltas
+              AnchorSideLeft.Control = ButtonClearTranslation
               AnchorSideLeft.Side = asrBottom
-              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideRight.Side = asrBottom
               Left = 202
               Height = 21
@@ -312,7 +313,7 @@ object DesignFrame: TDesignFrame
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
-        ClientHeight = 402
+        ClientHeight = 435
         ClientWidth = 302
         ParentFont = False
         object PanelEventsInfo: TPanel
@@ -346,22 +347,39 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
     end
+    object ButtonApiReferenceForCurrent: TSpeedButton
+      Left = 272
+      Height = 36
+      Top = 5
+      Width = 36
+      Action = ActionApiReferenceOfCurrent
+      AllowAllUp = True
+      Anchors = [akTop, akRight]
+      Constraints.MinHeight = 34
+      Constraints.MinWidth = 34
+      Images = Icons.ToolbarIcons
+      ImageIndex = 12
+      ImageWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
   end
   object PanelLeft: TPanel
     Left = 0
-    Height = 489
+    Height = 522
     Top = 0
     Width = 255
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 489
+    ClientHeight = 522
     ClientWidth = 255
     ParentFont = False
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 458
-      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
+      Height = 491
+      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10#10'Drag the component to move it to the front, back or change the parent.'#10'Hold "Ctrl" when dropping to not preserve the world transformation when changing parent.'
       Top = 31
       Width = 255
       Align = alClient
@@ -399,20 +417,20 @@ object DesignFrame: TDesignFrame
   end
   object PanelMiddle: TPanel
     Left = 263
-    Height = 489
+    Height = 522
     Top = 0
-    Width = 625
+    Width = 654
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 489
-    ClientWidth = 625
+    ClientHeight = 522
+    ClientWidth = 654
     ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
       Height = 38
       Top = 5
-      Width = 615
+      Width = 644
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
@@ -421,7 +439,7 @@ object DesignFrame: TDesignFrame
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 100
       ClientHeight = 38
-      ClientWidth = 615
+      ClientWidth = 644
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
@@ -431,7 +449,7 @@ object DesignFrame: TDesignFrame
         Height = 38
         Hint = 'Interact with components like a normal user (click buttons, drag scrollbars etc.).'#10#10'(Alt+1)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -568,15 +586,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 1
+        Images = Icons.ToolbarIcons
+        ImageIndex = 13
         OnClick = ButtonInteractModeClick
         ParentFont = False
       end
       object ButtonSelectMode: TSpeedButton
-        Left = 40
+        Left = 37
         Height = 38
         Hint = 'Select components.'#10#10'(Alt+2)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -713,15 +733,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 3
+        Images = Icons.ToolbarIcons
+        ImageIndex = 16
         OnClick = ButtonSelectModeClick
         ParentFont = False
       end
       object ButtonTranslateMode: TSpeedButton
-        Left = 80
+        Left = 74
         Height = 38
         Hint = 'Move (and Select) components.'#10'Hold "Shift" to Move without changing the selection.'#10#10'(Alt+3)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -858,15 +880,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 4
+        Images = Icons.ToolbarIcons
+        ImageIndex = 17
         OnClick = ButtonTranslateModeClick
         ParentFont = False
       end
       object ButtonRotateMode: TSpeedButton
-        Left = 120
+        Left = 111
         Height = 38
         Hint = 'Rotate (and Select) components.'#10'Hold "Shift" to Rotate without changing the selection.'#10#10'(Alt+4)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -1003,15 +1027,17 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 5
+        Images = Icons.ToolbarIcons
+        ImageIndex = 14
         OnClick = ButtonRotateModeClick
         ParentFont = False
       end
       object ButtonScaleMode: TSpeedButton
-        Left = 160
+        Left = 148
         Height = 38
         Hint = 'Scale (and Select) components.'#10'Hold "Shift" to Scale without changing the selection.'#10#10'(Alt+5)'
         Top = 0
-        Width = 36
+        Width = 33
         AllowAllUp = True
         Constraints.MinHeight = 33
         Constraints.MinWidth = 33
@@ -1148,11 +1174,13 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 6
+        Images = Icons.ToolbarIcons
+        ImageIndex = 15
         OnClick = ButtonScaleModeClick
         ParentFont = False
       end
       object LabelHeaderUi: TLabel
-        Left = 206
+        Left = 191
         Height = 38
         Top = 0
         Width = 62
@@ -1163,36 +1191,94 @@ object DesignFrame: TDesignFrame
         ParentColor = False
         ParentFont = False
       end
-      object SpinEditSnap: TSpinEdit
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrCenter
-        Left = 278
-        Height = 38
-        Hint = 'Snap (when moving/resizing UI)'
-        Top = 0
-        Width = 60
-        BorderSpacing.Left = 5
-        ParentFont = False
+      object PanelSpinEditAllowVerticalCentering: TPanel
+        Left = 258
+        Height = 28
+        Top = 4
+        Width = 63
+        AutoSize = True
+        BorderSpacing.CellAlignHorizontal = ccaCenter
+        BorderSpacing.CellAlignVertical = ccaCenter
+        BevelOuter = bvNone
+        ClientHeight = 28
+        ClientWidth = 63
         TabOrder = 0
-        Value = 10
+        object SpinEditSnap: TSpinEdit
+          AnchorSideLeft.Side = asrBottom
+          Left = 0
+          Height = 28
+          Hint = 'Snap (when moving/resizing UI)'
+          Top = 0
+          Width = 63
+          ParentFont = False
+          TabOrder = 0
+          Value = 10
+        end
       end
-      object LabelUIScaling: TLabel
-        Left = 580
-        Height = 21
-        Hint = 'UI Scaling to 1600x900'
+      object ButtonPlayStop: TSpeedButton
+        Left = 353
+        Height = 38
         Top = 0
-        Width = 35
-        Align = alCustom
-        Alignment = taRightJustify
-        Anchors = [akTop, akRight]
-        Caption = '50%'
+        Width = 36
+        Action = ActionPlayStop
+        AllowAllUp = True
+        AutoSize = True
+        BorderSpacing.Left = 30
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 220
+        Images = Icons.ToolbarIcons
+        ImageIndex = 5
+        ImageWidth = 32
+        ShowCaption = False
+      end
+      object LabelSimulation: TLabel
+        AnchorSideTop.Side = asrCenter
+        Left = 419
+        Height = 38
+        Top = 0
+        Width = 62
+        BorderSpacing.Left = 30
+        BorderSpacing.Right = 10
+        Caption = 'Physics:'
+        Layout = tlCenter
         ParentColor = False
         ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
+      end
+      object ButtonSimulationPlayStop: TSpeedButton
+        Left = 491
+        Height = 38
+        Top = 0
+        Width = 36
+        Action = ActionSimulationPlayStop
+        AllowAllUp = True
+        AutoSize = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 10
+        Images = Icons.ToolbarIcons
+        ImageIndex = 8
+        ImageWidth = 32
+        ShowCaption = False
+      end
+      object ButtonSimulationPause: TSpeedButton
+        Left = 531
+        Height = 38
+        Top = 0
+        Width = 36
+        Action = ActionSimulationPauseUnpause
+        AllowAllUp = True
+        AutoSize = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        GroupIndex = 9
+        Images = Icons.ToolbarIcons
+        ImageIndex = 10
+        ImageWidth = 32
+        ShowCaption = False
       end
       object LabelViewport: TLabel
-        Left = 374
+        Left = 603
         Height = 38
         Top = 0
         Width = 218
@@ -1206,6 +1292,18 @@ object DesignFrame: TDesignFrame
         Visible = False
       end
     end
+  end
+  object LabelPlayStop: TLabel
+    AnchorSideTop.Side = asrCenter
+    Left = 368
+    Height = 1
+    Top = 0
+    Width = 1
+    BorderSpacing.Left = 30
+    BorderSpacing.Right = 10
+    Layout = tlCenter
+    ParentColor = False
+    ParentFont = False
   end
   object MenuTreeView: TPopupMenu
     OnPopup = MenuTreeViewPopup
@@ -1286,5 +1384,42 @@ object DesignFrame: TDesignFrame
     AdviceDataDirectory = True
     Left = 445
     Top = 307
+  end
+  object ActionListDesign: TActionList
+    Images = Icons.ToolbarIcons
+    Left = 790
+    Top = 201
+    object ActionSimulationPlayStop: TAction
+      Category = 'Physics'
+      Caption = 'Play/Stop Simulation'
+      GroupIndex = 10
+      Hint = 'Play/Stop Simulation'#10'(Ctrl + P)'
+      ImageIndex = 8
+      OnExecute = ActionSimulationPlayStopExecute
+      OnUpdate = ActionSimulationPlayStopUpdate
+    end
+    object ActionSimulationPauseUnpause: TAction
+      Category = 'Physics'
+      Caption = 'Pause Simulation'
+      GroupIndex = 9
+      ImageIndex = 10
+      OnExecute = ActionSimulationPauseUnpauseExecute
+      OnUpdate = ActionSimulationPauseUnpauseUpdate
+    end
+    object ActionPlayStop: TAction
+      Category = 'Run'
+      Caption = 'Application Play/Stop'
+      Hint = 'Play/Stop Application'#10'(F9 / Ctrl + F2)'
+      ImageIndex = 5
+      OnExecute = ActionPlayStopExecute
+      OnUpdate = ActionPlayStopUpdate
+    end
+    object ActionApiReferenceOfCurrent: TAction
+      Category = 'Help'
+      Caption = 'Help (API Reference) for Current Component / Property'
+      Hint = 'Help for Current Component / Property'#10'(F1)'
+      ImageIndex = 12
+      OnExecute = ActionApiReferenceOfCurrentExecute
+    end
   end
 end

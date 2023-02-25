@@ -1,5 +1,6 @@
+{%MainUnit castleinternalarraysgenerator.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +34,10 @@ type
     constructor Create(AShape: TShape); override;
   end;
 
-  { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
+  { Generator for X3D IndexedTriangleSet, TriangleSet, QuadSet nodes.
+
+    QuadSet is treated much like IndexedTriangleSet,
+    thanks to TQuadSetNode.InternalTrianglesCoordIndex. }
   TTriangleSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     TriFaceNormal: TVector3;
@@ -96,7 +100,7 @@ type
     class function BumpMappingAllowed: boolean; override;
   end;
 
-  { Generator for X3D IndexedQuadSet and QuadSet nodes. }
+  { Generator for X3D IndexedQuadSet nodes. }
   TQuadSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     QuadFaceNormal: TVector3;
@@ -119,6 +123,7 @@ type
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
+    function LineMode: TLineMode;
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
@@ -239,6 +244,11 @@ begin
     Note that if a Color/ColorRGBA nodes are used, they will override
     the ForcedUnlitColor (because that's how UnlitMaterial), which also satisfies
     PointSet spec about Color/ColorRGBA.
+
+    TODO: This should change for X3D 4 and glTF,
+    points can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#PointSet
   }
 
   Arrays.ForceUnlit := true;
@@ -279,6 +289,12 @@ begin
   begin
     TexCoordIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
     ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
+  end else
+  if Geometry is TQuadSetNode then
+  begin
+    CoordIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
+    TexCoordIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
+    ColorIndex := TQuadSetNode(Geometry).InternalTrianglesCoordIndex;
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
@@ -289,7 +305,7 @@ begin
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
-    if Geometry is TIndexedTriangleSetNode then
+    if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed
     else
       NorImplementation := niPerVertexNonIndexed;
@@ -301,8 +317,8 @@ begin
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
-    { In this case, per-face normals are generated (for non-indexed
-      TriangleSet normals are always generated per-face, since they
+    { In this case, per-face normals are generated (for
+      TriangleSet and QuadSet normals are always generated per-face, since they
       cannot share vertex indexes anyway).
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
@@ -317,21 +333,6 @@ end;
 procedure TTriangleSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
@@ -345,22 +346,20 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if FacesNeeded then
     begin
       Arrays.Faces := TFaceIndexesList.Create;
       Arrays.Faces.Count := IndexesFromCoordIndex.Count;
       for I := 0 to Arrays.Faces.Count - 1 do
       begin
-        Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
-        Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+        Arrays.Faces.List^[I].IndexBegin := (I div 3) * 3;
+        Arrays.Faces.List^[I].IndexEnd := ((I div 3) + 1) * 3 -1;
       end;
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 end;
 
@@ -379,7 +378,8 @@ procedure TTriangleSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Intege
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
-    N := TriFaceNormal else
+    N := TriFaceNormal
+  else
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
@@ -464,24 +464,6 @@ end;
 procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is NOT correct
-      (as vertexes are shared between triangles; so in smooth shading,
-      face normals will be incorrectly distributed among vertexes).
-
-    Which means that colors mixed with per-face normals simply don't work.
-    Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-  if (NorImplementation = niNone) and (Color = nil) then
-    Arrays.ForceFlatShading := true else
-  begin
-    Arrays.ForceFlatShading := false;
-    if NorImplementation = niNone then
-      WarningShadingProblems(true, false);
-  end;
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesPrimitives;
@@ -489,7 +471,7 @@ begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -498,24 +480,22 @@ procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
@@ -608,14 +588,17 @@ constructor TTriangleStripSetGenerator.Create(AShape: TShape);
 
     SH := State.VRML1State.ShapeHints;
 
-    { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
-      (a autorzy VRMLi w ogole nie powinni podawac normali jesli
-      nie podadza vertexOrdering innego niz UNKNOWN) }
+    {$warnings off} // using deprecated to keep supporting VRML 1
+    { At this place, we assume that VERTORDER_UNKNOWN_ORDERING is actually
+      VERTORDER_COUNTERCLOCKWISE.
+      (VRML 1 authors should not provide explicit normals at all if ordering
+      is unknown.) }
     VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
     VRML1CullFace :=
       (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
       (SH.FdShapeType.Value = SHTYPE_SOLID);
+    {$warnings on}
 
     NormalIndex := ANode.FdNormalIndex;
     Normals := State.VRML1State.Normal.FdVector.Items;
@@ -690,29 +673,6 @@ begin
     { Already calculated in constructor, pass to Arrays now }
     Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
     Arrays.CullFace := VRML1CullFace;
-
-    { When generating, we always generate flat normals for IndexedTriangleMesh
-      (I don't know if I should use anything like "creaseAngle"?) }
-    Arrays.ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
-  end else
-  begin
-    { About shading:
-      - we have to use smooth shading if we have colors
-        (colors are always per vertex for triangle sets).
-      - we have to use smooth shading if we have normals per vertex
-      - if we have normals per face, smooth shading is NOT correct
-        (as vertexes are shared between triangles; so in smooth shading,
-        face normals will be incorrectly distributed among vertexes).
-
-      Which means that colors mixed with per-face normals simply don't work.
-      Documented on [https://castle-engine.io/x3d_implementation_status.php]. }
-    if (NorImplementation = niNone) and (Color = nil) then
-      Arrays.ForceFlatShading := true else
-    begin
-      Arrays.ForceFlatShading := false;
-      if NorImplementation = niNone then
-        WarningShadingProblems(true, false);
-    end;
   end;
 end;
 
@@ -721,7 +681,7 @@ begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -730,24 +690,22 @@ procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
@@ -840,11 +798,9 @@ begin
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TIndexedQuadSetNode then
-  begin
-    TexCoordIndex := TIndexedQuadSetNode(Geometry).FdIndex;
-    ColorIndex := TIndexedQuadSetNode(Geometry).FdIndex;
-  end;
+  Assert(Geometry is TIndexedQuadSetNode);
+  TexCoordIndex := TIndexedQuadSetNode(Geometry).FdIndex;
+  ColorIndex := TIndexedQuadSetNode(Geometry).FdIndex;
 
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
@@ -857,21 +813,24 @@ begin
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),
       as far as I understand X3D spec. }
+    {
     if Geometry is TIndexedQuadSetNode then
       NorImplementation := niPerVertexCoordIndexed
     else
       NorImplementation := niPerVertexNonIndexed;
+    }
+
+    Assert(Geometry is TIndexedQuadSetNode);
+    NorImplementation := niPerVertexCoordIndexed;
   end else
-  if (Geometry is TIndexedQuadSetNode) and
+  if {(Geometry is TIndexedQuadSetNode) and}
      TIndexedQuadSetNode(Geometry).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
-    { In this case, per-face normals are generated (for non-indexed
-      QuadSet normals are always generated per-face, since they
-      cannot share vertex indexes anyway).
+    { In this case, per-face normals are generated.
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
@@ -885,26 +844,10 @@ end;
 procedure TQuadSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for quad sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is still Ok
-      (since each face has separate GenerateVertex calls).
-
-    So always smooth shading is actually Ok.
-    For the sake of optimization we could force flat shading in allowed cases,
-    however: flat shading may be bad for positional lights (even when normals
-    are constant across face, light direction, and so light result, may change
-    across face).
-
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 
-  {$ifdef OpenGLES}
   { Calculate IndexesFromCoordIndex for triangle primitive
     from CoordIndex for quad primitive. }
   procedure CalculateIndexesFromCoordIndexForTriangles;
@@ -914,14 +857,14 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     I := 0;
     while I + 3 < CoordCount do
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
 
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
-      I += 4;
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I + 3]);
+      Inc(I, 4);
     end;
   end;
 
@@ -933,51 +876,19 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     while I + 3 < CoordCount do
     begin
       Arrays.Counts.Add(4);
-      I += 4;
+      Inc(I, 4);
     end;
   end;
-  {$endif}
 
 begin
-  {$ifdef OpenGLES}
-  { On OpenGLES, we don't have GL_QUADS primitive. So render quads
-    by splitting them into triangles. }
-  if CoordIndex <> nil then
-  begin
-    Arrays.Primitive := gpTriangles;
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
-    CalculateIndexesFromCoordIndexForTriangles;
-  end else
-  begin
-    { This means we have QuadSet (no indexes, so not IndexedQuadSet) on OpenGLES
-      (where no gpQuads primitive is available).
-      We want to generate 2 triangles for each quad.
+  { On OpenGLES and modern OpenGL ( https://docs.gl/gl3/glDrawArrays ),
+    we don't have GL_QUADS primitive. So render quads by splitting them into triangles. }
 
-      We cannot do it by generating IndexesFromCoordIndex, as
-      CastleInternalArraysGenerator assumes that IndexesFromCoordIndex may be <> nil
-      only when CoordIndex <> nil. (and changing this restriction looks
-      complicated for now...)
+  Assert(CoordIndex <> nil); // we only handle TIndexedQuadSetNode here
 
-      So instead generate a sequence of gpTriangleFan primitives.
-    }
-    Arrays.Primitive := gpTriangleFan;
-    Arrays.Counts := TCardinalList.Create;
-    CalculateCountsForTriangleFan;
-  end;
-
-  {$else}
-  Arrays.Primitive := gpQuads;
-
-  if CoordIndex <> nil then
-  begin
-    { indexes are just directly from CoordIndex in this case. }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
-    IndexesFromCoordIndex.Assign(CoordIndex.Items);
-    { make sure we have only full quads (although nothing really
-      requires or promises that, but for the future). }
-    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
-  end;
-  {$endif}
+  Arrays.Primitive := gpTriangles;
+  IndexesFromCoordIndex := TUInt32List.Create;
+  CalculateIndexesFromCoordIndexForTriangles;
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -995,7 +906,8 @@ procedure TQuadSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
-    N := QuadFaceNormal else
+    N := QuadFaceNormal
+  else
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
@@ -1016,24 +928,17 @@ begin
 
     CalculateTangentVectors(I, I + 1, I + 2);
 
-    if Arrays.Primitive = gpTriangles then
-    begin
-      { call GenerateVertex in the same order as you places vertexes
-        on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
-      GenerateVertex(I    );
-      GenerateVertex(I + 1);
-      GenerateVertex(I + 2);
+    Assert(Arrays.Primitive = gpTriangles);
 
-      GenerateVertex(I    );
-      GenerateVertex(I + 2);
-      GenerateVertex(I + 3);
-    end else
-    begin
-      GenerateVertex(I    );
-      GenerateVertex(I + 1);
-      GenerateVertex(I + 2);
-      GenerateVertex(I + 3);
-    end;
+    { call GenerateVertex in the same order as you places vertexes
+      on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
+    GenerateVertex(I    );
+    GenerateVertex(I + 1);
+    GenerateVertex(I + 2);
+
+    GenerateVertex(I    );
+    GenerateVertex(I + 2);
+    GenerateVertex(I + 3);
 
     Inc(I, 4);
   end;
@@ -1046,20 +951,37 @@ procedure TAbstractLineSetGenerator.PrepareIndexesCoordsRange(
 var
   I: Integer;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Arrays.Counts.Add(EndIndex - BeginIndex);
   if CoordIndex <> nil then
     for I := BeginIndex to EndIndex - 1 do
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
+end;
+
+function TAbstractLineSetGenerator.LineMode: TLineMode;
+begin
+  if Geometry is TIndexedLineSetNode then
+    Result := TIndexedLineSetNode(Geometry).Mode
+  else
+  if Geometry is TLineSetNode then
+    Result := TLineSetNode(Geometry).Mode
+  else
+    Result := lmStrip;
 end;
 
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;
 begin
-  Arrays.Primitive := gpLineStrip;
+  case LineMode of
+    lmStrip: Arrays.Primitive := gpLineStrip;
+    lmLoop : Arrays.Primitive := gpLineLoop;
+    lmPair : Arrays.Primitive := gpLines;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('LineMode?');
+    {$endif}
+  end;
+
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -1098,8 +1020,10 @@ begin
 
   NormalIndex := Node.FdNormalIndex;
   Normals := State.VRML1State.Normal.FdVector.Items;
+  {$warnings off} // using deprecated to keep supporting VRML 1
   NormalsCcw :=
     State.VRML1State.ShapeHints.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  {$warnings on}
   NorImplementation := NorImplementationFromVRML1Binding(
     State.VRML1State.NormalBinding.FdValue.Value);
 end;
@@ -1146,10 +1070,17 @@ begin
 
   { Implement "one color for the whole lineset" case here.
 
-    Follows X3D spec:
+    Follows X3D 3 spec:
     If the color field is NULL and there is a Material defined for the
     Appearance affecting this LineSet, the emissiveColor of the Material
     shall be used to draw the lines.
+
+    https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#LineSet
+
+    TODO: This should change for X3D 4 and glTF,
+    lines can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#LineSet
 
     IndexedLineSet color may come from various places:
     1. Color node, for each vertex or polyline, if it's not NULL

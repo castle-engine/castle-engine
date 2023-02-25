@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,7 +53,11 @@
       and FdGravityUp vectors. See
       https://castle-engine.io/x3d_extensions.php#section_ext_cameras_alt_orient
 
-      Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
+      Returned CamDir, CamUp, GravityUp are @italic(always normalized).
+
+      TODO: This may need transform to world space, not just scene space,
+      just like TAbstractLightNode.GetView does.
+      Test how it behaves in TCastleScene that has some transformation. }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
     { Description generated smart (trying to use FdDescription field,
@@ -163,7 +167,22 @@
   {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
 
-  TOptionalBlendingSort = (obsDefault, obsNone, obs2D, obs3D);
+  { Blending sorting that may also be "default", which indicates to use TCastleRenderOptions.BlendingSort.
+    See TBlendingSort for description of all values except obsDefault. }
+  TOptionalBlendingSort = (
+    { Use current TCastleRenderOptions.BlendingSort value. }
+    obsDefault,
+    { Like TBlendingSort.bsNone. }
+    obsNone,
+    { Like TBlendingSort.bs2D. }
+    obs2D,
+    { Like TBlendingSort.bs3D. }
+    obs3D,
+    { Like TBlendingSort.bs3DOrigin. }
+    obs3DOrigin,
+    { Like TBlendingSort.bs3DGround. }
+    obs3DGround
+  );
 
   { Describe the physical characteristics of the viewer's avatar and navigation. }
   TNavigationInfoNode = class(TAbstractBindableNode)
@@ -274,7 +293,7 @@
 
 const
   BlendingSortNames: array [TOptionalBlendingSort] of string =
-  ('DEFAULT', 'NONE', '2D', '3D');
+  ('DEFAULT', 'NONE', '2D', '3D', '3D_ORIGIN', '3D_GROUND');
 
 { TAbstractViewpointNode -------------------------------------------------- }
 

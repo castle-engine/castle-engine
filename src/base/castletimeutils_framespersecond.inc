@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -254,8 +254,8 @@ begin
   if WasSleeping then
     Result := 'no need to render all frames'
   else
-    Result := Format('%f', [RealFps]);
-  Result := Result + Format(' (only render: %f)', [OnlyRenderFps]);
+    Result := FormatDot('%f', [RealFps]);
+  Result := Result + FormatDot(' (only render: %f)', [OnlyRenderFps]);
 end;
 
 procedure TFramesPerSecond._UpdateBegin;

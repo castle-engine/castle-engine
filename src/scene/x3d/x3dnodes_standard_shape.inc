@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -187,14 +187,6 @@
   public
     {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
-
-  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType). }
-  TLineType = (
-    ltSolid,
-    ltDashed,
-    ltDotted,
-    ltDashedDotted,
-    ltDashDotDot);
 
   { Additional visible properties to be applied to all line geometry. }
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
@@ -644,8 +636,7 @@ end;
 
 procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);
 begin
-  if (Scene <> nil) and
-     (FdMaterial.Value <> Value) then
+  if Scene <> nil then
     Scene.InternalMoveShapeAssociations(FdMaterial.Value, Value, InternalSceneShape);
 end;
 
@@ -1093,7 +1084,7 @@ procedure TShapeNode.GenerateTangents;
     const TexCoords: TVector2List;
     const Tangents: TVector3List);
   var
-    TriangleIndexes: TLongIntList;
+    TriangleIndexes: TInt32List;
     Tangent: TVector3;
     I, Index0, Index1, Index2: Integer;
     TriangleCoord: TTriangle3;

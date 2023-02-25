@@ -25,50 +25,25 @@ type
   TFallingObstacle = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     { Set to true when player was bellow and started falling }
     IsFalling: Boolean;
-    procedure ConfigureFallingObstaclePhysics(const FallingObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure HitPlayer;
 
     procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
   end;
 
-TFallingObstaclesList = {$ifdef FPC}specialize{$endif} TObjectList<TFallingObstacle>;
+  TFallingObstaclesList = {$ifdef FPC}specialize{$endif} TObjectList<TFallingObstacle>;
 
 implementation
 
-uses GameStatePlay;
+uses GameViewPlay;
 
-{ TFallingObstacle }
-
-procedure TFallingObstacle.ConfigureFallingObstaclePhysics(
-  const FallingObstacleScene: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-begin
-  RBody := TRigidBody.Create(FallingObstacleScene);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-
-  Collider:= TBoxCollider.Create(RBody);
-  Collider.Size := Vector3(5, Scene.BoundingBox.SizeY / 3, 30.0);
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0;
-
-  FallingObstacleScene.RigidBody := RBody;
-end;
+{ TFallingObstacle ----------------------------------------------------------- }
 
 constructor TFallingObstacle.Create(AOwner: TComponent);
 begin
@@ -76,11 +51,16 @@ begin
   IsFalling := false;
 end;
 
-procedure TFallingObstacle.ParentChanged;
+procedure TFallingObstacle.ParentAfterAttach;
 begin
-  inherited ParentChanged;
+  inherited ParentAfterAttach;
+
   Scene := Parent as TCastleScene;
-  ConfigureFallingObstaclePhysics(Scene);
+
+  { TCastleRigidBody was added in the editor, here we configure only the events. }
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
 end;
 
 procedure TFallingObstacle.Update(const SecondsPassed: Single;
@@ -93,31 +73,33 @@ begin
   if not IsFalling then
   begin
     { Here we wait for player to start falling down }
-    RayHitThat := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-      Vector3(0, -1, 0), 300);
 
-    { Check was that a player? }
-    if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
+    if RBody <> nil then
     begin
-      { Start falling down }
-      Scene.RigidBody.Gravity := true;
-      Scene.RigidBody.LinearVelocity := Vector3(0, -500, 0);
-      IsFalling := true;
+      RayHitThat := RBody.PhysicsRayCast(Scene.Translation, Vector3(0, -1, 0), 300).Transform;
+
+      { Check was that a player? }
+      if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
+      begin
+        { Start falling down }
+        RBody.Gravity := true;
+        RBody.LinearVelocity := Vector3(0, -500, 0);
+        IsFalling := true;
+      end;
     end;
   end;
 end;
 
 procedure TFallingObstacle.HitPlayer;
 begin
-  StatePlay.HitPlayer;
+  ViewPlay.HitPlayer;
   Scene.Exists := false;
-  //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-  Scene.RigidBody.Exists := false;
 end;
 
 procedure TFallingObstacle.CollisionEnter(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     HitPlayer;
@@ -125,7 +107,7 @@ begin
   begin
     { Once the spike hits the ground, it should no longer be able to
       hurt the player. }
-    Scene.RigidBody.Exists := false;
+    RBody.Exists := false;
   end;
 end;
 

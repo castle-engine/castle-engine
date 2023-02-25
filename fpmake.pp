@@ -44,47 +44,53 @@ begin
       {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
-    { Add dependencies on FPC packages.
-      These aren't really needed, as your default fpc.cfg should
-      point to them anyway. They are needed only when compiling with --nofpccfg.
-      Anyway, maybe this is a good place to document my dependencies
-      on FPC packages --- so let's do this. }
-    if (Defaults.OS <> Android) and (not LikeIOS) then
-      P.Dependencies.Add('opengl');
-    P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('fcl-image');
-    P.Dependencies.Add('fcl-xml');
-    P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
-    if Defaults.OS <> Android then
-      P.Dependencies.Add('fcl-web');
-    P.Dependencies.Add('pasjpeg');
-    P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
-    P.Dependencies.Add('regexpr');
-    if Xlib then
+    { Do "export CASTLE_PACKAGE_NO_DEPENDENCIES=true"
+      if you have broken FPC installation without proper Package.fpc files.
+      Note: This will break compilation with --nofpccfg. }
+    if GetEnvironmentVariable('CASTLE_PACKAGE_NO_DEPENDENCIES') <> 'true' then
     begin
-      P.Dependencies.Add('x11');
-      P.Dependencies.Add('gtk2');
-      P.Dependencies.Add('cairo');
-    end else
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.Dependencies.Add('winunits-base');
-      P.Dependencies.Add('winunits-jedi'); // our CastleWindow uses JwaWinUser
-      P.Dependencies.Add('fcl-registry');
+      { Add dependencies on FPC packages.
+        These aren't really needed, as your default fpc.cfg should
+        point to them anyway. They are needed only when compiling with --nofpccfg.
+        Anyway, maybe this is a good place to document my dependencies
+        on FPC packages --- so let's do this. }
+      if (Defaults.OS <> Android) and (not LikeIOS) then
+        P.Dependencies.Add('opengl');
+      P.Dependencies.Add('fcl-base');
+      P.Dependencies.Add('fcl-image');
+      P.Dependencies.Add('fcl-xml');
+      P.Dependencies.Add('fcl-process');
+      P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
+      if Defaults.OS <> Android then
+        P.Dependencies.Add('fcl-web');
+      P.Dependencies.Add('pasjpeg');
+      P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
+      P.Dependencies.Add('regexpr');
+      if Xlib then
+      begin
+        P.Dependencies.Add('x11');
+        P.Dependencies.Add('gtk2');
+        P.Dependencies.Add('cairo');
+      end else
+      if Defaults.OS in AllWindowsOSes then
+      begin
+        P.Dependencies.Add('winunits-base');
+        P.Dependencies.Add('winunits-jedi'); // our CastleWindow uses JwaWinUser
+        P.Dependencies.Add('fcl-registry');
+      end;
+      {$ifndef VER2}
+      {$ifndef VER3_0}
+      P.Dependencies.Add('rtl-generics');
+      {$endif}
+      {$endif}
     end;
-    {$ifndef VER2}
-    {$ifndef VER3_0}
-    P.Dependencies.Add('rtl-generics');
-    {$endif}
-    {$endif}
 
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
     P.License := 'LGPL >= 2 (with static linking exception)';
     P.HomepageURL := 'https://castle-engine.io/';
-    P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
+    P.Email := 'michalis' + '@castle-engine.io'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
 
     { Vampyre Imaging units.
@@ -246,9 +252,7 @@ begin
     P.Targets.AddUnit('castleinternalspacefillingcurves.pas');
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
-    P.Targets.AddUnit('castlenurbs.pas');
-    P.Targets.AddUnit('castlequaternions.pas');
-    P.Targets.AddUnit('castlerandom.pas');
+    P.Targets.AddUnit('castleinternalnurbs.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
@@ -284,7 +288,6 @@ begin
     P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
-    P.Targets.AddUnit('castleglboxes.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
@@ -316,16 +319,18 @@ begin
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castledynlib.pas');
+    P.Targets.AddUnit('castleinternalclassutils.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
+    P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprojection.pas');
+    P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlerenderoptions.pas');
-    P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castlesystemlanguage.pas');
@@ -333,16 +338,18 @@ begin
     P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
     P.Targets.AddUnit('castlevectors.pas');
-    P.Targets.AddUnit('castlevectorsinternalsingle.pas');
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
+    P.Targets.AddUnit('castlevectorsinternalsingle.pas');
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
-    P.Targets.AddUnit('castleglversion.pas');
     P.Targets.AddUnit('castleglimages.pas');
-    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
+    P.Targets.AddUnit('castleglutils.pas');
+    P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
+    P.Targets.AddUnit('castlerenderprimitives.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');
@@ -386,7 +393,6 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
-    P.Targets.AddUnit('castleinternalftfont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
@@ -434,7 +440,7 @@ begin
 
     P.SourcePath.Add('src/ui');
     P.Targets.AddUnit('castlecontrols.pas');
-    P.Targets.AddUnit('castledialogstates.pas');
+    P.Targets.AddUnit('castledialogviews.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castleinternalcameragestures.pas');
@@ -446,9 +452,7 @@ begin
     P.Targets.AddUnit('castlejoysticks.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
-    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
-    P.Targets.AddUnit('castleuistate.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src/ui/windows');
@@ -473,8 +477,10 @@ begin
 
     P.SourcePath.Add('src/window/deprecated_units');
     P.Targets.AddUnit('castlesoundmenu.pas');
+    P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
+    P.Targets.AddUnit('castledialogstates.pas');
 
     P.SourcePath.Add('src/scene');
     P.Targets.AddUnit('castledebugtransform.pas');
@@ -508,6 +514,7 @@ begin
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleterrain.pas');
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');

@@ -25,14 +25,14 @@ type
   TDeadlyObstacle = class(TCastleBehavior)
   strict private
     Scene: TCastleScene;
+    RBody: TCastleRigidBody;
     { How much time need to pass to deal damage. }
     HitInterval: Single;
     CollidingTime: Single;
     IsPlayerColliding: Boolean;
-    procedure ConfigureDeadlyObstaclePhysics(const DeadlyObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure HitPlayer;
 
@@ -44,36 +44,9 @@ type
 
 implementation
 
-uses GameStatePlay;
+uses GameViewPlay;
 
-{ TDeadlyObstacle }
-
-procedure TDeadlyObstacle.ConfigureDeadlyObstaclePhysics(
-  const DeadlyObstacleScene: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-begin
-  RBody := TRigidBody.Create(DeadlyObstacleScene);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.Trigger := true;
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
-
-  Collider:= TBoxCollider.Create(RBody);
-  Collider.Size := Vector3(Scene.BoundingBox.SizeX / 2.2, Scene.BoundingBox.SizeY / 3, 30.0);
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0;
-
-  DeadlyObstacleScene.RigidBody := RBody;
-end;
+{ TDeadlyObstacle ------------------------------------------------------------ }
 
 constructor TDeadlyObstacle.Create(AOwner: TComponent);
 begin
@@ -83,11 +56,18 @@ begin
   IsPlayerColliding := false;
 end;
 
-procedure TDeadlyObstacle.ParentChanged;
+procedure TDeadlyObstacle.ParentAfterAttach;
 begin
-  inherited ParentChanged;
+  inherited ParentAfterAttach;
+
   Scene := Parent as TCastleScene;
-  ConfigureDeadlyObstaclePhysics(Scene);
+
+  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody <> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
+  end;
 end;
 
 procedure TDeadlyObstacle.Update(const SecondsPassed: Single;
@@ -106,9 +86,9 @@ end;
 
 procedure TDeadlyObstacle.HitPlayer;
 begin
-  StatePlay.HitPlayer;
+  ViewPlay.HitPlayer;
   { When player is dead stop hiting. }
-  if StatePlay.IsPlayerDead then
+  if ViewPlay.IsPlayerDead then
   begin
     IsPlayerColliding := false;
     CollidingTime := 0;
@@ -118,6 +98,7 @@ end;
 procedure TDeadlyObstacle.CollisionEnter(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     HitPlayer;
@@ -129,6 +110,7 @@ end;
 procedure TDeadlyObstacle.CollisionExit(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  // TODO: We should check by instance reference, not by name
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     IsPlayerColliding := false;

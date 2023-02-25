@@ -1,0 +1,318 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 2.1568627655506134E-001,
+        "Green" : 2.1568627655506134E-001,
+        "Red" : 2.1568627655506134E-001
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Alignment" : "hpMiddle",
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "VerticalGroup1",
+      "Spacing" : 1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontSonic",
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelSonicFont",
+          "Text" : [
+            "A simple test of a bitmap font (characters from an image).",
+            "Do cats eat bats?",
+            "and sometimes, Do bats eat cats?"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleBitmapFont",
+              "ImageMargin" : 2,
+              "ImageRows" : 12,
+              "ImageUrl" : "castle-data:/fonts/sonic_asalga_0.png",
+              "Name" : "FontSonic"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontNullTerminator",
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelNullTerminator",
+          "Text" : [
+            "Another label, with different bitmap font."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.1999996185302734E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleBitmapFont",
+              "DisplayMargin" : 1.0000000000000000E+000,
+              "ImageMargin" : 1,
+              "ImageRows" : 12,
+              "ImageUrl" : "castle-data:/fonts/null_terminator_0.png",
+              "Name" : "FontNullTerminator"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSans",
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelDejaVu",
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "DejaVuSans font (from TTF file)",
+            "with anti-aliasing."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -9.4857139587402344E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "FontDejaVuSans",
+              "URL" : "castle-data:/fonts/DejaVuSans.ttf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSansLarger",
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelDejaVuLarger",
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "DejaVuSans font",
+            "with anti-aliasing and larger OptimalSize, looks sharper at larger sizes."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.7835713195800781E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "FontDejaVuSansLarger",
+              "OptimalSize" : 30,
+              "URL" : "castle-data:/fonts/DejaVuSans.ttf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSansLarger",
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelDejaVuLargerOutline",
+          "Outline" : 1,
+          "OutlineColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 5.0196081399917603E-001
+          },
+          "OutlineHighQuality" : true,
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "DejaVuSans font",
+            "with anti-aliasing and larger OptimalSize and Outline."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.6135711669921875E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSansNoAa",
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelDejaVuNoAa",
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "DejaVuSans font",
+            "without anti-aliasing."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.5177310180664062E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "AntiAliased" : false,
+              "Name" : "FontDejaVuSansNoAa",
+              "URL" : "castle-data:/fonts/DejaVuSans.ttf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontParpg",
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelParpg",
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "Stylish \"old typewriter\" font (from TTF file)."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.1477310180664062E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "FontParpg",
+              "OptimalSize" : 30,
+              "URL" : "castle-data:/fonts/PARPG.ttf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 2.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSans",
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "MaxWidth" : 9.0000000000000000E+002,
+          "Name" : "LabelDejaVuLongLong",
+          "Padding" : 5.0000000000000000E+000,
+          "Text" : [
+            "This is a long long long text to test how is the label automatically broken into multiple lines. This is a long long long text to test how is the label automatically broken into multiple lines. This is a long long long text to test how is the label automatically broken into multiple lines.",
+            "",
+            "Note that explicit line breaks will be correctly preserved in the broken text.",
+            "",
+            "Use MaxWidth to set the width limit, at which text is broken."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.6577310180664062E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
+    }
+  ]
+}

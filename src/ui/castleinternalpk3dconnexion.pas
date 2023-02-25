@@ -50,9 +50,15 @@ unit CastleInternalPk3DConnexion;
 
 {$I castleconf.inc}
 
+{$ifdef MSWINDOWS}
+  {$ifndef CASTLE_DELPHI_PACKAGE}
+    {$define REAL_3D_CONNEXION_IMPLEMENTATION}
+  {$endif}
+{$endif}
+
 interface
 
-{$ifdef MSWINDOWS}
+{$ifdef REAL_3D_CONNEXION_IMPLEMENTATION}
 uses
    SysUtils,
    Windows,
@@ -282,7 +288,7 @@ type
 { Surround most of the content in Windows-only ifdef.
   Still, the above types, like TEmulationAxis, are defined on all OSes.
   This is useful e.g. to detect name clash errors on any OS. }
-{$ifdef MSWINDOWS}
+{$ifdef REAL_3D_CONNEXION_IMPLEMENTATION}
 
 type
    T3DConnexionDevice = class(TObject)
@@ -868,7 +874,7 @@ begin
    mif.Free;
 end;
 
-{$else} // JA: ifndef MSWINDOWS - dummy implementation
+{$else} // ifndef REAL_3D_CONNEXION_IMPLEMENTATION - dummy implementation
 
 type
    T3DConnexionDevice = class(TObject)
@@ -879,7 +885,7 @@ type
       destructor Destroy; override;
       procedure GetSensorRotation(var X, Y, Z, Angle: Double);
       procedure GetSensorTranslation(var X, Y, Z, Length: Double);
-   published
+   //published
       property Loaded: boolean read FLoaded;
    end;
 
@@ -906,6 +912,6 @@ begin
    X := 0; Y := 0; Z := 0; Length := 0;
 end;
 
-{$endif} // ifndef MSWINDOWS
+{$endif} // ifndef REAL_3D_CONNEXION_IMPLEMENTATION
 
 end.

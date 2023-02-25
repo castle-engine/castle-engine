@@ -39,7 +39,7 @@ Units called `DesignXxx` are helper units for `FrameDesign`, i.e. for design edi
 The **Castle Game Engine Editor** is provided on the GNU GPL >= 2 license terms.
 *Not* on more permissive terms of LGPL (with static linking exception) >= 2
 (that are used for the rest of the Castle Game Engine).
-See the file ../../COPYING.md for details.
+See https://castle-engine.io/license for details.
 This means that:
 
 - You can use the editor to create your own closed-source programs,

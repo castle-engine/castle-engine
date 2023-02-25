@@ -1,5 +1,6 @@
+{%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,6 +76,10 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
   const SmoothScaling: boolean = false): TDrawableImage;
+
+{ Save depth buffer contents. }
+function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
+
 {$endif read_interface_func}
 
 {$endif read_interface}
@@ -151,6 +156,23 @@ var
 begin
   ScreenImage := SaveScreen_NoFlush(Rect, ReadBuffer);
   Result := TDrawableImage.Create(ScreenImage, SmoothScaling, true);
+end;
+
+function SaveScreenDepth_NoFlush(const Rect: TRectangle): TGrayscaleImage;
+begin
+  Result := TGrayscaleImage.Create(Rect.Width, Rect.Height);
+  try
+    BeforePackImage(Result);
+    try
+      glReadPixels(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height, GL_DEPTH_COMPONENT,
+        ImageGLType(Result), Result.RawPixels);
+    finally
+      AfterPackImage(Result);
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 {$endif read_implementation}

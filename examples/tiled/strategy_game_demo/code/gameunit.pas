@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,7 +153,7 @@ end;
 
 function TUnitsOnMap.IsWater(const TilePosition: TVector2Integer): Boolean;
 var
-  Tileset: TTiledMap.TTileset;
+  Tileset: TCastleTiledMapData.TTileset;
   Frame: Integer;
   HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
 begin
@@ -254,8 +254,8 @@ begin
 
     R := UnitsOnMap.MapControl.TileRectangle(TilePosition, false);
     R := R.CenterInside(Ui.EffectiveWidth, Ui.EffectiveHeight);
-    Ui.Left := R.Left;
-    Ui.Bottom := R.Bottom;
+    Ui.Anchor(hpLeft, R.Left);
+    Ui.Anchor(vpBottom, R.Bottom);
     Ui.Exists := true;
   end;
 end;

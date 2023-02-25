@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,10 +89,9 @@ var
   I: Integer;
   LightUniqueName: string;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to Count - 1 do
-    if L[I].Light = Light then Exit(PLight(Ptr(I)));
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+    if List^[I].Light = Light then
+      Exit(PLight(Ptr(I)));
 
   { add a new TLight record }
   Result := PLight(Add);
@@ -618,8 +617,8 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
-      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionSceneDirection);
-      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionSceneDirection);
+      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionWorldDirection);
+      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionWorldDirection);
       { do not place ProjectionLocation exactly at MinCorner, it would be too close
         to ShadowCastersBox, forcing projectionNear always almost zero. }
       ProjectionLocation :=

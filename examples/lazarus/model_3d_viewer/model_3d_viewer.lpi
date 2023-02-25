@@ -9,6 +9,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
+      <Title Value="Castle Game Engine - Lazarus Model Viewer"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -65,8 +66,11 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="model_3d_viewer"/>
+    </Target>
     <SearchPaths>
-      <SrcPath Value="$(LazarusDir)/lcl;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -99,7 +103,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="7">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -115,6 +119,12 @@
       <Item5>
         <Name Value="EInvalidGLVersionString"/>
       </Item5>
+      <Item6>
+        <Name Value="EDownloadError"/>
+      </Item6>
+      <Item7>
+        <Name Value="EX3DParserError"/>
+      </Item7>
     </Exceptions>
   </Debugging>
 </CONFIG>

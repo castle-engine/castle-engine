@@ -49,7 +49,7 @@ procedure TTestLocalizationGetText.TestTranslateUi;
   begin
     UiOwner := TComponent.Create(nil);
     try
-      {Ui := }UserInterfaceLoad('castle-data:/localization_gettext/gamestatemain.castle-user-interface', UiOwner);
+      {Ui := }UserInterfaceLoad('castle-data:/localization_gettext/gameviewmain.castle-user-interface', UiOwner);
       L := UiOwner.FindRequiredComponent('Label1') as TCastleLabel;
       AssertEquals('My Label', L.Caption);
       E := UiOwner.FindRequiredComponent('Edit') as TCastleEdit;
@@ -66,7 +66,7 @@ procedure TTestLocalizationGetText.TestTranslateUi;
   begin
     UiOwner := TComponent.Create(nil);
     try
-      {Ui := }UserInterfaceLoad('castle-data:/localization_gettext/gamestatemain.castle-user-interface', UiOwner);
+      {Ui := }UserInterfaceLoad('castle-data:/localization_gettext/gameviewmain.castle-user-interface', UiOwner);
       L := UiOwner.FindRequiredComponent('Label1') as TCastleLabel;
       AssertEquals('Moja Etykieta', L.Caption);
       E := UiOwner.FindRequiredComponent('Edit') as TCastleEdit;
