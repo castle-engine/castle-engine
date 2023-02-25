@@ -1,6 +1,6 @@
 // -*- compile-command: "make" -*-
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,7 +52,7 @@ uses Classes, SysUtils,
       IndirectDependencyCheck('transform', 'services') or
       IndirectDependencyCheck('castlescript', 'transform') or
       IndirectDependencyCheck('scene', 'castlescript') or
-      IndirectDependencyCheck('window', 'ui') or
+      IndirectDependencyCheck('window', 'castlescript') or
       IndirectDependencyCheck('lcl', 'ui');
   end;
 
