@@ -495,7 +495,8 @@
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       CornerTop, CornerRight, CornerBottom, CornerLeft: Single;
-      const SrcTop: Single = 0; SrcRight: Single = 0; SrcBottom: Single = 0; SrcLeft: Single = 0;const ScaleCornerEx: Single = 1); overload;
+      const SrcTop: Single = 0; const SrcRight: Single = 0; const SrcBottom: Single = 0;
+      const SrcLeft: Single = 0; const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
@@ -1374,7 +1375,8 @@ end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       CornerTop, CornerRight, CornerBottom, CornerLeft: Single;
-      const SrcTop: Single = 0; SrcRight: Single = 0; SrcBottom: Single = 0; SrcLeft: Single = 0;const ScaleCornerEx: Single = 1);
+      const SrcTop: Single = 0; const SrcRight: Single = 0; const SrcBottom: Single = 0;
+      const SrcLeft: Single = 0; const ScaleCornerEx: Single = 1);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
