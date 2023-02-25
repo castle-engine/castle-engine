@@ -53,6 +53,7 @@ JwaWinUser, JwaDbt,
 {$else}
 Winapi.Messages, Character,
 {$endif}
+Imm,
 { /note }
 Windows, CommDlg,
 {$endif}
@@ -572,6 +573,71 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     end;
   end;
 
+  function Handle_IME:Boolean;
+  var
+    vhIMC: HIMC;
+    vSize:integer;
+    vBuffer: TBytes;
+    KeyString: UnicodeString;
+    //vLogFont: TLogFont;
+    vCF: TCompositionForm;
+    pt: TPoint;
+  begin
+    result:=False;
+    case uMsg of
+    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION:
+      begin
+        { adjusted composition window's position and font/caret size }
+        vhIMC := ImmGetContext(self.h_Wnd);
+        if vhIMC = 0 then Exit;
+        try
+          ImmSetOpenStatus(vhIMC, True);
+          {
+          ImmGetCompositionFont(vhIMC, @vLogFont);
+          vLogFont.lfHeight := Font.Height;
+          ImmSetCompositionFont(vhIMC, @vLogFont);
+          }
+          { should get focused edit's position,not done }
+          GetCursorPos(pt);
+          ScreenToClient(self.h_Wnd,pt);
+          pt.Offset(0,25);
+          vCF.ptCurrentPos := pt;
+          vCF.dwStyle := CFS_RECT;
+          vCF.rcArea := TRect.Create(0,0,self.Width,self.Height);
+          ImmSetCompositionWindow(vhIMC, @vCF);
+        finally
+          ImmReleaseContext(self.h_Wnd, vhIMC);
+        end;
+      end;
+    WM_IME_COMPOSITION:
+      begin
+          if ( LParm and GCS_RESULTSTR) <> 0 then
+          begin
+            vhIMC := ImmGetContext(self.h_Wnd);
+            if vhIMC <> 0 then
+            begin
+              try
+                vSize := ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, nil, 0);
+                if vSize > 0 then
+                begin
+                  SetLength(vBuffer, vSize);
+                  ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, @vBuffer[0], vSize);
+                  KeyString := WideStringOf(vBuffer);
+                  if KeyString <> '' then
+                  begin
+                    DoKeyDown(keyNone, KeyString);
+                  end;
+                end;
+              finally
+                ImmReleaseContext(self.h_Wnd, vhIMC);
+              end;
+              result:=True;
+            end;
+          end;
+      end;
+    end;
+  end;
+
   procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
     MaybeCapture;
@@ -631,6 +697,10 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
+    WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION,WM_IME_COMPOSITION:
+      begin
+        if Handle_IME then  Exit(0);
+      end;
     // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 

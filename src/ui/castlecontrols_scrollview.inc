@@ -159,6 +159,7 @@
     function GetPageSize: Single; override;
     function GetCompleteSize: Single; override;
     procedure DoScrollChange; override;
+    procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -638,6 +639,14 @@ procedure TCastleScrollView.DoScrollChange;
 begin
   inherited;
   FScrollArea.Anchor(vpTop, Scroll);
+end;
+
+procedure TCastleScrollView.Loaded;
+begin
+  inherited Loaded;
+
+  { Fixed ; Scroll is not equal to ScrollArea.Translation.Y when designed value <> 0 }
+  Scroll := FScrollArea.Translation.Y;
 end;
 
 { TCastleScrollViewManual ---------------------------------------------------- }
