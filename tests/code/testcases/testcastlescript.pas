@@ -196,7 +196,7 @@ begin
     FreeAndNil(Prog);
 
     AssertTrue((Vars[0] as TCasScriptInteger).Value = 23 + 12);
-    AssertTrue((Vars[1] as TCasScriptFloat).Value = Sqrt(3.14 + 2.0));
+    AssertSameValue(Sqrt(3.14 + 2.0), (Vars[1] as TCasScriptFloat).Value);
     AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
     AssertTrue((Vars[3] as TCasScriptString).Value = 'barfooxyz');
 
