@@ -610,7 +610,9 @@ begin
   ExpectNonMathErrors('or(123)');
   ExpectNonMathErrors('or(sin(123))');
   ExpectNonMathErrors('1 + true');
+  {$ifdef CASTLE_SCRIPT_FPC}
   ExpectNonMathErrors('image_load(''blah blah'')');
+  {$endif}
 end;
 
 procedure TTestCastleScript.TestCoalesce;
