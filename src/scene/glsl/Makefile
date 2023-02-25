@@ -13,10 +13,12 @@
 # to avoid the need to specify many include paths.
 # It just seems easier to extend and reorganize the source/ directory freely this way.
 
-ifeq ($(OS),Windows_NT)
+ifneq (,$(filter $(OS),Windows_NT win64))
+  $(info Detected Windows, OS is $(OS))
   # Hack for Cygwin, to avoid using Windows built-in "find" program.
   FIND:=`cygpath --mixed /bin/find`
 else
+  $(info Detected non-Windows, OS is $(OS))
   FIND:=find
 endif
 

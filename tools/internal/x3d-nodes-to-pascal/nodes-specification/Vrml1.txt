@@ -346,6 +346,7 @@ WWWAnchor : AbstractVrml1Separator {
   vrml1
   SFString [in,out] name ""
   SFString [in,out] description ""
+    change: chNone
   SFEnum [in,out] map 0
     enumerated-type-vrml1: MapNames1
 }

@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis and GLPT, LCL contributors.
+  Copyright 2022-2023 Michalis Kamburelis and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -661,15 +661,11 @@ var
 begin
   context := TCocoaWindow(window).ref;
 
-  // note: implement this?
-  //if (_this->gl_config.accelerated >= 0) {
-  //    if (_this->gl_config.accelerated) {
-  //        attr[i++] = NSOpenGLPFAAccelerated;
-  //    } else {
-  //        attr[i++] = NSOpenGLPFARendererID;
-  //        attr[i++] = kCGLRendererGenericFloatID;
-  //    }
-  //}
+  { Request accelerated?
+    Does not seem necessary,
+    https://developer.apple.com/documentation/appkit/nsopenglpixelformat/1436213-opengl_pixel_format_attributes
+    says that accelerated is preferred anyway. }
+  // attributes[Inc(i)] := NSOpenGLPFAAccelerated;
 
   if context.doubleBuffer then
     attributes[Inc(i)] := NSOpenGLPFADoubleBuffer;
@@ -680,29 +676,19 @@ begin
   attributes[Inc(i)] := NSOpenGLPFAStencilSize;
   attributes[Inc(i)] := context.StencilBits;
   attributes[Inc(i)] := NSOpenGLPFAOpenGLProfile;
-  // note: we can only specify "legacy" or "core" on mac and the system will decide what version we actually get
-
-  // TODO: CGE for now we always request "legacy"
-  //if context.profile = GLPT_CONTEXT_PROFILE_LEGACY then
-    attributes[Inc(i)] := NSOpenGLProfileVersionLegacy;
-  {
-  else if context.profile = GLPT_CONTEXT_PROFILE_CORE then
-    begin
-      if context.majorVersion = 3 then
-        attributes[Inc(i)] := NSOpenGLProfileVersion3_2Core
-      else if context.majorVersion = 4 then
-        attributes[Inc(i)] := NSOpenGLProfileVersion4_1Core
-      else
-        glptError(GLPT_ERROR_PLATFORM, 'invalid core profile major version');
-    end
-  else
-    glptError(GLPT_ERROR_PLATFORM, 'invalid context profile');
-  }
+  attributes[Inc(i)] := NSOpenGLProfileVersion3_2Core;
   attributes[Inc(i)] := 0;
 
   result := NSOpenGLPixelFormat.alloc.initWithAttributes(@attributes).autorelease;
   if result = nil then
     raise EInternalError.Create('invalid NSOpenGLPixelFormat');
+
+  { Make TGLFeatures.Create use a path that avoids accessing deprecated glGetString(GL_EXTENSIONS).
+
+    TODO: This should not be necessary, we should not change RequestCapabilities here.
+    But FPC GLExt unit will by default access deprecated glGetString(GL_EXTENSIONS),
+    this is for now the simplest way to prevent it. }
+  TGLFeatures.RequestCapabilities := rcForceModern;
 end;
 
 function TOpenGLView.initWithFrame(frameRect: NSRect): id;
@@ -909,7 +895,8 @@ end;
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  if not Closed then
+    ref.setTitle(NSSTR(GetWholeCaption));
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;

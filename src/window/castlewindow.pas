@@ -173,6 +173,10 @@ unit CastleWindow;
 
 {$I castleconf.inc}
 
+{$ifdef CASTLE_DELPHI_PACKAGE}
+  {$message fatal 'This unit should not be included in CGE Delphi package, as this unit may talk to WinAPI to initialize window application, and it would conflict with Delphi IDE.'}
+{$endif}
+
 { Choose CastleWindow backend ------------------------------------------ }
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
@@ -304,7 +308,7 @@ uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
   { FPC units }
-  SysUtils, Classes, Generics.Collections, CustApp,
+  SysUtils, Classes, Generics.Collections, CustApp, CTypes,
   { Castle Game Engine units }
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
@@ -321,26 +325,7 @@ const
   WindowPositionCenter = -1000000;
   WindowDefaultSize = -1000000;
 
-type
-  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay,
-    poMacOsXProcessSerialNumber, poLimitFps);
-  TWindowParseOptions = set of TWindowParseOption;
-  PWindowParseOptions = ^TWindowParseOptions;
-
 const
-  { All "normal" command-line options,
-    that most programs using CastleWindow should be able to handle
-    without any problems.
-
-    In other words, most programs calling @link(TCastleWindow.ParseParameters)
-    method can safely pass as the 1st parameter this constant,
-    StandardParseOptions.
-    Or they can simply call overloaded version of TCastleWindow.ParseParameters
-    that doesn't take any parameters, it is always equivalent to
-    calling TCastleWindow.ParseParameters(StandardParseOptions). }
-  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay,
-    poMacOsXProcessSerialNumber, poLimitFps];
-
   DefaultDepthBits = 24;
   DepthBitsFallback = 16;
 
@@ -521,7 +506,6 @@ type
 
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
-    FAccumBits: TVector4Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
@@ -603,23 +587,28 @@ type
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
 
-      Here's a list of properties that should be made "visible" to the user
-      in OpenBackend:
+      Properties that should be used in OpenBackend implementation to determine
+      the window:
 
-        Width, Height, Left, Top
-        Cursor,
-        FullScreen
-          (Note that FFullScreenWanted and FFullScreenBackend are always
-          equal at this point, so you can read any of these fields.
-          You can also just read FullScreen property.)
-        ResizeAllowed (DoResize already implements appropriate
-          checks, but implementation should provide user with visual clues that
-          the window may / may not be resized)
-        MainMenu (display MainMenu and provide way to call DoMenuClick)
+      - Width, Height, Left, Top
+      - Cursor,
+      - FullScreen
+        (Note that FFullScreenWanted and FFullScreenBackend are always
+        equal at this point, so you can read any of these fields.
+        You can also just read FullScreen property.)
+      - ResizeAllowed
+        (DoResize already implements appropriate
+        checks, but implementation should provide user with visual clues that
+        the window may / may not be resized)
+      - MainMenu (display MainMenu and provide way to call DoMenuClick)
 
       OpenGL context must be initialized honouring these properties:
-        DoubleBuffer, StencilBits, DepthBits, AlphaBits,
-        AccumBits, MultiSampling }
+
+      - DoubleBuffer,
+      - StencilBits,
+      - DepthBits,
+      - AlphaBits,
+      - MultiSampling }
     procedure OpenBackend;
 
     { Close OpenGL context, for particular backend.
@@ -900,7 +889,7 @@ type
     procedure OpenCore;
     { Current OpenGL buffers configuration required.
       Stuff like DoubleBuffer, AlphaBits, DepthBits,
-      StencilBits, AccumBits etc.
+      StencilBits etc.
       This simply returns a text description of these properties.
 
       It does not describe the current OpenGL context parameters.
@@ -1340,8 +1329,8 @@ type
       You can enable/disable anti-aliasing in your program by code like
 
       @longCode(#
-        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
-        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
+        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE);
+        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE);
       #)
 
       But usually that's not needed, as it is "on" by default
@@ -1388,24 +1377,6 @@ type
       @link(Open) will raise an error. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
-
-    { Required number of bits in color channels of accumulation buffer.
-      Color channel is 0..3: red, green, blue, alpha.
-      Zero means that given channel of accumulation buffer is not needed,
-      so when the vector is all zeros (default value) this means that
-      accumulation buffer is not needed at all.
-
-      Just like with other XxxBits property, we may get more
-      bits than we requested. But we will never get less --- if window system
-      will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error.
-
-      @deprecated
-      This property is deprecated, since modern OpenGL deprecated accumulation
-      buffer. It may not be supported by some backends (e.g. LCL backend
-      doesn't support it). }
-    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits;
-      {$ifdef FPC}deprecated 'Accumulation buffer is deprecated in OpenGL, use FBO instead, e.g. by TGLRenderToTexture';{$endif}
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -1799,7 +1770,7 @@ type
       @raises(EGLContextNotPossible
         If it's not possible to obtain
         OpenGL context with specified attributes.
-        For example, maybe you set AlphaBits, DepthBits, StencilBits, AccumBits
+        For example, maybe you set AlphaBits, DepthBits, StencilBits
         properties too high?
 
         It's guaranteed that when EGLContextNotPossible
@@ -1947,85 +1918,33 @@ type
     { Parsing parameters ------------------------------------------------------- }
 
     { Parse some command-line options and remove them from @link(Parameters)
-      list. AllowedOptions specify which command-line options are handled.
-      See [https://castle-engine.io/opengl_options.php] for
+      list. See https://castle-engine.io/opengl_options.php for
       documentaion what these options actually do from user's point of view.
 
       @definitionList(
-        @itemLabel poGeometry
-        @item(Handle these command-line options:
-          @unorderedList(
-            @itemSpacing Compact
-            @item(@--fullscreen: sets FullScreen to @true.)
-            @item(@--window: sets FullScreen to @false.)
-            @item(@--geometry: sets FullScreen to @false
-              and changes @link(Width), @link(Height), @link(Left), @link(Top)
-              as user wants.)
-          )
-        )
+        @itemLabel @--fullscreen
+        @item(Sets FullScreen to @true.)
 
-        @itemLabel poScreenGeometry
-        @item(Handle @--fullscreen-custom: sets FullScreen and VideoResize
-          to @true, initializes VideResizeWidth and VideResizeHeight
-          and actually tries to change your desktop resolution by VideoChange.)
+        @itemLabel @--window
+        @item(Sets FullScreen to @false.)
 
-        @itemLabel poDisplay
-        @item(Handle @--display: sets Application.XDisplayName under Unix.)
+        @itemLabel @--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF
+        @item(Sets FullScreen to @false and sets window position and size:
+          @link(Width), @link(Height), @link(Left), @link(Top).)
 
-        @itemLabel poMacOsXProcessSerialNumber
-        @item(
-          (Only relevant on macOS) A special parameter -psvn_x_xxx will be found
-          and removed from the @link(Parameters) list. See
-          http://forums.macrumors.com/showthread.php?t=207344 and
-          http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
-        )
-
-        @itemLabel poLimitFps
-        @item(Handle @--no-limit-fps: disables
-          @link(TCastleApplicationProperties.LimitFps ApplicationProperties.LimitFps),
-          allows to observe maximum FPS, see
-          http://castle-engine.io/manual_optimization.php )
+        @itemLabel @--fullscreen-custom WIDTHxHEIGHT
+        @item(Change desktop resolution by VideoChange and sets FullScreen to @true.
+          Changing desktop resolution is not implemented on all platforms.)
       )
 
-      Multiple options of the same kind are allowed, for example two options
-      @code(--fullscreen --geometry 100x100+0+0) are allowed. Each of them will
-      have appropriate effect, in the above example, @--fullscreen param
-      will be overridden by following @--geometry param. Such overridding
-      is sometimes useful from shell scripts.
-
-      Overloaded version with SpecifiedOptions says which command-line
-      options were found and handled. For example, if poGeometry, then
-      you know that user requested some window size.
-
       @raises(EInvalidParams When some of our options have invalid arguments.) }
-    procedure ParseParameters(
-      const AllowedOptions: TWindowParseOptions = StandardParseOptions); overload;
-    procedure ParseParameters(
-      const AllowedOptions: TWindowParseOptions;
-      out SpecifiedOptions: TWindowParseOptions); overload;
+    procedure ParseParameters;
 
-    { Help text for options in AllowedOptions.
-      The idea is that if you call @code(ParseParameters(AllowedOptions))
-      in your program then you should also show your users somwhere
-      (e.g. in response to "--help" option) the list of allowed
-      options obtained by @code(ParseParametersHelp(AllowedOptions))
-      (i.e. with the same value of AllowedOptions).
+    { Help text for options handled by ParseParameters.
 
       Returned string may be multiline, but it does not contain
-      the trailing newline (newline char after the last line).
-
-      Returned help text conforms to rules in
-      @code(castle_game_engine/doc/kambi_command_line_params.txt).
-
-      If AddHeader then it adds line saying @code('Window options:')
-      (and showing backend name, for debug purposes)
-      at the beginning. This allows you to comfortably use
-      the output of this function as a whole
-      paragraph (separated from the rest of your "--help" text
-      by e.g. empty lines around). }
-    class function ParseParametersHelp(
-      const AllowedOptions: TWindowParseOptions;
-      AddHeader: boolean): string;
+      the trailing newline (newline char after the last line). }
+    class function ParseParametersHelp: String;
 
     { Select a file to open or save, using native (looks familiar on a given system) dialog box.
       Accepts and returns argument as an URL.
@@ -2615,18 +2534,53 @@ type
 
     procedure HandleException(Sender: TObject); override;
 
-    { Handle standard command-line parameters of Castle Game Engine programs.
-      Handles:
-      @unorderedList(
-        @item(@code(-h / @--help))
-        @item(@code(-v / @--version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
-        @item(@code(@--log-file), setting @link(LogFileName))
-        @item(All the parameters handled by @link(TCastleWindow.ParseParameters),
-          if @link(MainWindow) is set already.)
-        @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
+    { Parse some command-line options and remove them from @link(Parameters)
+      list. These are standard command-line parameters of Castle Game Engine programs.
+
+      See TCastleWindow.ParseParameters for more options specific to each window.
+
+      @definitionList(
+        @itemLabel -h / @--help
+        @item(Output help, exit.)
+
+        @itemLabel -v / @--version
+        @item(Output version, exit,
+          Uses @link(TCastleApplicationProperties.Version ApplicationProperties.Version).)
+
+        @itemLabel @--log-file FILE-NAME
+        @item(Force log to given file, sets @link(LogFileName).)
+
+        @itemLabel @--display X-DISPLAY-NAME
+        @item(Sets Application.XDisplayName under Unix.)
+
+        @itemLabel -psvn_x_xxx
+        @item(
+          (Only relevant on macOS.) A special parameter -psvn_x_xxx will be found
+          and removed from the @link(Parameters) list. See
+          http://forums.macrumors.com/showthread.php?t=207344 and
+          http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
+        )
+
+        @itemLabel @--no-limit-fps
+        @item(Allows to disable
+          @link(TCastleApplicationProperties.LimitFps ApplicationProperties.LimitFps),
+          to allows to observe maximum FPS, see
+          http://castle-engine.io/manual_optimization.php )
+
+        @itemLabel @--capabilities automatic|force-fixed-function|force-modern
+        @item(Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.)
       )
+
+      Moreover this also handles parameters from @link(TCastleWindow.ParseParameters),
+      if @link(MainWindow) is set already.
+      But note that our templates do not set @link(MainWindow) so early.
+      We recommend to explicitly set window size / Window.FullScreen from code and call
+      @link(TCastleWindow.ParseParameters) right after, to allow user to override.
+
+      Moreover this also handles parameters from @link(TSoundEngine.ParseParameters).
     }
     procedure ParseStandardParameters;
+    function ParseStandardParametersHelp: String;
 
     { Are we using OpenGLES for rendering. }
     function OpenGLES: Boolean;
@@ -2684,8 +2638,9 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 
 implementation
 
-uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
-  CastleRenderContext,
+uses
+  CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+  CastleRenderContext, CastleInternalGLUtils,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -3733,25 +3688,20 @@ end;
 
 { TCastleWindow ParseParameters -------------------------------------------------- }
 
-type
-  TOptionProcData = record
-    SpecifiedOptions: TWindowParseOptions;
-    Window: TCastleWindow;
-  end;
-  POptionProcData = ^TOptionProcData;
-
-procedure GeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure WindowOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ProcData: POptionProcData absolute Data;
+var
+  Window: TCastleWindow absolute Data;
 
   procedure ApplyGeometryParam(const geom: string);
-  var p: integer;
-      parWidth, parHeight, parXoff, parYoff: integer;
-      xoffPlus, yoffPlus, sizeSpecified, positionSpecified: boolean;
-      { p to znak w stringu geom ktory teraz chcemy czytac.
-        parWidth i parHeight sa valid tylko o ile sizeSpecified.
-        parXoff, parYoff, xoffPlus, yoffPlus sa valid tylko o ile positionSpecified.
-      }
+  var
+    p: integer;
+    parWidth, parHeight, parXoff, parYoff: integer;
+    xoffPlus, yoffPlus, sizeSpecified, positionSpecified: boolean;
+    { p to znak w stringu geom ktory teraz chcemy czytac.
+      parWidth i parHeight sa valid tylko o ile sizeSpecified.
+      parXoff, parYoff, xoffPlus, yoffPlus sa valid tylko o ile positionSpecified.
+    }
 
     procedure ParseSize;
     { parsuje width i height }
@@ -3809,7 +3759,7 @@ var ProcData: POptionProcData absolute Data;
     end;
 
   begin
-   ProcData^.Window.FullScreen := false;
+   Window.FullScreen := false;
    try
     sizeSpecified := false;
     positionSpecified := false;
@@ -3825,17 +3775,17 @@ var ProcData: POptionProcData absolute Data;
     {ok, now we can apply what we have}
     if sizeSpecified then
     begin
-     ProcData^.Window.Width := parWidth;
-     ProcData^.Window.Height := parHeight;
+     Window.Width := parWidth;
+     Window.Height := parHeight;
     end;
     if positionSpecified then
     begin
      if xoffPlus then
-      ProcData^.Window.Left := parXoff else
-      ProcData^.Window.Left := Application.ScreenWidth-parXoff-parWidth;
+      Window.Left := parXoff else
+      Window.Left := Application.ScreenWidth-parXoff-parWidth;
      if yoffPlus then
-      ProcData^.Window.Top := parYoff else
-      ProcData^.Window.Top := Application.ScreenHeight-parYoff-parHeight;
+      Window.Top := parYoff else
+      Window.Top := Application.ScreenHeight-parYoff-parHeight;
     end;
 
    except
@@ -3844,23 +3794,10 @@ var ProcData: POptionProcData absolute Data;
    end;
   end;
 
-begin
-  Include(ProcData^.SpecifiedOptions, poGeometry);
-  case OptionNum of
-    0: ProcData^.Window.FullScreen := true;
-    1: ProcData^.Window.FullScreen := false;
-    2: ApplyGeometryParam(Argument);
-  end;
-end;
-
-procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ProcData: POptionProcData absolute Data;
-
   procedure ApplyFullScreenCustomParam(const option: string);
   var p: integer;
   begin
-   ProcData^.Window.FullScreen := true;
+   Window.FullScreen := true;
    try
     p := CharsPos(['x','X'], option);
     if p = 0 then
@@ -3877,171 +3814,34 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
-  Include(ProcData^.SpecifiedOptions, poScreenGeometry);
   case OptionNum of
-    0: ApplyFullScreenCustomParam(Argument);
+    0: Window.FullScreen := true;
+    1: Window.FullScreen := false;
+    2: ApplyGeometryParam(Argument);
+    3: ApplyFullScreenCustomParam(Argument);
+    else raise EInternalError.CreateFmt('WindowOptionProc: unhandled OptionNum %d', [OptionNum]);
   end;
 end;
 
-procedure DisplayOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  ProcData: POptionProcData absolute Data;
-begin
-  Include(ProcData^.SpecifiedOptions, poDisplay);
-  case OptionNum of
-    0: {$ifdef CASTLE_WINDOW_XLIB}
-       if Application.FOpenWindows.Count <> 0 then
-         WarningWrite(ApplicationName + ': some windows are already open ' +
-           'so --display option is ignored.') else
-         Application.XDisplayName := Argument;
-       {$else}
-         {$ifdef CASTLE_WINDOW_GTK_2}
-         Application.XDisplayName := Argument;
-         {$else}
-         WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-           'when we don''t use directly Xlib');
-         {$endif}
-       {$endif}
-  end;
-end;
-
-procedure LimitFpsOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  ProcData: POptionProcData absolute Data;
-begin
-  Include(ProcData^.SpecifiedOptions, poLimitFps);
-  case OptionNum of
-    0: ApplicationProperties.LimitFps := 0;
-  end;
-end;
-
-procedure TCastleWindow.ParseParameters(const AllowedOptions: TWindowParseOptions;
-  out SpecifiedOptions: TWindowParseOptions);
-
+procedure TCastleWindow.ParseParameters;
 const
-  GeometryOptions: array [0..2] of TOption =
-  ( (Short:#0; Long:'fullscreen'; Argument: oaNone),
-    (Short:#0; Long:'window'; Argument: oaNone),
-    (short:#0; Long:'geometry'; Argument: oaRequired) );
-
-  ScreenGeometryOptions: array [0..0] of TOption =
-  ( (Short:#0; Long:'fullscreen-custom'; Argument: oaRequired) );
-
-  DisplayOptions: array [0..0] of TOption =
-  ( (Short:#0; Long:'display'; Argument: oaRequired) );
-
-  LimitFpsOptions: array [0..0] of TOption =
-  ( (Short:#0; Long:'no-limit-fps'; Argument: oaNone) );
-
-  OptionsForParam: array[TWindowParseOption] of
-    record
-      pOptions: POption_Array;
-      Count: Integer;
-      OptionProc: TOptionProc;
-    end =
-  ( ( pOptions: @GeometryOptions;
-      Count: High(GeometryOptions)+1;
-      OptionProc: {$ifdef FPC} @ {$endif} GeometryOptionProc),
-    ( pOptions: @ScreenGeometryOptions;
-      Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef FPC} @ {$endif} ScreenGeometryOptionProc),
-    ( pOptions: @DisplayOptions;
-      Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef FPC} @ {$endif} DisplayOptionProc),
-    ( pOptions: nil;
-      Count: 0;
-      OptionProc: nil),
-    ( pOptions: @LimitFpsOptions;
-      Count: High(LimitFpsOptions) + 1;
-      OptionProc: {$ifdef FPC} @ {$endif} LimitFpsOptionProc)
+  Options: array [0..3] of TOption = (
+    (Short: #0; Long: 'fullscreen'; Argument: oaNone),
+    (Short: #0; Long: 'window'; Argument: oaNone),
+    (short: #0; Long: 'geometry'; Argument: oaRequired),
+    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired)
   );
-
-var
-  Data: TOptionProcData;
-
-  procedure RemoveMacOsProcessSerialNumber;
-  {$ifdef DARWIN}
-  var
-    I: Integer;
-  begin
-    for I := 1 to Parameters.Count - 1 do
-      if IsPrefix('-psn_', Parameters[I], false) then
-      begin
-        Parameters.Delete(I);
-        Include(Data.SpecifiedOptions, poMacOsXProcessSerialNumber);
-        Exit;
-      end;
-  {$else}
-  begin
-  {$endif}
-  end;
-
-var
-  ParamKind: TWindowParseOption;
 begin
-  Data.SpecifiedOptions := [];
-  Data.Window := Self;
-
-  for ParamKind := Low(ParamKind) to High(ParamKind) do
-    if ParamKind in AllowedOptions then
-    begin
-      if ParamKind = poMacOsXProcessSerialNumber then
-        RemoveMacOsProcessSerialNumber
-      else
-        Parameters.Parse(OptionsForParam[ParamKind].pOptions,
-          OptionsForParam[ParamKind].Count,
-          OptionsForParam[ParamKind].OptionProc, @Data, true);
-    end;
-
-  SpecifiedOptions := Data.SpecifiedOptions;
+  Parameters.Parse(Options, {$ifdef FPC}@{$endif} WindowOptionProc, Self, true);
 end;
 
-procedure TCastleWindow.ParseParameters(const AllowedOptions: TWindowParseOptions);
-var
-  dummy: TWindowParseOptions;
+class function TCastleWindow.ParseParametersHelp: String;
 begin
-  ParseParameters(AllowedOptions, dummy);
-end;
-
-class function TCastleWindow.ParseParametersHelp(
-  const AllowedOptions: TWindowParseOptions;
-  AddHeader: boolean): string;
-const
-  HelpForParam: array [TWindowParseOption] of string =
-  (
-    // poGeometry
-    '  --fullscreen          Set window to full-screen (cover whole screen).' + NL +
-    '  --window              Set window to not full-screen.' + NL +
-    '  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' + NL +
-    '                        Set window to not full-screen, and set size and/or position.',
-    // poScreenGeometry
-    '  --fullscreen-custom WIDTHxHEIGHT' + NL +
-    '                        Try to resize the screen to WIDTHxHEIGHT and' + NL +
-    '                        then set window to full-screen.',
-    // poDisplay
-    '  --display DISPLAY-NAME' + NL +
-    '                        Use given X display name.',
-    // poMacOsXProcessSerialNumber
-    '',
-    // poLimitFps
-    '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' + NL +
-    '                        vertical synchonization in your GPU settings,' + NL +
-    '                        to get maximum FPS.'
-  );
-var
-  ParamKind: TWindowParseOption;
-begin
-  if AddHeader then
-    Result := 'Window options (backend ' + Application.BackendName + '):'
-  else
-    Result := '';
-
-  for ParamKind := Low(ParamKind) to High(ParamKind) do
-    if (ParamKind in AllowedOptions) and
-       (ParamKind <> poMacOsXProcessSerialNumber) then
-      Result := SAppendPart(Result, NL, HelpForParam[ParamKind]);
+  Result :=
+    OptionDescription('--fullscreen', 'Set window to full-screen (cover whole screen).') + NL +
+    OptionDescription('--window', 'Set window to not be full-screen.') + NL +
+    OptionDescription('--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF', 'Set window to not be full-screen, and set initial size and/or position.') + NL +
+    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.');
 end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
@@ -4059,9 +3859,6 @@ begin
    Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
    Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not FAccumBits.IsZero then
-   Result := Result + Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
-    [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then
    Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
@@ -4084,10 +3881,6 @@ procedure TCastleWindow.CheckRequestedBufferAttributes(
   CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
   CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
   CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
-  CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
-  CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
-  CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
-  CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
 
   { If MultiSampling <= 1, this means that multisampling not required,
     so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
@@ -5025,54 +4818,103 @@ begin
   ProcessMessage(true, true);
 end;
 
+function TCastleApplication.ParseStandardParametersHelp: String;
+begin
+  Result :=
+    OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+    OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
+    OptionDescription('--log-file FILE-NAME', 'Write log to given file.') + NL +
+    OptionDescription('--display X-DISPLAY-NAME', '(Unix) Display window on given X display.') + NL +
+    OptionDescription('--no-limit-fps', 'Disable FPS limit. (We cap FPS by default, to save CPU and laptop battery.) Use this along with disabled V-Sync to see the maximum possible FPS.') + NL +
+    OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.');
+end;
+
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  // App: TCastleApplication; // unused now
   HelpString: string;
 begin
-  // App := TCastleApplication(Data); // unused now
-
   case OptionNum of
-    0:begin
-        HelpString :=
-          ApplicationName + NL+
-          NL+
-          'Available command-line options:' + NL +
-          HelpOptionHelp + NL +
-          VersionOptionHelp + NL +
-          SoundEngine.ParseParametersHelp + NL+
-          NL +
-          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
-          TCastleWindow.ParseParametersHelp(StandardParseOptions, true) + NL +
-          NL +
-          ApplicationProperties.Description;
-        InfoWrite(HelpString);
-        Halt;
-      end;
-    1:begin
-        // include ApplicationName in --version output, this is good for help2man
-        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
-        Halt;
-      end;
-    2:LogFileName := Argument;
-    else raise EInternalError.Create('OptionProc');
+    0: begin
+         HelpString :=
+           ApplicationName + NL+
+           NL+
+           'Available command-line options:' + NL +
+           Application.ParseStandardParametersHelp + NL +
+           SoundEngine.ParseParametersHelp + NL+
+           // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+           TCastleWindow.ParseParametersHelp + NL +
+           NL +
+           'TCastleWindow backend: ' + Application.BackendName + '.' + NL +
+           NL +
+           ApplicationProperties.Description;
+         InfoWrite(HelpString);
+         Halt;
+       end;
+    1: begin
+         // include ApplicationName in --version output, this is good for help2man
+         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
+         Halt;
+       end;
+    2: LogFileName := Argument;
+    3: begin
+         {$ifdef CASTLE_WINDOW_XLIB}
+         if Application.FOpenWindows.Count <> 0 then
+           WarningWrite(ApplicationName + ': some windows are already open ' +
+             'so --display option is ignored.') else
+           Application.XDisplayName := Argument;
+         {$else}
+           {$ifdef CASTLE_WINDOW_GTK_2}
+           Application.XDisplayName := Argument;
+           {$else}
+           WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
+             'when we don''t use directly Xlib');
+           {$endif}
+         {$endif}
+       end;
+    4: ApplicationProperties.LimitFps := 0;
+    5: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
 
 procedure TCastleApplication.ParseStandardParameters;
 const
-  Options: array [0..2] of TOption =
+  Options: array [0..5] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0 ; Long: 'log-file'; Argument: oaRequired)
+    (Short: #0 ; Long: 'log-file'; Argument: oaRequired),
+    (Short: #0 ; Long: 'display'; Argument: oaRequired),
+    (Short: #0 ; Long: 'no-limit-fps'; Argument: oaNone),
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
   );
+
+  {$ifdef DARWIN}
+  procedure RemoveMacOsProcessSerialNumber;
+  var
+    I: Integer;
+  begin
+    for I := 1 to Parameters.Count - 1 do
+      if IsPrefix('-psn_', Parameters[I], false) then
+      begin
+        Parameters.Delete(I);
+        Exit;
+      end;
+  end;
+  {$endif}
+
 begin
+  {$ifdef DARWIN}
+  RemoveMacOsProcessSerialNumber;
+  {$endif}
+
   SoundEngine.ParseParameters;
+
   if MainWindow <> nil then
     MainWindow.ParseParameters;
+
   Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,6 @@
   - Container also should delegate to TCastleView and in turn to TCastleUserInterface
     for everything reasonable.
 
-  TODO: Rename FContext:TGLContext here to not confuse with Container.Context:TRenderContext.
 }
 unit CastleInternalContainer;
 
@@ -54,7 +53,11 @@ type
   TCastleContainerEasy = class(TCastleContainer)
   strict private
     FRequirements: TGLContextRequirements;
-    FContext: TGLContextWGL;
+    { Internal platform-specific context data and initialization/finalization.
+      This is in contrast to TCastleContainer.Context, that is public
+      and manages context properties that are cross-platform and available
+      for all OpenGL(ES). }
+    FPlatformContext: TGLContext;
     FGLInitialized: Boolean;
     FAutoRedisplay: Boolean;
     { Copy of Requirements.DoubleBuffer when the context was created. }
@@ -70,7 +73,7 @@ type
     procedure UnLoadDesign;
   protected
     { Adjust context parameters right before usage. }
-    procedure AdjustContext(const AContext: TGLContextWGL); virtual;
+    procedure AdjustContext(const PlatformContext: TGLContext); virtual;
 
     { Call these methods from final components that wrap TCastleContainerEasy,
       like TCastleControl, TCastleWindow. }
@@ -175,9 +178,7 @@ begin
   FRequirements.Name := 'Requirements';
   FRequirements.SetSubComponent(true);
 
-  FContext := TGLContextWGL.Create;
-  FContext.WindowCaption := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
-  FContext.WndClassName := 'Castle'; // TODO: invented, check it is OK, with MultiSampling > 1
+  FPlatformContext := TGLContextWGL.Create;
 
   FAutoRedisplay := true;
 
@@ -187,7 +188,7 @@ end;
 destructor TCastleContainerEasy.Destroy;
 begin
   UnLoadDesign;
-  FreeAndNil(FContext);
+  FreeAndNil(FPlatformContext);
   if ContainersList <> nil then
     ContainersList.Remove(Self);
   inherited;
@@ -196,7 +197,7 @@ end;
 procedure TCastleContainerEasy.MakeContextCurrent;
 begin
   RenderContext := Context;
-  FContext.MakeCurrent;
+  FPlatformContext.MakeCurrent;
 end;
 
 function TCastleContainerEasy.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -225,7 +226,7 @@ procedure TCastleContainerEasy.CreateContext;
   begin
     for C in ContainersList do
       if (C <> Self) and C.GLInitialized then
-        Exit(C.FContext);
+        Exit(C.FPlatformContext);
     Result := nil;
   end;
 
@@ -235,11 +236,11 @@ begin
     FGLInitialized := true;
 
     // In CGE, all open contexts should share GL resources
-    FContext.SharedContext := AnyOtherOpenContext;
+    FPlatformContext.SharedContext := AnyOtherOpenContext;
 
-    AdjustContext(FContext);
+    AdjustContext(FPlatformContext);
 
-    FContext.ContextCreate(FRequirements);
+    FPlatformContext.ContextCreate(FRequirements);
 
     FEffectiveDoubleBuffer := Requirements.DoubleBuffer;
 
@@ -255,7 +256,7 @@ begin
     EventResize;
     Invalidate;
 
-    // allow animating in Delphi IDE
+    // do this even at design-time, to allow animating in Delphi IDE
     if {(not (csDesigning in ComponentState)) and} (not UpdatingEnabled) then
     begin
       UpdatingEnabled := true;
@@ -264,7 +265,7 @@ begin
   end;
 end;
 
-procedure TCastleContainerEasy.AdjustContext(const AContext: TGLContextWGL);
+procedure TCastleContainerEasy.AdjustContext(const PlatformContext: TGLContext);
 begin
 end;
 
@@ -300,7 +301,7 @@ begin
     EventRender;
     if GLVersion.BuggySwapNonStandardViewport then
       RenderContext.Viewport := Rect;
-    FContext.SwapBuffers;
+    FPlatformContext.SwapBuffers;
 
     // Note that calling Invalidate from RenderContext is not allowed,
     // it doesn't play OK with LCL or VCL.

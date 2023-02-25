@@ -1,269 +1,212 @@
 {
-  "Border" : {
-    "$ClassName" : "TBorder"
-  },
-  "BorderColorPersistent" : {
-    "$ClassName" : "TCastleColorPersistent"
-  },
+  "$$ClassName" : "TCastleRectangleControl",
   "ColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
     "Blue" : 1.0000000149011612E-001,
     "Green" : 1.0000000149011612E-001,
-    "Red" : 1.0000000149011612E-001,
-    "$ClassName" : "TCastleColorPersistent"
+    "Red" : 1.0000000149011612E-001
   },
   "FullSize" : true,
   "Name" : "RectangleControl1",
   "$Children" : [
     {
-      "Border" : {
-        "$ClassName" : "TBorder"
-      },
-      "BorderColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
-      },
+      "$$ClassName" : "TCastleTiledMapControl",
       "FullSize" : true,
-      "Name" : "TiledMap",
-      "OriginPersistent" : {
-        "$ClassName" : "TCastleVector2Persistent"
-      },
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleTiledMapControl"
+      "Name" : "TiledMap"
     },
     {
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
       "Border" : {
-        "$ClassName" : "TBorder"
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+000
       },
       "BorderColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
       },
-      "Frame" : true,
-      "FrameColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.0000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
       },
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-      "Name" : "VerticalGroup1",
-      "Padding" : 1.0000000000000000E+001,
-      "Spacing" : 1.0000000000000000E+001,
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "Name" : "RectangleControl2",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
         {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "ColorPersistent" : {
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "LabelFps",
-          "OutlineColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "Text" : "FPS: xxx yyy\n",
-          "VerticalAnchorDelta" : -1.0000000000000000E+001,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "ColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "LabelHelp",
-          "OutlineColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "Text" : "Drag with mouse to move the map,\nuse mouse wheel to zoom.\n",
-          "VerticalAnchorDelta" : -4.2000000000000000E+001,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "Caption" : "Smooth Scaling",
-          "CheckboxColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "CheckboxSmoothScaling",
-          "TextColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "VerticalAnchorDelta" : -9.5000000000000000E+001,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "Caption" : "Smooth Scaling Safe Border",
-          "CheckboxColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "CheckboxSmoothScalingSafeBorder",
-          "TextColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "VerticalAnchorDelta" : -1.2900000000000000E+002,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleCheckbox"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "ColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "FontSize" : 1.5000000000000000E+001,
-          "FrameColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "Label1",
-          "OutlineColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "PaddingHorizontal" : 4.0000000000000000E+001,
-          "Text" : "\"Safe Border\" workarounds scaling artifacts \non Tileset images that don't have correct spacing and \"color bleeding\".\nIt is only used when \"Smooth Scaling\" is on.\n",
-          "VerticalAnchorDelta" : -1.6300000000000000E+002,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "Name" : "HorizontalGroup1",
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Name" : "VerticalGroup1",
+          "Padding" : 1.0000000000000000E+001,
           "Spacing" : 1.0000000000000000E+001,
-          "VerticalAnchorDelta" : -2.2100000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.9073486328125000E-005
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
             {
-              "Border" : {
-                "$ClassName" : "TBorder"
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
               },
-              "BorderColorPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "Caption" : "Open Map...",
-              "CustomColorDisabledPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "CustomColorFocusedPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "CustomColorNormalPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "CustomColorPressedPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "CustomTextColorPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "CustomTextColorUse" : false,
-              "Name" : "ButtonOpen",
-              "OutlineColorPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "TintDisabledPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "TintFocusedPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "TintNormalPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "TintPressedPersistent" : {
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle",
-              "$Children" : [
+              "Name" : "LabelFps",
+              "Text" : [
+                "FPS: xxx yyy"
               ],
-              "$ClassName" : "TCastleButton"
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -1.0000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelHelp",
+              "Text" : [
+                "Drag with mouse to move the map,",
+                "use mouse wheel to zoom."
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -4.2000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Smooth Scaling",
+              "CheckboxColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "CheckboxSmoothScaling",
+              "TextColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -9.5000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Smooth Scaling Safe Border",
+              "CheckboxColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "CheckboxSmoothScalingSafeBorder",
+              "TextColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -1.2900000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 1.5000000000000000E+001,
+              "Name" : "Label1",
+              "PaddingHorizontal" : 4.0000000000000000E+001,
+              "Text" : [
+                "\"Safe Border\" workarounds scaling artifacts ",
+                "on Tileset images that don't have correct spacing and \"color bleeding\".",
+                "It is only used when \"Smooth Scaling\" is on."
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -1.6300000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleHorizontalGroup",
+              "Name" : "HorizontalGroup1",
+              "Spacing" : 1.0000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : -2.2200000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleButton",
+                  "Caption" : "Open Map...",
+                  "CustomBackgroundDisabled" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundFocused" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundNormal" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundPressed" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Image" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Name" : "ButtonOpen",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                }
+              ]
             }
-          ],
-          "$ClassName" : "TCastleHorizontalGroup"
+          ]
         }
-      ],
-      "$ClassName" : "TCastleVerticalGroup"
+      ]
     }
-  ],
-  "$ClassName" : "TCastleRectangleControl"
+  ]
 }

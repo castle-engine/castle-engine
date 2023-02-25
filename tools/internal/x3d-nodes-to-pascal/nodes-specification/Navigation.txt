@@ -2,6 +2,7 @@ X3DViewpointNode : X3DBindableNode {
   SFVec3f    [in,out] centerOfRotation  0 0 0
     range: (-Inf,Inf)
   SFString   [in,out] description       ""
+    change: chNone
   SFBool     [in,out] jump              TRUE
   SFRotation [in,out] orientation       0 0 1 0
     range: [-1,1],(-Inf,Inf)
@@ -75,7 +76,7 @@ NavigationInfo : X3DBindableNode {
     range: [0,Inf)
   SFBool   [out]    transitionComplete
   SFString [in,out] blendingSort    "DEFAULT"
-    range: ["DEFAULT", "NONE", "2D", "3D"]
+    range: ["DEFAULT", "NONE", "2D", "3D", "3D_ORIGIN", "3D_GROUND"]
     enumerated-type: TOptionalBlendingSort BlendingSortNames obsDefault
     change: chRedisplay
     doc: Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort).
@@ -122,6 +123,7 @@ ViewpointGroup : X3DChildNode {
   MFNode   [in,out] children          []
     range: X3DViewpointNode | ViewpointGroup
   SFString [in,out] description       ""
+    change: chNone
   SFBool   [in,out] displayed         TRUE
   SFBool   [in,out] retainUserOffsets FALSE
   SFVec3f  [in,out] size              0 0 0

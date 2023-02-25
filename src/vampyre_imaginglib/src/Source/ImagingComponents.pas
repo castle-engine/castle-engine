@@ -23,7 +23,8 @@ interface
     TODO: investigate, submit bug or PR upstream. }
   {.$DEFINE COMPONENT_SET_LCL}
 {$ELSEIF Defined(DELPHI)}
-  {$DEFINE COMPONENT_SET_VCL}
+  { Castle Game Engine undefined -- we want to support FMX too. }
+  {.$DEFINE COMPONENT_SET_VCL}
 {$IFEND}
 
 {$IF not Defined(COMPONENT_SET_LCL) and not Defined(COMPONENT_SET_VCL)}

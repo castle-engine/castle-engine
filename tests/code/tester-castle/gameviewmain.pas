@@ -70,8 +70,8 @@ implementation
 uses SysUtils,
   CastleColors, CastleUtils,
 
- { Testing (mainly) things inside FPC standard library, not CGE }
-  {$ifdef FPC}TestCompiler,{$endif}
+  { Testing (mainly) things inside Pascal standard library, not CGE }
+  TestCompiler,
   TestSysUtils,
   {$ifdef FPC}TestFGL,{$endif}
   TestGenericsCollections,
@@ -107,12 +107,12 @@ uses SysUtils,
   TestX3DNodesNurbs,
   TestCastleScene,
   TestCastleSceneCore,
-  {$ifdef FPC}TestCastleSceneManager,{$endif}
+  TestCastleSceneManager,
   TestCastleVideos,
   TestCastleSpaceFillingCurves,
   TestCastleStringUtils,
-  {$ifdef FPC}TestCastleScript,{$endif}
-  {$ifdef FPC}TestCastleScriptVectors,{$endif}
+  TestCastleScript,
+  TestCastleScriptVectors,
   TestCastleCubeMaps,
   TestCastleGLVersion,
   TestCastleCompositeImage,
@@ -129,7 +129,7 @@ uses SysUtils,
   TestX3DLoadInternalUtils,
   TestCastleLevels,
   TestCastleDownload,
-  {$ifdef FPC}TestCastleUnicode,{$endif}
+  TestCastleUnicode,
   TestCastleResources,
   TestX3DLoadGltf,
   TestCastleTiledMap,

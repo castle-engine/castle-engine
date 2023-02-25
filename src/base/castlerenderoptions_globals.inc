@@ -1,6 +1,6 @@
 {%MainUnit castlerenderoptions.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -170,11 +170,11 @@ type
     rmFull,
 
     { Solid color is used for everything. We do not show any color variation,
-      materials, lights, fog, textures on surfaces.
+      materials, lights, fog, textures on surfaces, alpha test.
       We still do back-face culling and depth test.
       The idea is that we "hit" the same pixels as normal rendering
       (with the exception of alpha test textures, this mode
-      doesn't set up alpha test for them).
+      doesn't set up alpha test since it doesn't set up textures).
       But everything has color TCastleRenderOptions.SolidColor.
 
       This is useful for special tricks. }
@@ -415,6 +415,16 @@ type
 
   { Render layer for @link(TCastleTransform.RenderLayer). }
   TRenderLayer = (rlParent, rlBack, rlFront);
+
+  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType)
+    or @link(TRenderContext.LineType). }
+  TLineType = (
+    ltSolid,
+    ltDashed,
+    ltDotted,
+    ltDashedDotted,
+    ltDashDotDot
+  );
 
 const
   ShadowSamplingNames: array [TShadowSampling] of string =

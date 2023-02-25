@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,22 +74,19 @@ begin
     '}'
   );
   Shader.AttachFragmentShader(
-    '#ifdef GL_ES' + NL +
-    'precision mediump float;' + NL +
-    '#endif' + NL +
     'varying vec2 tex_coord_frag;' + NL +
-    'uniform sampler2D texture;' + NL +
+    'uniform sampler2D image_texture;' + NL +
     'uniform float life_time;' + NL +
     'void main(void)' + NL +
     '{' + NL +
-    '  gl_FragColor = texture2D(texture, tex_coord_frag);' + NL +
+    '  gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
 
     // Uncomment to make simple edge detection
     '#define IMAGE_WIDTH 100.0' + NL +
     '#define IMAGE_HEIGHT 100.0' + NL +
     '  gl_FragColor +=' + NL +
-    '    texture2D(texture, tex_coord_frag - vec2(0.0, 0.5/IMAGE_HEIGHT)) - texture2D(texture, tex_coord_frag + vec2(0.0, 0.5/IMAGE_HEIGHT)) +' + NL +
-    '    texture2D(texture, tex_coord_frag - vec2(0.5/IMAGE_WIDTH, 0.0))  - texture2D(texture, tex_coord_frag + vec2(0.5/IMAGE_WIDTH, 0.0));' + NL +
+    '    texture2D(image_texture, tex_coord_frag - vec2(0.0, 0.5/IMAGE_HEIGHT)) - texture2D(image_texture, tex_coord_frag + vec2(0.0, 0.5/IMAGE_HEIGHT)) +' + NL +
+    '    texture2D(image_texture, tex_coord_frag - vec2(0.5/IMAGE_WIDTH, 0.0))  - texture2D(image_texture, tex_coord_frag + vec2(0.5/IMAGE_WIDTH, 0.0));' + NL +
 
     // Uncomment to animate rgb
     '  gl_FragColor.rgb = gl_FragColor.rgb * fract(life_time * 0.5);' + NL +

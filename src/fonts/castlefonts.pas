@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@ implementation
 
 uses Math, {$ifndef FPC} Character,{$endif}
   CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText,
-  CastleLog, CastleURIUtils, CastleRenderContext;
+  CastleLog, CastleURIUtils, CastleRenderContext, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castlefonts_miscellaneous.inc} // must be first at implementation, to define some internal consts

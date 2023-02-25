@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,7 @@ uses SysUtils, Classes, Windows,
   FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
   FMX.Types, UITypes,
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextWgl, CastleInternalContainer;
+  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -42,7 +42,7 @@ type
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
-        procedure AdjustContext(const AContext: TGLContextWGL); override;
+        procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
@@ -58,7 +58,12 @@ type
       FContainer: TContainer;
       FMousePosition: TVector2;
 
-    { Call whenever you have new knowledge about new shift state.
+    function GetCurrentShift: TShiftState;
+    procedure SetCurrentShift(const Value: TShiftState);
+
+    { Current knowledge about shift state, based on Container.Pressed.
+
+      Call this whenever you have new new shift state.
 
       Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -66,18 +71,14 @@ type
       but not keyup for it, and DoExit will not be called,
       so ReleaseAllKeysAndMouse will not be called.
 
-      To counteract this, call this method when Shift state is known,
-      to update Pressed when needed. }
-    procedure UpdateShiftState(const Shift: TShiftState);
+      To counteract this, set this whenever Shift state is known,
+      to update Container.Pressed when needed. }
+    property CurrentShift: TShiftState
+      read GetCurrentShift write SetCurrentShift;
   private
     procedure CreateHandle;
     procedure DestroyHandle;
   protected
-    { // TODO
-    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure KeyPress(var Key: Char); override;
-    }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Single); override;
@@ -110,15 +111,19 @@ type
     property Size;
     property Position;
     property Margins;
+    property TabStop default true;
+    property TabOrder;
+    property CanFocus default True;
   end;
 
 procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types,
+uses FMX.Presentation.Factory, Types, FMX.Graphics,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
-  CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils;
+  CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
+  CastleLog;
 
 procedure Register;
 begin
@@ -168,11 +173,21 @@ begin
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
+{$ifdef MSWINDOWS}
+var
+  WinContext: TGLContextWGL;
 begin
   inherited;
-  AContext.WndPtr := (Parent.Presentation as TWinNativeGLControl).Handle;
-  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
+  WinContext := PlatformContext as TGLContextWGL;
+  WinContext.WndPtr :=
+    (Parent.Presentation as TWinNativeGLControl).Handle;
+  if WinContext.WndPtr = 0 then
+    raise Exception.Create('Native handle not ready when calling TCastleControl.TContainer.AdjustContext');
+  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+{$else}
+begin
+{$endif}
 end;
 
 function TCastleControl.TContainer.Dpi: Single;
@@ -244,12 +259,55 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  { Makes the Presentation be TWinNativeGLControl, which has HWND.
-    Do this after FContainer is initialized, as it may call CreateHandle. }
-  ControlType := TControlType.Platform;
-
-  // TODO: is this necessary to receive keys?
+  { In FMX, this causes adding WS_TABSTOP to Params.Style
+    in TWinPresentation.CreateParams. So it is more efficient to call
+    before we actually create window by setting ControlType. }
   TabStop := true;
+
+  CanFocus := True;
+
+  { Makes the Presentation be TWinNativeGLControl, which has HWND.
+    Do this after FContainer is initialized, as it may call CreateHandle,
+    which in turn requires FContainer to be created.
+
+    Note that we cannnot do this at design-time (in Delphi IDE):
+
+    - Switching to TControlType.Platform at design-time
+      creates additional weird (visible in task bar, detached from form designer)
+      window on Windows, alongside main Delphi IDE window.
+
+      User can even close this window, causing crashes
+      (later when closing the FMX form, there will be exception,
+      because the Windows handle went away and FMX is not prepared for it).
+
+    - We *can* create OpenGL context in this weird window, and render there...
+      But all my experiments to attach it to form designer in Delphi IDE failed.
+      Overriding TWinNativeGLControl.CreateParams to
+
+      1. Params.Style := Params.Style or WS_CHILD
+      2. Params.WndParent := ContainerHandle;
+      3. CreateSubClass(Params, 'CastleControl');
+
+      .. yield nothing.
+
+      1 and 2 should indeed not be necessary, this is done by default by FMX,
+      we have WS_CHILD by default.
+
+      None of the above cause our rendering to be attached to Delphi IDE
+      as you would expect.
+
+    - FMX controls cannot render in native style at design-time it seems.
+
+      That is also the case for TMemo or TEdit,
+      their rendering can be native only at runtime (if you set their ControlType
+      to platform), at design-time they just display the "styled" (non-native)
+      along with an icon informing they will be native at runtime.
+
+      See
+      https://docwiki.embarcadero.com/RADStudio/Alexandria/en/FireMonkey_Native_Windows_Controls#Visual_Changes_to_Native_Windows_Controls
+  }
+  if not (csDesigning in ComponentState) then
+    ControlType := TControlType.Platform;
 end;
 
 destructor TCastleControl.Destroy;
@@ -259,39 +317,51 @@ end;
 
 procedure TCastleControl.CreateHandle;
 begin
-  inherited;
+  { Do not create context at design-time.
+    We don't even set "ControlType := TControlType.Platform" at design-time now
+    (see constructor comments),
+    this line only secures in case user would set ControlType in a TCastleControl
+    descendant at design-time. }
+  if csDesigning in ComponentState then
+    Exit;
 
-  { For now, FMX TCastleControl doesn't create a context at design-time, because
-    - painting doesn't work correctly at design-time, it is shifted
-    - there are weird errors (infinite range check error or wglMakeCurrent errors),
-      if you close a weird nameless non-modal window that appears when FMX project is open.
+  { Thanks to TWinNativeGLControl, we have Windows HWND for this control now in
+      (Presentation as TWinNativeGLControl).Handle
+    This is used in AdjustContext and
+    is necessary to create OpenGL context that only renders to this control.
+
+    Note: The only other way in FMX to get HWND seems to be to get form HWND,
+      WindowHandleToPlatform(Handle).Wnd
+    but this is not useful for us (we don't want to always render to full window).
   }
-  if not (csDesigning in ComponentState) then
-    { Thanks to TWinNativeGLControl, we have Windows HWND for this control now in
-        (Presentation as TWinNativeGLControl).Handle
-      This is used in AdjustContext and
-      is necessary to create OpenGL context that only renders to this control.
-
-      Note: The only other way in FMX to get HWND seems to be to get form HWND,
-        WindowHandleToPlatform(Handle).Wnd
-      but this is not useful for us (we don't want to always render to full window).
-    }
-    FContainer.CreateContext;
+  FContainer.CreateContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  if not (csDesigning in ComponentState) then
-    FContainer.DestroyContext;
-  inherited;
+  FContainer.DestroyContext;
 end;
 
 procedure TCastleControl.Paint;
+var
+  R: TRectF;
 begin
-  // TODO: at design-time, FMX TCastleControl is displayed at wrong position
+  { See our constructor comments:
+    looks like native drawing at design-time in FMX is just not possible reliably. }
+
   if csDesigning in ComponentState then
   begin
     inherited;
+    R := LocalRect;
+
+    Canvas.Fill.Kind := TBrushKind.Solid;
+    Canvas.Fill.Color := $A0909090;
+    Canvas.FillRect(R, 1.0);
+
+    Canvas.Fill.Color := TAlphaColors.Yellow;
+    Canvas.FillText(R,
+      'Run the project to see actual rendering of ' + Name + ' (' + ClassName + ')',
+      true, 1.0, [], TTextAlign.Center);
   end else
   begin
     // inherited not needed, and possibly causes something unnecessary
@@ -318,11 +388,22 @@ begin
   DoUpdateEverything;
 end;
 
-procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
+function TCastleControl.GetCurrentShift: TShiftState;
 begin
-  Container.Pressed.Keys[keyShift] := ssShift in Shift;
-  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
-  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+  Result := [];
+  if Container.Pressed.Keys[keyShift] then
+    Include(Result, ssShift);
+  if Container.Pressed.Keys[keyAlt] then
+    Include(Result, ssAlt);
+  if Container.Pressed.Keys[keyCtrl] then
+    Include(Result, ssCtrl);
+end;
+
+procedure TCastleControl.SetCurrentShift(const Value: TShiftState);
+begin
+  Container.Pressed.Keys[keyShift] := ssShift in Value;
+  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Value;
+  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Value;
 end;
 
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
@@ -340,7 +421,7 @@ begin
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.EventPress(InputMouseButton(FMousePosition, MyButton, 0,
@@ -357,7 +438,7 @@ begin
   // change FMousePosition *after* EventMotion, callbacks may depend on it
   FMousePosition := Vector2(NewX, Height - 1 - NewY);
 
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 end;
 
 procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
@@ -372,7 +453,7 @@ begin
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
@@ -396,7 +477,7 @@ var
   CastleEvent: TInputPressRelease;
 begin
   inherited;
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 
   if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
   begin
@@ -430,7 +511,7 @@ var
   CastleEvent: TInputPressRelease;
 begin
   inherited;
-  UpdateShiftState(Shift);
+  CurrentShift := Shift;
 
   if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
   begin

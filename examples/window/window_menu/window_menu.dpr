@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -198,16 +198,21 @@ var
   Viewport: TCastleViewport;
 begin
   Window := TCastleWindow.Create(Application);
+  Application.MainWindow := Window; // makes MessageYesNo work OK
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
   Window.Controls.InsertFront(Viewport);
 
   CreateScene;
 
   Viewport.Items.Add(Scene);
-  Viewport.Items.MainScene := Scene;
+
+  // headlight
+  Viewport.Camera.Add(TCastleDirectionalLight.Create(Application));
+
+  // good position to see default shape
+  Viewport.AssignDefaultCamera;
 
   { create menu }
   MainMenu := TMenu.Create('Main menu');

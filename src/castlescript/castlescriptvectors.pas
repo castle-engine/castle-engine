@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,6 +21,8 @@ unit CastleScriptVectors;
 interface
 
 uses CastleVectors, CastleScript;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 type
   TCasScriptVector = class;
@@ -278,11 +280,15 @@ type
     class function ShortName: string; override;
   end;
 
+{$endif CASTLE_SCRIPT_FPC}
+
 implementation
 
 uses Math,
   CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleTransform,
   CastleQuaternions, CastleColors;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 { TCasScriptVec ---------------------------------------------------------- }
 
@@ -1115,4 +1121,6 @@ initialization
 
   TCasScriptMatrix3d.RegisterFunctions;
   TCasScriptMatrix4d.RegisterFunctions;
+
+{$endif CASTLE_SCRIPT_FPC}
 end.

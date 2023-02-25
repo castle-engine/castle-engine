@@ -78,11 +78,19 @@ FIND := find
 INSTALL := install
 EXE_EXTENSION :=
 
-ifeq ($(OS),Windows_NT)
+# Detect Windows when $OS is Windows_NT or win64.
+# Other $OS, including when $OS is empty / undefined, must be non-Windows.
+# See https://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or#9802777
+# to how this trick to detect an alternative works.
+ifneq (,$(filter $(OS),Windows_NT win64))
+  $(info Detected Windows, OS is $(OS))
+
   # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
   FIND := `cygpath --mixed /bin/find`
   EXE_EXTENSION := .exe
 else
+  $(info Detected non-Windows, OS is $(OS))
+
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
@@ -494,8 +502,12 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+# Run in debug mode, testing DecimalSeparator = comma
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in debug mode without LibPng
-# (useful to test image processing, e.g. TTestImages.TestLoadImage, using fcl-image, which matters for mobile now)
+# (useful to test image processing, e.g. TTestImages.TestLoadImage, without libpng, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console

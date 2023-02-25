@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -620,6 +620,7 @@ begin
   ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TIndexedLineSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   { This somewhat follows the logic of
@@ -642,6 +643,7 @@ begin
   if State.VRML1State.Normal.FdVector.Count = 0 then
     Result := false;
 end;
+{$warnings on}
 
 constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
@@ -1080,6 +1082,7 @@ begin
       try
         Lexer.NextToken;
         Hints.Parse(Lexer, Reader, false);
+        {$warnings off} // using deprecated to keep supporting VRML 1
         if Hints.Flags[0] then
           FdShapeType.Value := SHTYPE_SOLID else
           FdShapeType.Value := SHTYPE_UNKNOWN;
@@ -1089,6 +1092,7 @@ begin
         if Hints.Flags[2] then
           FdFaceType.Value := FACETYPE_CONVEX else
           FdFaceType.Value := FACETYPE_UNKNOWN;
+        {$warnings on}
       finally Hints.Free end;
     end;
   end;
@@ -1267,7 +1271,7 @@ procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionWorldLocation, ProjectionWorldDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode_1.Scope: TLightScope;

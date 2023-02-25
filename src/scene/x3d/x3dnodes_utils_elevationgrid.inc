@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,7 +37,7 @@ function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractG
 }
 var
   Coords: TVector3List;
-  CoordIndexes: TLongIntList;
+  CoordIndexes: TInt32List;
 
   { Add to CoordIndexes a quad from given indexes.
     Actually we add two triangles, looking at Coord to choose the best

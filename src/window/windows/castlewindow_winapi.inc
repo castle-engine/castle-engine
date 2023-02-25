@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1081,23 +1081,10 @@ begin
     dwExStyle := WS_EX_APPWINDOW or WS_EX_WINDOWEDGE;
     if ResizeAllowed = raAllowed then
     begin
-      { jezeli rozmiary ekranu nie spelniaja wymagan min/max Width/Height to nie dajemy
-        przycisku MAXIMIZE dla okienka. Ponizszy test nie jest precyzyjny bo okienko
-        zmaksymalizowane ma wewnetrzna szerokosc / wysokosc troche mniejsze od
-        ScreenW/ScreemH. Ale szczerze mowiac nie mam ochoty sie babrac w badaniu
-        szerokosci ramki zmaksymalizowanego okienka. Po prostu - jezeli ponizszy check
-        spowoduje ze nie bedzie przycisku MAXIMIZE mimo ze moglby byc to trudno, to tylko
-        drobna niewygoda dla usera. Jezeli spowoduje ze przycisk MAXIMIZE bedzie mimo ze
-        nie powinno go byc to obwarowane checkami DoResize zignoruje nieprawidlowy rozmiar
-        i juz. }
-      if (not between(Application.ScreenWidth, minWidth, maxWidth)) or
-         (not between(Application.ScreenHeight, minHeight, maxHeight)) then
-        dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX or WS_THICKFRAME else
-        dwStyle := WS_OVERLAPPEDWINDOW;
+      dwStyle := WS_OVERLAPPEDWINDOW;
     end else
-      { dwStyle jest tu dokladnien taki sam jak WS_OVERLAPPEDWINDOW ale bez
-        WS_THICKFRAME i WS_MAXIMIZEBOX czyli nie mozna resizowac okna. }
-      dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX;
+      { Just like WS_OVERLAPPEDWINDOW, but without flags that would allow to resize the window). }
+      dwStyle := WS_OVERLAPPEDWINDOW and not (WS_THICKFRAME or WS_MAXIMIZEBOX);
 
     { Adjust WindowRect - so that ClientRect will hold the requested size and
       position. Whole WindowRect will be a bit larger (depends on dwStyle,
@@ -1149,7 +1136,7 @@ begin
     0 { no parent window }, H_Menu, hInstance,
     nil { don't pass anything to WM_CREATE } );
 
-  Check(h_Wnd <> 0, 'Creating window (H_wnd) failed');
+  Check(h_Wnd <> 0, 'Creating window (CreateWindowExW) failed');
 
   { calculate correct Left and Top, required e.g. by SetCursorPos }
   if FullScreen then

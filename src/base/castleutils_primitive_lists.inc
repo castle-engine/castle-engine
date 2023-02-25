@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,36 +13,57 @@
   ----------------------------------------------------------------------------
 }
 
-{ Lists of primitive types. Using FPC generic TFPGList. }
+{ Lists of primitive types.
+  Based on TStructList, which is based on TList from Generics.Collections. }
 
 {$ifdef read_interface}
 
 type
   TSingleList = class;
   TDoubleList = class;
-  TLongIntList = class;
+  TInt32List = class;
+  TUInt32List = class;
 
+  { Raised by various AssignLerp implementations on lists,
+    like @link(TStructList.AssignLerp),
+    when the arguments have different length. }
   EListsDifferentCount = class(Exception);
 
+  { List of Word (16-bit unsigned) values. }
   TWordList = class({$ifdef FPC}specialize{$endif} TStructList<Word>)
   public
     function Max: Word;
-    procedure Assign(const Source: TLongIntList);
+    procedure Assign(const Source: TInt32List); overload;
+    procedure Assign(const Source: TUInt32List); overload;
   end;
 
-  TLongWordList = class({$ifdef FPC}specialize{$endif} TStructList<LongWord>)
+  TUInt16List = TWordList;
+
+  { List of 32-bit unsigned values. }
+  TUInt32List = class({$ifdef FPC}specialize{$endif} TStructList<UInt32>)
   public
-    function Max: LongWord;
-    procedure Assign(const Source: TLongIntList);
+    function Max: UInt32;
+    procedure Assign(const Source: TInt32List);
   end;
 
+  { Old name for TUInt32List.
+
+    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
+    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
+    you should rather use TUInt32List name. }
+  TLongWordList = TUInt32List deprecated 'use TUInt32List';
+
+  { List of Float values (defined in Math unit as float with maximum precision).
+    This is deprecated as precision of floats is not defined cross-platform,
+    see https://castle-engine.io/coding_conventions#_do_not_use_extended_use_single_double . }
   TFloatList = class({$ifdef FPC}specialize{$endif} TStructList<Float>)
     procedure AppendFloats(Floats: TSingleList);
-  end;
+  end {$ifdef FPC}deprecated 'use TSingleList for most cases, eventually TDoubleList'{$endif};
 
   TSingleArray = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
   PSingleArray = ^TSingleArray;
 
+  { List of Single (single-precision floating point) values. }
   TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
     procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
@@ -71,6 +92,7 @@ type
     procedure SortAndRemoveDuplicates;
   end;
 
+  { List of Double (double-precision floating point) values. }
   TDoubleList = class({$ifdef FPC}specialize{$endif} TStructList<Double>)
     function ToSingle: TSingleList;
 
@@ -87,11 +109,17 @@ type
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
+  { List of Cardinal (unsigned) values.
+
+    In practice, Cardinal is always 32-bit signed now,
+    but use this when you don't want to explicitly care about size,
+    see https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal . }
   TCardinalList = class({$ifdef FPC}specialize{$endif} TStructList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
   end;
 
+  { List of booleans. }
   TBooleanList = class({$ifdef FPC}specialize{$endif} TStructList<boolean>)
   public
     { Set appropriate item to given value.
@@ -103,7 +131,8 @@ type
     procedure SetFalse(const Index: TListSize);
     procedure SetTrue(const Index: TListSize);
     { @groupEnd }
-    function ToLongInt: TLongIntList;
+    function ToLongInt: TInt32List; deprecated 'use ToInt32';
+    function ToInt32: TInt32List;
 
     { Does the SecondValue have equal length and content.
       This method does the same thing as @link(PerfectlyEquals)
@@ -111,23 +140,39 @@ type
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
-  TLongIntArray = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
-  PLongIntArray = ^TLongIntArray;
+  TInt32Array = packed array [0..MaxInt div SizeOf(Int32) - 1] of Int32;
+  PInt32Array = ^TInt32Array;
 
-  TLongIntList = class({$ifdef FPC}specialize{$endif} TStructList<LongInt>)
+  { List of 32-bit signed integer values. }
+  TInt32List = class({$ifdef FPC}specialize{$endif} TStructList<Int32>)
   public
-    function Max: LongInt;
-    function Sum: LongInt;
+    function Max: Int32;
+    function Sum: Int32;
     procedure DeleteRange(const Index: TListSize; DelCount: TListSize = 1);
     { Add given Item a number of times to the list. }
-    procedure AddDuplicate(const Item: LongInt; const DuplicateCount: TListSize);
+    procedure AddDuplicate(const Item: Int32; const DuplicateCount: TListSize);
 
     { Does the SecondValue have equal length and content.
       This method does the same thing as @link(PerfectlyEquals)
-      in case of LongInt list, that are always compared perfectly. }
+      in case of Int32 list, that are always compared perfectly. }
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
+  TLongIntArray = TInt32Array;
+  PLongIntArray = PInt32Array;
+
+  { Old name for TUInt32List.
+
+    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
+    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
+    you should rather use TUInt32List name. }
+  TLongIntList = TInt32List deprecated 'TInt32List';
+
+  { List of Integer (signed) values.
+
+    In practice, Integer is always 32-bit signed now,
+    but use this when you don't want to explicitly care about size,
+    see https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal . }
   TIntegerList = class({$ifdef FPC}specialize{$endif} TStructList<Integer>)
   public
     function Sum: Integer;
@@ -147,14 +192,14 @@ begin
     MaxVar(Result, Items[I]);
 end;
 
-procedure TWordList.Assign(const Source: TLongIntList);
+procedure TWordList.Assign(const Source: TInt32List);
 var
   I: TListSize;
-  Src: PLongInt;
+  Src: PInt32;
   Dest: PWord;
 begin
   Count := Source.Count;
-  Src := PLongInt(Source.L);
+  Src := PInt32(Source.L);
   Dest := PWord(L);
   for I := 0 to Count - 1 do
   begin
@@ -164,25 +209,42 @@ begin
   end;
 end;
 
-{ TLongWordList ------------------------------------------------------------ }
+procedure TWordList.Assign(const Source: TUInt32List);
+var
+  I: TListSize;
+  Src: PUInt32;
+  Dest: PWord;
+begin
+  Count := Source.Count;
+  Src := PUInt32(Source.L);
+  Dest := PWord(L);
+  for I := 0 to Count - 1 do
+  begin
+    Dest^ := Src^;
+    Inc(Src);
+    Inc(Dest);
+  end;
+end;
 
-function TLongWordList.Max: LongWord;
+{ TUInt32List ------------------------------------------------------------ }
+
+function TUInt32List.Max: UInt32;
 var
   I: TListSize;
 begin
-  Result := Low(LongWord);
+  Result := Low(UInt32);
   for I := 0 to Count - 1 do
     MaxVar(Result, Items[I]);
 end;
 
-procedure TLongWordList.Assign(const Source: TLongIntList);
+procedure TUInt32List.Assign(const Source: TInt32List);
 begin
   { Copy memory directly.
-    This implicitly converts LongInt to LongWord values, without range checking.
+    This implicitly converts Int32 to UInt32 values, without range checking.
     But, in exchange, it's fast. }
   Count := Source.Count;
   if Count <> 0 then
-    System.Move(Source.List^[0], List^[0], SizeOf(LongWord) * Count);
+    System.Move(Source.List^[0], List^[0], SizeOf(UInt32) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }
@@ -413,11 +475,16 @@ begin
  Items[Index] := true;
 end;
 
-function TBooleanList.ToLongInt: TLongIntList;
+function TBooleanList.ToLongInt: TInt32List;
+begin
+  Result := ToInt32;
+end;
+
+function TBooleanList.ToInt32: TInt32List;
 var
   I: TListSize;
 begin
-  Result := TLongIntList.Create;
+  Result := TInt32List.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
@@ -428,18 +495,18 @@ begin
   Result := (SecondValue is TBooleanList) and PerfectlyEquals(TBooleanList(SecondValue));
 end;
 
-{ TLongIntList ----------------------------------------------------------- }
+{ TInt32List ----------------------------------------------------------- }
 
-function TLongIntList.Max: LongInt;
+function TInt32List.Max: Int32;
 var
   I: TListSize;
 begin
-  Result := Low(LongInt);
+  Result := Low(Int32);
   for I := 0 to Count - 1 do
     MaxVar(Result, Items[I]);
 end;
 
-function TLongIntList.Sum: LongInt;
+function TInt32List.Sum: Int32;
 var
   I: TListSize;
 begin
@@ -448,7 +515,7 @@ begin
     Result := Result + Items[I];
 end;
 
-procedure TLongIntList.DeleteRange(const Index: TListSize; DelCount: TListSize);
+procedure TInt32List.DeleteRange(const Index: TListSize; DelCount: TListSize);
 var
   I: TListSize;
 begin
@@ -463,7 +530,7 @@ begin
   Count := Count - DelCount;
 end;
 
-procedure TLongIntList.AddDuplicate(const Item: LongInt; const DuplicateCount: TListSize);
+procedure TInt32List.AddDuplicate(const Item: Int32; const DuplicateCount: TListSize);
 var
   I, C: TListSize;
 begin
@@ -473,9 +540,9 @@ begin
     Items[I] := Item;
 end;
 
-function TLongIntList.Equals(SecondValue: TObject): boolean;
+function TInt32List.Equals(SecondValue: TObject): boolean;
 begin
-  Result := (SecondValue is TLongIntList) and PerfectlyEquals(TLongIntList(SecondValue));
+  Result := (SecondValue is TInt32List) and PerfectlyEquals(TInt32List(SecondValue));
 end;
 
 { TIntegerList ----------------------------------------------------------- }

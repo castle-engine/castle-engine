@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,9 @@
 
     function FindRequiredComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName)';
     function FindComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName, false)';
+
+    { Loaded design, only for internal usage. @exclude }
+    property InternalDesign: TCastleUserInterface read FDesign;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor

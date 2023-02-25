@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -45,10 +45,16 @@
     { TCastleScene rendered vs all visible. }
     ScenesRendered, ScenesVisible: Cardinal;
 
-    { Present the statistics information as a multi-line string.
+    { Draw calls done, in case of OpenGL this literally counts the number of calls
+      to glDrawElements and glDrawArrays. }
+    DrawCalls: Cardinal;
+
+    { Present the statistics information as a string (without any newlines).
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
   end;
+
+  PRenderStatistics = ^TRenderStatistics;
 
   { @exclude Internal.
 
@@ -177,6 +183,10 @@
     property Target: TRenderTarget read FTarget write FTarget;
 
     procedure Assign(const Source: TRenderingCamera);
+
+    { Current matrix to use for rendering. Either @link(Matrix) or @link(RotationMatrix),
+      depending on @link(RotationOnly). }
+    function CurrentMatrix: TMatrix4;
   end;
 
   { Information that a TCastleTransform object needs to render.
@@ -310,12 +320,13 @@ begin
   else
     OcclusionStats := '';
 
-  Result := Format('Shapes %d%s / %d, Scenes: %d / %d', [
+  Result := Format('Shapes %d%s / %d, Scenes: %d / %d, Draw calls: %d', [
     ShapesRendered,
     OcclusionStats,
     ShapesVisible,
     ScenesRendered,
-    ScenesVisible
+    ScenesVisible,
+    DrawCalls
   ]);
 end;
 
@@ -398,6 +409,14 @@ begin
   RotationInverseMatrix     := Source.RotationInverseMatrix    ;
   RotationInverseMatrixDone := Source.RotationInverseMatrixDone;
   Frustum                   := Source.Frustum                  ;
+end;
+
+function TRenderingCamera.CurrentMatrix: TMatrix4;
+begin
+  if RotationOnly then
+    Result := RotationMatrix
+  else
+    Result := Matrix;
 end;
 
 { TRenderParams -------------------------------------------------------------- }

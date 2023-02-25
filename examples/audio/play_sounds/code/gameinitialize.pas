@@ -44,7 +44,7 @@ begin
   // Get infotmation in log when each sound is loaded.
   SoundEngine.LogSoundLoading := true;
 
-  { Create game views and set initial view }
+  { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewMain := TViewMain.Create(Application);

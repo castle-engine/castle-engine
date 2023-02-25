@@ -72,7 +72,7 @@ Transform {
       }
     }
     geometry Teapot {
-      texCoord MultiTextureCoordinate {
+      texCoord MultiGeneratedTextureCoordinate {
         texCoord [
           TextureCoordinateGenerator { mode "COORD" }
           TextureCoordinateGenerator { mode "WORLDSPACEREFLECTIONVECTOR" }

@@ -549,7 +549,7 @@
 
     class var
       { Default value of @link(TCastleTransform.Orientation) for new TCastleTransform instances,
-        but not for cameras (cameras use special DefaultCameraOrientation).
+        except for cameras (cameras use special DefaultCameraOrientation).
 
         This is @link(otUpYDirectionZ) by default.
         This matches glTF orientation (as exported from Blender and other software). }
@@ -1646,21 +1646,68 @@
     property Position: TVector3 read FTranslation write SetTranslation;
       {$ifdef FPC}deprecated 'use Translation';{$endif}
 
-    { Direction the transformation (like creature or camera) is facing, and up vector.
-      These properties provide an alternative way to get and set the @link(Rotation)
-      of the transformation.
-      Thinking in terms of "direction" and "up" is often more natural
-      when transforming creatures and player.
+    { Direction that this transformation (like creature, space ship, missile, a camera...) is facing.
+      The property @link(Up) contains an associated up vector.
+      Together, the @link(Direction) and @link(Up) properties provide an alternative way
+      to get and set the @link(Rotation) of the transformation.
 
-      The @link(Orientation) determines what is your default direction and up
-      (when the @link(Rotation) is zero).
+      Thinking in terms of "direction" and "up" is more natural than thinking
+      about @link(Rotation) for various game objects.
+      For example, you can move a missile forward by this simple operation:
+
+      @longCode(#
+        MyMissile.Translation := MyMissile.Translation +
+          MyMissile.Direction * SecondsPassed * MissileMoveSpeed;
+      #)
+
+      The @link(Orientation) determines what is the direction and up you get
+      when the @link(Rotation) is zero.
+      For example @link(Orientation) = otUpYDirectionZ (default now) means that:
+
+      @orderedList(
+        @item(When @link(Rotation) is zero,
+          then @link(Up) will be +Y axis @code((0,1,0)) and
+          @link(Direction) will be +Z axis @code((0,0,1)).)
+
+        @item(Setting the @link(Direction) and @link(Up) to other values will be properly converted.)
+
+        @item(So when @link(Orientation) = otUpYDirectionZ, and you set
+
+          @longCode(#
+          MyMissile.Direction := Vector3(0, 0, 1);
+          MyMissile.Up := Vector3(0, 1, 0);
+          #)
+
+          then you effectively have set @link(Rotation MyMissile.Rotation) to zero (no rotation).
+          That is, you could have as well done just this:
+
+          @longCode(#
+          MyMissile.Rotation := TVector4.Zero;
+          #)
+
+          Note that you can also set direction and up more efficiently by one @link(SetView) call.
+          So this is one more way to do it, also equivalent:
+
+          @longCode(#
+          MyMissile.SetView(Vector3(0, 0, 1), Vector3(0, 1, 0));
+          #)
+        )
+      )
+
+      Note that changing @link(Orientation) property does not perform @italic(any) transformation
+      of the model, it will look the same as it was, no matter what @link(Orientation) you set.
+      Only changing the @link(Direction) or @link(Up) actually change the @link(Rotation),
+      which in turn actually change how the model looks. This also implies that
+      @link(Orientation) value completely doesn't matter if you never get or set
+      @link(Direction) or @link(Up). All engine rendering and processing just looks at @link(Rotation).
+
       See @link(Orientation) for documentation of its default value.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
-      (have length 1). When setting them by these properties, we will normalize
-      them automatically.
+      (have length 1). But when setting them by these properties, we will normalize
+      them automatically, so you don't need to worry about that.
 
-      They must also always be orthogonal.
+      The direction and up vectors must always be orthogonal.
       When setting @link(Direction), @link(Up) will always be automatically
       adjusted to be orthogonal to @link(Direction). And vice versa ---
       when setting @link(Up), @link(Direction) will be adjusted.

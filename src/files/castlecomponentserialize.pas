@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -183,8 +183,7 @@ implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
-  CastleRenderOptions;
+  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils;
 
 { component registration ----------------------------------------------------- }
 
@@ -1115,9 +1114,29 @@ end;
 
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
-var
-  ValueOfSet: {$ifdef FPC} Integer {$else} Byte {$endif};
-  Coord: T3DCoord;
+
+  { Serialize to JSON a set of values from 0 to Highest. }
+  function SerializeSet(
+    { Note that GetOrdProp result type for each compiler is different:
+      - Int64 https://www.freepascal.org/docs-html/rtl/typinfo/getordprop.html
+      - NativeInt https://docwiki.embarcadero.com/Libraries/Sydney/en/System.TypInfo.GetOrdProp
+      It seems we can reliably handle at most 32 bits.
+      Actually TCastleTiledMap.TLayerIndex limits itself to 31 bits for now,
+      to avoid worrying about whether negative values are passed through the API OK.
+    }
+    const ValueOfSet: UInt32;
+    const Highest: Integer): TJsonArray;
+  type
+    TIntegerSet = set of 0..31;
+  var
+    I: Integer;
+  begin
+    Result := TJSONArray.Create;
+    for I := 0 to Highest do
+      if I in TIntegerSet(ValueOfSet) then
+        TJSONArray(Result).Add(I);
+  end;
+
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1163,10 +1182,10 @@ begin
     Exit;
   end;
 
-  { Custom support for T3DCoords serialization.
+  { Custom support for sets of integers (T3DCoords, TLayers) serialization.
 
     By default FpJsonRtti has a bug in this case:
-    It tries to do "GetEnumName" on integers 0..2, and serializes weird thing
+    It tries to do "GetEnumName" on integers 0..max, and serializes weird thing
 
       "LockRotation" : [
         "\u0000",
@@ -1179,12 +1198,13 @@ begin
   }
   if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
   begin
-    ValueOfSet := GetOrdProp(AObject, Info);
     FreeAndNil(Res);
-    Res := TJSONArray.Create;
-    for Coord := Low(T3DCoord) to High(T3DCoord) do
-      if (Coord in T3DCoords(ValueOfSet)) then
-        TJSONArray(Res).Add(Coord);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 2 { manually synchronized with T3DCoord });
+  end;
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'TLayers')  then
+  begin
+    FreeAndNil(Res);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 30 { manually synchronized with TCastleTiledMap.TLayerIndex });
   end;
 end;
 

@@ -1164,16 +1164,6 @@ begin
     if not CheckVersion then
       FreeAndNil(PngLibrary);
   end;
-
-  if not CastlePngInitialized then
-    WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
-      '  Loading PNG will use the fallback approach (FpImage) which is much slower.'
-      {$ifdef MSWINDOWS} +
-      NL +
-      '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
-      '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
-      {$endif}
-    );
 end;
 
 initialization

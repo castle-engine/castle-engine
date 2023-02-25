@@ -252,7 +252,7 @@ begin
     P.Targets.AddUnit('castleinternalspacefillingcurves.pas');
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
-    P.Targets.AddUnit('castlenurbs.pas');
+    P.Targets.AddUnit('castleinternalnurbs.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
@@ -288,7 +288,6 @@ begin
     P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
-    P.Targets.AddUnit('castleglboxes.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
@@ -344,11 +343,13 @@ begin
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
-    P.Targets.AddUnit('castleglversion.pas');
     P.Targets.AddUnit('castleglimages.pas');
-    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
+    P.Targets.AddUnit('castleglutils.pas');
+    P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
+    P.Targets.AddUnit('castlerenderprimitives.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');
@@ -392,7 +393,6 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
-    P.Targets.AddUnit('castleinternalftfont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
@@ -452,7 +452,6 @@ begin
     P.Targets.AddUnit('castlejoysticks.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
-    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
@@ -515,6 +514,7 @@ begin
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleterrain.pas');
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');

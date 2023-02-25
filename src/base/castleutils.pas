@@ -1,5 +1,5 @@
 {
-  Copyright 1999-2021 Michalis Kamburelis.
+  Copyright 1999-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,48 +41,27 @@
   Initialization of this unit does some generally-useful things:
 
   @unorderedList(
-    @item(Sets @code(DecimalSeparator) to '.' (dot).
+    @item(Makes AnsiString have UTF-8 encoding when compiled with FPC.
 
-      Bacause Delphi and FPC define DecimalSeparator
-      based on local settings (e.g. user's country).
-      This makes standard functions like @code(StrToFloat) and @code(FloatToStr)
-      less useful for various parsing and printing done by Castle Game Engine,
-      where we often must read and write the "dot".
-      E.g. @code(FloatToStr(0.9)) may output '0,9' (with a comma) in a some countries.
-      Writing it to a file would be usually a mistake --
-      as the file may be transferred to another user with a different locale,
-      where @code(StrToFloat) could not deal with a comma being used for the separator.
+      See @url(https://castle-engine.io/coding_conventions#_most_code_should_use_just_string_and_be_prepared_that_it_is_8_bit_on_fpc_and_16_bit_on_delphi_only_if_writing_to_stream_explicitly_use_8_bit_ansistring_in_usual_case_when_you_write_utf_8
+      more docs about our approach to String handling in CGE, for both FPC and Delphi).
+      Basically:
 
-      Initial (localized) value of DecimalSeparator
-      is saved in LocaleDecimalSeparator variable.
+      @unorderedList(
+        @item With FPC, we follow Lazarus convention, and String = AnsiString (8-bit) = contains UTF-8.
 
-      @bold(Do not depend on this feature.
-      Maybe we had good reasons to do this,
-      but in the long run it may be unexpected to new developers
-      that the engine overrides a global DecimalSeparator.
-      We will remove this feature in the future.)
+        @item With Delphi, we follow Delphi convention, and String = UnicodeString (16-bit) = contains UTF-16.
+      )
 
-      Use @link(FormatDot) and FloatToStrDot to reliably output floating point values
-      with "dot" as a decimal separator.
-      Similarly, use StrToFloatDot, TryStrToFloatDot, StrToFloatDefDot
-      to read string with dot to a float.
-    )
+      This way you can just use String throughout your code, and everything will just work.
 
-    @item(Makes AnsiString (which is usually just called "string")
-      have UTF-8 encoding.
+      This way your applications will behave the same, whether they use Delphi,
+      or FPC with LCL (which happens if you use TCastleControl on Lazarus form),
+      or FPC without LCL (which happens if you use TCastleWindow with FPC).
 
-      This is consistent with Lazarus, that already does the same:
-      http://wiki.lazarus.freepascal.org/Unicode_Support_in_Lazarus .
-      This way you can just use "string" (not UTF8String or UnicodeString)
-      throughout your code, and everything will just work.
-
-      This way your applications will behave the same, whether they use LCL
-      (which happens if you use TCastleControl on Lazarus form) or not
-      (which happens if you use TCastleWindow).
-
-      This is also consistent with what our TCastleAbstractFont expects (it's
-      rendering assumes UTF-8 encoding of strings) and what some of our
-      XML manipulation routines expect.
+      Some code in CGE has to assume that String is encoded like this -- e.g. TCastleAbstractFont
+      iterates over Unicode characters in a String, so it assumes that the encoding is as above,
+      for FPC and Delphi.
     )
   )
 }
@@ -120,10 +99,6 @@ uses
 
 {$undef read_interface}
 
-var
-  { }
-  LocaleDecimalSeparator: char;
-
 implementation
 
 {$define read_implementation}
@@ -156,10 +131,10 @@ implementation
 initialization
   InitializationOSSpecific;
 
-  LocaleDecimalSeparator :=
-    {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
+  {$ifdef CASTLE_TEST_DECIMAL_SEPARATOR_COMMA}
   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
-    .DecimalSeparator := '.';
+    .DecimalSeparator := ',';
+  {$endif}
 
   { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
     so backslash will be considered as directory separator by

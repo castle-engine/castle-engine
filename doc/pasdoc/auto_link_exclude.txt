@@ -139,8 +139,8 @@ flash
 float
 flying
 focused
-forward
 font
+forward
 fps
 frame
 framebuffer
@@ -191,6 +191,8 @@ keys
 kind
 l
 last
+layer
+layers
 left
 length
 lerp
@@ -213,6 +215,7 @@ long
 loop
 looping
 major
+map
 material
 materials
 matrix
