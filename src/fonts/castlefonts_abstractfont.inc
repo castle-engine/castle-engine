@@ -893,7 +893,7 @@ end;
 
 procedure TCastleAbstractFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
 begin
-  ARowHeight := TextHeight('Wy');
+  ARowHeight := TextHeight('中Wy');
   ARowHeightBase := TextHeightBase('W');
   ADescend := Max(0, TextHeight('y') - TextHeight('a'));
 end;
