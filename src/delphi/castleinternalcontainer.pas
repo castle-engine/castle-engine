@@ -256,7 +256,7 @@ begin
     EventResize;
     Invalidate;
 
-    // allow animating in Delphi IDE
+    // do this even at design-time, to allow animating in Delphi IDE
     if {(not (csDesigning in ComponentState)) and} (not UpdatingEnabled) then
     begin
       UpdatingEnabled := true;

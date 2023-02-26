@@ -102,13 +102,15 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_convert/image_convert
 /examples/images_videos/image_display/image_display
 /examples/images_videos/image_identify/image_identify
-/examples/deprecated_to_upgrade/isometric_game/isometric_game
-/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
+/examples/deprecated_library/build-qt_library_tester-*
+/examples/deprecated_library/lazarus_library_tester/*.app
+/examples/deprecated_to_upgrade/isometric_game/isometric_game
+/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer

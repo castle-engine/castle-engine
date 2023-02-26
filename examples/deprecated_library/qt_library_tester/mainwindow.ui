@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>636</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -28,6 +28,8 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Screenshot"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
@@ -180,6 +182,11 @@
    </property>
    <property name="text">
     <string>Headlight</string>
+   </property>
+  </action>
+  <action name="actionSave_Screenshot">
+   <property name="text">
+    <string>Save Screenshot...</string>
    </property>
   </action>
  </widget>

@@ -76,7 +76,7 @@ NavigationInfo : X3DBindableNode {
     range: [0,Inf)
   SFBool   [out]    transitionComplete
   SFString [in,out] blendingSort    "DEFAULT"
-    range: ["DEFAULT", "NONE", "2D", "3D"]
+    range: ["DEFAULT", "NONE", "2D", "3D", "3D_ORIGIN", "3D_GROUND"]
     enumerated-type: TOptionalBlendingSort BlendingSortNames obsDefault
     change: chRedisplay
     doc: Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort).

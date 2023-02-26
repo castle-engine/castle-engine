@@ -33,8 +33,8 @@ type
   TWordList = class({$ifdef FPC}specialize{$endif} TStructList<Word>)
   public
     function Max: Word;
-    procedure Assign(const Source: TInt32List);
-    procedure Assign(const Source: TUInt32List);
+    procedure Assign(const Source: TInt32List); overload;
+    procedure Assign(const Source: TUInt32List); overload;
   end;
 
   TUInt16List = TWordList;

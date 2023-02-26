@@ -34,7 +34,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pConsoleWnd = NULL;
 
     CGE_LoadLibrary();
-    m_pGlWidget = new GLWidget(QGLFormat(QGL::SampleBuffers), this);    // init with multisampling
+
+    QSurfaceFormat aFormat;
+    aFormat.setSamples(4);
+
+    m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
 
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnFileOpenClick()));
@@ -55,11 +59,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
     // Use this to load some default scene
-    //m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
+    //m_pGlWidget->OpenScene("../../../../demo-models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
 {
+    CGE_Finalize();
     delete ui;
 }
 
@@ -171,8 +176,8 @@ void MainWindow::MenuAntiAliasingClick()
     delete m_pGlWidget;
     m_pGlWidget = NULL;
 
-    QGLFormat aFormat;
-    aFormat.setSampleBuffers(ui->actionMultiSampling->isChecked());
+    QSurfaceFormat aFormat;
+    aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
@@ -249,6 +254,14 @@ void MainWindow::MenuOpenGLInfoClick()
     aDlg.exec();
 }
 
+void MainWindow::on_actionSave_Screenshot_triggered()
+{
+    QString sFile = QFileDialog::getSaveFileName(this, "Save as image", "CGE-Screenshot.jpg", "JPEG (*.jpg)");
+    if (sFile.isEmpty()) return;
+
+    CGE_SaveScreenshotToFile(sFile.toUtf8());  // TODO: this filename string conversion is not perfect: should be in filesystem representation, not utf8
+}
+
 NavKeeper::NavKeeper()
 {
     bToBeApplied = false;
@@ -271,3 +284,4 @@ bool NavKeeper::ApplyState()
     bToBeApplied = false;
     return true;
 }
+

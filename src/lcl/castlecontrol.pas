@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,9 +39,54 @@ uses
   {$endif}
 {$endif}
 
-const
-  DefaultLimitFPS = TCastleApplicationProperties.DefaultLimitFPS
-    deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
+{ Define to use a timer (with Interval = 1) to update the control.
+  If not defined, we will use Application.AddOnIdleHandler.
+  Unfortunately there's no perfect solution:
+
+  - Using Application.AddOnIdleHandler means that we need to install
+    idle handler that always sets "Done := false" (to prevent Lazarus
+    TApplication.Idle from doing WidgetSet.AppWaitMessage
+    in lazarus/lcl/include/application.inc ).
+
+    Disadvantages:
+
+    This approach blocks events registered later by Application.AddOnIdleHandler
+    from working. (because the first idle event with "Done := false" breaks
+    execution of idle events.)
+    This hurts in case you have other components using
+    LCL Application.AddOnIdleHandler.
+
+    We also should not do it at design-time in Lazarus IDE
+    (so e.g. TCastleControl cannot play animations at design-time in Lazarus IDE).
+
+    If you want to reliably do some continuous work, use Castle Game Engine
+    features to do it. There are various alternative ways:
+
+    - Register an event on @link(OnUpdate) of this component,
+
+    - Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
+      with overridden @link(TCastleUserInterface.Update) method,)
+
+    - Register an event on @link(TCastleApplicationProperties.OnUpdate
+      ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
+      unit.
+
+    The advantage of Application.AddOnIdleHandler is that it always works,
+    it reliably prevents LCL from calling WidgetSet.AppWaitMessage that hangs
+    indefinitely long.
+
+  - Using timer means that we don't have to define idle handler.
+
+    This removes problems of idle:
+    We don't block other idle handlers (or timers).
+    We can animate at design-time in Lazarus IDE.
+
+    Disadvantage: It simply doesn't work with GTK widgetset.
+    The timer execution doesn't break the WidgetSet.AppWaitMessage
+    on GTK, and so timer with Interval=1 can in fact hang for an arbitrarily
+    long time if you don't make any event (like mouse movement).
+}
+{.$define CASTLE_CONTROL_UPDATE_TIMER}
 
 type
   TCastleControl = class;
@@ -153,7 +198,24 @@ type
     FOnUpdate: TNotifyEvent;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
-    FPaintTimer: TCustomTimer;
+
+    class var
+      { "Updating" means that the mechanism to call DoUpdateEverything
+        continuosly is set up. }
+      UpdatingEnabled: Boolean;
+
+      {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+      UpdatingTimer: TCustomTimer;
+      {$endif}
+
+    {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+    class procedure UpdatingTimerEvent(Sender: TObject);
+    {$else}
+    class procedure UpdatingIdleEvent(Sender: TObject; var Done: Boolean);
+    {$endif}
+    class procedure UpdatingEnable;
+    class procedure UpdatingDisable;
+    class procedure DoUpdateEverything;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -245,7 +307,6 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
-    procedure OnTimerPaint(Sender: TObject);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -508,29 +569,7 @@ type
 
       Note that this is different than LCL "idle" event,
       as it's guaranteed to be run continuously, even when your application
-      is clogged with events (like when using TCastleWalkNavigation.MouseLook).
-
-      Note: As we need to continuously call the "update" event (to update animations
-      and more), we listen on the Lazarus Application "idle" event,
-      and tell it that we're never "done" with our work.
-      We do this only when at least one instance of TCastleControl
-      is created, and never at design-time.
-      This means that your own "idle" events (registered through LCL
-      TApplicationProperties.OnIdle or Application.AddOnIdleHandler)
-      may be never executed, because really the application is never idle.
-
-      If you want to reliably do some continuous work, use Castle Game Engine
-      features to do it. There are various alternative ways:
-
-      @unorderedList(
-        @item(Register an event on @link(OnUpdate) of this component,)
-        @item(Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
-          with overridden @link(TCastleUserInterface.Update) method,)
-        @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
-          ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
-          unit.)
-      )
-    }
+      is clogged with events (like when using TCastleWalkNavigation.MouseLook). }
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
 
     { Should we automatically redraw the window all the time,
@@ -576,12 +615,6 @@ type
 
 procedure Register;
 
-function GetLimitFPS: Single;
-  deprecated 'use ApplicationProperties.LimitFPS';
-procedure SetLimitFPS(const Value: Single);
-  deprecated 'use ApplicationProperties.LimitFPS';
-property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
-
 implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
@@ -590,8 +623,6 @@ uses Math, Contnrs, LazUTF8, Clipbrd,
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
-
-// TODO: Try an alternative OnUpdate implementation using TTimer with Interval=1.
 
 { globals -------------------------------------------------------------------- }
 
@@ -615,111 +646,11 @@ var
     and it makes implementation much easier). }
   ControlsList: TComponentList;
 
+  { Tracks how many controls on ControlsList have GL context initialized. }
   ControlsOpen: Cardinal;
 
-{ Limit FPS ------------------------------------------------------------------ }
-
-var
+  { Used by DoLimitFPS in TCastleControl.DoUpdateEverything. }
   LastLimitFPSTime: TTimerResult;
-
-procedure DoLimitFPS;
-var
-  NowTime: TTimerResult;
-  TimeRemainingFloat: Single;
-begin
-  if ApplicationProperties.LimitFPS > 0 then
-  begin
-    NowTime := Timer;
-
-    { When this is run for the 1st time, LastLimitFPSTime is zero,
-      so NowTime - LastLimitFPSTime is huge, so we will not do any Sleep
-      and only update LastLimitFPSTime.
-
-      For the same reason, it is not a problem if you do not call DoLimitFPS
-      often enough (for example, you do a couple of ProcessMessage calls
-      without DoLimitFPS for some reason), or when user temporarily sets
-      LimitFPS to zero and then back to 100.0.
-      In every case, NowTime - LastLimitFPSTime will be large, and no sleep
-      will happen. IOW, in the worst case --- we will not limit FPS,
-      but we will *never* slow down the program when it's not really necessary. }
-
-    TimeRemainingFloat :=
-      { how long I should wait between _LimitFPS calls }
-      1 / ApplicationProperties.LimitFPS -
-      { how long I actually waited between _LimitFPS calls }
-      TimerSeconds(NowTime, LastLimitFPSTime);
-    { Don't do Sleep with too small values.
-      It's better to have larger FPS values than limit,
-      than to have them too small. }
-    if TimeRemainingFloat > 0.001 then
-    begin
-      Sleep(Round(1000 * TimeRemainingFloat));
-      LastLimitFPSTime := Timer;
-    end else
-      LastLimitFPSTime := NowTime;
-  end;
-end;
-
-function GetLimitFPS: Single;
-begin
-  Result := ApplicationProperties.LimitFPS;
-end;
-
-procedure SetLimitFPS(const Value: Single);
-begin
-  ApplicationProperties.LimitFPS := Value;
-end;
-
-{ TCastleApplicationIdle -------------------------------------------------- }
-
-type
-  TCastleApplicationIdle = class
-    class procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
-  end;
-
-class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done: Boolean);
-var
-  I: Integer;
-  C: TCastleControl;
-begin
-  { This should never be registered in design mode, to not conflict
-    (by DoLimitFPS, or Done setting) with using Lazarus IDE. }
-  Assert(not (csDesigning in Application.ComponentState));
-
-  { Call DoUpdate for all TCastleControl instances. }
-  for I := 0 to ControlsList.Count - 1 do
-  begin
-    C := ControlsList[I] as TCastleControl;
-    C.DoUpdate;
-  end;
-  ApplicationProperties._Update;
-
-  DoLimitFPS;
-
-  { With Done := true (this is actually default Done value here),
-    ApplicationIdle events are not occuring as often
-    as we need. Test e.g. GTK2 with clicking on spheres on
-    demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
-    That's because Done := true allows for WidgetSet.AppWaitMessage
-    inside lcl/include/application.inc .
-    We don't want that, we want continuous DoUpdate events.
-
-    So we have to use Done := false.
-
-    Unfortunately, Done := false prevents other idle actions
-    (other TApplicationProperties.OnIdle) from working.
-    See TApplication.Idle and TApplication.NotifyIdleHandler implementation
-    in lcl/include/application.inc .
-    To at least allow all TCastleControl work, we use a central
-    ApplicationIdle callback (we don't use separate TApplicationProperties
-    for each TCastleControl; in fact, we don't need TApplicationProperties
-    at all). }
-
-  Done := false;
-end;
-
-var
-  ApplicationIdleSet: boolean;
 
 { TCastleControlContainer ---------------------------------------------------- }
 
@@ -982,84 +913,124 @@ begin
 
   // TODO: what if ControlsList[0] was created but it not active?
   // Does this maybe explain crash with docked editor?
-  // TODO: Or is it because we never remove from ControlsList?
+  // We should set SharedControl to AnyOtherOpenContext, right before context is created, in CreateParams
   if ControlsList.Count <> 0 then
     SharedControl := ControlsList[0] as TCastleControl;
   ControlsList.Add(Self);
 
-  FPaintTimer := TCustomTimer.Create(Self);
-  FPaintTimer.Interval := 1000 div 60;
-  FPaintTimer.OnTimer := {$Ifdef fpc}@{$endif}OnTimerPaint;
-  FPaintTimer.Enabled := True;
-
   Invalidated := false;
-
-  { Note that we can depend that csDesigning is already set in constructor.
-    This is good, otherwise we would use ApplicationIdle also in Lazarus IDE. }
-  if (not (csDesigning in ComponentState)) and (not ApplicationIdleSet) then
-  begin
-    ApplicationIdleSet := true;
-    Application.AddOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
-  end;
 end;
 
 destructor TCastleControl.Destroy;
 begin
   Container.UnLoadDesign;
 
-  if ApplicationIdleSet and
-     (ControlsList <> nil) and
-     { If ControlsList.Count will become 0 after this destructor,
-       then unregisted our idle callback.
-       If everyhting went Ok, ControlsList.Count = 1 should always imply
-       that we're the only control there. But check "ControlsList[0] = Self"
-       in case we're in destructor because there was an exception
-       in the constructor. }
-     (ControlsList.Count = 1) and
-     (ControlsList[0] = Self) then
-  begin
-    ApplicationIdleSet := false;
-    Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
-  end;
-
-  FreeAndNil(FPaintTimer);
   FreeAndNil(FContainer);
   FreeAndNil(FKeyPressHandler);
+
+  { Not necessary to remove from ControlsList explicitly,
+    as it is TComponentList and it will automatically remove us.
+  if ControlsList <> nil then
+    ControlsList.Remove(Self); }
+
   inherited;
 end;
+
+class procedure TCastleControl.DoUpdateEverything;
+
+  procedure DoLimitFPS;
+  var
+    NowTime: TTimerResult;
+    TimeRemainingFloat: Single;
+  begin
+    if ApplicationProperties.LimitFPS > 0 then
+    begin
+      NowTime := Timer;
+
+      { When this is run for the 1st time, LastLimitFPSTime is zero,
+        so NowTime - LastLimitFPSTime is huge, so we will not do any Sleep
+        and only update LastLimitFPSTime.
+
+        For the same reason, it is not a problem if you do not call DoLimitFPS
+        often enough (for example, you do a couple of ProcessMessage calls
+        without DoLimitFPS for some reason), or when user temporarily sets
+        LimitFPS to zero and then back to 100.0.
+        In every case, NowTime - LastLimitFPSTime will be large, and no sleep
+        will happen. IOW, in the worst case --- we will not limit FPS,
+        but we will *never* slow down the program when it's not really necessary. }
+
+      TimeRemainingFloat :=
+        { how long I should wait between _LimitFPS calls }
+        1 / ApplicationProperties.LimitFPS -
+        { how long I actually waited between _LimitFPS calls }
+        TimerSeconds(NowTime, LastLimitFPSTime);
+      { Don't do Sleep with too small values.
+        It's better to have larger FPS values than limit,
+        than to have them too small. }
+      if TimeRemainingFloat > 0.001 then
+      begin
+        Sleep(Round(1000 * TimeRemainingFloat));
+        LastLimitFPSTime := Timer;
+      end else
+        LastLimitFPSTime := NowTime;
+    end;
+  end;
+
+var
+  I: Integer;
+  C: TCastleControl;
+begin
+  { Call DoUpdate on all TCastleControl instances. }
+  for I := ControlsList.Count - 1 downto 0 do
+  begin
+    C := ControlsList[I] as TCastleControl;
+    if C.GLInitialized then
+      C.DoUpdate;
+  end;
+  ApplicationProperties._Update;
+  DoLimitFPS;
+end;
+
+class procedure TCastleControl.UpdatingEnable;
+begin
+  inherited;
+  {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+  UpdatingTimer := TCustomTimer.Create(nil);
+  UpdatingTimer.Interval := 1;
+  UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+  {$else}
+  Application.AddOnIdleHandler({$ifdef FPC}@{$endif} UpdatingIdleEvent);
+  {$endif}
+end;
+
+class procedure TCastleControl.UpdatingDisable;
+begin
+  {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+  FreeAndNil(UpdatingTimer);
+  {$else}
+  Application.RemoveOnIdleHandler({$ifdef FPC}@{$endif} UpdatingIdleEvent);
+  {$endif}
+  inherited;
+end;
+
+{$ifdef CASTLE_CONTROL_UPDATE_TIMER}
+class procedure TCastleControl.UpdatingTimerEvent(Sender: TObject);
+begin
+  DoUpdateEverything;
+end;
+{$else}
+class procedure TCastleControl.UpdatingIdleEvent(Sender: TObject; var Done: Boolean);
+begin
+  DoUpdateEverything;
+  Done := false;
+end;
+{$endif}
 
 procedure TCastleControl.SetAutoRedisplay(const Value: boolean);
 begin
   FAutoRedisplay := value;
   if Value then Invalidate;
 end;
-
-{ Initial idea was to do
-
-procedure TCastleControl.CreateHandle;
-begin
-  Writeln('TCastleControl.CreateHandle ', GLInitialized,
-    ' ', OnGLContextOpen <> nil);
-  inherited CreateHandle;
-  if not GLInitialized then
-  begin
-    GLInitialized := true;
-    Container.EventOpen;
-  end;
-  Writeln('TCastleControl.CreateHandle end');
-end;
-
-Reasoning: looking at implementation of OpenGLContext,
-actual creating and destroying of OpenGL contexts
-(i.e. calls to LOpenGLCreateContext and LOpenGLDestroyContextInfo)
-is done within Create/DestroyHandle.
-
-Why this was wrong ? Because under GTK LOpenGLCreateContext
-only creates gtk_gl_area --- it doesn't *realize* it yet !
-Which means that actually LOpenGLCreateContext doesn't create
-OpenGL context. Looking at implementation of GLGtkGlxContext
-we see that only during MakeCurrent the widget is guaranteed
-to be realized. }
 
 function TCastleControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
@@ -1077,9 +1048,27 @@ begin
 
   RenderContext := Container.Context;
 
+  { React to context being created.
+
+    Note: Initially I wanted to detect context being created by overriding
+    CreateHandle, instead of checking for it in every MakeCurrent.
+
+    Reasoning: looking at implementation of OpenGLContext,
+    actual creating and destroying of OpenGL contexts
+    (i.e. calls to LOpenGLCreateContext and LOpenGLDestroyContextInfo)
+    is done within Create/DestroyHandle.
+
+    But this was wrong. Under GTK LOpenGLCreateContext
+    only creates gtk_gl_area --- it doesn't *realize* it.
+    Which means that actually LOpenGLCreateContext doesn't create
+    OpenGL context. Looking at implementation of GLGtkGlxContext
+    we see that only during MakeCurrent the widget is guaranteed
+    to be realized.
+  }
   if not GLInitialized then
   begin
     FGLInitialized := true;
+
     GLInformationInitialize;
     // _GLContextEarlyOpen is not really necessary here now, but we call it for consistency
     ApplicationProperties._GLContextEarlyOpen;
@@ -1087,17 +1076,42 @@ begin
     Container.EventOpen(ControlsOpen);
     Resize; // will call Container.EventResize
     Invalidate;
+
+    { When using Application.AddOnIdleHandler:
+      Do not add it at design-time, to not block other idle handlers in Lazarus IDE.
+
+      When using TCustomTimer:
+      It is OK to let it work at design-time too.
+      And then we will have animations in Lazarus IDE in TCastleControl
+      (e.g. if you load design with animated TCastleScene in TCastleControl.DesignUrl). }
+
+    if {$ifndef CASTLE_CONTROL_UPDATE_TIMER}
+       (not (csDesigning in ComponentState)) and
+       {$endif}
+       (not UpdatingEnabled) then
+    begin
+      UpdatingEnabled := true;
+      UpdatingEnable;
+    end;
   end;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
+  { React to context being destroyed. }
   if GLInitialized then
   begin
     Container.EventClose(ControlsOpen);
     Dec(ControlsOpen);
     FGLInitialized := false;
+
+    if UpdatingEnabled and (ControlsOpen = 0) then
+    begin
+      UpdatingEnabled := false;
+      UpdatingDisable;
+    end;
   end;
+
   inherited DestroyHandle;
 end;
 
@@ -1114,9 +1128,7 @@ end;
 procedure TCastleControl.Invalidate;
 begin
   Invalidated := true;
-  { invalidate is executed by PaintTimer
-  //inherited;
-  }
+  inherited;
 end;
 
 procedure TCastleControl.ReleaseAllKeysAndMouse;
@@ -1470,12 +1482,6 @@ begin
   else
     Result := nil;
   {$warnings on}
-end;
-
-procedure TCastleControl.OnTimerPaint(Sender: TObject);
-begin
-  if Invalidated then
-    Inherited Invalidate;
 end;
 
 function TCastleControl.GetDesignUrl: String;
