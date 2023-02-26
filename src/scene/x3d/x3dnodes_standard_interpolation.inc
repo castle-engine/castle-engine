@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,12 @@
 {$ifdef read_interface}
   { Interpolation mode, for @link(TAbstractInterpolatorNode.Interpolation). }
   TInterpolation = (
-    { The value changes linearly from previous to next. }
+    { The value changes linearly from previous to next.
+      Some interpolators have a specific algorithm for "linear change",
+      for example colors are interpolated in HSV (LerpRgbInHsv),
+      rotations are interpolated using Slerp. }
     inLinear,
+
     { The value changes immediately from previous to next,
       at the time of next key.
       Before the time of 1st key, the value is equal to the 1st value.
@@ -163,6 +167,10 @@
       const Index1, Index2: Integer); override;
     procedure InterpolatorSet(const Target: TSFRotation; const Index: Integer); override;
     function CreateOutputField: TSFRotation; override;
+  public
+    { Return rotation (as axis+angle) at given time (key).
+      Makes a warning and returns zero if FdKey is empty. }
+    function Interpolate(const TimeKey: Single): TVector4;
 
   {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
@@ -177,6 +185,10 @@
       const Index1, Index2: Integer); override;
     procedure InterpolatorSet(const Target: TSFVec3f; const Index: Integer); override;
     function CreateOutputField: TSFVec3f; override;
+  public
+    { Return position at given time (key).
+      Makes a warning and returns zero if FdKey is empty. }
+    function Interpolate(const TimeKey: Single): TVector3;
 
   {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
@@ -556,24 +568,78 @@ end;
 
 procedure TOrientationInterpolatorNode.InterpolatorLerp(const Target: TSFRotation;
   const A: Single; const Index1, Index2: Integer);
+var
+  Q1, Q2, QResult: TQuaternion;
 begin
   { In my tests, NLerp works as good as SLerp here.
     Although NLerp doesn't guarantee constant velocity, and should be
     faster --- neither of these qualities seem to be noticeable
     in practice. }
-  Target.Value := SLerp(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+
+  if KeyValueQuaternions then
+  begin
+    // interpolate on quaternions, assuming our inputs are unit quaternions
+    Q1.Data.Vector4 := FdKeyValue.Items.List^[Index1];
+    Q2.Data.Vector4 := FdKeyValue.Items.List^[Index2];
+    QResult := SLerp(A, Q1, Q2);
+    Target.Value := QResult.ToAxisAngle;
+  end else
+  begin
+    Target.Value := SLerp(A,
+      FdKeyValue.Items.List^[Index1],
+      FdKeyValue.Items.List^[Index2]);
+  end;
 end;
 
 procedure TOrientationInterpolatorNode.InterpolatorSet(const Target: TSFRotation; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  if KeyValueQuaternions then
+    Target.Value := Quaternion(FdKeyValue.Items.List^[Index]).ToAxisAngle
+  else
+    Target.Value := FdKeyValue.Items.List^[Index];
 end;
 
 function TOrientationInterpolatorNode.CreateOutputField: TSFRotation;
 begin
   Result := TSFRotation.CreateUndefined(Self, false, '');
+end;
+
+function TOrientationInterpolatorNode.Interpolate(const TimeKey: Single): TVector4;
+var
+  T: Single;
+  KeyValue: TVector4List;
+  Range: Integer;
+begin
+  if FdKey.Items.Count = 0 then
+  begin
+    WritelnWarning('TOrientationInterpolatorNode has no keys, cannot interpolate, returning rotation = zero');
+    Exit(TVector4.Zero);
+  end;
+
+  Range := KeyRange(TimeKey, T);
+  KeyValue := FdKeyValue.Items;
+
+  if KeyValueQuaternions then
+  begin
+    if Range = 0 then
+      Result := Quaternion(KeyValue[0]).ToAxisAngle
+    else
+    if Range = KeyValue.Count then
+      Result := Quaternion(KeyValue[KeyValue.Count - 1]).ToAxisAngle
+    else
+      // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
+      Result := SLerp(T, Quaternion(KeyValue[Range - 1]), Quaternion(KeyValue[Range])).ToAxisAngle;
+  end else
+  begin
+    if Range = 0 then
+      Result := KeyValue[0]
+    else
+    if Range = KeyValue.Count then
+      Result := KeyValue[KeyValue.Count - 1]
+    else
+      // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
+      Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
+  end;
 end;
 
 { TPositionInterpolatorNode -------------------------------------------------- }
@@ -599,6 +665,30 @@ end;
 function TPositionInterpolatorNode.CreateOutputField: TSFVec3f;
 begin
   Result := TSFVec3f.CreateUndefined(Self, false, '');
+end;
+
+function TPositionInterpolatorNode.Interpolate(const TimeKey: Single): TVector3;
+var
+  T: Single;
+  KeyValue: TVector3List;
+  Range: Integer;
+begin
+  if FdKey.Items.Count = 0 then
+  begin
+    WritelnWarning('TPositionInterpolatorNode has no keys, cannot interpolate, returning position = zero');
+    Exit(TVector3.Zero);
+  end;
+
+  Range := KeyRange(TimeKey, T);
+  KeyValue := FdKeyValue.Items;
+
+  if Range = 0 then
+    Result := KeyValue[0]
+  else
+  if Range = KeyValue.Count then
+    Result := KeyValue[KeyValue.Count - 1]
+  else
+    Result := TVector3.Lerp(T, KeyValue[Range - 1], KeyValue[Range]);
 end;
 
 { TPositionInterpolator2DNode -------------------------------------------------- }

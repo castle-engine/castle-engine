@@ -558,4 +558,12 @@
 *)
 {.$define GENERIC_METHODS}
 
+{ Parts of CastleScript implementation right now use Pascal generics
+  in ways that don't compile with Delphi.
+  Symbol CASTLE_SCRIPT_FPC is in practice equal to just FPC,
+  but having a dedicated symbol allows to easier grep for it and eventually fix. }
+{$ifdef FPC}
+  {$define CASTLE_SCRIPT_FPC}
+{$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

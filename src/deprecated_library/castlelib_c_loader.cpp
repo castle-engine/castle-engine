@@ -141,8 +141,8 @@ void CGE_LoadLibrary()
 		return;
 #endif
 
-    pfrd_CGE_Initialize = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Initialize");
-    pfrd_CGE_Finalize = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Finalize");
+    pfrd_CGE_Initialize = (PFNRD_CGE_Initialize)cge_GetProc(hCgeDll, "CGE_Initialize");
+    pfrd_CGE_Finalize = (PFNRD_CGE_Finalize)cge_GetProc(hCgeDll, "CGE_Finalize");
     pfrd_CGE_Open = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Open");
     pfrd_CGE_Close = (PFNRD_CGE_Close)cge_GetProc(hCgeDll, "CGE_Close");
     pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)cge_GetProc(hCgeDll, "CGE_GetOpenGLInformation");
@@ -197,10 +197,10 @@ void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, u
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Close()
+void CGE_Close(bool quitWhenLastWindowClosed)
 {
 	if (pfrd_CGE_Close!=NULL)
-		(*pfrd_CGE_Close)();
+        (*pfrd_CGE_Close)(quitWhenLastWindowClosed);
 }
 
 //-----------------------------------------------------------------------------

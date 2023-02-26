@@ -4906,16 +4906,45 @@ const
   {$endif}
 
 begin
-  {$ifdef DARWIN}
-  RemoveMacOsProcessSerialNumber;
+  {$ifndef FPC}
+  try
   {$endif}
 
-  SoundEngine.ParseParameters;
+    {$ifdef DARWIN}
+    RemoveMacOsProcessSerialNumber;
+    {$endif}
 
-  if MainWindow <> nil then
-    MainWindow.ParseParameters;
+    SoundEngine.ParseParameters;
 
-  Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
+    if MainWindow <> nil then
+      MainWindow.ParseParameters;
+
+    Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
+
+  { With FPC, if something here raises an exception,
+    we just let it be unhandled and stop the application.
+    FPC makes by default a nice error box, on Windows too.
+    However Delphi crashes with SEGFAULT on Windows,
+    testcase:
+
+    - cd examples/research_special_rendering_methods/test_rendering_opengl_capabilities
+    - ./test_rendering_opengl_capabilities_standalone.exe --capabilities=something-invalid
+    - or
+      ./test_rendering_opengl_capabilities_standalone.exe --no-sound=excessive-argument
+    - reproducible also in Delphi debugger, however without any useful backtrace.
+
+    Workaround for now is just to capture exception here,
+    and display a nice error box ourselves. }
+
+  {$ifndef FPC}
+  except
+    on E: TObject do
+    begin
+      ErrorWrite(ExceptMessage(E));
+      Halt(1);
+    end;
+  end;
+  {$endif}
 end;
 
 function TCastleApplication.OpenGLES: Boolean;

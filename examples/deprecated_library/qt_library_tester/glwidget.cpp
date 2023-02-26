@@ -21,13 +21,14 @@
 
 GLWidget *g_pThis = NULL;
 
-GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
-    QGLWidget(format, parent)
+GLWidget::GLWidget(const QSurfaceFormat &format, QWidget *parent) :
+    QOpenGLWidget(parent)
 {
     g_pThis = this;
     m_bAfterInit = false;
     m_bLimitFPS = true;
     m_bNeedsDisplay = false;
+    setFormat(format);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
@@ -38,7 +39,7 @@ GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
 
 GLWidget::~GLWidget()
 {
-    CGE_Close();
+    CGE_Close(true);
     g_pThis = NULL;
 }
 
@@ -136,6 +137,11 @@ void GLWidget::OnUpdateTimer()
     }
 }
 
+void GLWidget::updateGL()
+{
+    update(); // TODO: Qt6 really?
+}
+
 void GLWidget::paintGL()
 {
     if (!m_bAfterInit) return;
@@ -190,7 +196,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 #ifndef QT_NO_WHEELEVENT
 void GLWidget::wheelEvent(QWheelEvent *event)
 {
-    CGE_MouseWheel(event->delta(), event->orientation()==Qt::Vertical);
+    if (event->angleDelta().y() != 0)
+        CGE_MouseWheel(event->angleDelta().y(), true);
+    else
+        CGE_MouseWheel(event->angleDelta().x(), false);
 
     if (m_bNeedsDisplay)
     {

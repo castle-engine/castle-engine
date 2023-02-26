@@ -2237,13 +2237,22 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 var
   ListItem: TListItem;
   FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr: String;
+  DesignFileName, FileDateTimeStr, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
-  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  // support deprecated names
-  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
+    to be possible to open them at runtime.
+    This also avoids finding stuff in castle-engine-output, which is possible,
+    e.g. after "castle-engine package --target=android" the castle-engine-output contains
+    some temporary data with copies of design files -- and we *do not* want to show them here. }
+  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
+  if URIExists(ProjectDataUrl) <> ueNotExists then
+  begin
+    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    // support deprecated names
+    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  end;
   { without sorting, the order would be ~random (as FindFiles enumarates).
     Note that we sort including the subdirectory names, which is good,
     we want files in the same subdirectory to be together. }

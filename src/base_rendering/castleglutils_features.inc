@@ -737,7 +737,7 @@ end;
 { Workaround GLExt in FPC missing "extdecl" for these routines,
   see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
 var
-  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
   glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 {$endif}
 
@@ -888,12 +888,6 @@ begin
     as it makes sense only for fixed-function.
     Just assume 8 now. }
   FMaxLights := 8;
-
-  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
-    which is usually much smaller (may even be 0).
-    But most of our texture uses do not access the texture from the vertex shader,
-    only fragment shader. }
-  FMaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
 
   FTextureCubeMap := {$ifdef OpenGLES} true
     {$else} Version_1_3
@@ -1225,6 +1219,16 @@ begin
 
   Assert(EnableFixedFunction = (not Shaders));
   Assert(EnableFixedFunction = (not VertexBufferObject));
+
+  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+    which is usually much smaller (may even be 0).
+    But most of our texture uses do not access the texture from the vertex shader,
+    only fragment shader.
+
+    Note: we read this only if shaders are supported (OpenGL 2.0),
+    otherwise GL_MAX_TEXTURE_IMAGE_UNITS is invalid enum for older OpenGL. }
+  if Shaders then
+    FMaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
 
   FVertexArrayObject := {$ifdef OpenGLES} false {$else} (not EnableFixedFunction) and Version_3_0 {$endif};
 

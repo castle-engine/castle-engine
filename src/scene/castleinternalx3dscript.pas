@@ -20,11 +20,10 @@ unit CastleInternalX3DScript;
 
 interface
 
-uses X3DFields, {$ifdef FPC}CastleScript,{$endif} CastleUtils, CastleClassUtils, X3DTime;
+uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
 
 {$define read_interface}
 
-{$ifdef FPC}
 type
   TCasScriptX3DValueList = class(TCasScriptValueList)
   private
@@ -95,23 +94,22 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime;
   const Time: TX3DTime);
 
-{$endif FPC}
 {$undef read_interface}
 
 implementation
-
-{$ifdef FPC}
 
 uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors,
   CastleVectors, CastleScriptImages, CastleScriptArrays;
 
 {$define read_implementation}
 
+{$ifdef CASTLE_SCRIPT_FPC}
 type
   { We use TCasScriptVec4f to represent VRML/X3D rotations.
     TCasScriptRotation is just for notation convenience. }
   TCasScriptRotation = TCasScriptVec4f;
   TCasScriptRotationArray = TCasScriptVec4fArray;
+{$endif CASTLE_SCRIPT_FPC}
 
 { general utils -------------------------------------------------------- }
 
@@ -126,21 +124,28 @@ begin
   if FieldClass.InheritsFrom(TSFEnum) or
      FieldClass.InheritsFrom(TSFLong) then
     Result := TCasScriptInteger.Create(true) else
+  {$ifdef CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TMFLong) then
     Result := TCasScriptInt32Array.Create(true) else
+  {$endif CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TSFFloat) or
      FieldClass.InheritsFrom(TSFDouble) then
     Result := TCasScriptFloat.Create(true) else
+  {$ifdef CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TMFFloat) then
     Result := TCasScriptSingleArray.Create(true) else
   if FieldClass.InheritsFrom(TMFDouble) then
     Result := TCasScriptDoubleArray.Create(true) else
+  {$endif CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TSFBool) then
     Result := TCasScriptBoolean.Create(true) else
+  {$ifdef CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TMFBool) then
     Result := TCasScriptBooleanArray.Create(true) else
+  {$endif CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TSFString) then
     Result := TCasScriptString.Create(true) else
+  {$ifdef CASTLE_SCRIPT_FPC}
   if FieldClass.InheritsFrom(TMFString) then
     Result := TCasScriptStringArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec2f) then
@@ -190,6 +195,7 @@ begin
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
+  {$endif CASTLE_SCRIPT_FPC}
   begin
     WritelnWarning('X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.X3DType);
     Result := TCasScriptFloat.Create(true);
@@ -207,25 +213,32 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
       TCasScriptInteger(Value).Value := TSFEnum(Field).Value else
     if Field is TSFLong then
       TCasScriptInteger(Value).Value := TSFLong(Field).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFLong then
       TCasScriptInt32Array(Value).Value := TMFLong(Field).Items else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFFloat then
       TCasScriptFloat(Value).Value := TSFFloat(Field).Value else
     if Field is TSFDouble then
       TCasScriptFloat(Value).Value := TSFDouble(Field).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFFloat then
       TCasScriptSingleArray(Value).Value := TMFFloat(Field).Items else
     if Field is TMFDouble then
       TCasScriptDoubleArray(Value).Value := TMFDouble(Field).Items else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFBool then
       TCasScriptBoolean(Value).Value := TSFBool(Field).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFBool then
       TCasScriptBooleanArray(Value).Value := TMFBool(Field).Items else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFString then
       TCasScriptString(Value).Value := TSFString(Field).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFString then
       TCasScriptStringArray(Value).Value := TMFString(Field).Items else
 
@@ -288,6 +301,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
       TCasScriptImage(Value).Value := TSFImage(Field).Value else
     {if Field is TMFImage then
       TCasScriptImageArray(Value).Value := TMFImage(Field).Items else}
+    {$endif CASTLE_SCRIPT_FPC}
 
       { No sensible way to convert, just fall back to predictable 0.0. }
       TCasScriptFloat(Value).Value := 0.0;
@@ -353,25 +367,32 @@ begin
       TSFEnum(Field).Value := TCasScriptInteger(Value).Value else
     if Field is TSFLong then
       TSFLong(Field).Value := TCasScriptInteger(Value).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFLong then
       TMFLong(Field).Items := TCasScriptInt32Array(Value).Value else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFFloat then
       TSFFloat(Field).Value := TCasScriptFloat(Value).Value else
     if Field is TSFDouble then
       TSFDouble(Field).Value := TCasScriptFloat(Value).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFFloat then
       TMFFloat(Field).Items := TCasScriptSingleArray(Value).Value else
     if Field is TMFDouble then
       TMFDouble(Field).Items := TCasScriptDoubleArray(Value).Value else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFBool then
       TSFBool(Field).Value := TCasScriptBoolean(Value).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFBool then
       TMFBool(Field).Items := TCasScriptBooleanArray(Value).Value else
+    {$endif CASTLE_SCRIPT_FPC}
 
     if Field is TSFString then
       TSFString(Field).Value := TCasScriptString(Value).Value else
+    {$ifdef CASTLE_SCRIPT_FPC}
     if Field is TMFString then
       TMFString(Field).Items := TCasScriptStringArray(Value).Value else
 
@@ -436,6 +457,7 @@ begin
     begin
       TMFImage(Field).Items := TCasScriptImageArray(Value).Value
     end else}
+    {$endif CASTLE_SCRIPT_FPC}
 
     begin
       { No sensible way to convert, just do nothing, don't set/send anything. }
@@ -567,7 +589,5 @@ begin
   for I := 0 to Count - 1 do
     FLastEventTimes.List^[I] := TX3DTime.Oldest;
 end;
-
-{$endif FPC}
 
 end.
