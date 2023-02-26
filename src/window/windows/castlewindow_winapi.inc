@@ -579,7 +579,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       Result.X := Floor(V.X);
       Result.Y := Floor(Container.Height - V.Y);
     end;
-    function GetCaretPos(var Apt: TPoint): Boolean;
+    function GetCaretPos(var CaretPos: TPoint): Boolean;
     var
       CastleEdit: TCastleEdit;
       CaretShift: Single;
@@ -595,7 +595,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
         if CastleEdit.PasswordChar <> #0 then
           S := StringOfChar(CastleEdit.PasswordChar, Length(S));
         CaretShift := CastleEdit.Font.TextWidth(S);
-        Apt := ToPoint(Container.Focus.Last.LocalToContainerPosition(Vector2(CaretShift / Container.UIScale, 0)));
+        CaretPos := ToPoint(CastleEdit.LocalToContainerPosition(Vector2(CaretShift / CastleEdit.UIScale, 0)));
         Result := true;
       end;
     end;
