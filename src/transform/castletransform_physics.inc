@@ -26,6 +26,20 @@
     function OtherTransform: TCastleTransform;
   end;
 
+  TPhysicsLayer = 0..19;
+  TPhysicsLayers = set of TPhysicsLayer;
+
+  TCastleLayerCollisions = class(TComponent)
+  private
+    FCollides: array [TPhysicsLayer] of UInt32;
+
+    function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
+    procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; AValue:Boolean);
+  public
+    constructor Create(AOwner: TComponent); override;
+    property Collides[const Layer1, Layer2: TPhysicsLayer]: Boolean read GetCollides write SetCollides;
+  end;
+
   { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
@@ -35,6 +49,7 @@
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FContinuousCollisionDetection: Boolean;
+    FLayerCollisons: TCastleLayerCollisions;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
@@ -81,6 +96,8 @@
 
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
+
+    property LayerCollisons: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
   end;
 
   { Abstract collider that determines the shape used to determine collisions with physics bodies. }
@@ -600,6 +617,8 @@
 
       FDuringSettingTransformationFromPhysicsEngine: Boolean;
 
+      FLayer: TPhysicsLayer;
+
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
       { List of collisions from current step. }
@@ -664,6 +683,8 @@
     procedure UpdateLockTranslation;
     { Updates axes that have rotation lock and call Finish if needed }
     procedure UpdateLockRotation;
+    { Updates the collision layer on which the body is located }
+    procedure UpdateLayer;
 
     { Sets all values from Kraft to CGE private fields. Currently angular and
       linear velocity. }
@@ -690,6 +711,8 @@
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
     procedure SetCollisionDetection(const AValue: TCollisionDetection);
+
+    procedure SetLayer(const AValue: TPhysicsLayer);
 
     procedure SetDynamic(const AValue: Boolean);
     procedure SetAnimated(const AValue: Boolean);
@@ -1023,6 +1046,8 @@
     property CollisionDetection: TCollisionDetection read FCollisionDetection
       write SetCollisionDetection default cdDiscrete;
 
+    property Layer: TPhysicsLayer read FLayer write SetLayer default 0;
+
     { Is this object affected by gravity. }
     property Gravity: Boolean read FGravity write SetGravity default true;
 
@@ -1159,6 +1184,43 @@ begin
   Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
 end;
 
+
+{ TCastleLayerCollisions ----------------------------------------------------- }
+
+function TCastleLayerCollisions.GetCollides(const Layer1, Layer2: TPhysicsLayer
+  ): Boolean;
+var
+  Layer2UInt32: UInt32;
+  Layers: TPhysicsLayers;
+begin
+  Layer2UInt32 := 0;
+  Layers := [Layer2];
+  Move(Layers, Layer2UInt32, SizeOf(Layers));
+
+  Result := FCollides[Layer1] and Layer2UInt32 = Layer2UInt32;
+end;
+
+procedure TCastleLayerCollisions.SetCollides(const Layer1,
+  Layer2: TPhysicsLayer; AValue: Boolean);
+var
+  Layer2UInt32: UInt32;
+  Layers: TPhysicsLayers;
+begin
+  Layer2UInt32 := 0;
+  Layers := [Layer2];
+  Move(Layers, Layer2UInt32, SizeOf(Layer2));
+  if AValue then
+    FCollides[Layer1] := FCollides[Layer1] or Layer2UInt32
+  else
+    FCollides[Layer1] := FCollides[Layer1] and (not Layer2UInt32);
+end;
+
+constructor TCastleLayerCollisions.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Collides[0, 0] := true;
+end;
+
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
@@ -1178,6 +1240,7 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
+  FLayerCollisons := TCastleLayerCollisions.Create(Self);
 end;
 
 procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -2407,6 +2470,7 @@ begin
   FState := stateNone;
   FLockRotation := [];
   FLockTranslation := [];
+  FLayer := 0;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
@@ -2540,6 +2604,7 @@ begin
 
   UpdateExistBody;
   UpdateCollisionDetection;
+  UpdateLayer;
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
@@ -2575,8 +2640,8 @@ procedure TCastleRigidBody.InitializeCollider;
     FKraftBody.Finish;
 
     // TODO: make this configurable
-    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
-    FKraftBody.CollisionGroups := [0];
+    //FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
+    //FKraftBody.CollisionGroups := [0];
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -3031,6 +3096,20 @@ begin
   end;
 end;
 
+procedure TCastleRigidBody.UpdateLayer;
+var
+  CollisionMask: UInt32;
+  KraftCollisionMask: TKraftRigidBodyCollisionGroups;
+begin
+  if FKraftBody <> nil then
+  begin
+    FKraftBody.CollisionGroups := [TKraftRigidBodyCollisionGroup(FLayer)];
+    CollisionMask := FTransform.World.PhysicsProperties.LayerCollisons.FCollides[FLayer];
+    Move(CollisionMask, KraftCollisionMask, SizeOf(KraftCollisionMask));
+    FKraftBody.CollideWithCollisionGroups := KraftCollisionMask;
+  end;
+end;
+
 procedure TCastleRigidBody.SetMaxAngularVelocity(const AValue: Single);
 begin
   FMaxAngularVelocity := AValue;
@@ -3072,6 +3151,15 @@ begin
 
   FCollisionDetection := AValue;
   UpdateCollisionDetection;
+end;
+
+procedure TCastleRigidBody.SetLayer(const AValue: TPhysicsLayer);
+begin
+  if FLayer <> AValue then
+  begin
+    FLayer := AValue;
+    UpdateLayer;
+  end;
 end;
 
 procedure TCastleRigidBody.SetDynamic(const AValue: Boolean);

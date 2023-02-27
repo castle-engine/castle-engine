@@ -1190,6 +1190,14 @@ var
 begin
   inherited;
 
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := false;
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true;
+
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,1] := true;
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,2] := true;
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,0] := false;
+  ScenePlayer.RigidBody.Layer := 1;
+
   LevelComplete := false;
 
   LevelBounds := TLevelBounds.Create(ScenePlayer.Owner);
