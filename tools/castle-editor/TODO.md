@@ -5,12 +5,8 @@ Lower priority:
 OK if after 7.0 release:
 
 * Define EditorAllowResize for
-  castlecontrols_progressbar.inc
-  castleonscreenmenu.pas
   castlenotifications.pas
-  castlecontrols_touchcontrol.inc
-  castlecontrols_groups.inc
-  castlecontrols_crosshair.inc
+  TCastleTouchNavigation
 
 * TCastleButton:
   - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
@@ -18,30 +14,18 @@ OK if after 7.0 release:
 
 * *All* images from theme should also be customizable at the control level,
   and naming should be consistent.
-  Just place TTheme instance at each component?
 
-* on Layout tab, new button for TCastleImageControl
+* ? on Layout tab, new button for TCastleImageControl
   "Set Size Explicitly From Current Image"
-  ? Unsure how much use-case.
-
-* more colors, vectors published props:
-
-  grep for TCastleColor*, TVector* properties and add everything.
-  For now we only browsed stuff in src/ui/ , and TCastleTransform.
-
-* When adding new item to hierarchy,
-  in general: when doing UpdateDesign,
-  preserve previous state of
-  - collapsed/not collapsed
-  - scrollbar of scrollbar
-  - maybe just traverse existing tree and only "fix", removing/adding what is necessary
+  Unsure how much use-case.
 
 * Visual inspector. designer etc. less important
     * Dragging UI: should "Snap" snap to the final value (like an invisible grid?)
       Would be more like Delphi/Lazarus, probably.
       Right now we are more like Blender, only movement amount is snapped.
-    * open last design in the project,
-      open the only scene in the project, if only one exists?
+    * ? open last design in the project,
+      ? open the only scene in the project, if only one exists
+      for now, list of views is good solution.
     * after adding, keep previously selected still selected
     * removing - keep selected above?
 
