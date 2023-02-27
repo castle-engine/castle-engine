@@ -1190,12 +1190,18 @@ var
 begin
   inherited;
 
-  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := false;
-  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true;
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := true; // ground collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true; // ground collide with ground
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,2] := true; // ground collide with enemies
 
-  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,1] := true;
-  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,2] := true;
-  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,0] := false;
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,1] := false; // player don't collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,2] := true; // player collide with enemies
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,0] := true; // player collide with ground
+
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,0] := true;  // enemies collide with ground
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,1] := true;  // enemies collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,2] := false; // enemies don't collide with each other
+
   ScenePlayer.RigidBody.Layer := 1;
 
   LevelComplete := false;
@@ -1227,6 +1233,7 @@ begin
   for I := 0 to EnemiesRoot.Count - 1 do
   begin
     EnemyScene := EnemiesRoot.Items[I] as TCastleScene;
+    EnemyScene.RigidBody.Layer := 2;
 
     if not EnemyScene.Exists then
       Continue;
