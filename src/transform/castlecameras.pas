@@ -3997,9 +3997,61 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
     Camera.SetWorldView(OldPosition, NewDirection, NewUp, false);
   end;
 
-const
-  MouseWheelScrollSpeed = Pi * 3 / 180.0;
-  PretendSecondsPassed = 1 / 30;
+  procedure HandleMouseWheelPress;
+  const
+    PretendSecondsPassed = 1 / 30;
+  var
+    RotationsSpeedScale: Single;
+  begin
+    { Inputs below are handled also in TCastleWalkNavigation.Update.
+      But the mouse wheel is never in a pressed state, so it cannot be handled in Update.
+      So we handle pressing on mouse wheel in a special way here.
+
+      TODO: A more generic mechanism for handling mouse wheel would be nice, so we don't
+      need to double handling of everything for mouse wheel?  }
+
+    if Input_MoveSpeedInc.IsEvent(Event) then
+    begin
+      MoveSpeedInc(PretendSecondsPassed);
+      Result := Result and ExclusiveEvents;
+    end;
+
+    if Input_MoveSpeedDec.IsEvent(Event) then
+    begin
+      MoveSpeedDec(PretendSecondsPassed);
+      Result := Result and ExclusiveEvents;
+    end;
+
+    if Container.Pressed.Modifiers = [mkCtrl] then
+      RotationsSpeedScale := 0.1
+    else
+      RotationsSpeedScale := 1.0;
+
+    if Input_RightRotate.IsEvent(Event) then
+    begin
+      RotateHorizontal(-RotationHorizontalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := Result and ExclusiveEvents;
+    end;
+
+    if Input_LeftRotate.IsEvent(Event) then
+    begin
+      RotateHorizontal(+RotationHorizontalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := Result and ExclusiveEvents;
+    end;
+
+    if Input_UpRotate.IsEvent(Event) then
+    begin
+      RotateVertical(+RotationVerticalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := Result and ExclusiveEvents;
+    end;
+
+    if Input_DownRotate.IsEvent(Event) then
+    begin
+      RotateVertical(-RotationVerticalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := Result and ExclusiveEvents;
+    end;
+  end;
+
 begin
   Result := inherited;
   if Result then Exit;
@@ -4033,20 +4085,8 @@ begin
     Result := Jump and Result and ExclusiveEvents;
   end;
 
-  { Input_MoveSpeedInc/Dec are handled in Update, usually.
-    But the mouse wheel is never is pressed state, so it cannot be handled in Update
-    -- we handle it here. }
-  if Input_MoveSpeedInc.IsEvent(Event) and (Event.EventType = itMouseWheel) then
-  begin
-    MoveSpeedInc(PretendSecondsPassed);
-    Result := Result and ExclusiveEvents;
-  end;
-
-  if Input_MoveSpeedDec.IsEvent(Event) and (Event.EventType = itMouseWheel) then
-  begin
-    MoveSpeedDec(PretendSecondsPassed);
-    Result := Result and ExclusiveEvents;
-  end;
+  if Event.EventType = itMouseWheel then
+    HandleMouseWheelPress;
 end;
 
 procedure TCastleWalkNavigation.MoveSpeedInc(const SecondsPassed: Single);
