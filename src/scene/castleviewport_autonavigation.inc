@@ -65,7 +65,7 @@
   strict private
     FInternalExamineNavigation: TCastleExamineNavigation;
     FInternalWalkNavigation: TCastleWalkNavigation;
-    FNav2D: TCastle2DNavigation;
+    FInternal2DNavigation: TCastle2DNavigation;
     FAutoNavigation: Boolean;
     FWithinSetNavigationType: Boolean;
     InsideBoundNavigationInfoChanged: Boolean;
@@ -163,13 +163,10 @@
       are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
 
-      @deprecated This is deprecated now, because it causes auto-detection
-      of navigation parameters, which is (in general) more surprising than helpful.
-      E.g. it adjusts navigation radius, speed and more properties.
-
       @groupBegin }
     function InternalExamineNavigation: TCastleExamineNavigation;
     function InternalWalkNavigation: TCastleWalkNavigation;
+    function Internal2DNavigation: TCastle2DNavigation;
     { @groupEnd }
 
     { Assign @link(Navigation) to a default TCastleNavigation suitable
@@ -347,6 +344,16 @@ begin
   Result := FInternalWalkNavigation;
 end;
 
+function TCastleAutoNavigationViewport.Internal2DNavigation: TCastle2DNavigation;
+begin
+  if FInternal2DNavigation = nil then
+  begin
+    FInternal2DNavigation := TCastle2DNavigation.Create(Self);
+    FInternal2DNavigation.SetTransient;
+  end;
+  Result := FInternal2DNavigation;
+end;
+
 function TCastleAutoNavigationViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
 var
   NewNavigation: TCastleExamineNavigation;
@@ -511,17 +518,12 @@ begin
       end;
     nt2D:
       begin
-        if FNav2D = nil then
-        begin
-          FNav2D := TCastle2DNavigation.Create(Self);
-          FNav2D.SetTransient;
-        end;
         {$warnings off} // using deprecated Navigation, that should be internal
-        if Navigation <> FNav2D then
+        if Navigation <> Internal2DNavigation then
         begin
           if Navigation <> nil then // copy properties like Input, Radius from current Navigation
-            FNav2D.Assign(Navigation);
-          Navigation := FNav2D;
+            Internal2DNavigation.Assign(Navigation);
+          Navigation := Internal2DNavigation;
         end;
         {$warnings on}
       end;
@@ -605,6 +607,8 @@ begin
       FInternalWalkNavigation := nil;
     if AComponent = FInternalExamineNavigation then
       FInternalExamineNavigation := nil;
+    if AComponent = FInternal2DNavigation then
+      FInternal2DNavigation := nil;
   end;
 end;
 
