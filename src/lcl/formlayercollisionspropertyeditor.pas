@@ -151,6 +151,7 @@ begin
 
     HorizontalNames[I] := ALabel;
   end;
+  HorizontalNamesPanel.AutoSize := true;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.CreateVerticalNames;
