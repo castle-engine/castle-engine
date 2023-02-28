@@ -10,13 +10,12 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
-    CheckBox1: TCheckBox;
     CheckboxesPanel: TPanel;
-    GroupBox1: TGroupBox;
     HorizontalNamesPanel: TPanel;
     Label1: TLabel;
     VerticalNamesPanel: TPanel;
     procedure FormCreate(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   strict private
     {
        Checkboxes matrix looking like that:
@@ -26,6 +25,7 @@ type
        ...
     }
     Checkboxes: array [TPhysicsLayer, TPhysicsLayer] of TCheckBox;
+    CheckboxesPanels: array [TPhysicsLayer] of TPanel;
     { Vertical names labels from 0  to 19 }
     VerticalNames: array [TPhysicsLayer] of TLabel;
     { Horizontal names labels from 19 to 0 }
@@ -34,6 +34,8 @@ type
     procedure CreateCheckboxes;
     procedure CreateVerticalNames;
     procedure CreateHorizontalNames;
+
+    procedure UpdateVerticalNamesTop;
   public
 
   end;
@@ -52,6 +54,12 @@ begin
   CreateCheckboxes;
   CreateVerticalNames;
   CreateHorizontalNames;
+  UpdateVerticalNamesTop;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
+begin
+  UpdateVerticalNamesTop;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.CreateCheckboxes;
@@ -116,6 +124,7 @@ begin
 
     end;
     Panel.AutoSize := true;
+    CheckboxesPanels[I] := Panel;
     PreviousPanel := Panel;
   end;
 end;
@@ -132,15 +141,14 @@ begin
   begin
     ALabel := TLabel.Create(VerticalNamesPanel);
     ALabel.Parent := VerticalNamesPanel;
+    ALabel.Caption := IntToStr(I) + ': ';
+    ALabel.AutoSize := true;
 
     ALabel.Anchors := [akTop, akRight];
-    ALabel.AnchorSide[akTop].Side  := asrCenter;
-    ALabel.AnchorSide[akTop].Control := Checkboxes[High(TPhysicsLayer), I];
+    ALabel.AnchorSide[akTop].Side  := asrTop;
+    ALabel.AnchorSide[akTop].Control := nil;
     ALabel.AnchorSide[akRight].Side := asrRight;
     ALabel.AnchorSide[akRight].Control := VerticalNamesPanel;
-
-    ALabel.Caption := IntToStr(I);
-    ALabel.AutoSize := true;
 
     VerticalNames[I] := ALabel;
   end;
@@ -150,6 +158,16 @@ procedure TLayerCollisionsPropertyEditorForm.CreateHorizontalNames;
 begin
   HorizontalNamesPanel.BevelOuter := bvNone;
   HorizontalNamesPanel.Caption := '';
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.UpdateVerticalNamesTop;
+var
+  Margin: Integer;
+  I: TPhysicsLayer;
+begin
+  Margin := (CheckboxesPanels[0].Height - VerticalNames[0].Height) div 2;
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+    VerticalNames[I].Top :=  CheckboxesPanels[I].Top + Margin;
 end;
 
 end.
