@@ -11,9 +11,9 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   OnResize = FormResize
   LCLVersion = '2.2.5.0'
   object CheckboxesPanel: TPanel
-    AnchorSideLeft.Control = VerticalNamesPanel
+    AnchorSideLeft.Control = HorizontalNamesPanel
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = HorizontalNamesPanel
+    AnchorSideTop.Control = VerticalNamesPanel
     AnchorSideTop.Side = asrBottom
     Left = 213
     Height = 334
@@ -22,7 +22,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Caption = 'CheckboxesPanel'
     TabOrder = 0
   end
-  object VerticalNamesPanel: TPanel
+  object HorizontalNamesPanel: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckboxesPanel
     AnchorSideRight.Control = CheckboxesPanel
@@ -33,28 +33,10 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Top = 63
     Width = 213
     Anchors = [akTop, akLeft, akBottom]
-    Caption = 'VerticalNamesPanel'
-    ClientHeight = 334
-    ClientWidth = 213
+    Caption = 'HorizontalNamesPanel'
     TabOrder = 1
-    object Label1: TLabel
-      Left = 74
-      Height = 20
-      Top = 296
-      Width = 51
-      Caption = 'Label1'
-      ParentColor = False
-    end
-    object StaticText1: TStaticText
-      Left = 73
-      Height = 21
-      Top = 40
-      Width = 81
-      Caption = 'StaticText1'
-      TabOrder = 0
-    end
   end
-  object HorizontalNamesPanel: TPanel
+  object VerticalNamesPanel: TPanel
     AnchorSideLeft.Control = CheckboxesPanel
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = CheckboxesPanel
@@ -65,7 +47,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Top = 0
     Width = 472
     Anchors = [akTop, akLeft, akRight]
-    Caption = 'HorizontalNamesPanel'
+    Caption = 'VerticalNamesPanel'
     TabOrder = 2
   end
 end

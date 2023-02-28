@@ -11,10 +11,8 @@ uses
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
     CheckboxesPanel: TPanel;
-    HorizontalNamesPanel: TPanel;
-    Label1: TLabel;
-    StaticText1: TStaticText;
     VerticalNamesPanel: TPanel;
+    HorizontalNamesPanel: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
   strict private
@@ -27,17 +25,15 @@ type
     }
     Checkboxes: array [TPhysicsLayer, TPhysicsLayer] of TCheckBox;
     CheckboxesPanels: array [TPhysicsLayer] of TPanel;
-    { Vertical names labels from 0  to 19 }
-    VerticalNames: array [TPhysicsLayer] of TLabel;
-    { Horizontal names labels from 19 to 0 }
+    { Horizontal names labels from 0  to 19 }
     HorizontalNames: array [TPhysicsLayer] of TLabel;
 
     procedure CreateCheckboxes;
-    procedure CreateVerticalNames;
     procedure CreateHorizontalNames;
+    procedure CreateVerticalNames;
 
-    procedure UpdateVerticalNamesTop;
-    procedure RepaintHorizontalNames(Sender: TObject);
+    procedure UpdateHorizontalNamesTop;
+    procedure RepaintVerticalNames(Sender: TObject);
   public
 
   end;
@@ -54,15 +50,15 @@ implementation
 procedure TLayerCollisionsPropertyEditorForm.FormCreate(Sender: TObject);
 begin
   CreateCheckboxes;
-  CreateVerticalNames;
   CreateHorizontalNames;
-  UpdateVerticalNamesTop;
+  CreateVerticalNames;
+  UpdateHorizontalNamesTop;
 end;
 
 
 procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
 begin
-  UpdateVerticalNamesTop;
+  UpdateHorizontalNamesTop;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.CreateCheckboxes;
@@ -132,18 +128,18 @@ begin
   end;
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.CreateVerticalNames;
+procedure TLayerCollisionsPropertyEditorForm.CreateHorizontalNames;
 var
   ALabel: TLabel;
   I: TPhysicsLayer;
 begin
-  VerticalNamesPanel.BevelOuter := bvNone;
-  VerticalNamesPanel.Caption := '';
+  HorizontalNamesPanel.BevelOuter := bvNone;
+  HorizontalNamesPanel.Caption := '';
 
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
-    ALabel := TLabel.Create(VerticalNamesPanel);
-    ALabel.Parent := VerticalNamesPanel;
+    ALabel := TLabel.Create(HorizontalNamesPanel);
+    ALabel.Parent := HorizontalNamesPanel;
     ALabel.Caption := IntToStr(I) + ': ';
     ALabel.AutoSize := true;
 
@@ -151,59 +147,59 @@ begin
     ALabel.AnchorSide[akTop].Side  := asrTop;
     ALabel.AnchorSide[akTop].Control := nil;
     ALabel.AnchorSide[akRight].Side := asrRight;
-    ALabel.AnchorSide[akRight].Control := VerticalNamesPanel;
+    ALabel.AnchorSide[akRight].Control := HorizontalNamesPanel;
 
-    VerticalNames[I] := ALabel;
+    HorizontalNames[I] := ALabel;
   end;
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.CreateHorizontalNames;
+procedure TLayerCollisionsPropertyEditorForm.CreateVerticalNames;
 begin
-  HorizontalNamesPanel.BevelOuter := bvNone;
-  HorizontalNamesPanel.Caption := '';
-  HorizontalNamesPanel.OnPaint := @RepaintHorizontalNames;
-  RepaintHorizontalNames(HorizontalNamesPanel);
+  VerticalNamesPanel.BevelOuter := bvNone;
+  VerticalNamesPanel.Caption := '';
+  VerticalNamesPanel.OnPaint := @RepaintVerticalNames;
+  RepaintVerticalNames(VerticalNamesPanel);
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.UpdateVerticalNamesTop;
+procedure TLayerCollisionsPropertyEditorForm.UpdateHorizontalNamesTop;
 var
   Margin: Integer;
   I: TPhysicsLayer;
 begin
-  Margin := (CheckboxesPanels[0].Height - VerticalNames[0].Height) div 2;
+  Margin := (CheckboxesPanels[0].Height - HorizontalNames[0].Height) div 2;
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
-    VerticalNames[I].Top :=  CheckboxesPanels[I].Top + Margin;
+    HorizontalNames[I].Top :=  CheckboxesPanels[I].Top + Margin;
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.RepaintHorizontalNames(Sender: TObject);
+procedure TLayerCollisionsPropertyEditorForm.RepaintVerticalNames(Sender: TObject);
 var
   I: TPhysicsLayer;
   X, Y: Integer;
   CheckboxWidth: Integer;
   MaxWidth: Integer;
-  HName: String;
-  HNameWidth: Integer;
+  VName: String;
+  VNameWidth: Integer;
 begin
-  HorizontalNamesPanel.Canvas.Font.Orientation := 900;
-  HorizontalNamesPanel.Canvas.Font.Color := clWindowText;
-  HorizontalNamesPanel.Color := clWindow;
+  VerticalNamesPanel.Canvas.Font.Orientation := 900;
+  VerticalNamesPanel.Canvas.Font.Color := clWindowText;
+  VerticalNamesPanel.Color := clWindow;
 
   MaxWidth := 100;
   X := 0;
   CheckboxWidth := Checkboxes[High(TPhysicsLayer), Low(TPhysicsLayer)].Width;
-  Y := HorizontalNamesPanel.Height;
+  Y := VerticalNamesPanel.Height;
   for I := High(TPhysicsLayer) downto Low(TPhysicsLayer) do
   begin
-    HName := IntToStr(I) + ': ';
-    HNameWidth := HorizontalNamesPanel.Canvas.TextExtent(HName).Width;
-    if HNameWidth > MaxWidth then
-       MaxWidth := HNameWidth;
-    HorizontalNamesPanel.Canvas.TextOut(X, Y, HName);
+    VName := IntToStr(I) + ': ';
+    VNameWidth := VerticalNamesPanel.Canvas.TextExtent(VName).Width;
+    if VNameWidth > MaxWidth then
+       MaxWidth := VNameWidth;
+    VerticalNamesPanel.Canvas.TextOut(X, Y, VName);
     X := X + CheckboxWidth;
   end;
 
-  if MaxWidth <> HorizontalNamesPanel.Constraints.MinHeight then
-    HorizontalNamesPanel.Constraints.MinHeight := MaxWidth;
+  if MaxWidth <> VerticalNamesPanel.Constraints.MinHeight then
+    VerticalNamesPanel.Constraints.MinHeight := MaxWidth;
 end;
 
 end.
