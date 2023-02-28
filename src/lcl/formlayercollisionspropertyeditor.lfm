@@ -80,18 +80,34 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   end
   object CancelButton: TButton
     AnchorSideLeft.Control = OkButton
-    AnchorSideTop.Control = OkButton
+    AnchorSideTop.Control = RevertButton
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = OkButton
     AnchorSideRight.Side = asrBottom
     Left = 745
     Height = 31
-    Top = 39
+    Top = 78
     Width = 126
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 4
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
+  end
+  object RevertButton: TButton
+    AnchorSideLeft.Control = OkButton
+    AnchorSideTop.Control = OkButton
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = OkButton
+    AnchorSideRight.Side = asrBottom
+    Left = 745
+    Height = 31
+    Top = 43
+    Width = 126
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    Caption = 'Revert'
+    OnClick = RevertButtonClick
+    TabOrder = 5
   end
 end

@@ -10,6 +10,7 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
+    RevertButton: TButton;
     CancelButton: TButton;
     OkButton: TButton;
     CheckboxesPanel: TPanel;
@@ -18,6 +19,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
+    procedure RevertButtonClick(Sender: TObject);
   strict private
     {
        Checkboxes matrix looking like that:
@@ -71,6 +73,11 @@ end;
 procedure TLayerCollisionsPropertyEditorForm.OkButtonClick(Sender: TObject);
 begin
   Save;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.RevertButtonClick(Sender: TObject);
+begin
+  Load;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.CreateCheckboxes;
