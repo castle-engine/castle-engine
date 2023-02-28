@@ -38,7 +38,6 @@
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
-  - update caption at runtime
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
@@ -386,6 +385,38 @@ var
     end;
   end;
 
+  { Simulate pressing / release of modifiers (like shift, alt, ctrl) based on modifier flags.
+    These keys are not passed to regular key down / up keycodes.
+    See https://stackoverflow.com/questions/4640696/cocoa-nsevent-respond-to-the-shift-key
+    https://developer.apple.com/documentation/appkit/nseventmodifierflags?language=objc }
+  procedure UpdateModifiersPressed(const ModifierFlags: NSEventModifierFlags);
+  var
+    IsShift, IsAlt, IsCtrl: Boolean;
+  begin
+    IsShift := (ModifierFlags and NSShiftKeyMask) <> 0;
+    if IsShift <> win.Pressed[keyShift] then
+      if IsShift then
+        win.DoKeyDown(keyShift, '')
+      else
+        win.DoKeyUp(keyShift);
+
+    IsAlt := (ModifierFlags and NSAlternateKeyMask) <> 0;
+    if IsAlt <> win.Pressed[keyAlt] then
+      if IsAlt then
+        win.DoKeyDown(keyAlt, '')
+      else
+        win.DoKeyUp(keyAlt);
+
+    IsCtrl :=
+      //(ModifierFlags and NSControlKeyMask) <> 0;
+      (ModifierFlags and NSCommandKeyMask) <> 0; // treat Command key as Ctrl
+    if IsCtrl <> win.Pressed[keyCtrl] then
+      if IsCtrl then
+        win.DoKeyDown(keyCtrl, '')
+      else
+        win.DoKeyUp(keyCtrl);
+  end;
+
 var
   event: NSEvent;
   pool: NSAutoreleasePool;
@@ -450,10 +481,18 @@ begin
                 CastleMouseButton, 0);
             end;
           NSKeyDown:
-            win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
-            // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            begin
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+              win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
+              // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            end;
           NSKeyUp:
-            win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+            begin
+              win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+            end;
+          NSFlagsChanged:
+            UpdateModifiersPressed(event.modifierFlags);
           NSScrollWheel:
             begin
               if event.deltaX <> 0 then
