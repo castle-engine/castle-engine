@@ -45,15 +45,26 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
       Caption = 'Label1'
       ParentColor = False
     end
+    object StaticText1: TStaticText
+      Left = 73
+      Height = 21
+      Top = 40
+      Width = 81
+      Caption = 'StaticText1'
+      TabOrder = 0
+    end
   end
   object HorizontalNamesPanel: TPanel
     AnchorSideLeft.Control = CheckboxesPanel
     AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = CheckboxesPanel
+    AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = CheckboxesPanel
     Left = 213
     Height = 63
     Top = 0
-    Width = 213
+    Width = 472
+    Anchors = [akTop, akLeft, akRight]
     Caption = 'HorizontalNamesPanel'
     TabOrder = 2
   end

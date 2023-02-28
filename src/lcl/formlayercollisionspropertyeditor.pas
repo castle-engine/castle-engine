@@ -13,6 +13,7 @@ type
     CheckboxesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
     Label1: TLabel;
+    StaticText1: TStaticText;
     VerticalNamesPanel: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -36,6 +37,7 @@ type
     procedure CreateHorizontalNames;
 
     procedure UpdateVerticalNamesTop;
+    procedure RepaintHorizontalNames(Sender: TObject);
   public
 
   end;
@@ -56,6 +58,7 @@ begin
   CreateHorizontalNames;
   UpdateVerticalNamesTop;
 end;
+
 
 procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
 begin
@@ -158,6 +161,8 @@ procedure TLayerCollisionsPropertyEditorForm.CreateHorizontalNames;
 begin
   HorizontalNamesPanel.BevelOuter := bvNone;
   HorizontalNamesPanel.Caption := '';
+  HorizontalNamesPanel.OnPaint := @RepaintHorizontalNames;
+  RepaintHorizontalNames(HorizontalNamesPanel);
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.UpdateVerticalNamesTop;
@@ -168,6 +173,37 @@ begin
   Margin := (CheckboxesPanels[0].Height - VerticalNames[0].Height) div 2;
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
     VerticalNames[I].Top :=  CheckboxesPanels[I].Top + Margin;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.RepaintHorizontalNames(Sender: TObject);
+var
+  I: TPhysicsLayer;
+  X, Y: Integer;
+  CheckboxWidth: Integer;
+  MaxWidth: Integer;
+  HName: String;
+  HNameWidth: Integer;
+begin
+  HorizontalNamesPanel.Canvas.Font.Orientation := 900;
+  HorizontalNamesPanel.Canvas.Font.Color := clWindowText;
+  HorizontalNamesPanel.Color := clWindow;
+
+  MaxWidth := 100;
+  X := 0;
+  CheckboxWidth := Checkboxes[High(TPhysicsLayer), Low(TPhysicsLayer)].Width;
+  Y := HorizontalNamesPanel.Height;
+  for I := High(TPhysicsLayer) downto Low(TPhysicsLayer) do
+  begin
+    HName := IntToStr(I) + ': ';
+    HNameWidth := HorizontalNamesPanel.Canvas.TextExtent(HName).Width;
+    if HNameWidth > MaxWidth then
+       MaxWidth := HNameWidth;
+    HorizontalNamesPanel.Canvas.TextOut(X, Y, HName);
+    X := X + CheckboxWidth;
+  end;
+
+  if MaxWidth <> HorizontalNamesPanel.Constraints.MinHeight then
+    HorizontalNamesPanel.Constraints.MinHeight := MaxWidth;
 end;
 
 end.
