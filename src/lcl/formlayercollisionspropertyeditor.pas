@@ -10,6 +10,7 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
+    CancelButton: TButton;
     OkButton: TButton;
     CheckboxesPanel: TPanel;
     VerticalNamesPanel: TPanel;
