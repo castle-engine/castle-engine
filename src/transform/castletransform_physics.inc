@@ -1208,7 +1208,7 @@ var
 begin
   Layer2UInt32 := 0;
   Layers := [Layer2];
-  Move(Layers, Layer2UInt32, SizeOf(Layer2));
+  Move(Layers, Layer2UInt32, SizeOf(Layers));
   if AValue then
     FCollides[Layer1] := FCollides[Layer1] or Layer2UInt32
   else
