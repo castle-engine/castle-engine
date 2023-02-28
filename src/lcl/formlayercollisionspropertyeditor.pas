@@ -81,7 +81,6 @@ var
     C.ParentShowHint := false;
     C.AutoSize := true;
 
-
     if X = High(TPhysicsLayer) then
     begin
       C.AnchorSide[akLeft].Side := asrLeft;
@@ -118,10 +117,8 @@ begin
     end;
 
     for J := High(TPhysicsLayer) downto I do
-    begin
       Checkboxes[J, I] := AddCheckbox(J, I, Panel);
 
-    end;
     Panel.AutoSize := true;
     CheckboxesPanels[I] := Panel;
     PreviousPanel := Panel;
