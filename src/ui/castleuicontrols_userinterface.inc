@@ -326,34 +326,52 @@
       function TMyControl.Press(const Event: TInputPressRelease): boolean;
       begin
         Result := inherited;
-        if Result then Exit; // exit if ancestor already handled event
+        if Result then Exit; // exit if ancestor already handled this event
 
         if Event.IsKey(keyEnter) then
         begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+          // do something in reaction to Enter key
+          ...
+          // notify container that event was handled; ExclusiveEvents is true by default
+          Exit(ExclusiveEvents);
         end;
 
         if Event.IsMouseButton(buttonLeft) then
         begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+          // do something in reaction to left mouse button press
+          ...
+          // notify container that event was handled; ExclusiveEvents is true by default
+          Exit(ExclusiveEvents);
         end;
       end;
       #)
 
-      Note that releasing of the mouse wheel is not reported now by any backend.
-      Only releasing of keys and mouse buttons is reported.
+      These events are generated for all UI controls, whether they are considered
+      "interactive" or not.
+      These events are generated for non-interactive controls
+      like @link(TCastleRectangleControl) or @link(TCastleLabel) as well.
+      For example, these events ignore the @link(TCastleButton.Enabled) state,
+      they are generated always (see https://github.com/castle-engine/castle-engine/issues/413 ).
+      Use instead @link(TCastleButton.OnClick) to detect clicks on a button in a way that honors
+      the @link(TCastleButton.Enabled) state.
+
+      When a control returns @true from @link(Press), it means it starts to "capture"
+      subsequent mouse events: subsequent mouse moves and release will be send
+      to this control even if mouse will move outside of this control.
 
       The events PreviewPress and PreviewRelease are passed first to
       the parent control, before children have a chance to process this event.
-      Overriding them makes sense if you draw something
+      In partcular, overriding them makes sense if you draw something that "looks clickable"
       in @link(TCastleUserInterface.RenderOverChildren).
 
       The events Press and Release are passed to the parent only
       after the children had a chance to process this event.
-      Overriding them makes sense if you draw something
-      in @link(TCastleUserInterface.Render). This is usually more natural, and adviced.
+      Overriding them makes sense if you draw something that "looks clickable"
+      in @link(TCastleUserInterface.Render), which is the standard place you should draw stuff.
+      For example our TCastleButton draws there.
+
+      Note that releasing of the mouse wheel is not reported now by any backend.
+      Only releasing of keys and mouse buttons is reported.
 
       @groupBegin *)
     function Press(const Event: TInputPressRelease): boolean; virtual;
