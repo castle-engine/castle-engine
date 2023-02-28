@@ -75,6 +75,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Caption = 'OK'
     Constraints.MinWidth = 100
     ModalResult = 1
+    OnClick = OkButtonClick
     TabOrder = 3
   end
   object CancelButton: TButton

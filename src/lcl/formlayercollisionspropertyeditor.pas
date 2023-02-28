@@ -17,6 +17,7 @@ type
     HorizontalNamesPanel: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure OkButtonClick(Sender: TObject);
   strict private
     {
        Checkboxes matrix looking like that:
@@ -39,6 +40,7 @@ type
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
     procedure Load;
+    procedure Save;
   public
     procedure Init(const LayerCollisions: TCastleLayerCollisions);
   end;
@@ -64,6 +66,11 @@ end;
 procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
 begin
   UpdateHorizontalNamesTop;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.OkButtonClick(Sender: TObject);
+begin
+  Save;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.CreateCheckboxes;
@@ -216,6 +223,20 @@ begin
   begin
     for J := High(TPhysicsLayer) downto I do
       Checkboxes[J, I].Checked := FLayerCollisions.Collides[I, J];
+  end;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.Save;
+var
+  I, J: TPhysicsLayer;
+begin
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+  begin
+    for J := High(TPhysicsLayer) downto I do
+    begin
+      FLayerCollisions.Collides[I, J] := Checkboxes[J, I].Checked;
+      FLayerCollisions.Collides[J, I] := Checkboxes[J, I].Checked;
+    end;
   end;
 end;
 
