@@ -38,6 +38,7 @@ type
 
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
+    procedure Load;
   public
     procedure Init(const LayerCollisions: TCastleLayerCollisions);
   end;
@@ -207,9 +208,21 @@ begin
   end;
 end;
 
+procedure TLayerCollisionsPropertyEditorForm.Load;
+var
+  I, J: TPhysicsLayer;
+begin
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+  begin
+    for J := High(TPhysicsLayer) downto I do
+      Checkboxes[J, I].Checked := FLayerCollisions.Collides[I, J];
+  end;
+end;
+
 procedure TLayerCollisionsPropertyEditorForm.Init(const LayerCollisions: TCastleLayerCollisions);
 begin
   FLayerCollisions := LayerCollisions;
+  Load;
 end;
 
 end.
