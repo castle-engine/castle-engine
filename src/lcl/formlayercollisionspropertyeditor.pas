@@ -187,6 +187,7 @@ var
   X, Y: Integer;
   CheckboxWidth: Integer;
   MaxWidth: Integer;
+  Margin: Integer;
   VName: String;
   VNameWidth: Integer;
 begin
@@ -198,13 +199,15 @@ begin
   X := 0;
   CheckboxWidth := Checkboxes[High(TPhysicsLayer), Low(TPhysicsLayer)].Width;
   Y := VerticalNamesPanel.Height;
+  Margin := (CheckboxWidth - VerticalNamesPanel.Canvas.TextExtent('I').Height) div 2;
+
   for I := High(TPhysicsLayer) downto Low(TPhysicsLayer) do
   begin
     VName := IntToStr(I) + ': ';
     VNameWidth := VerticalNamesPanel.Canvas.TextExtent(VName).Width;
     if VNameWidth > MaxWidth then
        MaxWidth := VNameWidth;
-    VerticalNamesPanel.Canvas.TextOut(X, Y, VName);
+    VerticalNamesPanel.Canvas.TextOut(X + Margin, Y, VName);
     X := X + CheckboxWidth;
   end;
 
