@@ -10,6 +10,7 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
+    OkButton: TButton;
     CheckboxesPanel: TPanel;
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
@@ -28,6 +29,8 @@ type
     { Horizontal names labels from 0  to 19 }
     HorizontalNames: array [TPhysicsLayer] of TLabel;
 
+    FLayerCollisions: TCastleLayerCollisions;
+
     procedure CreateCheckboxes;
     procedure CreateHorizontalNames;
     procedure CreateVerticalNames;
@@ -35,7 +38,7 @@ type
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
   public
-
+    procedure Init(const LayerCollisions: TCastleLayerCollisions);
   end;
 
 //var
@@ -200,6 +203,11 @@ begin
     VerticalNamesPanel.Constraints.MinHeight := MaxWidth;
     VerticalNamesPanel.Constraints.MaxHeight := MaxWidth;
   end;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.Init(const LayerCollisions: TCastleLayerCollisions);
+begin
+  FLayerCollisions := LayerCollisions;
 end;
 
 end.

@@ -2,10 +2,12 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   Left = 1840
   Height = 550
   Top = 337
-  Width = 786
+  Width = 875
+  AutoSize = True
   Caption = 'Physics Layer Collisions Configuration'
   ClientHeight = 550
-  ClientWidth = 786
+  ClientWidth = 875
+  Color = clWindow
   DesignTimePPI = 120
   OnCreate = FormCreate
   OnResize = FormResize
@@ -15,10 +17,14 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = VerticalNamesPanel
     AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 213
-    Height = 334
+    Height = 437
     Top = 63
     Width = 472
+    Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Bottom = 50
     Caption = 'CheckboxesPanel'
     TabOrder = 0
   end
@@ -29,7 +35,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideBottom.Control = CheckboxesPanel
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 334
+    Height = 437
     Top = 63
     Width = 213
     Anchors = [akTop, akLeft, akBottom]
@@ -49,5 +55,24 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Anchors = [akTop, akLeft, akRight]
     Caption = 'VerticalNamesPanel'
     TabOrder = 2
+  end
+  object OkButton: TButton
+    AnchorSideLeft.Control = CheckboxesPanel
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 735
+    Height = 31
+    Top = 4
+    Width = 136
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 50
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    Caption = 'OK'
+    Constraints.MinWidth = 100
+    ModalResult = 1
+    TabOrder = 3
   end
 end
