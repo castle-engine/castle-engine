@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,10 +122,10 @@ begin
     'w': Container.OverrideCursor := mcWait;
     's': Container.OverrideCursor := mcResizeHorizontal;
     { setting mouse position tests: }
-    '1': Container.MousePosition := Vector2(0                  , 0);
+    '1': Container.MousePosition := Vector2(0                 , 0);
     '2': Container.MousePosition := Vector2(Container.Width    , 0);
     '3': Container.MousePosition := Vector2(Container.Width    , Container.Height);
-    '4': Container.MousePosition := Vector2(0                  , Container.Height);
+    '4': Container.MousePosition := Vector2(0                 , Container.Height);
     '5': Container.MousePosition := Vector2(Container.Width / 2, Container.Height / 2);
     { test TCastleWindow.MessageXxx }
     'm': W.MessageOK('Test information.', mtInfo);
