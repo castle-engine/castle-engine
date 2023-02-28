@@ -11,7 +11,8 @@
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
-          "GravityStrength" : 1.2000000000000000E+003
+          "GravityStrength" : 1.2000000000000000E+003,
+          "LayerCollisons" : ""
         },
         "$Children" : [
           {
@@ -9202,6 +9203,7 @@
               {
                 "$$ClassName" : "TCastleRigidBody",
                 "AngularVelocityDamp" : 0.0000000000000000E+000,
+                "Layer" : 1,
                 "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LockRotation" : [
                   0,
@@ -11639,8 +11641,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.2607285156250000E+003,
-          "Y" : -4.4952734375000000E+002,
+          "X" : -2.1917424316406250E+003,
+          "Y" : 2.2653674316406250E+002,
           "Z" : 5.0000000000000000E+002
         }
       },

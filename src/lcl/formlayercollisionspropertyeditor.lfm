@@ -1,0 +1,79 @@
+object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
+  Left = 1840
+  Height = 496
+  Top = 337
+  Width = 786
+  Caption = 'LayerCollisionsPropertyEditorForm'
+  ClientHeight = 496
+  ClientWidth = 786
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  LCLVersion = '2.2.5.0'
+  object CheckboxesPanel: TPanel
+    AnchorSideLeft.Control = VerticalNamesPanel
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = HorizontalNamesPanel
+    AnchorSideTop.Side = asrBottom
+    Left = 213
+    Height = 334
+    Top = 63
+    Width = 472
+    Caption = 'CheckboxesPanel'
+    ClientHeight = 334
+    ClientWidth = 472
+    TabOrder = 0
+    object GroupBox1: TGroupBox
+      Left = 53
+      Height = 131
+      Top = 51
+      Width = 231
+      Caption = 'GroupBox1'
+      ClientHeight = 110
+      ClientWidth = 229
+      TabOrder = 0
+      object CheckBox1: TCheckBox
+        Left = 43
+        Height = 24
+        Top = 36
+        Width = 111
+        Caption = 'CheckBox1'
+        TabOrder = 0
+      end
+    end
+  end
+  object VerticalNamesPanel: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = CheckboxesPanel
+    AnchorSideRight.Control = CheckboxesPanel
+    AnchorSideBottom.Control = CheckboxesPanel
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 334
+    Top = 63
+    Width = 213
+    Anchors = [akTop, akLeft, akBottom]
+    Caption = 'VerticalNamesPanel'
+    ClientHeight = 334
+    ClientWidth = 213
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 74
+      Height = 20
+      Top = 296
+      Width = 51
+      Caption = 'Label1'
+      ParentColor = False
+    end
+  end
+  object HorizontalNamesPanel: TPanel
+    AnchorSideLeft.Control = CheckboxesPanel
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = CheckboxesPanel
+    Left = 213
+    Height = 63
+    Top = 0
+    Width = 213
+    Caption = 'HorizontalNamesPanel'
+    TabOrder = 2
+  end
+end

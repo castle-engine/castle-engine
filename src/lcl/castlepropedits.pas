@@ -51,7 +51,8 @@ uses // FPC and LCL units
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
+  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation,
+  FormLayerCollisionsPropertyEditor;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -77,6 +78,7 @@ uses // FPC and LCL units
 {$I castlepropedits_component_design.inc}
 {$I castlepropedits_component_joints.inc}
 {$I castlepropedits_abstracttwobodiesjoint.inc}
+{$I castlepropedits_component_layercollisions.inc}
 
 procedure Register;
 begin
@@ -183,6 +185,9 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
     TConnectedPropertyEditor);
 
+  RegisterPropertyEditor(TypeInfo(TCastleLayerCollisions), nil,  '',
+    TLayerCollisionsPropertyEditor);
+
   { used by LockRotation, LockTranslation }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
@@ -224,7 +229,9 @@ begin
   RegisterComponentEditor(TCastlePulleyJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleSliderJoint, TCastleJointsComponentEditor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
 end;
+
 
 initialization
   { Add lrs with icons, following
