@@ -34,7 +34,9 @@
 }
 
 { TODO p1:
-  - fullscreen: should be on top of dock / menu
+  - fullscreen: should be on top of dock / menu (started but doesn't work, search for COCOA_FULL_SCREEN)
+  - hide / show mouse cursor (for mouse look) (started but doesn't work, NSCursor.hide/unhide)
+  - reposition mouse (for mouse look ) (started but doesn't work, see SetMousePosition)
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
@@ -64,6 +66,8 @@ CocoaAll,
 {$endif}
 
 {$ifdef read_implementation_uses}
+// for CGWarp... in SetMousePosition, unused for now
+// CGRemoteOperation, CGGeometry,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -1002,9 +1006,32 @@ end;
 
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
 end;
+(* TODO: Unfortunately none of the options below make any effect.
+
+var
+  PointWindowCoords, PointScreenCoords: NSPoint;
+  CgPointScreenCoords: CGPoint;
+begin
+  if not Closed then
+  begin
+    PointWindowCoords := NSMakePoint(Value.X, Value.Y);
+    PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+
+    { Beware, it seems MacOsAll and CGGeometry both define CGPoint }
+    CgPointScreenCoords := CGGeometry.CGPoint(
+      //CGPointMake(PointScreenCoords.X, Application.ScreenHeight - PointScreenCoords.Y)
+      NSPointToCGPoint(PointScreenCoords)
+    );
+
+    { Seems that CGXxx function is the only way to do this:
+      https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc }
+    CGWarpMouseCursorPosition(CgPointScreenCoords);
+
+    Writeln('warping to ', CgPointScreenCoords.X:1:2, ' ', CgPointScreenCoords.Y:1:2);
+  end;
+end;
+*)
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin
