@@ -306,14 +306,14 @@ function TBorderlessWindow.initWithContentRect(contentRect: NSRect): id;
 begin
   result := initWithContentRect_styleMask_backing_defer(contentRect, NSBorderlessWindowMask, NSBackingStoreBuffered, false);
   if result <> nil then
-    begin
-      result.setMovableByWindowBackground(false);
-      //result.setBackgroundColor(NSColor.clearColor);
-      //result.setOpaque(false);
-      result.setHasShadow(false);
-      result.setExcludedFromWindowsMenu(true);
-      self := result;
-    end;
+  begin
+    result.setMovableByWindowBackground(false);
+    //result.setBackgroundColor(NSColor.clearColor);
+    //result.setOpaque(false);
+    result.setHasShadow(false);
+    result.setExcludedFromWindowsMenu(true);
+    self := result;
+  end;
 end;
 
 {=============================================}
@@ -869,25 +869,22 @@ var
   windowFlags: NSUInteger = 0;
 begin
   if not FullScreen then
-    begin
-      windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
-      window.setTitle(NSSTR(GetWholeCaption));
-    end
-  else
-    begin
-      { Update position/size in case window is fullscreen.
-        If the backend always creates a fullscreen window for some reason
-        (e.g. typical on mobile), then you can remove the condition
-        "if FullScreen then" and just do this always, regardless of FullScreen value. }
-      FLeft := 0;
-      FTop := 0;
-      DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  begin
+    windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
+    window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window.setTitle(NSSTR(GetWholeCaption));
+  end else
+  begin
+    { Update position/size in case window is fullscreen }
+    FLeft := 0;
+    FTop := 0;
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
-      windowFlags := NSBorderlessWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
-      window.setKeepFullScreenAlways(true);
-    end;
+    // windowFlags := NSBorderlessWindowMask;
+    // window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
+    window.setKeepFullScreenAlways(true);
+  end;
 
   window.ref := Self;
 
