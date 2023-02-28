@@ -181,7 +181,7 @@ begin
   VerticalNamesPanel.Canvas.Font.Color := clWindowText;
   VerticalNamesPanel.Color := clWindow;
 
-  MaxWidth := 100;
+  MaxWidth := 50;
   X := 0;
   CheckboxWidth := Checkboxes[High(TPhysicsLayer), Low(TPhysicsLayer)].Width;
   Y := VerticalNamesPanel.Height;
@@ -196,7 +196,10 @@ begin
   end;
 
   if MaxWidth <> VerticalNamesPanel.Constraints.MinHeight then
+  begin
     VerticalNamesPanel.Constraints.MinHeight := MaxWidth;
+    VerticalNamesPanel.Constraints.MaxHeight := MaxWidth;
+  end;
 end;
 
 end.

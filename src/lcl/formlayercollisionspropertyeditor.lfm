@@ -1,10 +1,10 @@
 object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   Left = 1840
-  Height = 496
+  Height = 550
   Top = 337
   Width = 786
   Caption = 'LayerCollisionsPropertyEditorForm'
-  ClientHeight = 496
+  ClientHeight = 550
   ClientWidth = 786
   DesignTimePPI = 120
   OnCreate = FormCreate
