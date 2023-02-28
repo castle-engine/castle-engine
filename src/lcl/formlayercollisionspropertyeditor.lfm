@@ -19,12 +19,12 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 213
-    Height = 437
-    Top = 63
+    Left = 243
+    Height = 427
+    Top = 93
     Width = 472
     Anchors = [akTop, akLeft, akBottom]
-    BorderSpacing.Bottom = 50
+    BorderSpacing.Bottom = 30
     Caption = 'CheckboxesPanel'
     TabOrder = 0
   end
@@ -34,11 +34,12 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideRight.Control = CheckboxesPanel
     AnchorSideBottom.Control = CheckboxesPanel
     AnchorSideBottom.Side = asrBottom
-    Left = 0
-    Height = 437
-    Top = 63
+    Left = 30
+    Height = 427
+    Top = 93
     Width = 213
     Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Left = 30
     Caption = 'HorizontalNamesPanel'
     TabOrder = 1
   end
@@ -48,11 +49,12 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideRight.Control = CheckboxesPanel
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = CheckboxesPanel
-    Left = 213
+    Left = 243
     Height = 63
-    Top = 0
+    Top = 30
     Width = 472
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 30
     Caption = 'VerticalNamesPanel'
     TabOrder = 2
   end
@@ -62,12 +64,12 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 735
+    Left = 745
     Height = 31
     Top = 4
-    Width = 136
+    Width = 126
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 50
+    BorderSpacing.Left = 30
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'OK'

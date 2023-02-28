@@ -185,7 +185,7 @@ begin
   VerticalNamesPanel.Canvas.Font.Color := clWindowText;
   VerticalNamesPanel.Color := clWindow;
 
-  MaxWidth := 50;
+  MaxWidth := 20;
   X := 0;
   CheckboxWidth := Checkboxes[High(TPhysicsLayer), Low(TPhysicsLayer)].Width;
   Y := VerticalNamesPanel.Height;
