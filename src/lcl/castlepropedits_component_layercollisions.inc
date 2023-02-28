@@ -38,9 +38,15 @@ end;
 procedure TLayerCollisionsPropertyEditor.Edit;
 var
   LayerCollisionsForm: TLayerCollisionsPropertyEditorForm;
+  LayerCollisions: TCastleLayerCollisions;
 begin
+  LayerCollisions := GetObjectValue as TCastleLayerCollisions;
+  if LayerCollisions = nil then
+    Exit;
+
   LayerCollisionsForm := TLayerCollisionsPropertyEditorForm.Create(nil);
   try
+    LayerCollisionsForm.Init(LayerCollisions);
     LayerCollisionsForm.ShowModal;
   finally
     FreeAndNil(LayerCollisionsForm);
