@@ -936,7 +936,7 @@ begin
     (not (csDestroying in C.ComponentState)) and
     C.Exists and
     ((not CheckEventPosition) or C.CapturesEventsAtPosition(EventPosition)) and
-    (C.Visible or C.Culling);
+    C.Visible;
 end;
 
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
