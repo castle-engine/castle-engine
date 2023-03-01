@@ -2016,6 +2016,8 @@ var
 begin
   if Exists then
   begin
+    if Culling and not FVisible then CheckUIScaleChanged;
+
     CacheRectBegin;
 
     R := RenderRectWithBorder;
