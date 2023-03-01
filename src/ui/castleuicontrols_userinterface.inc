@@ -2016,6 +2016,12 @@ var
 begin
   if Exists then
   begin
+    { Usually, CheckUIScaleChanged and CheckResize are called from TCastleContainer.EventBeforeRender,
+      and that's enough. But in case control is not FVisible, they will not be called.
+      Which is a problem, because control may become visible (RenderRectWithBorder below may change)
+      exactly as an effect of CheckUIScaleChanged or CheckResize.
+      See https://github.com/castle-engine/castle-engine/issues/458 .
+      So in this special case, we do these calls here. }
     if Culling and not FVisible then
     begin
       CheckUIScaleChanged;
