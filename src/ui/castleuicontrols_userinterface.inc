@@ -2016,7 +2016,11 @@ var
 begin
   if Exists then
   begin
-    if Culling and not FVisible then CheckUIScaleChanged;
+    if Culling and not FVisible then
+    begin
+      CheckUIScaleChanged;
+      CheckResize;
+    end;
 
     CacheRectBegin;
 
