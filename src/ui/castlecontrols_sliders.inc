@@ -16,8 +16,8 @@
 
 {$ifdef read_interface}
 
-  { An abstract slider user interface. Usually you want to use of its descendants,
-    like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
+  { An abstract slider user interface. You actually want to use one of its descendants:
+    @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
   TCastleAbstractSlider = class(TCastleUserInterfaceFont)
   strict private
     FDisplayValue: boolean;
@@ -57,7 +57,7 @@
   public
     const
       DefaultSliderWidth = 200;
-      DefaultSliderHeight = 20;
+      DefaultSliderHeight = 30;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
@@ -237,7 +237,7 @@ begin
   inherited;
 
   if FBackground.Empty then
-    BackgroundFinal := Theme.ImagesPersistent[tiSlider]
+    BackgroundFinal := Theme.ImagesPersistent[tiSliderBackground]
   else
     BackgroundFinal := FBackground;
 
@@ -251,7 +251,7 @@ begin
   if FThumb.Empty then
   begin
     { The default thumb image adjusts to slides sizes. }
-    Result.X := ARenderRect.Height / 2;
+    Result.X := ARenderRect.Height;
     Result.Y := ARenderRect.Height;
   end else
   begin
@@ -269,7 +269,7 @@ begin
   ThumbSize := GetThumbSize(ARenderRect);
 
   if FThumb.Empty then
-    ThumbFinal := Theme.ImagesPersistent[tiSliderPosition]
+    ThumbFinal := Theme.ImagesPersistent[tiSliderThumb]
   else
     ThumbFinal := FThumb;
 
