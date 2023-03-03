@@ -628,7 +628,7 @@ var
         Exit;
       end;
 
-      CurrentZ := CurrentZ + 0.000001;
+      CurrentZ := CurrentZ + 1 / (Map.Width * Map.Height);
 	  
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
