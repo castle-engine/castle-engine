@@ -25,12 +25,13 @@ uses Classes,
 type
   { Simple options user interface, that allows to change sound settings. }
   TViewOptions = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonMenu: TCastleButton;
     VolumeGroup: TCastleHorizontalGroup;
     MusicGroup: TCastleHorizontalGroup;
-
+  private
     procedure SetVolume(const Volume: Single);
     procedure SetMusic(const Music: Single);
     procedure ClickMenu(Sender: TObject);
@@ -64,18 +65,14 @@ var
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
-  VolumeGroup := DesignedComponent('HorizontalGroupVolume') as TCastleHorizontalGroup;
   for I := 1 to VolumeGroup.ControlsCount - 1 do
   begin
     Button := VolumeGroup.Controls[I] as TCastleButton;
     Button.OnClick := {$ifdef FPC}@{$endif}ClickVolume;
   end;
 
-  MusicGroup := DesignedComponent('HorizontalGroupMusic') as TCastleHorizontalGroup;
   for I := 1 to MusicGroup.ControlsCount - 1 do
   begin
     Button := MusicGroup.Controls[I] as TCastleButton;

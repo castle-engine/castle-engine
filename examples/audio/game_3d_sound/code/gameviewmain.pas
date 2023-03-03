@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,20 @@ uses Classes, Contnrs,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    SoundKaboom, SoundRatSqueak: TCastleSound;
+    HelpMessage: TCastleLabel;
+    MuteImage: TCastleImageControl;
+    CrosshairForMouseLook: TCastleCrosshair;
+    TimerSpawnTnts: TCastleTimer;
+    Viewport: TCastleViewport;
+    Navigation: TCastleWalkNavigation;
+    Rat: TCastleScene;
+    RatSoundSource: TCastleSoundSource;
+    SceneLevel: TCastleScene;
   private
     const
       { Max number of TNT items. }
@@ -33,20 +47,6 @@ type
       InitialTntsCount = MaxTntsCount;
 
     var
-      { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
-      LabelFps: TCastleLabel;
-      SoundKaboom, SoundRatSqueak: TCastleSound;
-      HelpMessage: TCastleLabel;
-      MuteImage: TCastleImageControl;
-      CrosshairForMouseLook: TCastleCrosshair;
-      TimerSpawnTnts: TCastleTimer;
-      Viewport: TCastleViewport;
-      Navigation: TCastleWalkNavigation;
-      Rat: TCastleScene;
-      RatSoundSource: TCastleSoundSource;
-      SceneLevel: TCastleScene;
-
-      { Other }
       RatAngle: Single;
       TntTemplate: TSerializedComponent;
       Tnts: TComponentList;
@@ -134,20 +134,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  SoundKaboom := DesignedComponent('SoundKaboom') as TCastleSound;
-  SoundRatSqueak := DesignedComponent('SoundRatSqueak') as TCastleSound;
-  MuteImage := DesignedComponent('MuteImage') as TCastleImageControl;
-  CrosshairForMouseLook := DesignedComponent('CrosshairForMouseLook') as TCastleCrosshair;
-  HelpMessage := DesignedComponent('HelpMessage') as TCastleLabel;
-  TimerSpawnTnts := DesignedComponent('TimerSpawnTnts') as TCastleTimer;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
-  Navigation := DesignedComponent('Navigation') as TCastleWalkNavigation;
-  Rat := DesignedComponent('Rat') as TCastleScene;
-  RatSoundSource := Rat.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
-  SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
 
   { initialize Rat }
   UpdateRatPosition;
