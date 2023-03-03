@@ -253,19 +253,6 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.EventType = itKey then
-    case Event.Key of
-      keyF1: HelpMessage.Exists := not HelpMessage.Exists;
-      keyF4:
-        begin
-          Navigation.MouseLook := not Navigation.MouseLook;
-          // crosshair makes sense only with mouse look
-          CrosshairForMouseLook.Exists := Navigation.MouseLook;
-        end;
-      keyF5: Container.SaveScreenToDefaultFile;
-      keyEscape: Application.Terminate;
-    end;
-
   if Event.IsMouseButton(buttonLeft) then
   begin
     { Detect clicks on TNT scene.
@@ -276,6 +263,33 @@ begin
        (Viewport.TransformUnderMouse.Parent <> nil) and
        (Tnts.IndexOf(Viewport.TransformUnderMouse.Parent) <> -1) then
       TntHit(Viewport.TransformUnderMouse.Parent);
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    Navigation.MouseLook := not Navigation.MouseLook;
+    // crosshair makes sense only with mouse look
+    CrosshairForMouseLook.Exists := Navigation.MouseLook;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyF1) then
+  begin
+    HelpMessage.Exists := not HelpMessage.Exists;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyF5) then
+  begin
+    Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyEscape) then
+  begin
+    Application.Terminate;
+    Exit(true);
   end;
 end;
 
