@@ -372,7 +372,7 @@ procedure TCastleTiledMapConverter.BuildTileLayerNode(const LayerNode: TTransfor
     const Tileset: TCastleTiledMapData.TTileset): TFloatRectangle;
   begin
     Result := FloatRectangle(
-      Map.TileRenderPosition(TilePosition),
+      Map.TileRenderPosition(TilePosition) + Vector2(Tileset.TileOffset),
       Tileset.TileWidth,
       Tileset.TileHeight
     );
