@@ -38,7 +38,7 @@ type
     Viewport: TCastleViewport;
     Navigation: TCastleWalkNavigation;
     Rat: TCastleScene;
-    RatSoundSource: TCastleSoundSource;
+    SoundSourceRat: TCastleSoundSource;
     SceneLevel: TCastleScene;
   private
     const
@@ -244,7 +244,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     TntSoundSource.Play(SoundKaboomPlaying);
 
     if PointsDistanceSqr(TntTransform.Translation, Rat.Translation) < 1.0 then
-      RatSoundSource.Play(SoundRatSqueak);
+      SoundSourceRat.Play(SoundRatSqueak);
 
     FreeAndNil(TntTransform); // will automatically remove itself from Tnts list
   end;
