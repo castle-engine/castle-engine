@@ -36,7 +36,19 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/levels/base_level.gltf"
+            "URL" : "castle-data:/levels/base_level.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastlePlaneCollider",
+                "AutoSize" : false,
+                "Name" : "PlaneCollider1",
+                "Restitution" : 3.0000001192092896E-001
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Name" : "RigidBody1"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -168,16 +180,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 7.4157851934432983E-001,
-          "X" : -3.5070198774337769E-001,
-          "Y" : 9.2819875478744507E-001,
-          "Z" : 1.2431991100311279E-001
+          "W" : 3.0857428908348083E-001,
+          "X" : -6.5955156087875366E-001,
+          "Y" : 7.4854123592376709E-001,
+          "Z" : 6.8393930792808533E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.8272514343261719E+000,
-          "Y" : 3.4387977123260498E+000,
-          "Z" : 5.9261441230773926E+000
+          "X" : 1.7127014398574829E+000,
+          "Y" : 2.1116571426391602E+000,
+          "Z" : 4.9565000534057617E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {

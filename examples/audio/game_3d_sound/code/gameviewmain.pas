@@ -71,58 +71,6 @@ implementation
 uses SysUtils,
   CastleUtils, CastleBoxes, CastleWindow, CastleSceneCore;
 
-{ utils ---------------------------------------------------------------------- }
-
-{ Setup TRigidBody and TMeshCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsStaticMesh(const Scene: TCastleScene);
-var
-  RigidBody: TRigidBody;
-  Collider: TMeshCollider;
-begin
-  RigidBody := TRigidBody.Create(Scene);
-  RigidBody.Dynamic := false;
-
-  Collider := TMeshCollider.Create(RigidBody);
-  Collider.Scene := Scene;
-  Collider.Restitution := 0.3;
-
-  Scene.RigidBody := RigidBody;
-end;
-
-{ Setup TRigidBody and TMeshCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsStaticPlane(const Scene: TCastleScene);
-var
-  RigidBody: TRigidBody;
-  Collider: TPlaneCollider;
-begin
-  RigidBody := TRigidBody.Create(Scene);
-  RigidBody.Dynamic := false;
-
-  Collider := TPlaneCollider.Create(RigidBody);
-  Collider.Normal := Vector3(0, 1, 0);
-  Collider.Distance := 0;
-  Collider.Restitution := 0.3;
-
-  Scene.RigidBody := RigidBody;
-end;
-
-{ Setup TRigidBody and TBoxCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsDynamicBox(const Transform: TCastleTransform);
-var
-  RigidBody: TRigidBody;
-  Collider: TBoxCollider;
-begin
-  RigidBody := TRigidBody.Create(Transform);
-
-  Collider := TBoxCollider.Create(RigidBody);
-  Collider.Size := Transform.BoundingBox.Size * 0.9;
-
-  Transform.RigidBody := RigidBody;
-end;
-
 { TViewMain ----------------------------------------------------------------- }
 
 constructor TViewMain.Create(AOwner: TComponent);
@@ -145,9 +93,6 @@ begin
     NewTnt(0.0);
 
   TimerSpawnTnts.OnTimer := {$ifdef FPC}@{$endif}DoTimerSpawnTnts;
-
-  SetupPhysicsStaticPlane(SceneLevel);
-  //SetupPhysicsStaticMesh(SceneLevel); // mesh collider not reliable on this
 end;
 
 procedure TViewMain.Stop;
@@ -170,7 +115,6 @@ begin
     RandomFloatRange(LevelBox.Data[0].X + TntExtent, LevelBox.Data[1].X - TntExtent),
     Y + TntExtent,
     RandomFloatRange(LevelBox.Data[0].Z + TntExtent, LevelBox.Data[1].Z - TntExtent));
-  SetupPhysicsDynamicBox(Tnt);
   Viewport.Items.Add(Tnt);
   Tnts.Add(Tnt);
 end;
@@ -209,7 +153,7 @@ begin
   UpdateRatPosition;
 
   { update "mute area" }
-  InMuteArea := CylinderContains(Viewport.Camera.Position, 2, 0, 0.76, 0, 1.045640);
+  InMuteArea := CylinderContains(Viewport.Camera.WorldTranslation, 2, 0, 0.76, 0, 1.045640);
   if MuteImage <> nil then
     MuteImage.Exists := InMuteArea;
   if InMuteArea then
