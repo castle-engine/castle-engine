@@ -210,12 +210,30 @@
 
     { Prepare image for typical drawing from UI.
 
-      - Saves OnChange and Color (to be later restored by CommonAfterDraw).
+      What it does now:
 
-      - Clears OnChange (so that changes between CommonBeforeDraw and CommonAfterDraw
-        do not cause OnChange, which is typically used to make repaint).
+      @orderedList(
+        @item(Saves OnChange and Color (to be later restored by DrawUiEnd).)
 
-      - Sets ScaleCorners.
+        @item(Clears OnChange (so that changes between DrawUiBegin and DrawUiEnd
+          do not cause OnChange, which is typically used to make repaint).
+
+          Together with the previous point, this allows the rendering code to easily customize
+          color between DrawUiBegin and DrawUiEnd, e.g. doing
+
+          @longCode(#
+            MyPersistentImage.DrawUiBegin(...);
+            MyPersistentImage.Color := MyPersistentImage.Color * Tint;
+            MyPersistentImage.Draw(...);
+            MyPersistentImage.DrawUiEnd;
+          #)
+
+          Such change to color is guaranteed to be temporary and internal:
+          DrawUiEnd will revert it, OnChange will not report it outside.
+        )
+
+        @item(Sets ScaleCorners.)
+      )
 
       Must be followed by DrawUiEnd.
     }
@@ -223,7 +241,11 @@
 
     { Finish image usage from typical UI drawing.
 
-      - Restores OnChange and Color. }
+      What it does now:
+
+      @orderedList(
+        @item(Restores OnChange and Color.)
+      ) }
     procedure DrawUiEnd;
   published
     { URL of the image.
