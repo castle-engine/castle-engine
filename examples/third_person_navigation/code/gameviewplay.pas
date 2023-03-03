@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -269,7 +269,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyM) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     ThirdPersonNavigation.MouseLook := not ThirdPersonNavigation.MouseLook;
     Exit(true);
@@ -284,13 +284,6 @@ begin
   if Event.IsKey(keyEscape) then
   begin
     Container.View := ViewMenu;
-    Exit(true);
-  end;
-
-  if Event.IsMouseButton(buttonRight) then
-  begin
-    CheckboxAimAvatar.Checked := not CheckboxAimAvatar.Checked;
-    ChangeCheckboxAimAvatar(CheckboxAimAvatar); // update ThirdPersonNavigation.AimAvatar
     Exit(true);
   end;
 end;
