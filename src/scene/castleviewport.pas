@@ -1805,13 +1805,13 @@ begin
     // use downto, to work in case some Press will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Press(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
   begin
     InternalPointingDeviceDragging := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -1829,13 +1829,13 @@ begin
     // use downto, to work in case some Release will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Release(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) then
   begin
     InternalPointingDeviceDragging := false;
     if PointingDeviceRelease then
-      Exit(ExclusiveEvents);
+      Exit(true);
   end;
 end;
 

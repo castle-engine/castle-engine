@@ -587,8 +587,7 @@ begin
   LifeTime := LifeTime + SecondsPassed;
   { do not allow other controls to handle key presses
     (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
-  if ExclusiveEvents then
-    HandleInput := false;
+  HandleInput := false;
 end;
 
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
@@ -607,13 +606,13 @@ begin
       {$endif}
       DoChange;
     end;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(CtrlC) then
   begin
     if Text <> '' then
       Clipboard.AsText := Text;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(CtrlX) then
   begin
@@ -623,13 +622,13 @@ begin
       Text := '';
       DoChange;
     end;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
@@ -643,7 +642,7 @@ begin
   begin
     Text := Text + Event.KeyString;
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 
   { Ability to open keyboard when it is closed and edit is focused }

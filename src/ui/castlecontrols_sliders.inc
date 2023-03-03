@@ -328,7 +328,7 @@ procedure TCastleAbstractSlider.Update(const SecondsPassed: Single;
 begin
   inherited;
   { left / right arrow keys pressed are already handled by slider }
-  if HandleInput and ExclusiveEvents and
+  if HandleInput and
      (Container.Pressed[keyArrowRight] or Container.Pressed[keyArrowLeft]) then
     HandleInput := false;
 end;
@@ -414,7 +414,7 @@ begin
       Value := Math.Min(Max, Value + MultipleOf) else
       Value := Math.Min(Max, Value + ValueChange);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(keyArrowLeft) then
   begin
@@ -422,14 +422,14 @@ begin
       Value := Math.Max(Min, Value - MultipleOf) else
       Value := Math.Max(Min, Value - ValueChange);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsMouseButton(buttonLeft) then
   begin
     Value := RoundAndClamp(MapRange(
       XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -443,7 +443,7 @@ begin
     Value := RoundAndClamp(MapRange(
       XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -573,19 +573,19 @@ begin
   begin
     Value := Math.Min(Max, Value + ValueChange);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(keyArrowLeft) then
   begin
     Value := Math.Max(Min, Value - ValueChange);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsMouseButton(buttonLeft) then
   begin
     Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -608,7 +608,7 @@ begin
   begin
     Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 

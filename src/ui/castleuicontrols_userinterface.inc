@@ -29,14 +29,10 @@
     Control may handle mouse/keyboard input, see @link(Press) and @link(Release)
     methods.
 
-    Various methods return boolean saying if input event is handled.
-    The idea is that not handled events are passed to the next
-    control suitable. Handled events are generally not processed more
-    --- otherwise the same event could be handled by more than one listener,
-    which is bad. Generally, return ExclusiveEvents if anything (possibly)
-    was done (you changed any field value etc.) as a result of this,
-    and only return @false when you're absolutely sure that nothing was done
-    by this control.
+    Various methods return Boolean signalling if the input event is "handled".
+    Input events that are handled are not passed to subsequent controls.
+    This way we avoid 2 controls from reacting to the same mouse click,
+    key press etc. Return @true if something was done as a result of given input.
 
     Every control also has a position and size and takes some rectangular space
     on the container.
@@ -332,16 +328,16 @@
         begin
           // do something in reaction to Enter key
           ...
-          // notify container that event was handled; ExclusiveEvents is true by default
-          Exit(ExclusiveEvents);
+          // let engine know that this input event was handled
+          Exit(true);
         end;
 
         if Event.IsMouseButton(buttonLeft) then
         begin
           // do something in reaction to left mouse button press
           ...
-          // notify container that event was handled; ExclusiveEvents is true by default
-          Exit(ExclusiveEvents);
+          // let engine know that this input event was handled
+          Exit(true);
         end;
       end;
       #)
@@ -438,7 +434,7 @@
         begin
           if Container.Pressed[keyArrowRight] then
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
       #)
 
@@ -456,9 +452,8 @@
       The correct approach is to only look at pressed keys/mouse buttons
       if HandleInput is @true. Moreover, if you did check
       that HandleInput is @true, and you did actually handle some keys,
-      then you have to set @code(HandleInput := not ExclusiveEvents).
-      As ExclusiveEvents is @true in normal circumstances,
-      this will prevent the other controls (behind the current control)
+      then you have to set @code(HandleInput := false).
+      This will prevent the other controls (behind the current control)
       from handling the keys (they will get HandleInput = @false).
       And this is important to avoid doubly-processing the same key press,
       e.g. if two controls react to the same key, only the one on top should
@@ -566,12 +561,6 @@
       deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
     {$endif}
 
-    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
-      (for normal usage you don't want to deal with it). Also, it's confusing
-      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
-      totally not related to this property that is concerned with handling
-      TCastleUserInterface events.) }
-
     { Should we disable further mouse / keys handling for events that
       we already handled in this control. If @true, then our events will
       return @true for mouse and key events handled.
@@ -581,6 +570,7 @@
       which is usually more sensible, but sometimes somewhat limiting. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
+      {$ifdef FPC} deprecated 'do not use this; supporting this property was complicated and had no real benefit; everything now works as if ExclusiveEvents=true, always'; {$endif}
 
     property Controls [const Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;

@@ -144,7 +144,7 @@ begin
      Event.IsKey(keyEnter) then
   begin
     FPressed := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -181,7 +181,7 @@ begin
       VisibleChange([chRender]); // FPressed changed
     end;
 
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 

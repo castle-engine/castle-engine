@@ -975,10 +975,10 @@ begin
           else
             UiDraggingMode := dmTranslate;
 
-          { No need for this Exit(true) otherwise.
-            In particular if we selected transform, we should not do Exit(ExclusiveEvents),
+          { Note: No need for this Exit(true) when UI = nil.
+            In particular if we selected TCastleTransform, we should not do Exit(true),
             to allow gizmos to start dragging. }
-          Exit(ExclusiveEvents);
+          Exit(true);
         end;
       end;
 
@@ -1312,7 +1312,7 @@ begin
         ApplyDrag(UI, Move.X, Move.Y);
       end;
 
-      Exit(ExclusiveEvents);
+      Exit(true);
     end;
   end;
 
