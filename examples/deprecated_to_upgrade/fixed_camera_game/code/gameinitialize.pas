@@ -71,10 +71,6 @@ begin
   LoadUserConfig;
   InitializeSound;
 
-  { The reason for this is historical.
-    We designed models in Blender following this (non-standard) orientation. }
-  TCastleTransform.DefaultOrientation := otUpZDirectionX;
-
   { load game configuration }
   GameConfig := TCastleConfig.Create(nil);
   GameConfig.URL := 'castle-data:/game.xml';

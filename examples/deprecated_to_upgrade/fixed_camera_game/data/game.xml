@@ -10,13 +10,9 @@
       <part image="human_beach"       corrode_duration="7.00" />
     </parts>
   </intro>
+
   <creatures>
-    <player>
-      <!-- Each state has a url of associated animation. -->
-      <stand url="creatures/humanoid/stand.castle-anim-frames" />
-      <walk url="creatures/humanoid/walk.castle-anim-frames" />
-      <bored url="creatures/humanoid/bored.castle-anim-frames" />
-    </player>
+    <player url="avatar/avatar.gltf" />
   </creatures>
 
   <!-- List of game locations.

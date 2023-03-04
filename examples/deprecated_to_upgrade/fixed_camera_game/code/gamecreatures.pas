@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,24 +24,14 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform;
 
 type
-  TCreatureState = (csStand, csBored, csWalk);
-
-const
-  CreatureStateName: array [TCreatureState] of string =
-  ( 'stand', 'bored', 'walk' );
+  TCreatureState = (csIdle, csBored, csWalk);
 
 type
-  TCreatureAnimation = class
-  public
-    URL: string;
-    Animation: TCastleScene; //< Created in TCreatureKind.Load
-    Duration: Single;
-  end;
-
   TCreatureKind = class
   private
     FName: string;
-    Animations: array [TCreatureState] of TCreatureAnimation;
+    SceneTemplate: TCastleScene;
+    Url: String;
     Loaded: boolean;
   public
     constructor Create(const AName: string);
@@ -76,33 +66,14 @@ type
     FKind: TCreatureKind;
     FDebugTransform: TDebugTransform;
     FState: TCreatureState;
-    CurrentChild: TCastleTransform;
     LifeTime: TFloatTime;
+    Scene: TCastleScene;
     procedure SetState(const Value: TCreatureState);
-  private
-    { SetState actually only "schedules" actual state change at the nearest
-      comfortable time (namely, when current animation will get to the state
-      when it's sensible to make transition). }
-    ScheduledTransitionBegin: boolean;
-    ScheduledTransitionBeginNewState: TCreatureState;
-    ScheduledTransitionBeginTime: TFloatTime;
-
-    { Time of last change of state, from world time. }
-    CurrentStateStartTime: TFloatTime;
-
-    StandTimeToBeBored: TFloatTime;
-
-    procedure RandomizeStandTimeToBeBored;
   public
     constructor Create(AKind: TCreatureKind); reintroduce;
     property Kind: TCreatureKind read FKind;
     property State: TCreatureState read FState write SetState;
-
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-
-    { This is called from @link(Update) when no state change is scheduled.
-      Usually, you want to implement AI here, not directly in Update. }
-    procedure UpdateNoStateChangeScheduled(const SecondsPassed: Single); virtual;
   end;
 
   TPlayer = class(TCreature)
@@ -131,85 +102,35 @@ uses Math,
 const
   Debug = true;
 
+  CreatureAnimationName: array [TCreatureState] of string =
+  ( 'idle', 'bored', 'walk' );
+
 { TCreatureKind -------------------------------------------------------------- }
 
 constructor TCreatureKind.Create(const AName: string);
-var
-  S: TCreatureState;
 begin
   inherited Create;
   FName := AName;
-
-  for S := Low(S) to High(S) do
-    Animations[S] := TCreatureAnimation.Create;
-
   LoadFromConfig;
 end;
 
 destructor TCreatureKind.Destroy;
-var
-  S: TCreatureState;
 begin
-  for S := Low(S) to High(S) do
-    if Animations[S] <> nil then
-    begin
-      FreeAndNil(Animations[S].Animation);
-      FreeAndNil(Animations[S]);
-    end;
-
+  FreeAndNil(SceneTemplate);
   inherited;
 end;
 
 procedure TCreatureKind.LoadFromConfig;
-const
-  DefaultDuration = 0.5;
-var
-  S: TCreatureState;
-  StatePath: string;
 begin
-  for S := Low(S) to High(S) do
-  begin
-    StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
-    Animations[S].URL := GameConfig.GetURL(StatePath + 'url');
-  end;
+  Url := GameConfig.GetURL('creatures/' + Name + '/url');
 end;
 
 procedure TCreatureKind.Load(const PrepareParams: TPrepareParams);
-var
-  S: TCreatureState;
 begin
   if Loaded then Exit;
   Loaded := true;
-
-  for S := Low(S) to High(S) do
-  begin
-    Animations[S].Animation := TCastleScene.Create(nil);
-    // prevents placing WantsToWalk in game over a creature body
-    Animations[S].Animation.Pickable := false;
-
-    { Do not receive shadows,
-      as self-shadowing looks bad on smooth player geometry.
-
-      But we cannot do it using ReceiveShadowVolumes := false,
-      as that would break TLocationScene.LocalRender rendering,
-      as it scenes with ReceiveShadowVolumes=false are rendered earlier,
-      and TLocationScene.LocalRender would alwways overdraw the player.
-
-      TODO: hrm, how does this actually work now?
-      It does not receive self shadow volumes, for some reason, already.
-
-      Ev. change TLocationScene.LocalRender to use a shader effect
-      to draw location images only at pixels where location is actually rendered.
-    }
-    // Animations[S].Animation.ReceiveShadowVolumes := false;
-
-    Animations[S].Animation.Load(Animations[S].URL);
-    Animations[S].Animation.PrepareResources(
-      [prRenderSelf, prBoundingBox, prShadowVolume], PrepareParams);
-    Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
-
-    WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
-  end;
+  SceneTemplate := TCastleScene.Create(nil);
+  SceneTemplate.Url := Url;
 end;
 
 { TCreature ------------------------------------------------------------------ }
@@ -219,134 +140,35 @@ begin
   inherited Create(nil);
 
   { initialize state fields }
-  FState := csStand;
+  FState := csIdle;
   LifeTime := 0;
-  CurrentStateStartTime := LifeTime;
 
   FKind := AKind;
 
-  RandomizeStandTimeToBeBored;
-
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
-end;
 
-procedure TCreature.RandomizeStandTimeToBeBored;
-begin
-  StandTimeToBeBored := 10 + Random(5);
+  Scene := AKind.SceneTemplate.Clone(Self);
+  Scene.DefaultAnimationTransition := 0.1;
+  Scene.AutoAnimation := CreatureAnimationName[FState];
+  Add(Scene);
 end;
 
 procedure TCreature.SetState(const Value: TCreatureState);
-
-  { Return nearest multiple of Multiple that is <= Value.
-    You can assume that Value >= 0. }
-  function RoundFloatDown(const Value, Multiple: TFloatTime): TFloatTime;
-  begin
-    Result := Floor(Value / Multiple) * Multiple;
-  end;
-
 begin
-  if Value <> FState then
+  if FState <> Value then
   begin
-    { Note that using the "SetState sets scheduled state change"
-      works OK if you will call SetState multiple times while waiting for
-      comfortable time to actually change state: each SetState simply
-      erases previously scheduled time, if any.
-
-      So there will be no unnecessary waiting because of multiple "stacked"
-      scheduled changes. }
-    ScheduledTransitionBegin := true;
-    ScheduledTransitionBeginNewState := Value;
-    { calculate ScheduledTransitionBeginTime }
-    if Kind.Animations[FState].Duration = 0 then
-    begin
-      { That's easy, just switch to new state already ! }
-      ScheduledTransitionBeginTime := LifeTime;
-    end else
-    begin
-      { So the current state is at LifeTime - CurrentStateStartTime time.
-        When will it pass through it's "TimeEnd" point ? }
-      ScheduledTransitionBeginTime := CurrentStateStartTime +
-        RoundFloatDown(
-          LifeTime - CurrentStateStartTime,
-          Kind.Animations[FState].Duration);
-
-      { Now at ScheduledTransitionBeginTime the animation was in starting
-        position, and this is the time <= now. }
-      ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
-
-      { Now at ScheduledTransitionBeginTime animation will end !
-        This is good time to switch... unless it already occurred
-        (which is possible
-        1. because Animations[FState].Animation.TimeBackward
-        are were currently in the "backward" step
-        2. because of floating point errors inside RoundFloatDown...).
-        So we correct it. If there were no floating point errors inside
-        RoundFloatDown, loop below should execute at most once. }
-      while ScheduledTransitionBeginTime < LifeTime do
-        ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
-    end;
+    FState := Value;
+    Scene.AutoAnimation := CreatureAnimationName[FState];
   end;
 end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  function GetChild: TCastleTransform;
-  var
-    Scene: TCastleScene;
-  begin
-    Scene := Kind.Animations[FState].Animation;
-    Result := Scene;
-    Scene.ForceAnimationPose('animation',
-      LifeTime - CurrentStateStartTime, true);
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
-    end;
-  end;
-
 begin
   inherited;
-
+  // TODO: Switch to csBored (and back to csIdle) from time to time
   LifeTime := LifeTime + SecondsPassed;
-
   FDebugTransform.Exists := Debug;
-
-  if ScheduledTransitionBegin then
-  begin
-    if LifeTime > ScheduledTransitionBeginTime then
-    begin
-      ScheduledTransitionBegin := false;
-      FState := ScheduledTransitionBeginNewState;
-      CurrentStateStartTime := LifeTime;
-    end;
-  end else
-    UpdateNoStateChangeScheduled(SecondsPassed);
-
-  UpdateChild;
-end;
-
-procedure TCreature.UpdateNoStateChangeScheduled(const SecondsPassed: Single);
-begin
-  if State = csBored then
-    State := csStand else
-  if (State = csStand) and
-     (LifeTime - CurrentStateStartTime > StandTimeToBeBored) then
-  begin
-    State := csBored;
-    RandomizeStandTimeToBeBored;
-  end;
 end;
 
 { TCreatureKindList ---------------------------------------------------------- }
@@ -428,7 +250,7 @@ var
         would actually get us too far. So we instead just go to target and
         stop there. }
       Translation := WantsToWalkPos;
-      State := csStand;
+      State := csIdle;
     end else
     begin
       MoveDirectionCurrent := MoveDirectionMax * MoveDirectionCurrentScale;
@@ -439,10 +261,10 @@ var
 var
   IsTargetPos, IsTargetDir: boolean;
 begin
-  if (not ScheduledTransitionBegin) and (State = csWalk) then
+  if State = csWalk then
   begin
     { Do walking. If walking ends (because target reached, or can't reach target),
-      change to csStand. }
+      change to csIdle. }
 
     { TODO: check collisions with the scene before changing Translation }
 
@@ -459,7 +281,7 @@ begin
     end;
 
     if IsTargetPos and IsTargetDir then
-      State := csStand else
+      State := csIdle else
     if not IsTargetDir then
       Rotate else
       Move;
@@ -477,9 +299,7 @@ end;
 
 procedure TPlayer.LocationChanged;
 begin
-  FState := csStand;
-  ScheduledTransitionBegin := false;
-  CurrentStateStartTime := LifeTime;
+  State := csIdle;
 end;
 
 procedure TPlayer.WantsToWalk(const Value: TVector3);
