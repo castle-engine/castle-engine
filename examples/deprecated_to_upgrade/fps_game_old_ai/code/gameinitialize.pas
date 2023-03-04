@@ -36,7 +36,7 @@ uses SysUtils, Classes,
   {$endregion 'Castle Initialization Uses'}
   {$else}
   , CastleLog, CastleConfig, CastleLevels,
-  CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
+  CastlePlayer, CastleSoundEngine,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
@@ -642,9 +642,6 @@ begin
     Window.Open. That is why we assign them here, and that is why we created
     ExtraViewport (that is resized in Resize callback) earlier. }
   Window.OnPress := @Press;
-
-  { Show progress bars on our Window. }
-  Progress.UserInterface := WindowProgressInterface;
 
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop

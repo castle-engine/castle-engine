@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -87,7 +87,7 @@ var
 implementation
 
 uses SysUtils, DOM,
-  CastleProgress, CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
+  CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
