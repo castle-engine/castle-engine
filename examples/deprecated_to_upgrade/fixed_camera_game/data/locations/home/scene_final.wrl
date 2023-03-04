@@ -18,7 +18,7 @@ Background {
 DirectionalLight {
   shadowVolumesMain TRUE
   shadowVolumes TRUE
-  on FALSE
+  on TRUE
   direction 1 1 -1
 }
 
