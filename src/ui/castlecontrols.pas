@@ -92,6 +92,8 @@ uses SysUtils, Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
+var
+  R: TRegisteredComponent;
 initialization
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
@@ -110,8 +112,15 @@ initialization
   RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
   RegisterSerializableComponent(TCastleScrollViewManual, 'Scroll View Manual');
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
-  RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
   RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
+
+  R := TRegisteredComponent.Create;
+  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
+  R.ComponentClass := TCastleSwitchControl;
+  {$warnings on}
+  R.Caption := ['Switch'];
+  R.IsDeprecated := true;
+  RegisterSerializableComponent(R);
 finalization
   FinalizationUIFonts;
   FinalizationClipboard;
