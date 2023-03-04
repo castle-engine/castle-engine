@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis and GLPT, LCL contributors.
+  Copyright 2022-2023 Michalis Kamburelis and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -34,11 +34,12 @@
 }
 
 { TODO p1:
-  - fullscreen: should be on top of dock / menu
+  - fullscreen: should be on top of dock / menu (started but doesn't work, search for COCOA_FULL_SCREEN)
+  - hide / show mouse cursor (for mouse look) (started but doesn't work, NSCursor.hide/unhide)
+  - reposition mouse (for mouse look ) (started but doesn't work, see SetMousePosition)
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
-  - update caption at runtime
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
@@ -65,6 +66,8 @@ CocoaAll,
 {$endif}
 
 {$ifdef read_implementation_uses}
+// for CGWarp... in SetMousePosition, unused for now
+// CGRemoteOperation, CGGeometry,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -307,14 +310,14 @@ function TBorderlessWindow.initWithContentRect(contentRect: NSRect): id;
 begin
   result := initWithContentRect_styleMask_backing_defer(contentRect, NSBorderlessWindowMask, NSBackingStoreBuffered, false);
   if result <> nil then
-    begin
-      result.setMovableByWindowBackground(false);
-      //result.setBackgroundColor(NSColor.clearColor);
-      //result.setOpaque(false);
-      result.setHasShadow(false);
-      result.setExcludedFromWindowsMenu(true);
-      self := result;
-    end;
+  begin
+    result.setMovableByWindowBackground(false);
+    //result.setBackgroundColor(NSColor.clearColor);
+    //result.setOpaque(false);
+    result.setHasShadow(false);
+    result.setExcludedFromWindowsMenu(true);
+    self := result;
+  end;
 end;
 
 {=============================================}
@@ -386,6 +389,38 @@ var
     end;
   end;
 
+  { Simulate pressing / release of modifiers (like shift, alt, ctrl) based on modifier flags.
+    These keys are not passed to regular key down / up keycodes.
+    See https://stackoverflow.com/questions/4640696/cocoa-nsevent-respond-to-the-shift-key
+    https://developer.apple.com/documentation/appkit/nseventmodifierflags?language=objc }
+  procedure UpdateModifiersPressed(const ModifierFlags: NSEventModifierFlags);
+  var
+    IsShift, IsAlt, IsCtrl: Boolean;
+  begin
+    IsShift := (ModifierFlags and NSShiftKeyMask) <> 0;
+    if IsShift <> win.Pressed[keyShift] then
+      if IsShift then
+        win.DoKeyDown(keyShift, '')
+      else
+        win.DoKeyUp(keyShift);
+
+    IsAlt := (ModifierFlags and NSAlternateKeyMask) <> 0;
+    if IsAlt <> win.Pressed[keyAlt] then
+      if IsAlt then
+        win.DoKeyDown(keyAlt, '')
+      else
+        win.DoKeyUp(keyAlt);
+
+    IsCtrl :=
+      //(ModifierFlags and NSControlKeyMask) <> 0;
+      (ModifierFlags and NSCommandKeyMask) <> 0; // treat Command key as Ctrl
+    if IsCtrl <> win.Pressed[keyCtrl] then
+      if IsCtrl then
+        win.DoKeyDown(keyCtrl, '')
+      else
+        win.DoKeyUp(keyCtrl);
+  end;
+
 var
   event: NSEvent;
   pool: NSAutoreleasePool;
@@ -450,10 +485,18 @@ begin
                 CastleMouseButton, 0);
             end;
           NSKeyDown:
-            win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
-            // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            begin
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+              win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
+              // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            end;
           NSKeyUp:
-            win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+            begin
+              win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+            end;
+          NSFlagsChanged:
+            UpdateModifiersPressed(event.modifierFlags);
           NSScrollWheel:
             begin
               if event.deltaX <> 0 then
@@ -661,15 +704,11 @@ var
 begin
   context := TCocoaWindow(window).ref;
 
-  // note: implement this?
-  //if (_this->gl_config.accelerated >= 0) {
-  //    if (_this->gl_config.accelerated) {
-  //        attr[i++] = NSOpenGLPFAAccelerated;
-  //    } else {
-  //        attr[i++] = NSOpenGLPFARendererID;
-  //        attr[i++] = kCGLRendererGenericFloatID;
-  //    }
-  //}
+  { Request accelerated?
+    Does not seem necessary,
+    https://developer.apple.com/documentation/appkit/nsopenglpixelformat/1436213-opengl_pixel_format_attributes
+    says that accelerated is preferred anyway. }
+  // attributes[Inc(i)] := NSOpenGLPFAAccelerated;
 
   if context.doubleBuffer then
     attributes[Inc(i)] := NSOpenGLPFADoubleBuffer;
@@ -680,29 +719,19 @@ begin
   attributes[Inc(i)] := NSOpenGLPFAStencilSize;
   attributes[Inc(i)] := context.StencilBits;
   attributes[Inc(i)] := NSOpenGLPFAOpenGLProfile;
-  // note: we can only specify "legacy" or "core" on mac and the system will decide what version we actually get
-
-  // TODO: CGE for now we always request "legacy"
-  //if context.profile = GLPT_CONTEXT_PROFILE_LEGACY then
-    attributes[Inc(i)] := NSOpenGLProfileVersionLegacy;
-  {
-  else if context.profile = GLPT_CONTEXT_PROFILE_CORE then
-    begin
-      if context.majorVersion = 3 then
-        attributes[Inc(i)] := NSOpenGLProfileVersion3_2Core
-      else if context.majorVersion = 4 then
-        attributes[Inc(i)] := NSOpenGLProfileVersion4_1Core
-      else
-        glptError(GLPT_ERROR_PLATFORM, 'invalid core profile major version');
-    end
-  else
-    glptError(GLPT_ERROR_PLATFORM, 'invalid context profile');
-  }
+  attributes[Inc(i)] := NSOpenGLProfileVersion3_2Core;
   attributes[Inc(i)] := 0;
 
   result := NSOpenGLPixelFormat.alloc.initWithAttributes(@attributes).autorelease;
   if result = nil then
     raise EInternalError.Create('invalid NSOpenGLPixelFormat');
+
+  { Make TGLFeatures.Create use a path that avoids accessing deprecated glGetString(GL_EXTENSIONS).
+
+    TODO: This should not be necessary, we should not change RequestCapabilities here.
+    But FPC GLExt unit will by default access deprecated glGetString(GL_EXTENSIONS),
+    this is for now the simplest way to prevent it. }
+  TGLFeatures.RequestCapabilities := rcForceModern;
 end;
 
 function TOpenGLView.initWithFrame(frameRect: NSRect): id;
@@ -844,25 +873,22 @@ var
   windowFlags: NSUInteger = 0;
 begin
   if not FullScreen then
-    begin
-      windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
-      window.setTitle(NSSTR(GetWholeCaption));
-    end
-  else
-    begin
-      { Update position/size in case window is fullscreen.
-        If the backend always creates a fullscreen window for some reason
-        (e.g. typical on mobile), then you can remove the condition
-        "if FullScreen then" and just do this always, regardless of FullScreen value. }
-      FLeft := 0;
-      FTop := 0;
-      DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  begin
+    windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
+    window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window.setTitle(NSSTR(GetWholeCaption));
+  end else
+  begin
+    { Update position/size in case window is fullscreen }
+    FLeft := 0;
+    FTop := 0;
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
-      windowFlags := NSBorderlessWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
-      window.setKeepFullScreenAlways(true);
-    end;
+    // windowFlags := NSBorderlessWindowMask;
+    // window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
+    window.setKeepFullScreenAlways(true);
+  end;
 
   window.ref := Self;
 
@@ -909,7 +935,8 @@ end;
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  if not Closed then
+    ref.setTitle(NSSTR(GetWholeCaption));
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;
@@ -979,9 +1006,32 @@ end;
 
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
 end;
+(* TODO: Unfortunately none of the options below make any effect.
+
+var
+  PointWindowCoords, PointScreenCoords: NSPoint;
+  CgPointScreenCoords: CGPoint;
+begin
+  if not Closed then
+  begin
+    PointWindowCoords := NSMakePoint(Value.X, Value.Y);
+    PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+
+    { Beware, it seems MacOsAll and CGGeometry both define CGPoint }
+    CgPointScreenCoords := CGGeometry.CGPoint(
+      //CGPointMake(PointScreenCoords.X, Application.ScreenHeight - PointScreenCoords.Y)
+      NSPointToCGPoint(PointScreenCoords)
+    );
+
+    { Seems that CGXxx function is the only way to do this:
+      https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc }
+    CGWarpMouseCursorPosition(CgPointScreenCoords);
+
+    Writeln('warping to ', CgPointScreenCoords.X:1:2, ' ', CgPointScreenCoords.Y:1:2);
+  end;
+end;
+*)
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin

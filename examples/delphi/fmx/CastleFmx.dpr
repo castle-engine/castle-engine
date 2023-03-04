@@ -1,4 +1,4 @@
-program Project1;
+program CastleFmx;
 
 uses
   System.StartUpCopy,

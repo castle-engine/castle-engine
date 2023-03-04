@@ -499,12 +499,10 @@ var
     gets used.
     Using LoadBase automatically workarounds this. }
   function LoadMipmapsFromComposite(Composite: TCompositeImage; LoadBase: boolean): boolean;
-  {$ifndef OpenGLES}
   var
     I, FromLevel: Integer;
     ImageRightSize: TCastleImage;
     ImageRightSizeFree: boolean;
-  {$endif}
   begin
     Result := (Composite <> nil) and Composite.Mipmaps;
     if not Result then Exit;
@@ -515,19 +513,16 @@ var
       Exit(false);
     end;
 
-    {$ifdef OpenGLES}
-    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
-    Exit(false);
-    {$else}
-    if not GLFeatures.Version_1_2 then
+    if not GLFeatures.TextureMaxLevel then
     begin
-      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Exit(false);
     end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
     if LoadBase then
-      FromLevel := 0 else
+      FromLevel := 0
+    else
       FromLevel := 1;
     for I := FromLevel to Composite.MipmapsCount - 1 do
       if Composite.Images[I] is TCastleImage then
@@ -544,9 +539,9 @@ var
         end;
       end else
       if Composite.Images[I] is TGPUCompressedImage then
-        glCompressedTextureImage2D(TGPUCompressedImage(Composite.Images[I]), I, LoadedSize) else
+        glCompressedTextureImage2D(TGPUCompressedImage(Composite.Images[I]), I, LoadedSize)
+      else
         raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
-    {$endif}
   end;
 
   procedure LoadMipmapped(const Image: TCastleImage);

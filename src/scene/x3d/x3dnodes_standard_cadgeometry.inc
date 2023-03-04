@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,7 +79,19 @@
 
   { Quads, not indexed. }
   TQuadSetNode = class(TAbstractComposedGeometryNode)
+  strict private
+    FInternalTrianglesCoordIndex: TMFLong;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+    destructor Destroy; override;
+
+    { Internal TMFLong field that allows to treat the TQuadSetNode essentially like
+      TIndexedTriangleSetNode. That is, these indexes have 3 items for each triangle,
+      6 items for each quad. You can use them to index all the vertex coordinates
+      and per-vertex attributes, and thus render TQuadSetNode just like you would render
+      TIndexedTriangleSetNode. }
+    function InternalTrianglesCoordIndex: TMFLong;
+
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
@@ -161,6 +173,48 @@ end;
 function TIndexedQuadSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
+end;
+
+{ TQuadSetNode --------------------------------------------------------------- }
+
+constructor TQuadSetNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
+begin
+  inherited;
+  FInternalTrianglesCoordIndex := TMFLong.Create(Self, false, 'internalTrianglesCoordIndex', []);
+end;
+
+destructor TQuadSetNode.Destroy;
+begin
+  FreeAndNil(FInternalTrianglesCoordIndex);
+  inherited;
+end;
+
+function TQuadSetNode.InternalTrianglesCoordIndex: TMFLong;
+var
+  QuadsCount, OldQuadsCount, I: TListSize;
+begin
+  if FdCoord.Value is TCoordinateNode then
+    QuadsCount := TCoordinateNode(FdCoord.Value).FdPoint.Items.Count div 4
+  else
+    QuadsCount := 0;
+
+  if FInternalTrianglesCoordIndex.Count <> QuadsCount * 6 then
+  begin
+    OldQuadsCount := FInternalTrianglesCoordIndex.Count div 6;
+    FInternalTrianglesCoordIndex.Count := QuadsCount * 6;
+    for I := OldQuadsCount to QuadsCount - 1 do
+    begin
+      FInternalTrianglesCoordIndex.Items.List^[I * 6    ] := I * 4;
+      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 1] := I * 4 + 1;
+      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 2] := I * 4 + 2;
+
+      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 3] := I * 4;
+      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 4] := I * 4 + 2;
+      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 5] := I * 4 + 3;
+    end;
+  end;
+
+  Result := FInternalTrianglesCoordIndex;
 end;
 
 procedure RegisterCADGeometryNodes;

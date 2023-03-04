@@ -384,7 +384,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.3600000000000000E+002
+            "Y" : -3.3599996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -409,7 +409,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.7000000000000000E+002
+            "Y" : -3.6999996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -434,7 +434,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.0400000000000000E+002
+            "Y" : -4.0399996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -459,7 +459,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.3800000000000000E+002
+            "Y" : -4.3799996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -470,7 +470,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.7200000000000000E+002
+            "Y" : -4.7199996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -611,9 +611,15 @@
         },
         {
           "$$ClassName" : "TCastleFloatSlider",
+          "Background" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "Caption" : "Air Movement Control",
           "Max" : 1.5000000000000000E+000,
           "Name" : "SliderAirMovementControl",
+          "Thumb" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
@@ -621,21 +627,29 @@
           },
           "Value" : 1.0000000000000000E+000,
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+002
         },
         {
           "$$ClassName" : "TCastleFloatSlider",
+          "Background" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "Caption" : "Air Rotation Control",
           "Max" : 1.5000000000000000E+000,
           "Name" : "SliderAirRotationControl",
+          "Thumb" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.9000000000000000E+002
+            "Y" : -7.0000000000000000E+002
           },
           "Value" : 1.0000000000000000E+000,
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+002
         }
       ]
     }

@@ -71,6 +71,11 @@ type
   TColorChannel = 0..3;
   TColorChannels = set of TColorChannel;
 
+  TPolygonOffset = record
+    Enabled: Boolean;
+    Scale, Bias: Single;
+  end;
+
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
@@ -123,6 +128,7 @@ type
       FFixedFunctionAlphaCutoff: Single;
       FFixedFunctionLighting: boolean;
       FLineType: TLineType;
+      FPolygonOffset: TPolygonOffset;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -146,6 +152,7 @@ type
     procedure SetCurrentVao(const Value: TVertexArrayObject);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
+    procedure SetPolygonOffset(const Value: TPolygonOffset);
   private
     FEnabledScissors: TScissorList;
   public
@@ -308,6 +315,12 @@ type
       Note: This is not supported on OpenGLES. }
     property LineType: TLineType read FLineType write SetLineType;
 
+    { Current polygon offset state. You can read and write it. }
+    property PolygonOffset: TPolygonOffset read FPolygonOffset write SetPolygonOffset;
+    { Shortcut for setting @link(PolygonOffset) with PolygonOffset.Enabled = @true. }
+    procedure PolygonOffsetEnable(const Scale, Bias: Single);
+    { Shortcut for setting @link(PolygonOffset) with PolygonOffset.Enabled = @false. }
+    procedure PolygonOffsetDisable;
   end;
 
 var
@@ -411,7 +424,10 @@ begin
   if FLineWidth <> Value then
   begin
     FLineWidth := Value;
+    {$if (not defined(DARWIN)) or defined(OpenGLES)}
+    // on desktop macOS, glLineWidth raise GL_INVALID_VALUE for parameters <> 1.0
     glLineWidth(Value);
+    {$endif}
   end;
 end;
 
@@ -792,6 +808,53 @@ begin
     end;
     {$endif}
   end;
+end;
+
+procedure TRenderContext.SetPolygonOffset(const Value: TPolygonOffset);
+begin
+  if (FPolygonOffset.Enabled <> Value.Enabled) or
+     (FPolygonOffset.Scale <> Value.Scale) or
+     (FPolygonOffset.Bias <> Value.Bias) then
+  begin
+    FPolygonOffset := Value;
+    if Value.Enabled then
+    begin
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      {$ifndef OpenGLES} // These do not exist on OpenGLES
+      glEnable(GL_POLYGON_OFFSET_LINE);
+      glEnable(GL_POLYGON_OFFSET_POINT);
+      {$endif}
+      glPolygonOffset(Value.Scale, Value.Bias);
+    end else
+    begin
+      glDisable(GL_POLYGON_OFFSET_FILL);
+      {$ifndef OpenGLES} // These do not exist on OpenGLES
+      glDisable(GL_POLYGON_OFFSET_LINE);
+      glDisable(GL_POLYGON_OFFSET_POINT);
+      {$endif}
+    end;
+  end;
+end;
+
+procedure TRenderContext.PolygonOffsetEnable(const Scale, Bias: Single);
+var
+  NewState: TPolygonOffset;
+begin
+  NewState.Enabled := true;
+  NewState.Scale := Scale;
+  NewState.Bias := Bias;
+  PolygonOffset := NewState;
+end;
+
+procedure TRenderContext.PolygonOffsetDisable;
+var
+  NewState: TPolygonOffset;
+begin
+  NewState.Enabled := false;
+  { Whatever, will not be set anyway. }
+  NewState.Scale := 0;
+  NewState.Bias := 0;
+  PolygonOffset := NewState;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

@@ -295,6 +295,10 @@
       e.g. for OpenGL fixed-function pipeline. }
     function SpotExponentApproximate: Single;
 
+    { Projection angle, from @link(ProjectionAngle) or 2 * @link(CutOffAngle).
+      See https://castle-engine.io/x3d_extensions_shadow_maps.php . }
+    function EffectiveProjectionAngle: Single;
+
   {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
   end;
   TSpotLightNode_2 = TSpotLightNode;
@@ -749,16 +753,22 @@ begin
     LightInstance.Transform.MultDirection(FdDirection.Value).Normalize;
 end;
 
+function TSpotLightNode.EffectiveProjectionAngle: Single;
+begin
+  if ProjectionAngle <= 0 then
+    Result := 2 * CutOffAngle
+  else
+    Result := ProjectionAngle;
+end;
+
 function TSpotLightNode.ProjectionMatrix: TMatrix4;
 var
   Angle, N, F: Single;
 begin
+  Angle := EffectiveProjectionAngle;
+
   { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
-
-  if FdprojectionAngle.Value <= 0 then
-    Angle := 2 * FdCutOffAngle.Value else
-    Angle := FdProjectionAngle.Value;
 
   N := FdProjectionNear.Value;
   if N = 0 then N := FallbackProjectionNear;

@@ -20,6 +20,33 @@
 
 {$ifdef read_interface_type}
 // type (continue type section from previous include file)
+
+  { How is @link(TCastleImagePersistent.ProtectedSides) applies.
+    Determines how does the 9-slices algorithm work. }
+  TProtectedSidesScaling = (
+    { All 4 sides of the image are preserved, and between them the middle
+      may be arbitrary scaled vertically or horizontally.
+
+      The target drawing area must have at least the size of all protected sides,
+      otherwise the rendering cannot look perfect -- as some parts of corners will not fit.
+
+      This is what 9-slices does by default. }
+    pssDefault,
+
+    { The protected sides are all scaled such that the image is stretched in
+      a uniform way vertically.
+
+      This makes the vertical protected sides (top, bottom) meaningless:
+      they don't matter, the image is effectively always scaled uniformly
+      to match the target area height.
+
+      However, the horizontal protected sides (left, right) now behave in more interesting
+      way: they will be scaled just like the vertical sides.
+      Just makes sense e.g. when your image has circular endigns on left and right sides
+      (see default TCastleAbstractSlider background image for example). }
+    pssMatchHeight
+  );
+
   { Image that can be easily loaded from URL (possibly reusing a cache),
     drawn, and serialized to/from file.
 
@@ -73,6 +100,7 @@
     FRegionEnabled :Boolean;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
+    FProtectedSidesScaling: TProtectedSidesScaling;
 
     function GetImage: TEncodedImage;
     function GetOwnsImage: boolean;
@@ -95,6 +123,7 @@
     procedure SetScaleCorners(const Value: Single);
     procedure SetClip(const Value: Boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetProtectedSidesScaling(const Value: TProtectedSidesScaling);
 
     procedure ProtectedSidesChange(Sender: TObject);
     procedure CreateDrawableImage;
@@ -226,12 +255,30 @@
 
     { Prepare image for typical drawing from UI.
 
-      - Saves OnChange and Color (to be later restored by CommonAfterDraw).
+      What it does now:
 
-      - Clears OnChange (so that changes between CommonBeforeDraw and CommonAfterDraw
-        do not cause OnChange, which is typically used to make repaint).
+      @orderedList(
+        @item(Saves OnChange and Color (to be later restored by DrawUiEnd).)
 
-      - Sets ScaleCorners.
+        @item(Clears OnChange (so that changes between DrawUiBegin and DrawUiEnd
+          do not cause OnChange, which is typically used to make repaint).
+
+          Together with the previous point, this allows the rendering code to easily customize
+          color between DrawUiBegin and DrawUiEnd, e.g. doing
+
+          @longCode(#
+            MyPersistentImage.DrawUiBegin(...);
+            MyPersistentImage.Color := MyPersistentImage.Color * Tint;
+            MyPersistentImage.Draw(...);
+            MyPersistentImage.DrawUiEnd;
+          #)
+
+          Such change to color is guaranteed to be temporary and internal:
+          DrawUiEnd will revert it, OnChange will not report it outside.
+        )
+
+        @item(Sets ScaleCorners.)
+      )
 
       Must be followed by DrawUiEnd.
     }
@@ -239,7 +286,11 @@
 
     { Finish image usage from typical UI drawing.
 
-      - Restores OnChange and Color. }
+      What it does now:
+
+      @orderedList(
+        @item(Restores OnChange and Color.)
+      ) }
     procedure DrawUiEnd;
   published
     { URL of the image.
@@ -305,6 +356,10 @@
 
     property ScaleProtectedSides: Single read FScaleProtectedSides write SetScaleProtectedSides {$Ifdef fpc}default 1{$endif};
     property RegionEnabled: Boolean read FRegionEnabled write SetRegionEnabled default false;
+
+    { How are protected sides scaled to match the final drawing area on the screen. }
+    property ProtectedSidesScaling: TProtectedSidesScaling
+      read FProtectedSidesScaling write SetProtectedSidesScaling default pssDefault;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
@@ -642,10 +697,10 @@ procedure TCastleImagePersistent.Draw(
   var
     L, R, B, T: Single;
   begin
-    L := ProtectedSides.TotalLeft   * ScaleCorners * ScaleProtectedSides;
-    R := ProtectedSides.TotalRight  * ScaleCorners * ScaleProtectedSides;
-    B := ProtectedSides.TotalBottom * ScaleCorners * ScaleProtectedSides;
-    T := ProtectedSides.TotalTop    * ScaleCorners * ScaleProtectedSides;
+    L := ProtectedSides.TotalLeft   * DrawableImage.ScaleCorners * ScaleProtectedSides;
+    R := ProtectedSides.TotalRight  * DrawableImage.ScaleCorners * ScaleProtectedSides;
+    B := ProtectedSides.TotalBottom * DrawableImage.ScaleCorners * ScaleProtectedSides;
+    T := ProtectedSides.TotalTop    * DrawableImage.ScaleCorners * ScaleProtectedSides;
 
     FitWithin(L, R, ScreenRectangle.Width);
     FitWithin(B, T, ScreenRectangle.Height);
@@ -687,7 +742,14 @@ begin
   DrawableImage.Alpha := FAlphaChannel;
   DrawableImage.Color := FColor;
   DrawableImage.CustomShader := FCustomShader;
-  DrawableImage.ScaleCorners := FScaleCorners;
+
+  case ProtectedSidesScaling of
+    pssDefault    : DrawableImage.ScaleCorners := FScaleCorners;
+    pssMatchHeight: DrawableImage.ScaleCorners := ScreenRectangle.Height / FDrawableImage.Height;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('ProtectedSidesScaling?');
+    {$endif}
+  end;
 
   if not FProtectedSides.Exists then
   begin
@@ -817,6 +879,15 @@ begin
   if FFlipHorizontal <> Value then
   begin
     FFlipHorizontal := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleImagePersistent.SetProtectedSidesScaling(const Value: TProtectedSidesScaling);
+begin
+  if FProtectedSidesScaling <> Value then
+  begin
+    FProtectedSidesScaling := Value;
     DoChange;
   end;
 end;

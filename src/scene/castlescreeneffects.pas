@@ -297,6 +297,7 @@ constructor TGLSLScreenEffect.Create;
 begin
   inherited;
   UniformMissing := umIgnore;
+  Name := 'TGLSLScreenEffect';
 end;
 
 procedure TGLSLScreenEffect.Link;
@@ -311,11 +312,6 @@ begin
   {$warnings on}
   AttachVertexShader(VS);
   AttachFragmentShader(FS);
-  if LogShaders then
-  begin
-    WritelnLogMultiline('Screen Effect Vertex Shader', VS);
-    WritelnLogMultiline('Screen Effect Fragment Shader', FS);
-  end;
   inherited;
 end;
 

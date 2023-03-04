@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -209,7 +209,7 @@ begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
-  Result := ExclusiveEvents;
+  Result := true;
   FDragging := Event.FingerIndex;
   FLeverOffset := TVector2.Zero;
 end;
@@ -221,7 +221,7 @@ begin
 
   if FDragging = Event.FingerIndex then
   begin
-    Result := ExclusiveEvents;
+    Result := true;
 
     FDragging := -1;
     FLeverOffset := TVector2.Zero;
@@ -237,7 +237,7 @@ begin
   begin
     FLeverOffset := FLeverOffset + Event.Position - Event.OldPosition;
     VisibleChange([chRender]);
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 

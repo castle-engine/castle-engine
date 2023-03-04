@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,16 +71,14 @@ begin
            '  image-to-pascal [OPTIONS...] UnitName image_name1.png...' +NL+
            nl+
            'Available options are:' +NL+
-           HelpOptionHelp +NL+
-           '  --no-show-progress    Do not show progress on stderr.' +NL+
-           '  -o / --output DIRECTORY' +NL+
-           '                        Place output unit files inside this dir.' +NL+
-           '  @alpha=strip          Strip the alpha channel from the following' +NL+
-           '                        images.' +NL+
-           '  @alpha=keep           Keep the alpha channel on the following' +NL+
-           '                        images (the default). As a result,' +NL+
-           '                        alpha channel will be stored in source files.'
-          );
+           OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+           OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
+           OptionDescription('--no-show-progress', 'Do not show progress on stderr.') + NL +
+           OptionDescription('-o / --output DIRECTORY', 'Place output unit files inside this dir.') + NL +
+           OptionDescription('@alpha=keep', 'Keep the alpha channel on the following images (the default). As a result, alpha channel will be stored in source files.') + NL +
+           OptionDescription('@alpha=strip', 'Strip the alpha channel from the following images.') + NL +
+           OptionDescription('@alpha=keep-and-bleed', 'Like "keep", moreover perform "alpha bleeding" (see https://castle-engine.io/manual_alpha_bleeding.php ) to fix RGB values under transparent pixels.') + NL
+         );
          Halt;
        end;
     1: begin
@@ -108,6 +106,9 @@ begin
   Result[1] := UpCase(Result[1]);
 end;
 
+type
+  TAlpha = (alphaKeep, alphaStrip, alphaKeepAndBleed);
+
 var
   Image, TempImage: TCastleImage;
   ImageURL: string;
@@ -115,7 +116,7 @@ var
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
   OutputUnit: TTextWriter;
-  AlphaStrip: boolean = false;
+  Alpha: TAlpha = alphaKeep;
 begin
   { parse params }
   Parameters.Parse(Options, @OptionProc, nil);
@@ -137,12 +138,17 @@ begin
 
     if ImageURL = '@alpha=strip' then
     begin
-      AlphaStrip := true;
+      Alpha := alphaStrip;
       Continue;
     end else
     if ImageURL = '@alpha=keep' then
     begin
-      AlphaStrip := false;
+      Alpha := alphaKeep;
+      Continue;
+    end else
+    if ImageURL = '@alpha=keep-and-bleed' then
+    begin
+      Alpha := alphaKeepAndBleed;
       Continue;
     end;
 
@@ -150,13 +156,33 @@ begin
     ImageName := PascalNameFromURL(ImageURL);
     Image := LoadImage(ImageURL);
     try
-      if AlphaStrip and Image.HasAlpha then
+      if Image.HasAlpha then
       begin
-        TempImage := TRGBImage.Create;
-        TempImage.Assign(Image);
-        FreeAndNil(Image);
-        Image := TempImage;
-        TempImage := nil; {< for safety }
+        case Alpha of
+          alphaStrip:
+            begin
+              if ShowProgress then
+                Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
+              TempImage := TRGBImage.Create;
+              TempImage.Assign(Image);
+              FreeAndNil(Image);
+              Image := TempImage;
+              TempImage := nil; {< for safety }
+            end;
+          alphaKeepAndBleed:
+            begin
+              if ShowProgress then
+                Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
+              // convert to TRGBAlphaImage as alpha bleeding is implemented only there
+              TempImage := TRGBAlphaImage.Create;
+              TempImage.Assign(Image);
+              TempImage.AlphaBleed;
+              FreeAndNil(Image);
+              Image := TempImage;
+              TempImage := nil; {< for safety }
+            end;
+          else { do nothing for alphaKeep };
+        end;
       end;
       Image.SaveToPascalCode(ImageName, ShowProgress,
         CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization);

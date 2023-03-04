@@ -493,18 +493,12 @@ type
       This may generate speedup on some scenes. }
     property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
 
-    { You can use this to turn on some effects related to rendering model
-      in special modes.
+    { Activate various effects related to wireframe rendering.
+      When this is weNormal (default), we simply render polygons as polygons.
+      See description of TWireframeEffect for what other modes do.
 
-      When this is weNormal (default), nothing special is
-      done, which means that model polygons are simply passed to OpenGL.
-      Whether this results in filled or wireframe, depends on OpenGL
-      glPolygonMode setting, filled by default.
-
-      How the wireframe effects work when Mode = rmDepth is undefined now.
-      Just don't use Mode = rmDepth if you're unsure.
-
-      See description of TWireframeEffect for what other modes do. }
+      Note: How the wireframe effects work when Mode = rmDepth is undefined now.
+      Don't use Mode = rmDepth with WireframeEffect <> weNormal. }
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 

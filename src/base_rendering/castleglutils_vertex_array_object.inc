@@ -24,7 +24,7 @@ type
     This does nothing if current OpenGL(ES) version doesn't support VAO.
 
     Change the current VAO by @link(TRenderContext.CurrentVao RenderContext.CurrentVao).
-    It is done done automatically by @link(TGLSLProgram.EnableArray),
+    It is done done automatically by @link(TGLSLAttribute.EnableArray),
     remember that VBOs (including GL_ELEMENT_ARRAY_BUFFER) must be bound within this VAO. }
   TVertexArrayObject = class
   strict private

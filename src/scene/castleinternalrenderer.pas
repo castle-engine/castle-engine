@@ -604,8 +604,9 @@ type
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     GlobalLights: TLightInstancesList;
 
-    { Rendering camera. Set in each RenderBegin, cleared in RenderEnd. }
+    { Rendering parameters. Set in each RenderBegin, cleared to nil in RenderEnd. }
     RenderingCamera: TRenderingCamera;
+    Statistics: PRenderStatistics;
 
     { Rendering pass. Set in each RenderBegin. }
     Pass: TTotalRenderingPass;
@@ -725,7 +726,8 @@ type
       const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
       const AInternalScenePass: TInternalSceneRenderingPass;
-      const AUserPass: TUserRenderingPass);
+      const AUserPass: TUserRenderingPass;
+      const AStatistics: PRenderStatistics);
     procedure RenderEnd;
 
     procedure RenderShape(const Shape: TX3DRendererShape);
@@ -1073,6 +1075,7 @@ function TGLRendererContextCache.TextureCubeMap_IncReference(
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
+  DisableMipmaps: Boolean;
 begin
   if TextureFullUrl <> '' then // never share texture with FullUrl = '', e.g. from GeneratedCubeMapTexture
     for I := 0 to TextureCubeMapCaches.Count - 1 do
@@ -1105,7 +1108,14 @@ begin
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
     CompositeForMipmaps,
-    Filter.NeedsMipmaps);
+    Filter.NeedsMipmaps,
+    DisableMipmaps);
+
+  if DisableMipmaps then
+  begin
+    Filter.DisableMipmaps;
+    SetTextureFilter(GL_TEXTURE_CUBE_MAP, Filter);
+  end;
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP, Anisotropy);
 
@@ -2251,7 +2261,8 @@ procedure TGLRenderer.RenderBegin(
   const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
   const AInternalScenePass: TInternalSceneRenderingPass;
-  const AUserPass: TUserRenderingPass);
+  const AUserPass: TUserRenderingPass;
+  const AStatistics: PRenderStatistics);
 
   { Combine a set of numbers (each in their own range) into one unique number.
     This is like combining a couple of digits into a whole number,
@@ -2280,6 +2291,7 @@ procedure TGLRenderer.RenderBegin(
 begin
   GlobalLights := AGlobalLights;
   RenderingCamera := ARenderingCamera;
+  Statistics := AStatistics;
   Assert(RenderingCamera <> nil);
 
   Pass := GetTotalPass(
@@ -2334,6 +2346,7 @@ begin
   {$endif}
 
   RenderingCamera := nil;
+  Statistics := nil;
 end;
 
 procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);

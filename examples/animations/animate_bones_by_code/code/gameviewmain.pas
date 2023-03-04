@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,17 +25,17 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     SceneHumanoid: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
-
+  private
     { Other fields }
     TransformNeck: TTransformNode;
     HeadAnimation: Boolean; //< whether we play animation of TransformNeck, controled by code
     HeadAnimationTime: TFloatTime;
-
     procedure DebugLogNodeName(Node: TX3DNode);
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
@@ -88,13 +88,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  SceneHumanoid := DesignedComponent('SceneHumanoid') as TCastleScene;
-  ButtonPlayWalk := DesignedComponent('ButtonPlayWalk') as TCastleButton;
-  ButtonPlayHead := DesignedComponent('ButtonPlayHead') as TCastleButton;
-  ButtonPlayBoth := DesignedComponent('ButtonPlayBoth') as TCastleButton;
 
   { for debug: write to log all transform nodes }
   SceneHumanoid.RootNode.EnumerateNodes(TTransformNode, {$ifdef FPC}@{$endif} DebugLogNodeName, false);

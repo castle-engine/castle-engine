@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis and Jan Adamec.
+  Copyright 2017-2023 Michalis Kamburelis and Jan Adamec.
 
   This file is part of "Castle Game Engine".
 
@@ -97,7 +97,11 @@
   TCastleTableViewCellList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleTableViewCell>;
 
   { Data source used in @link(TCastleTableView). Implement this interface to
-    populate data into the TableView. }
+    populate data into the TableView.
+
+    @deprecated Along with TCastleTableView, this is deprecated.
+
+    @exclude We even exclude it, to not "stand out" in "Class Hierarchy" in API docs. }
   ICastleTableViewDataSource = interface
     { Return number of cells (rows). }
     function TableViewNumberOfRows(Sender: TCastleTableView): Integer;
@@ -381,7 +385,7 @@ begin
   begin
     FPressPos := Event.Position;
     FMotionIsClick := true;
-    Result := ExclusiveEvents;   // be sure to get messages
+    Result := true;   // be sure to get messages
   end;
 end;
 

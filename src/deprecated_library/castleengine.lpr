@@ -531,6 +531,17 @@ begin
   end;
 end;
 
+function GetWalkNavigation: TCastleWalkNavigation;
+var
+  Nav: TCastleNavigation;
+begin
+  Nav := Viewport.Navigation;
+  if Nav is TCastleWalkNavigation then
+    Result := TCastleWalkNavigation(Nav)
+  else
+    Result := nil;
+end;
+
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkNavigation: TCastleWalkNavigation;
@@ -539,58 +550,66 @@ begin
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
-        WalkNavigation := Viewport.WalkNavigation(false);
-        if WalkNavigation <> nil then begin
-          if nValue>0 then
-            WalkNavigation.HeadBobbing := TCastleWalkNavigation.DefaultHeadBobbing else
-            WalkNavigation.HeadBobbing := 0.0;
-        end;
-      end;
+           WalkNavigation := GetWalkNavigation;
+           if WalkNavigation <> nil then
+           begin
+             if nValue > 0 then
+               WalkNavigation.HeadBobbing := TCastleWalkNavigation.DefaultHeadBobbing
+             else
+               WalkNavigation.HeadBobbing := 0.0;
+           end;
+         end;
 
       1: begin    // ecgevarEffectSSAO
-        if Viewport.ScreenSpaceAmbientOcclusionAvailable then
-          Viewport.ScreenSpaceAmbientOcclusion := (nValue > 0);
-      end;
+           if Viewport.ScreenSpaceAmbientOcclusionAvailable then
+             Viewport.ScreenSpaceAmbientOcclusion := (nValue > 0);
+         end;
 
       2: begin    // ecgevarMouseLook
-        WalkNavigation := Viewport.WalkNavigation(false);
-        if WalkNavigation <> nil then
-            WalkNavigation.MouseLook := (nValue > 0);
-      end;
+           WalkNavigation := GetWalkNavigation;
+           if WalkNavigation <> nil then
+               WalkNavigation.MouseLook := (nValue > 0);
+         end;
 
       3: begin    // ecgevarCrossHair
-        Crosshair.CrosshairCtl.Exists := (nValue > 0);
-        if nValue > 0 then begin
-          if nValue = 2 then
-            Crosshair.CrosshairCtl.Shape := csCrossRect else
-            Crosshair.CrosshairCtl.Shape := csCross;
-          Crosshair.UpdateCrosshairImage;
-          Viewport.Items.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
-        end;
-      end;
+           Crosshair.CrosshairCtl.Exists := (nValue > 0);
+           if nValue > 0 then
+           begin
+             if nValue = 2 then
+               Crosshair.CrosshairCtl.Shape := csCrossRect
+             else
+               Crosshair.CrosshairCtl.Shape := csCross;
+             Crosshair.UpdateCrosshairImage;
+             Viewport.Items.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
+           end;
+         end;
 
       5: begin    // ecgevarWalkTouchCtl
-        TouchNavigation.AutoWalkTouchInterface := cgehelper_TouchInterfaceFromConst(nValue);
-      end;
+           TouchNavigation.AutoWalkTouchInterface := cgehelper_TouchInterfaceFromConst(nValue);
+         end;
 
       6: begin    // ecgevarScenePaused
-        Viewport.Items.Paused := (nValue > 0);
-      end;
+           Viewport.Items.Paused := (nValue > 0);
+         end;
 
       7: begin    // ecgevarAutoRedisplay
-        Window.AutoRedisplay := (nValue > 0);
-      end;
+           Window.AutoRedisplay := (nValue > 0);
+         end;
 
       8: begin    // ecgevarHeadlight
-        if Viewport.Items.MainScene <> nil then
-           Viewport.Items.MainScene.HeadlightOn := (nValue > 0);
-      end;
+           if Viewport.Items.MainScene <> nil then
+              Viewport.Items.MainScene.HeadlightOn := (nValue > 0);
+         end;
 
       9: begin    // ecgevarOcclusionQuery
-        if Viewport.Items.MainScene <> nil then
-           Viewport.Items.MainScene.RenderOptions.OcclusionQuery := (nValue > 0);
-      end;
+           if Viewport.Items.MainScene <> nil then
+              Viewport.Items.MainScene.RenderOptions.OcclusionQuery := (nValue > 0);
+         end;
 
+      10: begin    // ecgevarPhongShading
+            if Viewport.Items.MainScene <> nil then
+               Viewport.Items.MainScene.RenderOptions.PhongShading := (nValue > 0);
+          end;
     end;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -606,67 +625,83 @@ begin
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
-        WalkNavigation := Viewport.WalkNavigation(false);
-        if (WalkNavigation <> nil) and (WalkNavigation.HeadBobbing > 0) then
-          Result := 1 else
-          Result := 0;
-      end;
+           WalkNavigation := GetWalkNavigation;
+           if (WalkNavigation <> nil) and (WalkNavigation.HeadBobbing > 0) then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       1: begin    // ecgevarEffectSSAO
-        if Viewport.ScreenSpaceAmbientOcclusionAvailable and
-            Viewport.ScreenSpaceAmbientOcclusion then
-          Result := 1 else
-          Result := 0;
-      end;
+           if Viewport.ScreenSpaceAmbientOcclusionAvailable and
+              Viewport.ScreenSpaceAmbientOcclusion then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       2: begin    // ecgevarMouseLook
-        WalkNavigation := Viewport.WalkNavigation(false);
-        if (WalkNavigation <> nil) and WalkNavigation.MouseLook then
-          Result := 1 else
-          Result := 0;
-      end;
+           WalkNavigation := GetWalkNavigation;
+           if (WalkNavigation <> nil) and WalkNavigation.MouseLook then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       3: begin    // ecgevarCrossHair
-        if not Crosshair.CrosshairCtl.Exists then
-          Result := 0
-        else if Crosshair.CrosshairCtl.Shape = csCross then
-          Result := 1
-        else if Crosshair.CrosshairCtl.Shape = csCrossRect then
-          Result := 2
-        else
-          Result := 1;
-      end;
+           if not Crosshair.CrosshairCtl.Exists then
+             Result := 0
+           else
+           if Crosshair.CrosshairCtl.Shape = csCross then
+             Result := 1
+           else
+           if Crosshair.CrosshairCtl.Shape = csCrossRect then
+             Result := 2
+           else
+             Result := 1;
+         end;
 
       4: begin    // ecgevarAnimationRunning
-        if Viewport.Camera.Animation then
-          Result := 1 else
-          Result := 0;
-      end;
+           if Viewport.Camera.Animation then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       5: begin    // ecgevarWalkTouchCtl
-        Result := cgehelper_ConstFromTouchInterface(TouchNavigation.AutoWalkTouchInterface);
-      end;
+           Result := cgehelper_ConstFromTouchInterface(TouchNavigation.AutoWalkTouchInterface);
+         end;
 
       6: begin    // ecgevarScenePaused
-        if Viewport.Items.Paused then
-          Result := 1 else
-          Result := 0;
-      end;
+           if Viewport.Items.Paused then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       7: begin    // ecgevarAutoRedisplay
-        if Window.AutoRedisplay then
-          Result := 1 else
-          Result := 0;
-      end;
+           if Window.AutoRedisplay then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       8: begin    // ecgevarHeadlight
-        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.HeadlightOn then
-          Result := 1 else
-          Result := 0;
-      end;
+           if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.HeadlightOn then
+             Result := 1
+           else
+             Result := 0;
+         end;
 
       9: begin    // ecgevarOcclusionQuery
-        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.OcclusionQuery then
+           if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.OcclusionQuery then
+             Result := 1
+           else
+             Result := 0;
+         end;
+
+      10: begin    // ecgevarPhongShading
+        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.PhongShading then
           Result := 1 else
           Result := 0;
       end;
@@ -690,17 +725,38 @@ begin
     aField := Viewport.Items.MainScene.Field(PChar(szNodeName), PChar(szFieldName));
     if aField = nil then Exit;
 
+    if aField is TSFVec2f then
+      TSFVec2f(aField).Send(Vector2(fVal1, fVal2))
+    else
     if aField is TSFVec3f then
       TSFVec3f(aField).Send(Vector3(fVal1, fVal2, fVal3))
     else
     if aField is TSFVec4f then
       TSFVec4f(aField).Send(Vector4(fVal1, fVal2, fVal3, fVal4))
     else
+    if aField is TSFVec2d then
+      TSFVec2d(aField).Send(Vector2Double(fVal1, fVal2))
+    else
     if aField is TSFVec3d then
       TSFVec3d(aField).Send(Vector3Double(fVal1, fVal2, fVal3))
     else
     if aField is TSFVec4d then
-      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4));
+      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4))
+    else
+    if aField is TSFFloat then
+      TSFFloat(aField).Send(fVal1)
+    else
+    if aField is TSFDouble then
+      TSFDouble(aField).Send(fVal1)
+    else
+    if aField is TSFLong then
+      TSFLong(aField).Send(Round(fVal1))
+    else
+    if aField is TSFInt32 then
+      TSFInt32(aField).Send(Round(fVal1))
+    else
+    if aField is TSFBool then
+      TSFBool(aField).Send(fVal1 <> 0.0);
 
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));

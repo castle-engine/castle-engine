@@ -161,11 +161,6 @@ unit X3DNodes;
 
 {$I castleconf.inc}
 
-// TODO: Under Delphi we don't support CastleScript for now
-{$ifdef FPC}
-  {$define CASTLE_SCRIPT}
-{$endif}
-
 {$ifdef CASTLE_STRICT_CLI}
   {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
 {$endif}
@@ -177,7 +172,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleInternalMaterialProperties,
-  {$ifdef CASTLE_SCRIPT}CastleScript, CastleInternalX3DScript, {$endif} CastleInternalOctree,
+  CastleScript, CastleInternalX3DScript, CastleInternalOctree,
   CastleInternalCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleRenderOptions, CastleProjection, CastleBehaviors;
@@ -284,7 +279,7 @@ uses
 
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
-  CastleLog, {$ifdef CASTLE_SCRIPT}CastleScriptParser,{$endif} CastleInternalDataUri, URIParser, CastleDownload,
+  CastleLog, CastleScriptParser, CastleInternalDataUri, URIParser, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
 

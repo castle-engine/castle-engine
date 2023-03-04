@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,7 +118,7 @@ begin
       Cursor := mcForceNone;
       Container.MouseLookPress;
     end;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -132,7 +132,7 @@ begin
     Dragging := false;
     if MouseLook then
       Cursor := mcDefault;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -151,7 +151,7 @@ begin
       Delta := Event.Position - Event.OldPosition;
     DraggedRect.Translation := DraggedRect.Translation + Delta / UIScale;
     Status.Caption := Format('Dragged rect position: %s', [DraggedRect.Translation.ToString]);
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 

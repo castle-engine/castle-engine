@@ -49,6 +49,10 @@ unit CastleInternalTDxInput_TLB;
 {$VARPROPSETTER ON}
 interface
 
+{$ifdef CASTLE_DELPHI_PACKAGE}
+  {$message fatal 'This unit should not be included in CGE Delphi package, as it is only for VCL.'}
+{$endif}
+
 uses Windows, ActiveX, Classes, {Graphics, }{$ifdef FPC}OleServer,{$else}Vcl.OleServer,{$endif} {StdVCL, }Variants;
 
 

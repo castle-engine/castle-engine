@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,16 +26,17 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;
+    LabelStatus: TCastleLabel;
   strict private
     const
       DownloadsCount = 3;
     var
-      { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
       LabelDownload: array [1..DownloadsCount] of TCastleLabel;
       ProgressDownload: array [1..DownloadsCount] of TCastleRectangleControl;
-      ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;
-      LabelStatus: TCastleLabel;
-
       Download: array [1..DownloadsCount] of TCastleDownload;
     procedure ClickStartDownloads(Sender: TObject);
     procedure ClickAbortDownloads(Sender: TObject);
@@ -70,15 +71,12 @@ begin
   inherited;
 
   { Find components, by name, that we need to access from code }
-  ButtonStartDownloads := DesignedComponent('ButtonStartDownloads') as TCastleButton;
-  ButtonAbortDownloads := DesignedComponent('ButtonAbortDownloads') as TCastleButton;
   LabelDownload[1] := DesignedComponent('LabelDownload1') as TCastleLabel;
   LabelDownload[2] := DesignedComponent('LabelDownload2') as TCastleLabel;
   LabelDownload[3] := DesignedComponent('LabelDownload3') as TCastleLabel;
   ProgressDownload[1] := DesignedComponent('ProgressDownload1') as TCastleRectangleControl;
   ProgressDownload[2] := DesignedComponent('ProgressDownload2') as TCastleRectangleControl;
   ProgressDownload[3] := DesignedComponent('ProgressDownload3') as TCastleRectangleControl;
-  LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
 
   ButtonStartDownloads.OnClick := {$ifdef FPC}@{$endif} ClickStartDownloads;
   ButtonAbortDownloads.OnClick := {$ifdef FPC}@{$endif} ClickAbortDownloads;

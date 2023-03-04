@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,12 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     DragonScene: TCastleScene;
-
+  private
     SceneBoundingRect: TCastleScene;
     RectCoords: TCoordinateNode;
     { Update contents of RectCoords. }
@@ -98,10 +99,6 @@ procedure TViewMain.Start;
 
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  DragonScene := DesignedComponent('DragonScene') as TCastleScene;
 
   SceneBoundingRect := TCastleScene.Create(FreeAtStop);
   SceneBoundingRect.Load(CreateRectangleNode, true);

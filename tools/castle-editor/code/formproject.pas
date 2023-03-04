@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
     ActionRunParameterCapabilitiesForceModern: TAction;
     ActionRunParameterCapabilitiesDefault: TAction;
@@ -117,6 +118,7 @@ type
     MenuItem33: TMenuItem;
     MenuItem39: TMenuItem;
     MenuItem40: TMenuItem;
+    MenuItem41: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
@@ -544,6 +546,7 @@ type
       Selected: Boolean);
     procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
       const UnitOutputDirFromFileBrowser: Boolean);
+    function ShowStatistics: Boolean;
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -653,8 +656,13 @@ begin
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
+  begin
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 
   { On GTK, this happens when we open a dialog box, like open/save.
     It's important to stop treating keys/mouse as pressed then.
@@ -688,7 +696,12 @@ begin
   if Design.DesignUrl = '' then
     MenuItemSaveAsDesignClick(Sender)
   else
+  begin
     Design.SaveDesign(Design.DesignUrl);
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
@@ -1427,6 +1440,11 @@ begin
     ProposeToOpenNewFile;
     RefreshFiles(rfFilesInCurrentDir);
   end;
+end;
+
+function TProjectForm.ShowStatistics: Boolean;
+begin
+  Result := ActionShowStatistics.Checked;
 end;
 
 procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
@@ -2219,13 +2237,22 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 var
   ListItem: TListItem;
   FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr: String;
+  DesignFileName, FileDateTimeStr, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
-  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  // support deprecated names
-  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
+    to be possible to open them at runtime.
+    This also avoids finding stuff in castle-engine-output, which is possible,
+    e.g. after "castle-engine package --target=android" the castle-engine-output contains
+    some temporary data with copies of design files -- and we *do not* want to show them here. }
+  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
+  if URIExists(ProjectDataUrl) <> ueNotExists then
+  begin
+    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    // support deprecated names
+    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  end;
   { without sorting, the order would be ~random (as FindFiles enumarates).
     Note that we sort including the subdirectory names, which is good,
     we want files in the same subdirectory to be together. }
@@ -2274,6 +2301,7 @@ begin
   ActionModeTranslate.Enabled := Design <> nil;
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
+  ActionShowStatistics.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2333,6 +2361,7 @@ begin
     Design.OnCurrentViewportChanged := @CurrentViewportChanged;
     Design.OnProposeOpenDesign := @ProposeOpenDesign;
     Design.OnIsRunning  := @IsRunning;
+    Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
 

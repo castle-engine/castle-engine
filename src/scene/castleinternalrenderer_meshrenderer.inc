@@ -341,6 +341,8 @@ const
     GL_TRIANGLE_FAN,
     GL_TRIANGLE_STRIP,
     GL_LINE_STRIP,
+    GL_LINE_LOOP,
+    GL_LINES,
     GL_POINTS
   );
 var
@@ -524,6 +526,12 @@ begin
             First := First + Arrays.Counts[I];
           end;
       end;
+
+      { update Renderer.Statistics.DrawCalls }
+      if Arrays.Counts = nil then
+        Inc(Renderer.Statistics^.DrawCalls)
+      else
+        Inc(Renderer.Statistics^.DrawCalls, Arrays.Counts.Count);
 
       { We disable arrays explicitly. We could alternatively try
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but

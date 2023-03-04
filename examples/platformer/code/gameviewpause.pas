@@ -23,10 +23,12 @@ uses Classes,
 
 type
   TViewPause = class(TCastleView)
-  private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonMenu: TCastleButton;
     ButtonResume: TCastleButton;
-
+  private
     procedure ClickResume(Sender: TObject);
     procedure ClickMenu(Sender: TObject);
   public
@@ -62,11 +64,7 @@ end;
 procedure TViewPause.Start;
 begin
   inherited;
-
-  ButtonResume := DesignedComponent('ButtonResume') as TCastleButton;
   ButtonResume.OnClick := {$ifdef FPC}@{$endif}ClickResume;
-
-  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }

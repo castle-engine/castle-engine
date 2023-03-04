@@ -631,7 +631,7 @@ begin
 
   if Enabled then
   begin
-    Result := ExclusiveEvents;
+    Result := true;
 
     if not Toggle then
     begin
@@ -653,7 +653,7 @@ begin
 
   if ClickStarted and (ClickStartedFinger = Event.FingerIndex) then
   begin
-    Result := ExclusiveEvents;
+    Result := true;
 
     if not Toggle then FPressed := false;
     ClickStarted := false;

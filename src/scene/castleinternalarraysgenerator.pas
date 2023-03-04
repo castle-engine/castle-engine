@@ -38,7 +38,6 @@ type
 
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
-    FCoordIndex: TMFLong;
 
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
@@ -47,17 +46,21 @@ type
       const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean);
   protected
-    { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
-    IndexesFromCoordIndex: TGeometryIndexList;
+    { Indexes, only when Arrays.Indexes = nil but original node was indexed.
+      This has only indexes >= 0.
+
+      This is TUInt32List, not TGeometryIndexList -- eventual conversion
+      32-bit indexes -> 16-bit (if necessary because of old OpenGLES) will happen later. }
+    IndexesFromCoordIndex: TUInt32List;
 
     { Similar to IndexesFromCoordIndex, but not processed by CoordIndex[].
       That is,
 
-        IndexesFromCoordIndex.L[Something] := CoordIndex.Items.L[SomethingElse];
+        IndexesFromCoordIndex[Something] := CoordIndex.Items[SomethingElse];
 
       where
 
-        TrivialIndexesFromCoordIndex.L[Something] := SomethingElse;
+        TrivialIndexesFromCoordIndex[Something] := SomethingElse;
 
       This is only non-nil when
 
@@ -67,8 +70,11 @@ type
       Which is possible only when node may be indexed, but also use niPerVertexNonIndexed
       at the same time, which is only possible for IndexedFaceSet with
       non-trivial creaseAngle (the "Shape.NormalsCreaseAngle" then force
-      niPerVertexNonIndexed). }
-    TrivialIndexesFromCoordIndex: TGeometryIndexList;
+      niPerVertexNonIndexed).
+
+      This is TUInt32List, not TGeometryIndexList -- eventual conversion
+      32-bit indexes -> 16-bit (if necessary because of old OpenGLES) will happen later. }
+    TrivialIndexesFromCoordIndex: TUInt32List;
 
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
       and other Arrays attribute arrays. Calculated in
@@ -106,6 +112,14 @@ type
     { Generated TGeometryArrays instance, available inside GenerateCoordinate*. }
     Arrays: TGeometryArrays;
 
+    { Coordinate index, taken from Geometry.CoordIndex.
+
+      If @nil, then GenerateVertex (and all other
+      routines taking some index) will just directly index Coord
+      (this is useful for non-indexed geometry, like TriangleSet
+      instead of IndexedTriangleSet). }
+    CoordIndex: TMFLong;
+
     { Current shape properties, constant for the whole
       lifetime of the generator, set in constructor.
       @groupBegin }
@@ -122,14 +136,6 @@ type
       from Geometry, using TAbstractGeometryNode.Coord and
       TAbstractGeometryNode.CoordIndex values. }
     property Coord: TMFVec3f read FCoord;
-
-    { Coordinate index, taken from Geometry.CoordIndex.
-
-      If @nil, then GenerateVertex (and all other
-      routines taking some index) will just directly index Coord
-      (this is useful for non-indexed geometry, like TriangleSet
-      instead of IndexedTriangleSet). }
-    property CoordIndex: TMFLong read FCoordIndex;
 
     { Generate arrays content for given vertex.
       Given IndexNum indexes Coord, or (if CoordIndex is assigned)
@@ -260,7 +266,7 @@ implementation
 
 uses SysUtils, Math, Generics.Collections,
   CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
-  CastleStringUtils, CastleRenderOptions;
+  CastleStringUtils, CastleRenderOptions, CastleInternalGLUtils;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
@@ -322,10 +328,10 @@ procedure AssignToInterleavedIndexed(
   const AttributeName: String;
   Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
   Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
-  const Indexes: TGeometryIndexList);
+  const Indexes: TUInt32List);
 var
   I: Integer;
-  Index: TGeometryIndex;
+  Index: UInt32;
 begin
   if Indexes.Count < CopyCount then
     raise EAssignInterleavedRangeError.CreateFmt('Not enough items in %s: %d, but at least %d required', [
@@ -778,13 +784,13 @@ begin
 
   Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
-  FCoordIndex := Geometry.CoordIndexField;
+  CoordIndex := Geometry.CoordIndexField;
 end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
 var
   AllowIndexed: boolean;
-  MaxIndex: TGeometryIndex;
+  MaxIndex: UInt32;
 begin
   Arrays := TGeometryArrays.Create;
   Result := Arrays;
@@ -809,6 +815,8 @@ begin
       (IndexesFromCoordIndex = nil) or
       (Arrays.Counts.Sum = IndexesFromCoordIndex.Count) );
 
+    AllowIndexed := true;
+
     if IndexesFromCoordIndex <> nil then
     begin
       Assert(CoordIndex <> nil);
@@ -829,18 +837,45 @@ begin
             MaxIndex, Coord.Count);
           Exit; { leave Arrays created but empty }
         end;
+
+        {$ifdef GLIndexesShort}
+        { In case our indexes could not be expressed using TGeometryIndexList,
+          do not use indexes (i.e. leave Arrays.Indexes = nil).
+          This is important in case we have to use 16-bit indexes for OpenGLES
+          (when GLIndexesShort is defined and TGLIndex = UInt16)
+          but our input data needs larger indexes.
+
+          This code would actually compile when GLIndexesShort is not defined too,
+          but the condition is then always false (and causes FPC warning).
+
+          See GLIndexesShort notes for other approaches to it in the future. }
+        if MaxIndex > High(TGLIndex) then
+          AllowIndexed := false;
+        {$endif}
       end;
     end;
 
-    AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
 
     try
       Arrays.CoordinatePreserveGeometryOrder := AllowIndexed or (IndexesFromCoordIndex = nil);
       if Arrays.CoordinatePreserveGeometryOrder then
       begin
-        Arrays.Indexes := IndexesFromCoordIndex;
-        IndexesFromCoordIndex := nil;
+        if IndexesFromCoordIndex <> nil then
+        begin
+          { Set Arrays.Indexes to be equal to IndexesFromCoordIndex }
+          {$ifdef GLIndexesShort}
+          { Convert 32-bit indexes in IndexesFromCoordIndex into 16-bit indexes in Arrays.Indexes }
+          Arrays.Indexes := TGeometryIndexList.Create;
+          Arrays.Indexes.Assign(IndexesFromCoordIndex);
+          FreeAndNil(IndexesFromCoordIndex);
+          {$else}
+          { Just use 32-bit indexes in IndexesFromCoordIndex as Arrays.Indexes }
+          Arrays.Indexes := IndexesFromCoordIndex;
+          IndexesFromCoordIndex := nil;
+          {$endif}
+        end;
+
         Arrays.Count := Coord.Count;
       end else
       begin
@@ -1643,7 +1678,7 @@ begin
       And so making IndexesFromCoordIndexMap would be a waste of time.
       E.g. right now IndexedTriangleSetNode does this in TTriangleSetGenerator.PrepareIndexesPrimitives:
 
-        IndexesFromCoordIndex := TGeometryIndexList.Create;
+        IndexesFromCoordIndex := TUInt32List.Create;
         IndexesFromCoordIndex.Assign(CoordIndex.Items);
         IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
@@ -2386,7 +2421,11 @@ begin
   if AGeometry is TPointSetNode then
     Result := TPointSetGenerator else
   if (AGeometry is TTriangleSetNode) or
-     (AGeometry is TIndexedTriangleSetNode) then
+     (AGeometry is TIndexedTriangleSetNode) or
+     { That is correct, TQuadSetNode goes to TTriangleSetGenerator,
+       as TQuadSetNode.InternalTrianglesCoordIndex allows to treat it pretty much
+       like TIndexedTriangleSetNode. }
+     (AGeometry is TQuadSetNode) then
     Result := TTriangleSetGenerator else
   if (AGeometry is TTriangleFanSetNode) or
      (AGeometry is TIndexedTriangleFanSetNode) then
@@ -2394,8 +2433,7 @@ begin
   if (AGeometry is TTriangleStripSetNode) or
      (AGeometry is TIndexedTriangleStripSetNode) then
     Result := TTriangleStripSetGenerator else
-  if (AGeometry is TQuadSetNode) or
-     (AGeometry is TIndexedQuadSetNode) then
+  if (AGeometry is TIndexedQuadSetNode) then
     Result := TQuadSetGenerator else
     Result := nil;
 end;
