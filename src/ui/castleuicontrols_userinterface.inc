@@ -2008,7 +2008,6 @@ var
   end;
 
 var
-  I: Integer;
   R: TFloatRectangle;
 begin
   if Exists then

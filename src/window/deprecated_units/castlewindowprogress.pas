@@ -57,8 +57,6 @@ type
     { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    UsedWindow: TCastleWindow;
-    SavedMode: TGLMode;
     {$ifdef FPC}
     function GetWindow: TCastleWindow;
     procedure SetWindow(const Value: TCastleWindow);
