@@ -40,12 +40,12 @@ type
     FImageURL: string;
     FShadowedImageURL: string;
     FSceneURL: string;
+    FViewpoint: String;
     FScene: TLocationScene;
     FImage, FShadowedImage: TDrawableImage;
     FSceneCameraDescription: string;
     FPlayerPosition: TVector3;
     FPlayerDirection: TVector3;
-    FPlayerUp: TVector3;
     Loaded: boolean;
   public
     destructor Destroy; override;
@@ -65,7 +65,6 @@ type
 
     property PlayerPosition: TVector3 read FPlayerPosition;
     property PlayerDirection: TVector3 read FPlayerDirection;
-    property PlayerUp: TVector3 read FPlayerUp;
 
     property Scene: TLocationScene read FScene;
     property Image: TDrawableImage read FImage;
@@ -189,6 +188,7 @@ begin
     A better approach would be to leave CastShadows = true (default),
     and change location Image to *not* contain location shadows "baked". }
   FScene.CastShadows := false;
+  FScene.InitialViewpointName := FViewpoint;
   FScene.Load(SceneURL);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], PrepareParams);
   FScene.Image := Image;
@@ -236,6 +236,7 @@ begin
       Location.FImageURL := I.Current.AttributeURL('image_url', GameConfig.URL);
       Location.FShadowedImageURL := I.Current.AttributeURL('shadowed_image_url', GameConfig.URL);
       Location.FSceneURL := I.Current.AttributeURL('scene_url', GameConfig.URL);
+      Location.FViewpoint := I.Current.AttributeStringDef('viewpoint', '');
 
       I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);
@@ -244,8 +245,6 @@ begin
         'player_position', TVector3.Zero);
       Location.FPlayerDirection := I.Current.AttributeVector3Def(
         'player_direction', Vector3(1, 0, 0));
-      Location.FPlayerUp := I.Current.AttributeVector3Def(
-        'player_up', Vector3(0, 0, 1));
     end;
   finally FreeAndNil(I) end;
 
