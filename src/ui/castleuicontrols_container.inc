@@ -1876,7 +1876,7 @@ begin
 
   { draw controls in "to" order, back to front }
   for I := 0 to Controls.Count - 1 do
-    Controls[I].RecursiveRender(Rect);
+    Controls[I].InternalRecursiveRender(Rect);
 
   if FTooltipParent <> nil then
   begin
@@ -1911,7 +1911,7 @@ begin
     Control.GLContextOpen;
   Control.CheckResize;
   Control.BeforeRender;
-  Control.RecursiveRender(ViewportRect);
+  Control.InternalRecursiveRender(ViewportRect);
 
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }

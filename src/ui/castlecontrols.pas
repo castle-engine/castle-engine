@@ -50,6 +50,7 @@ type
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
   {$I castlecontrols_design.inc}
+  {$I castlecontrols_mask.inc}
   // Add more UI controls include files here.
 
   // Keep the following (uifont...) at the end, as they end the "type" clause.
@@ -60,6 +61,7 @@ type
 implementation
 
 uses SysUtils, Math, CastleTextureFont_DjvSans_20,
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode;
@@ -85,6 +87,7 @@ uses SysUtils, Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}
 {$I castlecontrols_design.inc}
+{$I castlecontrols_mask.inc}
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
@@ -109,6 +112,7 @@ initialization
   RegisterSerializableComponent(TCastleScrollViewManual, 'Scroll View Manual');
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
+  RegisterSerializableComponent(TCastleMask, 'Mask');
 
   R := TRegisteredComponent.Create;
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working

@@ -182,10 +182,11 @@ castle-game-engine-*.fpm
 /examples/user_interface/custom_cursor/custom_cursor
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
+/examples/user_interface/mask/mask
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
-/examples/user_interface/view_events/view_events
 /examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
+/examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
