@@ -98,9 +98,11 @@
           to just see mask UI explicitly.)
       )
 
-      Note that if stencil buffer is not available, we always behave as if
+      Note that mrChildrenWhereNoMask and mrChildrenWhereMask values only work when there
+      is a stencil buffer available.
+      If the stencil buffer is not available, they behave as if
       @link(MaskRendering) = mrChildrenIgnoreMask, so the mask will not do anything.
-      All modern GPUs can give you a stencil buffer, and CGE requests stencil buffer by default.
+      All modern GPUs provide a stencil buffer, and CGE requests stencil buffer by default.
       Check @code(GLFeatures.StencilBits <> 0) if you want to react to lack of stencil buffer
       in some particular way in your code. }
     property MaskRendering: TMaskRendering read FMaskRendering write SetMaskRendering
@@ -154,19 +156,20 @@ var
   SavedColorChannels: TColorChannels;
   I: Integer;
 begin
+  { Early test for special case when we render Mask for debug.
+    We do this regardless of GLFeatures.StencilBits, so check this special case first. }
+  if MaskRendering = mrMask then
+  begin
+    Mask.InternalRecursiveRender(ViewportRect);
+    Exit;
+  end;
+
   { Early test for special case when we don't use Mask. }
   if (MaskRendering = mrChildrenIgnoreMask) or (GLFeatures.StencilBits = 0) then
   begin
     for I := 0 to ControlsCount - 1 do
       if Controls[I] <> Mask then
         Controls[I].InternalRecursiveRender(ViewportRect);
-    Exit;
-  end;
-
-  { Early test for special case when we render Mask for debug. }
-  if MaskRendering = mrMask then
-  begin
-    Mask.InternalRecursiveRender(ViewportRect);
     Exit;
   end;
 
