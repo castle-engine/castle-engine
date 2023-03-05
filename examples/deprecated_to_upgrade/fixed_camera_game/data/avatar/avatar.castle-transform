@@ -5,6 +5,7 @@
   "ExposeTransforms" : [
   ],
   "Name" : "Scene1",
+  "Pickable" : false,
   "ProcessEvents" : true,
   "RenderOptions" : {
     "$$ClassName" : "TCastleScene.TSceneRenderOptions"
