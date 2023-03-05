@@ -41,7 +41,6 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvInsideMask",
       "Height" : 3.9000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
@@ -61,7 +60,8 @@
           }
         ]
       },
-      "Name" : "MaskCircle",
+      "MaskRendering" : "mrChildrenWhereMask",
+      "Name" : "MaskEllipse",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
@@ -184,7 +184,7 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label1",
           "Text" : [
-            "Mask circle, cutting viewport"
+            "Mask ellipse"
           ],
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle"
@@ -218,7 +218,6 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvOutsideMask",
       "Height" : 3.7000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
@@ -242,7 +241,7 @@
           }
         ]
       },
-      "Name" : "MaskCircleInvert",
+      "Name" : "MaskEllipseInvert",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
@@ -357,6 +356,7 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Green" : 5.0196081399917603E-001
@@ -365,7 +365,8 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label2",
           "Text" : [
-            "Mask circle, cutting viewport, render outside mask"
+            "Mask ellipse",
+            " (render where no mask)"
           ],
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -403,7 +404,6 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvInsideMask",
       "Height" : 3.9000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
@@ -428,6 +428,7 @@
           }
         ]
       },
+      "MaskRendering" : "mrChildrenWhereMask",
       "Name" : "MaskImage",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
@@ -589,8 +590,7 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvOutsideMask",
-      "Height" : 3.9000000000000000E+002,
+      "Height" : 4.5000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
         "FullSize" : true,
@@ -618,7 +618,7 @@
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 6.1000000000000000E+002,
-        "Y" : -3.9847161865234375E+002
+        "Y" : -4.0847161865234375E+002
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
@@ -729,6 +729,7 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Green" : 5.0196081399917603E-001
@@ -737,12 +738,12 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label4",
           "Text" : [
-            "Mask image"
+            "Mask image",
+            " (render where no mask)"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : -6.0000000000000000E+001,
-            "Y" : 1.5000000000000000E+002
+            "Y" : 1.9000000000000000E+002
           },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle"
@@ -776,7 +777,6 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvInsideMask",
       "Height" : 3.8000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
@@ -881,6 +881,7 @@
           }
         ]
       },
+      "MaskRendering" : "mrChildrenWhereMask",
       "Name" : "MaskViewport",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
@@ -1043,7 +1044,6 @@
     },
     {
       "$$ClassName" : "TCastleMask",
-      "ChildrenVisible" : "cvOutsideMask",
       "Height" : 3.8000000000000000E+002,
       "Mask" : {
         "$$ClassName" : "TCastleUserInterface",
@@ -1263,13 +1263,15 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpMiddle",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Green" : 5.0196081399917603E-001
           },
           "Name" : "Label6",
           "Text" : [
-            "Mask animated viewport"
+            "Mask animated viewport",
+            " (render where no mask)"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",

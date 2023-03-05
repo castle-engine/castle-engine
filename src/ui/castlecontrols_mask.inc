@@ -15,19 +15,19 @@
 }
 
 {$ifdef read_interface}
-  { Effect of mask over children, used by @link(TCastleMask.ChildrenVisible). }
-  TMaskChildrenVisible = (
-    cvInsideMask,
-    cvOutsideMask,
-    cvAlways,
-    cvDebugMask
+  { Effect of mask over rendering, used by @link(TCastleMask.MaskRendering). }
+  TMaskRendering = (
+    mrChildrenWhereNoMask,
+    mrChildrenWhereMask,
+    mrChildrenIgnoreMask,
+    mrMask
   );
 
   { Limit the visibility of children by an arbitrary (defined using an arbitrary UI) mask.
 
-    The children controls are visible only where the @link(Mask) is rendered.
-
-    You can customize the mask effect using @link(ChildrenVisible).
+    The children controls are visible only where the @link(Mask) is rendered,
+    or where the mask is not rendered.
+    You can customize the mask effect using @link(MaskRendering).
 
     Limitation of the current implementation:
     You cannot have other controls
@@ -42,8 +42,8 @@
   TCastleMask = class(TCastleUserInterface)
   strict private
     FMask: TCastleUserInterface;
-    FChildrenVisible: TMaskChildrenVisible;
-    procedure SetChildrenVisible(const Value: TMaskChildrenVisible);
+    FMaskRendering: TMaskRendering;
+    procedure SetMaskRendering(const Value: TMaskRendering);
   protected
     procedure InternalRenderLoop(const ViewportRect: TRectangle); override;
   public
@@ -51,7 +51,7 @@
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    { Place in @link(Mask) literally any UI control (TCastleUserInterface) to limit
+    { Place in @link(Mask) any UI control (TCastleUserInterface) to limit
       where the children are rendered.
 
       The colors of the mask UI don't matter, but the pixels that are touched by the mask matter.
@@ -65,38 +65,46 @@
       The @link(Mask) is a subcomponent with @link(TCastleUserInterface.FullSize) = @true by default,
       so it fills the entire TCastleMask by default.
 
-      The children in @link(Mask) are never rendered to the color or depth buffers.
+      The children in @link(Mask) are never rendered to the color or depth buffers
+      (unless MaskRendering is mrMask).
       They are only rendered to set the stencil buffer. }
     property Mask: TCastleUserInterface read FMask;
 
-    { How regular children of this control (things not inside @link(Mask)) are limited by
-      the mask.
+    { How children of this control are limited by the mask.
 
       @unorderedList(
-        @item(Children are rendered only where mask is visible
-          if @link(ChildrenVisible) is cvInsideMask (default).)
+        @item(mrChildrenWhereNoMask (default):
 
-        @item(Alternatively, children are rendered only where mask is @italic(not) visible
-          if @link(ChildrenVisible) is cvOutsideMask.)
+          Children are rendered only where mask is @italic(not) visible.
 
-        @item(Alternatively, setting @link(ChildrenVisible) = cvAlways turns off mask
-          usage, effectively making TCastleMask a regular UI control
+          This is the default, and it means that when mask is empty
+          (also the default state) then the children are rendered as usual.
+        )
+
+        @item(mrChildrenWhereMask:
+
+          Children are rendered only where mask is visible.)
+
+        @item(mrChildrenIgnoreMask:
+
+          Turns off mask usage, effectively making TCastleMask a regular UI control
           and the contents of @link(Mask) meaningless.)
 
-        @item(Alternatively, setting @link(ChildrenVisible) = cvDebugMask means
-          that we render only mask.
-          It is rendered as usual UI control.
+        @item(mrMask:
+
+          Render only mask, as a regular UI control.
           Other children are not rendered.
           This mode is useful to design mask at design-time, where it may be easier
           to just see mask UI explicitly.)
       )
 
       Note that if stencil buffer is not available, we always behave as if
-      @link(ChildrenVisible) = cvAlways, so the mask will not do anything.
+      @link(MaskRendering) = mrChildrenIgnoreMask, so the mask will not do anything.
       All modern GPUs can give you a stencil buffer, and CGE requests stencil buffer by default.
       Check @code(GLFeatures.StencilBits <> 0) if you want to react to lack of stencil buffer
       in some particular way in your code. }
-    property ChildrenVisible: TMaskChildrenVisible read FChildrenVisible write SetChildrenVisible;
+    property MaskRendering: TMaskRendering read FMaskRendering write SetMaskRendering
+      default mrChildrenWhereNoMask;
   end;
 
 {$endif read_interface}
@@ -124,18 +132,18 @@ end;
 function TCastleMask.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Mask', 'ChildrenVisible'
+       'Mask', 'MaskRendering'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleMask.SetChildrenVisible(const Value: TMaskChildrenVisible);
+procedure TCastleMask.SetMaskRendering(const Value: TMaskRendering);
 begin
-  if FChildrenVisible <> Value then
+  if FMaskRendering <> Value then
   begin
-    FChildrenVisible := Value;
+    FMaskRendering := Value;
     VisibleChange([chRender]);
   end;
 end;
@@ -147,7 +155,7 @@ var
   I: Integer;
 begin
   { Early test for special case when we don't use Mask. }
-  if (ChildrenVisible = cvAlways) or (GLFeatures.StencilBits = 0) then
+  if (MaskRendering = mrChildrenIgnoreMask) or (GLFeatures.StencilBits = 0) then
   begin
     for I := 0 to ControlsCount - 1 do
       if Controls[I] <> Mask then
@@ -156,13 +164,13 @@ begin
   end;
 
   { Early test for special case when we render Mask for debug. }
-  if ChildrenVisible = cvDebugMask then
+  if MaskRendering = mrMask then
   begin
     Mask.InternalRecursiveRender(ViewportRect);
     Exit;
   end;
 
-  { The usual rendering mode: cvInsideMask or cvOutsideMask.
+  { The usual rendering mode: mrChildrenWhereMask or mrChildrenWhereNoMask.
     Render mask into stencil buffer, then render the rest with stencil test.
 
     Note that we don't try to save/restore the OpenGL state of
@@ -195,10 +203,10 @@ begin
     { render other children, honoring the stencil buffer }
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // do not modify stencil anymore
-    case ChildrenVisible of
-      cvInsideMask : glStencilFunc(GL_EQUAL, 1, 1);
-      cvOutsideMask: glStencilFunc(GL_NOTEQUAL, 1, 1);
-      else raise EInternalError.Create('ChildrenVisible?');
+    case MaskRendering of
+      mrChildrenWhereMask  : glStencilFunc(GL_EQUAL, 1, 1);
+      mrChildrenWhereNoMask: glStencilFunc(GL_NOTEQUAL, 1, 1);
+      else raise EInternalError.Create('MaskRendering?');
     end;
 
     { Using InternalClearColorsByDraw = true means that solid-color background done
