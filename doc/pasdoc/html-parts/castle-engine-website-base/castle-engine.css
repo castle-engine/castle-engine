@@ -1,6 +1,6 @@
 body {
   /* Override Bootstrap to add Inter https://fonts.google.com/specimen/Inter */
-  font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  /* font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important; */
   /* Override Bootstrap 14px */
   font-size: 16px;
   line-height: 1.5;
