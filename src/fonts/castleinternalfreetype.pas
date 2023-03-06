@@ -271,7 +271,7 @@ begin
 
     { We will free MemoryStream only in our destructor.
       Otherwise weirdest errors can occur when reading the existing font 2nd time
-      (autotests see weird RowHeight),
+      (autotests see weird Height),
       this is also said in docs
       https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
       "You must not deallocate the memory before calling FT_Done_Face."

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis,
+  Copyright 2014-2023 Michalis Kamburelis,
   parts based on LazUTF8 unit copyright by Lazarus developers.
   Parts of this source code are based on Lazarus LazUTF8 source code,
   but no worries --- Lazarus license is exactly the same as Castle Game Engine :)
@@ -102,12 +102,66 @@ function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 function UTF8ToHtmlEntities(const S: String): String;
 
 {$else}
+
+{ Length of string assuming it is a standard Delphi String (that is, UnicodeString holding UTF-16).
+  TODO: Should be internal, and called UnicodeStringLength. }
 function GetUTF32Length(const Text: String): Integer;
 
+{ Get Unicode char code at given position in a standard Delphi String (that is, UnicodeString holding UTF-16).
+  TODO: Should be called UnicodeStringNextChar. }
 function GetUTF32Char(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
 
+{ Copy a number of given Unicode characters from given string.
+  Assumes it is a standard Delphi String (that is, UnicodeString holding UTF-16).
+  TODO: Should be internal, and called UnicodeStringCopy. }
 function UTF32Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
 {$endif FPC}
+
+{ Length of the string, in Unicode characters.
+
+  This works taking into account that:
+  @unorderedList(
+    @item(with FPC, we expect String = AnsiString and holding UTF-8 data,)
+    @item(with Delphi we expect String = UnicodeString and holding UTF-16 data.)
+  )
+  See https://castle-engine.io/coding_conventions#strings_unicode . }
+function StringLength(const S: String): Integer;
+
+{ Copy a number of given Unicode characters from given string.
+
+  StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
+  last Unicode character has index StringLength(S).
+
+  In case CountToCopy, it is guaranteed to only copy the maximum possible
+  characters, without causing any memory overruns.
+
+  Note that it doesn't try to deal with strings that may end abruptly
+  in the middle of a Unicode character (that may span multiple Pascal Char
+  (AnsiChar or WideChar) values, possible both in case
+  of UTF-8 in AnsiString and UTF-16 in UnicodeString).
+  The results of such abrupt ending are undefined: this routine may copy the partial
+  (unfinished) Unicode character, or it may reject the unfinished partial character altogether.
+
+  This works taking into account that:
+  @unorderedList(
+    @item(with FPC, we expect String = AnsiString and holding UTF-8 data,)
+    @item(with Delphi we expect String = UnicodeString and holding UTF-16 data.)
+  )
+  See https://castle-engine.io/coding_conventions#strings_unicode . }
+function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): String;
+
+(* TODO:
+
+{ Get Unicode char code at given position in the String.
+
+  This works taking into account that:
+  @unorderedList(
+    @item(with FPC, we expect String = AnsiString and holding UTF-8 data,)
+    @item(with Delphi we expect String = UnicodeString and holding UTF-16 data.)
+  )
+  See https://castle-engine.io/coding_conventions#strings_unicode . }
+function StringUnicodeChar(const S: String; const Index: Integer): TUnicodeChar;
+*)
 
 implementation
 
@@ -486,5 +540,22 @@ begin
 end;
 
 {$endif FPC}
+
+function StringLength(const S: String): Integer;
+begin
+  Result := {$ifdef FPC} UTF8Length {$else} GetUTF32Length {$endif} (S);
+end;
+
+function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): String;
+begin
+  Result := {$ifdef FPC} UTF8Copy {$else} UTF32Copy {$endif} (S, StartIndex, CountToCopy);
+end;
+
+(*
+function StringUnicodeChar(const S: String; const Index: Integer): TUnicodeChar;
+begin
+  Result := {$ifdef FPC} xxx {$else} xxx {$endif} (S, Index);
+end;
+*)
 
 end.

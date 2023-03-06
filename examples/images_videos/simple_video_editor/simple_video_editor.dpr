@@ -75,7 +75,7 @@ const
         Strs.Append('Video not loaded');
 
       FallbackFont.PrintStrings(15,
-        Window.Height - FallbackFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
+        Window.Height - FallbackFont.Height * Strs.Count - TimeBarHeight, Yellow,
         Strs, false, 2);
     finally FreeAndNil(Strs) end;
   end;

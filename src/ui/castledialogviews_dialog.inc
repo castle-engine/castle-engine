@@ -133,7 +133,7 @@ type
       Text := Text + CaretChar;
     Dialog.Font.Print(X, Y, Color, Text);
     { change Y for caller, to print next line higher }
-    Y := Y + Dialog.Font.RowHeight;
+    Y := Y + Dialog.Font.Height;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
@@ -353,9 +353,9 @@ begin
   ScrollView.Width := EffectiveWidth;
   ScrollView.Height := EffectiveHeight - ButtonsHeight;
 
-  { add Font.Descend, to be able to see the descend of the bottom line when Scroll is ScrollMax. }
+  { add Font.DescenderHeight, to be able to see the descend of the bottom line when Scroll is ScrollMax. }
   ScrollView.ScrollArea.Height :=
-    (Font.RowHeight * AllScrolledLinesCount + Font.Descend) / UIScale
+    (Font.Height * AllScrolledLinesCount + Font.DescenderHeight) / UIScale
     + 2 * BoxMargin;
   ScrollView.ScrollArea.Width := EffectiveWidth;
 
@@ -394,12 +394,12 @@ begin
       ScrollView.ScrollBarWidth * UIScale,
       PR.Width  - WindowMarginScaled * 2);
   PreferredHeight :=
-    Min(Font.RowHeight * AllScrolledLinesCount +
-      Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
+    Min(Font.Height * AllScrolledLinesCount +
+      Font.DescenderHeight + BoxMarginScaled * 2 + ButtonsHeightScaled
       { adding here + 2 is a hack to make sure that TCastleScrollView will
         not show scrollbars when not necessary. That's because we set
         ScrollView.ScrollArea.Height using a similar equation as above
-        "Font.RowHeight * AllScrolledLinesCount + Font.Descend...",
+        "Font.Height * AllScrolledLinesCount + Font.DescenderHeight...",
         but it's in unscaled size (/ UIScale), and sometimes (with wild UIScale
         values) it seems like scrollbars are needed (EffectiveHeight < ScrollArea.EffectiveHeight)
         even though they actually are not.

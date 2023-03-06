@@ -224,9 +224,9 @@ procedure TSimpleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single
 begin
   // inherited; // no need
   PreferredWidth := 10; // hardcoded arbitrary non-zero value, to return fast
-  { Add Font.Descend, although it is already contained in Font.RowHeight.
+  { Add Font.DescenderHeight, although it is already contained in Font.Height.
     See TCastleLabel.PreferredSize for reason. }
-  PreferredHeight := Font.RowHeight + Font.Descend;
+  PreferredHeight := Font.Height + Font.DescenderHeight;
 end;
 
 procedure TSimpleLabel.Render;
@@ -235,9 +235,9 @@ var
 begin
   // inherited; // no need
   R := RenderRect;
-  { TODO: Font.Descend * 1.5 to match button caption alignment,
-    but we should be rather "Font.Descend * 1" to be consistent with TCastleLabel. }
-  Font.Print(R.Left, R.Bottom + Font.Descend * 1.5, Color, Caption);
+  { TODO: Font.DescenderHeight * 1.5 to match button caption alignment,
+    but we should be rather "Font.DescenderHeight * 1" to be consistent with TCastleLabel. }
+  Font.Print(R.Left, R.Bottom + Font.DescenderHeight * 1.5, Color, Caption);
 end;
 
 { TCastleInspector ----------------------------------------------------------- }

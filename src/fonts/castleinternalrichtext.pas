@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -905,11 +905,11 @@ var
   end;
 
 var
-  RowHeight: Single;
+  Height: Single;
 
   function YPos(const Line: Integer): Single;
   begin
-    Result := (Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
+    Result := (Count - 1 - Line) * (Height + LineSpacing) + Y0;
   end;
 
 var
@@ -926,7 +926,7 @@ begin
 
   State := BeginProcessing(Color);
   try
-    RowHeight := FFont.RowHeight;
+    Height := FFont.Height;
     for I := 0 to Count - 1 do
       Items[I].Print(State, XPos(I), YPos(I), MaxDisplayChars);
   finally EndProcessing(State) end;

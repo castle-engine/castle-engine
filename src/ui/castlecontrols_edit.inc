@@ -433,7 +433,7 @@ begin
     US := UIScale;
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
 
-    HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
+    HeightScaled := Font.Height + 2 * PaddingVerticalScaled;
     if Frame then
     begin
       HeightScaled := HeightScaled +
@@ -566,7 +566,7 @@ begin
 
   // center in RectInside, important when AutoSize = false
   TextBottom := RectInside.Bottom +
-    (RectInside.Height - Font.RowHeight) / 2 + Font.Descend;
+    (RectInside.Height - Font.Height) / 2 + Font.DescenderHeight;
   Font.Print(TextLeft, TextBottom, Color, S);
 
   { Note that we have to display Caret even when Text = '' and S = Placeholder. }
