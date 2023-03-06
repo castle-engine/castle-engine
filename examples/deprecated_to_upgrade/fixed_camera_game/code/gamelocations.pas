@@ -186,8 +186,6 @@ begin
 
   FScene := TLocationScene.Create(nil);
   FScene.PreciseCollisions := true;
-  // two-sided lighting
-  FScene.RenderOptions.PhongShading := true;
   { The shadows are already drawn on location Image,
     so no need to cast them on location again.
     TODO: This also means that location cannot cast shadows on Player.
