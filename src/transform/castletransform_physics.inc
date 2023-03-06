@@ -1234,7 +1234,7 @@ begin
   for I := Low(TPhysicsLayers) to High(TPhysicsLayers) do
   begin
     Value := FCollides[TPhysicsLayer(I)];
-    SerializationProcess.ReadWriteInteger(IntToStr(I), Value, true);
+    SerializationProcess.ReadWriteInteger(IntToStr(I), Value, Value <> 0);
     FCollides[TPhysicsLayer(I)] := Value;
   end;
 end;
