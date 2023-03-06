@@ -29,7 +29,7 @@
   TPhysicsLayer = 0..19;
   TPhysicsLayers = set of TPhysicsLayer;
 
-  TCastleLayerCollisions = class(TComponent)
+  TCastleLayerCollisions = class(TCastleComponent)
   private
     FCollides: array [TPhysicsLayer] of UInt32;
 
@@ -37,6 +37,8 @@
     procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; AValue:Boolean);
   public
     constructor Create(AOwner: TComponent); override;
+
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     property Collides[const Layer1, Layer2: TPhysicsLayer]: Boolean read GetCollides write SetCollides;
   end;
 
@@ -1221,6 +1223,22 @@ begin
   Collides[0, 0] := true;
 end;
 
+procedure TCastleLayerCollisions.CustomSerialization(
+  const SerializationProcess: TSerializationProcess);
+var
+  I: Integer;
+  Value: Integer;
+begin
+  inherited;
+
+  for I := Low(TPhysicsLayers) to High(TPhysicsLayers) do
+  begin
+    Value := FCollides[TPhysicsLayer(I)];
+    SerializationProcess.ReadWriteInteger(IntToStr(I), Value, true);
+    FCollides[TPhysicsLayer(I)] := Value;
+  end;
+end;
+
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
@@ -1241,6 +1259,7 @@ begin
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
   FLayerCollisons := TCastleLayerCollisions.Create(Self);
+  FLayerCollisons.SetSubComponent(true);
 end;
 
 procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
