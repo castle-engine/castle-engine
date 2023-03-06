@@ -55,10 +55,12 @@
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FContinuousCollisionDetection: Boolean;
     FLayerCollisons: TCastleLayerCollisions;
+    FLayerNames: TStrings;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
     procedure SetContinuousCollisionDetection(const AValue: Boolean);
+    procedure SetLayerNames(const AValue: TStrings);
   private
     { Buffer to not count physics step time per frame }
     FPhysicsTimeStep: TFloatTime;
@@ -72,6 +74,7 @@
       DefaultGravityStrength = 9.81;
       DefaultContinuousCollisionDetection = true;
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { Use a more precise (but also more expensive) method for simulating angular velocity.
       The "RK4" refers to Runge–Kutta method. }
@@ -103,6 +106,7 @@
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
     property LayerCollisons: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
+    property LayerNames: TStrings read FLayerNames write SetLayerNames;
   end;
 
   { Abstract collider that determines the shape used to determine collisions with physics bodies. }
@@ -1286,6 +1290,13 @@ begin
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
   FLayerCollisons := TCastleLayerCollisions.Create(Self);
   FLayerCollisons.SetSubComponent(true);
+  FLayerNames := TStringList.Create;
+end;
+
+destructor TPhysicsProperties.Destroy;
+begin
+  FreeAndNil(FLayerNames);
+  inherited Destroy;
 end;
 
 procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -1322,6 +1333,11 @@ begin
       else
         RootTransform.FKraftEngine.ContinuousMode := kcmNone;
   end;
+end;
+
+procedure TPhysicsProperties.SetLayerNames(const AValue: TStrings);
+begin
+  FLayerNames.Assign(AValue);
 end;
 
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
@@ -1753,7 +1769,8 @@ function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale'
+     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisons',
+     'LayerNames'
      ]) then
     Result := [psBasic]
   else
@@ -3495,7 +3512,7 @@ begin
      'Dynamic', 'Animated', 'Trigger', 'Gravity', 'LockTranslation', 'Exists',
      'AngularVelocityPersistent', 'AngularVelocityDamp', 'MaxAngularVelocity',
      'LinearVelocityPersistent', 'LinearVelocityDamp', 'MaxLinearVelocity',
-     'CollisionDetection', 'LockRotation'
+     'CollisionDetection', 'LockRotation', 'Layer'
      ]) then
     Result := [psBasic]
   else

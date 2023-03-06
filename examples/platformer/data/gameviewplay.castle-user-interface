@@ -12,7 +12,17 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "GravityStrength" : 1.2000000000000000E+003,
-          "LayerCollisons" : ""
+          "LayerCollisons" : {
+            "$$ClassName" : "TCastleLayerCollisions",
+            "0" : 7,
+            "1" : 5,
+            "2" : 3
+          },
+          "LayerNames" : [
+            "Ground",
+            "Player",
+            "Enemies"
+          ]
         },
         "$Children" : [
           {
@@ -2695,6 +2705,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2741,6 +2752,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2787,6 +2799,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -3016,6 +3029,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,

@@ -39,6 +39,8 @@ type
     procedure CreateHorizontalNames;
     procedure CreateVerticalNames;
 
+    function GetLayerName(PhysicsLayer: TPhysicsLayer): String;
+
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
     procedure Load;
@@ -58,10 +60,6 @@ implementation
 
 procedure TLayerCollisionsPropertyEditorForm.FormCreate(Sender: TObject);
 begin
-  CreateCheckboxes;
-  CreateHorizontalNames;
-  CreateVerticalNames;
-  UpdateHorizontalNamesTop;
 end;
 
 
@@ -156,7 +154,7 @@ begin
   begin
     ALabel := TLabel.Create(HorizontalNamesPanel);
     ALabel.Parent := HorizontalNamesPanel;
-    ALabel.Caption := IntToStr(I) + ': ';
+    ALabel.Caption := IntToStr(I) + ': ' + GetLayerName(I);
     ALabel.AutoSize := true;
 
     ALabel.Anchors := [akTop, akRight];
@@ -176,6 +174,24 @@ begin
   VerticalNamesPanel.Caption := '';
   VerticalNamesPanel.OnPaint := @RepaintVerticalNames;
   RepaintVerticalNames(VerticalNamesPanel);
+end;
+
+function TLayerCollisionsPropertyEditorForm.GetLayerName(
+  PhysicsLayer: TPhysicsLayer): String;
+var
+  Names: TStrings;
+begin
+  Result := '';
+
+  if FLayerCollisions = nil then
+    Exit;
+
+  if FLayerCollisions.Owner is TPhysicsProperties then
+  begin
+    Names := TPhysicsProperties(FLayerCollisions.Owner).LayerNames;
+    if Names.Count > Integer(PhysicsLayer) then
+      Result := Names[Integer(PhysicsLayer)];
+  end;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.UpdateHorizontalNamesTop;
@@ -210,7 +226,7 @@ begin
 
   for I := High(TPhysicsLayer) downto Low(TPhysicsLayer) do
   begin
-    VName := IntToStr(I) + ': ';
+    VName := IntToStr(I) + ': ' + GetLayerName(I);
     VNameWidth := VerticalNamesPanel.Canvas.TextExtent(VName).Width;
     if VNameWidth > MaxWidth then
        MaxWidth := VNameWidth;
@@ -253,6 +269,12 @@ end;
 procedure TLayerCollisionsPropertyEditorForm.Init(const LayerCollisions: TCastleLayerCollisions);
 begin
   FLayerCollisions := LayerCollisions;
+
+  CreateCheckboxes;
+  CreateHorizontalNames;
+  CreateVerticalNames;
+  UpdateHorizontalNamesTop;
+
   Load;
 end;
 
