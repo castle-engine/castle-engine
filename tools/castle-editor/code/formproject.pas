@@ -3253,6 +3253,7 @@ begin
   MenuItemRestartRebuildEditor.Enabled := EnableRun;
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
+  ActionRegenerateProject.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
