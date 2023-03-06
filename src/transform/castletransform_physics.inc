@@ -32,9 +32,12 @@
   TCastleLayerCollisions = class(TCastleComponent)
   private
     FCollides: array [TPhysicsLayer] of UInt32;
+    FRootTransform: TCastleAbstractRootTransform;
 
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
     procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; AValue:Boolean);
+
+    procedure UpdateRigidBodies;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1215,6 +1218,29 @@ begin
     FCollides[Layer1] := FCollides[Layer1] or Layer2UInt32
   else
     FCollides[Layer1] := FCollides[Layer1] and (not Layer2UInt32);
+
+  UpdateRigidBodies;
+end;
+
+procedure TCastleLayerCollisions.UpdateRigidBodies;
+var
+  RigidBodyList: TCastleBehaviorList;
+  RootTransform: TCastleAbstractRootTransform;
+  Behavior: TCastleBehavior;
+begin
+  if not (Owner is TPhysicsProperties) then
+    Exit;
+
+  if Owner.Owner is TCastleAbstractRootTransform then
+    RootTransform := Owner.Owner as TCastleAbstractRootTransform;
+
+  RigidBodyList := RootTransform.FindAllBehaviors(TCastleRigidBody);
+  try
+    for Behavior in RigidBodyList do
+      TCastleRigidBody(Behavior).UpdateLayer;
+  finally
+    FreeAndNil(RigidBodyList);
+  end;
 end;
 
 constructor TCastleLayerCollisions.Create(AOwner: TComponent);
