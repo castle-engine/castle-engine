@@ -32,7 +32,7 @@ type
 
 function TLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable] - [paReadOnly];
+  Result := inherited GetAttributes + [paDialog, paRevertable];
 end;
 
 procedure TLayerCollisionsPropertyEditor.Edit;
