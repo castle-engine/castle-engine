@@ -112,6 +112,7 @@ procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
 
 var
   SavedProjectionMatrix: TMatrix4;
+  SavedDepthTest: Boolean;
 begin
   if RenderInternalModel then
   begin
@@ -150,12 +151,17 @@ begin
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       OrthoProjection(FloatRectangle(ViewportRect)); // need 2D projection
 
+      // do not test or change Z buffer
+      SavedDepthTest := RenderContext.DepthTest;
+      RenderContext.DepthTest := false;
+
       if Params.InShadow then
         DrawImage(ShadowedImage)
       else
         DrawImage(Image);
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
+      RenderContext.DepthTest := SavedDepthTest;
     end;
   end;
 end;
