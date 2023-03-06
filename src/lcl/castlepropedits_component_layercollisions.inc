@@ -32,7 +32,7 @@ type
 
 function TLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable]
+  Result := inherited GetAttributes + [paDialog, paRevertable] - [paReadOnly];
 end;
 
 procedure TLayerCollisionsPropertyEditor.Edit;
@@ -47,7 +47,8 @@ begin
   LayerCollisionsForm := TLayerCollisionsPropertyEditorForm.Create(nil);
   try
     LayerCollisionsForm.Init(LayerCollisions);
-    LayerCollisionsForm.ShowModal;
+    if LayerCollisionsForm.ShowModal = mrOK then
+      Modified;
   finally
     FreeAndNil(LayerCollisionsForm);
   end;
