@@ -220,11 +220,13 @@ var
   AngleToTarget: Single;
 
   procedure Rotate;
+  const
+    RotationSpeed = 10.0; //< radians per second
   var
     AngleRotate: Single;
   begin
     { first adjust direction }
-    AngleRotate := SecondsPassed;
+    AngleRotate := RotationSpeed * SecondsPassed;
     if AngleToTarget < 0 then
       AngleRotate := Max(-AngleRotate, AngleToTarget) else
       AngleRotate := Min( AngleRotate, AngleToTarget);
@@ -233,7 +235,7 @@ var
 
   procedure Move;
   const
-    MoveSpeed = 0.5;
+    MoveSpeed = 1;
   var
     MoveDirectionCurrent, MoveDirectionMax: TVector3;
     MoveDirectionCurrentScale: Single;
