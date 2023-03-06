@@ -694,7 +694,7 @@ begin
       Inc(BreakInputPtr, CharLen);
       LineWidthBytes := CharLen;
       {$else}
-      C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
       {$endif}
@@ -713,7 +713,7 @@ begin
         Inc(BreakInputPtr, CharLen);
         LineWidthBytes += CharLen;
         {$else}
-        C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+        C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
         Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
         TextIndex := NextTextIndex;
         {$endif}

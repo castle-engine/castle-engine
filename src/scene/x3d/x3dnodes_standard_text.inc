@@ -423,7 +423,7 @@ var
       {$ifdef FPC}
       Inc(TextPtr, CharLen);
       {$else}
-      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       {$endif}
 
@@ -487,14 +487,11 @@ begin
         DisplayChars := MaxDisplayChars;
         for I := 0 to Strings.Count - 1 do
         begin
-          if {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(Strings[I]) < DisplayChars then
+          if StringLength(Strings[I]) < DisplayChars then
             Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
           else
-            Print(StringPosX(I), StringPosY(I),
-              {$ifdef FPC}UTF8Copy{$else}UTF32Copy{$endif}(Strings[I],
-              1, DisplayChars), XScale, YScale);
-          Dec(DisplayChars,
-            {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(Strings[I]));
+            Print(StringPosX(I), StringPosY(I), StringCopy(Strings[I], 1, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, StringLength(Strings[I]));
           if DisplayChars <= 0 then
             Break;
         end;

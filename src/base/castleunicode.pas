@@ -103,18 +103,8 @@ function UTF8ToHtmlEntities(const S: String): String;
 
 {$else}
 
-{ Length of string assuming it is a standard Delphi String (that is, UnicodeString holding UTF-16).
-  TODO: Should be internal, and called UnicodeStringLength. }
-function GetUTF32Length(const Text: String): Integer;
-
-{ Get Unicode char code at given position in a standard Delphi String (that is, UnicodeString holding UTF-16).
-  TODO: Should be called UnicodeStringNextChar. }
-function GetUTF32Char(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
-
-{ Copy a number of given Unicode characters from given string.
-  Assumes it is a standard Delphi String (that is, UnicodeString holding UTF-16).
-  TODO: Should be internal, and called UnicodeStringCopy. }
-function UTF32Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+{ Get Unicode char code at given position in a standard Delphi String (that is, UnicodeString holding UTF-16). }
+function UnicodeStringNextChar(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
 {$endif FPC}
 
 { Length of the string, in Unicode characters.
@@ -200,7 +190,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(SampleText, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(SampleText, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
     Add(C);
@@ -488,7 +478,8 @@ end;
 
 {$else FPC}
 
-function GetUTF32Length(const Text: String): Integer;
+{ Length of string assuming it is a standard Delphi String (that is, UnicodeString holding UTF-16). }
+function UnicodeStringLength(const Text: String): Integer;
 var
   I: Integer;
 begin
@@ -505,7 +496,7 @@ begin
   end;
 end;
 
-function GetUTF32Char(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
+function UnicodeStringNextChar(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
 begin
   NextCharIndex := Index + 1;
 
@@ -518,7 +509,9 @@ begin
   Result := ConvertToUtf32(Text, Index);
 end;
 
-function UTF32Copy(const S: string; StartCharIndex, CharCount: PtrInt): String;
+{ Copy a number of given Unicode characters from given string.
+  Assumes it is a standard Delphi String (that is, UnicodeString holding UTF-16). }
+function UnicodeStringCopy(const S: string; StartCharIndex, CharCount: PtrInt): String;
 var
   I: Integer;
   AddedChars: Integer;
@@ -543,12 +536,12 @@ end;
 
 function StringLength(const S: String): Integer;
 begin
-  Result := {$ifdef FPC} UTF8Length {$else} GetUTF32Length {$endif} (S);
+  Result := {$ifdef FPC} UTF8Length {$else} UnicodeStringLength {$endif} (S);
 end;
 
 function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): String;
 begin
-  Result := {$ifdef FPC} UTF8Copy {$else} UTF32Copy {$endif} (S, StartIndex, CountToCopy);
+  Result := {$ifdef FPC} UTF8Copy {$else} UnicodeStringCopy {$endif} (S, StartIndex, CountToCopy);
 end;
 
 (*

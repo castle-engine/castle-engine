@@ -599,11 +599,7 @@ begin
   begin
     if Text <> '' then
     begin
-      {$ifdef FPC}
-      Text := UTF8Copy(Text, 1, UTF8Length(Text) - 1);
-      {$else}
-      Text := UTF32Copy(Text, 1, GetUTF32Length(Text) - 1);
-      {$endif}
+      Text := StringCopy(Text, 1, StringLength(Text) - 1);
       DoChange;
     end;
     Result := true;

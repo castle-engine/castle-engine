@@ -537,7 +537,7 @@ var g : PMgrGlyph;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  result := TStringBitmaps.Create({$ifdef FPC}UTF8Length(Text){$else}GetUTF32Length(Text){$endif});
+  result := TStringBitmaps.Create(StringLength(Text));
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
     result.FMode := btBlackWhite
   else
@@ -562,7 +562,7 @@ begin
       // increment pchar by character length
       inc (pc, cl);
     {$else}
-      uc := GetUTF32Char(Text, TextIndex, NextIndex);
+      uc := UnicodeStringNextChar(Text, TextIndex, NextIndex);
       TextIndex := NextIndex;
     {$endif}
     // retrieve loaded glyph
