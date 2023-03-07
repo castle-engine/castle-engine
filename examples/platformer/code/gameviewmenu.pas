@@ -25,9 +25,11 @@ uses Classes,
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TViewMenu = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonPlay, ButtonOptions, ButtonCredits, ButtonQuit: TCastleButton;
+  private
     procedure ClickPlay(Sender: TObject);
     procedure ClickOptions(Sender: TObject);
     procedure ClickCredits(Sender: TObject);
@@ -56,12 +58,6 @@ end;
 procedure TViewMenu.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
-  ButtonOptions := DesignedComponent('ButtonOptions') as TCastleButton;
-  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif}ClickPlay;
   ButtonOptions.OnClick := {$ifdef FPC}@{$endif}ClickOptions;

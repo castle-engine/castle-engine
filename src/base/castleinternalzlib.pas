@@ -56,8 +56,6 @@ type
   Ulongf  = Longint;
   Pulongf = ^Ulongf;
   z_off_t = longint;
-  pbyte   = ^byte;
-  pbytef  = ^byte;
 
   TAllocfunc = function (opaque:pointer; items:uInt; size:uInt):pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   TFreeFunc = procedure (opaque:pointer; address:pointer);{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -67,13 +65,13 @@ type
   PInternalState = ^TInternalstate;
 
   TZStream = record
-    next_in : pbytef;
+    next_in : PByte;
     avail_in : uInt;
     total_in : uLong;
-    next_out : pbytef;
+    next_out : PByte;
     avail_out : uInt;
     total_out : uLong;
-    msg : pbytef;
+    msg : PByte;
     state : PInternalState;
     zalloc : TAllocFunc;
     zfree : TFreeFunc;
@@ -126,16 +124,16 @@ var
   deflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateSetDictionary: function(var strm:TZStream;dictionary : pbytef; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateCopy: function(var dest,source:TZstream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateReset: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateParams: function(var strm:TZStream; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateSetDictionary: function(var strm:TZStream;dictionary : pbytef; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateSync: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateReset: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress2: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong; level:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  uncompress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress2: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong; level:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  uncompress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzopen: function(path:PAnsiChar; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzdopen: function(fd:longint; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzsetparams: function(thefile:gzFile; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -148,9 +146,9 @@ var
      http://www.mail-archive.com/fpc-devel@lists.freepascal.org/msg09040.html
      (although the point of thread is about something else completely,
      and even the question was about "array of PChar" which is not varargs...) *)
-  //gzprintf: function(thefile:gzFile; format:pbytef; args:array of const):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzputs: function(thefile:gzFile; s:pbytef):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzgets: function(thefile:gzFile; buf:pbytef; len:longint):pbytef;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  //gzprintf: function(thefile:gzFile; format:PByte; args:array of const):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzputs: function(thefile:gzFile; s:PByte):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzgets: function(thefile:gzFile; buf:PByte; len:longint):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzputc: function(thefile:gzFile; c:char):char;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzgetc: function(thefile:gzFile):char;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzflush: function(thefile:gzFile; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -159,9 +157,9 @@ var
   gztell: function(thefile:gzFile):z_off_t;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzeof: function(thefile:gzFile):longbool;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzclose: function(thefile:gzFile):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzerror: function(thefile:gzFile; var errnum:longint):pbytef;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  adler32: function(adler:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  crc32: function(crc:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzerror: function(thefile:gzFile; var errnum:longint):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  adler32: function(adler:uLong;buf : PByte; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  crc32: function(crc:uLong;buf : PByte; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateInit_: function(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateInit_: function(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -293,16 +291,6 @@ begin
 
     WritelnLog('ZLib detected (version %s).', [zlibVersionpchar()]);
   end;
-
-  if not CastleZLibInitialized then
-    WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
-      '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
-      {$ifdef MSWINDOWS} +
-      NL +
-      '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
-      '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
-      {$endif}
-    );
 end;
 
 initialization

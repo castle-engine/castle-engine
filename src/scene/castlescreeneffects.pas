@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -147,6 +147,7 @@ type
       CurrentScreenEffectsCount: Integer;
       CurrentScreenEffectsNeedDepth: boolean;
       ScreenPointVbo: TGLuint;
+      ScreenPointVao: TVertexArrayObject;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
       FScreenEffectsEnable: Boolean;
@@ -265,7 +266,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext;
+uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils;
 
 function ScreenEffectVertex: string;
 begin
@@ -296,6 +297,7 @@ constructor TGLSLScreenEffect.Create;
 begin
   inherited;
   UniformMissing := umIgnore;
+  Name := 'TGLSLScreenEffect';
 end;
 
 procedure TGLSLScreenEffect.Link;
@@ -310,11 +312,6 @@ begin
   {$warnings on}
   AttachVertexShader(VS);
   AttachFragmentShader(FS);
-  if LogShaders then
-  begin
-    WritelnLogMultiline('Screen Effect Vertex Shader', VS);
-    WritelnLogMultiline('Screen Effect Fragment Shader', FS);
-  end;
   inherited;
 end;
 
@@ -450,7 +447,7 @@ var
     { all the checks below should pass on a modern GPU }
     SR := RenderRect.Round;
     RenderScreenEffects :=
-      GLFeatures.VertexBufferObject { for screen quad } and
+      (not GLFeatures.EnableFixedFunction) and
       GLFeatures.UseMultiTexturing and
       { check IsTextureSized, to gracefully work (without screen effects)
         on old desktop OpenGL that does not support NPOT textures. }
@@ -662,6 +659,12 @@ var
         glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
       end;
 
+      if ScreenPointVao = nil then
+        ScreenPointVao := TVertexArrayObject.Create;
+
+      RenderContext.CurrentProgram := Shader;
+      RenderContext.CurrentVao := ScreenPointVao;
+
       glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
 
       glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
@@ -675,7 +678,6 @@ var
         Inc(BoundTextureUnits);
       end;
 
-      RenderContext.CurrentProgram := Shader;
       Shader.Uniform('screen').SetValue(0);
       if CurrentScreenEffectsNeedDepth then
         Shader.Uniform('screen_depth').SetValue(1);
@@ -692,10 +694,10 @@ var
         RenderContext.Viewport that takes care of this. }
 
       AttribVertex := Shader.Attribute('vertex');
-      AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
+      AttribVertex.EnableArrayVector2(ScreenPointVao, SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
       AttribTexCoord := Shader.Attribute('tex_coord');
-      AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
+      AttribTexCoord.EnableArrayVector2(ScreenPointVao, SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -703,7 +705,6 @@ var
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     end;
 
   var
@@ -746,50 +747,8 @@ var
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glDisable(GL_DEPTH_TEST);
-
-      glActiveTexture(GL_TEXTURE0);
-      glDisable(GL_TEXTURE_2D);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glEnable(ScreenEffectTextureTarget);
-
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        glDisable(GL_TEXTURE_2D);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glEnable(ScreenEffectTextureTarget);
-      end;
-      {$endif}
-    end;
-
     OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
     RenderWithScreenEffectsCore;
-
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-      end;
-
-      glActiveTexture(GL_TEXTURE0);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-
-      { at the end, we left active texture as default GL_TEXTURE0 }
-
-      glPopAttrib;
-      {$endif}
-    end;
   end;
 
 begin
@@ -835,6 +794,7 @@ begin
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   glFreeBuffer(ScreenPointVbo);
+  FreeAndNil(ScreenPointVao);
   inherited;
 end;
 

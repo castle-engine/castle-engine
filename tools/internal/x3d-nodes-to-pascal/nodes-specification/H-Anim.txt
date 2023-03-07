@@ -3,6 +3,8 @@ HAnimDisplacer : X3DGeometricPropertyNode {
 
   MFInt32  [in,out] coordIndex    []
     range: [0,Inf) or -1
+  SFString [in,out] description   ""
+    change: chNone
   MFVec3f  [in,out] displacements []
   SFString [in,out] name          ""
   SFFloat  [in,out] weight        0.0
@@ -13,9 +15,12 @@ HAnimHumanoid : X3DChildNode, X3DBoundedObject {
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     change: chTransform
+  SFString   [in,out] description      ""
+    change: chNone
   MFString   [in,out] info             []
   MFNode     [in,out] joints           []
     range: HAnimJoint
+  SFInt32    [in,out] loa              -1
   SFString   [in,out] name             ""
   SFRotation [in,out] rotation         0 0 1 0
     range: (-Inf,Inf)|[-1,1]
@@ -59,6 +64,8 @@ HAnimJoint : X3DGroupingNode {
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     change: chTransform
+  SFString   [in,out] description      ""
+    change: chNone
   MFNode     [in,out] displacers       []
     range: HAnimDisplacer
   SFRotation [in,out] limitOrientation 0 0 1 0
@@ -91,6 +98,8 @@ HAnimSegment : X3DGroupingNode {
     range: (-Inf,Inf)
   SFNode   [in,out] coord            NULL
     range: X3DCoordinateNode
+  SFString [in,out] description      ""
+    change: chNone
   MFNode   [in,out] displacers       []
     range: HAnimDisplacer
   SFFloat  [in,out] mass             0
@@ -118,6 +127,8 @@ HAnimSite : X3DGroupingNode {
   SFVec3f    [in,out] center           0 0 0
     range: (-Inf,Inf)
     change: chTransform
+  SFString   [in,out] description      ""
+    change: chNone
   SFString   [in,out] name             ""
   SFRotation [in,out] rotation         0 0 1 0
     range: (-Inf,Inf)|[-1,1]

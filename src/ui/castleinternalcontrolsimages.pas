@@ -13,8 +13,6 @@ function Panel: TGrayscaleAlphaImage;
 
 function WindowDarkTransparent: TRGBAlphaImage;
 
-function Slider: TRGBAlphaImage;
-
 function Tooltip: TRGBImage;
 
 function TooltipRounded: TRGBAlphaImage;
@@ -69,6 +67,10 @@ function SquarePressedBackground: TRGBAlphaImage;
 
 function SquareChecked: TRGBAlphaImage;
 
+function SliderBackground: TRGBAlphaImage;
+
+function SliderThumb: TRGBAlphaImage;
+
 function PanelSeparator: TGrayscaleImage;
 
 function WindowDark: TRGBImage;
@@ -76,8 +78,6 @@ function WindowDark: TRGBImage;
 function WindowGray: TRGBImage;
 
 function ScrollbarFrame: TRGBImage;
-
-function SliderPosition: TRGBImage;
 
 function Edit: TRGBImage;
 
@@ -96,7 +96,6 @@ initialization
 finalization
   FreeAndNil(FPanel);
   FreeAndNil(FWindowDarkTransparent);
-  FreeAndNil(FSlider);
   FreeAndNil(FTooltip);
   FreeAndNil(FTooltipRounded);
   FreeAndNil(FButtonPressed);
@@ -124,10 +123,11 @@ finalization
   FreeAndNil(FSquareEmpty);
   FreeAndNil(FSquarePressedBackground);
   FreeAndNil(FSquareChecked);
+  FreeAndNil(FSliderBackground);
+  FreeAndNil(FSliderThumb);
   FreeAndNil(FPanelSeparator);
   FreeAndNil(FWindowDark);
   FreeAndNil(FWindowGray);
   FreeAndNil(FScrollbarFrame);
-  FreeAndNil(FSliderPosition);
   FreeAndNil(FEdit);
 end.

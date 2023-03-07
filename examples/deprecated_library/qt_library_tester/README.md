@@ -6,15 +6,13 @@ Note: The library (for now) exposes only a tiny subset of _Castle Game Engine_ p
 
 ## How to compile
 
-- First compile _Castle Game Engine_ dynamic library. Enter the `src/deprecated_library/` directory of CGE, and run `./castleengine_compile.sh`. This should produce `libcastleengine.so` (on Unix) or `castleengine.dll` (on Windows).
+- First compile _Castle Game Engine_ dynamic library to load and visualize 3D models.
 
-    _Note for Windows_: `castleengine_compile.sh` requires you to have Cygwin or MinGW installed. It may be easier to call `castleengine_compile_win32.bat` or `castleengine_compile_win64.bat`, these don't require anything special.
-
-    _Note_: Make sure that <code>fpc</code> binary is available on the environment variable <code>$PATH</code>. If you don't know how to set the environment variable, search the Internet (e.g. <a href="https://www.computerhope.com/issues/ch000549.htm">these are quick instructions how to do it on various Windows versions</a>).
+    See `../../../src/deprecated_library/README.md` .
 
 - Install <a href="https://www.qt.io/download">Qt Creator</a>.
 
-    _Note for Linux_: It's probably easiest to install Qt and _Qt Creator_ using packages, like `apt install qtcreator qtbase5-dev` (Ubuntu) or `apt install qtcreator qt5-default` (Debian).
+    _Note for Linux_: It's probably easiest to install Qt and _Qt Creator_ using packages, like `apt install qtcreator qt6-base-dev ` (Ubuntu). I found it also beneficial to remove Qt5 packages (like `qt5-qmake`), so that you only have Qt6.
 
 - Open the project `qt_library_tester.pro` in _Qt Creator_ and _Build_ it from there.
 

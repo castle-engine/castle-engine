@@ -1,5 +1,6 @@
+{%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -99,6 +100,8 @@ type
       (by TGeometryArrays.FreeData). }
     Vbo: TVboArrays;
 
+    Vao: TVertexArrayObject;
+
     { You have to set this before calling Render, to enable proper shading. }
     Shader: TShader;
 
@@ -184,14 +187,14 @@ var
         Continue;
       end;
       case Arrays.Attribs[I].AType of
-        atFloat  : A.EnableArraySingle       (Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atFloat  : A.EnableArraySingle (Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atVector2: A.EnableArrayVector2(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector3: A.EnableArrayVector3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector4: A.EnableArrayVector4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector2: A.EnableArrayVector2(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: A.EnableArrayVector3(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: A.EnableArrayVector4(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atMatrix3: A.EnableArrayMatrix3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atMatrix4: A.EnableArrayMatrix4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix3: A.EnableArrayMatrix3(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix4: A.EnableArrayMatrix4(Vao, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
@@ -215,8 +218,11 @@ var
       if RenderOptions.Mode = rmFull then
         glDisableClientState(GL_COLOR_ARRAY);
 
+      { Note: For simplicity, we no longer support fog coordinate in fixed-function.
+        We avoid extra alternative code path for GL_EXT_fog_coord or GL_version_1_4 that made it core.
       if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+      }
 
       if GLFeatures.UseMultiTexturing then
       begin
@@ -295,14 +301,10 @@ var
     end;
 
   begin
-    {$ifdef FPC}
-    {$warnings off}
-    if RenderOptions.CustomShader <> nil then
-    {$warnings on}
+    if RenderOptions.InternalCustomShader <> nil then
       // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
-    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       { In case of rmSolidColor, force using unlit with RenderOptions.SolidColor.
         Note that castlerenderer_materials.inc made sure that Lightning = false
@@ -336,10 +338,11 @@ var
 const
   ToMode: array [TGeometryPrimitive] of TGLenum = (
     GL_TRIANGLES,
-    {$ifndef OpenGLES} GL_QUADS, {$endif}
     GL_TRIANGLE_FAN,
     GL_TRIANGLE_STRIP,
     GL_LINE_STRIP,
+    GL_LINE_LOOP,
+    GL_LINES,
     GL_POINTS
   );
 var
@@ -375,18 +378,18 @@ begin
 
         Attribs := TGLSLAttributeList.Create;
 
-        CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+        CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Position));
         Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
 
         if Shader.NeedsNormals then
         begin
-          CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+          CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
         end;
 
         if Arrays.HasTangent then
         begin
-          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
+          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Tangent);
         end;
       end else
@@ -413,8 +416,8 @@ begin
         begin
           Assert(Arrays.ColorType <> ctNone);
           case Arrays.ColorType of
-            ctRgb     : CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector3(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgb));
-            ctRgbAlpha: CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgbAlpha));
+            ctRgb     : CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector3(Vao, Arrays.AttributeSize, PtrUInt(Arrays.ColorRgb));
+            ctRgbAlpha: CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.ColorRgbAlpha));
             else ;
           end;
           Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
@@ -422,7 +425,7 @@ begin
 
         if Arrays.HasFogCoord then
         begin
-          CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+          CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Vao, Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
           Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
         end;
 
@@ -434,7 +437,7 @@ begin
             // but save it in GLSLProgram.
             TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
             if TexCoordAttrib.Location = -1 then Continue;
-            TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+            TexCoordAttrib.EnableArray(Vao, 0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
               Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
             Attribs.Add(TexCoordAttrib);
           end;
@@ -455,11 +458,14 @@ begin
         if (RenderOptions.Mode = rmFull) and Arrays.ForceUnlit then
           glColorv(Arrays.ForcedUnlitColor);
 
+        { Note: For simplicity, we no longer support fog coordinate in fixed-function.
+          We avoid extra alternative code path for GL_EXT_fog_coord or GL_version_1_4 that made it core.
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         begin
           glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
           glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
         end;
+        }
 
         if GLFeatures.UseMultiTexturing then
         begin
@@ -494,27 +500,38 @@ begin
       if Arrays.HasIndexes then
       begin
         if Vbo[vtIndex] <> 0 then
+        begin
+          RenderContext.CurrentVao := Vao;
           glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
+        end;
 
         if Arrays.Counts = nil then
           glDrawElements(Mode, Arrays.IndexesCount,
-            {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First))) else
+            GLIndexConst, Pointer(Arrays.IndexesPtr(First)))
+        else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawElements(Mode, Arrays.Counts[I],
-              {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
+              GLIndexConst, Pointer(Arrays.IndexesPtr(First)));
             First := First + Arrays.Counts[I];
           end;
       end else
       begin
         if Arrays.Counts = nil then
-          glDrawArrays(Mode, First, Arrays.Count) else
+          glDrawArrays(Mode, First, Arrays.Count)
+        else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawArrays(Mode, First, Arrays.Counts[I]);
             First := First + Arrays.Counts[I];
           end;
       end;
+
+      { update Renderer.Statistics.DrawCalls }
+      if Arrays.Counts = nil then
+        Inc(Renderer.Statistics^.DrawCalls)
+      else
+        Inc(Renderer.Statistics^.DrawCalls, Arrays.Counts.Count);
 
       { We disable arrays explicitly. We could alternatively try
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
@@ -545,8 +562,6 @@ begin
     RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
   else
     RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
-  if Renderer.RenderOptions.Mode = rmFull then
-    Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
@@ -569,7 +584,7 @@ end;
   The only thing that you have to care about is to specify TextureUnit <
   GLFeatures.MaxTextureUnits. Everything else (whether multitexturing
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
-procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
+procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4);
 begin
   if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord)
@@ -723,11 +738,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgWorldSpaceNormal:
         begin
           {$ifdef OpenGLES}
-          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if GLFeatures.TextureCubeMap = gsNone then
+          if not GLFeatures.TextureCubeMap then
           begin
-            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
 
             if GLFeatures.EnableFixedFunction then
             begin
@@ -756,11 +771,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgWorldSpaceReflectionVector:
         begin
           {$ifdef OpenGLES}
-          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          Assert(GLFeatures.TextureCubeMap); // on OpenGLES, cubemaps are always supported
           {$else}
-          if GLFeatures.TextureCubeMap = gsNone then
+          if not GLFeatures.TextureCubeMap then
           begin
-            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
 
             if GLFeatures.EnableFixedFunction then
             begin
@@ -906,49 +921,13 @@ begin
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues then
   begin
-    {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction and GLFeatures.EXT_fog_coord then
-    begin
-      { This is not needed for shader pipeline. When we know that rendering
-        is done through shaders, then Shader.ModifyFog does everything necessary. }
-
-      { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
-        is already set correctly by RenderBegin. }
-      if not Renderer.FogVolumetric then
-        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-
-      glPushAttrib(GL_FOG_BIT);
-      glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
-      glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
-      glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
-    end;
-    {$endif}
-
-    { We potentially override the fog already set
-      by TGLRenderer.RenderShapeFog here. }
+    { We potentially override the fog already set by TGLRenderer.RenderShapeFog here. }
     Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
 
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
-  {$ifndef OpenGLES}
-  { Restore defaults }
-  if Arrays.HasFogCoord and
-     Arrays.FogDirectValues and
-     GLFeatures.EnableFixedFunction and
-     GLFeatures.EXT_fog_coord then
-  begin
-    glPopAttrib;
-
-    { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
-      also would restore it, but I didn't find it in the docs, so don't depend
-      on it. }
-    if not Renderer.FogVolumetric then
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-  end;
-  {$endif}
-
   inherited;
 end;
 
@@ -970,7 +949,7 @@ begin
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
     MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
     if MaterialFromColorEnabled then
-      { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
+      { Note: glColorMaterial is already set by TGLRenderer.ViewportRenderBegin }
       glEnable(GL_COLOR_MATERIAL);
     {$endif}
   end else
@@ -1001,13 +980,9 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
-    {$ifdef FPC}
-    {$warnings off}
-    if RenderOptions.CustomShader <> nil then
+    if RenderOptions.InternalCustomShader <> nil then
       Shader.LightingModel := lmUnlit
     else
-    {$warnings on}
-    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
@@ -1030,25 +1005,20 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
   end;
 
 var
-  UseShaderRendering: boolean;
   CurrentX3DProgram: TX3DShaderProgram;
 begin
   inherited;
 
   InitializeLightingModel;
 
-  {$ifdef FPC}
-  {$warnings off}
-  if RenderOptions.CustomShader <> nil then
+  if RenderOptions.InternalCustomShader <> nil then
   begin
-    if (RenderOptions.CustomShaderAlphaTest <> nil) and
-       Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase
+    if (RenderOptions.InternalCustomShaderAlphaTest <> nil) and
+       Shader.AlphaTest then
+      CurrentMeshShader := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase
     else
-      CurrentMeshShader := RenderOptions.CustomShader as TX3DShaderProgramBase;
+      CurrentMeshShader := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
   end else
-  {$warnings on}
-  {$endif}
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and
@@ -1071,12 +1041,7 @@ begin
       ((ColorSpace = csLinearWhenPhysicalMaterial) and
        (Shader.Material is TPhysicalMaterialInfo));
 
-    UseShaderRendering := {$ifdef OpenGLES} true {$else}
-      (not GLFeatures.EnableFixedFunction) or
-      ((RenderOptions.Mode = rmFull) and Shader.ShapeRequiresShaders)
-      {$endif};
-
-    if UseShaderRendering then
+    if not GLFeatures.EnableFixedFunction then
     begin
       { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
       if (Shape.ProgramCache[Renderer.Pass] = nil) or

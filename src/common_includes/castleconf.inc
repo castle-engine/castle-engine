@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -45,7 +45,7 @@
   {$else}
     // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
     {$if CompilerVersion < 20}
-      {$error Use FPC (Free Pascal Compiler) or Delphi >= 2009 to compile Castle Game Engine. The older Delphi versions are not supported (we need generics).}
+      {message fatal 'Use Delphi >= 2009 compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php'}
     {$endif}
   {$endif}
 {$endif}
@@ -318,76 +318,46 @@
     {$endif}
   {$endif}
 
-  { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
-    (Renderer = "Mali-450 MP", Vendor = "ARM", Version string "OpenGL ES 2.0").
-    It does not accept GL_UNSIGNED_INT as index type for glDrawElements
-    (yeah, pretty horrible...).
+  { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,
+    which is valid for OpenGL ES 2.0 implementations.
+    WebGL 1.0 also shares this limitation.
 
-    Workaround means that we render using 16-bit indexes, which may also be useful
-    to gain a little performance, *but* it means we cannot render large X3D shapes.
-    The more long-term solution would be to detect the need for 32-bit indexes
-    at runtime, and switch between 16-bit and 32-bit indexes as needed.
-    This would allow performance gain on both desktops and mobiles (but I did not
-    check whether this gain is noticeable!), while still allowing to render large
-    shapes. Unless this specific buggy Android EMUI 3.1 device is detected,
-    in which case we can
-    - raise an exception
-    - or force AllowIndexed := false in X3D renderer
-    - or split the shapes (but this would complicate the rendering code)
+    Example observed in real-life: Android EMUI 3.1
+    (Renderer = "Mali-450 MP", Vendor = "ARM", Version string "OpenGL ES 2.0").
+
+    - OpenGLES 2.0 indeed does not allows 32-bit indexes in spec,
+      i.e. you cannot pass GL_UNSIGNED_INT to glDrawElements
+      ( https://docs.gl/es2/glDrawElements ),
+    - although OpenGL 3.0 allows them
+      ( https://docs.gl/es3/glDrawElements )
+    - and there's an extension to enable it for GLES 2
+      ( https://github.com/KhronosGroup/OpenGL-Registry/blob/main/extensions/OES/OES_element_index_uint.txt ).
+
+    Current solution: We render using 16-bit indexes, which may also be useful
+    to gain a little performance, *but* it means we cannot render large shapes.
+
+    TODO: The more long-term solution is:
+
+    - Detect the need for 32-bit indexes at runtime,
+      and switch between 16-bit and 32-bit indexes as needed.
+
+    - This would allow performance gain on both desktops and mobiles (but I did not
+      check whether this gain is noticeable!), while still allowing to render large
+      shapes.
+      For small shapes, your indexes can take 2x less memory on GPU.
+
+    - Unless we need 32-bit indexes but OpenGLES doesn't support it
+      (so we have OpenGLES 2, not 3, and without OES_element_index_uint),
+      then we can:
+
+      - refuse to render given shapes (authors that want to support older OpenGLES
+        would have to keep this limit in mind, and design for it)
+      - or force AllowIndexed := false in X3D renderer
+      - or split the shapes (but this would complicate the rendering code).
   }
   {$define GLIndexesShort}
-
-  { Define ForceStandardGLSLApi to only use GLSL shaders when included in OpenGL core
-    (or not use GLSL shaders at all),
-    and never use GLSL ARB extensions available on some OpenGL 1.x implementations. }
-  {$define ForceStandardGLSLApi}
 {$else}
   {$define CastleGL := GL, GLExt}
-{$endif}
-
-{$ifdef DARWIN}
-  {$ifdef CPU64}
-    (*Apple did something really weird, and defined GLhandleARB to be
-      a pointer-size (not an GLint-size) type.
-
-      See the (correct) definition in fpc/trunk/packages/opengl/src/glext.pp:
-        {$ifdef DARWIN}
-        GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
-        {$else}
-        GLhandleARB = Cardinal;
-        {$endif}
-      This is correct, i.e. this is consistent with C OpenGL header,
-      and (apparently, if you believe the Internet) with what binary code expects:
-      on macOS 64-bit, GLhandleARB is 8 bytes, not 4.
-
-      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
-      for example glGetProgramivARB (that takes GLEnum).
-      So I'm unsure whether everything will really work correctly then -- one has to be extra
-      careful when the GLhandleARB and GLint are (binary) different things *only on this one
-      specific OS + architecture*.
-
-      See others being baffled by this:
-      - https://www.opengl.org/discussion_boards/showthread.php/175353-Scared-of-ARB-s-glext-h
-      - http://irrlicht.sourceforge.net/forum/viewtopic.php?t=44069
-      - http://trac.wildfiregames.com/ticket/1197
-
-      This makes things uncomfortable in CastleGLShaders, as we cannot cast "ProgramId: TGLuint"
-      to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
-      and whole family of ARB functions, on macOS 64-bit.
-      They should not be needed in practice --- modern OpenGL versions
-      don't need the ARB extensions to access the shaders. *)
-    {$define ForceStandardGLSLApi}
-  {$endif}
-{$endif}
-
-{$ifndef FPC}
-  { Delphi cannot compile related constructs like
-      GLhandleARB(ProgramId) := glCreateProgramObjectARB();
-    on Windows-64.
-    TODO: Maybe they are bad with FPC too?
-    What are GLhandleARB, ProgramId sizes?
-  }
-  {$define ForceStandardGLSLApi}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }
@@ -413,10 +383,13 @@
     and it works on all platforms.
 
     The downside is that it is not optimal.
-    In particular FpImage is extremely slow (LibPng results in drastically faster
-    PNG loading than FpImage; 4x speedup was observed on desktops;
-    10x speedup was observed on Android).
-    TODO: Do speed tests on PngImage, Vampyre -- how do they compare to LibPng?
+    In particular FpImage is extremely slow:
+    - LibPng results in drastically faster PNG loading than FpImage
+    - LibPng gives 4x speedup on desktops over FpImage
+    - LibPng gives 10x speedup on Android over FpImage
+    Vampyre PNG reading is faster, though LibPng is still ~2x faster than Vampyre.
+
+    Use examples/images_videos/image_display/ to measure the speed.
 
   2.If CASTLE_PNG_DYNAMIC is defined and libpng exists,
     we use libpng from a dynamic library (.so or .dll).
@@ -584,5 +557,13 @@
   and try out the new generic TCastleScene.Node, TX3DRootNode.Find.
 *)
 {.$define GENERIC_METHODS}
+
+{ Parts of CastleScript implementation right now use Pascal generics
+  in ways that don't compile with Delphi.
+  Symbol CASTLE_SCRIPT_FPC is in practice equal to just FPC,
+  but having a dedicated symbol allows to easier grep for it and eventually fix. }
+{$ifdef FPC}
+  {$define CASTLE_SCRIPT_FPC}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

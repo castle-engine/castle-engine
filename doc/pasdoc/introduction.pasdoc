@@ -1,21 +1,22 @@
 @title(Introduction)
-@shorttitle(Introduction)
+@shorttitle(API Reference)
 
 @html(<img src="castle_game_engine_icon.png"
   alt="Castle Game Engine icon"
   align="right"/>)
 
-@italic(Castle Game Engine) https://castle-engine.io/
-is a cross-platform 3D and 2D open-source game engine for Object Pascal.
-We support FPC/Lazarus and Delphi.
+@url(https://castle-engine.io/ Castle Game Engine) is a cross-platform 3D and 2D open-source game engine using Object Pascal.
 
-This is the engine API reference. It lists all available units, classes,
-and documents everything.
+This is the engine API reference. It documents all the engine
+@url(https://castle-engine.io/apidoc/html/ClassHierarchy.html classes), their properties and methods,
+and more.
+
+The most common way to use this reference is to @italic(search) for an identifier you are interested in. Go ahead, search e.g. for @link(TCastleButton) to quickly jump to its reference. We also recommend using @bold(F1) (key shortcut for @italic(context help)) from the CGE editor, it will open this API reference at the selected component and property.
 
 See our website for more documentation:
 @unorderedList(
-  @item Manual: https://castle-engine.io/manual_intro.php
-  @item Guide to creating game data: https://castle-engine.io/creating_data_intro.php
+  @item @url(https://castle-engine.io/manual_intro.php Manual)
+  @item @url(https://castle-engine.io/creating_data_intro.php Guide to creating game data)
 )
 
-Support the engine development on Patreon: https://www.patreon.com/castleengine
+Do you like what you see? Please @url(https://www.patreon.com/castleengine support the engine development on Patreon). Thank you!

@@ -106,7 +106,7 @@ implementation
 
 uses
   SysUtils, Math, Generics.Collections,
-  CastleTransform, CastleColors, CastleRectangles,
+  CastleTransform, CastleColors, CastleRectangles, CastleUtils,
   CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages, CastleURIUtils;
 
@@ -179,7 +179,12 @@ var
 const
   { Distance between Tiled layers in Z. Layers are rendered as 3D objects
     and need some distance to avoid Z-fighting.
-    TODO: The need for this may be avoided in the future using RenderContext.DepthFunc := fdAlways.
+
+    This could be avoided when using RenderContext.DepthFunc := fdAlways,
+    but it comes with it's own disadvantages,
+    see TCastleTiledMap.AssumePerfectRenderingOrder docs.
+    So we always apply this layer Z distance, to work regardless
+    of AssumePerfectRenderingOrder.
 
     Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
   LayerZDistanceIncrease: Single = 10;
@@ -434,7 +439,14 @@ var
       end;
 
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
-      TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset);
+      if Between(Frame, 0, Tileset.Tiles.Count - 1) then
+        TexCoordRect := GetTileTexCoordRect(Tileset.Tiles[Frame], Tileset)
+      else
+      begin
+        WritelnWarning('Tiled', 'Invalid frame id %d', [Frame]);
+        // some fallback, to have something defined
+        TexCoordRect := FloatRectangle(0, 0, Tileset.TileWidth, Tileset.TileHeight);
+      end;
 
       Coord.FdPoint.Items.AddRange([
         Vector3(CoordRect.Left , CoordRect.Bottom, 0),

@@ -21,7 +21,6 @@
   The external code will get notified about our events using LibraryCallbackProc. }
 
 {$ifdef read_interface_uses}
-CTypes,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -420,7 +419,7 @@ begin
     Application.MainWindow.FTop := 0;
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
-    Application.MainWindow.Dpi := ADpi;
+    Application.MainWindow.Container.Dpi := ADpi;
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Progress bar displayed in a TCastleWindow.
+{ @deprecated This displays nothing now.
+  It used to be: Progress bar displayed in a TCastleWindow.
 
   Simply set @code(WindowProgressInterface.Window) to your TCastleWindow
   instance, and assign
@@ -53,15 +54,9 @@ type
     when progress bar starts --- we gracefully avoid showing any progress. }
   TWindowProgressInterface = class(TProgressUserInterface)
   private
-    {$warnings off} // using deprecated TCastleProgressBar in deprecated
-    Bar: TCastleProgressBar;
-    {$warnings on}
-
     { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    UsedWindow: TCastleWindow;
-    SavedMode: TGLMode;
     {$ifdef FPC}
     function GetWindow: TCastleWindow;
     procedure SetWindow(const Value: TCastleWindow);
@@ -104,58 +99,14 @@ end;
 
 procedure TWindowProgressInterface.Init(Progress: TProgress);
 begin
-  if (Application.MainWindow <> nil) and
-      Application.MainWindow.GLInitialized and
-     { Do not initialize progress if we're in the middle of rendering off-screen.
-       This can happen if you have a GeneratedCubeMapTexure on an animated scene,
-       and progress bar appears because after animating a transform the shape octree
-       needs to be rebuild for frustum culling (which can happen on larger scenes,
-       to easily reproduce use TESTING_PROGRESS_DELAY with android_demo 2 teapots scene). }
-     (not OffscreenRendering) then
-    UsedWindow := Application.MainWindow
-  else
-    UsedWindow := nil;
-
-  if UsedWindow = nil then Exit;
-
-  {$warnings off} // using deprecated in deprecated
-  Bar := TCastleProgressBar.Create(nil);
-  {$warnings on}
-  Bar.Progress := Progress;
-
-  if Image <> nil then
-    Bar.Background := (Image as TRGBImage).MakeCopy else
-    Bar.Background := UsedWindow.SaveScreen;
-  Bar.YPosition := BarYPosition;
-
-  { Reset all keys because TGLMode.Create() can do a lot of uneeded things in
-    SimulateReleaseAll(). And probably no one expects the progress bar to
-    try to react to the pressed keys in some way. }
-  UsedWindow.Pressed.Clear;
-  SavedMode := TGLMode.CreateReset(UsedWindow, nil, nil, @NoClose);
-
-  UsedWindow.Controls.InsertFront(Bar);
-
-  { init our window state }
-  UsedWindow.AutoRedisplay := true;
-  UsedWindow.InternalCursor := mcWait;
-  { To actually draw progress start. }
-  UsedWindow.Invalidate;
-  Application.ProcessAllMessages;
 end;
 
 procedure TWindowProgressInterface.Update(Progress: TProgress);
 begin
-  if UsedWindow = nil then Exit;
-  Application.ProcessAllMessages;
 end;
 
 procedure TWindowProgressInterface.Fini(Progress: TProgress);
 begin
-  if UsedWindow = nil then Exit;
-  FreeAndNil(Bar);
-  FreeAndNil(SavedMode);
-  UsedWindow := nil;
 end;
 
 initialization

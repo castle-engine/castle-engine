@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -307,9 +307,7 @@ end;
 
 function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
-  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]));
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.List^[ItemIndex]));
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }

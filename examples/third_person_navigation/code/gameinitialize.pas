@@ -38,7 +38,7 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game views and set initial view }
+  { Create views (see https://castle-engine.io/views ). }
   ViewPlay := TViewPlay.Create(Application);
   ViewMenu := TViewMenu.Create(Application);
   Window.Container.View := ViewMenu;

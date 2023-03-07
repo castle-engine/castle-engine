@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="test_local_characters_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -37,15 +37,10 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/font_droidsansfallback.pas"/>
+        <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="font_droidsansfallback"/>
+        <UnitName Value="gameviewmain"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="code/font_dejavusans.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="font_dejavusans"/>
-      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

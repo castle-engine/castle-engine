@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +30,10 @@
 
   { Base class for all the light nodes. }
   TAbstractLightNode = class(TAbstractChildNode)
-  private
+  strict private
     FTransformation: TTransformation;
+    WarningWorldTransformDone: Boolean;
+    procedure DoWarningWorldTransform;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -66,18 +69,21 @@
       depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
     function Scope: TLightScope; virtual;
 
-    { Transformation of this light node.
+    { Transformation of this light node, to world space.
+      This accounts for transformation to scene space (TCastleScene)
+      and then to viewport root (TCastleViewport.Items) space.
+
       Beware: In X3D, light nodes can be instantiated many times within the scene,
       with different transformations, so @italic(this transformation property
       should not be used in general).
 
-      Use this only if you you know that light node occurs only once within the scene
-      (see [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps]).
-      Or if you're fine with just getting an undefined transformation,
-      for any of the light instances.
+      Use this only if you you know that light node occurs only once within the scene.
+      For example shadow maps assume this,
+      see [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps .
 
-      This value is calculated during traversing. Last @link(BeforeTraverse) call for this
-      node sets this property. By default, it represents identity transformation.
+      For this to work, we multiply transformation from last traverse
+      (@link(BeforeTraverse) collects transformation to space)
+      and then use TCastleTransform.WorldTransform.
 
       @groupBegin }
     function Transform: TMatrix4;
@@ -92,10 +98,10 @@
   { Base class for all "punctual" light nodes (that have a position and/or direction). }
   TAbstractPunctualLightNode = class(TAbstractLightNode)
   strict private
-    function  GetProjectionSceneLocation: TVector3;
-    procedure SetProjectionSceneLocation(const Value: TVector3);
-    function  GetProjectionSceneDirection: TVector3;
-    procedure SetProjectionSceneDirection(const Value: TVector3);
+    function  GetProjectionWorldLocation: TVector3;
+    procedure SetProjectionWorldLocation(const Value: TVector3);
+    function  GetProjectionWorldDirection: TVector3;
+    procedure SetProjectionWorldDirection(const Value: TVector3);
   protected
     function  GetProjectionLocationLocal: TVector3; virtual;
     procedure SetProjectionLocationLocal(const Value: TVector3); virtual;
@@ -130,13 +136,13 @@
       read  GetProjectionDirectionLocal
       write SetProjectionDirectionLocal;
 
-    property   ProjectionSceneLocation: TVector3
-      read  GetProjectionSceneLocation
-      write SetProjectionSceneLocation;
+    property   ProjectionWorldLocation: TVector3
+      read  GetProjectionWorldLocation
+      write SetProjectionWorldLocation;
 
-    property   ProjectionSceneDirection: TVector3
-      read  GetProjectionSceneDirection
-      write SetProjectionSceneDirection;
+    property   ProjectionWorldDirection: TVector3
+      read  GetProjectionWorldDirection
+      write SetProjectionWorldDirection;
 
     procedure GetView(out Pos, Dir, Side, Up: TVector3);
     { @groupEnd }
@@ -186,18 +192,8 @@
 
   { Base class for all positional lights. }
   TAbstractPositionalLightNode = class(TAbstractPunctualLightNode)
-  strict private
-    function GetSceneLocation: TVector3;
-    procedure SetSceneLocation(const Value: TVector3);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
-    { Light location, expressed in scene (current TCastleScene) coordinates.
-      @italic(Do not use this if the light node may be instantiated multiple
-      times in the scene.) The same warning as for @link(Transform) applies
-      also here. }
-    property SceneLocation: TVector3
-      read GetSceneLocation write SetSceneLocation;
 
     { Calculate light intensity drop because of the distance to the light.
       This follows the equation @code(1/max( attenuation[0] + ... ))
@@ -298,6 +294,10 @@
       Use this only if you have to render spot light with exponent,
       e.g. for OpenGL fixed-function pipeline. }
     function SpotExponentApproximate: Single;
+
+    { Projection angle, from @link(ProjectionAngle) or 2 * @link(CutOffAngle).
+      See https://castle-engine.io/x3d_extensions_shadow_maps.php . }
+    function EffectiveProjectionAngle: Single;
 
   {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
   end;
@@ -441,11 +441,28 @@ end;
 function TAbstractLightNode.Transform: TMatrix4;
 begin
   Result := FTransformation.Transform;
+  if (Scene <> nil) and Scene.HasWorldTransform then
+    Result := Scene.WorldTransform * Result
+  else
+    DoWarningWorldTransform;
 end;
 
 function TAbstractLightNode.InverseTransform: TMatrix4;
 begin
   Result := FTransformation.InverseTransform;
+  if (Scene <> nil) and Scene.HasWorldTransform then
+    Result := Result * Scene.WorldInverseTransform
+  else
+    DoWarningWorldTransform;
+end;
+
+procedure TAbstractLightNode.DoWarningWorldTransform;
+begin
+  if not WarningWorldTransformDone then
+  begin
+    WarningWorldTransformDone := true;
+    WritelnWarning(NiceName + ' does not know the world transformation, results (like shadow maps) may be incorrect');
+  end;
 end;
 
 function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
@@ -495,30 +512,30 @@ begin
   { ignored }
 end;
 
-function TAbstractPunctualLightNode.GetProjectionSceneLocation: TVector3;
+function TAbstractPunctualLightNode.GetProjectionWorldLocation: TVector3;
 begin
-  Result := FTransformation.Transform.MultPoint(ProjectionLocationLocal);
+  Result := Transform.MultPoint(ProjectionLocationLocal);
 end;
 
-procedure TAbstractPunctualLightNode.SetProjectionSceneLocation(const Value: TVector3);
+procedure TAbstractPunctualLightNode.SetProjectionWorldLocation(const Value: TVector3);
 begin
-  ProjectionLocationLocal := FTransformation.InverseTransform.MultPoint(Value);
+  ProjectionLocationLocal := InverseTransform.MultPoint(Value);
 end;
 
-function TAbstractPunctualLightNode.GetProjectionSceneDirection: TVector3;
+function TAbstractPunctualLightNode.GetProjectionWorldDirection: TVector3;
 begin
   Result := Transform.MultDirection(ProjectionDirectionLocal);
 end;
 
-procedure TAbstractPunctualLightNode.SetProjectionSceneDirection(const Value: TVector3);
+procedure TAbstractPunctualLightNode.SetProjectionWorldDirection(const Value: TVector3);
 begin
-  ProjectionDirectionLocal := FTransformation.InverseTransform.MultDirection(Value);
+  ProjectionDirectionLocal := InverseTransform.MultDirection(Value);
 end;
 
 procedure TAbstractPunctualLightNode.GetView(out Pos, Dir, Side, Up: TVector3);
 begin
-  Pos := ProjectionSceneLocation;
-  Dir := ProjectionSceneDirection;
+  Pos := ProjectionWorldLocation;
+  Dir := ProjectionWorldDirection;
 
   Up := FdUp.Value;
   { Up = zero means "calculate anything suitable".
@@ -621,7 +638,7 @@ end;
 procedure TAbstractDirectionalLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionWorldLocation, ProjectionWorldDirection, MinDistance, MaxDistance);
 end;
 
 function TAbstractDirectionalLightNode.PositionAndDirection: TVector4;
@@ -697,16 +714,6 @@ begin
   Result := Vector4(FdLocation.Value, 1);
 end;
 
-function TAbstractPositionalLightNode.GetSceneLocation: TVector3;
-begin
-  Result := Transform.MultPoint(Location);
-end;
-
-procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3);
-begin
-  Location := FTransformation.InverseTransform.MultPoint(Value);
-end;
-
 function TAbstractPointLightNode.GetProjectionLocationLocal: TVector3;
 begin
   Result := FdLocation.Value;
@@ -720,7 +727,7 @@ end;
 procedure TAbstractPointLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box.PointDistances(ProjectionSceneLocation, MinDistance, MaxDistance);
+  Box.PointDistances(ProjectionWorldLocation, MinDistance, MaxDistance);
 end;
 
 class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -746,16 +753,22 @@ begin
     LightInstance.Transform.MultDirection(FdDirection.Value).Normalize;
 end;
 
+function TSpotLightNode.EffectiveProjectionAngle: Single;
+begin
+  if ProjectionAngle <= 0 then
+    Result := 2 * CutOffAngle
+  else
+    Result := ProjectionAngle;
+end;
+
 function TSpotLightNode.ProjectionMatrix: TMatrix4;
 var
   Angle, N, F: Single;
 begin
+  Angle := EffectiveProjectionAngle;
+
   { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
-
-  if FdprojectionAngle.Value <= 0 then
-    Angle := 2 * FdCutOffAngle.Value else
-    Angle := FdProjectionAngle.Value;
 
   N := FdProjectionNear.Value;
   if N = 0 then N := FallbackProjectionNear;
@@ -807,7 +820,7 @@ procedure TSpotLightNode.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionWorldLocation, ProjectionWorldDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode.SpotCutoffDeg: Single;

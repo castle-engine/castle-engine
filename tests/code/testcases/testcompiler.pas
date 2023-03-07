@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCompiler" -*-
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test some Pascal compiler (FPC) stuff. These tests are independent from CGE. }
+{ Test some Pascal compiler (FPC, Delphi) stuff. These tests are independent from CGE. }
 unit TestCompiler;
 
 { Needed to define EXTENDED_EQUALS_DOUBLE on some platforms/compilers. }
@@ -31,11 +31,12 @@ type
     procedure TestIs;
     procedure TestSinglePrecision;
     procedure TestSizes;
+    procedure TestPackedOpenArray;
   end;
 
 implementation
 
-uses CastleUtils;
+uses CastleUtils, CastleVectors;
 
 type
   TFruit = class
@@ -111,6 +112,57 @@ begin
     {$elseif defined(EXTENDED_EQUALS_LONG_DOUBLE)} 16
     {$else} 10
     {$endif}, SizeOf(Extended));
+end;
+
+type
+  { TCastleRenderUnlitMesh implementation assumes that "array of UInt16",
+    "array of TVector4" parameters are packed arrays.
+    But in Delphi we cannot declare them as such.
+    So let's check ar runtime they are packed. }
+  TCastleRenderUnlitMeshTest = class
+  public
+    procedure SetIndexes(const Indexes: array of UInt16);
+    procedure SetVertexes(const Vertexes: array of TVector4;
+      const UsageDynamic: Boolean);
+  end;
+
+procedure TCastleRenderUnlitMeshTest.SetIndexes(const Indexes: array of UInt16);
+var
+  I: Integer;
+begin
+  {$I norqcheckbegin.inc}
+  for I := 0 to 100 do
+    Check(PtrUInt(@Indexes[I + 1]) - PtrUInt(@Indexes[I]) = SizeOf(UInt16));
+  {$I norqcheckend.inc}
+end;
+
+procedure TCastleRenderUnlitMeshTest.SetVertexes(const Vertexes: array of TVector4;
+  const UsageDynamic: Boolean);
+var
+  I: Integer;
+begin
+  Check(High(Vertexes) = 3);
+  Check(TVector4.PerfectlyEquals(Vertexes[0], Vector4(1, 1.2, 1.3, 1.4)));
+  {$I norqcheckbegin.inc}
+  for I := 0 to 100 do
+    Check(PtrUInt(@Vertexes[I + 1]) - PtrUInt(@Vertexes[I]) = SizeOf(TVector4));
+  {$I norqcheckend.inc}
+end;
+
+procedure TTestCompiler.TestPackedOpenArray;
+var
+  Mesh: TCastleRenderUnlitMeshTest;
+begin
+  Mesh := TCastleRenderUnlitMeshTest.Create;
+  try
+    Mesh.SetIndexes([1, 2, 3, 4]);
+    Mesh.SetVertexes([
+      Vector4(1, 1.2, 1.3, 1.4),
+      Vector4(2, 2.2, 2.3, 2.4),
+      Vector4(3, 3.2, 3.3, 3.4),
+      Vector4(4, 4.2, 4.3, 4.4)
+    ], true);
+  finally FreeAndNil(Mesh) end;
 end;
 
 initialization

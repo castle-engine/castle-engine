@@ -248,13 +248,13 @@ end;
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
   const Justify, JustifyMinor: TX3DFontJustify;
-  const Font: TTextureFontData;
+  const Font: TCastleFont;
   const Strings: TCastleStringList): TBox3D;
 var
   YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY, Descend: Single;
   I: integer;
 begin
-  YScale := Size / Font.RowHeight;
+  YScale := Size / Font.Height;
   { TODO: Use maxEntent, length for X3D and VRML 2.0. Use width for VRML 1.0. }
   XScale := YScale;
 
@@ -286,7 +286,7 @@ begin
   // for JustifyMinor = fjFirst, the level 0 is at baseline, so lower bbox
   if JustifyMinor = fjFirst then
   begin
-    Descend := Size * Font.Descend / Font.RowHeight;
+    Descend := Size * Font.DescenderHeight / Font.Height;
     MinY := MinY - (Descend * Spacing);
     MaxY := MaxY - (Descend * Spacing);
   end;

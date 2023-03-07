@@ -2,10 +2,6 @@
 { DON'T EDIT -- this file was automatically generated from "source/shadow_map_generate.fs" }
 '/* Fragment shader when generating shadow maps. */' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 '#ifdef ALPHA_TEST' + LineEnding +
 'uniform sampler2D castle_texture_0;' + LineEnding +
 'varying vec2 castle_TexCoord0_XY;' + LineEnding +

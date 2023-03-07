@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -200,8 +200,15 @@
       AutoSizeMinThickness: Single;
 
       { Minimum collider thickness used by @link(AutoSize) in 2D mode (when @link(Mode2D) = @true).
+        This is used for axis other than Z (like X, Y, or collider radiuses that affect size
+        in a few axis).
         Changing this only affects new size calculations.}
       AutoSizeMinThickness2D: Single;
+
+      { Minimum collider thickness used by @link(AutoSize) in 2D mode (when @link(Mode2D) = @true) for Z.
+        This is used only by TCastleBoxCollider now, as only that collider has specific size in Z.
+        Changing this only affects new size calculations.}
+      AutoSizeMinThickness2DDepth: Single;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -326,7 +333,9 @@
 
         @item(@link(AutoSize) assumes a bit larger "minimum thickness" for 2D,
           because typical 2D worlds use larger units.
-          See @link(AutoSizeMinThickness) vs @link(AutoSizeMinThickness2D).)
+          Moreover, it assumes even larger thickness in Z, to avoid too thin boxes
+          (that would not be detected as collidable).
+          See @link(AutoSizeMinThickness), @link(AutoSizeMinThickness2D), @link(AutoSizeMinThickness2DDepth).)
 
         @item(Non-uniform scale (coming from accumulated TCastleTransform.Scale on all our parents)
           is handled differently. When Mode2D = @true, the non-uniform scale is converted
@@ -1038,9 +1047,50 @@
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
 
+    { Damping means that the velocity will decrease over time.
+      AngularVelocityDamp causes AngularVelocity to decrease over time.
+      For the exact equations how it works, see @link(LinearVelocityDamp). }
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaxAngularVelocity: Single read FMaxAngularVelocity write SetMaxAngularVelocity;
 
+    { Damping means that the velocity will decrease over time.
+      LinearVelocityDamp causes LinearVelocity to decrease over time,
+      similar AngularVelocityDamp causes AngularVelocity to decrease over time.
+
+      Values from 0.0 up to infinity make sense.
+
+      Exact interpretation:
+
+      The damping is applied every "physics frame" following this equation:
+
+      @code(LinearVelocity := LinearVelocity * 1 / (1 + LinearVelocityDamp * 1/PhysicsProperties.Frequency))
+
+      Where @code(PhysicsProperties.Frequency) is by default 60,
+      and can be customized for each viewport using @link(TPhysicsProperties.Frequency
+      Viewport.Items.PhysicsProperties.Frequency). The frequency also determines how
+      often do "physics frames" occur.
+
+      In effect, damping = 0 means that no damping occurs.
+
+      Damping values > 0 means that LinearVelocity decreases with time,
+      larger LinearVelocityDamp -> the faster LinearVelocity will decrease.
+
+      The meaning of damping = 1.0 depends on @link(TPhysicsProperties.Frequency
+      Viewport.Items.PhysicsProperties.Frequency):
+
+      @unorderedList(
+        @item(With TPhysicsProperties.Frequency = 60 (default), the XxxVelocityDamp = 1.0 implies that
+          the velocity drops to ~0.37 of original after 1 second.)
+
+        @item(With TPhysicsProperties.Frequency = 1
+          (crazy small, just giving it as example),
+          the XxxVelocityDamp = 1.0 implies that the velocity drops to half of original after 1 second.)
+
+        @item(With TPhysicsProperties.Frequency = 10000
+          (crazy large, just giving it as example),
+          the XxxVelocityDamp = 1.0 implies that the velocity drops to ~0.36 of original after 1 second.)
+      )
+    }
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaxLinearVelocity: Single read FMaxLinearVelocity write SetMaxLinearVelocity;
 
@@ -1859,32 +1909,32 @@ procedure TCastleBoxCollider.CalculateSizeCore;
 var
   LocalBoundingBox: TBox3D;
   TempSize: TVector3;
-  MinThickness: Single;
+  MinThickness: TVector3;
 begin
   inherited; // resets Translation, Rotation
 
   if Mode2D then
-    MinThickness := AutoSizeMinThickness2D
+    MinThickness := CastleVectors.Vector3(AutoSizeMinThickness2D, AutoSizeMinThickness2D, AutoSizeMinThickness2DDepth)
   else
-    MinThickness := AutoSizeMinThickness;
+    MinThickness := CastleVectors.Vector3(AutoSizeMinThickness, AutoSizeMinThickness, AutoSizeMinThickness);
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Size := CastleVectors.Vector3(MinThickness, MinThickness, MinThickness);
+    Size := MinThickness;
     Exit;
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
   TempSize := LocalBoundingBox.Size;
 
-  if TempSize.X < MinThickness then
-    TempSize.X := MinThickness;
+  if TempSize.X < MinThickness.X then
+    TempSize.X := MinThickness.X;
 
-  if TempSize.Y < MinThickness then
-    TempSize.Y := MinThickness;
+  if TempSize.Y < MinThickness.Y then
+    TempSize.Y := MinThickness.Y;
 
-  if TempSize.Z < MinThickness then
-    TempSize.Z := MinThickness;
+  if TempSize.Z < MinThickness.Z then
+    TempSize.Z := MinThickness.Z;
 
   Size := TempSize;
   Translation := LocalBoundingBox.Center;

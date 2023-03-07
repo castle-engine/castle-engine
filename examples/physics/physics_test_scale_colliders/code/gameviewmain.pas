@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2022-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonScaleRedBox: TCastleButton;
     ButtonLocalScaleRedBoxCollider: TCastleButton;
@@ -36,7 +37,7 @@ type
     GreenSphere: TCastleTransform;
     TransformAll: TCastleTransform;
     Viewport: TCastleViewport;
-
+  private
     procedure ClickScaleAll(Sender: TObject);
     procedure ClickScaleGreenSphere(Sender: TObject);
     procedure ClickScaleRedBox(Sender: TObject);
@@ -95,26 +96,10 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-
-  ButtonScaleAll := DesignedComponent('ButtonScaleAll') as TCastleButton;
   ButtonScaleAll.OnClick := {$ifdef FPC}@{$endif}ClickScaleAll;
-
-  ButtonScaleGreenSphere := DesignedComponent('ButtonScaleGreenSphere') as TCastleButton;
   ButtonScaleGreenSphere.OnClick := {$ifdef FPC}@{$endif}ClickScaleGreenSphere;
-
-  ButtonScaleRedBox := DesignedComponent('ButtonScaleRedBox') as TCastleButton;
   ButtonScaleRedBox.OnClick := {$ifdef FPC}@{$endif}ClickScaleRedBox;
-
-  ButtonLocalScaleRedBoxCollider := DesignedComponent('ButtonLocalScaleRedBoxCollider') as TCastleButton;
   ButtonLocalScaleRedBoxCollider.OnClick := {$ifdef FPC}@{$endif}ClickLocalScaleRedBoxCollider;
-
-  RedBox := DesignedComponent('RedBox') as TCastleTransform;
-  GreenSphere := DesignedComponent('GreenSphere') as TCastleTransform;
-  TransformAll := DesignedComponent('TransformAll') as TCastleTransform;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

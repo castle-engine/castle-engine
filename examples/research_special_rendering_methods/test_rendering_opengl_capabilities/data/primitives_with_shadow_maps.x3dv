@@ -1,0 +1,79 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF Light SpotLight {
+  location 0 2 0
+  direction 0 -1 0
+  shadows TRUE
+  cutOffAngle 0.6
+  defaultShadowMap GeneratedShadowMap { update "ALWAYS" size 1024 }
+}
+
+DEF SphereTransform Transform {
+  children Shape {
+    appearance Appearance { material Material { } }
+    geometry Sphere { radius 0.2 }
+  }
+}
+
+Transform { translation -1 -8 0
+  children Shape {
+    appearance Appearance { material Material { } }
+    geometry Box { size 2 2 2 }
+  }
+}
+
+Transform { translation 1 -8 0
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture { url "test_texture.png" }
+      material Material { } }
+    geometry Cylinder { }
+  }
+}
+
+Transform {
+  translation 0 -7 -0.5
+  rotation 1 0 0 -1
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture { url "test_texture.png" }
+      material Material { }
+    }
+    geometry Text {
+      string "Some textured text"
+      fontStyle FontStyle {
+        blending FALSE
+        justify "MIDDLE"
+      }
+    }
+  }
+}
+
+Transform {
+  translation 0 -7 0.5
+  rotation 1 0 0 -1
+  children Shape {
+    appearance Appearance {
+      material Material { diffuseColor 1 0 0 }
+    }
+    geometry Text {
+      string "Some text"
+      fontStyle FontStyle {
+        blending FALSE
+        justify "MIDDLE"
+      }
+    }
+  }
+}
+
+# Move the sphere, just to show that we can and shadow follows.
+
+DEF Timer TimeSensor { loop TRUE cycleInterval 5.0 }
+DEF Interp PositionInterpolator {
+  key      [ 0      0.25      0.5         0.75      1     ]
+  keyValue [ 0 0 0  0.4 0 0   0.4 0 0.4   0 0 0.4   0 0 0 ]
+}
+
+ROUTE Timer.fraction_changed TO Interp.set_fraction
+ROUTE Interp.value_changed TO SphereTransform.set_translation

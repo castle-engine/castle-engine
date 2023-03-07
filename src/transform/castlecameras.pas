@@ -1665,14 +1665,14 @@ begin
       for unknown reason clicking on TouchSensor then still allows navigation like Walk
       to receive mouse dragging.
       Testcase: demo-models, touch_sensor_tests.x3dv }
-    // Exit(ExclusiveEvents);
+    // Exit(true);
   end;
 
   if (Event.EventType = itMouseWheel) and
      ZoomEnabled then
   begin
     if Zoom(Event.MouseWheelScroll) then
-      Exit(ExclusiveEvents);
+      Exit(true);
   end;
 end;
 
@@ -2211,7 +2211,7 @@ begin
           MoveChangeVector.InternalData[I] := MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
@@ -2219,7 +2219,7 @@ begin
           MoveChangeVector.InternalData[I] := -MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
       end;
     end else
@@ -2230,12 +2230,12 @@ begin
         if Inputs_Rotate[i, true ].IsPressed(Container) then
         begin
           RotateSpeedOrAngle(i, +1);
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
         if Inputs_Rotate[i, false].IsPressed(Container) then
         begin
           RotateSpeedOrAngle(i, -1);
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
       end;
     end;
@@ -2249,12 +2249,12 @@ begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
       Zoom(KeyZoomSpeed * SecondsPassed);
-      HandleInput := not ExclusiveEvents;
+      HandleInput := false;
     end;
     if Input_ScaleSmaller.IsPressed(Container) then
     begin
       Zoom(-KeyZoomSpeed * SecondsPassed);
-      HandleInput := not ExclusiveEvents;
+      HandleInput := false;
     end;
   end;
 end;
@@ -2427,7 +2427,7 @@ begin
     Exit;
 
   if (niGesture in UsingInput) and FPinchGestureRecognizer.Press(Event) then
-    Exit(ExclusiveEvents);
+    Exit(true);
 
   if not (niNormal in UsingInput) then Exit;
 
@@ -2442,12 +2442,12 @@ begin
       since the default scene manager creates
       examine camera, and it captures left mouse click as Input_StopRotating. }
     if StopRotating then
-      Result := ExclusiveEvents;
+      Result := true;
   end else
   if Input_Home.IsEvent(Event) then
   begin
     CameraInitial;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
     Result := false;
 end;
@@ -2458,7 +2458,7 @@ begin
   if Result then Exit;
 
   if (niGesture in UsingInput) and FPinchGestureRecognizer.Release(Event) then
-    Exit(ExclusiveEvents);
+    Exit(true);
 end;
 
 function TCastleExamineNavigation.Motion(const Event: TInputMotion): boolean;
@@ -2606,7 +2606,7 @@ begin
     Dpi := DefaultDpi;
 
   if (niGesture in UsingInput) and FPinchGestureRecognizer.Motion(Event, Dpi) then
-    Exit(ExclusiveEvents);
+    Exit(true);
 
   MoveDivConst := Dpi;
 
@@ -2621,13 +2621,13 @@ begin
   if RotationEnabled and Input_Rotate.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
     DragRotation;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 
   if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
-      Result := ExclusiveEvents;
+      Result := true;
   end;
 
   if MoveEnabled and Input_Move.IsPressed(Container.Pressed, Container.MousePressed) then
@@ -2639,7 +2639,7 @@ begin
     begin
       MoveNonExact;
     end;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -2792,7 +2792,7 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
       MouseChange.X := MouseChange.X * MouseLookHorizontalSensitivity;
       MouseChange.Y := MouseChange.Y * MouseLookVerticalSensitivity;
       ProcessMouseLookDelta(MouseChange);
-      Result := ExclusiveEvents;
+      Result := true;
     end;
   end;
 
@@ -3864,7 +3864,7 @@ begin
   begin
     if niNormal in UsingInput then
     begin
-      HandleInput := not ExclusiveEvents;
+      HandleInput := false;
       FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
 
       if (not CheckModsDown) or
@@ -3920,7 +3920,7 @@ begin
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
        (MouseDragMode = mdWalk) then
     begin
-      HandleInput := not ExclusiveEvents;
+      HandleInput := false;
       MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
     end;
   end;
@@ -3997,9 +3997,61 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
     Camera.SetWorldView(OldPosition, NewDirection, NewUp, false);
   end;
 
-const
-  MouseWheelScrollSpeed = Pi * 3 / 180.0;
-  PretendSecondsPassed = 1 / 30;
+  procedure HandleMouseWheelPress;
+  const
+    PretendSecondsPassed = 1 / 30;
+  var
+    RotationsSpeedScale: Single;
+  begin
+    { Inputs below are handled also in TCastleWalkNavigation.Update.
+      But the mouse wheel is never in a pressed state, so it cannot be handled in Update.
+      So we handle pressing on mouse wheel in a special way here.
+
+      TODO: A more generic mechanism for handling mouse wheel would be nice, so we don't
+      need to double handling of everything for mouse wheel?  }
+
+    if Input_MoveSpeedInc.IsEvent(Event) then
+    begin
+      MoveSpeedInc(PretendSecondsPassed);
+      Result := true;
+    end;
+
+    if Input_MoveSpeedDec.IsEvent(Event) then
+    begin
+      MoveSpeedDec(PretendSecondsPassed);
+      Result := true;
+    end;
+
+    if Container.Pressed.Modifiers = [mkCtrl] then
+      RotationsSpeedScale := 0.1
+    else
+      RotationsSpeedScale := 1.0;
+
+    if Input_RightRotate.IsEvent(Event) then
+    begin
+      RotateHorizontal(-RotationHorizontalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := true;
+    end;
+
+    if Input_LeftRotate.IsEvent(Event) then
+    begin
+      RotateHorizontal(+RotationHorizontalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := true;
+    end;
+
+    if Input_UpRotate.IsEvent(Event) then
+    begin
+      RotateVertical(+RotationVerticalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := true;
+    end;
+
+    if Input_DownRotate.IsEvent(Event) then
+    begin
+      RotateVertical(-RotationVerticalSpeed * PretendSecondsPassed * RotationsSpeedScale);
+      Result := true;
+    end;
+  end;
+
 begin
   Result := inherited;
   if Result then Exit;
@@ -4025,28 +4077,17 @@ begin
   if Input_GravityUp.IsEvent(Event) then
   begin
     SetUpToGravityUp;
-    Result := Result and ExclusiveEvents;
+    Result := true;
   end;
 
   if Input_Jump.IsEvent(Event) then
   begin
-    Result := Jump and Result and ExclusiveEvents;
+    if Jump then
+      Result := true;
   end;
 
-  { Input_MoveSpeedInc/Dec are handled in Update, usually.
-    But the mouse wheel is never is pressed state, so it cannot be handled in Update
-    -- we handle it here. }
-  if Input_MoveSpeedInc.IsEvent(Event) and (Event.EventType = itMouseWheel) then
-  begin
-    MoveSpeedInc(PretendSecondsPassed);
-    Result := Result and ExclusiveEvents;
-  end;
-
-  if Input_MoveSpeedDec.IsEvent(Event) and (Event.EventType = itMouseWheel) then
-  begin
-    MoveSpeedDec(PretendSecondsPassed);
-    Result := Result and ExclusiveEvents;
-  end;
+  if Event.EventType = itMouseWheel then
+    HandleMouseWheelPress;
 end;
 
 procedure TCastleWalkNavigation.MoveSpeedInc(const SecondsPassed: Single);
@@ -4248,7 +4289,7 @@ begin
     (not InternalUsingMouseLook) then
   begin
     HandleMouseDrag;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 

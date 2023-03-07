@@ -26,15 +26,19 @@ uses
 type
   TTestCastleScriptVectors = class(TCastleTestCase)
   published
+    {$ifdef CASTLE_SCRIPT_FPC}
     procedure TestVecSingle;
     procedure TestVecDouble;
     procedure TestMatrixSingle;
+    {$endif CASTLE_SCRIPT_FPC}
   end;
 
 implementation
 
 uses CastleVectors, CastleScript, CastleScriptLexer, CastleScriptParser,
   CastleStringUtils, CastleFilesUtils, CastleScriptVectors, CastleClassUtils, Math;
+
+{$ifdef CASTLE_SCRIPT_FPC}
 
 procedure TTestCastleScriptVectors.TestVecSingle;
 var
@@ -269,6 +273,8 @@ begin
     FreeAndNil(Vars);
   end;
 end;
+
+{$endif CASTLE_SCRIPT_FPC}
 
 initialization
   RegisterTest(TTestCastleScriptVectors);

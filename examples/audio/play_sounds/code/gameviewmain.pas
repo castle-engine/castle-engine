@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,9 +23,14 @@ uses Classes, Generics.Collections,
   CastleUIControls, CastleComponentSerialize, CastleControls, CastleSoundEngine;
 
 type
-  { Main user interface class.
-    This implements the majority of this application functionality. }
+  { Main view, with the main application logic. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelPlayingSounds: TCastleLabel;
+    GroupSoundBuffers, GroupPlayingSounds: TCastleVerticalGroup;
+    ButtonExit: TCastleButton;
   private
     type
       TButtonSound = class(TCastleButton)
@@ -53,9 +58,6 @@ type
 
     var
       PlayingSoundUiTemplate: TSerializedComponent;
-      LabelPlayingSounds: TCastleLabel;
-      GroupSoundBuffers, GroupPlayingSounds: TCastleVerticalGroup;
-      ButtonExit: TCastleButton;
       PlayingSoundUiOwners: TPlayingSoundUiOwnerList;
     procedure ClickExit(Sender: TObject);
     procedure ClickPlayBuffer(Sender: TObject);
@@ -191,12 +193,6 @@ begin
   inherited;
 
   PlayingSoundUiOwners := TPlayingSoundUiOwnerList.Create(false);
-
-  { Find useful components by name }
-  LabelPlayingSounds := DesignedComponent('LabelPlayingSounds') as TCastleLabel;
-  GroupSoundBuffers := DesignedComponent('GroupSoundBuffers') as TCastleVerticalGroup;
-  GroupPlayingSounds := DesignedComponent('GroupPlayingSounds') as TCastleVerticalGroup;
-  ButtonExit := DesignedComponent('ButtonExit') as TCastleButton;
 
   LabelPlayingSounds.Caption := Format('Currently playing sounds (max %d):',
     [SoundEngine.MaxAllocatedSources]);

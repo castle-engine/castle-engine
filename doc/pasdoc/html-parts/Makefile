@@ -26,9 +26,13 @@ images:
 	rm -Rf images
 	mkdir -p images
 	cp -Rf $(CGE_WWW_PATH)htdocs/images/header_icon.png \
-	       $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon.png \
-	       $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon_fit_in_square.png \
 	       $(CGE_WWW_PATH)htdocs/images/patreon-brand \
+	       images/
+# The $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon* are symlinks now,
+# copy instead the actual files to make things simple for distributing these API docs.
+	cp -f  $(CGE_WWW_PATH)htdocs/images/not_resized_original/castle_game_engine_icon.png \
+	       images/
+	cp -f  $(CGE_WWW_PATH)htdocs/images/not_resized_original/castle_game_engine_icon_fit_in_square.png \
 	       images/
 
 castle-engine-website-base:

@@ -23,6 +23,6 @@ In particular:
 
     The effort to show a "new way" is already started -- see `examples/isometric_game` for a new version. We only keep this deprecated version to show alternative rendering method.
 
-- `fixed_camera_game/` sets up a specialized rendering using code. This can be now largely designed in CGE editor and be much more flexible. Also the example uses castle-anim-frames for animations, you should rather use glTF now.
+- `fixed_camera_game/` sets up a specialized rendering using code. This can be now largely designed in CGE editor and be much more flexible.
 
 - `joystick/` uses UI not designed in editor. Also it shows a complicated joystick API, that we hope to improve in near future. Reading joystick axis and button should be easier, and account for various joystick types better.

@@ -3,10 +3,6 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 /* PLUG-DECLARATIONS */
 
 #ifdef HAS_GEOMETRY_SHADER

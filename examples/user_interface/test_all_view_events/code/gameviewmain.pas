@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     RootGroup: TCastleUserInterface;
     LabelFps: TCastleLabel;
     Timer: TCastleTimer;
@@ -35,8 +36,7 @@ type
     LabelMousePressed: TCastleLabel;
     LabelTouches: TCastleLabel;
     LabelModifierKeys: TCastleLabel;
-
-    { Other }
+  private
     Notifications: TCastleNotifications;
     procedure DoTimer(Sender: TObject);
   public
@@ -68,16 +68,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  RootGroup := DesignedComponent('RootGroup') as TCastleUserInterface;
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Timer := DesignedComponent('Timer') as TCastleTimer;
-  LabelCharsPressed := DesignedComponent('LabelCharsPressed') as TCastleLabel;
-  LabelKeysPressed := DesignedComponent('LabelKeysPressed') as TCastleLabel;
-  LabelMousePressed := DesignedComponent('LabelMousePressed') as TCastleLabel;
-  LabelTouches := DesignedComponent('LabelTouches') as TCastleLabel;
-  LabelModifierKeys := DesignedComponent('LabelModifierKeys') as TCastleLabel;
 
   { Add TCastleNotifications from code, as for now we don't expose them in editor. }
   Notifications := TCastleNotifications.Create(FreeAtStop);
@@ -122,10 +112,10 @@ begin
     'w': Container.OverrideCursor := mcWait;
     's': Container.OverrideCursor := mcResizeHorizontal;
     { setting mouse position tests: }
-    '1': Container.MousePosition := Vector2(0                  , 0);
+    '1': Container.MousePosition := Vector2(0                 , 0);
     '2': Container.MousePosition := Vector2(Container.Width    , 0);
     '3': Container.MousePosition := Vector2(Container.Width    , Container.Height);
-    '4': Container.MousePosition := Vector2(0                  , Container.Height);
+    '4': Container.MousePosition := Vector2(0                 , Container.Height);
     '5': Container.MousePosition := Vector2(Container.Width / 2, Container.Height / 2);
     { test TCastleWindow.MessageXxx }
     'm': W.MessageOK('Test information.', mtInfo);

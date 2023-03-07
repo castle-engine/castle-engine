@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -336,7 +336,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
   var
     SkinCoord: TVector3List;
     I, J: Integer;
-    SkinCoordIndex: TLongIntList;
+    SkinCoordIndex: TInt32List;
     CoordIndex: Integer;
     Weight: Single;
     Joint: THAnimJointNode;

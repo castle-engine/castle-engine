@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -529,10 +529,12 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
+{$warnings off} // using deprecated CastleProgress in deprecated
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
   CastleFilesUtils, CastleInternalNodeInterpolator, CastleURIUtils;
+{$warnings on}
 
 var
   UnitFinalization: Boolean;

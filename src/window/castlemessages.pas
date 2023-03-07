@@ -281,6 +281,7 @@ function MessageInputQueryCardinalHex(Window: TCastleWindow; const Title: string
   const Html: boolean = false): boolean;
 
 { Ask user to input a floating-point number.
+  Number can use CastleScript expressions, so e.g. "1/30", "2+2" or "pi/2" are allowed too.
 
   If you give non-empty ValueAsString, it will be used to show
   the initial value for the user. Otherwise, we will just show
@@ -365,7 +366,7 @@ implementation
 
 uses SysUtils,
   CastleImages, CastleClassUtils, CastleInternalWindowModes, CastleLog,
-  CastleUIControls, CastleDialogViews;
+  CastleUIControls, CastleDialogViews, CastleScriptParser;
 
 { MessageCore ---------------------------------------------------------------- }
 
@@ -822,7 +823,7 @@ begin
   if MessageInputQuery(Window, Title, S, 0, 0, AllChars, Alignment, Html) then
   begin
     try
-      Value := StrToFloatDot(s);
+      Value := ParseConstantFloatExpression(s);
       Result := true;
     except
       on E: EConvertError do

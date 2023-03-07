@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,13 +25,14 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonAnimatedCursor: TCastleButton;
     ButtonImageCursor: TCastleButton;
     ButtonDefaultCursor: TCastleButton;
-
+  private
     procedure ClickAnimatedCursor(Sender: TObject);
     procedure ClickImageCursor(Sender: TObject);
     procedure ClickDefaultCursor(Sender: TObject);
@@ -60,12 +61,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonAnimatedCursor := DesignedComponent('ButtonAnimatedCursor') as TCastleButton;
-  ButtonImageCursor := DesignedComponent('ButtonImageCursor') as TCastleButton;
-  ButtonDefaultCursor := DesignedComponent('ButtonDefaultCursor') as TCastleButton;
 
   ButtonAnimatedCursor.OnClick := {$ifdef FPC}@{$endif} ClickAnimatedCursor;
   ButtonImageCursor.OnClick := {$ifdef FPC}@{$endif} ClickImageCursor;

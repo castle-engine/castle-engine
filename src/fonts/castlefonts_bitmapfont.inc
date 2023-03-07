@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -353,7 +353,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
     CharIndex := C - Ord(' ');  // TODO: check that

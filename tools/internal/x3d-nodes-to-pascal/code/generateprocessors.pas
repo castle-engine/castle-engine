@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile && cd .. && ./run.sh" -*-
 {
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -526,8 +526,8 @@ begin
   end else
   if X3DType = 'MFInt32' then
   begin
-    Names.Add('array of LongInt');
-    Names.Add('TLongIntList');
+    Names.Add('array of Int32');
+    Names.Add('TInt32List');
   end else
   if X3DType = 'MFBool' then
   begin

@@ -30,7 +30,7 @@ uses
   CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
   CastleLocalization, CastleLocalizationFileLoader,
   CastleSceneManager, Castle3D, Castle2DSceneManager,
-  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
+  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer,
   CastleSoundAllocator, CastleOnScreenMenu, CastleProgress, CastleProgressConsole,
   CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources,
   CastleMaterialProperties, CastleUIState, CastleDialogStates;

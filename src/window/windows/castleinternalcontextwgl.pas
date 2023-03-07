@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,12 +28,13 @@ type
   TGLContextWGL = class(TGLContext)
   private
     HasDoubleBuffer: Boolean;
+    class var
+      WndClassName: UnicodeString;
+    class procedure NeedsWndClassName;
   public
     // Set this before using ContextCreate and other methods
     WndPtr: HWND;
     h_Dc: HDC;
-    WindowCaption: String;
-    WndClassName: UnicodeString;
 
     // Created by ContextCreate, destroyed by ContextDestroy
     h_GLRc: HGLRC;
@@ -47,11 +48,13 @@ type
 implementation
 
 uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleUtils, CastleStringUtils, CastleGLUtils, CastleLog;
+  CastleUtils, CastleStringUtils, CastleGLUtils, CastleInternalGLUtils, CastleLog;
 
 { TGLContextWGL -------------------------------------------------------------- }
 
 procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements);
+var
+  Has_WGL_ARB_create_context, Has_WGL_ARB_create_context_profile: Boolean;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -66,7 +69,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     SetPixelFormat_ClassicChoose. }
   procedure SetPixelFormat_ClassicChoose;
   var
-    PixelFormat: LongInt;
+    PixelFormat: Int32;
     pfd: Tpixelformatdescriptor;
   begin
     FillChar(pfd, SizeOf(pfd), 0);
@@ -82,20 +85,12 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
       cAlphaBits := Requirements.AlphaBits;
       cDepthBits := Requirements.DepthBits;
       cStencilBits := Requirements.StencilBits;
-      { Note: cAccumRed/Green/Blue/AlphaBits are ignored.
-        We have to use (less functional) cAccumBits. }
-      {$warnings off} // using AccumBits to keep them working for now
-      cAccumBits := RoundUpToMultiply(Requirements.AccumBits[0], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[1], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[2], 8) +
-                    RoundUpToMultiply(Requirements.AccumBits[3], 8);
-      {$warnings on}
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
     PixelFormat := Windows.ChoosePixelFormat(h_Dc, {$ifndef FPC}@{$endif}pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
-    { Check if we got required AlphaBits, DepthBits, StencilBits, FAccumBits -
+    { Check if we got required AlphaBits, DepthBits, StencilBits -
       because ChoosePixelFormat doesn't guarantee it.
 
       In the future, I may switch to using SetPixelFormat_WGLChoose by default.
@@ -136,9 +131,11 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
 
     procedure CreateTemporaryWindow;
     var
-      PixelFormat: LongInt;
+      PixelFormat: Int32;
       pfd: Tpixelformatdescriptor;
     begin
+      NeedsWndClassName;
+
       Temp_h_Wnd := 0;
       Temp_h_Dc := 0;
       Temp_h_GLRc := 0;
@@ -147,12 +144,12 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
         { create Temp_H_wnd }
         Temp_H_wnd := CreateWindowExW(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
           PWideChar(WndClassName),
-          PWideChar(StringToUtf16(WindowCaption + ' - temporary window for wgl')),
+          PWideChar(StringToUtf16('Temporary window to query WGL extensions')),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
           nil { don't pass anything to WM_CREATE } );
-        Check( Temp_H_Wnd <> 0, 'CreateWindowEx failed');
+        Check( Temp_H_Wnd <> 0, 'Creating temporary window (CreateWindowExW) to query WGL extensions failed');
 
         { create Temp_h_Dc }
         Temp_h_Dc := GetDC(Temp_h_Wnd);
@@ -208,19 +205,9 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
 
   var
     WglExtensions: string;
-
-    { GLExt unit doesn't provide this (although it provides related
-      constants, like WGL_SAMPLE_BUFFERS_ARB). I like to check for this
-      explicitly. }
-    function Load_WGL_ARB_multisample: Boolean;
-    begin
-      Result := glext_ExtensionSupported('WGL_ARB_multisample', WglExtensions);
-    end;
-
-  var
-    PixelFormat: LongInt;
+    PixelFormat: Int32;
     ReturnedFormats: UINT;
-    VisualAttr: TLongIntList;
+    VisualAttr: TInt32List;
     VisualAttrFloat: array [0..1] of Single;
     Success: WINBOOL;
   begin
@@ -232,22 +219,21 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
 
       if Load_WGL_ARB_extensions_string then
       begin
-        { Actually, there is no critical reason for me to check
-          WGL_ARB_extensions_string (as every other Load_WGL_Xxx will
-          check it for me anyway).
-
-          1. But I want to show WglExtensions for debug purposes.
-          2. And I want to implement Load_WGL_ARB_multisample, and reuse
-             my acquired WglExtensions there. }
+        { There is no critical reason to keep reusing WglExtensions,
+          instead each Load_WGL_Xxx could call it again.
+          But it looks simpler to reuse it. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
+        // WritelnLog('wgl', 'Extensions: ' + WglExtensions);  // too verbose
+
+        Has_WGL_ARB_create_context := Load_WGL_ARB_create_context(WglExtensions);
+        Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile(WglExtensions);
 
         if Load_WGL_ARB_pixel_format then
         begin
           { Ok, wglChoosePixelFormatARB is available }
 
-          VisualAttr := TLongIntList.Create;
+          VisualAttr := TInt32List.Create;
           try
             VisualAttr.AddRange([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
@@ -258,23 +244,18 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
             if Requirements.DoubleBuffer then
               VisualAttr.AddRange([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
-            {$warnings off} // using AccumBits to keep them working for now
             VisualAttr.AddRange([
               WGL_RED_BITS_ARB, Requirements.RedBits,
               WGL_GREEN_BITS_ARB, Requirements.GreenBits,
               WGL_BLUE_BITS_ARB, Requirements.BlueBits,
               WGL_DEPTH_BITS_ARB, Requirements.DepthBits,
               WGL_STENCIL_BITS_ARB, Requirements.StencilBits,
-              WGL_ALPHA_BITS_ARB, Requirements.AlphaBits,
-              WGL_ACCUM_RED_BITS_ARB, Requirements.AccumBits[0],
-              WGL_ACCUM_GREEN_BITS_ARB, Requirements.AccumBits[1],
-              WGL_ACCUM_BLUE_BITS_ARB, Requirements.AccumBits[2],
-              WGL_ACCUM_ALPHA_BITS_ARB, Requirements.AccumBits[3] ]);
-            {$warnings on}
+              WGL_ALPHA_BITS_ARB, Requirements.AlphaBits
+            ]);
 
             if Requirements.MultiSampling > 1 then
             begin
-              if Load_WGL_ARB_multisample then
+              if Load_WGL_ARB_multisample(WglExtensions) then
               begin
                 VisualAttr.AddRange([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
@@ -326,41 +307,82 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     finally DestroyTemporaryWindow end;
   end;
 
+  procedure UseCreateContextAttribsARB;
+  var
+    Attribs: TInt32List;
+    ShareContextGlrc: HGLRC;
+  begin
+    // WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good'); // too verbose
+
+    Attribs := TInt32List.Create;
+    try
+      { Select 3.2 core context.
+        See https://registry.khronos.org/OpenGL/extensions/ARB/WGL_ARB_create_context.txt
+        https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) }
+      if TGLFeatures.RequestCapabilities = rcForceModern then
+      begin
+        Attribs.AddRange([
+          WGL_CONTEXT_MAJOR_VERSION_ARB, TGLFeatures.ModernVersionMajor,
+          WGL_CONTEXT_MINOR_VERSION_ARB, TGLFeatures.ModernVersionMinor,
+          WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB
+          { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
+            forward-compatible really only makes sense on macOS.
+            The "core" profile is what should be just used with new OpenGLs on sane
+            (non-macOS) platforms. }
+          //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        ]);
+      end;
+      { Select debug context.
+        Note that the implementation assumes nothing above passes WGL_CONTEXT_FLAGS_ARB. }
+      if TGLFeatures.Debug then
+      begin
+        Attribs.AddRange([
+          WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB
+        ]);
+      end;
+      Attribs.AddRange([0]);
+      Assert(SizeOf(TGLint) = SizeOf(Int32)); // make sure Attribs match PGLint type
+
+      if SharedContext <> nil then
+        ShareContextGlrc := (SharedContext as TGLContextWGL).h_GLRc
+      else
+        ShareContextGlrc := 0;
+
+      h_GLRc := wglCreateContextAttribsARB(h_Dc, ShareContextGlrc, PGLint(Attribs.List));
+      OSCheck(h_GLRc <> 0, 'wglCreateContextAttribsARB');
+    finally FreeAndNil(Attribs) end;
+  end;
+
+  procedure UseCreateContext;
+  begin
+    { create gl context and make it current }
+    h_GLRc := wglCreateContext(h_Dc);
+    OSCheck(h_GLRc <> 0, 'wglCreateContext');
+
+    { We need wglShareLists.
+      Testcase: see if examples/window/multi_window.lpr
+      shows font in all windows. }
+    if SharedContext <> nil then
+      OSCheck(wglShareLists((SharedContext as TGLContextWGL).h_GLRc, h_GLRc), 'wglShareLists');
+  end;
+
 begin
   HasDoubleBuffer := Requirements.DoubleBuffer;
 
-  { Actually, everything is implemented such that I can just call
-    here SetPixelFormat_WGLChoose. SetPixelFormat_WGLChoose will eventually
-    fall back to SetPixelFormat_ClassicChoose, if needed.
+  // will be initialized once SetPixelFormat_WGLChoose has a temporary context
+  Has_WGL_ARB_create_context := false;
+  Has_WGL_ARB_create_context_profile := false;
 
-    For now, SetPixelFormat_ClassicChoose is simply more tested, and
-    SetPixelFormat_WGLChoose is needed only in case of multi-sampling.
-    So, to play it safe, for view3dscene 2.4.0 and engine 1.3.0 release
-    I just call SetPixelFormat_WGLChoose only if multisampling is requested.
-
-    So in the future I may simplify this "if" to just call SetPixelFormat_WGLChoose
-    always. }
-  if Requirements.MultiSampling > 1 then
-    SetPixelFormat_WGLChoose
-  else
-    SetPixelFormat_ClassicChoose;
+  SetPixelFormat_WGLChoose;
 
   if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
-    raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
+    raise EGLContextNotPossible.Create('This device is paletted, bad display settings');
 
-  { TODO: below we should enable context sharing.
-    If WGL_ARB_create_context_profile is available, then we can use
-    wglCreateContextAttribsARB instead of wglCreateContext.
-    Otherwise, we still use wglCreateContext but follow with wglShareLists.
-    Testcase: see if examples/window/multi_window.lpr
-    shows font in all windows. }
-
-  { create gl context and make it current }
-  h_GLRc := wglCreateContext(h_Dc);
-  OSCheck(h_GLRc <> 0, 'wglCreateContext');
-
-  if SharedContext <> nil then
-    OSCheck(wglShareLists((SharedContext as TGLContextWGL).h_GLRc, h_GLRc), 'wglShareLists');
+  if Has_WGL_ARB_create_context and
+     Has_WGL_ARB_create_context_profile then
+    UseCreateContextAttribsARB
+  else
+    UseCreateContext;
 end;
 
 procedure TGLContextWGL.ContextDestroy;
@@ -399,6 +421,36 @@ begin
     Windows.SwapBuffers(h_Dc)
   else
     glFlush();
+end;
+
+{ Handler for events for our temporary window.
+  Does nothing for now, we could as well pass
+    WindowClass.lpfnWndProc := @DefWindowProcW;
+  but maybe there will be a need to handle something here some day. }
+function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT; stdcall;
+begin
+  result := DefWindowProcW(hWnd, uMsg, wParm, lParm);
+end;
+
+class procedure TGLContextWGL.NeedsWndClassName;
+var
+  WindowClass: TWndClassW;
+begin
+  if WndClassName = '' then
+  begin
+    { Register minimal window class, just to create temporary WinAPI window
+      to query WGL extensions.
+      See https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) }
+
+    WndClassName := 'TGLContextWGL';
+
+    FillChar(WindowClass, SizeOf(WindowClass), 0);
+    WindowClass.style := CS_OWNDC;
+    WindowClass.lpfnWndProc := @WndProc;
+    WindowClass.hInstance := hInstance;
+    WindowClass.lpszClassName := PWideChar(WndClassName);
+    OSCheck( RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  end;
 end;
 
 end.

@@ -22,14 +22,17 @@
         "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
@@ -88,7 +91,10 @@
           "Text" : [
             "Another label, with different bitmap font."
           ],
-          "VerticalAnchorDelta" : -6.2000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.1999996185302734E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$NonVisualComponents" : [
@@ -113,7 +119,6 @@
           },
           "CustomFont" : "FontDejaVuSans",
           "FontSize" : 3.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelDejaVu",
@@ -122,7 +127,10 @@
             "DejaVuSans font (from TTF file)",
             "with anti-aliasing."
           ],
-          "VerticalAnchorDelta" : -9.4857147216796875E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -9.4857139587402344E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$NonVisualComponents" : [
@@ -144,7 +152,6 @@
           },
           "CustomFont" : "FontDejaVuSansLarger",
           "FontSize" : 3.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelDejaVuLarger",
@@ -153,7 +160,10 @@
             "DejaVuSans font",
             "with anti-aliasing and larger OptimalSize, looks sharper at larger sizes."
           ],
-          "VerticalAnchorDelta" : -1.7835714721679688E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.7835713195800781E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$NonVisualComponents" : [
@@ -176,7 +186,6 @@
           },
           "CustomFont" : "FontDejaVuSansLarger",
           "FontSize" : 3.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelDejaVuLargerOutline",
@@ -191,7 +200,10 @@
             "DejaVuSans font",
             "with anti-aliasing and larger OptimalSize and Outline."
           ],
-          "VerticalAnchorDelta" : -2.6135714721679688E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.6135711669921875E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -206,7 +218,6 @@
           },
           "CustomFont" : "FontDejaVuSansNoAa",
           "FontSize" : 2.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelDejaVuNoAa",
@@ -215,7 +226,10 @@
             "DejaVuSans font",
             "without anti-aliasing."
           ],
-          "VerticalAnchorDelta" : -3.5160516357421875E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.5177310180664062E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$NonVisualComponents" : [
@@ -237,7 +251,6 @@
           },
           "CustomFont" : "FontParpg",
           "FontSize" : 3.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelParpg",
@@ -245,7 +258,10 @@
           "Text" : [
             "Stylish \"old typewriter\" font (from TTF file)."
           ],
-          "VerticalAnchorDelta" : -4.1460516357421875E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.1477310180664062E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$NonVisualComponents" : [
@@ -259,6 +275,16 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 2.0000000000000000E+000
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -267,7 +293,6 @@
           },
           "CustomFont" : "FontDejaVuSans",
           "FontSize" : 3.0000000000000000E+001,
-          "Frame" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "MaxWidth" : 9.0000000000000000E+002,
@@ -280,7 +305,10 @@
             "",
             "Use MaxWidth to set the width limit, at which text is broken."
           ],
-          "VerticalAnchorDelta" : -4.6560516357421875E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.6577310180664062E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }

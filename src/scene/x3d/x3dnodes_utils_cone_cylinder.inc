@@ -111,9 +111,9 @@ end;
   @param(TopRadius Radius of the upper cap.
     May be = 0, then Top does not matter (we'll never make
     a top cap in this case.)) }
-procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
+procedure CylinderCone_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Normal: TVector3List;
-  TexCoord: TVector2List; MaterialIndex: TLongIntList;
+  TexCoord: TVector2List; MaterialIndex: TInt32List;
   const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   const QuadricSlices, QuadricStacks: Cardinal);
@@ -548,7 +548,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   ShapeHints: TShapeHintsNode_1;
   MaterialBinding: TMaterialBindingNode_1;
-  MaterialIndex: TLongIntList;
+  MaterialIndex: TInt32List;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
   IFS := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);
@@ -620,7 +620,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   ShapeHints: TShapeHintsNode_1;
   MaterialBinding: TMaterialBindingNode_1;
-  MaterialIndex: TLongIntList;
+  MaterialIndex: TInt32List;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
   IFS := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);

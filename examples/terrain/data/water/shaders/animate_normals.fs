@@ -4,7 +4,9 @@
 
 varying vec4 water_vertex_object;
 uniform float time;
-uniform mat3 castle_NormalMatrix;
+
+// OpenGLES requires this, otherwise error: precision mismatch between shaders for uniform (named castle_NormalMatrix)
+uniform highp mat3 castle_NormalMatrix;
 
 // Declare snoise from noise3Dgrad.glsl .
 float snoise(vec3 v, out vec3 gradient);

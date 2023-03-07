@@ -1528,7 +1528,19 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
   end;
 
 var
-  EditorExe, NewEditorExe, EditorPath: String;
+  EditorPath: String;
+
+  function GetEditorExe(const Suffix: String): String;
+  begin
+    Result := EditorPath + 'castle-editor' + Suffix + ExeExtension;
+    {$ifdef DARWIN}
+    // on macOS, run new editor through app bundle
+    Result := Result + '.app/Contents/MacOS/castle-editor' + Suffix;
+    {$endif}
+  end;
+
+var
+  EditorExe{$ifndef DARWIN}, NewEditorExe{$endif}: String;
   NewEnvironment: TStringList;
 begin
   {$ifdef UNIX}
@@ -1554,17 +1566,24 @@ begin
       to not block EXE and DLL files on Windows. }
     AddExternalLibraries(EditorPath);
 
-    NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
-    if not RegularFileExists(NewEditorExe) then
-      raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
-
     {$ifdef DARWIN}
-    // on macOS, run new editor through app bundle
-    EditorExe := NewEditorExe + '.app/Contents/MacOS/castle-editor-new';
+    { on macOS, run new editor through app bundle.
+      We never rename it (no need to, and this is simplest), it always remains with -new suffix). }
+    EditorExe := GetEditorExe('-new');
     {$else}
-    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    CheckRenameFile(NewEditorExe, EditorExe);
+    NewEditorExe := GetEditorExe('-new');
+    EditorExe := GetEditorExe('');
+    { Rename NewEditorExe -> EditorExe.
+      If you use DoEditorRebuildIfNeeded + DoEditorRun, the NewEditorExe must exist.
+      But if you directly use DoEditorRun (e.g. using "Run Last Editor" from CGE editor)
+      then NewEditorExe may not exist. }
+    if RegularFileExists(NewEditorExe) then
+      CheckRenameFile(NewEditorExe, EditorExe);
     {$endif}
+
+    // whether we renamed NewEditorExe or not, whether it's in macOS bundle or not, it must exist
+    if not RegularFileExists(EditorExe) then
+      raise Exception.Create('Editor should be compiled, but we cannot find file "' + EditorExe + '"');
 
     { When running custom editor build, we must make sure it can find CGE location,
       in particular so it can find editor's data (which means InternalCastleDesignData

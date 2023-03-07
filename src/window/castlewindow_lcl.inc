@@ -539,7 +539,7 @@ begin
 
   GetInitialCursorPos;
 
-  FDpi := Screen.PixelsPerInch;
+  Container.Dpi := Screen.PixelsPerInch;
 end;
 
 const

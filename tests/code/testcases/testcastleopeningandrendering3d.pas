@@ -64,7 +64,7 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties,
-  CastleTransform;
+  CastleTransform, CastleInternalGLUtils;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
