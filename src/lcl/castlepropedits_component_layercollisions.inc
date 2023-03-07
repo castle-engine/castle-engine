@@ -24,7 +24,6 @@ type
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
-  public
   end;
 
   { Property editor for choosing physics layer in rigid body }
