@@ -16,8 +16,6 @@
 
 { TCastle property editor. }
 
-{ TLayerCollisionsPropertyEditor ------------------------------------------ }
-
 type
 
   { Property editor for layer collisions }
@@ -29,6 +27,18 @@ type
   public
   end;
 
+  { Property editor for choosing physics layer in rigid body }
+  TPhysicsLayerPropertyEditor = class (TOrdinalPropertyEditor)
+  strict private
+    function GetLayerName(OrdValue: LongInt): String;
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    function OrdValueToVisualValue(OrdValue: LongInt): string; override;
+    procedure GetValues(Proc: TGetStrProc); override;
+    procedure SetValue(const NewValue: ansistring); override;
+  end;
+
+{ TLayerCollisionsPropertyEditor --------------------------------------------- }
 
 function TLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
@@ -54,50 +64,38 @@ begin
   end;
 end;
 
-{ TLayerPropertyEditor ------------------------------------------------------- }
+{ TPhysicsLayerPropertyEditor ------------------------------------------------ }
 
-type
+function TPhysicsLayerPropertyEditor.GetLayerName(OrdValue: LongInt): String;
+var
+  RigidBody: TCastleRigidBody;
+  Transform: TCastleTransform;
+begin
+  { We assume that Layer property is in TCastleRigidBody }
+  if (GetInstProp^.Instance = nil ) then
+    Exit('');
 
-  TLayerPropertyEditor = class (TOrdinalPropertyEditor)
-  strict private
-    function GetLayerName(OrdValue: LongInt): String;
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    function OrdValueToVisualValue(OrdValue: LongInt): string; override;
-    procedure GetValues(Proc: TGetStrProc); override;
-    procedure SetValue(const NewValue: ansistring); override;
-  end;
+  if not (GetInstProp^.Instance is TCastleRigidBody) then
+    Exit('');
 
-  function TLayerPropertyEditor.GetLayerName(OrdValue: LongInt): String;
-  var
-    RigidBody: TCastleRigidBody;
-    Transform: TCastleTransform;
-  begin
-    if (GetInstProp^.Instance = nil ) then
-      Exit('');
+  RigidBody := GetInstProp^.Instance as TCastleRigidBody;
+  Transform := RigidBody.Parent;
 
-    if not (GetInstProp^.Instance is TCastleRigidBody) then
-      Exit('');
+  if (Transform = nil) or (Transform.World = nil) then
+    Exit('');
 
-    RigidBody := GetInstProp^.Instance as TCastleRigidBody;
-    Transform := RigidBody.Parent;
+  if Transform.World.PhysicsProperties.LayerNames.Count <= OrdValue then
+    Exit('');
 
-    if (Transform = nil) or (Transform.World = nil) then
-      Exit('');
+  Result := Transform.World.PhysicsProperties.LayerNames[OrdValue];
+end;
 
-    if Transform.World.PhysicsProperties.LayerNames.Count <= OrdValue then
-      Exit('');
+function TPhysicsLayerPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paValueList, paRevertable];
+end;
 
-    Result := Transform.World.PhysicsProperties.LayerNames[OrdValue];
-  end;
-
-  function TLayerPropertyEditor.GetAttributes: TPropertyAttributes;
-  begin
-    Result := [paValueList, paRevertable];
-  end;
-
-
-function TLayerPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): string;
+function TPhysicsLayerPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): string;
 var
   L: Longint;
 begin
@@ -105,7 +103,7 @@ begin
   Result := IntToStr(L) + ': ' + GetLayerName(L);
 end;
 
-procedure TLayerPropertyEditor.GetValues(Proc: TGetStrProc);
+procedure TPhysicsLayerPropertyEditor.GetValues(Proc: TGetStrProc);
 var
   I: Integer;
 begin
@@ -113,7 +111,7 @@ begin
     Proc(IntToStr(I) + ': ' + GetLayerName(I));
 end;
 
-procedure TLayerPropertyEditor.SetValue(const NewValue: ansistring);
+procedure TPhysicsLayerPropertyEditor.SetValue(const NewValue: ansistring);
 var
   ColonPos: Integer;
   StringValue: AnsiString;

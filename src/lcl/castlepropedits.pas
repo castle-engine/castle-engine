@@ -186,7 +186,7 @@ begin
     TConnectedPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(TPhysicsLayer), nil,  '',
-    TLayerPropertyEditor);
+    TPhysicsLayerPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(TCastleLayerCollisions), nil,  '',
     TLayerCollisionsPropertyEditor);
