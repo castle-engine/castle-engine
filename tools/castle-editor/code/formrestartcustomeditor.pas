@@ -52,7 +52,10 @@ begin
   else
     ButtonRunLastEditor.Caption := 'Run Last Build Editor (not found)';
 
-  ClientHeight := LabelCaption.Top + LabelCaption.Height + ButtonsMargin + ButtonPanel1.Height;
+  ClientHeight := Round(
+    (LabelCaption.Top + LabelCaption.Height + ButtonsMargin + ButtonPanel1.Height) *
+    PixelsPerInch / DesignTimePPI
+  );
 end;
 
 end.
