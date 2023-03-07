@@ -600,7 +600,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation,
+  FormSystemInformation, FormRestartCustomEditor,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
@@ -2236,8 +2236,7 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 
 var
   ListItem: TListItem;
-  FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr, ProjectDataUrl: String;
+  DesignFileName, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
@@ -2269,11 +2268,7 @@ begin
     ListItem := ListOpenExistingView.Items.Add;
     ListItem.Caption := ShortDesignName(DesignFileName);
     ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    if FileAge(DesignFileName, FileDateTime) then
-      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
-    else
-      FileDateTimeStr := 'Unknown';
-    ListItem.SubItems.Append(FileDateTimeStr);
+    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
   end;
 end;
 
@@ -3357,12 +3352,12 @@ begin
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then
   begin
-    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
-          'Rebuild and restart editor with custom components?', [
-          ProjectName
-        ])) then
-      MenuItemRestartRebuildEditorClick(nil);
-      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+    RestartCustomEditorForm.Initialize(ProjectName, ProjectPath);
+    case RestartCustomEditorForm.ShowModal of
+      mrOK: MenuItemRestartRebuildEditorClick(nil);
+      mrYesToAll: RestartEditor(nil);
+    end;
+    //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
 end;
 

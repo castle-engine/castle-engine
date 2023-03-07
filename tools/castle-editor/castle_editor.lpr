@@ -45,7 +45,7 @@ uses
   DataModuleIcons, FormImportAtlas, FormImportStarling, FormNewUnit,
   EditorCodeTools, CastleShellCtrls, FormSystemInformation,
   CastleComponentEditorDesigner, DesignCameraPreview, DesignObjectInspector,
-  DesignUndoSystem;
+  DesignUndoSystem, FormRestartCustomEditor;
 
 {$I request_dedicated_gpu.inc}
 
@@ -78,5 +78,6 @@ begin
   Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
   Application.CreateForm(TImportStarlingForm, ImportStarlingForm);
   Application.CreateForm(TNewUnitForm, NewUnitForm);
+  Application.CreateForm(TRestartCustomEditorForm, RestartCustomEditorForm);
   Application.Run;
 end.
