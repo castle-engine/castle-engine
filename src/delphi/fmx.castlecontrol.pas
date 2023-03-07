@@ -51,7 +51,6 @@ type
         function Width: Integer; override;
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
-        function Dpi: Single; override;
       end;
 
     var
@@ -188,11 +187,6 @@ begin
 {$else}
 begin
 {$endif}
-end;
-
-function TCastleControl.TContainer.Dpi: Single;
-begin
-  Result := DefaultDpi;
 end;
 
 function TCastleControl.TContainer.GetMousePosition: TVector2;
