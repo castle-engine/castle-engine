@@ -1256,16 +1256,16 @@ end;
 procedure TCastleLayerCollisions.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 var
-  I: Integer;
+  I: TPhysicsLayer;
   Value: Integer;
 begin
   inherited;
 
   for I := Low(TPhysicsLayers) to High(TPhysicsLayers) do
   begin
-    Value := FCollides[TPhysicsLayer(I)];
+    Value := FCollides[I];
     SerializationProcess.ReadWriteInteger(IntToStr(I), Value, Value <> 0);
-    FCollides[TPhysicsLayer(I)] := Value;
+    FCollides[I] := Value;
   end;
 end;
 
