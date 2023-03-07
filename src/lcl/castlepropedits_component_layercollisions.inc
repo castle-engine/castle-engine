@@ -20,7 +20,12 @@ type
 
   { Property editor for layer collisions }
   TLayerCollisionsPropertyEditor = class(TSubPropertiesEditor)
-  strict private
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  TPhysicsLayersNamesPropertyEditor = class(TSubPropertiesEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -36,6 +41,32 @@ type
     procedure GetValues(Proc: TGetStrProc); override;
     procedure SetValue(const NewValue: ansistring); override;
   end;
+
+{ TPhysicsLayersNamesPropertyEditor }
+
+function TPhysicsLayersNamesPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog, paRevertable];
+end;
+
+procedure TPhysicsLayersNamesPropertyEditor.Edit;
+var
+  LayersNamesForm: TPhysicsLayersNamesPropertyEditorForm;
+  LayerNames: TCastleLayersNames;
+begin
+  LayerNames := GetObjectValue as TCastleLayersNames;
+  if LayerNames = nil then
+    Exit;
+
+  LayersNamesForm := TPhysicsLayersNamesPropertyEditorForm.Create(nil);
+  try
+    LayersNamesForm.Init(LayerNames);
+    if LayersNamesForm.ShowModal = mrOK then
+      Modified;
+  finally
+    FreeAndNil(LayersNamesForm);
+  end;
+end;
 
 { TLayerCollisionsPropertyEditor --------------------------------------------- }
 

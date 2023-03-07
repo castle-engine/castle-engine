@@ -1,0 +1,58 @@
+object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorForm
+  Left = 1702
+  Height = 510
+  Top = 292
+  Width = 818
+  Caption = 'Physics layers names config'
+  ClientHeight = 510
+  ClientWidth = 818
+  DesignTimePPI = 120
+  LCLVersion = '2.2.5.0'
+  object NamesAndDescListView: TListView
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = ButtonOK
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 4
+    Height = 502
+    Top = 4
+    Width = 716
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoWidthLastColumn = True
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
+    Columns = <    
+      item
+        Caption = 'Index'
+        MinWidth = 100
+        Width = 100
+      end    
+      item
+        Caption = 'Name'
+        MinWidth = 200
+        Width = 200
+      end    
+      item
+        Caption = 'Description'
+        Width = 401
+      end>
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+  object ButtonOK: TButton
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 720
+    Height = 31
+    Top = 4
+    Width = 94
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    Caption = 'OK'
+    TabOrder = 1
+  end
+end
