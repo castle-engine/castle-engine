@@ -185,6 +185,9 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
     TConnectedPropertyEditor);
 
+  RegisterPropertyEditor(TypeInfo(TPhysicsLayer), nil,  '',
+    TLayerPropertyEditor);
+
   RegisterPropertyEditor(TypeInfo(TCastleLayerCollisions), nil,  '',
     TLayerCollisionsPropertyEditor);
 
@@ -231,6 +234,7 @@ begin
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
 
 end;
+
 
 
 initialization

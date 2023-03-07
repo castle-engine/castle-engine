@@ -54,4 +54,80 @@ begin
   end;
 end;
 
+{ TLayerPropertyEditor ------------------------------------------------------- }
+
+type
+
+  TLayerPropertyEditor = class (TOrdinalPropertyEditor)
+  strict private
+    function GetLayerName(OrdValue: LongInt): String;
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    function OrdValueToVisualValue(OrdValue: LongInt): string; override;
+    procedure GetValues(Proc: TGetStrProc); override;
+    procedure SetValue(const NewValue: ansistring); override;
+  end;
+
+  function TLayerPropertyEditor.GetLayerName(OrdValue: LongInt): String;
+  var
+    RigidBody: TCastleRigidBody;
+    Transform: TCastleTransform;
+  begin
+    if (GetInstProp^.Instance = nil ) then
+      Exit('');
+
+    if not (GetInstProp^.Instance is TCastleRigidBody) then
+      Exit('');
+
+    RigidBody := GetInstProp^.Instance as TCastleRigidBody;
+    Transform := RigidBody.Parent;
+
+    if (Transform = nil) or (Transform.World = nil) then
+      Exit('');
+
+    if Transform.World.PhysicsProperties.LayerNames.Count <= OrdValue then
+      Exit('');
+
+    Result := Transform.World.PhysicsProperties.LayerNames[OrdValue];
+  end;
+
+  function TLayerPropertyEditor.GetAttributes: TPropertyAttributes;
+  begin
+    Result := [paValueList, paRevertable];
+  end;
+
+
+function TLayerPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): string;
+var
+  L: Longint;
+begin
+  L := OrdValue;
+  Result := IntToStr(L) + ': ' + GetLayerName(L);
+end;
+
+procedure TLayerPropertyEditor.GetValues(Proc: TGetStrProc);
+var
+  I: Integer;
+begin
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+    Proc(IntToStr(I) + ': ' + GetLayerName(I));
+end;
+
+procedure TLayerPropertyEditor.SetValue(const NewValue: ansistring);
+var
+  ColonPos: Integer;
+  StringValue: AnsiString;
+  IntValue: Integer;
+begin
+  ColonPos := Pos(':', NewValue);
+  if ColonPos < 2 then
+    StringValue := NewValue
+  else
+    StringValue := copy(NewValue, 1, ColonPos -1);
+
+  if TryStrToInt(StringValue, IntValue) then
+    SetOrdValue(IntValue);
+end;
+
+
 
