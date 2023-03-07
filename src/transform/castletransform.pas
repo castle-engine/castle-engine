@@ -53,6 +53,51 @@ uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
   // TODO: this breaks unit dependencies, transform->scene
   X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
 
+{ TCastleLayersNames }
+
+function TCastleLayersNames.GetLayersDescriptions(
+    const Layer: TPhysicsLayer): String;
+begin
+  Result := FLayersDescriptions[Layer];
+end;
+
+function TCastleLayersNames.GetLayersNames(const Layer: TPhysicsLayer): String;
+begin
+  Result := FLayersNames[Layer];
+end;
+
+procedure TCastleLayersNames.SetLayersNames(const Layer: TPhysicsLayer;
+  const AValue: String);
+begin
+  FLayersNames[Layer] := AValue;
+end;
+
+procedure TCastleLayersNames.SetLayersDescriptions(const Layer: TPhysicsLayer;
+  const AValue: String);
+begin
+  FLayersDescriptions[Layer] := AValue;
+end;
+
+procedure TCastleLayersNames.CustomSerialization(
+  const SerializationProcess: TSerializationProcess);
+var
+  I: TPhysicsLayer;
+  Value: String;
+begin
+  inherited;
+
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+  begin
+    Value := FLayersNames[I];
+    SerializationProcess.ReadWriteString('Name'+IntToStr(I), Value, Value <> '');
+    FLayersNames[I] := Value;
+
+    Value := FLayersDescriptions[I];
+    SerializationProcess.ReadWriteString('Desc'+IntToStr(I), Value, Value <> '');
+    FLayersDescriptions[I] := Value;
+  end;
+end;
+
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
 {$I castletransform_renderparams.inc}

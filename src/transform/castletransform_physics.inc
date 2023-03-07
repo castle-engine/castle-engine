@@ -45,6 +45,21 @@
     property Collides[const Layer1, Layer2: TPhysicsLayer]: Boolean read GetCollides write SetCollides;
   end;
 
+  TCastleLayersNames = class (TCastleComponent)
+  strict private
+    FLayersNames: array[TPhysicsLayer] of String;
+    FLayersDescriptions: array[TPhysicsLayer] of String;
+    function GetLayersDescriptions(const Layer: TPhysicsLayer): String;
+    function GetLayersNames(const Layer: TPhysicsLayer): String;
+    procedure SetLayersNames(const Layer: TPhysicsLayer; const AValue: String);
+    procedure SetLayersDescriptions(const Layer: TPhysicsLayer; const AValue: String);
+  public
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    property Names[const Layer: TPhysicsLayer]: String read GetLayersNames write SetLayersNames;
+    property LayersDescriptions[const Layer: TPhysicsLayer]: String read GetLayersDescriptions write SetLayersDescriptions;
+  end;
+
   { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
@@ -55,7 +70,7 @@
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FContinuousCollisionDetection: Boolean;
     FLayerCollisons: TCastleLayerCollisions;
-    FLayerNames: TStrings;
+    FLayerNames: TCastleLayersNames;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
@@ -106,7 +121,7 @@
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
     property LayerCollisons: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
-    property LayerNames: TStrings read FLayerNames write SetLayerNames;
+    property LayerNames: TCastleLayersNames read FLayerNames write FLayerNames;
   end;
 
   { Abstract collider that determines the shape used to determine collisions with physics bodies. }
@@ -1261,7 +1276,7 @@ var
 begin
   inherited;
 
-  for I := Low(TPhysicsLayers) to High(TPhysicsLayers) do
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     Value := FCollides[I];
     SerializationProcess.ReadWriteInteger(IntToStr(I), Value, Value <> 0);
@@ -1288,9 +1303,10 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
+  FLayerNames := TCastleLayersNames.Create(Self);
+  FLayerNames.SetSubComponent(true);
   FLayerCollisons := TCastleLayerCollisions.Create(Self);
   FLayerCollisons.SetSubComponent(true);
-  FLayerNames := TStringList.Create;
 end;
 
 destructor TPhysicsProperties.Destroy;

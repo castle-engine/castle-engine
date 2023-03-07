@@ -84,10 +84,10 @@ begin
   if (Transform = nil) or (Transform.World = nil) then
     Exit('');
 
-  if Transform.World.PhysicsProperties.LayerNames.Count <= OrdValue then
+  if High(TPhysicsLayer) > OrdValue then
     Exit('');
 
-  Result := Transform.World.PhysicsProperties.LayerNames[OrdValue];
+  Result := Transform.World.PhysicsProperties.LayerNames.Names[OrdValue];
 end;
 
 function TPhysicsLayerPropertyEditor.GetAttributes: TPropertyAttributes;

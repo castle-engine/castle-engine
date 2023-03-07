@@ -178,8 +178,6 @@ end;
 
 function TLayerCollisionsPropertyEditorForm.GetLayerName(
   PhysicsLayer: TPhysicsLayer): String;
-var
-  Names: TStrings;
 begin
   Result := '';
 
@@ -187,11 +185,7 @@ begin
     Exit;
 
   if FLayerCollisions.Owner is TPhysicsProperties then
-  begin
-    Names := TPhysicsProperties(FLayerCollisions.Owner).LayerNames;
-    if Names.Count > Integer(PhysicsLayer) then
-      Result := Names[Integer(PhysicsLayer)];
-  end;
+    Result := TPhysicsProperties(FLayerCollisions.Owner).LayerNames.Names[PhysicsLayer];
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.UpdateHorizontalNamesTop;
