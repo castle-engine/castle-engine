@@ -57,7 +57,7 @@
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     property Names[const Layer: TPhysicsLayer]: String read GetLayersNames write SetLayersNames;
-    property LayersDescriptions[const Layer: TPhysicsLayer]: String read GetLayersDescriptions write SetLayersDescriptions;
+    property Descriptions[const Layer: TPhysicsLayer]: String read GetLayersDescriptions write SetLayersDescriptions;
   end;
 
   { Configure physics simulation calculation. }
