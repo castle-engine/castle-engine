@@ -8,39 +8,6 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
   ClientWidth = 818
   DesignTimePPI = 120
   LCLVersion = '2.2.5.0'
-  object NamesAndDescListView: TListView
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = ButtonOK
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 4
-    Height = 502
-    Top = 4
-    Width = 716
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    AutoWidthLastColumn = True
-    BorderSpacing.Left = 4
-    BorderSpacing.Top = 4
-    BorderSpacing.Bottom = 4
-    Columns = <    
-      item
-        Caption = 'Index'
-        MinWidth = 100
-        Width = 100
-      end    
-      item
-        Caption = 'Name'
-        MinWidth = 200
-        Width = 200
-      end    
-      item
-        Caption = 'Description'
-        Width = 401
-      end>
-    TabOrder = 0
-    ViewStyle = vsReport
-  end
   object ButtonOK: TButton
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
@@ -53,6 +20,41 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'OK'
+    ModalResult = 1
+    OnClick = ButtonOKClick
+    TabOrder = 0
+  end
+  object NamesAndDescStringGrid: TStringGrid
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = ButtonOK
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrCenter
+    Left = 0
+    Height = 509
+    Top = 0
+    Width = 720
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ColCount = 3
+    Columns = <    
+      item
+        ReadOnly = True
+        Title.Caption = 'Number'
+        Width = 100
+      end    
+      item
+        Title.Caption = 'Name'
+        Width = 150
+      end    
+      item
+        Title.Caption = 'Description'
+        Width = 400
+      end>
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goSmoothScroll, goHeaderHotTracking]
+    RowCount = 1
+    TabAdvance = aaDown
     TabOrder = 1
+    TitleStyle = tsNative
   end
 end

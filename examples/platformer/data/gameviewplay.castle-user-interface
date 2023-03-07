@@ -18,11 +18,15 @@
             "1" : 5,
             "2" : 3
           },
-          "LayerNames" : [
-            "Ground",
-            "Player",
-            "Enemies"
-          ]
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayersNames",
+            "Name0" : "Ground",
+            "Desc0" : "All not dynamic things",
+            "Name1" : "Player",
+            "Desc1" : "Only player here, should collide with enemies and ground.",
+            "Name2" : "Enemy",
+            "Desc2" : "Enemies should not collide with other enemies, should collide with player and ground."
+          }
         },
         "$Children" : [
           {
@@ -11638,7 +11642,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.1934598388671875E+003,
+          "Height" : 1.1543336181640625E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -11655,8 +11659,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.1917424316406250E+003,
-          "Y" : 2.2653674316406250E+002,
+          "X" : -2.2045683593750000E+003,
+          "Y" : -2.7046801757812500E+002,
           "Z" : 5.0000000000000000E+002
         }
       },
