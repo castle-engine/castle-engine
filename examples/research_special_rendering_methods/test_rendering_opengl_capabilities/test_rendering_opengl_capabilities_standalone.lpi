@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="test_rendering_opengl_capabilities_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -37,10 +37,15 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
+        <Filename Value="code/gamemymesh.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamemymesh"/>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit3>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

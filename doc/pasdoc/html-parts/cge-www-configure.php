@@ -10,9 +10,9 @@
    but make links to remote https://castle-engine.io/ */
 define('CASTLE_ENVIRONMENT', 'offline');
 
-global $castle_php_relative_path;
-$castle_php_relative_path = '../../../../cge-www/htdocs/';
+global $castle_php_path;
+$castle_php_path = __DIR__ . '/../../../../cge-www/htdocs/';
 
-require_once $castle_php_relative_path . 'castle_engine_functions.php';
+require_once $castle_php_path . 'castle_engine_functions.php';
 
 ?>

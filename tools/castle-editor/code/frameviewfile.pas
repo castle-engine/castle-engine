@@ -169,7 +169,7 @@ begin
   LabelInformation := TCastleLabel.Create(Self);
   LabelInformation.Color := White;
   LabelInformation.Anchor(hpLeft, 5);
-  LabelInformation.Anchor(vpTop, - (5 + 5 + LabelURL.Font.RowHeight));
+  LabelInformation.Anchor(vpTop, - (5 + 5 + LabelURL.Font.Height));
   Control.Controls.InsertFront(LabelInformation);
 end;
 

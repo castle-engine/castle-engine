@@ -304,7 +304,7 @@ begin
     Text := Caption + Text;
   Font.Print(
     R.Left + (R.Width - Font.TextWidth(Text)) / 2,
-    R.Bottom + (R.Height - Font.RowHeight) / 2,
+    R.Bottom + (R.Height - Font.Height) / 2,
     TextColor, Text);
 end;
 

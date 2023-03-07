@@ -243,9 +243,12 @@
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
 
-    procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
     procedure Loaded; override;
+
+    { Call RecursiveRender on all children.
+      @exclude }
+    procedure InternalRenderLoop(const ViewportRect: TRectangle); virtual;
 
     { Show and hide UI used to render tooltip (may come from user TooltipControl or some internal component).
       @exclude }
@@ -1212,6 +1215,10 @@
       i.e. it accounts that AutoSizeToChildren overrides FullSize
       (since they cannot both work at the same time). }
     function EffectiveFullSize: Boolean;
+
+    { Renders control's children, assuming various tests like culling passed.
+      @exclude }
+    procedure InternalRecursiveRender(const ViewportRect: TRectangle);
   published
     { Mouse cursor over this control.
       When user moves mouse over the Container, the currently focused
@@ -1917,7 +1924,7 @@ procedure TCastleUserInterface.RenderOverChildren;
 begin
 end;
 
-procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
+procedure TCastleUserInterface.InternalRecursiveRender(const ViewportRect: TRectangle);
 
   { Draw 4 borders.
     RectBorder is equal to Self.RenderRectWithBorder,
@@ -2001,7 +2008,6 @@ var
   end;
 
 var
-  I: Integer;
   R: TFloatRectangle;
 begin
   if Exists then
@@ -2048,8 +2054,7 @@ begin
         end;
       end;
 
-      for I := 0 to ControlsCount - 1 do
-        Controls[I].RecursiveRender(ViewportRect);
+      InternalRenderLoop(ViewportRect);
 
       if GLInitialized then
       begin
@@ -2062,6 +2067,14 @@ begin
 
     CacheRectEnd;
   end;
+end;
+
+procedure TCastleUserInterface.InternalRenderLoop(const ViewportRect: TRectangle);
+var
+  I: Integer;
+begin
+  for I := 0 to ControlsCount - 1 do
+    Controls[I].InternalRecursiveRender(ViewportRect);
 end;
 
 procedure TCastleUserInterface.TooltipRender(const TooltipPosition: TVector2);

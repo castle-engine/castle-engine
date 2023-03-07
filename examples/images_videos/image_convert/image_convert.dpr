@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,8 +18,7 @@
 
 program image_convert;
 
-uses SysUtils, CastleUtils, CastleImages, CastleParameters,
-  CastleProgress, CastleProgressConsole;
+uses SysUtils, CastleUtils, CastleImages, CastleParameters;
 
 var
   { required params }
@@ -119,8 +118,6 @@ begin
   Parameters.CheckHigh(2);
   InputImageName := Parameters[1];
   OutputImageName := Parameters[2];
-
-  Progress.UserInterface := ProgressConsoleInterface;
 
   { do work }
   Img := LoadImage(InputImageName, [], ResizeX, ResizeY);

@@ -36,7 +36,7 @@ uses SysUtils, Classes,
   {$endregion 'Castle Initialization Uses'}
   {$else}
   , CastleLog, CastleConfig, CastleLevels,
-  CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
+  CastlePlayer, CastleSoundEngine,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
@@ -336,9 +336,9 @@ begin
   { Write text in the upper-left corner of the screen.
     The (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
-    You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
+    You can take font measurements by UIFont.Height or UIFont.TextWidth
     to adjust initial position as needed. }
-  Y := Y - (GetUIFont.RowHeight + ControlsMargin);
+  Y := Y - (GetUIFont.Height + ControlsMargin);
   GetUIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
@@ -348,7 +348,7 @@ begin
   GetUIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
-  Y := Y - (GetUIFont.RowHeight + InventoryImageSize);
+  Y := Y - (GetUIFont.Height + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -379,7 +379,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
-    GetUIFont.Print(X, Y - GetUIFont.RowHeight, Yellow, S);
+    GetUIFont.Print(X, Y - GetUIFont.Height, Yellow, S);
   end;
 
   { Simple color effects over the screen:
@@ -642,9 +642,6 @@ begin
     Window.Open. That is why we assign them here, and that is why we created
     ExtraViewport (that is resized in Resize callback) earlier. }
   Window.OnPress := @Press;
-
-  { Show progress bars on our Window. }
-  Progress.UserInterface := WindowProgressInterface;
 
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop

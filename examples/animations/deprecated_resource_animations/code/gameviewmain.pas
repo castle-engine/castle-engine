@@ -21,7 +21,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleResources, CastleCreatures,
-  CastleLevels, CastleVectors;
+  CastleLevels, CastleVectors, CastleCameras;
 
 type
   TViewMain = class;
@@ -46,6 +46,7 @@ type
     ButtonLoadResourceXml: TCastleButton;
     CheckboxShowDebug: TCastleCheckbox;
     GroupResources: TCastleVerticalGroup;
+    ExamineNavigation1: TCastleExamineNavigation;
   private
     { Other private stuff }
     Level: TLevel;
@@ -127,6 +128,12 @@ begin
   Level := TLevel.Create(FreeAtStop);
   Level.Viewport := MainViewport;
   Level.Load('main_level');
+
+  { TLevel.Load, for historic purposes, always overrides MainViewport.Navigation
+    with a TCastleWalkNavigation (and we're not fixing it anymore, due to both
+    TLevel and Resources being deprecated).
+    So just bring back examine navigation manually. }
+  MainViewport.Navigation := ExamineNavigation1;
 
   ResourceButtons := TResourceButtonList.Create(true);
   UpdateResourceButtons;

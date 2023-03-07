@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,8 @@ program simple_video_editor;
 uses SysUtils, Math,
   CastleUtils, CastleWindow, CastleGLImages, CastleControls,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
-  CastleParameters, CastleGLUtils, CastleVectors, Classes, CastleProgress,
-  CastleWindowProgress, CastleTimeUtils, CastleKeysMouse, CastleURIUtils,
+  CastleParameters, CastleGLUtils, CastleVectors, Classes,
+  CastleTimeUtils, CastleKeysMouse, CastleURIUtils,
   CastleUIControls, CastleRectangles;
 
 var
@@ -75,7 +75,7 @@ const
         Strs.Append('Video not loaded');
 
       FallbackFont.PrintStrings(15,
-        Window.Height - FallbackFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
+        Window.Height - FallbackFont.Height * Strs.Count - TimeBarHeight, Yellow,
         Strs, false, 2);
     finally FreeAndNil(Strs) end;
   end;
@@ -187,53 +187,29 @@ begin
 
     410: begin
            Assert(Video.Loaded);
-           Progress.Init(Video.Count, 'Grayscale');
-           try
-             for I := 0 to Video.Count - 1 do
-             begin
-               Video.Items[I].Grayscale;
-               Progress.Step;
-             end;
-             RemakeGLVideo;
-           finally Progress.Fini end;
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].Grayscale;
+           RemakeGLVideo;
          end;
     420..422:
          begin
            Assert(Video.Loaded);
-           Progress.Init(Video.Count, 'Convert to single channel');
-           try
-             for I := 0 to Video.Count - 1 do
-             begin
-               Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
-               Progress.Step;
-             end;
-             RemakeGLVideo;
-           finally Progress.Fini end;
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
+           RemakeGLVideo;
          end;
     430..432:
          begin
            Assert(Video.Loaded);
-           Progress.Init(Video.Count, 'Strip to single channel');
-           try
-             for I := 0 to Video.Count - 1 do
-             begin
-               Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
-               Progress.Step;
-             end;
-             RemakeGLVideo;
-           finally Progress.Fini end;
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
+           RemakeGLVideo;
          end;
     440: begin
            Assert(Video.Loaded);
-           Progress.Init(Video.Count, 'Flip horizontal');
-           try
-             for I := 0 to Video.Count - 1 do
-             begin
-               Video.Items[I].FlipHorizontal;
-               Progress.Step;
-             end;
-             RemakeGLVideo;
-           finally Progress.Fini end;
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].FlipHorizontal;
+           RemakeGLVideo;
          end;
 
     445: begin
@@ -241,13 +217,13 @@ begin
            if MessageInputQueryCardinal(Window,
              'How many frames to use for fading?', FadeFrames) then
            begin
-             Video.FadeWithSelf(FadeFrames, 'Fade with self');
+             Video.FadeWithSelf(FadeFrames);
              RemakeGLVideo;
            end;
          end;
 
     450: begin
-           Video.MixWithSelfBackwards('Mix with self backwards');
+           Video.MixWithSelfBackwards;
            RemakeGLVideo;
            { MixWithSelfBackwards changes TimeBackwards, we have to reflect
              this in our menu item. }
@@ -311,7 +287,6 @@ begin
 
   try
     Application.MainWindow := Window;
-    Progress.UserInterface := WindowProgressInterface;
 
     Video := TVideo.Create;
 

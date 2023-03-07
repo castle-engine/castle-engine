@@ -345,11 +345,11 @@
             "Space jumps (only when \"Change Transformation = Velocity\" now.)",
             "",
             "Rotate camera by moving the mouse.",
-            "Press M to toggle \"mouse look\" (to be able to e.g. click on checkboxes).",
+            "Press Right Mouse Button to toggle \"mouse look\" (to be able to e.g. click on checkboxes).",
             "",
-            "Click to shoot at the enemies.",
-            "Shoots with the avatar direction.",
-            "Use \"Debug Avatar\" to see a blue arrow indicating avatar direction.",
+            "Left Click to shoot at the enemies.",
+            "Shoots along the avatar forward ray.",
+            "Use \"Debug Avatar\" to see a blue arrow indicating avatar forward ray.",
             "",
             "Use mouse wheel to get closer / further to the avatar.",
             "",
@@ -384,14 +384,14 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.3599996948242188E+002
+            "Y" : -3.3600000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
         {
           "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar) (Click with right mouse button to toggle)",
+          "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar)",
           "CheckboxColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -409,7 +409,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.6999996948242188E+002
+            "Y" : -3.7000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -434,7 +434,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.0399996948242188E+002
+            "Y" : -4.0400000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -459,7 +459,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.3799996948242188E+002
+            "Y" : -4.3800000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -470,7 +470,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.7199996948242188E+002
+            "Y" : -4.7200000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",

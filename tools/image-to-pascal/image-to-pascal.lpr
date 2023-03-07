@@ -42,19 +42,17 @@
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
-  CastleProgressConsole, CastleParameters, CastleURIUtils, CastleStringUtils,
+uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils,
+  CastleParameters, CastleURIUtils, CastleStringUtils,
   CastleClassUtils, CastleDownload;
 
 var
-  ShowProgress: boolean = true;
   OutputDirectory: string = '';
 
 const
-  Options: array [0..3] of TOption = (
+  Options: array [0..2] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0 ; Long: 'no-show-progress'; Argument: oaNone),
     (Short: 'o'; Long: 'output'; Argument: oaRequired)
   );
 
@@ -86,8 +84,7 @@ begin
          Writeln(ApplicationName + ' ' + CastleEngineVersion);
          Halt;
        end;
-    2: ShowProgress := false;
-    3: OutputDirectory := Argument + '/';
+    2: OutputDirectory := Argument + '/';
     else raise EInternalError.Create('OptionProc -- unknown arg');
   end;
 end;
@@ -124,9 +121,6 @@ begin
   UnitName := Parameters[1];
   Parameters.Delete(1);
 
-  { init progres }
-  Progress.UserInterface := ProgressConsoleInterface;
-
   { calculate unit's content from images into Images* strings }
   CodeInterface := '';
   CodeImplementation := '';
@@ -161,8 +155,7 @@ begin
         case Alpha of
           alphaStrip:
             begin
-              if ShowProgress then
-                Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
+              Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
               TempImage := TRGBImage.Create;
               TempImage.Assign(Image);
               FreeAndNil(Image);
@@ -171,8 +164,7 @@ begin
             end;
           alphaKeepAndBleed:
             begin
-              if ShowProgress then
-                Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
+              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
               // convert to TRGBAlphaImage as alpha bleeding is implemented only there
               TempImage := TRGBAlphaImage.Create;
               TempImage.Assign(Image);
@@ -184,7 +176,13 @@ begin
           else { do nothing for alphaKeep };
         end;
       end;
-      Image.SaveToPascalCode(ImageName, ShowProgress,
+
+      Writeln(ErrOutput, Format('Generating %s (%s, alpha: %s)', [
+        ImageName,
+        Image.ClassName,
+        AlphaToString[Image.AlphaChannel]
+      ]));
+      Image.SaveToPascalCode(ImageName,
         CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization);
     finally FreeAndNil(Image) end;
   end;

@@ -11,7 +11,9 @@
     },
     {
       "$$ClassName" : "TCastleFont",
-      "LoadCharacters" : "你好世界",
+      "LoadCharacters" : "你好世界中",
+      "MeasureCapHeight" : "HI中",
+      "MeasureHeight" : "AOHIypq中",
       "Name" : "ChineseFont",
       "URL" : "castle-data:/DroidSansFallback.ttf"
     }
@@ -219,7 +221,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector2Persistent",
                   "X" : 1.0000000000000000E+001,
-                  "Y" : -1.6300000000000000E+002
+                  "Y" : -1.6600000000000000E+002
                 },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop",
@@ -275,7 +277,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector2Persistent",
                   "X" : 1.0000000000000000E+001,
-                  "Y" : -3.7300000000000000E+002
+                  "Y" : -3.7600000000000000E+002
                 },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop",
@@ -318,7 +320,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector2Persistent",
                   "X" : 1.0000000000000000E+001,
-                  "Y" : -4.1400000000000000E+002
+                  "Y" : -4.1700000000000000E+002
                 },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop",
@@ -375,7 +377,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector2Persistent",
                   "X" : 1.0000000000000000E+001,
-                  "Y" : -4.5200000000000000E+002
+                  "Y" : -4.5800000000000000E+002
                 },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"

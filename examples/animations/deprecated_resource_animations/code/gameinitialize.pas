@@ -25,8 +25,7 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties,
-  CastleProgress, CastleWindowProgress
+  CastleUIControls, CastleApplicationProperties
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -40,8 +39,6 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
-
-  Progress.UserInterface := WindowProgressInterface;
 
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}

@@ -585,7 +585,7 @@ begin
             TextBottom := TextBottom + ((ImgScreenHeight + ImageMarginScaled) / 2) else
           if UseImage and (ImageLayout = ilTop) then
             TextBottom := TextBottom - ((ImgScreenHeight + ImageMarginScaled) / 2);
-          TextBottom := TextBottom + Font.Descend;
+          TextBottom := TextBottom + Font.DescenderHeight;
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleButton.Render: Alignment?');
@@ -987,14 +987,14 @@ procedure TCastleButton.CalculateSizeIfNecessary;
       begin
         { fast case: single line, and no need to use TRichText in this case }
         TextWidth := Font.TextWidth(Caption);
-        TextHeight := Font.RowHeight;
+        TextHeight := Font.Height;
       end else
       begin
         LineSpacingScaled := UIScale * LineSpacing;
         TextToRender := GetTextToRender;
         try
           TextWidth := TextToRender.Width;
-          TextHeight := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+          TextHeight := TextToRender.Count * (Font.Height + LineSpacingScaled);
         finally FreeAndNil(TextToRender) end;
       end;
     end;
