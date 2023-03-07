@@ -143,7 +143,10 @@
     { Customize the image of scrollbar slider, drawn within ScrollbarFrame. }
     property ScrollbarSlider: TCastleImagePersistent read FScrollbarSlider;
 
-    { Space left between scrollbar slider and frame, e.g. to place up/down buttons. }
+    { Vertical space left between scrollbar slider and frame.
+      Can be used e.g. to draw up/down buttons by adding them to the @link(ScrollbarFrame)
+      and using 9-slices (TCastleImagePersistent.ProtectedSides) to keep them reliably
+      at bottom / top of @link(ScrollbarFrame). }
     property SliderVerticalMargin: Single
       read FSliderVerticalMargin write SetSliderVerticalMargin {$ifdef FPC}default 0{$endif};
 
