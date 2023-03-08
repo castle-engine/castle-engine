@@ -83,6 +83,7 @@ type
     function ScreenRegionPoints: TArrayScreenPoints;
     function ScreenAdditionalPoints: TArrayScreenPoints;
 
+    procedure SetImage(const AImage: TDrawableImage);
     function ImageWidth(): cardinal;
     function ImageHeight(): cardinal;
 
@@ -103,6 +104,8 @@ type
       overload;
 
     function RegionFromBorder(ABorder: TBorder): TRegion;
+
+    property Image: TDrawableImage read FImage write SetImage;
   public
 
     constructor Create(AOwner: TComponent); override;
@@ -154,11 +157,14 @@ begin
   FScale := 1;
   FSourceRegion := TFloatRectangle.Empty;
   FRegion := TFloatRectangle.Empty;
+  FImage := TDrawableImage.Create(nil, False, False);
 
 end;
 
 destructor TRegionDesignDialog.Destroy;
 begin
+  FreeAndNil(FImage);
+
   inherited;
 end;
 
@@ -172,8 +178,8 @@ end;
 
 procedure TRegionDesignDialog.Load(AImage: TDrawableImage; const ARegion: TRegion);
 begin
-  FImage := AImage;
-  if not Assigned(FImage) then  raise Exception.Create('Image is nil.');
+  Image := AImage;
+
   FSourceRegion := TFloatRectangle.Empty;
   FRegion := ARegion;
   FDesignMode := TDesignMode.ModeRegion;
@@ -184,12 +190,13 @@ end;
 procedure TRegionDesignDialog.Load(AImage: TDrawableImage;
   const ASourceRegion: TRegion; ABorder: TBorder);
 begin
-  FImage := AImage;
-  if not Assigned(FImage) then  raise Exception.Create('Image is nil.');
+  Image := AImage;
+
   FBorder := ABorder;
   FSourceRegion := ASourceRegion;
-  FDesignMode := TDesignMode.ModeBorder;
   FRegion := RegionFromBorder(FBorder);
+  FDesignMode := TDesignMode.ModeBorder;
+
   InitControlPoints;
 end;
 
@@ -285,7 +292,7 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
 
   procedure RenderImage;
   begin
-    if Assigned(FImage) then  FImage.Draw(ScreenRect, ImageRect);
+    FImage.Draw(ScreenRect, ImageRect);
   end;
 
   procedure RenderLine(const Points: TArrayImagePoints;
@@ -678,6 +685,14 @@ end;
 function TRegionDesignDialog.ScreenAdditionalPoints: TArrayScreenPoints;
 begin
   Result := ImageToScreen(FControlPointRec.AdditionalPoints);
+end;
+
+procedure TRegionDesignDialog.SetImage(const AImage: TDrawableImage);
+begin
+  if not Assigned(AImage) then Exit;
+  if not Assigned(AImage.Image) then Exit;
+
+  FImage.Load(AImage.Image);
 end;
 
 function TRegionDesignDialog.ImageWidth(): cardinal;
