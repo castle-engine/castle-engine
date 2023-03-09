@@ -120,6 +120,9 @@ type
         Set before @link(ConvertMap). }
       SmoothScalingSafeBorder: Boolean;
 
+      { See @link(TCastleTiledMap.AutoFixAlphaBleed). }
+      AutoFixAlphaBleed : Boolean;
+
       { Layers to load.  }
       Layers: TLayers;
 
@@ -178,11 +181,89 @@ end;
 
 procedure TCastleTiledMapConverter.PrepareTilesets;
 var
+  Tileset: TCastleTiledMapData.TTileset;
+
+  function FixedTilesetImage(const AURL: String): TCastleImage;
+  var
+    OriginalImage: TCastleImage;
+    Col, Row: Integer;
+    SrcPos, Pos, FramePos, FrameSrcPos: TVector2Integer;
+    ColumnCount, RowCount: Cardinal;
+      function TilePosition(const AImage: TEncodedImage;const AMargin, ASpacing: Cardinal): TVector2Integer;
+      begin
+        Result.X := AMargin + Col * (Tileset.TileWidth + ASpacing);
+        Result.Y := AImage.Height - (AMargin + Row * (Tileset.TileHeight + ASpacing)
+          + Tileset.TileHeight);
+      end;
+  const
+    NewMargin = 1;
+    NewSpacing = 2;
+  begin
+    OriginalImage := LoadImage(AURL);
+    Result := TCastleImageClass(OriginalImage.ClassType).Create;
+
+    try
+      ColumnCount := (OriginalImage.Width - 2 * Tileset.Margin + Tileset.Spacing)
+        div (Tileset.TileWidth + Tileset.Spacing);
+      RowCount := (OriginalImage.Height - 2 * Tileset.Margin + Tileset.Spacing)
+        div (Tileset.TileHeight + Tileset.Spacing);
+
+      Result.SetSize(ColumnCount * (Tileset.TileWidth + NewSpacing) - NewSpacing + 2 * NewMargin
+        ,RowCount * (Tileset.TileHeight + NewSpacing) - NewSpacing + 2 * NewMargin);
+
+      for Row := 0 to RowCount - 1 do
+      begin
+        for Col := 0 to ColumnCount - 1 do
+        begin
+          Pos := TilePosition(Result, NewMargin, NewSpacing);
+          SrcPos := TilePosition(OriginalImage, Tileset.Margin, Tileset.Spacing);
+
+          { Draw original tiles -----------------------------------------------}
+          Result.DrawFrom(OriginalImage, Pos.X, Pos.Y, SrcPos.X, SrcPos.Y, Tileset.TileWidth, Tileset.TileHeight, dmOverwrite);
+          { Draw frame -----------------------------------------------}
+
+          { Left }
+          FramePos := Pos + Vector2Integer(-1, 0);
+          FrameSrcPos := SrcPos;
+          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, 1, Tileset.TileHeight, dmOverwrite);
+          { Right }
+          FramePos := Pos + Vector2Integer(Tileset.TileWidth, 0);
+          FrameSrcPos := SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0);
+          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, 1, Tileset.TileHeight, dmOverwrite);
+          { Bottom }
+          FramePos := Pos + Vector2Integer(0, -1);
+          FrameSrcPos := SrcPos;
+          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, Tileset.TileWidth, 1, dmOverwrite);
+          { Top }
+          FramePos := Pos + Vector2Integer(0, Tileset.TileHeight);
+          FrameSrcPos := SrcPos + Vector2Integer(0, Tileset.TileHeight - 1);
+          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, Tileset.TileWidth, 1, dmOverwrite);
+          { LeftBottom }
+          Move(OriginalImage.PixelPtr(SrcPos.X, SrcPos.Y)^, Result.PixelPtr(Pos.X - 1, Pos.Y - 1)^, Result.PixelSize);
+          { RightBottom }
+          Move(OriginalImage.PixelPtr(SrcPos.X + Tileset.TileWidth - 1, SrcPos.Y)^, Result.PixelPtr(Pos.X + Tileset.TileWidth, Pos.Y - 1)^, Result.PixelSize);
+          { LeftTop }
+          Move(OriginalImage.PixelPtr(SrcPos.X, SrcPos.Y + Tileset.TileHeight - 1)^, Result.PixelPtr(Pos.X - 1, Pos.Y + Tileset.TileHeight)^, Result.PixelSize);
+          { RightTop }
+          Move(OriginalImage.PixelPtr(SrcPos.X + Tileset.TileWidth - 1, SrcPos.Y + Tileset.TileHeight - 1)^, Result.PixelPtr(Pos.X + Tileset.TileWidth, Pos.Y + Tileset.TileHeight)^, Result.PixelSize);
+
+        end;
+      end;
+
+      Tileset.Margin := NewMargin;
+      Tileset.Spacing := NewSpacing;
+      Tileset.Image.Width := Result.Width;
+      Tileset.Image.Height := Result.Height;
+
+    finally
+      FreeAndNil(OriginalImage);
+    end;
+  end;
+
+var
   Texture: TImageTextureNode;
   TexProperties: TTexturePropertiesNode;
   Appearance: TAppearanceNode;
-var
-  Tileset: TCastleTiledMapData.TTileset;
 begin
   for Tileset in Map.Tilesets do
   begin
@@ -199,7 +280,10 @@ begin
     end;
 
     Texture := TImageTextureNode.Create;
-    Texture.SetUrl([Tileset.Image.URL]);
+    if AutoFixAlphaBleed then
+      Texture.LoadFromImage(FixedTilesetImage(Tileset.Image.URL), True, '')
+    else
+      Texture.SetUrl([Tileset.Image.URL]);
 
     TexProperties := TTexturePropertiesNode.Create;
     TexProperties.MagnificationFilter := magDefault;

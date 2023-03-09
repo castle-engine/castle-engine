@@ -33,6 +33,7 @@ type
       { Indicates that all @link(Layers) should be visible. }
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
+    FAutoFixAlphaBleed: Boolean;
     type
       TMyScene = class(TCastleScene)
       public
@@ -45,6 +46,7 @@ type
       FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
       FScene: TMyScene;
       FLayers: TLayers;
+    procedure SetAutoFixAlphaBleed(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
@@ -96,6 +98,10 @@ type
       a bit, so it's no longer pixel-perfect. }
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
+
+    { Automatically generate in-memory tilesets that create 1-pixel size border between tileset images,
+      should only be used when SmoothScaling is True. }
+    property AutoFixAlphaBleed: Boolean read FAutoFixAlphaBleed write SetAutoFixAlphaBleed default False;
 
     { Layers to include when loading this map. }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
@@ -156,6 +162,7 @@ begin
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
+  FAutoFixAlphaBleed := false;
 
   FLayers := AllLayers;
 
@@ -173,7 +180,7 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'AutoFixAlphaBleed'
       //'AssumePerfectRenderingOrder'
      ]) then
     Result := [psBasic]
@@ -206,6 +213,15 @@ begin
   end;
 end;
 
+procedure TCastleTiledMap.SetAutoFixAlphaBleed(const AValue: Boolean);
+begin
+  if FAutoFixAlphaBleed <> AValue then
+  begin
+    FAutoFixAlphaBleed:=AValue;
+    ReloadMap;
+  end;
+end;
+
 procedure TCastleTiledMap.ReloadMap;
 var
   Converter: TCastleTiledMapConverter;
@@ -219,6 +235,7 @@ begin
     Converter := TCastleTiledMapConverter.Create(FMap);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
+      Converter.AutoFixAlphaBleed := AutoFixAlphaBleed;
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
