@@ -24,7 +24,7 @@
     FScrollbarFrame: TCastleImagePersistent;
     FScrollbarSlider: TCastleImagePersistent;
     FScrollbarVisible: Boolean;
-    FSliderVerticalMargin: Single;
+    FScrollbarVerticalMargin: Single;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
     ScrollbarFrameRect, ScrollbarSliderRect: TFloatRectangle;
@@ -37,7 +37,7 @@
     FTintScrollBarInactive: TCastleColor;
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
-    procedure SetSliderVerticalMargin(const AValue: Single);
+    procedure SetScrollbarVerticalMargin(const AValue: Single);
   protected
     FScrollbarLeft: Boolean;
 
@@ -143,12 +143,10 @@
     { Customize the image of scrollbar slider, drawn within ScrollbarFrame. }
     property ScrollbarSlider: TCastleImagePersistent read FScrollbarSlider;
 
-    { Vertical space left between scrollbar slider and frame.
-      Can be used e.g. to draw up/down buttons by adding them to the @link(ScrollbarFrame)
-      and using 9-slices (TCastleImagePersistent.ProtectedSides) to keep them reliably
-      at bottom / top of @link(ScrollbarFrame). }
-    property SliderVerticalMargin: Single
-      read FSliderVerticalMargin write SetSliderVerticalMargin {$ifdef FPC}default 0{$endif};
+    { Vertical space between the scrollbar and borders of the scrollview.
+      Can be used e.g. to draw up/down buttons by adding them to the @link(TCastleScrollViewCustom). }
+    property ScrollbarVerticalMargin: Single
+      read FScrollbarVerticalMargin write SetScrollbarVerticalMargin {$ifdef FPC}default 0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -328,7 +326,7 @@ begin
      ]) then
     Result := [psBasic]
   else
-  if ArrayContainsString(PropertyName, ['SliderVerticalMargin']) then
+  if ArrayContainsString(PropertyName, ['ScrollbarVerticalMargin']) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -349,11 +347,11 @@ begin
   TimeSinceDraggingStopped := 0;
 end;
 
-procedure TCastleScrollViewCustom.SetSliderVerticalMargin(const AValue: Single);
+procedure TCastleScrollViewCustom.SetScrollbarVerticalMargin(const AValue: Single);
 begin
-  if FSliderVerticalMargin <> AValue then
+  if FScrollbarVerticalMargin <> AValue then
   begin
-    FSliderVerticalMargin := AValue;
+    FScrollbarVerticalMargin := AValue;
     VisibleChange([chRender]);
   end;
 end;
@@ -373,7 +371,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     else
       ScrollbarFrameRect := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
-    ScrollbarFrameRect := ScrollbarFrameRect.Grow(0, - FSliderVerticalMargin * UIScale);
+    ScrollbarFrameRect := ScrollbarFrameRect.Grow(0, - FScrollbarVerticalMargin * UIScale);
 
     ScrollbarSliderRect := ScrollbarFrameRect;
     if GetCompleteSize = 0 then
