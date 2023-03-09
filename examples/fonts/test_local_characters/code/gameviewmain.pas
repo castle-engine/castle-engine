@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -12,7 +12,10 @@
 
   ----------------------------------------------------------------------------
 }
-{ Main view, where most of the application logic takes place. }
+{ Main view, where most of the application logic takes place.
+
+  Note: This file must contain UTF-8 BOM, otherwise Delphi will not interpret
+  correctly the chars in "String hardcoded in Pascal sources:" below. }
 unit GameViewMain;
 
 interface
