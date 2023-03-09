@@ -144,7 +144,11 @@
     property ScrollbarSlider: TCastleImagePersistent read FScrollbarSlider;
 
     { Vertical space between the scrollbar and borders of the scrollview.
-      Can be used e.g. to draw up/down buttons by adding them to the @link(TCastleScrollViewCustom). }
+      Can be used e.g. to draw up/down buttons by adding them to the @link(TCastleScrollViewCustom).
+
+      TODO: We should add automatic PageUpDown buttons activated by property
+      ButtonsUpDown: Boolean, with gfx customizable by ButtonUp, ButtonDown.
+      Then the property ScrollbarVerticalMargin should be deprecated. }
     property ScrollbarVerticalMargin: Single
       read FScrollbarVerticalMargin write SetScrollbarVerticalMargin {$ifdef FPC}default 0{$endif};
 
