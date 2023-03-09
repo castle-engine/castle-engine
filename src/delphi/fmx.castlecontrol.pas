@@ -350,7 +350,7 @@ begin
 
     Canvas.Fill.Kind := TBrushKind.Solid;
     Canvas.Fill.Color := $A0909090;
-    Canvas.FillRect(R, 1.0);
+    Canvas.FillRect(R, 0, 0, [], 1.0);
 
     Canvas.Fill.Color := TAlphaColors.Yellow;
     Canvas.FillText(R,
