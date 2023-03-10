@@ -474,8 +474,7 @@ var
 begin
   { LeftMouseButton Pressed. }
 
-  if (Event.EventType = TInputPressReleaseType.itMouseButton) and
-    (Event.MouseButton = TCastleMouseButton.buttonLeft) and
+  if Event.IsMouseButton(TCastleMouseButton.buttonLeft) and
     (not FControlPointRec.Adjusting) then
   begin
     AllDirectionEnables := [];
@@ -534,8 +533,7 @@ begin
 
   { RightMouseButton pressed. }
 
-  if (Event.EventType = TInputPressReleaseType.itMouseButton) and
-    (Event.MouseButton = TCastleMouseButton.buttonRight) and
+  if Event.IsMouseButton(TCastleMouseButton.buttonRight) and
     (not FMovingImageRec.Moving) then
   begin
     FMovingImageRec.StartMousePoint := Event.Position;
@@ -622,13 +620,11 @@ end;
 procedure TRegionDesignDialog.CastleControl1Release(Sender: TObject;
   const Event: TInputPressRelease);
 begin
-  if (Event.EventType = TInputPressReleaseType.itMouseButton) and
-    (Event.MouseButton = TCastleMouseButton.buttonRight) and
+  if Event.IsMouseButton(TCastleMouseButton.buttonRight) and
     FMovingImageRec.Moving then
     FMovingImageRec.Moving := False;
 
-  if (Event.EventType = TInputPressReleaseType.itMouseButton) and
-    (Event.MouseButton = TCastleMouseButton.buttonLeft) and
+  if Event.IsMouseButton(TCastleMouseButton.buttonLeft) and
     FControlPointRec.Adjusting then
   begin
     FControlPointRec.Adjusting := False;
