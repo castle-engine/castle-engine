@@ -120,8 +120,8 @@ type
         Set before @link(ConvertMap). }
       SmoothScalingSafeBorder: Boolean;
 
-      { See @link(TCastleTiledMap.AutoFixAlphaBleed). }
-      AutoFixAlphaBleed : Boolean;
+      { See @link(TCastleTiledMap.FixTileset). }
+      FixTileset : Boolean;
 
       { Layers to load.  }
       Layers: TLayers;
@@ -231,27 +231,30 @@ var
           { Draw frame -----------------------------------------------}
 
           { Left }
-          Draw(Pos + Vector2Integer(-1, 0), SrcPos, 1, Tileset.TileHeight);
+          Draw(Pos + Vector2Integer(-1, 0),                  SrcPos
+            , 1, Tileset.TileHeight);
           { Right }
-          Draw(Pos + Vector2Integer(Tileset.TileWidth, 0), SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, 0),   SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
             , 1, Tileset.TileHeight);
           { Bottom }
-          Draw(Pos + Vector2Integer(0, -1), SrcPos, Tileset.TileWidth, 1);
+          Draw(Pos + Vector2Integer(0, -1),                  SrcPos
+            , Tileset.TileWidth, 1);
           { Top }
-          Draw(Pos + Vector2Integer(0, Tileset.TileHeight), SrcPos + Vector2Integer(0, Tileset.TileHeight - 1)
+          Draw(Pos + Vector2Integer(0, Tileset.TileHeight),  SrcPos + Vector2Integer(0, Tileset.TileHeight - 1)
             , Tileset.TileWidth, 1);
 
           { LeftBottom }
-          Draw(Pos + Vector2Integer(-1, -1), SrcPos, 1, 1);
+          Draw(Pos + Vector2Integer(-1, -1),                 SrcPos
+            , 1, 1);
           { RightBottom }
-          Draw(Pos + Vector2Integer(Tileset.TileWidth, -1), SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, -1),  SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
             , 1, 1);
           { LeftTop }
           Draw(Pos + Vector2Integer(-1, Tileset.TileHeight), SrcPos + Vector2Integer(0, Tileset.TileHeight - 1)
             , 1, 1);
           { RightTop }
-          Draw(Pos + Vector2Integer(Tileset.TileWidth, Tileset.TileHeight),SrcPos +
-            Vector2Integer(Tileset.TileWidth - 1, Tileset.TileHeight - 1), 1, 1);
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, Tileset.TileHeight)
+            ,SrcPos + Vector2Integer(Tileset.TileWidth - 1, Tileset.TileHeight - 1), 1, 1);
 
         end;
       end;
@@ -286,7 +289,7 @@ begin
     end;
 
     Texture := TImageTextureNode.Create;
-    if AutoFixAlphaBleed then
+    if FixTileset then
       Texture.LoadFromImage(FixedTilesetImage(Tileset.Image.URL), True, '')
     else
       Texture.SetUrl([Tileset.Image.URL]);
