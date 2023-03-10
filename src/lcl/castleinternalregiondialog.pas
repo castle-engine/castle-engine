@@ -126,7 +126,7 @@ type
 
 implementation
 
-uses Math, CastleRenderOptions;
+uses Math, CastleRenderOptions, CastleUtils;
 
 {$R *.lfm}
 
@@ -424,10 +424,8 @@ procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
     { Limit the scaling point to be inside the image to prevent the coordinates from losing control. }
 
     ImagePoint := ScreenToImage(ScreenPoint);
-    ImagePoint.X := Max(ImagePoint.X, 0);
-    ImagePoint.Y := Max(ImagePoint.Y, 0);
-    ImagePoint.X := Min(ImagePoint.X, ImageWidth);
-    ImagePoint.Y := Min(ImagePoint.Y, ImageHeight);
+    ImagePoint.X := Clamped(ImagePoint.X, 0, ImageWidth);
+    ImagePoint.Y := Clamped(ImagePoint.Y, 0, ImageHeight);
 
     if beIncrease then
     begin
@@ -616,10 +614,8 @@ var
 begin
   for  i := Low(FControlPointRec.Points) to High(FControlPointRec.Points) do
   begin
-    FControlPointRec.Points[i].X := Max(0, FControlPointRec.Points[i].X);
-    FControlPointRec.Points[i].X := Min(ImageWidth, FControlPointRec.Points[i].X);
-    FControlPointRec.Points[i].Y := Max(0, FControlPointRec.Points[i].Y);
-    FControlPointRec.Points[i].Y := Min(ImageHeight, FControlPointRec.Points[i].Y);
+    FControlPointRec.Points[i].X := Clamped(FControlPointRec.Points[i].X, 0, ImageWidth);
+    FControlPointRec.Points[i].Y := Clamped(FControlPointRec.Points[i].Y, 0, ImageHeight);
   end;
 end;
 
@@ -759,8 +755,8 @@ begin
   Result := pt * FScale + FTranslation;
 end;
 
-function TRegionDesignDialog.ImageToScreen(const APoints: TArrayImagePoints):
-TArrayScreenPoints;
+function TRegionDesignDialog.ImageToScreen(
+  const APoints: TArrayImagePoints): TArrayScreenPoints;
 var
   i: integer;
 begin
