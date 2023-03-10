@@ -730,18 +730,10 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'Stretch') or
-     (PropertyName = 'ProportionalScaling') or
-     (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'SmoothScaling') or
-     (PropertyName = 'AlphaChannel') or
-     (PropertyName = 'FlipHorizontal') or
-     (PropertyName = 'FlipVertical') or
-     (PropertyName = 'ProtectedSides') or
-     (PropertyName = 'RegionPersistent') or
-     (PropertyName = 'RegionEnabled') or
-     (PropertyName = 'Rotation') then
+  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProptionalScaling'
+    , 'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal'
+    , 'FlipVertical', 'ProtectedSides', 'RegionPersistent', 'RegionEnabled'
+    , 'Rotation']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
