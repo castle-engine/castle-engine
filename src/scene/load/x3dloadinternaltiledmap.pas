@@ -187,14 +187,21 @@ var
   var
     OriginalImage: TCastleImage;
     Col, Row: Integer;
-    SrcPos, Pos, FramePos, FrameSrcPos: TVector2Integer;
+    SrcPos, Pos: TVector2Integer;
     ColumnCount, RowCount: Cardinal;
-      function TilePosition(const AImage: TEncodedImage;const AMargin, ASpacing: Cardinal): TVector2Integer;
+
+      function TilePosition(const AImage: TEncodedImage; const AMargin, ASpacing: Cardinal): TVector2Integer;
       begin
         Result.X := AMargin + Col * (Tileset.TileWidth + ASpacing);
         Result.Y := AImage.Height - (AMargin + Row * (Tileset.TileHeight + ASpacing)
           + Tileset.TileHeight);
       end;
+
+      procedure Draw(const APos, ASrcPos: TVector2Integer; const AWidth, AHeight: Integer);
+      begin
+        Result.DrawFrom(OriginalImage, APos.X, APos.Y, ASrcPos.X, ASrcPos.Y, AWidth, AHeight, dmOverwrite);
+      end;
+
   const
     NewMargin = 1;
     NewSpacing = 2;
@@ -219,33 +226,32 @@ var
           SrcPos := TilePosition(OriginalImage, Tileset.Margin, Tileset.Spacing);
 
           { Draw original tiles -----------------------------------------------}
-          Result.DrawFrom(OriginalImage, Pos.X, Pos.Y, SrcPos.X, SrcPos.Y, Tileset.TileWidth, Tileset.TileHeight, dmOverwrite);
+          Draw(Pos, SrcPos, Tileset.TileWidth, Tileset.TileHeight);
+
           { Draw frame -----------------------------------------------}
 
           { Left }
-          FramePos := Pos + Vector2Integer(-1, 0);
-          FrameSrcPos := SrcPos;
-          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, 1, Tileset.TileHeight, dmOverwrite);
+          Draw(Pos + Vector2Integer(-1, 0), SrcPos, 1, Tileset.TileHeight);
           { Right }
-          FramePos := Pos + Vector2Integer(Tileset.TileWidth, 0);
-          FrameSrcPos := SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0);
-          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, 1, Tileset.TileHeight, dmOverwrite);
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, 0), SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
+            , 1, Tileset.TileHeight);
           { Bottom }
-          FramePos := Pos + Vector2Integer(0, -1);
-          FrameSrcPos := SrcPos;
-          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, Tileset.TileWidth, 1, dmOverwrite);
+          Draw(Pos + Vector2Integer(0, -1), SrcPos, Tileset.TileWidth, 1);
           { Top }
-          FramePos := Pos + Vector2Integer(0, Tileset.TileHeight);
-          FrameSrcPos := SrcPos + Vector2Integer(0, Tileset.TileHeight - 1);
-          Result.DrawFrom(OriginalImage, FramePos.X, FramePos.Y, FrameSrcPos.X, FrameSrcPos.Y, Tileset.TileWidth, 1, dmOverwrite);
+          Draw(Pos + Vector2Integer(0, Tileset.TileHeight), SrcPos + Vector2Integer(0, Tileset.TileHeight - 1)
+            , Tileset.TileWidth, 1);
+
           { LeftBottom }
-          Move(OriginalImage.PixelPtr(SrcPos.X, SrcPos.Y)^, Result.PixelPtr(Pos.X - 1, Pos.Y - 1)^, Result.PixelSize);
+          Draw(Pos + Vector2Integer(-1, -1), SrcPos, 1, 1);
           { RightBottom }
-          Move(OriginalImage.PixelPtr(SrcPos.X + Tileset.TileWidth - 1, SrcPos.Y)^, Result.PixelPtr(Pos.X + Tileset.TileWidth, Pos.Y - 1)^, Result.PixelSize);
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, -1), SrcPos + Vector2Integer(Tileset.TileWidth - 1, 0)
+            , 1, 1);
           { LeftTop }
-          Move(OriginalImage.PixelPtr(SrcPos.X, SrcPos.Y + Tileset.TileHeight - 1)^, Result.PixelPtr(Pos.X - 1, Pos.Y + Tileset.TileHeight)^, Result.PixelSize);
+          Draw(Pos + Vector2Integer(-1, Tileset.TileHeight), SrcPos + Vector2Integer(0, Tileset.TileHeight - 1)
+            , 1, 1);
           { RightTop }
-          Move(OriginalImage.PixelPtr(SrcPos.X + Tileset.TileWidth - 1, SrcPos.Y + Tileset.TileHeight - 1)^, Result.PixelPtr(Pos.X + Tileset.TileWidth, Pos.Y + Tileset.TileHeight)^, Result.PixelSize);
+          Draw(Pos + Vector2Integer(Tileset.TileWidth, Tileset.TileHeight),SrcPos +
+            Vector2Integer(Tileset.TileWidth - 1, Tileset.TileHeight - 1), 1, 1);
 
         end;
       end;
