@@ -2,6 +2,10 @@
 
 Demo of occlusion query: https://castle-engine.io/occlusion_query .
 
+Just move around and notice in status that when occlusion query is _on_, we can eliminate most shapes from being displayed, instead we draw a trivial _"occlusion query box"_ just to detect their visibility next frame.
+
+Note that controls of this demo are deliberately useful also on mobile (drag on screen to rotate, use the walk control in bottom-right corner to move).
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
