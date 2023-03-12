@@ -2220,7 +2220,8 @@ begin
 
   if ReallyOcclusionQuery(RenderOptions) then
   begin
-    WritelnLog('Occlusion query', 'View changed suddenly');
+    // too spammy log, esp. during editor operations, that reload view
+    //WritelnLog('Occlusion query', 'View changed suddenly');
 
     { Set OcclusionQueryAsked := false for all shapes. }
     ShapeList := Shapes.TraverseList(false, false, false);
