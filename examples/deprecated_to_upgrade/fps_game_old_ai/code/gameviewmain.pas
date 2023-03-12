@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,9 @@ uses Classes, CastleCameras,
 
 type
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from the castle-user-interface file. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     WalkNavigation: TCastleWalkNavigation;
     LabelFps: TCastleLabel;
   public
@@ -48,9 +49,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  { Find components, by name, that we need to access from code }
-  WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

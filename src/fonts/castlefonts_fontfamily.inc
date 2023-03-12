@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,7 +55,7 @@ type
     function SubFont: TCastleAbstractFont; overload;
   {$ifdef FPC}strict{$endif} protected
     procedure GLContextClose; override;
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
+    procedure Measure(out AHeight, ACapHeight, ADescenderHeight: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -358,23 +358,23 @@ begin
   end;
 end;
 
-procedure TCastleFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+procedure TCastleFontFamily.Measure(out AHeight, ACapHeight, ADescenderHeight: Single);
 var
   SF: TCastleAbstractFont;
 begin
   SF := SubFont;
   if SF = nil then
   begin
-    ARowHeight := 0;
-    ARowHeightBase := 0;
-    ADescend := 0;
+    AHeight := 0;
+    ACapHeight := 0;
+    ADescenderHeight := 0;
     Exit; // subfonts not set yet
   end;
 
   { See TCustomizedFont.Measure for explanation why we need to override
     Measure. }
   SubFontCustomizeBegin(SF);
-  SF.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SF.Measure(AHeight, ACapHeight, ADescenderHeight);
   SubFontCustomizeEnd(SF);
 end;
 

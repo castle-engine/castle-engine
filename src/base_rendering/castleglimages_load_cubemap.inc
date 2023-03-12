@@ -66,11 +66,12 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
     by OpenGL.)
 }
 procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
-  PositiveX, NegativeX,
-  PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TEncodedImage;
-  CompositeForMipmaps: TCompositeImage;
-  Mipmaps: boolean);
+  const PositiveX, NegativeX,
+        PositiveY, NegativeY,
+        PositiveZ, NegativeZ: TEncodedImage;
+  const CompositeForMipmaps: TCompositeImage;
+  const Mipmaps: boolean;
+  out DisableMipmaps: Boolean);
 {$endif read_interface_func}
 
 {$endif read_interface}
@@ -175,6 +176,9 @@ end;
 
   Level must be 0, unless you provide mipmaps.
 
+  WasCompressed will be set to @true if this is compressed
+  (otherwise we leave it unchanged).
+
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
     This includes @link(ECannotLoadCompressedTexture) if the compressed texture cannot be
     loaded for whatever reason (not availble appropriate extension,
@@ -183,7 +187,7 @@ end;
     for an OpenGL texture.) }
 procedure glTextureCubeMapSide(
   const Target: TGLenum; const Image: TEncodedImage; const Level: TGLuint; const Mipmaps: boolean;
-  var LoadedSize: Int64);
+  var LoadedSize: Int64; var WasCompressed: Boolean);
 
   { Load Image through glCompressedTexImage2D[ARB].
     This checks existence of OpenGL extensions for compressed texture,
@@ -212,6 +216,7 @@ procedure glTextureCubeMapSide(
     glCompressedTexImage2D(Target, Level, ImageGLInternalFormat(Image),
       Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
+    WasCompressed := true;
   end;
 
   procedure LoadMipmapped(const Image: TCastleImage);
@@ -260,11 +265,12 @@ begin
 end;
 
 procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
-  PositiveX, NegativeX,
-  PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TEncodedImage;
-  CompositeForMipmaps: TCompositeImage;
-  Mipmaps: boolean);
+  const PositiveX, NegativeX,
+        PositiveY, NegativeY,
+        PositiveZ, NegativeZ: TEncodedImage;
+  const CompositeForMipmaps: TCompositeImage;
+  const Mipmaps: boolean;
+  out DisableMipmaps: Boolean);
 var
   LoadedSize: Int64;
 
@@ -280,16 +286,11 @@ var
       Exit(false);
     end;
 
-    {$ifdef OpenGLES}
-    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
-    Exit(false);
-    {$else}
-    if not GLFeatures.Version_1_2 then
+    if not GLFeatures.TextureMaxLevel then
     begin
-      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Exit(false);
     end;
-    {$endif}
   end;
 
   { Load mipmaps from Composite. Assume HasMipmapsFromComposite was true. }
@@ -299,16 +300,15 @@ var
       const CompositeSide: TCubeMapSide);
     var
       I: Integer;
+      IgnoredWasCompressed: Boolean;
     begin
+      IgnoredWasCompressed := false;
       for I := 1 to Composite.MipmapsCount - 1 do
         glTextureCubeMapSide(GLSide,
-          Composite.CubeMapImage(CompositeSide, I), I, false, LoadedSize);
+          Composite.CubeMapImage(CompositeSide, I), I, false, LoadedSize, IgnoredWasCompressed);
     end;
 
   begin
-    {$ifdef OpenGLES}
-    raise EInternalError.Create('HasMipmapsFromComposite should always return false on OpenGLES');
-    {$else}
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, csPositiveX);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, csNegativeX);
@@ -316,51 +316,57 @@ var
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, csNegativeY);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, csPositiveZ);
     LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, csNegativeZ);
-    {$endif}
   end;
 
+var
+  WasCompressed: Boolean;
 begin
   LoadedSize := 0;
+  WasCompressed := false;
+  DisableMipmaps := false;
 
   if Mipmaps and (HasMipmapsFromComposite(CompositeForMipmaps) or HasGenerateMipmap) then
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false, LoadedSize, WasCompressed);
     if HasMipmapsFromComposite(CompositeForMipmaps) then
       LoadMipmapsFromComposite(CompositeForMipmaps) else
     begin
-      { TODO: if the texture is compressed, we should not actually try
-        to do GenerateMipmap, as it can exit with GL_INVALID_OPERATION
-        (see comments in castleglimages_load_2d.inc). Instead we should
-        change filtering to not use mipmaps.
-
-        Called of glTextureCubeMap must be ready for it (filter should
-        change). }
-
-      GenerateMipmap(GL_TEXTURE_CUBE_MAP);
-      { TODO: this is cubemap mipmaps size assuming that provided
-        cubemap images were already power of 2, and within good dimensions. }
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveX);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeX);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveY);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeY);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveZ);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeZ);
+      if WasCompressed then
+      begin
+        { We cannot generate mipmaps when sides used GPU compression.
+          See https://docs.gl/es2/glGenerateMipmap ,
+          "GL_INVALID_OPERATION is generated if the zero level array is stored in a compressed internal format."
+        }
+        WritelnWarning('Cubemap is loaded from a GPU-compressed texture, without mipmaps. Disabling mipmaps usage, as we cannot use GenerateMipmap on GPU-compressed cube map.');
+        DisableMipmaps := true;
+      end else
+      begin
+        GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        { TODO: this is cubemap mipmaps size assuming that provided
+          cubemap images were already power of 2, and within good dimensions. }
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveX);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeX);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveY);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeY);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveZ);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeZ);
+      end;
     end;
   end else
   begin
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps, LoadedSize);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps, LoadedSize, WasCompressed);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps, LoadedSize, WasCompressed);
   end;
 
   TextureMemoryProfiler.Allocate(TextureIdForProfiler, PositiveX.URL,

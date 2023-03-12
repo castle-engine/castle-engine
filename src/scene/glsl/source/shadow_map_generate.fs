@@ -1,9 +1,5 @@
 /* Fragment shader when generating shadow maps. */
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 #ifdef ALPHA_TEST
 uniform sampler2D castle_texture_0;
 varying vec2 castle_TexCoord0_XY;

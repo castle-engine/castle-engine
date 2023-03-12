@@ -29,14 +29,10 @@
     Control may handle mouse/keyboard input, see @link(Press) and @link(Release)
     methods.
 
-    Various methods return boolean saying if input event is handled.
-    The idea is that not handled events are passed to the next
-    control suitable. Handled events are generally not processed more
-    --- otherwise the same event could be handled by more than one listener,
-    which is bad. Generally, return ExclusiveEvents if anything (possibly)
-    was done (you changed any field value etc.) as a result of this,
-    and only return @false when you're absolutely sure that nothing was done
-    by this control.
+    Various methods return Boolean signalling if the input event is "handled".
+    Input events that are handled are not passed to subsequent controls.
+    This way we avoid 2 controls from reacting to the same mouse click,
+    key press etc. Return @true if something was done as a result of given input.
 
     Every control also has a position and size and takes some rectangular space
     on the container.
@@ -247,9 +243,12 @@
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
 
-    procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
     procedure Loaded; override;
+
+    { Call RecursiveRender on all children.
+      @exclude }
+    procedure InternalRenderLoop(const ViewportRect: TRectangle); virtual;
 
     { Show and hide UI used to render tooltip (may come from user TooltipControl or some internal component).
       @exclude }
@@ -326,34 +325,52 @@
       function TMyControl.Press(const Event: TInputPressRelease): boolean;
       begin
         Result := inherited;
-        if Result then Exit; // exit if ancestor already handled event
+        if Result then Exit; // exit if ancestor already handled this event
 
         if Event.IsKey(keyEnter) then
         begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+          // do something in reaction to Enter key
+          ...
+          // let engine know that this input event was handled
+          Exit(true);
         end;
 
         if Event.IsMouseButton(buttonLeft) then
         begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+          // do something in reaction to left mouse button press
+          ...
+          // let engine know that this input event was handled
+          Exit(true);
         end;
       end;
       #)
 
-      Note that releasing of the mouse wheel is not reported now by any backend.
-      Only releasing of keys and mouse buttons is reported.
+      These events are generated for all UI controls, whether they are considered
+      "interactive" or not.
+      These events are generated for non-interactive controls
+      like @link(TCastleRectangleControl) or @link(TCastleLabel) as well.
+      For example, these events ignore the @link(TCastleButton.Enabled) state,
+      they are generated always (see https://github.com/castle-engine/castle-engine/issues/413 ).
+      Use instead @link(TCastleButton.OnClick) to detect clicks on a button in a way that honors
+      the @link(TCastleButton.Enabled) state.
+
+      When a control returns @true from @link(Press), it means it starts to "capture"
+      subsequent mouse events: subsequent mouse moves and release will be send
+      to this control even if mouse will move outside of this control.
 
       The events PreviewPress and PreviewRelease are passed first to
       the parent control, before children have a chance to process this event.
-      Overriding them makes sense if you draw something
+      In partcular, overriding them makes sense if you draw something that "looks clickable"
       in @link(TCastleUserInterface.RenderOverChildren).
 
       The events Press and Release are passed to the parent only
       after the children had a chance to process this event.
-      Overriding them makes sense if you draw something
-      in @link(TCastleUserInterface.Render). This is usually more natural, and adviced.
+      Overriding them makes sense if you draw something that "looks clickable"
+      in @link(TCastleUserInterface.Render), which is the standard place you should draw stuff.
+      For example our TCastleButton draws there.
+
+      Note that releasing of the mouse wheel is not reported now by any backend.
+      Only releasing of keys and mouse buttons is reported.
 
       @groupBegin *)
     function Press(const Event: TInputPressRelease): boolean; virtual;
@@ -420,7 +437,7 @@
         begin
           if Container.Pressed[keyArrowRight] then
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-          HandleInput := not ExclusiveEvents;
+          HandleInput := false;
         end;
       #)
 
@@ -438,9 +455,8 @@
       The correct approach is to only look at pressed keys/mouse buttons
       if HandleInput is @true. Moreover, if you did check
       that HandleInput is @true, and you did actually handle some keys,
-      then you have to set @code(HandleInput := not ExclusiveEvents).
-      As ExclusiveEvents is @true in normal circumstances,
-      this will prevent the other controls (behind the current control)
+      then you have to set @code(HandleInput := false).
+      This will prevent the other controls (behind the current control)
       from handling the keys (they will get HandleInput = @false).
       And this is important to avoid doubly-processing the same key press,
       e.g. if two controls react to the same key, only the one on top should
@@ -548,12 +564,6 @@
       deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
     {$endif}
 
-    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
-      (for normal usage you don't want to deal with it). Also, it's confusing
-      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
-      totally not related to this property that is concerned with handling
-      TCastleUserInterface events.) }
-
     { Should we disable further mouse / keys handling for events that
       we already handled in this control. If @true, then our events will
       return @true for mouse and key events handled.
@@ -563,6 +573,7 @@
       which is usually more sensible, but sometimes somewhat limiting. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
+      {$ifdef FPC} deprecated 'do not use this; supporting this property was complicated and had no real benefit; everything now works as if ExclusiveEvents=true, always'; {$endif}
 
     property Controls [const Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -1204,6 +1215,10 @@
       i.e. it accounts that AutoSizeToChildren overrides FullSize
       (since they cannot both work at the same time). }
     function EffectiveFullSize: Boolean;
+
+    { Renders control's children, assuming various tests like culling passed.
+      @exclude }
+    procedure InternalRecursiveRender(const ViewportRect: TRectangle);
   published
     { Mouse cursor over this control.
       When user moves mouse over the Container, the currently focused
@@ -1909,7 +1924,7 @@ procedure TCastleUserInterface.RenderOverChildren;
 begin
 end;
 
-procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
+procedure TCastleUserInterface.InternalRecursiveRender(const ViewportRect: TRectangle);
 
   { Draw 4 borders.
     RectBorder is equal to Self.RenderRectWithBorder,
@@ -1993,11 +2008,22 @@ var
   end;
 
 var
-  I: Integer;
   R: TFloatRectangle;
 begin
   if Exists then
   begin
+    { Usually, CheckUIScaleChanged and CheckResize are called from TCastleContainer.EventBeforeRender,
+      and that's enough. But in case control is not FVisible, they will not be called.
+      Which is a problem, because control may become visible (RenderRectWithBorder below may change)
+      exactly as an effect of CheckUIScaleChanged or CheckResize.
+      See https://github.com/castle-engine/castle-engine/issues/458 .
+      So in this special case, we do these calls here. }
+    if Culling and not FVisible then
+    begin
+      CheckUIScaleChanged;
+      CheckResize;
+    end;
+
     CacheRectBegin;
 
     R := RenderRectWithBorder;
@@ -2028,8 +2054,7 @@ begin
         end;
       end;
 
-      for I := 0 to ControlsCount - 1 do
-        Controls[I].RecursiveRender(ViewportRect);
+      InternalRenderLoop(ViewportRect);
 
       if GLInitialized then
       begin
@@ -2042,6 +2067,14 @@ begin
 
     CacheRectEnd;
   end;
+end;
+
+procedure TCastleUserInterface.InternalRenderLoop(const ViewportRect: TRectangle);
+var
+  I: Integer;
+begin
+  for I := 0 to ControlsCount - 1 do
+    Controls[I].InternalRecursiveRender(ViewportRect);
 end;
 
 procedure TCastleUserInterface.TooltipRender(const TooltipPosition: TVector2);

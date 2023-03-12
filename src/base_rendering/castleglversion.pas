@@ -89,7 +89,6 @@ type
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
     FBuggyVBO: boolean;
-    FBuggyShaderShadowMap: boolean;
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
@@ -165,9 +164,6 @@ type
 
     { Buggy VBO (Intel(Windows) bug). }
     property BuggyVBO: boolean read FBuggyVBO;
-
-    { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
-    property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
 
     { Buggy (looks like wireframe) FBO rendering to
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
@@ -508,20 +504,6 @@ begin
     {$else}
     false
     {$endif};
-
-  FBuggyShaderShadowMap :=
-    { This happens on fglrx, the worst OpenGL driver in the world.
-      card: ATI Mobility Radeon HD 4300,
-      confirmed on
-        Ubuntu 10.10/x86_64 (czarny)
-        Ubuntu 10.10/i386   (czarny)
-        Ubuntu 11.4/x86_64  (czarny)
-        Ubuntu 11.4/i386    (czarny) (fglrx OpenGL version 3.3.10665)
-      not occurs on
-        Ubuntu 9.10/i386    (czarny)
-      Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
-      since Ubuntu 10.04, which is fglrx >= 8.723). }
-    Fglrx and ReleaseExists and (Release >= 8723);
 
   { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }

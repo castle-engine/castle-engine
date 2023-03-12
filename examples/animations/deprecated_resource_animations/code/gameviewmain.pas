@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleResources, CastleCreatures,
-  CastleLevels, CastleVectors;
+  CastleLevels, CastleVectors, CastleCameras;
 
 type
   TViewMain = class;
@@ -38,14 +38,16 @@ type
 
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     ButtonLoadResourceXml: TCastleButton;
     CheckboxShowDebug: TCastleCheckbox;
     GroupResources: TCastleVerticalGroup;
-
+    ExamineNavigation1: TCastleExamineNavigation;
+  private
     { Other private stuff }
     Level: TLevel;
     CurrentCreature: TCreature;
@@ -108,13 +110,6 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  ButtonLoadResourceXml := DesignedComponent('ButtonLoadResourceXml') as TCastleButton;
-  CheckboxShowDebug := DesignedComponent('CheckboxShowDebug') as TCastleCheckbox;
-  GroupResources := DesignedComponent('GroupResources') as TCastleVerticalGroup;
-
   ButtonLoadResourceXml.OnClick := {$ifdef FPC}@{$endif}ClickButtonLoadResourceXml;
   CheckboxShowDebug.OnChange := {$ifdef FPC}@{$endif}ChangedCheckboxShowDebug;
 
@@ -133,6 +128,12 @@ begin
   Level := TLevel.Create(FreeAtStop);
   Level.Viewport := MainViewport;
   Level.Load('main_level');
+
+  { TLevel.Load, for historic purposes, always overrides MainViewport.Navigation
+    with a TCastleWalkNavigation (and we're not fixing it anymore, due to both
+    TLevel and Resources being deprecated).
+    So just bring back examine navigation manually. }
+  MainViewport.Navigation := ExamineNavigation1;
 
   ResourceButtons := TResourceButtonList.Create(true);
   UpdateResourceButtons;

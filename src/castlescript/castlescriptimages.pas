@@ -18,13 +18,11 @@ unit CastleScriptImages;
 
 {$I castleconf.inc}
 
-{$ifndef FPC}
-  {$message fatal 'This unit is not yet ported to Delphi'}
-{$endif}
-
 interface
 
 uses CastleVectors, CastleScript, CastleImages;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Depends on CastleVectors, which is not for Delphi now
 
 type
   TCasScriptImage = class(TCasScriptValue)
@@ -49,7 +47,7 @@ type
     procedure SetValue(const AValue: TCastleImage);
   public
     constructor Create(const AWriteable: boolean; const AValue: TCastleImage); overload;
-    constructor Create(const AWriteable: boolean); override; overload;
+    constructor Create(const AWriteable: boolean); overload; override;
     destructor Destroy; override;
 
     { Image value. Assigning here makes a @italic(copy) of the image. }
@@ -119,9 +117,13 @@ type
     class function ShortName: string; override;
   end;
 
+{$endif CASTLE_SCRIPT_FPC}
+
 implementation
 
 uses SysUtils, CastleUtils, CastleLog, CastleScriptVectors, CastleURIUtils;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Depends on CastleVectors, which is not for Delphi now
 
 { TCasScriptImage ------------------------------------------------------------ }
 
@@ -637,4 +639,6 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptImage {$ifdef FPC}(nil){$endif} .HandleImageSet     , TCasScriptImageSet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptImage {$ifdef FPC}(nil){$endif} .HandleImageSetColor, TCasScriptImageSetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptImage {$ifdef FPC}(nil){$endif} .HandleImageSetAlpha, TCasScriptImageSetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+
+{$endif CASTLE_SCRIPT_FPC}
 end.

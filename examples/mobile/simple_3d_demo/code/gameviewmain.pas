@@ -26,8 +26,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonToggleShader: TCastleButton;
     ButtonToggleScreenEffect: TCastleButton;
     ButtonToggleSSAO: TCastleButton;
@@ -44,7 +45,7 @@ type
     MainViewport: TCastleViewport;
     SceneCastle, SceneTeapots: TCastleScene;
     SoundWav, SoundOgg: TCastleSound;
-
+  private
     { Other fields, initialized in Start }
     MyShaderEffect: TEffectNode;
     MyScreenEffect: TScreenEffectNode;
@@ -103,26 +104,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  StatusText := DesignedComponent('StatusText') as TCastleLabel;
-  ButtonToggleShader := DesignedComponent('ButtonToggleShader') as TCastleButton;
-  ButtonToggleScreenEffect := DesignedComponent('ButtonToggleScreenEffect') as TCastleButton;
-  ButtonToggleSSAO := DesignedComponent('ButtonToggleSSAO') as TCastleButton;
-  ButtonTouchNavigation := DesignedComponent('ButtonTouchNavigation') as TCastleButton;
-  ButtonMessage := DesignedComponent('ButtonMessage') as TCastleButton;
-  ButtonReopenContext := DesignedComponent('ButtonReopenContext') as TCastleButton;
-  ButtonToggleTextureUpdates := DesignedComponent('ButtonToggleTextureUpdates') as TCastleButton;
-  ButtonPlaySoundWav := DesignedComponent('ButtonPlaySoundWav') as TCastleButton;
-  ButtonPlaySoundOgg := DesignedComponent('ButtonPlaySoundOgg') as TCastleButton;
-  ButtonVibrate := DesignedComponent('ButtonVibrate') as TCastleButton;
-  ButtonTerminate := DesignedComponent('ButtonTerminate') as TCastleButton;
-  TouchNavigation := DesignedComponent('TouchNavigation') as TCastleTouchNavigation;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  SceneCastle := DesignedComponent('SceneCastle') as TCastleScene;
-  SceneTeapots := DesignedComponent('SceneTeapots') as TCastleScene;
-  SoundWav := DesignedComponent('SoundWav') as TCastleSound;
-  SoundOgg := DesignedComponent('SoundOgg') as TCastleSound;
 
   { assign events }
   ButtonToggleShader.OnClick := {$ifdef FPC}@{$endif}ClickToggleShader;

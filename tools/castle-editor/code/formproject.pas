@@ -600,7 +600,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation,
+  FormSystemInformation, FormRestartCustomEditor,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
@@ -2236,14 +2236,22 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 
 var
   ListItem: TListItem;
-  FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr: String;
+  DesignFileName, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
-  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  // support deprecated names
-  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
+    to be possible to open them at runtime.
+    This also avoids finding stuff in castle-engine-output, which is possible,
+    e.g. after "castle-engine package --target=android" the castle-engine-output contains
+    some temporary data with copies of design files -- and we *do not* want to show them here. }
+  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
+  if URIExists(ProjectDataUrl) <> ueNotExists then
+  begin
+    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    // support deprecated names
+    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  end;
   { without sorting, the order would be ~random (as FindFiles enumarates).
     Note that we sort including the subdirectory names, which is good,
     we want files in the same subdirectory to be together. }
@@ -2260,11 +2268,7 @@ begin
     ListItem := ListOpenExistingView.Items.Add;
     ListItem.Caption := ShortDesignName(DesignFileName);
     ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    if FileAge(DesignFileName, FileDateTime) then
-      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
-    else
-      FileDateTimeStr := 'Unknown';
-    ListItem.SubItems.Append(FileDateTimeStr);
+    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
   end;
 end;
 
@@ -3244,6 +3248,7 @@ begin
   MenuItemRestartRebuildEditor.Enabled := EnableRun;
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
+  ActionRegenerateProject.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
@@ -3347,12 +3352,12 @@ begin
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then
   begin
-    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
-          'Rebuild and restart editor with custom components?', [
-          ProjectName
-        ])) then
-      MenuItemRestartRebuildEditorClick(nil);
-      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+    RestartCustomEditorForm.Initialize(ProjectName, ProjectPath);
+    case RestartCustomEditorForm.ShowModal of
+      mrOK: MenuItemRestartRebuildEditorClick(nil);
+      mrYesToAll: RestartEditor(nil);
+    end;
+    //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
 end;
 

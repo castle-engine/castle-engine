@@ -117,7 +117,7 @@ begin
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
-  Application.FScreenStatusBarHeight := Round(24 * Window.Dpi / 96); // TODO
+  Application.FScreenStatusBarHeight := Round(24 * Window.Container.Dpi / 96); // TODO
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
   Window.FLeft := 0;
   Window.FTop := 0;
@@ -214,7 +214,7 @@ begin
         { We will actually process this event (calling TCastleWindow.Open)
           later, to avoid ANRs when OnOpen does something time-consuming. }
         MainWindow.NativeWindow := App^.Window;
-        MainWindow.Dpi := DetermineDpi(App);
+        MainWindow.Container.Dpi := DetermineDpi(App);
         QEvent.EventType := aeOpen;
         QEvents.Add(QEvent);
       end;

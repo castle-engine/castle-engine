@@ -65,6 +65,9 @@ OrientationInterpolator : X3DInterpolatorNode {
     range: [-1,1] or (-Inf,Inf)
     change: chNone
   SFRotation [out]    value_changed
+  SFBool     [in,out] keyValueQuaternions FALSE
+    change: chNone
+    doc: When @true, key values are provided as unit quaternions. By default (when @false) they have to be axis angle rotations. This allows extra optimization in case your input data is in quaternions, which is true in case of glTF. It is then most efficient to just put quternions in TOrientationInterpolatorNode.FdKeyValue and set this to @true.  Otherwise, you would 1. needlessly convert quaternion -> axisangle when reading glTF file, 2. needlessly convert axisangle -> quaternion as a first step of SLerp.
 }
 
 PositionInterpolator : X3DInterpolatorNode {

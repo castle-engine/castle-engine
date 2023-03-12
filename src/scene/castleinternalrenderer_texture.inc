@@ -849,7 +849,7 @@ begin
     This is low-priority due to low MultiTexture usage. }
   Shader.MultiTextureColor := Vector4(TextureNode.Color, TextureNode.Alpha);
 
-  for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
+  for I := 0 to Integer(TextureSlotsUsed) - Integer(InitialTextureSlotsUsed) - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
     Success := false;
@@ -2163,6 +2163,7 @@ var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedViewport: TRectangle;
   Camera: TRenderingCamera;
+  SavedPolygonOffset: TPolygonOffset;
 begin
   if FGLName = 0 then Exit;
 
@@ -2190,27 +2191,18 @@ begin
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-        { Enable polygon offset for everything (whole scene).
+      { Enable polygon offset for everything (whole scene).
 
-          VarianceShadowMaps notes: can offset be avoided in this case?
-          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
-          offset is still needed for VSM. Without offset, VSM has some noise,
-          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        {$ifndef OpenGLES} // These do not exist on OpenGLES
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        {$endif}
-        glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+        VarianceShadowMaps notes: can offset be avoided in this case?
+        Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+        offset is still needed for VSM. Without offset, VSM has some noise,
+        and sunny_street demos have noise on walls. With offset, VSM is perfect. }
+      SavedPolygonOffset := RenderContext.PolygonOffset;
+      RenderContext.PolygonOffsetEnable(TextureNode.FdScale.Value, TextureNode.FdBias.Value);
 
-        Render(Camera);
+      Render(Camera);
 
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        {$ifndef OpenGLES} // These do not exist on OpenGLES
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glDisable(GL_POLYGON_OFFSET_POINT);
-        {$endif}
-
+      RenderContext.PolygonOffset := SavedPolygonOffset;
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
       RenderContext.Viewport := SavedViewport;
 

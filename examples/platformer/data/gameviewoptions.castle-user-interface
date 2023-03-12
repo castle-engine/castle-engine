@@ -39,7 +39,7 @@
                 {
                   "HorizontalAnchorParent" : "hpRight",
                   "HorizontalAnchorSelf" : "hpRight",
-                  "Name" : "HorizontalGroupVolume",
+                  "Name" : "VolumeGroup",
                   "Spacing" : 5.0000000000000000E+000,
                   "VerticalAnchorParent" : "vpTop",
                   "VerticalAnchorSelf" : "vpTop",
@@ -430,7 +430,7 @@
                 {
                   "HorizontalAnchorParent" : "hpRight",
                   "HorizontalAnchorSelf" : "hpRight",
-                  "Name" : "HorizontalGroupMusic",
+                  "Name" : "MusicGroup",
                   "Spacing" : 5.0000000000000000E+000,
                   "VerticalAnchorDelta" : -6.0000000000000000E+001,
                   "VerticalAnchorParent" : "vpTop",

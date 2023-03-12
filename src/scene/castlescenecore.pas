@@ -2219,8 +2219,8 @@ type
     procedure ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode = nil);
 
     { Force recalculating the text shapes when font changed.
-      For now, we don't detect font changes (when TFontStyleNode.OnFont
-      returns something different) ourselves.
+      For now, we don't detect font changes (e.g. when TFontStyleNode.CustomFont changed)
+      automatically.
       This calls @link(TTextNode.FontChanged) and @link(TAsciiTextNode_1.FontChanged)
       on all appropriate nodes. }
     procedure FontChanged;

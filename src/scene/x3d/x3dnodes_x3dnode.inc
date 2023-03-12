@@ -905,6 +905,8 @@
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute); overload;
     procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
+    procedure RemoveRoute(const Value: TX3DRoute); overload;
+    procedure RemoveRoute(const Index: Integer); overload;
 
     property ImportsList [const Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
@@ -3456,6 +3458,21 @@ begin
   Route.SetSourceDirectly(Source);
   Route.SetDestinationDirectly(Destination);
   AddRoute(Route);
+end;
+
+procedure TX3DNode.RemoveRoute(const Value: TX3DRoute);
+begin
+  Assert(FRoutes <> nil);
+
+  RemoveRoute(FRoutes.IndexOf(Value));
+end;
+
+procedure TX3DNode.RemoveRoute(const Index: Integer);
+begin
+  Assert(FRoutes <> nil);
+  Assert(Between(Index, 0, FRoutes.Count - 1));
+
+  FRoutes.Delete(Index);
 end;
 
 function TX3DNode.GetImports(const Index: Integer): TX3DImport;

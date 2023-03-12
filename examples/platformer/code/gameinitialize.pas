@@ -65,7 +65,7 @@ begin
   Theme.ImagesPersistent[tiButtonPressed].Url := 'castle-data:/ui/red_button07.png';
   Theme.ImagesPersistent[tiButtonPressed].ProtectedSides.AllSides := 6;
 
-  { Create game views and set initial view }
+  { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewPlay := TViewPlay.Create(Application);

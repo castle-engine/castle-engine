@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,11 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    PageButton2: TCastleDesign;
   private
     const
       PagesCount = 12;
@@ -47,8 +52,6 @@ type
       );
 
     var
-      { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
-      LabelFps: TCastleLabel;
       PageButtons: array [1..PagesCount] of TCastleButton;
       Pages: array [1..PagesCount] of TCastleUserInterface;
 
@@ -79,13 +82,11 @@ end;
 procedure TViewMain.Start;
 var
   I: Integer;
-  PageButtons2: TCastleDesign;
   ButtonToggle: TCastleButton;
 begin
   inherited;
 
   { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   for I := 1 to PagesCount do
   begin
     PageButtons[I] := DesignedComponent('Button' + PageNames[I]) as TCastleButton;
@@ -94,9 +95,8 @@ begin
     Pages[I] := DesignedComponent('Page' + PageNames[I]) as TCastleUserInterface;
   end;
 
-  { Find components inside TCastleDesigns (this needs 2 steps - first find the TCastleDesign) }
-  PageButtons2 := DesignedComponent('PageButton2') as TCastleDesign;
-  ButtonToggle := PageButtons2.DesignedComponent('ButtonToggle') as TCastleButton;
+  { Find components inside TCastleDesigns (use TCastleDesigns.DesignedComponent) }
+  ButtonToggle := PageButton2.DesignedComponent('ButtonToggle') as TCastleButton;
 
   ButtonToggle.OnClick := {$ifdef FPC}@{$endif}ClickToggle;
 end;

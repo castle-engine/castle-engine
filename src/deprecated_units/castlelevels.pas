@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1146,9 +1146,9 @@ begin
     Player.LevelChanged;
 
   SoundEngine.LoopingChannel[0].Sound := Info.MusicSound;
+  {$warnings off} // using deprecated in deprecated unit
   SoundEngine.PrepareResources;
 
-  {$warnings off} // using deprecated in deprecated unit
   Items.MainScene.ProcessEvents := true;
 
   Dec(Items.MainScene.InternalDirty);
@@ -1656,10 +1656,12 @@ begin
   LevelResources.LoadResources(Element);
   AddAlwaysPreparedResources;
 
+  {$warnings off} // using deprecated in deprecated unit
   if Element.AttributeString('music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName)
   else
     MusicSound := nil;
+  {$warnings on}
 end;
 
 { TLevelInfoList ------------------------------------------------------- }

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2019 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@
 uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
-  CastleURIUtils, CastleProgress, CastleProgressConsole, CastleUnicode,
+  CastleURIUtils, CastleUnicode,
   CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
 
 var
@@ -123,8 +123,6 @@ begin
       Characters.Add(SimpleAsciiCharacters);
     if Characters.Count = 0 then
       raise EInvalidParams.Create('No font characters requested to be loaded');
-
-    Progress.UserInterface := ProgressConsoleInterface;
 
     FontName := DeleteURIExt(ExtractURIName(FontURL));
     if ParamFunctionName <> '' then

@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -125,8 +125,6 @@ type
     procedure SynchronizeButtonsToShow;
     procedure LogCallback(const Message: String);
     procedure SetSelectedComponent(const Value: TComponent);
-    { Used to display C as String throughout the UI. }
-    function ComponentCaption(const C: TComponent; const Level: Integer): String;
     procedure UpdateHierarchy(Sender: TObject);
     procedure ClickHierarchyRow(Sender: TObject);
     { Update properties to reflect current FSelectedComponent.
@@ -185,6 +183,64 @@ uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleInternalRttiUtils,
   CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
+
+{ ---------------------------------------------------------------------------- }
+
+type
+  // Just for test, this will also work.
+  //  TSimpleLabel = TCastleLabel;
+
+  { Display string. A much simpler alternative to TCastleLabel,
+    missing a lot of its features.
+
+    Compared to TCastleLabel,
+
+    - it only supports displaying a single line
+      (newline characters in Caption will be visible as weird chars).
+
+    - does not support Html.
+
+    - does not support wrapping (MaxWidth), text alignment in any way.
+
+    - does not calculate own width properly (so e.g. anchors to right will not work).
+
+    - doesn't manage visual updates (it assumes screeb will always be redrawn after changing
+      Caption; in practice, it is easiest to only change Caption at creation).
+
+    - doesn't allow translation.
+
+    - doesn't serialize to/from JSON.
+  }
+  TSimpleLabel = class(TCastleUserInterfaceFont)
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+  public
+    Caption: String;
+    Color: TCastleColor;
+    procedure Render; override;
+  end;
+
+procedure TSimpleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+begin
+  // inherited; // no need
+  PreferredWidth := 10; // hardcoded arbitrary non-zero value, to return fast
+  { Add Font.DescenderHeight, although it is already contained in Font.Height.
+    See TCastleLabel.PreferredSize for reason. }
+  PreferredHeight := Font.Height + Font.DescenderHeight;
+end;
+
+procedure TSimpleLabel.Render;
+var
+  R: TFloatRectangle;
+begin
+  // inherited; // no need
+  R := RenderRect;
+  { TODO: Font.DescenderHeight * 1.5 to match button caption alignment,
+    but we should be rather "Font.DescenderHeight * 1" to be consistent with TCastleLabel. }
+  Font.Print(R.Left, R.Bottom + Font.DescenderHeight * 1.5, Color, Caption);
+end;
+
+{ TCastleInspector ----------------------------------------------------------- }
 
 { TODO:
 
@@ -355,11 +411,6 @@ end;
 const
   SLevelPrefix = '- ';
 
-function TCastleInspector.ComponentCaption(const C: TComponent; const Level: Integer): String;
-begin
-  Result := DupeString(SLevelPrefix, Level) + C.Name + ' (' + C.ClassName + ')';
-end;
-
 function TCastleInspector.Selectable(const C: TComponent): Boolean;
 begin
   { Never show Self,
@@ -376,29 +427,57 @@ procedure TCastleInspector.UpdateHierarchy(Sender: TObject);
 var
   RowIndex: Integer;
 
-  procedure AddHierarchyEntry(const Caption: String; const C: TComponent);
+  { Add hierarchy entry.
+    MainCaption is displayed using prominent (black) font color,
+    DimCaption is displayed using dim font color -- it can be used for class name. }
+  procedure AddHierarchyEntryCore(const MainCaption, DimCaption: String; const RowTag: Pointer);
+  const
+    // CGE editor uses lighter gray, but inspector is often on partially-transparent bg, darker gray looks better
+    //DimColor: TCastleColor = (X: 0.75; Y: 0.75; Z: 0.75; W: 1.0);
+    DimColor: TCastleColor = (X: 0.6; Y: 0.6; Z: 0.6; W: 1.0);
   var
     HierarchyButton: TCastleButton;
+    DimLabel: TSimpleLabel;
   begin
     if RowIndex < HierarchyRowParent.ControlsCount then
     begin
       HierarchyButton := HierarchyRowParent.Controls[RowIndex] as TCastleButton;
+      DimLabel := HierarchyButton.Controls[0] as TSimpleLabel;
     end else
     begin
       HierarchyButton := SerializedHierarchyRowTemplate.ComponentLoad(Self) as TCastleButton;
-      ForceFallbackLook(HierarchyButton);
       HierarchyButton.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyRow;
       HierarchyButton.Culling := true; // many such buttons are often not visible, in scroll view
       HierarchyButton.Width := RectHierarchy.EffectiveWidthForChildren;
       HierarchyRowParent.InsertFront(HierarchyButton);
+
+      DimLabel := TSimpleLabel.Create(HierarchyButton);
+      DimLabel.Color := DimColor;
+      DimLabel.Anchor(vpMiddle);
+      HierarchyButton.InsertFront(DimLabel);
+
+      ForceFallbackLook(HierarchyButton);
     end;
 
-    HierarchyButton.Caption := Caption;
+    HierarchyButton.Caption := MainCaption;
+
+    DimLabel.Caption := DimCaption;
+    DimLabel.Anchor(hpLeft, FallbackFont.TextWidth(MainCaption));
+
     { TComponent.Tag is a (signed) PtrInt in FPC, (signed) NativeInt in Delphi,
       so typecast to PtrInt to avoid range check errors. }
-    HierarchyButton.Tag := PtrInt(C);
+    HierarchyButton.Tag := PtrInt(RowTag);
 
     Inc(RowIndex);
+  end;
+
+  procedure AddHierarchyEntry(const C: TComponent; const Level: Integer);
+  begin
+    AddHierarchyEntryCore(
+      DupeString(SLevelPrefix, Level) + C.Name,
+      ' (' + C.ClassName + ')',
+      C
+    );
   end;
 
   { Add given component, and its children in C.NonVisualComponents }
@@ -406,7 +485,7 @@ var
   var
     Child: TComponent;
   begin
-    AddHierarchyEntry(ComponentCaption(C, Level), C);
+    AddHierarchyEntry(C, Level);
 
     if C is TCastleComponent then
     begin
@@ -424,7 +503,7 @@ var
   begin
     if C.NonVisualComponentsCount <> 0 then
     begin
-      AddHierarchyEntry(DupeString(SLevelPrefix, Level) + 'Non-Visual Components', C);
+      AddHierarchyEntryCore(DupeString(SLevelPrefix, Level) + 'Non-Visual Components', '', C);
       for Child in C.NonVisualComponentsEnumerate do
         if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
@@ -439,7 +518,7 @@ var
   begin
     if T.BehaviorsCount <> 0 then
     begin
-      AddHierarchyEntry(DupeString(SLevelPrefix, Level) + 'Behaviors', T);
+      AddHierarchyEntryCore(DupeString(SLevelPrefix, Level) + 'Behaviors', '', T);
       for Child in T.BehaviorsEnumerate do
         if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
@@ -452,7 +531,7 @@ var
   var
     I: Integer;
   begin
-    AddHierarchyEntry(ComponentCaption(T, Level), T);
+    AddHierarchyEntry(T, Level);
 
     AddNonVisualComponentsSection(T, Level + 1);
     AddBehaviorsSection(T, Level + 1);
@@ -468,7 +547,7 @@ var
     I: Integer;
     Viewport: TCastleViewport;
   begin
-    AddHierarchyEntry(ComponentCaption(C, Level), C);
+    AddHierarchyEntry(C, Level);
 
     AddNonVisualComponentsSection(C, Level + 1);
 
@@ -794,6 +873,13 @@ begin
 end;
 
 procedure TCastleInspector.SetSelectedComponent(const Value: TComponent);
+
+  { Used to display C as String. }
+  function ComponentCaption(const C: TComponent): String;
+  begin
+    Result := C.Name + ' (' + C.ClassName + ')';
+  end;
+
 var
   HierarchyRow: TCastleUserInterface;
   HierachyRowButton: TCastleButton;
@@ -813,7 +899,7 @@ begin
     end;
 
     if FSelectedComponent <> nil then
-      LabelPropertiesHeader.Caption := 'Properties - ' + ComponentCaption(FSelectedComponent, 0)
+      LabelPropertiesHeader.Caption := 'Properties - ' + ComponentCaption(FSelectedComponent)
     else
       LabelPropertiesHeader.Caption := 'Properties';
 

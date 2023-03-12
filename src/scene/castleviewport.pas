@@ -921,7 +921,7 @@ type
       Or you can leave it as @nil. }
     property Navigation: TCastleNavigation read GetNavigation write SetNavigation
       stored false;
-      {$ifdef FPC}deprecated 'no need to set this, instead add TCastleNavigation like "MyViewport.InsertBack(MyNavigation)"';{$endif}
+      {$ifdef FPC}deprecated 'instead of this property: to get, just remember current navigation instance on your side; to set, add it like "MyViewport.InsertBack(MyNavigation)"';{$endif}
 
     { Check collisions (for move) with whole world (except AvoidNavigationCollisions).
       Given parameters are in world coordinates.
@@ -1805,13 +1805,13 @@ begin
     // use downto, to work in case some Press will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Press(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
   begin
     InternalPointingDeviceDragging := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -1829,13 +1829,13 @@ begin
     // use downto, to work in case some Release will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Release(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) then
   begin
     InternalPointingDeviceDragging := false;
     if PointingDeviceRelease then
-      Exit(ExclusiveEvents);
+      Exit(true);
   end;
 end;
 

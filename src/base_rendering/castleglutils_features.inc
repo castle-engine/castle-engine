@@ -197,6 +197,7 @@ type
     FRedBits, FGreenBits, FBlueBits, FAlphaBits, FDepthBits, FStencilBits: TGLint;
     FDoubleBuffer: Boolean;
     FLineWidth: TVector2;
+    FTextureMaxLevel: Boolean;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -301,9 +302,12 @@ type
     property Multisample: Boolean read FMultisample;
 
     { Number of texture units available for fixed-function pipeline.
-      Equal to 0 on OpenGLES (that doesn't have fixed-function pipeline).
-      Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
-      available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
+
+      Since querying glGetInteger(GL_MAX_TEXTURE_UNITS) is deprecated
+      (or not even possible in case of OpenGLES or "core" profile)
+      and we want to keep fixed-function support as simple as possible,
+      we just assume 2 (the only number guaranteed) if only multi-texturing
+      is available (UseMultiTexturing). }
     property MaxTextureUnitsFixedFunction: Cardinal read FMaxTextureUnitsFixedFunction;
 
     { Number of texture units available for shader pipeline. }
@@ -535,6 +539,9 @@ type
 
     { Line width granularity and maximum width. }
     property LineWidth: TVector2 read FLineWidth;
+
+    { Supports glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, ...); }
+    property TextureMaxLevel: Boolean read FTextureMaxLevel;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -668,7 +675,6 @@ begin
   end;
 end;
 
-{$ifndef OpenGLES}
 procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
   Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
   {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
@@ -726,6 +732,13 @@ begin
   if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
     WritelnLog(MessageWhole);
 end;
+
+{$ifndef OpenGLES}
+{ Workaround GLExt in FPC missing "extdecl" for these routines,
+  see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
+var
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 {$endif}
 
 constructor TGLFeatures.Create;
@@ -741,26 +754,31 @@ constructor TGLFeatures.Create;
 
   procedure InitializeDebug;
   begin
-    {$ifdef OpenGLES}
-    WritelnWarning('Debugging OpenGL context on OpenGLES not available, ignoring the debug flag');
-    {$else}
     if HasExtension('GL_KHR_debug') then
     begin
-      { Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
-        glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually. }
+      {$ifndef OpenGLES}
+      { Initialize manually to:
+        - Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
+          glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
+        - Workaround that we define them in this unit, to have proper stdcall/cdecl,
+          see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 .
+        Note that we don't really use glDebugMessageControl now, but we load+check it too,
+        for consistency.
+        This is not necessary on OpenGLES, our CastleGLES just always loads all entry points now,
+        without even checking GL_KHR_debug. }
       Pointer({$ifndef FPC}@{$endif} glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
-      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
-      // Note that we don't really use glDebugMessageControl now
       Pointer({$ifndef FPC}@{$endif} glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
+      {$endif}
+
+      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
       if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
 
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
       glDebugMessageCallback(
         {$ifndef FPC}GLDEBUGPROC(@CallbackGLDebug){$endif}
         {$ifdef FPC}@CallbackGLDebug{$endif}, nil);
-      WritelnLog('OpenGL debugging enabled, expect extra log messages');
+      WritelnLog('OpenGL(ES) debugging enabled, expect extra log messages');
     end;
-    {$endif}
   end;
 
 {$ifndef OpenGLES}
@@ -824,22 +842,18 @@ begin
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
   FVersion_1_5 := GLVersion.AtLeast(1, 5);
-  FVersion_2_0 := GLVersion.AtLeast(2, 0);
-  FVersion_2_1 := GLVersion.AtLeast(2, 1);
-  FVersion_3_0 := GLVersion.AtLeast(3, 0);
-  FVersion_3_1 := GLVersion.AtLeast(3, 1);
-  FVersion_3_2 := GLVersion.AtLeast(3, 2);
-  FVersion_3_3 := GLVersion.AtLeast(3, 3);
-  FVersion_4_0 := GLVersion.AtLeast(4, 0);
+  if RequestCapabilities <> rcForceFixedFunction then
+  begin
+    FVersion_2_0 := GLVersion.AtLeast(2, 0);
+    FVersion_2_1 := GLVersion.AtLeast(2, 1);
+    FVersion_3_0 := GLVersion.AtLeast(3, 0);
+    FVersion_3_1 := GLVersion.AtLeast(3, 1);
+    FVersion_3_2 := GLVersion.AtLeast(3, 2);
+    FVersion_3_3 := GLVersion.AtLeast(3, 3);
+    FVersion_4_0 := GLVersion.AtLeast(4, 0);
+  end;
   InitOpenGLext; // TODO: check that later
   {$endif}
-
-  { Do this as early as possible, which means: after Version_3_2 is defined,
-    to debug even errors below in TGLFeatures initialization. }
-  if Debug then
-    InitializeDebug;
-
-  FNV_multisample_filter_hint := HasExtension('GL_NV_multisample_filter_hint');
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
@@ -849,6 +863,13 @@ begin
   if not VersionES_2_0 then
     raise Exception.Create('We only support OpenGL ES versions >= 2.0');
   {$endif}
+
+  { Do this as early as possible, which means: after Version_3_2 is defined,
+    to debug even errors below in TGLFeatures initialization. }
+  if Debug then
+    InitializeDebug;
+
+  FNV_multisample_filter_hint := HasExtension('GL_NV_multisample_filter_hint');
 
   {$ifdef OpenGLES}
   FCLAMP_TO_EDGE := GL_CLAMP_TO_EDGE;
@@ -863,22 +884,10 @@ begin
   if GLVersion.BuggyTextureSizeAbove2048 then
     FMaxTextureSize := Min(FMaxTextureSize, 2048);
 
-  FMaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
-
-  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
-    which is usually much smaller (may even be 0).
-    But most of our texture uses do not access the texture from the vertex shader,
-    only fragment shader. }
-  FMaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
-
-  {$ifdef OpenGLES}
-  FMaxTextureUnitsFixedFunction := 0;
-  {$else}
-  if Version_1_3 then
-    FMaxTextureUnitsFixedFunction := glGetInteger(GL_MAX_TEXTURE_UNITS)
-  else
-    FMaxTextureUnitsFixedFunction := 1;
-  {$endif}
+  { Querying glGetInteger(GL_MAX_LIGHTS) is deprecated in core profile,
+    as it makes sense only for fixed-function.
+    Just assume 8 now. }
+  FMaxLights := 8;
 
   FTextureCubeMap := {$ifdef OpenGLES} true
     {$else} Version_1_3
@@ -928,14 +937,16 @@ begin
     {$ifdef OpenGLES}
     FOcclusionQueryCounterBits := 32; // just use some sensible default
     {$else}
-    glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits)
+    glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, @FOcclusionQueryCounterBits);
     {$endif}
   end else
     FOcclusionQueryCounterBits := 0;
 
   { calculate Framebuffer }
   FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
-    {$else} Version_3_0 or HasExtension('GL_ARB_framebuffer_object')
+    { Note: Do not change Load_GL_ARB_framebuffer_object to HasExtension('GL_ARB_framebuffer_object')
+      here, as we need to load entry points (like glGenerateMipmap) in this case. }
+    {$else} Version_3_0 {$ifdef FPC} or (LoadExtensions and Load_GL_ARB_framebuffer_object) {$endif}
     {$endif};
 
   if Framebuffer then
@@ -968,6 +979,11 @@ begin
     {$else} Version_1_3
     {$endif};
 
+  if FUseMultiTexturing then
+    FMaxTextureUnitsFixedFunction := 2
+  else
+    FMaxTextureUnitsFixedFunction := 1;
+
   FFBOMultiSampling := {$ifdef OpenGLES} false
     {$else}
     Framebuffer and
@@ -994,7 +1010,8 @@ begin
 
   FPackedDepthStencil :=
     {$ifdef OpenGLES} HasExtension('GL_OES_packed_depth_stencil')
-    {$else} HasExtension('GL_EXT_packed_depth_stencil')
+    // macOS doesn't have GL_EXT_packed_depth_stencil, but FBO creation only works when using packed depth+stencil
+    {$else} HasExtension('GL_EXT_packed_depth_stencil') {$ifdef DARWIN} or true {$endif}
     {$endif};
 
   {$ifndef OpenGLES}
@@ -1040,8 +1057,10 @@ begin
     {$else} Version_2_0
     {$endif};
 
-  FTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two') {$endif};
+  FTextureNonPowerOfTwo :=
+    {$ifdef OpenGLES} true
+    {$else} Version_2_0 or HasExtension('GL_ARB_texture_non_power_of_two')
+    {$endif};
 
   FTextureCompression := [];
 
@@ -1201,6 +1220,16 @@ begin
   Assert(EnableFixedFunction = (not Shaders));
   Assert(EnableFixedFunction = (not VertexBufferObject));
 
+  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+    which is usually much smaller (may even be 0).
+    But most of our texture uses do not access the texture from the vertex shader,
+    only fragment shader.
+
+    Note: we read this only if shaders are supported (OpenGL 2.0),
+    otherwise GL_MAX_TEXTURE_IMAGE_UNITS is invalid enum for older OpenGL. }
+  if Shaders then
+    FMaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
+
   FVertexArrayObject := {$ifdef OpenGLES} false {$else} (not EnableFixedFunction) and Version_3_0 {$endif};
 
   { Calculate MaxClipPlanes.
@@ -1243,6 +1272,11 @@ begin
     glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
   end;
 
+  FTextureMaxLevel :=
+    {$ifdef OpenGLES} VersionES_3_0
+    {$else} Version_1_2
+    {$endif};
+
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;
 
@@ -1250,6 +1284,8 @@ begin
 
   if (RequestCapabilities = rcForceModern) and EnableFixedFunction then
     raise Exception.Create('Requested modern context, but it was detected that we have to use fixed-function. We failed to really get modern context.');
+
+  CheckGLErrors('End of TGLFeatures.Create');
 end;
 
 destructor TGLFeatures.Destroy;

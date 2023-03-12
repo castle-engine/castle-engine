@@ -1,0 +1,49 @@
+object RestartCustomEditorForm: TRestartCustomEditorForm
+  Left = 464
+  Height = 119
+  Top = 154
+  Width = 546
+  Caption = 'Rebuild and Restart Custom Editor?'
+  ClientHeight = 119
+  ClientWidth = 546
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.2.2.0'
+  object LabelCaption: TLabel
+    Left = 8
+    Height = 45
+    Top = 8
+    Width = 277
+    Caption = 'Project "%s" uses custom components.'#13#10#13#10'Rebuild and restart editor with custom components?'
+    ParentColor = False
+  end
+  object ButtonPanel1: TButtonPanel
+    Left = 6
+    Height = 34
+    Top = 79
+    Width = 534
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.Caption = 'Run Last Build Editor'
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object ButtonRunLastEditor: TBitBtn
+    AnchorSideTop.Control = ButtonPanel1
+    AnchorSideTop.Side = asrCenter
+    Left = 6
+    Height = 25
+    Top = 88
+    Width = 230
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    Caption = 'Run Last Build Editor (2023 99 99 99:99)'
+    ModalResult = 10
+    TabOrder = 1
+  end
+end

@@ -24,7 +24,10 @@ Effect {
     EffectPart {
       type "FRAGMENT"
       url "data:text/plain,
+        #ifndef GL_ES
+        // avoid redeclaring castle_TexCoord0 when GLSL doesn't support separate compilation units
         varying vec4 castle_TexCoord0;
+        #endif
 
         uniform sampler2D texture_1;
         uniform sampler2D texture_2;

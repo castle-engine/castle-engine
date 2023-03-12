@@ -1,1 +1,4 @@
 From https://www.patreon.com/brand
+
+Digital-Patreon-Wordmark_White.png is here only for backward-compatibility,
+static HTMLs of API docs and docs DocBook-generated output may refer to it.

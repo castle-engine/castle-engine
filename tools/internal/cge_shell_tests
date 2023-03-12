@@ -21,6 +21,9 @@ do_test_qualified_name ()
   if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="net.sourceforge'; then
     exit 1
   fi
+  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="io.sourceforge'; then
+    exit 1
+  fi
 }
 
 # Test that examples have no leftover "public domain" header.

@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -159,9 +159,7 @@
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
       pointing to an XML file describing your sounds.
-      See https://castle-engine.io/creating_data_sound.php and
-      engine examples for details (@code(examples/audio/sample_sounds.xml)
-      contains an example file with lots of comments).
+      See https://castle-engine.io/creating_data_sound.php#section_sample .
 
       When you set RepositoryURL property, we read sound information from
       given XML file. You usually set RepositoryURL at the very beginning
@@ -196,6 +194,7 @@
       this just indicates the "data" subdirectory of your project.
     }
     property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
+      {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
 
     {$ifdef FPC}
     { Deprecated name for RepositoryURL. @deprecated }
@@ -205,7 +204,7 @@
     { Reload the RepositoryURL and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
       without restarting the game and sound engine. }
-    procedure ReloadSounds;
+    procedure ReloadSounds; deprecated 'deprecated just like RepositoryURL';
 
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
@@ -228,6 +227,7 @@
         or not.)
     }
     function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
+      deprecated 'deprecated just like RepositoryURL';
 
     {$ifdef FPC}
     { Sound importance names and values.
@@ -301,7 +301,7 @@
       Note that, if this does nothing, but you later set @link(RepositoryURL)
       or do @link(LoadBuffer) or @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
-    procedure PrepareResources;
+    procedure PrepareResources; deprecated 'deprecated just like RepositoryURL';
   end;
 
 {$endif read_interface}
@@ -723,13 +723,13 @@ begin
   FSounds.Add(TSoundInfoBuffer.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
-  if RepositoryURL = '' then Exit;
+  if FRepositoryURL = '' then Exit;
 
-  TimeStart := Profiler.Start('Loading All Sounds From ' + RepositoryURL + ' (TRepoSoundEngine)');
+  TimeStart := Profiler.Start('Loading All Sounds From ' + FRepositoryURL + ' (TRepoSoundEngine)');
   try
     { This must be an absolute path, since FSounds[].URL should be
       absolute (to not depend on the current dir when loading sound files. }
-    BaseUrl := AbsoluteURI(RepositoryURL);
+    BaseUrl := AbsoluteURI(FRepositoryURL);
 
     Stream := Download(BaseUrl);
     try
@@ -786,12 +786,14 @@ procedure TRepoSoundEngine.ReloadSounds;
 var
   OldRepositoryURL: string;
 begin
+  {$warnings off} // using deprecated in deprecated
   if RepositoryURL <> '' then
   begin
     OldRepositoryURL := RepositoryURL;
     RepositoryURL := '';
     RepositoryURL := OldRepositoryURL;
   end;
+  {$warnings on}
 end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
