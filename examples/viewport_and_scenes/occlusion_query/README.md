@@ -6,6 +6,12 @@ Just move around and notice in status that when occlusion query is _on_, we can 
 
 Note that controls of this demo are deliberately useful also on mobile (drag on screen to rotate, use the walk control in bottom-right corner to move).
 
+![Screenshot](screenshot.png)
+
+![Screenshot from editor](screenshot_editor.png)
+
+![Screenshot running on Android](screenshot_android.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
