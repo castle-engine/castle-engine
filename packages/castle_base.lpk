@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/services/steam"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -583,6 +583,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleinternalglutils_errors.inc"/>
         <Type Value="Include"/>
       </Item127>
+      <Item128>
+        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
+        <Type Value="Include"/>
+      </Item128>
       <Item129>
         <Filename Value="../src/base_rendering/castleglutils_features.inc"/>
         <Type Value="Include"/>
@@ -705,6 +709,10 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGenericLists"/>
       </Item157>
+      <Item158>
+        <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
+        <Type Value="Include"/>
+      </Item158>
       <Item159>
         <Filename Value="../src/deprecated_units/castleglcontainer.pas"/>
         <AddToUsesPkgSection Value="False"/>
@@ -968,6 +976,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/fonts/castleinternalfreetypeh.pas"/>
         <UnitName Value="CastleInternalFreeTypeH"/>
       </Item219>
+      <Item220>
+        <Filename Value="../src/base_rendering/castleglutils_vertex_array_object.inc"/>
+        <Type Value="Include"/>
+      </Item220>
       <Item221>
         <Filename Value="../src/fonts/castleinternalrichtext.pas"/>
         <UnitName Value="CastleInternalRichText"/>
@@ -4233,6 +4245,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castlevectors_matrix_decompose.inc"/>
         <Type Value="Include"/>
       </Item1035>
+      <Item1036>
+        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
+        <Type Value="Include"/>
+      </Item1036>
       <Item1037>
         <Filename Value="../src/transform/castleinternalphysicsvisualization.pas"/>
         <UnitName Value="CastleInternalPhysicsVisualization"/>
@@ -4277,14 +4293,14 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castletransform_joints.inc"/>
         <Type Value="Include"/>
       </Item1047>
-      <Item1036>
-        <Filename Value="../src/transform/castletransform_joints_experimental.inc"/>
-        <Type Value="Include"/>
-      </Item1036>
       <Item1048>
         <Filename Value="../src/base/castleinternalclassutils.pas"/>
         <UnitName Value="CastleInternalClassUtils"/>
       </Item1048>
+      <Item1049>
+        <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
+        <Type Value="Include"/>
+      </Item1049>
       <Item1050>
         <Filename Value="../src/ui/castleuicontrols_view.inc"/>
         <Type Value="Include"/>
@@ -4300,32 +4316,16 @@ See https://castle-engine.io/license.php for details.
       </Item1052>
       <Item1053>
         <Filename Value="../src/base_rendering/castleinternalglutils.pas"/>
-        <UnitName Value="CastleGLUtils"/>
+        <UnitName Value="CastleInternalGLUtils"/>
       </Item1053>
       <Item1054>
         <Filename Value="../src/base_rendering/castlerenderprimitives_render_unlit_mesh.inc"/>
         <Type Value="Include"/>
       </Item1054>
-      <Item158>
-        <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
-        <Type Value="Include"/>
-      </Item158>
-      <Item128>
-        <Filename Value="../src/scene/castletiledmap_scene.inc"/>
-        <Type Value="Include"/>
-      </Item128>
-      <Item220>
-        <Filename Value="../src/base_rendering/castleglutils_vertex_array_object.inc"/>
-        <Type Value="Include"/>
-      </Item220>
       <Item1055>
         <Filename Value="../src/base_rendering/castlerenderprimitives.pas"/>
         <UnitName Value="CastleRenderPrimitives"/>
       </Item1055>
-      <Item1049>
-        <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
-        <Type Value="Include"/>
-      </Item1049>
       <Item1056>
         <Filename Value="../src/services/steam/steamcallback.pas"/>
         <UnitName Value="SteamCallback"/>
