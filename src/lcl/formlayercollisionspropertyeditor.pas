@@ -46,7 +46,7 @@ type
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
     procedure UpdateHorizontalNames;
-    procedure UpdateCheckBoxHint(Checkbox: TCheckBox; X, Y: TPhysicsLayer);
+    procedure UpdateCheckboxHint(Checkbox: TCheckBox; X, Y: TPhysicsLayer);
     procedure UpdateCheckboxesHints;
     procedure Load;
     procedure Save;
@@ -126,7 +126,7 @@ var
     C.AnchorSide[akTop].Side := asrCenter;
     C.AnchorSide[akTop].Control := Panel;
     C.Caption := '';
-    UpdateCheckBoxHint(C, X, Y);
+    UpdateCheckboxHint(C, X, Y);
     C.ShowHint := true;
     C.ParentShowHint := false;
     C.AutoSize := true;
@@ -278,7 +278,7 @@ begin
   end;
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.UpdateCheckBoxHint(
+procedure TLayerCollisionsPropertyEditorForm.UpdateCheckboxHint(
   Checkbox: TCheckBox; X, Y: TPhysicsLayer);
 var
   LayerXName, LayerYName: String;
@@ -306,7 +306,7 @@ begin
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     for J := High(TPhysicsLayer) downto I do
-      UpdateCheckBoxHint(Checkboxes[J, I], J, I);
+      UpdateCheckboxHint(Checkboxes[J, I], J, I);
   end;
 end;
 
