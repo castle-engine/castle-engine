@@ -14,6 +14,8 @@ type
     ButtonOK: TButton;
     NamesAndDescStringGrid: TStringGrid;
     procedure ButtonOKClick(Sender: TObject);
+    procedure NamesAndDescStringGridPrepareCanvas(Sender: TObject; ACol,
+      ARow: Integer; AState: TGridDrawState);
     procedure NamesAndDescStringGridResize(Sender: TObject);
   strict private
      FLayersNames: TCastleLayersNames;
@@ -21,6 +23,8 @@ type
     procedure Load;
     procedure Save;
     procedure RecalculateColumnsWidth;
+    procedure RecalculateRowWidth(const RowIndex: Integer);
+    procedure RecalculateRowsWidth;
   public
     procedure Init(const LayersNames: TCastleLayersNames);
   end;
@@ -29,13 +33,33 @@ implementation
 
 {$R *.lfm}
 
-uses Math;
+uses Math, LCLIntf, LCLType;
+
+const
+  NumberColIndex = 0;
+  NameColIndex = 1;
+  DescriptionColIndex = 2;
 
 { TPhysicsLayersNamesPropertyEditorForm -------------------------------------- }
 
 procedure TPhysicsLayersNamesPropertyEditorForm.ButtonOKClick(Sender: TObject);
 begin
   Save;
+end;
+
+procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridPrepareCanvas
+  (Sender: TObject; ACol, ARow: Integer; AState: TGridDrawState);
+var
+  ATextStyle: TTextStyle;
+begin
+  // based on https://forum.lazarus.freepascal.org/index.php?topic=25662.0
+  if ACol = 2 then
+  begin
+    ATextStyle := TStringGrid(Sender).Canvas.TextStyle;
+    ATextStyle.SingleLine := False;
+    ATextStyle.Wordbreak := True;
+    TStringGrid(Sender).Canvas.TextStyle := ATextStyle;
+  end;
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridResize(
@@ -83,12 +107,42 @@ begin
     NamesAndDescStringGrid.GridLineWidth;
   NamesAndDescStringGrid.Constraints.MinWidth := MinColWidth * 3 + LinesSize;
   GridClientWidth := NamesAndDescStringGrid.ClientWidth;
-  NamesAndDescStringGrid.ColWidths[0] := Max(MinColWidth,
+  NamesAndDescStringGrid.ColWidths[NumberColIndex] := Max(MinColWidth,
     Round(GridClientWidth * NumberColPercent));
-  NamesAndDescStringGrid.ColWidths[1] := Max(MinColWidth,
+  NamesAndDescStringGrid.ColWidths[NameColIndex] := Max(MinColWidth,
     Round(GridClientWidth * NameColPercent));
-  NamesAndDescStringGrid.ColWidths[2] := Max(MinColWidth,
+  NamesAndDescStringGrid.ColWidths[DescriptionColIndex] := Max(MinColWidth,
     Round(GridClientWidth * DescriptionColPercent));
+
+  Writeln('Desc Width: ' + IntToStr(NamesAndDescStringGrid.ColWidths[DescriptionColIndex]));
+
+  RecalculateRowsWidth;
+end;
+
+procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateRowWidth(const RowIndex: Integer);
+var
+  ARect: TRect;
+begin
+  ARect.Top := 0;
+  ARect.Left := 0;
+  ARect.Right := NamesAndDescStringGrid.RowHeights[RowIndex];
+  ARect.Bottom := 0;
+
+  DrawText(NamesAndDescStringGrid.Canvas.Handle,
+    PChar(NamesAndDescStringGrid.Cols[DescriptionColIndex][RowIndex]),
+    Length(NamesAndDescStringGrid.Cols[DescriptionColIndex][RowIndex]),
+    ARect,  DT_CALCRECT or DT_WORDBREAK);
+
+  NamesAndDescStringGrid.RowHeights[RowIndex] := Max(
+    NamesAndDescStringGrid.DefaultRowHeight, ARect.Bottom);
+end;
+
+procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateRowsWidth;
+var
+  I: Integer;
+begin
+  for I := 1 to NamesAndDescStringGrid.RowCount -1 do
+    RecalculateRowWidth(I);
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.Init(
