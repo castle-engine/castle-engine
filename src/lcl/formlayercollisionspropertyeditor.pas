@@ -297,8 +297,8 @@ begin
           LayerIName := IntToStr(I);
         if LayerJName = '' then
           LayerJName := IntToStr(J);
-        Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']: ' +
-          LayerJName + ' x ' + LayerIName
+        Checkboxes[J, I].Hint := LayerJName + ' x ' + LayerIName +
+          ' [' + IntToStr(J) + ',' + IntToStr(I) + ']'
       end;
     end;
   end;
