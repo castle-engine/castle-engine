@@ -46,6 +46,7 @@ type
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
     procedure UpdateHorizontalNames;
+    procedure UpdateCheckBoxHint(Checkbox: TCheckBox; X, Y: TPhysicsLayer);
     procedure UpdateCheckboxesHints;
     procedure Load;
     procedure Save;
@@ -125,7 +126,7 @@ var
     C.AnchorSide[akTop].Side := asrCenter;
     C.AnchorSide[akTop].Control := Panel;
     C.Caption := '';
-    C.Hint := '[' + IntToStr(X) + ',' + IntToStr(Y) + ']';
+    UpdateCheckBoxHint(C, X, Y);
     C.ShowHint := true;
     C.ParentShowHint := false;
     C.AutoSize := true;
@@ -277,30 +278,35 @@ begin
   end;
 end;
 
+procedure TLayerCollisionsPropertyEditorForm.UpdateCheckBoxHint(
+  Checkbox: TCheckBox; X, Y: TPhysicsLayer);
+var
+  LayerXName, LayerYName: String;
+begin
+  LayerXName := GetLayerName(X);
+  LayerYName := GetLayerName(Y);
+
+  if (LayerXName = '') and (LayerYName = '') then
+    Checkbox.Hint := '[' + IntToStr(X) + ',' + IntToStr(Y) + ']'
+  else
+  begin
+    if LayerXName = '' then
+      LayerXName := IntToStr(X);
+    if LayerYName = '' then
+      LayerYName := IntToStr(Y);
+    Checkbox.Hint := LayerXName + ' x ' + LayerYName +
+      ' [' + IntToStr(X) + ',' + IntToStr(Y) + ']'
+  end;
+end;
+
 procedure TLayerCollisionsPropertyEditorForm.UpdateCheckboxesHints;
 var
   I, J : TPhysicsLayer;
-  LayerIName, LayerJName: String;
 begin
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     for J := High(TPhysicsLayer) downto I do
-    begin
-      LayerIName := GetLayerName(I);
-      LayerJName := GetLayerName(J);
-
-      if (LayerJName = '') and (LayerIName = '') then
-        Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']'
-      else
-      begin
-        if LayerIName = '' then
-          LayerIName := IntToStr(I);
-        if LayerJName = '' then
-          LayerJName := IntToStr(J);
-        Checkboxes[J, I].Hint := LayerJName + ' x ' + LayerIName +
-          ' [' + IntToStr(J) + ',' + IntToStr(I) + ']'
-      end;
-    end;
+      UpdateCheckBoxHint(Checkboxes[J, I], J, I);
   end;
 end;
 
