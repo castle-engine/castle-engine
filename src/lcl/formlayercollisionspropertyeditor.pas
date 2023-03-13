@@ -10,6 +10,7 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
+    LayersNamesButton: TButton;
     RevertButton: TButton;
     CancelButton: TButton;
     OkButton: TButton;
@@ -18,6 +19,7 @@ type
     HorizontalNamesPanel: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure LayersNamesButtonClick(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure RevertButtonClick(Sender: TObject);
   strict private
@@ -43,6 +45,8 @@ type
 
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
+    procedure UpdateHorizontalNames;
+    procedure UpdateCheckboxesHints;
     procedure Load;
     procedure Save;
   public
@@ -56,6 +60,8 @@ implementation
 
 {$R *.lfm}
 
+uses FormPhysicsLayersNamesPropertyEditor;
+
 { TLayerCollisionsPropertyEditorForm ----------------------------------------- }
 
 procedure TLayerCollisionsPropertyEditorForm.FormCreate(Sender: TObject);
@@ -66,6 +72,32 @@ end;
 procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
 begin
   UpdateHorizontalNamesTop;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.LayersNamesButtonClick(
+  Sender: TObject);
+var
+  LayersNamesForm: TPhysicsLayersNamesPropertyEditorForm;
+  LayerNames: TCastleLayersNames;
+begin
+  if not (FLayerCollisions.Owner is TPhysicsProperties) then
+    Exit;
+
+  LayerNames := TPhysicsProperties(FLayerCollisions.Owner).LayerNames;
+
+  LayersNamesForm := TPhysicsLayersNamesPropertyEditorForm.Create(nil);
+  try
+    LayersNamesForm.Init(LayerNames);
+    if LayersNamesForm.ShowModal = mrOK then
+    begin
+      // update layers names and
+      RepaintVerticalNames(Self);
+      UpdateHorizontalNames;
+      UpdateCheckboxesHints;
+    end;
+  finally
+    FreeAndNil(LayersNamesForm);
+  end;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.OkButtonClick(Sender: TObject);
@@ -232,6 +264,29 @@ begin
   begin
     VerticalNamesPanel.Constraints.MinHeight := MaxWidth;
     VerticalNamesPanel.Constraints.MaxHeight := MaxWidth;
+  end;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.UpdateHorizontalNames;
+var
+  I: TPhysicsLayer;
+begin
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+  begin
+    HorizontalNames[I].Caption := IntToStr(I) + ': ' + GetLayerName(I);
+  end;
+end;
+
+procedure TLayerCollisionsPropertyEditorForm.UpdateCheckboxesHints;
+var
+  I, J : TPhysicsLayer;
+begin
+  PreviousPanel := nil;
+
+  for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+  begin
+    for J := High(TPhysicsLayer) downto I do
+      Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']: ' + GetLayerName(J) + ' x ' + GetLayerName(I);
   end;
 end;
 

@@ -86,7 +86,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideRight.Side = asrBottom
     Left = 745
     Height = 31
-    Top = 78
+    Top = 94
     Width = 126
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 4
@@ -102,12 +102,28 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideRight.Side = asrBottom
     Left = 745
     Height = 31
-    Top = 43
+    Top = 59
     Width = 126
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 8
+    BorderSpacing.Top = 24
     Caption = 'Revert'
     OnClick = RevertButtonClick
     TabOrder = 5
+  end
+  object LayersNamesButton: TButton
+    AnchorSideLeft.Control = OkButton
+    AnchorSideTop.Control = CancelButton
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = OkButton
+    AnchorSideRight.Side = asrBottom
+    Left = 745
+    Height = 31
+    Top = 149
+    Width = 126
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 24
+    Caption = 'Layers Names'
+    OnClick = LayersNamesButtonClick
+    TabOrder = 6
   end
 end
