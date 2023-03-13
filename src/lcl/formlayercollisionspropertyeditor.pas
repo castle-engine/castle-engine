@@ -42,6 +42,7 @@ type
     procedure CreateVerticalNames;
 
     function GetLayerName(PhysicsLayer: TPhysicsLayer): String;
+    function GetLayerDescription(PhysicsLayer: TPhysicsLayer): String;
 
     procedure UpdateHorizontalNamesTop;
     procedure RepaintVerticalNames(Sender: TObject);
@@ -185,6 +186,8 @@ begin
     ALabel := TLabel.Create(HorizontalNamesPanel);
     ALabel.Parent := HorizontalNamesPanel;
     ALabel.Caption := IntToStr(I) + ': ' + GetLayerName(I);
+    ALabel.Hint := GetLayerDescription(I);
+    ALabel.ShowHint := true;
     ALabel.AutoSize := true;
 
     ALabel.Anchors := [akTop, akRight];
@@ -216,6 +219,18 @@ begin
 
   if FLayerCollisions.Owner is TPhysicsProperties then
     Result := TPhysicsProperties(FLayerCollisions.Owner).LayerNames.Names[PhysicsLayer];
+end;
+
+function TLayerCollisionsPropertyEditorForm.GetLayerDescription(
+  PhysicsLayer: TPhysicsLayer): String;
+begin
+  Result := '';
+
+  if FLayerCollisions = nil then
+    Exit;
+
+  if FLayerCollisions.Owner is TPhysicsProperties then
+    Result := TPhysicsProperties(FLayerCollisions.Owner).LayerNames.Descriptions[PhysicsLayer];
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.UpdateHorizontalNamesTop;
@@ -272,6 +287,7 @@ begin
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     HorizontalNames[I].Caption := IntToStr(I) + ': ' + GetLayerName(I);
+    HorizontalNames[I].Hint := GetLayerDescription(I);
   end;
 end;
 
