@@ -325,7 +325,10 @@ contains
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
   ImagingPsd in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas',
-  ImagingJpeg2000 in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas';
+  ImagingJpeg2000 in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas',
+  castlescriptarrays in '..\..\src\castlescript\castlescriptarrays.pas',
+  castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
+  castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
 
 end.
 
