@@ -280,13 +280,27 @@ end;
 procedure TLayerCollisionsPropertyEditorForm.UpdateCheckboxesHints;
 var
   I, J : TPhysicsLayer;
+  LayerIName, LayerJName: String;
 begin
-  PreviousPanel := nil;
-
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     for J := High(TPhysicsLayer) downto I do
-      Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']: ' + GetLayerName(J) + ' x ' + GetLayerName(I);
+    begin
+      LayerIName := GetLayerName(I);
+      LayerJName := GetLayerName(J);
+
+      if (LayerJName = '') and (LayerIName = '') then
+        Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']'
+      else
+      begin
+        if LayerIName = '' then
+          LayerIName := IntToStr(I);
+        if LayerJName = '' then
+          LayerJName := IntToStr(J);
+        Checkboxes[J, I].Hint := '[' + IntToStr(J) + ',' + IntToStr(I) + ']: ' +
+          LayerJName + ' x ' + LayerIName
+      end;
+    end;
   end;
 end;
 
