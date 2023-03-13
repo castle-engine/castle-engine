@@ -1,4 +1,4 @@
-unit formlayercollisionspropertyeditor;
+unit FormLayerCollisionsPropertyEditor;
 
 {$mode ObjFPC}{$H+}
 
@@ -53,9 +53,6 @@ type
   public
     procedure Init(const LayerCollisions: TCastleLayerCollisions);
   end;
-
-//var
-//  LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm;
 
 implementation
 
