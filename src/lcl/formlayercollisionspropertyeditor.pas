@@ -287,15 +287,15 @@ begin
   LayerYName := GetLayerName(Y);
 
   if (LayerXName = '') and (LayerYName = '') then
-    Checkbox.Hint := '[' + IntToStr(X) + ',' + IntToStr(Y) + ']'
+    Checkbox.Hint := '[' + IntToStr(Y) + ',' + IntToStr(X) + ']'
   else
   begin
     if LayerXName = '' then
       LayerXName := IntToStr(X);
     if LayerYName = '' then
       LayerYName := IntToStr(Y);
-    Checkbox.Hint := LayerXName + ' x ' + LayerYName +
-      ' [' + IntToStr(X) + ',' + IntToStr(Y) + ']'
+    Checkbox.Hint := LayerYName + ' x ' + LayerXName +
+      ' [' + IntToStr(Y) + ',' + IntToStr(X) + ']'
   end;
 end;
 
