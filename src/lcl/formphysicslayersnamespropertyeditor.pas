@@ -72,9 +72,9 @@ end;
 procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateColumnsWidth;
 const
   MinColWidth = 30;
-  NumberColPercent: Single = 0.10;
-  NameColPercent: Single = 0.30;
-  DescriptionColPercent: Single = 0.60;
+  NumberColPercent: Single = 0.07;
+  NameColPercent: Single = 0.20;
+  DescriptionColPercent: Single = 0.73;
 var
   GridClientWidth: Integer;
   LinesSize: Integer;

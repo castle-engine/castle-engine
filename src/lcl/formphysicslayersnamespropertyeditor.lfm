@@ -44,7 +44,7 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
       item
         ReadOnly = True
         Title.Alignment = taCenter
-        Title.Caption = 'Number'
+        Title.Caption = 'No'
         Width = 100
       end    
       item
@@ -58,8 +58,13 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
         Width = 400
       end>
     FixedCols = 0
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goSmoothScroll, goHeaderHotTracking]
+    GridLineStyle = psDot
+    MouseWheelOption = mwGrid
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSizing, goColSizing, goEditing, goAlwaysShowEditor, goSmoothScroll, goHeaderHotTracking, goCellHints]
+    ParentShowHint = False
     RowCount = 1
+    ScrollBars = ssAutoVertical
+    ShowHint = True
     TabAdvance = aaDown
     TabOrder = 1
     TitleStyle = tsNative
