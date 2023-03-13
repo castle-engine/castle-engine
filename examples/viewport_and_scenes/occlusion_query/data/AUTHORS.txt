@@ -1,0 +1,10 @@
+Monsters from Quaternius
+  https://quaternius.com/packs/ultimatemonsters.html
+  license: public domain
+  support the artist: https://www.patreon.com/quaternius
+
+City buildings and UI images from Kenney
+  https://kenney.nl/assets/game-icons-expansion
+  https://kenney.nl/assets/city-kit-commercial
+  license: public domain
+  support the artist: https://www.patreon.com/kenney
