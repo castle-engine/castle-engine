@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'occlusion_query';
-  ApplicationProperties.Caption := 'Occlusion Query Demo';
+  ApplicationProperties.ApplicationName := 'occlusion_culling';
+  ApplicationProperties.Caption := 'Occlusion Culling Demo';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

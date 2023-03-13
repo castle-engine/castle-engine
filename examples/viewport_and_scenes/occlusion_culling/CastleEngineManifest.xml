@@ -5,11 +5,11 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="occlusion_query"
-  standalone_source="occlusion_query_standalone.dpr"
+<project name="occlusion_culling"
+  standalone_source="occlusion_culling_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.occlusion.query"
-  caption="Occlusion Query Demo"
+  qualified_name="io.castleengine.occlusion.culling"
+  caption="Occlusion Culling Demo"
 >
   <compiler_options>
     <search_paths>
