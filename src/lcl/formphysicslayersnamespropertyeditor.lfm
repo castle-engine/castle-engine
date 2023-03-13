@@ -30,23 +30,30 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     AnchorSideRight.Control = ButtonOK
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrCenter
-    Left = 0
-    Height = 509
-    Top = 0
-    Width = 720
+    Left = 4
+    Height = 502
+    Top = 4
+    Width = 712
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 4
     ColCount = 3
     Columns = <    
       item
         ReadOnly = True
+        Title.Alignment = taCenter
         Title.Caption = 'Number'
         Width = 100
       end    
       item
+        Title.Alignment = taCenter
         Title.Caption = 'Name'
         Width = 150
       end    
       item
+        Title.Alignment = taCenter
         Title.Caption = 'Description'
         Width = 400
       end>
@@ -56,5 +63,24 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     TabAdvance = aaDown
     TabOrder = 1
     TitleStyle = tsNative
+    OnResize = NamesAndDescStringGridResize
+  end
+  object Button1: TButton
+    AnchorSideLeft.Control = ButtonOK
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = ButtonOK
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = ButtonOK
+    AnchorSideRight.Side = asrBottom
+    Left = 721
+    Height = 31
+    Top = 39
+    Width = 93
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 2
   end
 end
