@@ -7,6 +7,7 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
   ClientHeight = 510
   ClientWidth = 818
   DesignTimePPI = 120
+  Position = poMainFormCenter
   LCLVersion = '2.2.5.0'
   object OkButton: TButton
     AnchorSideTop.Control = Owner

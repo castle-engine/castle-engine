@@ -10,6 +10,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   Color = clWindow
   DesignTimePPI = 120
   OnResize = FormResize
+  Position = poMainFormCenter
   LCLVersion = '2.2.5.0'
   object CheckboxesPanel: TPanel
     AnchorSideLeft.Control = HorizontalNamesPanel
