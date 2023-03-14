@@ -14,9 +14,10 @@
           "GravityStrength" : 1.2000000000000000E+003,
           "LayerCollisons" : {
             "$$ClassName" : "TCastleLayerCollisions",
-            "0" : 7,
+            "0" : 15,
             "1" : 5,
-            "2" : 3
+            "2" : 11,
+            "3" : 5
           },
           "LayerNames" : {
             "$$ClassName" : "TCastleLayersNames",
@@ -25,7 +26,9 @@
             "Name1" : "Player",
             "Desc1" : "Only player here, should collide with enemies and ground.",
             "Name2" : "Enemy",
-            "Desc2" : "Enemies should not collide with other enemies, should collide with player and ground."
+            "Desc2" : "Enemies should not collide with other enemies, should collide with player and ground.",
+            "Name3" : "Bullets",
+            "Desc3" : "Should collide with ground and enemies"
           }
         },
         "$Children" : [
