@@ -202,6 +202,11 @@ begin
     NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
     FEditor.Hide;
     NamesAndDescStringGrid.SetFocus;
+  end else
+  if (Key = 27) and (Shift = []) then
+  begin
+    FEditor.Hide;
+    NamesAndDescStringGrid.SetFocus;
   end;
 end;
 
