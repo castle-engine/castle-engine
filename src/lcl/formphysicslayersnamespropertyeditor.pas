@@ -14,7 +14,6 @@ type
     ButtonOK: TButton;
     NamesAndDescStringGrid: TStringGrid;
     procedure ButtonOKClick(Sender: TObject);
-    procedure NamesAndDescStringGridEditingDone(Sender: TObject);
     procedure NamesAndDescStringGridPrepareCanvas(Sender: TObject; ACol,
       ARow: Integer; AState: TGridDrawState);
     procedure NamesAndDescStringGridResize(Sender: TObject);
@@ -63,12 +62,6 @@ const
 procedure TPhysicsLayersNamesPropertyEditorForm.ButtonOKClick(Sender: TObject);
 begin
   Save;
-end;
-
-procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridEditingDone
-  (Sender: TObject);
-begin
-  //ShowMessage('aaaa');
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridPrepareCanvas

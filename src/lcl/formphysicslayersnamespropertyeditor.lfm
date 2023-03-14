@@ -68,7 +68,6 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     TabAdvance = aaDown
     TabOrder = 1
     TitleStyle = tsNative
-    OnEditingDone = NamesAndDescStringGridEditingDone
     OnPrepareCanvas = NamesAndDescStringGridPrepareCanvas
     OnResize = NamesAndDescStringGridResize
     OnSelectEditor = NamesAndDescStringGridSelectEditor
