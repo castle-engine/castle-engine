@@ -72,7 +72,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'OK'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 120
     ModalResult = 1
     OnClick = OkButtonClick
     TabOrder = 3
