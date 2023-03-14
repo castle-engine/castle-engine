@@ -46,7 +46,7 @@ type
 
 function TPhysicsLayersNamesPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable];
+  Result := inherited GetAttributes + [paDialog, paRevertable] - [paSubProperties];
 end;
 
 procedure TPhysicsLayersNamesPropertyEditor.Edit;
@@ -72,7 +72,7 @@ end;
 
 function TLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable];
+  Result := inherited GetAttributes + [paDialog, paRevertable] - [paSubProperties];
 end;
 
 procedure TLayerCollisionsPropertyEditor.Edit;
