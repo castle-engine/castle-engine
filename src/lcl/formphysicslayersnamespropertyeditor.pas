@@ -10,10 +10,10 @@ uses
 
 type
   TPhysicsLayersNamesPropertyEditorForm = class(TForm)
-    Button1: TButton;
-    ButtonOK: TButton;
+    CancelButton: TButton;
+    OkButton: TButton;
     NamesAndDescStringGrid: TStringGrid;
-    procedure ButtonOKClick(Sender: TObject);
+    procedure OkButtonClick(Sender: TObject);
     procedure NamesAndDescStringGridPrepareCanvas(Sender: TObject; ACol,
       ARow: Integer; AState: TGridDrawState);
     procedure NamesAndDescStringGridResize(Sender: TObject);
@@ -59,7 +59,7 @@ const
 
 { TPhysicsLayersNamesPropertyEditorForm -------------------------------------- }
 
-procedure TPhysicsLayersNamesPropertyEditorForm.ButtonOKClick(Sender: TObject);
+procedure TPhysicsLayersNamesPropertyEditorForm.OkButtonClick(Sender: TObject);
 begin
   Save;
 end;

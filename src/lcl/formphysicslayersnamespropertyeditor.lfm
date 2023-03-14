@@ -8,7 +8,7 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
   ClientWidth = 818
   DesignTimePPI = 120
   LCLVersion = '2.2.5.0'
-  object ButtonOK: TButton
+  object OkButton: TButton
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
@@ -21,13 +21,13 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     BorderSpacing.Right = 4
     Caption = 'OK'
     ModalResult = 1
-    OnClick = ButtonOKClick
+    OnClick = OkButtonClick
     TabOrder = 0
   end
   object NamesAndDescStringGrid: TStringGrid
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = ButtonOK
+    AnchorSideRight.Control = OkButton
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrCenter
     Left = 4
@@ -72,12 +72,12 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     OnResize = NamesAndDescStringGridResize
     OnSelectEditor = NamesAndDescStringGridSelectEditor
   end
-  object Button1: TButton
-    AnchorSideLeft.Control = ButtonOK
+  object CancelButton: TButton
+    AnchorSideLeft.Control = OkButton
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = ButtonOK
+    AnchorSideTop.Control = OkButton
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = ButtonOK
+    AnchorSideRight.Control = OkButton
     AnchorSideRight.Side = asrBottom
     Left = 721
     Height = 31
