@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleBoxes" -*-
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,7 @@ type
     procedure TestIsBox3DTriangleCollision;
     procedure TestIsBox3DTriangleCollisionEpsilons;
     procedure TestBox3DTransform;
+    procedure TestBoxTransform1;
     procedure TestBox3DMaximumPlane;
     procedure TestBox3DMinimumPlane;
     procedure TestBox3DPointDistance;
@@ -627,44 +628,44 @@ begin
       }); *)
 end;
 
+function BoxTransformSlower(const Box: TBox3D; const Matrix: TMatrix4): TBox3D;
+var
+  BoxPoints: TBoxCorners;
+  i: integer;
+begin
+  if Box.IsEmpty then
+    Exit(TBox3D.Empty);
+
+  Box.Corners(BoxPoints);
+  for i := 0 to 7 do BoxPoints[i] := Matrix.MultPoint(BoxPoints[i]);
+
+  { Non-optimized version:
+      Result := CalculateBoundingBox(@BoxPoints, 8, 0);
+
+    But it turns out that the code below, that does essentially the same
+    thing as CalculateBoundingBox implementation, works noticeably faster.
+    This is noticeable on "The Castle" with many creatures: then a considerable
+    time is spend inside TCreature.BoundingBox, that must calculate
+    transformed bounding boxes.
+  }
+
+  Result.Data[0] := BoxPoints[0];
+  Result.Data[1] := BoxPoints[0];
+  for I := 1 to High(BoxPoints) do
+  begin
+    if BoxPoints[I].X < Result.Data[0].X then Result.Data[0].X := BoxPoints[I].X;
+    if BoxPoints[I].Y < Result.Data[0].Y then Result.Data[0].Y := BoxPoints[I].Y;
+    if BoxPoints[I].Z < Result.Data[0].Z then Result.Data[0].Z := BoxPoints[I].Z;
+    if BoxPoints[I].X > Result.Data[1].X then Result.Data[1].X := BoxPoints[I].X;
+    if BoxPoints[I].Y > Result.Data[1].Y then Result.Data[1].Y := BoxPoints[I].Y;
+    if BoxPoints[I].Z > Result.Data[1].Z then Result.Data[1].Z := BoxPoints[I].Z;
+  end;
+end;
+
 procedure TTestCastleBoxes.TestBox3DTransform;
 { Test Box3DTransform for correctness and speed.
   Compare with Slower implementation, that should be slower
   (on non-projection matrices) but give the same results. }
-
-  function Slower(const Box: TBox3D; const Matrix: TMatrix4): TBox3D;
-  var
-    BoxPoints: TBoxCorners;
-    i: integer;
-  begin
-    if Box.IsEmpty then
-      Exit(TBox3D.Empty);
-
-    Box.Corners(BoxPoints);
-    for i := 0 to 7 do BoxPoints[i] := Matrix.MultPoint(BoxPoints[i]);
-
-    { Non-optimized version:
-        Result := CalculateBoundingBox(@BoxPoints, 8, 0);
-
-      But it turns out that the code below, that does essentially the same
-      thing as CalculateBoundingBox implementation, works noticeably faster.
-      This is noticeable on "The Castle" with many creatures: then a considerable
-      time is spend inside TCreature.BoundingBox, that must calculate
-      transformed bounding boxes.
-    }
-
-    Result.Data[0] := BoxPoints[0];
-    Result.Data[1] := BoxPoints[0];
-    for I := 1 to High(BoxPoints) do
-    begin
-      if BoxPoints[I].X < Result.Data[0].X then Result.Data[0].X := BoxPoints[I].X;
-      if BoxPoints[I].Y < Result.Data[0].Y then Result.Data[0].Y := BoxPoints[I].Y;
-      if BoxPoints[I].Z < Result.Data[0].Z then Result.Data[0].Z := BoxPoints[I].Z;
-      if BoxPoints[I].X > Result.Data[1].X then Result.Data[1].X := BoxPoints[I].X;
-      if BoxPoints[I].Y > Result.Data[1].Y then Result.Data[1].Y := BoxPoints[I].Y;
-      if BoxPoints[I].Z > Result.Data[1].Z then Result.Data[1].Z := BoxPoints[I].Z;
-    end;
-  end;
 
   function RandomBox: TBox3D;
   var
@@ -695,7 +696,7 @@ begin
     Box := RandomBox;
     Matrix := RandomMatrix;
     try
-      AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+      AssertBoxesEqual(BoxTransformSlower(Box, Matrix), Box.Transform(Matrix), 0.01);
     except
       on E: Exception do
       begin
@@ -715,7 +716,7 @@ begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
     try
-      AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
+      AssertBoxesEqual(BoxTransformSlower(Box, Matrix), Box.Transform(Matrix), 0.01);
     except
       on E: Exception do
       begin
@@ -738,7 +739,7 @@ begin
   Matrix := RandomMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Slower(Box, Matrix);
+  for I := 0 to 1000000 do BoxTransformSlower(Box, Matrix);
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
@@ -751,13 +752,34 @@ begin
   Matrix := RandomNonProjectionMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Slower(Box, Matrix);
+  for I := 0 to 1000000 do BoxTransformSlower(Box, Matrix);
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
   for I := 0 to 1000000 do Box3DTransform(Box, Matrix);
   Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
   {$endif BOX3D_TRANSFORM_SPEED_TEST}
+end;
+
+procedure TTestCastleBoxes.TestBoxTransform1;
+
+{ Failed case randomly generated on
+  https://github.com/castle-engine/castle-engine/actions/runs/4406347867/jobs/7735050663
+}
+
+var
+  Box: TBox3D;
+  Matrix: TMatrix4;
+begin
+  Box.Data[0] := Vector3(-32.89, 14.65, -35.63);
+  Box.Data[1] := Vector3(5.94, 17.09, -17.10);
+
+  Matrix.Columns[0] := Vector4(-28.41, 5.40, 35.79, -3.68);
+  Matrix.Columns[1] := Vector4(1.35, -11.64, -38.26, -20.80);
+  Matrix.Columns[2] := Vector4(-26.66, -46.77, -10.37, -32.90);
+  Matrix.Columns[3] := Vector4(10.26, -36.64, -14.72, -48.60);
+
+  AssertBoxesEqual(BoxTransformSlower(Box, Matrix), Box.Transform(Matrix), 0.01);
 end;
 
 procedure TTestCastleBoxes.TestBox3DMaximumPlane;
