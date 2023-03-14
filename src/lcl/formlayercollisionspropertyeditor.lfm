@@ -9,7 +9,6 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   ClientWidth = 875
   Color = clWindow
   DesignTimePPI = 120
-  OnCreate = FormCreate
   OnResize = FormResize
   LCLVersion = '2.2.5.0'
   object CheckboxesPanel: TPanel

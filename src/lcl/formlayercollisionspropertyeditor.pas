@@ -17,7 +17,6 @@ type
     CheckboxesPanel: TPanel;
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
-    procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure LayersNamesButtonClick(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
@@ -31,27 +30,41 @@ type
        ...
     }
     Checkboxes: array [TPhysicsLayer, TPhysicsLayer] of TCheckBox;
+    { Horizontal panels for horizontal checkboxes arrangement }
     CheckboxesPanels: array [TPhysicsLayer] of TPanel;
-    { Horizontal names labels from 0  to 19 }
+    { Horizontal names labels from 0 to 19 }
     HorizontalNames: array [TPhysicsLayer] of TLabel;
-
+    { Pointer to physics properties layer collisions object }
     FLayerCollisions: TCastleLayerCollisions;
 
+    { Method to create panels checkboxes when window is created }
     procedure CreateCheckboxes;
+    { Creates horizontal names on the left side of the window }
     procedure CreateHorizontalNames;
+    { Creates vertical names on the top of the window }
     procedure CreateVerticalNames;
 
+    { Helper to get name of the layer assuming the parent is TPhysicsProperties }
     function GetLayerName(PhysicsLayer: TPhysicsLayer): String;
+    { Helper to get description of the layer assuming the parent is TPhysicsProperties }
     function GetLayerDescription(PhysicsLayer: TPhysicsLayer): String;
 
+    { Updates vertical coordinate of names TLabel's }
     procedure UpdateHorizontalNamesTop;
+    { Vertical names are drawn on canvas in repaint event  }
     procedure RepaintVerticalNames(Sender: TObject);
+    { Updates horzontal layers names - used after closing layers names dialog }
     procedure UpdateHorizontalNames;
+    { Updates layers names in checkboxes }
     procedure UpdateCheckboxHint(Checkbox: TCheckBox; X, Y: TPhysicsLayer);
+    { Updates layers names - used after closing layers names dialog }
     procedure UpdateCheckboxesHints;
+    { Load layers config to grid }
     procedure Load;
+    { Save layers config to physics properties object }
     procedure Save;
   public
+    { Initialize the gui and load data from physics properties object }
     procedure Init(const LayerCollisions: TCastleLayerCollisions);
   end;
 
@@ -62,11 +75,6 @@ implementation
 uses FormPhysicsLayersNamesPropertyEditor;
 
 { TLayerCollisionsPropertyEditorForm ----------------------------------------- }
-
-procedure TLayerCollisionsPropertyEditorForm.FormCreate(Sender: TObject);
-begin
-end;
-
 
 procedure TLayerCollisionsPropertyEditorForm.FormResize(Sender: TObject);
 begin
