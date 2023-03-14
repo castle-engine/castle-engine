@@ -70,7 +70,7 @@ var
   ATextStyle: TTextStyle;
 begin
   { based on https://forum.lazarus.freepascal.org/index.php?topic=25662.0 }
-  if ACol = 2 then
+  if ACol = DescriptionColIndex then
   begin
     ATextStyle := TStringGrid(Sender).Canvas.TextStyle;
     ATextStyle.SingleLine := False;
@@ -90,7 +90,7 @@ procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridSelectEdit
 var
   EditorRect: TRect;
 begin
-  if ACol = 2 then
+  if ACol = DescriptionColIndex then
   begin
     if FEditor = nil then
       FEditor := TMemo.Create(NamesAndDescStringGrid);
