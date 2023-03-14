@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, ComCtrls,
-  StdCtrls, ValEdit, CastleTransform;
+  StdCtrls, ValEdit, CastleTransform, Types;
 
 type
   TPhysicsLayersNamesPropertyEditorForm = class(TForm)
@@ -14,18 +14,36 @@ type
     ButtonOK: TButton;
     NamesAndDescStringGrid: TStringGrid;
     procedure ButtonOKClick(Sender: TObject);
+    procedure NamesAndDescStringGridEditingDone(Sender: TObject);
     procedure NamesAndDescStringGridPrepareCanvas(Sender: TObject; ACol,
       ARow: Integer; AState: TGridDrawState);
     procedure NamesAndDescStringGridResize(Sender: TObject);
+    procedure NamesAndDescStringGridSelectEditor(Sender: TObject; ACol,
+      ARow: Integer; var Editor: TWinControl);
   strict private
-     FLayersNames: TCastleLayersNames;
-
+    { Pointer to layrs names in physics properties }
+    FLayersNames: TCastleLayersNames;
+    { Pointer to custom editor }
+    FEditor: TMemo;
+    { Column edited by custom editor, used by EditorKeyDown() }
+    FEditorCol: Integer;
+    { Row edited by custom editor, used by EditorKeyDown() }
+    FEditorRow: Integer;
+    { Load layers names to grid }
     procedure Load;
+    { Save layers names from grid to physics properties }
     procedure Save;
+    { Recalculate columns widths to fit grid control }
     procedure RecalculateColumnsWidth;
+    { Recalculate row height to fit text }
     procedure RecalculateRowWidth(const RowIndex: Integer);
+    { Recalculate all rows height }
     procedure RecalculateRowsWidth;
+
+    { OnKeyDown event for custom editor }
+    procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
+    { Initialize window }
     procedure Init(const LayersNames: TCastleLayersNames);
   end;
 
@@ -47,12 +65,18 @@ begin
   Save;
 end;
 
+procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridEditingDone
+  (Sender: TObject);
+begin
+  //ShowMessage('aaaa');
+end;
+
 procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridPrepareCanvas
   (Sender: TObject; ACol, ARow: Integer; AState: TGridDrawState);
 var
   ATextStyle: TTextStyle;
 begin
-  // based on https://forum.lazarus.freepascal.org/index.php?topic=25662.0
+  { based on https://forum.lazarus.freepascal.org/index.php?topic=25662.0 }
   if ACol = 2 then
   begin
     ATextStyle := TStringGrid(Sender).Canvas.TextStyle;
@@ -66,6 +90,33 @@ procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridResize(
   Sender: TObject);
 begin
   RecalculateColumnsWidth;
+end;
+
+procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridSelectEditor
+  (Sender: TObject; ACol, ARow: Integer; var Editor: TWinControl);
+var
+  EditorRect: TRect;
+begin
+  if ACol = 2 then
+  begin
+    if FEditor = nil then
+      FEditor := TMemo.Create(NamesAndDescStringGrid);
+    Editor := FEditor;
+    EditorRect := NamesAndDescStringGrid.CellRect(ACol, ARow);
+    EditorRect.Right := EditorRect.Right - 1;
+    EditorRect.Bottom := EditorRect.Bottom - 1;
+    FEditor.BoundsRect := EditorRect;
+    FEditorCol := ACol;
+    FEditorRow := ARow;
+    FEditor.WantReturns := false;
+    FEditor.Text := NamesAndDescStringGrid.Cols[ACol][ARow];
+    FEditor.SelLength := 0;
+    FEditor.SelStart := Length(FEditor.Text);
+    FEditor.BorderStyle := bsNone;
+    FEditor.WordWrap := true;
+    FEditor.OnKeyDown := @EditorKeyDown;
+    FEditor.Show;
+  end;
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.Load;
@@ -114,8 +165,6 @@ begin
   NamesAndDescStringGrid.ColWidths[DescriptionColIndex] := Max(MinColWidth,
     Round(GridClientWidth * DescriptionColPercent));
 
-  Writeln('Desc Width: ' + IntToStr(NamesAndDescStringGrid.ColWidths[DescriptionColIndex]));
-
   RecalculateRowsWidth;
 end;
 
@@ -125,7 +174,7 @@ var
 begin
   ARect.Top := 0;
   ARect.Left := 0;
-  ARect.Right := NamesAndDescStringGrid.RowHeights[RowIndex];
+  ARect.Right := NamesAndDescStringGrid.ColWidths[DescriptionColIndex];
   ARect.Bottom := 0;
 
   DrawText(NamesAndDescStringGrid.Canvas.Handle,
@@ -143,6 +192,17 @@ var
 begin
   for I := 1 to NamesAndDescStringGrid.RowCount -1 do
     RecalculateRowWidth(I);
+end;
+
+procedure TPhysicsLayersNamesPropertyEditorForm.EditorKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if (Key = 13) and (Shift = []) then
+  begin
+    NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
+    FEditor.Hide;
+    NamesAndDescStringGrid.SetFocus;
+  end;
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.Init(
