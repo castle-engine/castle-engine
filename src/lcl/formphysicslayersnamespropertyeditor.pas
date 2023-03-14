@@ -20,7 +20,7 @@ type
     procedure NamesAndDescStringGridSelectEditor(Sender: TObject; ACol,
       ARow: Integer; var Editor: TWinControl);
   strict private
-    { Pointer to layrs names in physics properties }
+    { Pointer to layers names in physics properties }
     FLayersNames: TCastleLayersNames;
     { Pointer to custom editor }
     FEditor: TMemo;
