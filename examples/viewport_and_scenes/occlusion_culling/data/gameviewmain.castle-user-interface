@@ -64,6 +64,7 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene6",
@@ -86,6 +87,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene65",
@@ -108,6 +110,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene5",
@@ -130,6 +133,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene66",
@@ -152,6 +156,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene67",
@@ -174,6 +179,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene11",
@@ -196,6 +202,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene4",
@@ -218,6 +225,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene68",
@@ -240,6 +248,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene69",
@@ -262,6 +271,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene70",
@@ -284,6 +294,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene71",
@@ -306,6 +317,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene72",
@@ -328,6 +340,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene73",
@@ -350,6 +363,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene3",
@@ -372,6 +386,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene2",
@@ -394,6 +409,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene1",
@@ -416,6 +432,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene25",
@@ -437,6 +454,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene34",
@@ -458,6 +476,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene64",
@@ -479,6 +498,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene32",
@@ -500,6 +520,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene33",
@@ -521,6 +542,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene35",
@@ -542,6 +564,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene36",
@@ -563,6 +586,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene37",
@@ -589,6 +613,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene38",
@@ -615,6 +640,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene39",
@@ -641,6 +667,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene40",
@@ -667,6 +694,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene41",
@@ -693,6 +721,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene42",
@@ -719,6 +748,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene43",
@@ -745,6 +775,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene44",
@@ -771,6 +802,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene45",
@@ -797,6 +829,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene46",
@@ -823,6 +856,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene47",
@@ -849,6 +883,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene48",
@@ -875,6 +910,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene49",
@@ -901,6 +937,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene50",
@@ -927,6 +964,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene51",
@@ -953,6 +991,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene26",
@@ -974,6 +1013,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene27",
@@ -995,6 +1035,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene28",
@@ -1016,6 +1057,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene29",
@@ -1037,6 +1079,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene30",
@@ -1058,6 +1101,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene31",
@@ -1079,6 +1123,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene52",
@@ -1105,6 +1150,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene53",
@@ -1131,6 +1177,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene55",
@@ -1157,6 +1204,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene56",
@@ -1183,6 +1231,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene57",
@@ -1209,6 +1258,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene58",
@@ -1235,6 +1285,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene59",
@@ -1261,6 +1312,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene60",
@@ -1287,6 +1339,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene61",
@@ -1313,6 +1366,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene62",
@@ -1339,6 +1393,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene63",
@@ -1365,6 +1420,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene54",
@@ -1398,6 +1454,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene7",
@@ -1420,6 +1477,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene13",
@@ -1443,6 +1501,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene77",
@@ -1466,6 +1525,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene78",
@@ -1489,6 +1549,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene16",
@@ -1512,6 +1573,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene17",
@@ -1535,6 +1597,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene18",
@@ -1558,6 +1621,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene8",
@@ -1581,6 +1645,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene19",
@@ -1604,6 +1669,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene20",
@@ -1627,6 +1693,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene76",
@@ -1650,6 +1717,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene9",
@@ -1673,6 +1741,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene80",
@@ -1696,6 +1765,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene15",
@@ -1719,6 +1789,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene79",
@@ -1742,6 +1813,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene14",
@@ -1765,6 +1837,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene10",
@@ -1788,6 +1861,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene21",
@@ -1811,6 +1885,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene22",
@@ -1834,6 +1909,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene75",
@@ -1857,6 +1933,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene12",
@@ -1880,6 +1957,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene23",
@@ -1903,6 +1981,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene24",
@@ -1926,6 +2005,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene74",
@@ -2110,7 +2190,7 @@
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 1.0000000000000000E+001,
-                "Y" : -5.8000003814697266E+001
+                "Y" : -5.8000000000000000E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
@@ -2135,7 +2215,7 @@
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 1.0000000000000000E+001,
-                "Y" : -1.2700001525878906E+002
+                "Y" : -1.2700000000000000E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
