@@ -66,7 +66,7 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     ScrollBars = ssAutoVertical
     ShowHint = True
     TabAdvance = aaDown
-    TabOrder = 1
+    TabOrder = 2
     TitleStyle = tsNative
     OnPrepareCanvas = NamesAndDescStringGridPrepareCanvas
     OnResize = NamesAndDescStringGridResize
@@ -88,6 +88,6 @@ object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorFo
     BorderSpacing.Top = 4
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 2
+    TabOrder = 1
   end
 end
