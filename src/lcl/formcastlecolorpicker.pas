@@ -656,21 +656,25 @@ begin
 
   AText := FloatToStrFDot(AlphaSpinEdit.Value, ffFixed, 0, Abs(ColorPrecision));
 
+  { Synchronize generated snippet with tests in tests/code/testcases/testcastlecolors.pas :
+    TTestCastleColors.TestColorPickerCodeRgb
+    TTestCastleColors.TestColorPickerCodeRgba }
+
   if AlphaColorPicker.Enabled then
   begin
     MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
     MemoPascalCode.Lines.Add('const');
     MemoPascalCode.Lines.Add('  MyColor: TCastleColor = (' +
-      'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + '; W: ' + AText + ' );');
+      'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + '; W: ' + AText + ');');
 
     MemoPascalCode.Lines.Add('');
     MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
     MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
     MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
       ', ' + BText + ', ' + AText +');');
-    MemoPascalCode.Lines.Add('MyControl.Color := Vector4(HsvToRgb(' + HText +
+    MemoPascalCode.Lines.Add('MyControl.Color := HsvToRgba(Vector3(' + HText +
       ', ' + SText + ', ' + VText + '), ' + AText + ');');
-    MemoPascalCode.Lines.Add('HexToColor(' + ColorToHex(CurrentCastleColor) + ');');
+    MemoPascalCode.Lines.Add('MyControl.Color := HexToColor(''' + ColorToHex(CurrentCastleColor) + ''');');
   end else
   begin
     MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
@@ -683,9 +687,9 @@ begin
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := MyColor;');
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := Vector3(' + RText + ', ' + GText +
       ', ' + BText + ');');
-    MemoPascalCode.Lines.Add('MyControl.Color := Vector3(HsvToRgb(' + HText +
+    MemoPascalCode.Lines.Add('MyControl.ColorRGB := HsvToRgb(Vector3(' + HText +
       ', ' + SText + ', ' + VText + '));');
-    MemoPascalCode.Lines.Add('HexToColorRGB(' + ColorRGBToHex(CurrentCastleColorRGB) + ');');
+    MemoPascalCode.Lines.Add('MyControl.ColorRGB := HexToColorRGB(''' + ColorRGBToHex(CurrentCastleColorRGB) + ''');');
   end;
 end;
 

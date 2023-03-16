@@ -31,11 +31,13 @@ type
     procedure TestHsv;
     procedure TestHsvRgba;
     procedure TestLerpInHsv;
+    procedure TestColorPickerCodeRgb;
+    procedure TestColorPickerCodeRgba;
   end;
 
 implementation
 
-uses CastleUtils, CastleStringUtils, CastleTimeUtils;
+uses CastleUtils, CastleStringUtils, CastleTimeUtils, CastleScene, CastleControls;
 
 procedure TTestCastleColors.TestHsv;
 var
@@ -137,6 +139,40 @@ begin
   Hsv := RgbToHsv(RGBA.XYZ);
   NewRGBA := HsvToRgba(Hsv, 0.9);
   AssertVectorEquals(RGBA, NewRGBA);
+end;
+
+procedure TTestCastleColors.TestColorPickerCodeRgb;
+var
+  MyControl: TCastleBackground;
+// Define a constant with hard-coded color value like this:
+const
+  MyColor: TCastleColorRGB = (X: 0.125; Y: 0.125; Z: 0.373);
+begin
+  MyControl := TCastleBackground.Create(nil);
+  try
+    // Set colors from a hard-coded value like this:
+    MyControl.SkyTopColor := MyColor;
+    MyControl.SkyTopColor := Vector3(0.125, 0.125, 0.373);
+    MyControl.SkyTopColor := HsvToRgb(Vector3(4.000, 0.667, 0.373));
+    MyControl.SkyTopColor := HexToColorRGB('20205F');
+  finally FreeAndNil(MyControl) end;
+end;
+
+procedure TTestCastleColors.TestColorPickerCodeRgba;
+var
+  MyControl: TCastleImageControl;
+// Define a constant with hard-coded color value like this:
+const
+  MyColor: TCastleColor = (X: 0.318; Y: 0.286; Z: 0.000; W: 0.598);
+begin
+  MyControl := TCastleImageControl.Create(nil);
+  try
+    // Set colors from a hard-coded value like this:
+    MyControl.Color := MyColor;
+    MyControl.Color := Vector4(0.318, 0.286, 0.000, 0.598);
+    MyControl.Color := HsvToRgba(Vector3(0.901, 1.000, 0.318), 0.598);
+    MyControl.Color := HexToColor('51490099');
+  finally FreeAndNil(MyControl) end;
 end;
 
 initialization
