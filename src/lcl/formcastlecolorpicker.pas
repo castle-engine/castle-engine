@@ -585,11 +585,14 @@ procedure TCastleColorPickerForm.UpdateCurrentTabFromPanel;
 begin
   if PageControlColorModel.ActivePage = TabSheetRgb then
     SetColorInRgbTab(HSPanelCirclePicker.SelectedColor)
-  else if PageControlColorModel.ActivePage = TabSheetHsv then
+  else
+  if PageControlColorModel.ActivePage = TabSheetHsv then
     SetColorInHsvTab(HSPanelCirclePicker.SelectedColor)
-  else if PageControlColorModel.ActivePage = TabSheetPascalCode then
+  else
+  if PageControlColorModel.ActivePage = TabSheetPascalCode then
     GeneratePascalCode
-  else if PageControlColorModel.ActivePage = TabSheetHex then
+  else
+  if PageControlColorModel.ActivePage = TabSheetHex then
     SetColorInHexTab(HSPanelCirclePicker.SelectedColor);
 end;
 
