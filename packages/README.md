@@ -58,6 +58,18 @@ Alternative version of `castle_window.lpk` package that provides `CastleWindow` 
 
 In practice, it has no use now. (In the past, it was useful for macOS.)
 
+### castle_indy.lpk
+
+There is one, completely optional unit in CGE using Indy: `CastleClientServer`. This package allows to compile applications within it.
+
+Example usage of it is in `examples/network/tcp_connection/`.
+
+Depends on:
+- castle_base
+- indylaz
+
+TODO: To avoid confusion (as CGE in general doesn't depend on Indy) we should probably move it to separate repo.
+
 ## Do I need Lazarus to use Castle Game Engine?
 
 No. Packages here are provided to easily compile and use the engine with Lazarus. But CGE doesn't require LCL, you can develop CGE applications using `TCastleWindow` that doesn't depend on LCL.
