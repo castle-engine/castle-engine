@@ -279,10 +279,10 @@ pack_platform_dir ()
 
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
   "${MAKE}" cleanmore ${MAKE_OPTIONS}
