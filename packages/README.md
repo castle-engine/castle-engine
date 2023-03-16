@@ -50,7 +50,7 @@ All the units inside this package are internal for CGE -- normal engine users sh
 
 Note: We avoid adding dependencies on packages elsewhere in CGE directories, like `tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk`. Because this would confuse some people, because seasoned Lazarus users routinely install lpk directly, scanning our "packages/" subdirectory, and not knowing about CGE button "Register Lazarus Packages" (even though it's documented early in manual). So let's keep it simple and store all .lpk here.
 
-Note: Other packages, like castle_components.lpk, cannot depend on this package.
+Depends on `castle_components.lpk`.
 
 ### alternative_castle_window_based_on_lcl.lpk
 
