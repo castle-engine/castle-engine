@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
