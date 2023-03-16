@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleColors" -*-
 {
-  Copyright 2011-2022 Michalis Kamburelis.
+  Copyright 2011-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,7 +28,8 @@ uses
 type
   TTestCastleColors = class(TCastleTestCase)
   published
-    procedure TestHSV;
+    procedure TestHsv;
+    procedure TestHsvRgba;
     procedure TestLerpInHsv;
   end;
 
@@ -36,7 +37,7 @@ implementation
 
 uses CastleUtils, CastleStringUtils, CastleTimeUtils;
 
-procedure TTestCastleColors.TestHSV;
+procedure TTestCastleColors.TestHsv;
 var
   RGB: TVector3Byte;
   HSV: TVector3;
@@ -125,6 +126,17 @@ begin
   AssertVectorEquals(LerpRgbInHsv(1, PureRed, PureBlue), PureBlue);
   AssertVectorEquals(LerpRgbInHsv(0, BlackRGB, PureRed), BlackRGB);
   AssertVectorEquals(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed);
+end;
+
+procedure TTestCastleColors.TestHsvRgba;
+var
+  RGBA, NewRGBA: TCastleColor;
+  Hsv: TVector3;
+begin
+  RGBA := Vector4(0.1, 0.5, 0.7, 0.9);
+  Hsv := RgbToHsv(RGBA.XYZ);
+  NewRGBA := HsvToRgba(Hsv, 0.9);
+  AssertVectorEquals(RGBA, NewRGBA);
 end;
 
 initialization
