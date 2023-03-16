@@ -1,7 +1,7 @@
 object CastleColorPickerForm: TCastleColorPickerForm
-  Left = 761
+  Left = 760
   Height = 526
-  Top = 263
+  Top = 264
   Width = 460
   Caption = 'Choose Color'
   ClientHeight = 526
@@ -17,9 +17,10 @@ object CastleColorPickerForm: TCastleColorPickerForm
     AnchorSideTop.Control = Owner
     Left = 73
     Height = 267
-    Top = 19
+    Top = 10
     Width = 314
-    BorderSpacing.Top = 19
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
     BevelOuter = bvNone
     ClientHeight = 267
     ClientWidth = 314
@@ -32,7 +33,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
       Left = 0
       Height = 265
       Top = 0
-      Width = 244
+      Width = 256
       SelectedColor = 66047
       HintFormat = 'Hex #%hex'#10#13'RGB[%r, %g, %b]'#10#13'HSL[%hslH, %hslS, %hslL]'#10#13'HSV[%hsvH, %hsvS, %hsvV]'#10#13'CMYK[%c, %m, %y, %k]'#10#13'L*a*b*[%cieL, %cieA, %cieB]'#10#13'XYZ[%cieX, %cieY, %cieZ]'
       Anchors = [akTop, akLeft, akBottom]
@@ -49,7 +50,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = PanelCirclePicker
       AnchorSideBottom.Side = asrBottom
-      Left = 273
+      Left = 285
       Height = 267
       Top = 0
       Width = 37
@@ -404,7 +405,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 45
         Height = 38
         Top = 10
-        Width = 293
+        Width = 327
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 10
         BorderSpacing.Top = 10
@@ -417,11 +418,12 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = TabSheetHex
         AnchorSideRight.Side = asrBottom
-        Left = 348
-        Height = 30
-        Top = 14
-        Width = 90
+        Left = 382
+        Height = 37
+        Top = 11
+        Width = 56
         Anchors = [akTop, akRight]
+        AutoSize = True
         BorderSpacing.Right = 4
         Caption = 'Copy'
         OnClick = ButtonCopyClick
@@ -524,30 +526,21 @@ object CastleColorPickerForm: TCastleColorPickerForm
       Value = 1
     end
   end
-  object HSV: TLabel
-    AnchorSideLeft.Control = PanelCirclePicker
-    AnchorSideTop.Control = PanelCirclePicker
-    AnchorSideRight.Control = PanelCirclePicker
-    Left = 37
-    Height = 21
-    Top = 19
-    Width = 36
-    Anchors = [akTop, akRight]
-    Caption = 'HSV:'
-  end
   object ButtonRevert: TButton
     AnchorSideLeft.Control = PanelCirclePicker
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = PanelCirclePicker
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 391
-    Height = 30
-    Top = 19
-    Width = 65
+    AnchorSideBottom.Control = PanelCirclePicker
+    AnchorSideBottom.Side = asrBottom
+    Left = 387
+    Height = 37
+    Top = 10
+    Width = 63
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 4
-    BorderSpacing.Right = 4
+    AutoSize = True
+    BorderSpacing.Right = 10
     Caption = 'Revert'
     OnClick = ButtonRevertClick
     TabOrder = 3

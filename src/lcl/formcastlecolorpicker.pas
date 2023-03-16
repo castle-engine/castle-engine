@@ -15,15 +15,14 @@ type
     AlphaSpinEdit: TFloatSpinEdit;
     BSpinEditRgb: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
-    ButtonRevert: TButton;
     ButtonCopy: TButton;
+    ButtonRevert: TButton;
     EditHex: TEdit;
     GSpinEditRgb: TFloatSpinEdit;
     GTabColorPickerRgb: TGColorPicker;
     HSPanelCirclePicker: THSCirclePicker;
     HSpinEditHsv: TFloatSpinEdit;
     HTabColorPickerHsv: THColorPicker;
-    HSV: TLabel;
     LabelTabHsvTitleH: TLabel;
     LabelTabHexTitleHex: TLabel;
     LabelTabHsvTitleV: TLabel;
