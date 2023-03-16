@@ -1,0 +1,555 @@
+object CastleColorPickerForm: TCastleColorPickerForm
+  Left = 760
+  Height = 526
+  Top = 264
+  Width = 460
+  Caption = 'Choose Color'
+  ClientHeight = 526
+  ClientWidth = 460
+  DesignTimePPI = 115
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poOwnerFormCenter
+  LCLVersion = '2.2.0.4'
+  object PanelCirclePicker: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    Left = 73
+    Height = 267
+    Top = 10
+    Width = 314
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    BevelOuter = bvNone
+    ClientHeight = 267
+    ClientWidth = 314
+    TabOrder = 0
+    object HSPanelCirclePicker: THSCirclePicker
+      AnchorSideLeft.Control = PanelCirclePicker
+      AnchorSideTop.Control = PanelCirclePicker
+      AnchorSideBottom.Control = PanelCirclePicker
+      AnchorSideBottom.Side = asrCenter
+      Left = 0
+      Height = 265
+      Top = 0
+      Width = 256
+      SelectedColor = 66047
+      HintFormat = 'Hex #%hex'#10#13'RGB[%r, %g, %b]'#10#13'HSL[%hslH, %hslS, %hslL]'#10#13'HSV[%hsvH, %hsvS, %hsvV]'#10#13'CMYK[%c, %m, %y, %k]'#10#13'L*a*b*[%cieL, %cieA, %cieB]'#10#13'XYZ[%cieX, %cieY, %cieZ]'
+      Anchors = [akTop, akLeft, akBottom]
+      BorderSpacing.Right = 10
+      TabOrder = 0
+      Luminance = 128
+      Saturation = 254
+      OnChange = HSPanelCirclePickerChange
+    end
+    object VPanelColorPicker: TLVColorPicker
+      AnchorSideLeft.Control = HSPanelCirclePicker
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelCirclePicker
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelCirclePicker
+      AnchorSideBottom.Side = asrBottom
+      Left = 285
+      Height = 267
+      Top = 0
+      Width = 37
+      Layout = lyVertical
+      SelectionIndicator = siRect
+      Anchors = [akTop, akLeft, akBottom]
+      BorderSpacing.Left = 29
+      TabOrder = 1
+      OnChange = VPanelColorPickerChange
+      BrightnessMode = bmValue
+      LHintFormat = 'Luminance: %lum (selected)'
+      VHintFormat = 'Value: %value (selected)'
+    end
+  end
+  object PageControlColorModel: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = PanelAlpha
+    Left = 4
+    Height = 181
+    Top = 290
+    Width = 452
+    ActivePage = TabSheetRgb
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    TabIndex = 0
+    TabOrder = 1
+    OnChange = PageControlColorModelChange
+    object TabSheetRgb: TTabSheet
+      Caption = 'RGB'
+      ClientHeight = 146
+      ClientWidth = 442
+      object RTabColorPickerRgb: TRColorPicker
+        AnchorSideLeft.Control = GLabelTitleRgb
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = RSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 57
+        Height = 27
+        Top = 16
+        Width = 292
+        Layout = lyHorizontal
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 0
+        OnChange = RTabColorPickerRgbChange
+        Green = 0
+        Blue = 0
+        HintFormat = 'Red: %value (selected)'
+      end
+      object GTabColorPickerRgb: TGColorPicker
+        AnchorSideLeft.Control = GLabelTitleRgb
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = GSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 57
+        Height = 27
+        Top = 59
+        Width = 292
+        SelectedColor = 8454016
+        Layout = lyHorizontal
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 2
+        OnChange = GTabColorPickerRgbChange
+        HintFormat = 'Green: %value (selected)'
+      end
+      object BTabColorPickerRgb: TBColorPicker
+        AnchorSideLeft.Control = GLabelTitleRgb
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = BSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 57
+        Height = 27
+        Top = 102
+        Width = 292
+        SelectedColor = 16744576
+        Layout = lyHorizontal
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 4
+        OnChange = BTabColorPickerRgbChange
+        HintFormat = 'Blue: %value (selected)'
+      end
+      object RLabelTitleRgb: TLabel
+        AnchorSideLeft.Control = TabSheetRgb
+        AnchorSideTop.Control = RSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 19
+        Width = 31
+        BorderSpacing.Left = 4
+        BorderSpacing.Top = 10
+        Caption = 'Red'
+      end
+      object GLabelTitleRgb: TLabel
+        AnchorSideLeft.Control = TabSheetRgb
+        AnchorSideTop.Control = GSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 62
+        Width = 49
+        BorderSpacing.Left = 4
+        Caption = 'Green'
+      end
+      object BLabelTitleRgb: TLabel
+        AnchorSideLeft.Control = TabSheetRgb
+        AnchorSideTop.Control = BSpinEditRgb
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 105
+        Width = 36
+        BorderSpacing.Left = 4
+        Caption = 'Blue'
+      end
+      object RSpinEditRgb: TFloatSpinEdit
+        AnchorSideTop.Control = TabSheetRgb
+        AnchorSideRight.Control = TabSheetRgb
+        AnchorSideRight.Side = asrBottom
+        Left = 353
+        Height = 38
+        Top = 10
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 10
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.1
+        MaxValue = 1
+        OnChange = RSpinEditRgbChange
+        TabOrder = 1
+      end
+      object GSpinEditRgb: TFloatSpinEdit
+        AnchorSideTop.Control = RSpinEditRgb
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheetRgb
+        AnchorSideRight.Side = asrBottom
+        Left = 353
+        Height = 38
+        Top = 53
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 5
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.1
+        MaxValue = 1
+        OnChange = GSpinEditRgbChange
+        TabOrder = 3
+      end
+      object BSpinEditRgb: TFloatSpinEdit
+        AnchorSideTop.Control = GSpinEditRgb
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheetRgb
+        AnchorSideRight.Side = asrBottom
+        Left = 353
+        Height = 38
+        Top = 96
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 5
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.1
+        MaxValue = 1
+        OnChange = BSpinEditRgbChange
+        TabOrder = 5
+      end
+    end
+    object TabSheetHsv: TTabSheet
+      Caption = 'HSV'
+      ClientHeight = 146
+      ClientWidth = 442
+      object LabelTabHsvTitleH: TLabel
+        AnchorSideLeft.Control = TabSheetHsv
+        AnchorSideTop.Control = HSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 19
+        Width = 32
+        BorderSpacing.Left = 4
+        Caption = 'Hue'
+      end
+      object HTabColorPickerHsv: THColorPicker
+        AnchorSideLeft.Control = LabelTabHsvTitleS
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = HSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = HSpinEditHsv
+        Left = 90
+        Height = 27
+        Top = 16
+        Width = 258
+        SelectedColor = 66047
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 0
+        OnChange = HTabColorPickerHsvChange
+        Luminance = 128
+        HintFormat = 'Hue: %value (selected)'
+      end
+      object STabColorPickerHsv: TSColorPicker
+        AnchorSideLeft.Control = LabelTabHsvTitleS
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = SSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = SSpinEditHsv
+        Left = 90
+        Height = 27
+        Top = 59
+        Width = 259
+        SelectedColor = 66047
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 2
+        OnChange = STabColorPickerHsvChange
+        Luminance = 128
+        HintFormat = 'Saturation: %value (selected)'
+      end
+      object LabelTabHsvTitleS: TLabel
+        AnchorSideLeft.Control = LabelTabHsvTitleH
+        AnchorSideTop.Control = SSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 62
+        Width = 82
+        Caption = 'Saturation'
+      end
+      object LabelTabHsvTitleV: TLabel
+        AnchorSideLeft.Control = LabelTabHsvTitleH
+        AnchorSideTop.Control = VSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 105
+        Width = 45
+        Caption = 'Value'
+      end
+      object VTabColorPickerHsv: TLVColorPicker
+        AnchorSideLeft.Control = LabelTabHsvTitleS
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = VSpinEditHsv
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = VSpinEditHsv
+        Left = 90
+        Height = 27
+        Top = 102
+        Width = 259
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        TabOrder = 4
+        OnChange = VTabColorPickerHsvChange
+        BrightnessMode = bmValue
+        LHintFormat = 'Luminance: %lum (selected)'
+        VHintFormat = 'Value: %value (selected)'
+      end
+      object HSpinEditHsv: TFloatSpinEdit
+        AnchorSideTop.Control = TabSheetHsv
+        AnchorSideRight.Control = TabSheetHsv
+        AnchorSideRight.Side = asrBottom
+        Left = 352
+        Height = 38
+        Top = 10
+        Width = 90
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 10
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.5
+        MaxValue = 6
+        OnChange = HSpinEditHsvChange
+        TabOrder = 1
+      end
+      object SSpinEditHsv: TFloatSpinEdit
+        AnchorSideTop.Control = HSpinEditHsv
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheetHsv
+        AnchorSideRight.Side = asrBottom
+        Left = 353
+        Height = 38
+        Top = 53
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 5
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.1
+        MaxValue = 1
+        OnChange = SSpinEditHsvChange
+        TabOrder = 3
+      end
+      object VSpinEditHsv: TFloatSpinEdit
+        AnchorSideTop.Control = SSpinEditHsv
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheetHsv
+        AnchorSideRight.Side = asrBottom
+        Left = 353
+        Height = 38
+        Top = 96
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 5
+        Constraints.MinWidth = 89
+        DecimalPlaces = 3
+        Increment = 0.1
+        MaxValue = 1
+        OnChange = VSpinEditHsvChange
+        TabOrder = 5
+      end
+    end
+    object TabSheetHex: TTabSheet
+      Caption = 'Hex'
+      ClientHeight = 146
+      ClientWidth = 442
+      object LabelTabHexTitleHex: TLabel
+        AnchorSideLeft.Control = TabSheetHex
+        AnchorSideTop.Control = EditHex
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 21
+        Top = 19
+        Width = 31
+        BorderSpacing.Left = 4
+        Caption = 'Hex'
+      end
+      object EditHex: TEdit
+        AnchorSideLeft.Control = LabelTabHexTitleHex
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = TabSheetHex
+        AnchorSideRight.Control = ButtonCopy
+        Left = 45
+        Height = 38
+        Top = 10
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 10
+        BorderSpacing.Right = 10
+        ReadOnly = True
+        TabOrder = 0
+      end
+      object ButtonCopy: TButton
+        AnchorSideTop.Control = EditHex
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = TabSheetHex
+        AnchorSideRight.Side = asrBottom
+        Left = 382
+        Height = 37
+        Top = 11
+        Width = 56
+        Anchors = [akTop, akRight]
+        AutoSize = True
+        BorderSpacing.Right = 4
+        Caption = 'Copy'
+        OnClick = ButtonCopyClick
+        TabOrder = 1
+      end
+    end
+    object TabSheetPascalCode: TTabSheet
+      Caption = 'Pascal'
+      ClientHeight = 146
+      ClientWidth = 442
+      object MemoPascalCode: TMemo
+        AnchorSideLeft.Control = TabSheetPascalCode
+        AnchorSideTop.Control = TabSheetPascalCode
+        AnchorSideRight.Control = TabSheetPascalCode
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheetPascalCode
+        AnchorSideBottom.Side = asrBottom
+        Left = 4
+        Height = 138
+        Top = 4
+        Width = 434
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Left = 4
+        BorderSpacing.Top = 4
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 4
+        Font.Pitch = fpFixed
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
+        WordWrap = False
+      end
+    end
+  end
+  object PanelAlpha: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 10
+    Height = 55
+    Top = 471
+    Width = 446
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Left = 10
+    BorderSpacing.Right = 4
+    BevelOuter = bvNone
+    ClientHeight = 55
+    ClientWidth = 446
+    TabOrder = 2
+    object LabelTitleAlpha: TLabel
+      AnchorSideLeft.Control = PanelAlpha
+      AnchorSideTop.Control = AlphaSpinEdit
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 21
+      Top = 17
+      Width = 122
+      Caption = 'Alpha (Opacity)'
+    end
+    object AlphaColorPicker: TLVColorPicker
+      AnchorSideLeft.Control = LabelTitleAlpha
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = AlphaSpinEdit
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = AlphaSpinEdit
+      Left = 126
+      Height = 27
+      Top = 14
+      Width = 223
+      SelectionIndicator = siRect
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 4
+      BorderSpacing.Right = 4
+      TabOrder = 0
+      OnChange = AlphaColorPickerChange
+      BrightnessMode = bmValue
+      LHintFormat = 'Alpha: %lum (selected)'
+      VHintFormat = 'Value: %value (selected)'
+    end
+    object AlphaSpinEdit: TFloatSpinEdit
+      AnchorSideTop.Control = PanelAlpha
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelAlpha
+      AnchorSideRight.Side = asrBottom
+      Left = 353
+      Height = 38
+      Top = 8
+      Width = 89
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 4
+      Constraints.MinWidth = 89
+      DecimalPlaces = 3
+      Increment = 0.1
+      MaxValue = 1
+      OnChange = AlphaSpinEditChange
+      TabOrder = 1
+      Value = 1
+    end
+  end
+  object ButtonRevert: TButton
+    AnchorSideLeft.Control = PanelCirclePicker
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = PanelCirclePicker
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = PanelCirclePicker
+    AnchorSideBottom.Side = asrBottom
+    Left = 387
+    Height = 37
+    Top = 10
+    Width = 63
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    BorderSpacing.Right = 10
+    Caption = 'Revert'
+    OnClick = ButtonRevertClick
+    TabOrder = 3
+  end
+  object TimerMousePos: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerMousePosTimer
+    Left = 22
+    Top = 208
+  end
+end

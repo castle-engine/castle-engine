@@ -302,6 +302,7 @@ pipeline {
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'
+                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk'
               }
             }

@@ -34,7 +34,7 @@ uses
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
-  CastleColors, CastleScene, CastleRenderOptions,
+  CastleColors, CastleScene, CastleRenderOptions, CastleEditorPropEdits,
   // editor units
   FrameAnchors, CastleShellCtrls, EditorUtils,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
@@ -232,7 +232,7 @@ type
     var
       Inspector: array [TInspectorType] of TCastleObjectInspector;
       FUndoSystem: TUndoSystem;
-      PropertyEditorHook: TPropertyEditorHook;
+      PropertyEditorHook: TCastlePropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
       { Viewport created for editing design with FDesignRoot being TCastleTransform. }
@@ -383,6 +383,7 @@ type
     procedure PropertyGridCollectionItemDelete(Sender: TObject);
     procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
     procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
+
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -577,6 +578,10 @@ type
     procedure ChangeMode(const NewMode: TMode);
     procedure ShowAllJointsTools;
     procedure HideAllJointsTools;
+
+    { Saves some editor data in subcomponent of Application for property
+      editors }
+    procedure UpdateEditorDataForPropertyEditors;
   end;
 
 implementation
@@ -1468,13 +1473,12 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
       Result.ReferencesColor := $9EFFFF;
     end;
   end;
-
 begin
   inherited;
 
   LastSelected := TComponentList.Create(false);
 
-  PropertyEditorHook := TPropertyEditorHook.Create(Self);
+  PropertyEditorHook := TCastlePropertyEditorHook.Create(Self);
 
   FComponentEditorDesigner := TConcreteEditorDesigner.Create(Self, PropertyEditorHook);
 
@@ -1561,6 +1565,7 @@ begin
   FTransformDesigningObserver := TFreeNotificationObserver.Create(Self);
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
+  UpdateEditorDataForPropertyEditors;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -3725,6 +3730,19 @@ begin
   end;
 end;
 
+procedure TDesignFrame.UpdateEditorDataForPropertyEditors;
+begin
+  if PropertyEditorHook <> nil then
+  begin
+    PropertyEditorHook.InspectorAreaOnScreen.Left := ProjectForm.Left +
+      Left + PanelRight.Left;
+    PropertyEditorHook.InspectorAreaOnScreen.Top := ProjectForm.Top +
+      Top + PanelRight.Top + ControlProperties.Top  + 10;
+    PropertyEditorHook.InspectorAreaOnScreen.Width := ControlProperties.Width;
+    PropertyEditorHook.InspectorAreaOnScreen.Height := ControlProperties.Height;
+  end;
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority);
 var
@@ -5395,6 +5413,8 @@ procedure TDesignFrame.FrameResize(Sender: TObject);
   end;
 
 begin
+  UpdateEditorDataForPropertyEditors;
+  
   FixButtonSquare(ButtonInteractMode);
   FixButtonSquare(ButtonSelectMode);
   FixButtonSquare(ButtonTranslateMode);
@@ -5874,6 +5894,7 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
+  CastleEditorPropEdits.Register;
   { Inside CGE editor, CastleApplicationMode is never appRunning. }
   InternalCastleApplicationMode := appDesign;
 end.

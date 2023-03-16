@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <Name Value="castle_editor_components"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Michalis Kamburelis"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <IncludeFiles Value="../src/common_includes"/>
+        <OtherUnitFiles Value="../tools/castle-editor/components/mbColorLib;../tools/castle-editor/components"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="Components used by CGE editor. Engine developers (who wish to modify CGE editor forms) should install this in Lazarus IDE.
+
+These components are also used by custom CGE editor builds (with project-specific components, if you use https://castle-engine.io/custom_components ). So &quot;normal&quot; engine users don&apos;t need to install this, but they should &quot;register&quot; it with Lazarus, so that you can rebuild Lazarus with custom components.
+
+All the units inside this package are internal for CGE -- normal engine users should not rely on this code at all, it is only internally used by CGE editor."/>
+    <License Value="GNU LGPL with static linking exception >= 2.
+This is the same license as used by Lazarus LCL and FPC RTL.
+See https://castle-engine.io/license for details.
+"/>
+    <Version Major="6" Minor="92"/>
+    <Files Count="48">
+      <Item1>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/BAxisColorPicker.pas"/>
+        <UnitName Value="BAxisColorPicker"/>
+      </Item1>
+      <Item2>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/BColorPicker.pas"/>
+        <UnitName Value="BColorPicker"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/CColorPicker.pas"/>
+        <UnitName Value="CColorPicker"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/CIEAColorPicker.pas"/>
+        <UnitName Value="CIEAColorPicker"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/CIEBColorPicker.pas"/>
+        <UnitName Value="CIEBColorPicker"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/CIELColorPicker.pas"/>
+        <UnitName Value="CIELColorPicker"/>
+      </Item6>
+      <Item7>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/GAxisColorPicker.pas"/>
+        <UnitName Value="GAxisColorPicker"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/GColorPicker.pas"/>
+        <UnitName Value="GColorPicker"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HColorPicker.pas"/>
+        <UnitName Value="HColorPicker"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HexaColorPicker.pas"/>
+        <UnitName Value="HexaColorPicker"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HRingPicker.pas"/>
+        <UnitName Value="HRingPicker"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HSCirclePicker.pas"/>
+        <UnitName Value="HSCirclePicker"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HSColorPicker.pas"/>
+        <UnitName Value="HSColorPicker"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HSLColorPicker.pas"/>
+        <UnitName Value="HSLColorPicker"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HSLRingPicker.pas"/>
+        <UnitName Value="HSLRingPicker"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/HTMLColors.pas"/>
+        <UnitName Value="HTMLColors"/>
+      </Item16>
+      <Item17>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/KColorPicker.pas"/>
+        <UnitName Value="KColorPicker"/>
+      </Item17>
+      <Item18>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/LVColorPicker.pas"/>
+        <UnitName Value="LVColorPicker"/>
+      </Item18>
+      <Item19>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbBasicPicker.pas"/>
+        <UnitName Value="mbBasicPicker"/>
+      </Item19>
+      <Item20>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbcolorconv.pas"/>
+        <UnitName Value="mbColorConv"/>
+      </Item20>
+      <Item21>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbColorList.pas"/>
+        <UnitName Value="mbColorList"/>
+      </Item21>
+      <Item22>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbColorPalette.pas"/>
+        <UnitName Value="mbColorPalette"/>
+      </Item22>
+      <Item23>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbColorPickerControl.pas"/>
+        <UnitName Value="mbColorPickerControl"/>
+      </Item23>
+      <Item24>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbColorPreview.pas"/>
+        <UnitName Value="mbColorPreview"/>
+      </Item24>
+      <Item25>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbColorTree.pas"/>
+        <UnitName Value="mbColorTree"/>
+      </Item25>
+      <Item26>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbDeskPickerButton.pas"/>
+        <UnitName Value="mbDeskPickerButton"/>
+      </Item26>
+      <Item27>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbOfficeColorDialog.pas"/>
+        <UnitName Value="mbOfficeColorDialog"/>
+      </Item27>
+      <Item28>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbReg.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="mbReg"/>
+      </Item28>
+      <Item29>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbTrackBarPicker.pas"/>
+        <UnitName Value="mbTrackBarPicker"/>
+      </Item29>
+      <Item30>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbutils.pas"/>
+        <UnitName Value="mbUtils"/>
+      </Item30>
+      <Item31>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/MColorPicker.pas"/>
+        <UnitName Value="MColorPicker"/>
+      </Item31>
+      <Item32>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/OfficeMoreColorsDialog.pas"/>
+        <UnitName Value="OfficeMoreColorsDialog"/>
+      </Item32>
+      <Item33>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/PalUtils.pas"/>
+        <UnitName Value="PalUtils"/>
+      </Item33>
+      <Item34>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RAxisColorPicker.pas"/>
+        <UnitName Value="RAxisColorPicker"/>
+      </Item34>
+      <Item35>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RColorPicker.pas"/>
+        <UnitName Value="RColorPicker"/>
+      </Item35>
+      <Item36>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RGBCIEUtils.pas"/>
+        <UnitName Value="RGBCIEUtils"/>
+      </Item36>
+      <Item37>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RGBCMYKUtils.pas"/>
+        <UnitName Value="RGBCMYKUtils"/>
+      </Item37>
+      <Item38>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RGBHSLUtils.pas"/>
+        <UnitName Value="RGBHSLUtils"/>
+      </Item38>
+      <Item39>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/RGBHSVUtils.pas"/>
+        <UnitName Value="RGBHSVUtils"/>
+      </Item39>
+      <Item40>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/Scanlines.pas"/>
+        <UnitName Value="Scanlines"/>
+      </Item40>
+      <Item41>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/SColorPicker.pas"/>
+        <UnitName Value="SColorPicker"/>
+      </Item41>
+      <Item42>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/ScreenWin.pas"/>
+        <UnitName Value="ScreenWin"/>
+      </Item42>
+      <Item43>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/SelPropUtils.pas"/>
+        <UnitName Value="SelPropUtils"/>
+      </Item43>
+      <Item44>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/SLColorPicker.pas"/>
+        <UnitName Value="SLColorPicker"/>
+      </Item44>
+      <Item45>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/SLHColorPicker.pas"/>
+        <UnitName Value="SLHColorPicker"/>
+      </Item45>
+      <Item46>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/YColorPicker.pas"/>
+        <UnitName Value="YColorPicker"/>
+      </Item46>
+      <Item47>
+        <Filename Value="../tools/castle-editor/components/castleeditorpropedits.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastleEditorPropEdits"/>
+      </Item47>
+      <Item48>
+        <Filename Value="../tools/castle-editor/components/formcastlecolorpicker.pas"/>
+        <UnitName Value="FormCastleColorPicker"/>
+      </Item48>
+    </Files>
+    <CompatibilityMode Value="True"/>
+    <RequiredPkgs Count="5">
+      <Item1>
+        <PackageName Value="castle_components"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="castle_base"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="IDEIntf"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
+      <Item5>
+        <PackageName Value="FCL"/>
+      </Item5>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

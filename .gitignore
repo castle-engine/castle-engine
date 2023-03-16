@@ -224,6 +224,7 @@ castle-game-engine-*.fpm
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas
+/packages/castle_editor_components.pas
 /packages/castle_indy.pas
 /packages/castle_window.pas
 /packages/lib/
