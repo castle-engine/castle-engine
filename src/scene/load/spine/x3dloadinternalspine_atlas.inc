@@ -166,8 +166,7 @@ var
 begin
   Node := TImageTextureNode.Create('Page_' + TextureURL, BaseUrl);
   Node.SetUrl([TextureURL]);
-  Node.RepeatS := IsRepeat;
-  Node.RepeatT := IsRepeat;
+  AddSpineTextureProperties(Node, IsRepeat);
 
   ReferenceImageWidth := 0;
   ReferenceImageHeight := 0;
