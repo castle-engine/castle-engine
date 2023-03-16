@@ -66,7 +66,7 @@ begin
   try
     ColorPersistent := (GetObjectValue as TCastleColorPersistent);
     Color := ColorPersistent.Value;
-    TCastleColorPickerForm(ColorPicker).Init(Self, Color);
+    ColorPicker.Init(Self, Color);
 
     if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
@@ -84,7 +84,7 @@ begin
       ColorPicker.Position := poOwnerFormCenter;
 
     ColorPicker.ShowModal;
-    SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColor);
+    SetAllValues(ColorPicker.CurrentCastleColor);
   finally
     FreeAndNil(ColorPicker);
   end;
@@ -193,7 +193,7 @@ begin
   try
     ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
     Color := ColorPersistent.Value;
-    TCastleColorPickerForm(ColorPicker).Init(Self, Color);
+    ColorPicker.Init(Self, Color);
 
     if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
@@ -211,7 +211,7 @@ begin
       ColorPicker.Position := poOwnerFormCenter;
 
     ColorPicker.ShowModal;
-    SetAllValues(TCastleColorPickerForm(ColorPicker).CurrentCastleColorRGB);
+    SetAllValues(ColorPicker.CurrentCastleColorRGB);
   finally
     FreeAndNil(ColorPicker);
   end;
