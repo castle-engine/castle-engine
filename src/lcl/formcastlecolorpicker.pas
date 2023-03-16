@@ -662,13 +662,13 @@ begin
 
   if AlphaColorPicker.Enabled then
   begin
-    MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
+    MemoPascalCode.Lines.Add('// Color constant:');
     MemoPascalCode.Lines.Add('const');
     MemoPascalCode.Lines.Add('  MyColor: TCastleColor = (' +
       'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + '; W: ' + AText + ');');
 
     MemoPascalCode.Lines.Add('');
-    MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
+    MemoPascalCode.Lines.Add('// Examples how to set color:');
     MemoPascalCode.Lines.Add('MyControl.Color := MyColor;');
     MemoPascalCode.Lines.Add('MyControl.Color := Vector4(' + RText + ', ' + GText +
       ', ' + BText + ', ' + AText +');');
@@ -677,13 +677,13 @@ begin
     MemoPascalCode.Lines.Add('MyControl.Color := HexToColor(''' + ColorToHex(CurrentCastleColor) + ''');');
   end else
   begin
-    MemoPascalCode.Lines.Add('// Define a constant with hard-coded color value like this:');
+    MemoPascalCode.Lines.Add('// Color constant:');
     MemoPascalCode.Lines.Add('const');
     MemoPascalCode.Lines.Add('  MyColor: TCastleColorRGB = (' +
       'X: ' + RText + '; Y: ' + GText + '; Z: ' + BText + ');');
 
     MemoPascalCode.Lines.Add('');
-    MemoPascalCode.Lines.Add('// Set colors from a hard-coded value like this:');
+    MemoPascalCode.Lines.Add('// Examples how to set RGB color:');
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := MyColor;');
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := Vector3(' + RText + ', ' + GText +
       ', ' + BText + ');');
