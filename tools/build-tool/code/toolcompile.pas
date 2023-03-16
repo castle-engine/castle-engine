@@ -1107,10 +1107,10 @@ begin
     begin
       LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
       LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
-      LazbuildAddPackage('tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk');
       LazbuildAddPackage('packages/castle_base.lpk');
       LazbuildAddPackage('packages/castle_window.lpk');
       LazbuildAddPackage('packages/castle_components.lpk');
+      LazbuildAddPackage('packages/castle_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;

@@ -429,14 +429,10 @@ begin
   try
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
-
-    // packages used by castle-editor (which is also important for users who create custom components, https://castle-engine.io/custom_components )
-    // Note that castle_components.lpk uses mbcolorliblaz.lpk, so it must be earlier.
-    RegisterPackage('tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk');
-
     RegisterPackage('packages/castle_base.lpk');
     RegisterPackage('packages/castle_window.lpk');
     RegisterPackage('packages/castle_components.lpk');
+    RegisterPackage('packages/castle_editor_components.lpk');
     RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
     RegisterPackage('packages/castle_indy.lpk');
 

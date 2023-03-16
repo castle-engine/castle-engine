@@ -128,11 +128,10 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 default: tools
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-# packages used only by castle-editor, in particular useful for users who have custom components ( https://castle-engine.io/custom_components )
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_editor_components.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
@@ -369,10 +368,10 @@ examples-delphi:
 examples-laz:
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
