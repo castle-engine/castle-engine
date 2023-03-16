@@ -25,7 +25,7 @@ unit CastlePropEdits;
 
 interface
 
-uses Classes, PropEdits, Forms, CastleColors;
+uses PropEdits;
 
 { Some of the property editors are publicly exposed,
   to enable using them for your own properties in custom components too.
@@ -33,7 +33,6 @@ uses Classes, PropEdits, Forms, CastleColors;
 {$define read_interface}
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_url.inc}
-{$I castlepropedits_color.inc}
 {$undef read_interface}
 
 procedure Register;
@@ -41,7 +40,7 @@ procedure Register;
 implementation
 
 uses // FPC and LCL units
-  SysUtils, TypInfo,
+  SysUtils, Classes, TypInfo, Forms,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
   // Lazarus design-time (IDE) units
   ComponentEditors,
@@ -53,8 +52,7 @@ uses // FPC and LCL units
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
-  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation,
-  FormCastleColorPicker;
+  CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -64,7 +62,6 @@ uses // FPC and LCL units
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
 {$I castlepropedits_meshcolliderscene.inc}
-{$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_protectedsides.inc}
@@ -155,10 +152,6 @@ begin
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TCastleImagePersistentEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-    TCastleColorPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-    TCastleColorRGBPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',

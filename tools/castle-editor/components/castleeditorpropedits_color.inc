@@ -1,4 +1,4 @@
-{%MainUnit castlepropedits.pas}
+{%MainUnit castleeditorpropedits.pas}
 {
   Copyright 2010-2023 Michalis Kamburelis.
 
@@ -14,12 +14,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Color property editors. }
+{ Color property editors and TCastlePropertyEditorHook
+  (for now used only by color property editors). }
 
 { TCastleColorPropertyEditor ------------------------------------------------- }
+
 {$ifdef read_interface}
 type
-
   TCastlePropertyEditorHook = class(TPropertyEditorHook)
   public
     { Used by color picker to specify the position to show the window. }
