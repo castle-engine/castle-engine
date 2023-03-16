@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,9 +20,9 @@
 {$ifdef read_interface}
 type
 
-  TCastlePropertyEditorHook = class (TPropertyEditorHook)
+  TCastlePropertyEditorHook = class(TPropertyEditorHook)
   public
-    { Used by Colour picker to specify the position to show the window. }
+    { Used by color picker to specify the position to show the window. }
     InspectorAreaOnScreen: TRect;
   end;
 

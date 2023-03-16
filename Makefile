@@ -420,7 +420,7 @@ clean: cleanexamples
 			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
 			   '(' -iname '*.res' -and \
 			       -not -iwholename '*/vampyre_imaginglib/*' -and \
-                   -not -iwholename '*/mbColorLib/*' -and \
+			       -not -iwholename '*/mbColorLib/*' -and \
 			       -not -iwholename '*/examples/delphi/*' ')' \
 			       -or \
 			   -iname '*.rsj' -or \
