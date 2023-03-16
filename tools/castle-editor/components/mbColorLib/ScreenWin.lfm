@@ -1,0 +1,22 @@
+object ScreenForm: TScreenForm
+  Left = 198
+  Height = 96
+  Top = 117
+  Width = 149
+  Align = alClient
+  AlphaBlend = True
+  AlphaBlendValue = 1
+  BorderIcons = []
+  BorderStyle = bsNone
+  Caption = 'Pick a color...'
+  Color = clBtnFace
+  Font.Color = clWindowText
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  OnMouseMove = FormMouseMove
+  OnMouseUp = FormMouseUp
+  OnShow = FormShow
+  Position = poDefault
+  LCLVersion = '1.7'
+end

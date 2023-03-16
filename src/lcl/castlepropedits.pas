@@ -31,6 +31,7 @@ uses PropEdits;
   to enable using them for your own properties in custom components too.
   See examples/advanced_editor/custom_component/code/gamecontrols.pas . }
 {$define read_interface}
+{$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_url.inc}
 {$undef read_interface}
 
@@ -61,7 +62,6 @@ uses // FPC and LCL units
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
 {$I castlepropedits_meshcolliderscene.inc}
-{$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_protectedsides.inc}
@@ -157,10 +157,6 @@ begin
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TCastleImagePersistentEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-    TCastleColorPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-    TCastleColorRGBPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',

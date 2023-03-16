@@ -1,6 +1,6 @@
-{%MainUnit castlepropedits.pas}
+{%MainUnit castleeditorpropedits.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,12 +14,24 @@
   ----------------------------------------------------------------------------
 }
 
-{ Color property editors. }
+{ Color property editors and TCastlePropertyEditorHook
+  (for now used only by color property editors). }
 
 { TCastleColorPropertyEditor ------------------------------------------------- }
 
+{$ifdef read_interface}
 type
-  TCastleColorPropertyEditor = class(TSubPropertiesEditor)
+  TCastlePropertyEditorHook = class(TPropertyEditorHook)
+  public
+    { Used by color picker to specify the position to show the window. }
+    InspectorAreaOnScreen: TRect;
+  end;
+
+  { Abstract class for grouping all color property editors }
+  TCastleAbstractColorPropertyEditor = class(TSubPropertiesEditor)
+  end;
+
+  TCastleColorPropertyEditor = class(TCastleAbstractColorPropertyEditor)
   strict private
     procedure SetAllValues(const NewValue: TCastleColor);
   public
@@ -32,6 +44,9 @@ type
     function ValueIsStreamed: boolean; override;
     function AllEqual: Boolean; override;
   end;
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
@@ -42,30 +57,38 @@ end;
 
 procedure TCastleColorPropertyEditor.Edit;
 var
-  Dialog: TColorDialog;
   ColorPersistent: TCastleColorPersistent;
   Color: TCastleColor;
-  ColorByte: TVector3Byte;
+  ColorPicker: TCastleColorPickerForm;
+  InspectorArea: TRect;
+  CastlePropertyHook: TCastlePropertyEditorHook;
 begin
-  Dialog := TColorDialog.Create(nil);
+  ColorPicker := TCastleColorPickerForm.Create(nil);
   try
     ColorPersistent := (GetObjectValue as TCastleColorPersistent);
     Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color.XYZ); // edit only Color RGB
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
+    ColorPicker.Init(Self, Color);
+
+    if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      // keep Color alpha unchanged ...
-      Color := Vector4(Vector3(ColorByte), Color.W);
-      // ... unless it is zero, then change to 1.
-      { This makes changing TCastleUserInterface.BorderColor changing more natural,
-        setting it using dialog turns color from transparent -> opaque. }
-      if Color.W = 0 then
-        Color.W := 1;
-      SetAllValues(Color);
-    end;
-  finally FreeAndNil(Dialog) end;
+      CastlePropertyHook := PropertyHook as TCastlePropertyEditorHook;
+      ColorPicker.Position := poDefaultPosOnly;
+      InspectorArea := CastlePropertyHook.InspectorAreaOnScreen;
+      ColorPicker.Left := InspectorArea.Left -
+        (ColorPicker.Width - InspectorArea.Width);
+      if InspectorArea.Height > ColorPicker.Height then
+        ColorPicker.Top := InspectorArea.Top +
+          Round((InspectorArea.Height - ColorPicker.Height) / 2)
+      else
+        ColorPicker.Top := InspectorArea.Top;
+    end else
+      ColorPicker.Position := poOwnerFormCenter;
+
+    ColorPicker.ShowModal;
+    SetAllValues(ColorPicker.CurrentCastleColor);
+  finally
+    FreeAndNil(ColorPicker);
+  end;
 end;
 
 function TCastleColorPropertyEditor.GetName: shortstring;
@@ -138,7 +161,7 @@ end;
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
-  TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
+  TCastleColorRGBPropertyEditor = class(TCastleAbstractColorPropertyEditor)
   strict private
     procedure SetAllValues(const NewValue: TCastleColorRGB);
   public
@@ -161,25 +184,40 @@ end;
 
 procedure TCastleColorRGBPropertyEditor.Edit;
 var
-  Dialog: TColorDialog;
   ColorPersistent: TCastleColorRGBPersistent;
   Color: TCastleColorRGB;
-  ColorByte: TVector3Byte;
+  ColorPicker: TCastleColorPickerForm;
+  InspectorArea: TRect;
+  CastlePropertyHook: TCastlePropertyEditorHook;
 begin
-  Dialog := TColorDialog.Create(nil);
+  ColorPicker := TCastleColorPickerForm.Create(nil);
   try
     ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
     Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color);
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
+    ColorPicker.Init(Self, Color);
+
+    if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      Color := Vector3(ColorByte);
-      SetAllValues(Color);
-    end;
-  finally FreeAndNil(Dialog) end;
+      CastlePropertyHook := PropertyHook as TCastlePropertyEditorHook;
+      ColorPicker.Position := poDefaultPosOnly;
+      InspectorArea := CastlePropertyHook.InspectorAreaOnScreen;
+      ColorPicker.Left := InspectorArea.Left -
+        (ColorPicker.Width - InspectorArea.Width);
+      if InspectorArea.Height > ColorPicker.Height then
+        ColorPicker.Top := InspectorArea.Top +
+          Round((InspectorArea.Height - ColorPicker.Height) / 2)
+      else
+        ColorPicker.Top := InspectorArea.Top;
+    end else
+      ColorPicker.Position := poOwnerFormCenter;
+
+    ColorPicker.ShowModal;
+    SetAllValues(ColorPicker.CurrentCastleColorRGB);
+  finally
+    FreeAndNil(ColorPicker);
+  end;
 end;
+
 
 function TCastleColorRGBPropertyEditor.GetName: shortstring;
 begin
@@ -247,3 +285,5 @@ begin
 
   Result := true;
 end;
+
+{$endif read_implementation}

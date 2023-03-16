@@ -45,10 +45,10 @@
 This package, castle_components.lpk, contains the Lazarus visual components that depend on LCL. First of all, the TCastleControl component. You can install this package in Lazarus."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
-See https://castle-engine.io/license.php for details.
+See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="32">
+    <Files Count="31">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -85,102 +85,98 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/lcl/castlepropedits_color.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_exposetransforms.inc"/>
         <Type Value="Include"/>
       </Item9>
       <Item10>
-        <Filename Value="../src/lcl/castlepropedits_exposetransforms.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_number.inc"/>
         <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/lcl/castlepropedits_number.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_image.inc"/>
         <Type Value="Include"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/lcl/castlepropedits_image.inc"/>
-        <Type Value="Include"/>
-      </Item12>
-      <Item13>
         <Filename Value="../src/lcl/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../src/lcl/castlepropedits_url.inc"/>
+        <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/lcl/castlepropedits_url.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_vector.inc"/>
         <Type Value="Include"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/lcl/castlepropedits_vector.inc"/>
-        <Type Value="Include"/>
-      </Item15>
-      <Item16>
         <Filename Value="../src/lcl/castleinternallcldesign.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleInternalLclDesign"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../src/lcl/castlepropedits_component_joints.inc"/>
+        <Type Value="Include"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/lcl/castlepropedits_component_joints.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_imagecontrol.inc"/>
         <Type Value="Include"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/lcl/castlepropedits_component_imagecontrol.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_imagetransform.inc"/>
         <Type Value="Include"/>
       </Item18>
       <Item19>
-        <Filename Value="../src/lcl/castlepropedits_component_imagetransform.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_scene.inc"/>
         <Type Value="Include"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/lcl/castlepropedits_component_scene.inc"/>
-        <Type Value="Include"/>
-      </Item20>
-      <Item21>
         <Filename Value="../src/lcl/castleeditoraccess.pas"/>
         <UnitName Value="CastleEditorAccess"/>
+      </Item20>
+      <Item21>
+        <Filename Value="../src/lcl/castlepropedits_component_transformdesign.inc"/>
+        <Type Value="Include"/>
       </Item21>
       <Item22>
-        <Filename Value="../src/lcl/castlepropedits_component_transformdesign.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_design.inc"/>
         <Type Value="Include"/>
       </Item22>
       <Item23>
-        <Filename Value="../src/lcl/castlepropedits_component_design.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
         <Type Value="Include"/>
       </Item23>
       <Item24>
-        <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
         <Type Value="Include"/>
       </Item24>
       <Item25>
-        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
         <Type Value="Include"/>
       </Item25>
       <Item26>
-        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
         <Type Value="Include"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_protectedsides.inc"/>
         <Type Value="Include"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/lcl/castlepropedits_protectedsides.inc"/>
-        <Type Value="Include"/>
-      </Item28>
-      <Item29>
         <Filename Value="../src/lcl/castleinternaltiledlayersdialog.pas"/>
         <UnitName Value="CastleInternalTiledLayersDialog"/>
+      </Item28>
+      <Item29>
+        <Filename Value="../src/lcl/castlepropedits_tiledlayers.inc"/>
+        <Type Value="Include"/>
       </Item29>
       <Item30>
-        <Filename Value="../src/lcl/castlepropedits_tiledlayers.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_region.inc"/>
         <Type Value="Include"/>
       </Item30>
       <Item31>
-        <Filename Value="../src/lcl/castlepropedits_region.inc"/>
-        <Type Value="Include"/>
-      </Item31>
-      <Item32>
         <Filename Value="../src/lcl/castleinternalregiondialog.pas"/>
         <UnitName Value="CastleInternalRegionDialog"/>
-      </Item32>
+      </Item31>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">

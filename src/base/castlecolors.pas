@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -132,16 +132,20 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
 
 { Converting between RGB and HSV.
+
   For HSV, we keep components as floating-point values,
   with hue in 0..6 range, saturation and value in 0..1.
-  For RGB, one version keeps components as bytes (0..255 range),
-  and the other as floating-point values (0..1 range).
+
+  For RGB, we keep components as floating-point values (0..1 range).
+
   @groupBegin }
-function HsvToRgb(const Value: TVector3): TVector3;
+function HsvToRgb(const Value: TVector3): TCastleColorRGB;
+function HsvToRgba(const Value: TVector3; const Alpha: Single): TCastleColor;
 function RgbToHsv(const Value: TVector3): TVector3; overload;
-function RgbToHsv(const Value: TVector3Byte): TVector3; overload;
-function HsvToRgbByte(const Value: TVector3): TVector3Byte;
 { @groupEnd }
+
+function RgbToHsv(const Value: TVector3Byte): TVector3; overload; deprecated 'use float-based colors, like TCastleColorRGB and TCastleColor, not Byte-based like TVector3Byte';
+function HsvToRgbByte(const Value: TVector3): TVector3Byte; deprecated 'use float-based colors, like TCastleColorRGB and TCastleColor, not Byte-based like TVector3Byte';
 
 { Given two colors in RGB, interpolate them in HSV space. }
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
@@ -361,7 +365,7 @@ begin
   end;
 end;
 
-function HsvToRgb(const Value: TVector3): TVector3;
+function HsvToRgb(const Value: TVector3): TCastleColorRGB;
 var
   F, P, Q, T, V: Single;
 begin
@@ -381,6 +385,11 @@ begin
     4:   begin Result.X := T; Result.Y := P; Result.Z := V; end;
     else begin Result.X := V; Result.Y := P; Result.Z := Q; end;
   end;
+end;
+
+function HsvToRgba(const Value: TVector3; const Alpha: Single): TCastleColor;
+begin
+  Result := Vector4(HsvToRgb(Value), Alpha);
 end;
 
 function RgbToHsv(const Value: TVector3Byte): TVector3;

@@ -424,6 +424,9 @@
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptarrays.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptimages.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptvectors.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

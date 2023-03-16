@@ -410,7 +410,6 @@ type
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
-    function Dpi: Single; override;
     function Focused: boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
@@ -515,7 +514,6 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    FDpi: Single;
     // Using deprecated TWindowContainer - should be internal in the future
     {$warnings off}
     FContainer: TWindowContainer;
@@ -979,16 +977,6 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to window
       sizes. }
     function Rect: TRectangle;
-
-    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
-      So this is determined by the screen resolution in pixels,
-      and by the physical size of the device.
-
-      Some systems may expose a value that actually reflects user preference
-      "how to scale the user-interface", where 96 (DefaultDpi) is default.
-      So do not depend that it is actually related to the physical monitor size.
-      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
-    property Dpi: Single read FDpi write FDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -2702,11 +2690,6 @@ begin
   Parent.MousePosition := Value;
 end;
 
-function TWindowContainer.Dpi: Single;
-begin
-  Result := Parent.Dpi;
-end;
-
 function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
@@ -2765,7 +2748,6 @@ begin
   FVisible := true;
   FAutoRedisplay := true;
   OwnsMainMenu := true;
-  FDpi := DefaultDpi;
   FMousePosition := Vector2(-1, -1);
   FMainMenuVisible := true;
   // Using deprecated CreateContainer - should be internal in the future
@@ -2836,7 +2818,7 @@ procedure TCastleWindow.OpenCore;
 
     UIScale := TCastleContainer.InternalCalculateUIScale(
       Theme.LoadingUIScaling, Theme.LoadingUIReferenceWidth, Theme.LoadingUIReferenceHeight, Theme.LoadingUIExplicitScale,
-      Dpi, FRealWidth, FRealHeight);
+      Container.Dpi, FRealWidth, FRealHeight);
     TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).

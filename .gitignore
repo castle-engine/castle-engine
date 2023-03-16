@@ -217,12 +217,14 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/view_3d_model_advanced/view_3d_model_advanced
 /examples/viewport_and_scenes/view_3d_model_basic/view_3d_model_basic
 /examples/viewport_and_scenes/viewport_3d_tutorial/my-new-project-3d
+/examples/viewport_and_scenes/occlusion_culling/occlusion_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas
+/packages/castle_editor_components.pas
 /packages/castle_indy.pas
 /packages/castle_window.pas
 /packages/lib/

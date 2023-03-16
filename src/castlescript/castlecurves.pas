@@ -72,16 +72,20 @@ type
   end;
 
   TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
+  protected
+    { Override this function to add other classes inherited from
+      @link(TCurve) to a list. }
+    function GetCurveByType(const CurveTypeStr: string): TCurve; virtual;
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure LoadFromFile(const URL: string);
+    procedure LoadFromFile(const URL: string); virtual;
 
     { Save curve definitions to a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const URL: string); virtual;
   end;
 
   { Curve defined by explicitly giving functions for
@@ -368,11 +372,7 @@ begin
       while I.GetNext do
       begin
         CurveTypeStr := I.Current.AttributeString('type');
-        if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
-          Curve := TPiecewiseCubicBezier.Create else
-        if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
-          Curve := TCasScriptCurve.Create else
-          raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
+        Curve:=GetCurveByType(CurveTypeStr);
         Curve.LoadFromElement(I.Current);
         if Curve is TControlPointsCurve then
           TControlPointsCurve(Curve).UpdateControlPoints;
@@ -380,6 +380,17 @@ begin
       end;
     finally FreeAndNil(I); end;
   finally FreeAndNil(Document) end;
+end;
+
+function TCurveList.GetCurveByType(const CurveTypeStr: string): TCurve;
+begin
+ if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
+   Result := TPiecewiseCubicBezier.Create 
+ else
+ if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
+   Result := TCasScriptCurve.Create
+ else
+   raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
 end;
 
 procedure TCurveList.SaveToFile(const URL: string);

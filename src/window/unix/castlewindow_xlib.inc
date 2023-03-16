@@ -103,14 +103,16 @@ procedure TCastleWindow.OpenBackend;
   procedure InitializeDpi;
   var
     DW, DWMM: Integer;
+    NewDpi: Single;
   begin
     DW := XDisplayWidth(Application.XDisplay, Application.XScreen);
     DWMM := XDisplayWidthMM(Application.XDisplay, Application.XScreen);
-    FDpi := DW / (DWMM / 25.4);
+    NewDpi := DW / (DWMM / 25.4);
 
     // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
     // WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
-    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
+    Container.Dpi := NewDpi;
   end;
 
 var
