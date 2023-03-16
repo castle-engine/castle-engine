@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
-  Left = 595
+  Left = 646
   Height = 650
-  Top = 217
+  Top = 234
   Width = 1184
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 621
@@ -392,6 +392,10 @@ object ProjectForm: TProjectForm
           Action = ActionModeScale
         end
       end
+      object MenuItem41: TMenuItem
+        Action = ActionShowStatistics
+        AutoCheck = True
+      end
     end
     object MenuItemViewport: TMenuItem
       Caption = 'Viewport'
@@ -602,6 +606,24 @@ object ProjectForm: TProjectForm
         object MenuItemRunParameterRequestWindow: TMenuItem
           Action = ActionRunParameterRequestWindow
           GroupIndex = 45
+          RadioItem = True
+        end
+        object Separator12: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem33: TMenuItem
+          Action = ActionRunParameterCapabilitiesDefault
+          GroupIndex = 145
+          RadioItem = True
+        end
+        object MenuItem39: TMenuItem
+          Action = ActionRunParameterCapabilitiesForceModern
+          GroupIndex = 145
+          RadioItem = True
+        end
+        object MenuItem40: TMenuItem
+          Action = ActionRunParameterCapabilitiesForceFixedFunction
+          GroupIndex = 145
           RadioItem = True
         end
       end
@@ -1309,6 +1331,32 @@ object ProjectForm: TProjectForm
       Checked = True
       GroupIndex = 45
       OnExecute = ActionRunParameterDefaultWindowOrFullscreenExecute
+    end
+    object ActionRunParameterCapabilitiesDefault: TAction
+      Category = 'Run'
+      Caption = 'Default Rendering Context'
+      Checked = True
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesDefaultExecute
+    end
+    object ActionRunParameterCapabilitiesForceModern: TAction
+      Category = 'Run'
+      Caption = 'Force Modern Rendering Context (--capabilities=force-modern)'
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesForceModernExecute
+    end
+    object ActionRunParameterCapabilitiesForceFixedFunction: TAction
+      Category = 'Run'
+      Caption = 'Force Ancient Rendering Context (--capabilities=force-fixed-function)'
+      GroupIndex = 145
+      OnExecute = ActionRunParameterCapabilitiesForceFixedFunctionExecute
+    end
+    object ActionShowStatistics: TAction
+      Category = 'Edit'
+      AutoCheck = True
+      Caption = 'Show Statistics (FPS and more)'
+      DisableIfNoHandler = False
+      ShortCut = 119
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

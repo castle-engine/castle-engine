@@ -35,9 +35,9 @@
     { Internal wrapper for property @link(Index). This wrapper API may change, we advise to access simpler @link(Index) instead. }
     public property FdIndex: TMFInt32 read FFdIndex;
     {  }
-    procedure SetIndex(const Value: array of LongInt); overload;
+    procedure SetIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetIndex(const Value: TLongIntList); overload;
+    procedure SetIndex(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -45,12 +45,12 @@
 
 { TIndexedTriangleStripSetNode ----------------------------------------------- }
 
-procedure TIndexedTriangleStripSetNode.SetIndex(const Value: array of LongInt);
+procedure TIndexedTriangleStripSetNode.SetIndex(const Value: array of Int32);
 begin
   FdIndex.Send(Value);
 end;
 
-procedure TIndexedTriangleStripSetNode.SetIndex(const Value: TLongIntList);
+procedure TIndexedTriangleStripSetNode.SetIndex(const Value: TInt32List);
 begin
   FdIndex.Send(Value);
 end;

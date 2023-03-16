@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2023 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,6 +53,15 @@ const
   // used for quering engine parameters in CGE_Set/GetVariable
   ecgevarWalkHeadBobbing = 0;   // walking effect (int, 1 = on, 0 = off)
   ecgevarEffectSSAO      = 1;   // screen space ambient occlusion (int, 1 or 0)
+  ecgevarMouseLook       = 2;   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
+  ecgevarCrossHair       = 3;   // show crosshair in the center of the screen (int, 1 or 0)
+  ecgevarAnimationRunning = 4;  // (read-only) engine would like to progress with the animation (int, 1 or 0)
+  ecgevarWalkTouchCtl    = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
+  ecgevarScenePaused     = 6;   // pause Viewport (int, 1 = on, 0 = off)
+  ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
+  ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
+  ecgevarOcclusionQuery  = 9;   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
+  ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;

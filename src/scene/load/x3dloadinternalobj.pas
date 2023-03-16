@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,7 +101,7 @@ var
       NewSeekPos := SeekPos;
       Token := NextToken(S, NewSeekPos);
       try
-        Value.Data[I] := StrToFloatDefDot(Token, Value.Data[I]);
+        Value.InternalData[I] := StrToFloatDefDot(Token, Value.InternalData[I]);
         // update SeekPos if this is a successfull float, as Y and Z vector values are optional in MTL
         SeekPos := NewSeekPos;
       except
@@ -214,7 +214,7 @@ type
   end;
 
   TWavefrontFace = class
-    VertIndices, TexCoordIndices, NormalIndices: TLongIntList;
+    VertIndices, TexCoordIndices, NormalIndices: TInt32List;
     HasTexCoords: boolean;
     HasNormals: boolean;
 
@@ -266,9 +266,9 @@ begin
     on E: EConvertError do
     begin
       SPosition := 1;
-      Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[2] := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
+      Result.X := StrToFloatDot(NextToken(S, SPosition));
+      Result.Y := StrToFloatDot(NextToken(S, SPosition));
+      Result.Z := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
       if NextToken(S, SPosition) <> '' then
         raise EConvertError.Create('Expected end of data when reading vector from string');
       WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
@@ -325,9 +325,9 @@ end;
 constructor TWavefrontFace.Create;
 begin
   inherited;
-  VertIndices := TLongIntList.Create;
-  TexCoordIndices := TLongIntList.Create;
-  NormalIndices := TLongIntList.Create;
+  VertIndices := TInt32List.Create;
+  TexCoordIndices := TInt32List.Create;
+  NormalIndices := TInt32List.Create;
 end;
 
 destructor TWavefrontFace.Destroy;
@@ -361,7 +361,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
       procedure ReadIndex(out IndiceExists: boolean;
-        const IndexList: TLongIntList; const Count: Cardinal);
+        const IndexList: TInt32List; const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
         Index: Integer;

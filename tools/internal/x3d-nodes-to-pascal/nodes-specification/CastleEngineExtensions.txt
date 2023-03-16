@@ -49,6 +49,7 @@ GeneratedShadowMap : X3DSingleTextureNode {
     range: ["COMPARE_R_LEQUAL"|"COMPARE_R_GEQUAL"|"NONE"]
     enumerated-type: TShadowMapCompareMode CompareModeNames smCompareRLEqual
     change: chTextureRendererProperties
+    doc: @deprecated Deprecated mode to test depth maps with various comparison methods. This was unportable and complicated to maintain, so it is deprecated and has no effect now.
 }
 
 Text3D : Text {
@@ -120,8 +121,6 @@ RenderedTexture : X3DSingleTextureNode {
   MFNode     [in,out]      targets               []
     range: X3DTextureNode
     change: chTextureRendererProperties
-  SFString   [in,out]      description           ""
-    change: chNone
   SFMatrix4f [out]         viewing
   SFMatrix4f [out]         projection
   SFString   [in,out]      frameBufferMode       "AUTO"

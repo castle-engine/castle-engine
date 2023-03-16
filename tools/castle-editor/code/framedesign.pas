@@ -43,7 +43,7 @@ uses
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
 
-  TIsRunningEvent = function: Boolean of object;
+  TBooleanEvent = function: Boolean of object;
 
   TMode = (
     moInteract,
@@ -71,6 +71,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -115,9 +116,9 @@ type
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
+    SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
-    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAll: TTabSheet;
@@ -182,8 +183,8 @@ type
           UiDraggingMode: TUiDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when UiDraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when UiDraggingMode=dmResize
-          LabelHover, LabelSelected: TCastleLabel;
-          RectHover, RectSelected: TCastleRectangleControl;
+          LabelHover, LabelSelected, LabelStatistics: TCastleLabel;
+          RectHover, RectSelected, RectStatistics: TCastleRectangleControl;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -208,8 +209,13 @@ type
 
           Note: In most cases, prefer to call HoverComponent.
           HoverUserInterface *does not* consider transforms within TCastleViewport,
-          it will just return TCastleViewport if mouse is over it. }
-        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+          it will just return TCastleViewport if mouse is over it.
+
+          @param(EnterNestedDesigns If @true, we enter children loaded by TCastleDesign,
+            in TCastleDesign.Design. This should almost never be used: such children
+            are not selectable, their names may collide with names in main design etc.) }
+        function HoverUserInterface(const AMousePosition: TVector2;
+          const EnterNestedDesigns: Boolean = false): TCastleUserInterface;
 
         { UI or transform under given mouse position.
           AMousePosition is like for HoverUserInterface. }
@@ -480,7 +486,8 @@ type
     OnCurrentViewportChanged: TNotifyEvent;
     OnProposeOpenDesign: TProposeOpenDesignEvent;
     OnRunningToggle, OnApiReferenceOfCurrent: TNotifyEvent;
-    OnIsRunning: TIsRunningEvent;
+    OnIsRunning: TBooleanEvent;
+    OnShowStatistics: TBooleanEvent;
 
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
@@ -542,6 +549,11 @@ type
       or viewport over which mouse hovers. We want to enable user to set current viewport
       as easily as possible, to avoid the "selection of viewport" being an extra step
       user needs to remember to do.
+
+      Note that this viewport may not be Selectable.
+      It may be an internal viewport (in case of .castle-transform files)
+      or a viewport inside TCastleDesign.Design (testcase when it's needed:
+      examples/physics/physics_joints_3d/ ).
 
       @nil if none. }
     property CurrentViewport: TCastleViewport read FCurrentViewport;
@@ -652,10 +664,30 @@ begin
   LabelSelected.FontSize := 15;
   LabelSelected.EnableUIScaling := false;
   RectSelected.InsertFront(LabelSelected);
+
+  RectStatistics := TCastleRectangleControl.Create(Self);
+  RectStatistics.Color := Vector4(0, 0, 0, 0.25);
+  RectStatistics.Exists := false;
+  RectStatistics.EnableUIScaling := false;
+  RectStatistics.Anchor(hpRight, -5);
+  RectStatistics.Anchor(vpTop, -5);
+  RectStatistics.AutoSizeToChildren := true;
+  InsertFront(RectStatistics);
+
+  LabelStatistics := TCastleLabel.Create(Self);
+  LabelStatistics.Border.AllSides := 5;
+  LabelStatistics.Anchor(hpMiddle);
+  LabelStatistics.Anchor(vpMiddle);
+  LabelStatistics.FontSize := 15;
+  LabelStatistics.EnableUIScaling := false;
+  LabelStatistics.Color := White;
+  LabelStatistics.Alignment := hpRight;
+  RectStatistics.InsertFront(LabelStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
-  const AMousePosition: TVector2): TCastleUserInterface;
+  const AMousePosition: TVector2;
+  const EnterNestedDesigns: Boolean): TCastleUserInterface;
 
   { Like TCastleUserInterface.CapturesEventsAtPosition, but
     - ignores CapturesEvents
@@ -668,6 +700,15 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       Result := UI.RenderRectWithBorder.Contains(Position)
     else
       Result := UI.RenderRect.Contains(Position);
+  end;
+
+  { Is C selectable, or we should enter it anyway because of EnterNestedDesigns. }
+  function Enter(const Parent, C: TCastleUserInterface): Boolean;
+  begin
+    Result := TDesignFrame.Selectable(C) or
+      ( EnterNestedDesigns and
+        (Parent is TCastleDesign) and
+        (TCastleDesign(Parent).InternalDesign = C) );
   end;
 
   function ControlUnder(const C: TCastleUserInterface;
@@ -692,7 +733,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
         control if we merely point at its border). This allows to find controls
         places on another control's border. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, false);
           if Result <> nil then Exit;
@@ -701,7 +742,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       { Next try to find children, with TestWithBorder=true, so it tries harder
         to find something. }
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C.Controls[I]) then
+        if Enter(C, C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos, true);
           if Result <> nil then Exit;
@@ -785,7 +826,10 @@ begin
 
     Also, unlike CurrentViewport,
     we don't want to remember last hovered/selected viewport here,
-    it would be weird for user here. }
+    it would be weird for user here.
+
+    Also, unlike CurrentViewport, we don't pass EnterNestedDesigns as
+    UpdateCurrentViewport does. We don't need to look for viewport that aggressive. }
 
   Result := HoverUserInterface(AMousePosition);
   if Result is TCastleViewport then // also checks Result <> nil
@@ -936,10 +980,10 @@ begin
           else
             UiDraggingMode := dmTranslate;
 
-          { No need for this Exit(true) otherwise.
-            In particular if we selected transform, we should not do Exit(ExclusiveEvents),
+          { Note: No need for this Exit(true) when UI = nil.
+            In particular if we selected TCastleTransform, we should not do Exit(true),
             to allow gizmos to start dragging. }
-          Exit(ExclusiveEvents);
+          Exit(true);
         end;
       end;
 
@@ -1190,7 +1234,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
   procedure ChangeDraggedUI(var UI: TCastleUserInterface);
   begin
     if (UiDraggingMode in [dmResize, dmTranslate]) and
-       UI.FullSize and
+       UI.EffectiveFullSize and
        (UI.Parent <> nil) then
     begin
       UI := UI.Parent;
@@ -1273,7 +1317,7 @@ begin
         ApplyDrag(UI, Move.X, Move.Y);
       end;
 
-      Exit(ExclusiveEvents);
+      Exit(true);
     end;
   end;
 
@@ -1328,6 +1372,15 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Exists := false;
   end;
 
+  function StatisticsToString: String;
+  begin
+    Result := 'FPS: ' + Container.Fps.ToString;
+    if Frame.CurrentViewport <> nil then
+      Result := Result + NL +
+        'Viewport "' + Frame.CurrentViewport.Name + '":' + NL +
+        Frame.CurrentViewport.Statistics.ToString;
+  end;
+
 var
   SelectedUI, HoverUI: TCastleUserInterface;
   SelectedUIRect, HoverUIRect: TFloatRectangle;
@@ -1350,7 +1403,7 @@ begin
 
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
-    if not UI.FullSize then
+    if not UI.EffectiveFullSize then
     begin
       // show desired Width / Height, useful e.g. for TCastleImageControl
       R.Width  := UI.Width  * UI.UIScale;
@@ -1387,6 +1440,12 @@ begin
     begin
       RectHover.Translation := RectHover.Translation - Vector2(0, RectSelected.EffectiveHeight);
     end;
+  end;
+
+  RectStatistics.Exists := Frame.OnShowStatistics();
+  if RectStatistics.Exists then
+  begin
+    LabelStatistics.Caption := StatisticsToString;
   end;
 end;
 
@@ -2415,13 +2474,57 @@ begin
 end;
 
 function TDesignFrame.SelectedViewport: TCastleViewport;
+
+  { Return viewport indicated by T, or @nil if none. }
+  function ViewportOfTransform(const T: TCastleTransform): TCastleViewport;
+  begin
+    if T.World <> nil then
+      Result := T.World.Owner as TCastleViewport
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by B, or @nil if none. }
+  function ViewportOfBehavior(const B: TCastleBehavior): TCastleViewport;
+  begin
+    if B.Parent <> nil then
+      Result := ViewportOfTransform(B.Parent)
+    else
+      Result := nil;
+  end;
+
+  { Return viewport indicated by C, or @nil if none. }
+  function ViewportOfComponent(const C: TComponent): TCastleViewport;
+  var
+    ViewportChild: TCastleUserInterface;
+  begin
+    Result := nil;
+
+    if C is TCastleViewport then
+    begin
+      Result := C as TCastleViewport;
+    end else
+    if C is TCastleUserInterface then
+    begin
+      { When hovering over TCastleNavigation, or TCastleTouchNavigation,
+        or really any UI as viewport child -> select viewport. }
+      ViewportChild := C as TCastleUserInterface;
+      if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
+      begin
+        Result := ViewportChild.Parent as TCastleViewport;
+      end;
+    end else
+    if C is TCastleTransform then
+      Result := ViewportOfTransform(C as TCastleTransform)
+    else
+    if C is TCastleBehavior then
+      Result := ViewportOfBehavior(C as TCastleBehavior);
+  end;
+
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TCastleAbstractRootTransform;
-  Sel: TComponent;
   NewResult: TCastleViewport;
-  ViewportChild: TCastleUserInterface;
 begin
   Result := nil;
 
@@ -2429,41 +2532,13 @@ begin
   try
     for I := 0 to SelectedCount - 1 do
     begin
-      Sel := Selected[I];
-      if Sel is TCastleViewport then
+      NewResult := ViewportOfComponent(Selected[I]);
+
+      if NewResult <> nil then
       begin
-        NewResult := Sel as TCastleViewport;
         if (Result <> nil) and (Result <> NewResult) then
           Exit(nil); // multiple viewports selected
         Result := NewResult;
-      end else
-      if Sel is TCastleUserInterface then
-      begin
-        { When hovering over TCastleNavigation, or TCastleTouchNavigation,
-          or really any UI over viewport -> select viewport. }
-        ViewportChild := Sel as TCastleUserInterface;
-        if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
-        begin
-          NewResult := ViewportChild.Parent as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      if Sel is TCastleTransform then
-      begin
-        World := (Sel as TCastleTransform).World;
-        if World <> nil then
-        begin
-          NewResult := World.Owner as TCastleViewport;
-          if (Result <> nil) and (Result <> NewResult) then
-            Exit(nil); // multiple viewports selected
-          Result := NewResult;
-        end;
-      end else
-      begin
-        // UI that is not viewport selected
-        Exit(nil);
       end;
     end;
   finally FreeAndNil(Selected) end;
@@ -2577,7 +2652,7 @@ begin
   if NewCurrentViewport = nil then
   begin
     { try HoverUserInterface as TCastleViewport }
-    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
+    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition, true);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
       NewCurrentViewport := TCastleViewport(HoverUi)
     else
@@ -5327,8 +5402,34 @@ begin
 end;
 
 procedure TDesignFrame.FrameResize(Sender: TObject);
+
+  { Buttons on top panel are resized by LCL to have height equal panel height,
+    but this makes them non-square. Fix them to be square.
+    Fixes problem observed on Windows. }
+  procedure FixButtonSquare(const B: TSpeedButton);
+  begin
+    if B.Width < B.Height then
+      B.Constraints.MinWidth := B.Height;
+  end;
+
 begin
   UpdateEditorDataForPropertyEditors;
+  
+  FixButtonSquare(ButtonInteractMode);
+  FixButtonSquare(ButtonSelectMode);
+  FixButtonSquare(ButtonTranslateMode);
+  FixButtonSquare(ButtonRotateMode);
+  FixButtonSquare(ButtonScaleMode);
+  FixButtonSquare(ButtonPlayStop);
+  FixButtonSquare(ButtonSimulationPlayStop);
+  FixButtonSquare(ButtonSimulationPause);
+
+  { Make ButtonApiReferenceForCurrent square, with size following
+    LabelControlSelected.Height.
+    Fixes the button being larger than LabelControlSelected,
+    which looks bad. }
+  ButtonApiReferenceForCurrent.Width := LabelControlSelected.Height;
+  ButtonApiReferenceForCurrent.Height := LabelControlSelected.Height;
 end;
 
 procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);

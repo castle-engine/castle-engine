@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += opengl widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += opengl widgets openglwidgets
 
 TARGET = qt_library_tester
 TEMPLATE = app
@@ -28,7 +28,7 @@ FORMS    += mainwindow.ui
 
 
 mac {
-  APP_DYLIB_FILES.files = ../libcastleengine.dylib
+  APP_DYLIB_FILES.files = ../../../src/deprecated_library/libcastleengine.dylib
   APP_DYLIB_FILES.path = Contents/MacOS
   QMAKE_BUNDLE_DATA += APP_DYLIB_FILES
 }

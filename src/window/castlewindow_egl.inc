@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -96,7 +96,7 @@ var
   Config: EGLConfig;
   ShareContext: EGLContext;
   NumConfig: EGLint;
-  Attribs: TLongIntList;
+  Attribs: TInt32List;
 const
   ContextAttribsv2: array [0..2] of EGLint =
   ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
@@ -111,7 +111,7 @@ begin
   if eglInitialize(Display, nil, nil) = EGL_FALSE then
     raise EGLContextNotPossible.Create('EGL: Cannot initialize: ' + EGLError);
 
-  Attribs := TLongIntList.Create;
+  Attribs := TInt32List.Create;
   try
     if StencilBits > 0 then
       Attribs.AddRange([EGL_STENCIL_SIZE, StencilBits]);

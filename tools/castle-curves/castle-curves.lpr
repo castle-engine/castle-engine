@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -744,10 +744,10 @@ begin
           'castle-curves: create and edit curves for Castle Game Engine.' + NL +
           NL+
           'Available options are:' + NL +
-          HelpOptionHelp + NL +
-          VersionOptionHelp + NL +
+          OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+          OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
           NL +
-          TCastleWindow.ParseParametersHelp(StandardParseOptions, true) + NL +
+          TCastleWindow.ParseParametersHelp + NL +
           NL +
           'Full documentation on' + NL +
           'https://castle-engine.io/curves_tool' + NL +
@@ -813,7 +813,7 @@ begin
 
   Window := TCastleWindow.Create(Application);
 
-  Window.ParseParameters(StandardParseOptions);
+  Window.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
 

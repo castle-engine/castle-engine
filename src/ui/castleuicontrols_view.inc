@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -165,7 +165,22 @@
     function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,
-      to make them freed during nearest @link(Stop). }
+      to make them freed right after nearest @link(Stop).
+
+      This component is created on-demand (whenever you access it)
+      and always destroyed right after running view @link(Stop) method.
+
+      The idea is that you can assign it as @italic(owner) (1st parameter to the constructor
+      of @code(TComponent) class or any classes descending from @code(TComponent),
+      this includes all CGE components) of something, like this:
+
+      @longCode(#
+        MyInstance := TSomeComponent.Create(FreeAtStop);
+      #)
+
+      And in effect, you know that @code(MyInstance) will be freed after the view stops.
+      So you don't need to worry about it anymore, in particular you don't need to do
+      @code(FreeAndNil(MyInstance)) in the state @link(Stop). }
     function FreeAtStop: TComponent;
   public
     { When @true, view operations will send a log to CastleLog. }

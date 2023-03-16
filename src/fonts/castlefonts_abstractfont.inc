@@ -30,7 +30,8 @@ type
     end;
     TSavedPropertiesList = {$ifdef FPC}specialize{$endif} TObjectList<TSavedProperties>;
   var
-    FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
+    FMeasuredSize, FMeasuredHeight, FMeasuredCapHeight, FMeasuredDescenderHeight: Single;
+    FMeasureHeight, FMeasureCapHeight, FMeasureDescenderHeight: String;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
@@ -45,14 +46,25 @@ type
       (with current @link(Size)).
       The default implementation in TCastleAbstractFont looks at TextHeight of sample texts
       to determine the parameter values. }
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
+    procedure Measure(out AHeight, ACapHeight, ADescenderHeight: Single); virtual;
     procedure GLContextClose; virtual;
     procedure SetSize(const Value: Single); virtual;
     { Call this when the measurement of font possibly changed, and anything cached
       should be recalculated by calling TextWidth, TextHeight etc. again. }
     procedure FontSizesChanged;
     procedure SetOutline(const Value: Cardinal);
+    procedure SetMeasureHeight(const Value: String);
+    procedure SetMeasureCapHeight(const Value: String);
+    procedure SetMeasureDescenderHeight(const Value: String);
+    function StoreMeasureHeight: Boolean;
+    function StoreMeasureCapHeight: Boolean;
+    function StoreMeasureDescenderHeight: Boolean;
   public
+    const
+      DefaultMeasureHeight = 'AOHIypq';
+      DefaultMeasureCapHeight = 'HI';
+      DefaultMeasureDescenderHeight = 'ya';
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -63,11 +75,11 @@ type
       (@link(TextWidth), @link(TextHeight) and related).
       Should be always > 0.
 
-      The font size should correspond to the font height, which you can query using @link(RowHeight).
-      So in general @link(Size) and @link(RowHeight) should be equal.
+      The font size should correspond to the font height, which you can query using @link(Height).
+      So in general @link(Size) and @link(Height) should be equal.
       That said, it is up to each specific font file to have correct size that satisfies above.
       This property, @name, gets and sets the size, as understood by FreeType font size.
-      On the other hand, the @link(RowHeightBase) and @link(RowHeight) properties
+      On the other hand, the @link(CapHeight) and @link(Height) properties
       actually query the letters height. }
     property Size: Single read FSize write SetSize;
 
@@ -161,20 +173,47 @@ type
     function TextMove(const S: string): TVector2; virtual; abstract;
     function TextSize(const S: string): TVector2;
 
-    { Height of a row of text in this font.
-      This may be calculated as simply @code(TextHeight('Wy')) for most
-      normal fonts. }
-    function RowHeight: Single;
+    function RowHeight: Single; deprecated 'use Height';
+    function RowHeightBase: Single; deprecated 'use CapHeight';
+    function Descend: Single; deprecated 'use DescenderHeight';
 
-    { Height (above the baseline) of a row of text in this font.
-      Similar to TextHeightBase and TextHeight,
-      note that RowHeightBase is generally smaller than RowHeight,
-      because RowHeightBase doesn't care how low the letter may go below
-      the baseline. }
-    function RowHeightBase: Single;
+    { Maximum height of font characters, taking into account whole descent and ascent.
 
-    { How low the text may go below the baseline. }
-    function Descend: Single;
+      By default calculated as height of "AOHIypq", see the @link(MeasureHeight).
+
+      See about standard font measurements:
+      https://en.wikipedia.org/wiki/Typeface#Font_metrics ,
+      https://en.wikipedia.org/wiki/Metric_typographic_units . }
+    function Height: Single;
+
+    { Height above the baseline of font characters.
+
+      Compared to @link(Height), this does not take into account the characters
+      size below the baseline, and it doesn't take into account some possible "overflow"
+      on the top of some characters.
+
+      By default calculated as height of "HI", see the MeasureCapHeight.
+
+      The intention is that, while this doesn't represent the whole possible font height,
+      but it often represents the perceived by user height of the block of text,
+      as fonts are designed to make descents / overflows not stand out.
+
+      See about standard font measurements:
+      https://en.wikipedia.org/wiki/Typeface#Font_metrics ,
+      https://en.wikipedia.org/wiki/Metric_typographic_units .
+      About "cap height" in particular:
+      https://en.wikipedia.org/wiki/Cap_height
+      https://fonts.google.com/knowledge/glossary/cap_height }
+    function CapHeight: Single;
+
+    { How low the font characters may go below the baseline.
+      By default calculated as a difference between "y" and "a" characters height,
+      see the MeasureDescenderHeight.
+
+      See about standard font measurements:
+      https://en.wikipedia.org/wiki/Typeface#Font_metrics ,
+      https://en.wikipedia.org/wiki/Metric_typographic_units . }
+    function DescenderHeight: Single;
 
     { Break lines (possibly break one long string into more strings)
       to fit the text with given MaxLineWidth.
@@ -254,13 +293,13 @@ type
       )
 
       @param(LineSpacing Extra space between lines.
-        Distance between each line is determined by RowHeight + LineSpacing
+        Distance between each line is determined by Height + LineSpacing
         pixels.
 
         Note that LineSpacing can be < 0 (as well as > 0),
         this may be sometimes useful if you really want to squeeze
         more text into the available space. Still, make sure that
-        (RowHeight + LineSpacing) is > 0.)
+        (Height + LineSpacing) is > 0.)
 
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
@@ -292,7 +331,7 @@ type
       LineSpacing has the same meaning as for PrintStrings:
       it adds an additional space between lines (if positive) or forces
       the lines to be more tightly squeezed (if negative). Always make
-      sure that (RowHeight + LineSpacing) > 0.
+      sure that (Height + LineSpacing) > 0.
 
       Returns the number of lines printed, that is the number of lines
       after breaking the text into lines. This may be useful e.g. to calculate
@@ -394,6 +433,27 @@ type
     procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);
     { Remove notification when FontSizesChanged occurs. }
     procedure RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
+  published
+    { Use these characters to measure font @link(Height). }
+    property MeasureHeight: String read FMeasureHeight write SetMeasureHeight
+      stored StoreMeasureHeight;
+
+    { Use these characters to measure font @link(CapHeight).
+      Note that we only measure the height above baseline (Y = 0),
+      so even when MeasureHeight and MeasureCapHeight are equal,
+      the resulting @link(Height) and @link(CapHeight) may differ. }
+    property MeasureCapHeight: String read FMeasureCapHeight write SetMeasureCapHeight
+      stored StoreMeasureCapHeight;
+
+    { Use these characters to measure font @link(DescenderHeight).
+
+      This string must be empty (meaning that descend is zero)
+      or has exactly 2 characters.
+      The descender height is measured as height of 1st char - height of 2nd char.
+
+      See DefaultMeasureDescenderHeight . }
+    property MeasureDescenderHeight: String read FMeasureDescenderHeight write SetMeasureDescenderHeight
+      stored StoreMeasureDescenderHeight;
   end;
 
   TGLBitmapFontAbstract = TCastleAbstractFont deprecated 'use TCastleAbstractFont';
@@ -409,6 +469,9 @@ begin
   inherited;
   FMeasuredSize := -1; // not measured at all
   FOutlineColor := Black;
+  FMeasureHeight := DefaultMeasureHeight;
+  FMeasureCapHeight := DefaultMeasureCapHeight;
+  FMeasureDescenderHeight := DefaultMeasureDescenderHeight;
   ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
 end;
 
@@ -507,7 +570,7 @@ begin
     if Strings.Count <> 0 then
     begin
       ThisRect := FloatRectangle(0, 0, MaxTextWidth(Strings, Html),
-        Strings.Count * (LineSpacing + RowHeight) - LineSpacing);
+        Strings.Count * (LineSpacing + Height) - LineSpacing);
       ThisRect := ThisRect.
         Align(HorizontalAlignment, Rect, HorizontalAlignment).
         Align(VerticalAlignment, Rect, VerticalAlignment);
@@ -631,7 +694,7 @@ begin
       Inc(BreakInputPtr, CharLen);
       LineWidthBytes := CharLen;
       {$else}
-      C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
       {$endif}
@@ -650,7 +713,7 @@ begin
         Inc(BreakInputPtr, CharLen);
         LineWidthBytes += CharLen;
         {$else}
-        C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+        C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
         Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
         TextIndex := NextTextIndex;
         {$endif}
@@ -729,7 +792,7 @@ procedure TCastleAbstractFont.PrintStrings(const X0, Y0: Single;
 
   function YPos(const Line: Integer): Single;
   begin
-    Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
+    Result := (Strs.Count - 1 - Line) * (Height + LineSpacing) + Y0;
   end;
 
 var
@@ -759,7 +822,7 @@ begin
       { Reject entire line, if it would be clipped anyway. }
       if HasScissorRect and
          ( (Y > ScissorRect.Top) or
-           (Y + RowHeight < ScissorRect.Bottom)
+           (Y + Height < ScissorRect.Bottom)
          ) then
         Continue;
       S := Strs[Line];
@@ -825,7 +888,7 @@ begin
   try
     Text.Wrap(MaxLineWidth);
     if PositionsFirst then
-      Y0 := Y0 - (Text.Count-1) * (RowHeight + LineSpacing);
+      Y0 := Y0 - (Text.Count-1) * (Height + LineSpacing);
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;
   finally FreeAndNil(Text) end;
@@ -854,7 +917,7 @@ begin
       {$endif}
     end;
     { calculate Y0 based on Rect and BrokenHeight }
-    BrokenHeight := Text.Count * (LineSpacing + RowHeight);
+    BrokenHeight := Text.Count * (LineSpacing + Height);
     case AlignVertical of
       vpBottom: Y0 := Rect.Bottom;
       vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
@@ -891,38 +954,71 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleAbstractFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+procedure TCastleAbstractFont.Measure(out AHeight, ACapHeight, ADescenderHeight: Single);
+var
+  MeasureDescenderHeightLen: Integer;
 begin
-  ARowHeight := TextHeight('Wy');
-  ARowHeightBase := TextHeightBase('W');
-  ADescend := Max(0, TextHeight('y') - TextHeight('a'));
+  AHeight := TextHeight(MeasureHeight);
+  ACapHeight := TextHeightBase(MeasureCapHeight);
+
+  MeasureDescenderHeightLen := StringLength(MeasureDescenderHeight);
+  if MeasureDescenderHeightLen = 2 then
+  begin
+    ADescenderHeight := Max(0,
+      TextHeight(StringCopy(MeasureDescenderHeight, 1, 1)) -
+      TextHeight(StringCopy(MeasureDescenderHeight, 2, 1))
+    );
+  end else
+  begin
+    ADescenderHeight := 0;
+    if MeasureDescenderHeightLen <> 0 then
+      WritelnWarning('MeasureDescenderHeight must have 0 or 2 Unicode characters, but has %d: "%s"', [
+        MeasureDescenderHeightLen,
+        MeasureDescenderHeight
+      ]);
+  end;
 end;
 
 procedure TCastleAbstractFont.MakeMeasure;
 begin
   if FMeasuredSize <> Size then
   begin
-    Measure(FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend);
+    Measure(FMeasuredHeight, FMeasuredCapHeight, FMeasuredDescenderHeight);
     FMeasuredSize := Size;
   end;
 end;
 
 function TCastleAbstractFont.RowHeight: Single;
 begin
-  MakeMeasure;
-  Result := FMeasuredRowHeight;
+  Result := Height;
 end;
 
 function TCastleAbstractFont.RowHeightBase: Single;
 begin
-  MakeMeasure;
-  Result := FMeasuredRowHeightBase;
+  Result := CapHeight;
 end;
 
 function TCastleAbstractFont.Descend: Single;
 begin
+  Result := DescenderHeight;
+end;
+
+function TCastleAbstractFont.Height: Single;
+begin
   MakeMeasure;
-  Result := FMeasuredDescend;
+  Result := FMeasuredHeight;
+end;
+
+function TCastleAbstractFont.CapHeight: Single;
+begin
+  MakeMeasure;
+  Result := FMeasuredCapHeight;
+end;
+
+function TCastleAbstractFont.DescenderHeight: Single;
+begin
+  MakeMeasure;
+  Result := FMeasuredDescenderHeight;
 end;
 
 procedure TCastleAbstractFont.PushProperties;
@@ -972,7 +1068,7 @@ begin
   if FOutline <> Value then
   begin
     FOutline := Value;
-    // invalidate measurements, like RowHeight, as they depend on Outline
+    // invalidate measurements, like Height, as they depend on Outline
     FMeasuredSize := -1;
   end;
 end;
@@ -995,6 +1091,48 @@ procedure TCastleAbstractFont.RemoveFontSizeChangeNotification(const Notify: TNo
 begin
   if FFontSizeNotifications <> nil then // may be nil when destroying, and we make notification
     FFontSizeNotifications.Remove(Notify);
+end;
+
+procedure TCastleAbstractFont.SetMeasureHeight(const Value: String);
+begin
+  if FMeasureHeight <> Value then
+  begin
+    FMeasureHeight := Value;
+    FMeasuredSize := -1; // invalidate measurements
+  end;
+end;
+
+procedure TCastleAbstractFont.SetMeasureCapHeight(const Value: String);
+begin
+  if FMeasureCapHeight <> Value then
+  begin
+    FMeasureCapHeight := Value;
+    FMeasuredSize := -1; // invalidate measurements
+  end;
+end;
+
+procedure TCastleAbstractFont.SetMeasureDescenderHeight(const Value: String);
+begin
+  if FMeasureDescenderHeight <> Value then
+  begin
+    FMeasureDescenderHeight := Value;
+    FMeasuredSize := -1; // invalidate measurements
+  end;
+end;
+
+function TCastleAbstractFont.StoreMeasureHeight: Boolean;
+begin
+  Result := FMeasureHeight <> DefaultMeasureHeight;
+end;
+
+function TCastleAbstractFont.StoreMeasureCapHeight: Boolean;
+begin
+  Result := FMeasureCapHeight <> DefaultMeasureCapHeight;
+end;
+
+function TCastleAbstractFont.StoreMeasureDescenderHeight: Boolean;
+begin
+  Result := FMeasureDescenderHeight <> DefaultMeasureDescenderHeight;
 end;
 
 {$endif read_implementation}

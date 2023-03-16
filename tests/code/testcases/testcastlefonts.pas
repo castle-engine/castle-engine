@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFonts" -*-
 {
-  Copyright 2011-2022 Michalis Kamburelis.
+  Copyright 2011-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -100,7 +100,7 @@ begin
 
     AssertEquals(15, Font.Size);
     AssertEquals(15, Font.EffectiveSize);
-    AssertEquals(14, Font.RowHeight);
+    AssertEquals(14, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
@@ -108,12 +108,12 @@ begin
 
       AssertEquals(0, Family.Size);
       AssertEquals(15, Family.EffectiveSize);
-      AssertEquals(14, Family.RowHeight);
+      AssertEquals(14, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.RowHeight);
+      AssertEquals(28, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -122,18 +122,18 @@ begin
 
       AssertEquals(0, Customized.Size);
       AssertEquals(15, Customized.EffectiveSize);
-      AssertEquals(14, Customized.RowHeight);
+      AssertEquals(14, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.RowHeight);
+      AssertEquals(28, Customized.Height);
     finally FreeAndNil(Customized) end;
 
     Font.Size := 60;
     AssertEquals(60, Font.Size);
     AssertEquals(60, Font.EffectiveSize);
-    AssertEquals(56, Font.RowHeight);
+    AssertEquals(56, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
@@ -141,12 +141,12 @@ begin
 
       AssertEquals(0, Family.Size);
       AssertEquals(60, Family.EffectiveSize);
-      AssertEquals(56, Family.RowHeight);
+      AssertEquals(56, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.RowHeight);
+      AssertEquals(28, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -155,47 +155,28 @@ begin
 
       AssertEquals(0, Customized.Size);
       AssertEquals(60, Customized.EffectiveSize);
-      AssertEquals(56, Customized.RowHeight);
+      AssertEquals(56, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.RowHeight);
+      AssertEquals(28, Customized.Height);
     finally FreeAndNil(Customized) end;
   finally FreeAndNil(Font) end;
 end;
 
-type
-  TLargeDigitsFont = class(TCastleFont)
-    { The "Font_LatoRegular_300" font has only digits, misses other chars.
-      So default calculation of RowHeight and friends doesn't work. }
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
-  end;
-
-procedure TLargeDigitsFont.Measure(
-  out ARowHeight, ARowHeightBase, ADescend: Single);
-const
-  ForSize = 300;
-begin
-  ARowHeight := 220; // this is font digit height, assuming font Size = 300
-  ARowHeightBase := ARowHeight;
-  ADescend := 0;
-
-  // make the values valid for current size
-  ARowHeight := ARowHeight * (Size / ForSize);
-  ARowHeightBase := ARowHeightBase * (Size / ForSize);
-  ADescend := ADescend * (Size / ForSize);
-end;
-
 procedure TTestCastleFonts.TestOverrideFont;
 var
-  LargeDigitsFont: TLargeDigitsFont;
+  LargeDigitsFont: TCastleFont;
   CustomizedFont: TCustomizedFont;
   FontFamily: TCastleFontFamily;
 begin
-  LargeDigitsFont := TLargeDigitsFont.Create(nil);
+  LargeDigitsFont := TCastleFont.Create(nil);
   try
     LargeDigitsFont.Load(TextureFont_LatoRegular_300);
+    LargeDigitsFont.MeasureHeight := '123';
+    LargeDigitsFont.MeasureCapHeight := '123';
+    LargeDigitsFont.MeasureDescenderHeight := '';
     LargeDigitsFont.FontData.UseFallbackGlyph := false;
     AssertEquals(300, TextureFont_LatoRegular_300.Size);
 
@@ -204,9 +185,9 @@ begin
     AssertSameValue(221, LargeDigitsFont.TextHeight('123'), 1);
     AssertSameValue(0, LargeDigitsFont.TextWidth('abc'));
     AssertSameValue(0, LargeDigitsFont.TextHeight('abc'));
-    AssertSameValue(220, LargeDigitsFont.RowHeight);
-    AssertSameValue(220, LargeDigitsFont.RowHeightBase);
-    AssertSameValue(0, LargeDigitsFont.Descend);
+    AssertSameValue(221, LargeDigitsFont.Height);
+    AssertSameValue(219, LargeDigitsFont.CapHeight);
+    AssertSameValue(0, LargeDigitsFont.DescenderHeight);
 
     CustomizedFont := TCustomizedFont.Create(nil);
     try
@@ -216,9 +197,9 @@ begin
       AssertSameValue(221, CustomizedFont.TextHeight('123'), 1);
       AssertSameValue(0, CustomizedFont.TextWidth('abc'));
       AssertSameValue(0, CustomizedFont.TextHeight('abc'));
-      AssertSameValue(220, CustomizedFont.RowHeight);
-      AssertSameValue(220, CustomizedFont.RowHeightBase);
-      AssertSameValue(0, CustomizedFont.Descend);
+      AssertSameValue(221, CustomizedFont.Height);
+      AssertSameValue(219, CustomizedFont.CapHeight);
+      AssertSameValue(0, CustomizedFont.DescenderHeight);
     finally FreeAndNil(CustomizedFont) end;
 
     FontFamily := TCastleFontFamily.Create(nil);
@@ -229,9 +210,9 @@ begin
       AssertSameValue(221, FontFamily.TextHeight('123'), 1);
       AssertSameValue(0, FontFamily.TextWidth('abc'));
       AssertSameValue(0, FontFamily.TextHeight('abc'));
-      AssertSameValue(220, FontFamily.RowHeight);
-      AssertSameValue(220, FontFamily.RowHeightBase);
-      AssertSameValue(0, FontFamily.Descend);
+      AssertSameValue(221, FontFamily.Height);
+      AssertSameValue(219, FontFamily.CapHeight);
+      AssertSameValue(0, FontFamily.DescenderHeight);
     finally FreeAndNil(FontFamily) end;
 
     LargeDigitsFont.Size := 1000;
@@ -240,9 +221,9 @@ begin
     AssertSameValue(221 * 10/3, LargeDigitsFont.TextHeight('123'), 10/3);
     AssertSameValue(0, LargeDigitsFont.TextWidth('abc'));
     AssertSameValue(0, LargeDigitsFont.TextHeight('abc'));
-    AssertSameValue(220 * 10/3, LargeDigitsFont.RowHeight, 10/3);
-    AssertSameValue(220 * 10/3, LargeDigitsFont.RowHeightBase, 10/3);
-    AssertSameValue(0, LargeDigitsFont.Descend);
+    AssertSameValue(221 * 10/3, LargeDigitsFont.Height, 10/3);
+    AssertSameValue(219 * 10/3, LargeDigitsFont.CapHeight, 10/3);
+    AssertSameValue(0, LargeDigitsFont.DescenderHeight);
 
     CustomizedFont := TCustomizedFont.Create(nil);
     try
@@ -253,9 +234,9 @@ begin
       AssertSameValue(221 * 20/3, CustomizedFont.TextHeight('123'), 20/3);
       AssertSameValue(0, CustomizedFont.TextWidth('abc'));
       AssertSameValue(0, CustomizedFont.TextHeight('abc'));
-      AssertSameValue(220 * 20/3, CustomizedFont.RowHeight, 20/3);
-      AssertSameValue(220 * 20/3, CustomizedFont.RowHeightBase, 20/3);
-      AssertSameValue(0, CustomizedFont.Descend);
+      AssertSameValue(221 * 20/3, CustomizedFont.Height, 20/3);
+      AssertSameValue(219 * 20/3, CustomizedFont.CapHeight, 20/3);
+      AssertSameValue(0, CustomizedFont.DescenderHeight);
     finally FreeAndNil(CustomizedFont) end;
 
     FontFamily := TCastleFontFamily.Create(nil);
@@ -267,9 +248,9 @@ begin
       AssertSameValue(221 * 20/3, FontFamily.TextHeight('123'), 20/3);
       AssertSameValue(0, FontFamily.TextWidth('abc'));
       AssertSameValue(0, FontFamily.TextHeight('abc'));
-      AssertSameValue(220 * 20/3, FontFamily.RowHeight, 20/3);
-      AssertSameValue(220 * 20/3, FontFamily.RowHeightBase, 20/3);
-      AssertSameValue(0, FontFamily.Descend);
+      AssertSameValue(221 * 20/3, FontFamily.Height, 20/3);
+      AssertSameValue(219 * 20/3, FontFamily.CapHeight, 20/3);
+      AssertSameValue(0, FontFamily.DescenderHeight);
     finally FreeAndNil(FontFamily) end;
   finally FreeAndNil(LargeDigitsFont) end;
 end;
@@ -286,18 +267,18 @@ begin
   // end;
 
   F := TCastleFont.Create(nil);
-  AssertEquals(0, F.RowHeight);
+  AssertEquals(0, F.Height);
 
   FF := TCastleFontFamily.Create(nil);
-  AssertEquals(0, FF.RowHeight);
+  AssertEquals(0, FF.Height);
   FF.Regular := F;
-  AssertEquals(0, FF.RowHeight);
+  AssertEquals(0, FF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(21, F.RowHeight);
-  AssertSameValue(21, FF.RowHeight);
-  // writeln(F.RowHeight:1:2);
-  // writeln(FF.RowHeight:1:2);
+  AssertSameValue(22, F.Height);
+  AssertSameValue(22, FF.Height);
+  // writeln(F.Height:1:2);
+  // writeln(FF.Height:1:2);
 
   FreeAndNil(F);
   FreeAndNil(FF);
@@ -315,18 +296,18 @@ begin
   // end;
 
   F := TCastleFont.Create(nil);
-  AssertEquals(0, F.RowHeight);
+  AssertEquals(0, F.Height);
 
   CF := TCastleFontFamily.Create(nil);
-  AssertEquals(0, CF.RowHeight);
+  AssertEquals(0, CF.Height);
   CF.Regular := F;
-  AssertEquals(0, CF.RowHeight);
+  AssertEquals(0, CF.Height);
 
   F.Url := 'castle-data:/fonts/PARPG.ttf';
-  AssertSameValue(21, F.RowHeight);
-  AssertSameValue(21, CF.RowHeight);
-  // writeln(F.RowHeight:1:2);
-  // writeln(CF.RowHeight:1:2);
+  AssertSameValue(22, F.Height);
+  AssertSameValue(22, CF.Height);
+  // writeln(F.Height:1:2);
+  // writeln(CF.Height:1:2);
 
   FreeAndNil(F);
   FreeAndNil(CF);

@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,9 +62,9 @@
   public
     Coord: TCoordinateNode;
     UVs: TVector2List;
-    Triangles: TLongIntList;
+    Triangles: TInt32List;
     Vertices: TVector2List;
-    Edges: TLongIntList; //< unused for now
+    Edges: TInt32List; //< unused for now
     { Unused for now.
       Looking as official Spine runtime in spine-csharp and spine-unity,
       it is also unused there. }
@@ -327,9 +328,9 @@ constructor TAbstractMeshAttachment.Create;
 begin
   inherited;
   UVs := TVector2List.Create;
-  Triangles := TLongIntList.Create;
+  Triangles := TInt32List.Create;
   Vertices := TVector2List.Create;
-  Edges := TLongIntList.Create;
+  Edges := TInt32List.Create;
 end;
 
 destructor TAbstractMeshAttachment.Destroy;
@@ -346,13 +347,13 @@ begin
   inherited;
   ReadVector2List(Json, 'uvs', UVs);
 
-  ReadLongIntList(Json, 'triangles', Triangles);
+  ReadInt32List(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
     WritelnWarning('Spine', 'Triangles list ends in the middle of the triangle');
   if Triangles.Count = 0 then
     WritelnWarning('Spine', 'Triangles empty, mesh is empty');
 
-  ReadLongIntList(Json, 'edges', Edges);
+  ReadInt32List(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
 end;
 
@@ -401,11 +402,11 @@ begin
       (TexRect[0].Y <> 1) or
       (TexRect[1].Y <> 1)) and
      SpineVerboseWarnings then
-    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. '+'Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
+    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "Strip whitespace X" or "Strip whitespace Y" options selected. '+'Rendering artifacts may occur if mesh faces use the texture in the "whitespace" region. To be safe, export with "Strip whitespace X = Off" and "Strip whitespace Y = Off" in "Texture Packer Settings".',
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);

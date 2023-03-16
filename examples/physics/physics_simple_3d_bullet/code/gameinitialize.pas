@@ -39,7 +39,7 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game views and set initial view }
+  { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewPlay := TViewPlay.Create(Application);
@@ -47,9 +47,6 @@ begin
   {$endregion 'Castle View Creation'}
 
   Window.Container.View := ViewMenu;
-
-  //SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  //SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');
 end;
 
 initialization

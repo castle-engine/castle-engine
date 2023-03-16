@@ -1,5 +1,6 @@
+{%MainUnit castleinternalarraysgenerator.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,7 +33,7 @@ type
 
     { Add triangle indexes to IndexesFromCoordIndex, TrivialIndexesFromCoordIndex,
       increase IFSNextIndex by 3. }
-    procedure AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
+    procedure AddTriangleIndexes(const T0, T1, T2: UInt32);
 
     procedure PrepareIndexesCoordsRange1(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
@@ -221,13 +222,11 @@ begin
   end;
 end;
 
-procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
+procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: UInt32);
 begin
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
-  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
-  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
-  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T2; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T2]; Inc(IFSNextIndex);
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T0; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T0]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T1; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T1]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T2; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T2]; Inc(IFSNextIndex);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
@@ -264,14 +263,12 @@ begin
     end;
   end;
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if FacesNeeded then
     for I := IFSNextIndexBegin to IFSNextIndex - 1 do
     begin
-      Arrays.Faces.L[I].IndexBegin := BeginIndex;
-      Arrays.Faces.L[I].IndexEnd := EndIndex;
+      Arrays.Faces.List^[I].IndexBegin := BeginIndex;
+      Arrays.Faces.List^[I].IndexEnd := EndIndex;
     end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesPrimitives;
@@ -288,9 +285,9 @@ begin
   end;
 
   { calculate TrivialIndexesFromCoordIndex, IndexesFromCoordIndex contents: triangulate }
-  IndexesFromCoordIndex := TGeometryIndexList.Create;
+  IndexesFromCoordIndex := TUInt32List.Create;
   IndexesFromCoordIndex.Count := IFSIndexesCount;
-  TrivialIndexesFromCoordIndex := TGeometryIndexList.Create;
+  TrivialIndexesFromCoordIndex := TUInt32List.Create;
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State,
@@ -317,9 +314,11 @@ begin
 
   SH := State.VRML1State.ShapeHints;
 
-  { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
-    (a autorzy VRMLi w ogole nie powinni podawac normali jesli
-    nie podadza vertexOrdering innego niz UNKNOWN) }
+  {$warnings off} // using deprecated to keep supporting VRML 1
+  { At this place, we assume that VERTORDER_UNKNOWN_ORDERING is actually
+    VERTORDER_COUNTERCLOCKWISE.
+    (VRML 1 authors should not provide explicit normals at all if ordering
+    is unknown.) }
   VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
   VRML1CullFace :=
@@ -327,6 +326,7 @@ begin
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 
   FaceConvex := SH.FdFaceType.Value = FACETYPE_CONVEX;
+  {$warnings on}
 
   NormalIndex := ANode.FdNormalIndex;
   Normals := State.VRML1State.Normal.FdVector.Items;

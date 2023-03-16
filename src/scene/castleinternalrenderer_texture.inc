@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -282,7 +282,6 @@
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
     NeedsMipmaps: boolean;
-    DepthMap: boolean;
 
     function TextureNode: TRenderedTextureNode;
 
@@ -388,10 +387,6 @@
     { The right size of the texture,
       that satisfies all OpenGL sizes requirements. }
     Size: Cardinal;
-
-    { Do we visualize depth map, because of RenderOptions.VisualizeDepthMap
-      or compareMode = NONE. }
-    VisualizeDepthMap: boolean;
 
     function TextureNode: TGeneratedShadowMapNode;
 
@@ -854,7 +849,7 @@ begin
     This is low-priority due to low MultiTexture usage. }
   Shader.MultiTextureColor := Vector4(TextureNode.Color, TextureNode.Alpha);
 
-  for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
+  for I := 0 to Integer(TextureSlotsUsed) - Integer(InitialTextureSlotsUsed) - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
     Success := false;
@@ -1181,7 +1176,7 @@ begin
     WritelnWarning('VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
-      'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for RenderedTexture');
+      'OpenGL(ES) doesn''t have glGenerateMipmap, so you cannot use mipmaps for RenderedTexture');
     Filter.Minification := minLinear;
     NeedsMipmaps := false;
   end;
@@ -1214,67 +1209,45 @@ begin
           Width, Height]));
   end;
 
-  { calculate DepthMap }
-  if TextureNode.FdDepthMap.Count > 0 then
-    DepthMap := TextureNode.FdDepthMap.Items[0] else
-    DepthMap := false;
-
-  if DepthMap then
+  if (TextureNode.FdDepthMap.Count > 0) and
+     TextureNode.FdDepthMap.Items[0] then
   begin
-    if not GLFeatures.TextureDepth then
-    begin
-      WritelnWarning('VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use RenderedTexture with depthMap = TRUE');
-      Exit;
-    end;
-
-    FGLName := Renderer.Cache.TextureDepth_IncReference(
-      '' { generated texture contents means empty URL },
-      TextureWrap, smNone, Width, Height, false);
-  end else
-  begin
-    InitialImage := TRGBImage.Create(Width, Height);
-    try
-      InitialImage.URL := 'generated:/' + TextureNode.NiceName;
-      SetTextureRGBFromImage(InitialImage);
-
-      { Fill with deliberately stupid (but constant) color,
-        to recognize easily RenderedTexture which don't have textures
-        updated. }
-      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
-
-      FGLName := Renderer.Cache.TextureImage_IncReference(
-        InitialImage,
-        '' { generated texture contents means empty URL },
-        Filter,
-        Anisotropy,
-        TextureWrap,
-        nil,
-        GUITexture,
-        false);
-
-      { RenderedTexture never has any normal / height map
-        (Hm, although it would be possible to generate some in theory
-        --- after all, we generate it from 3D data. Idea for the future.)
-      NormalMap := 0;
-      HeightMap := 0;
-      }
-    finally FreeAndNil(InitialImage) end;
+    WritelnWarning('VRML/X3D', 'RenderedTexture with depthMap = TRUE is no longer supported. For shadow maps, use dedicated CGE nodes.');
+    Exit;
   end;
+
+  InitialImage := TRGBImage.Create(Width, Height);
+  try
+    InitialImage.URL := 'generated:/' + TextureNode.NiceName;
+    SetTextureRGBFromImage(InitialImage);
+
+    { Fill with deliberately stupid (but constant) color,
+      to recognize easily RenderedTexture which don't have textures
+      updated. }
+    InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+    FGLName := Renderer.Cache.TextureImage_IncReference(
+      InitialImage,
+      '' { generated texture contents means empty URL },
+      Filter,
+      Anisotropy,
+      TextureWrap,
+      nil,
+      GUITexture,
+      false);
+
+    { RenderedTexture never has any normal / height map
+      (Hm, although it would be possible to generate some in theory
+      --- after all, we generate it from 3D data. Idea for the future.)
+    NormalMap := 0;
+    HeightMap := 0;
+    }
+  finally FreeAndNil(InitialImage) end;
 
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
   RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
-  if DepthMap then
-    RenderToTexture.Buffer := tbDepth else
-    RenderToTexture.Buffer := tbColor;
-  { TODO: This doesn't handle for now situation when we want to capture depth
-    map, and we should use stencil buffer. It's not really a useful situation
-    now... But it could be implemented:
-    - Add GLFeatures.HasStencil to detect we have stencil buffer.
-    - Change TextureDepth_IncReference to create packed depth+stencil texture
-      when requested (when GLFeatures.PackedDepthStencil and we currently
-      GLFeatures.HasStencil).
-    - set below RenderToTexture.Stencil := GLFeatures.HasStencil; }
-  RenderToTexture.Stencil := not DepthMap;
+  RenderToTexture.Buffer := tbColor;
+  RenderToTexture.Stencil := true;
   RenderToTexture.GLContextOpen;
 end;
 
@@ -1284,9 +1257,7 @@ begin
 
   if FGLName <> 0 then
   begin
-    if DepthMap then
-      Renderer.Cache.TextureDepth_DecReference(FGLName) else
-      Renderer.Cache.TextureImage_DecReference(FGLName);
+    Renderer.Cache.TextureImage_DecReference(FGLName);
     FGLName := 0;
   end;
   inherited;
@@ -1669,11 +1640,7 @@ begin
     RenderToTexture.RenderEnd;
   finally FreeAndNil(Camera) end;
 
-  { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
-    cannot have mipmaps regenerated. On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
-    on "domek") glGenerateMipmapEXT even causes "invalid operation" OpenGL
-    error (test e.g. view3dscene on rendered_texture.x3dv). }
-  if NeedsMipmaps and (not DepthMap) then
+  if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
 
   TextureNode.EventRendering.Send(false);
@@ -1739,9 +1706,9 @@ var
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
   GUITexture: boolean;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ComposedCubeMapTexture');
     Exit;
   end;
 
@@ -1806,9 +1773,9 @@ var
   GUITexture: boolean;
   Composite: TCompositeImage;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use ImageCubeMapTexture');
     Exit;
   end;
 
@@ -1866,9 +1833,9 @@ var
   GUITexture: boolean;
   InitialImage: TCastleImage;
 begin
-  if GLFeatures.TextureCubeMap = gsNone then
+  if not GLFeatures.TextureCubeMap then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support cube maps, cannot use GeneratedCubeMapTexture');
     Exit;
   end;
 
@@ -1882,7 +1849,7 @@ begin
     WritelnWarning('VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
-      'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for GeneratedCubeMapTexture');
+      'OpenGL(ES) doesn''t have glGenerateMipmap, so you cannot use mipmaps for GeneratedCubeMapTexture');
     Filter.Minification := minLinear;
     NeedsMipmaps := false;
   end;
@@ -2000,9 +1967,9 @@ var
   GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
 begin
-  if GLFeatures.Texture3D = gsNone then
+  if not GLFeatures.Texture3D then
   begin
-    WritelnWarning('VRML/X3D', 'Your OpenGL doesn''t support 3D textures, cannot use Texture3D nodes');
+    WritelnWarning('VRML/X3D', 'Rendering context doesn''t support 3D textures, cannot use Texture3D nodes');
     Exit;
   end;
 
@@ -2046,9 +2013,7 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, GLName);
-  {$endif}
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
@@ -2078,7 +2043,7 @@ class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
 begin
   Result :=
     (RenderOptions.ShadowSampling = ssVarianceShadowMaps) and
-    (GLFeatures.Shaders <> gsNone) and
+    GLFeatures.Shaders and
     GLFeatures.TextureFloat;
 end;
 
@@ -2087,6 +2052,9 @@ var
   TextureWrap: TTextureWrap2D;
   Filter: TTextureFilter;
 begin
+  // in fixed-function, do not create shadow maps, do not render to shadow maps
+  if GLFeatures.EnableFixedFunction then Exit;
+
   { Float texture extensions: there is also NV_float_buffer,
     which is the only way for a float texture on old nvidia GPUs.
     But it's only for NV_texture_rectangle, without bilinear filtering
@@ -2094,17 +2062,15 @@ begin
 
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.RenderOptions);
 
-  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
-    [ BoolToStr(VarianceShadowMaps, true),
-      ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
-      GLSupportNames[GLFeatures.Shaders],
-      BoolToStr(GLFeatures.TextureFloat, true) ]));
+  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)', [
+    BoolToStr(VarianceShadowMaps, true),
+    ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
+    BoolToStr(GLFeatures.Shaders, true),
+    BoolToStr(GLFeatures.TextureFloat, true)
+  ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
-
-  VisualizeDepthMap := (TextureNode.FdCompareMode.Value = 'NONE') or
-    Renderer.RenderOptions.VisualizeDepthMap;
 
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference
@@ -2124,6 +2090,9 @@ begin
     Filter.Minification := minLinear;
   end;
 
+  if TextureNode.CompareMode <> smCompareRLEqual then
+    WritelnWarning('VRML/X3D', 'Only the standard GeneratedShadowMap.compareMode value, "COMPARE_R_LEQUAL" (in Pascal: smCompareRLEqual), is supported now. This is the only value sensible for shadow maps.');
+
   if VarianceShadowMaps then
   begin
     FGLName := Renderer.Cache.TextureFloat_IncReference(
@@ -2131,22 +2100,22 @@ begin
       Filter, TextureWrap, Size, Size, true);
   end else
   begin
-    if not GLFeatures.TextureDepth then
+    if not GLFeatures.TextureDepthCompare then
     begin
-      WritelnWarning('VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use GeneratedShadowMap nodes');
+      WritelnWarning('VRML/X3D', 'Shadow maps not supported. OpenGL(ES) doesn''t support shadow samplers with comparison (TextureDepthCompare), cannot use GeneratedShadowMap nodes.');
       Exit;
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
       '' { generated texture contents means empty URL },
-      TextureWrap, TextureNode.CompareMode, Size, Size,
-      VisualizeDepthMap);
+      TextureWrap, Size, Size);
   end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
   if VarianceShadowMaps then
-    RenderToTexture.Buffer := tbColor else
+    RenderToTexture.Buffer := tbColor
+  else
     RenderToTexture.Buffer := tbDepth;
   RenderToTexture.Stencil := false;
   RenderToTexture.GLContextOpen;
@@ -2159,7 +2128,8 @@ begin
   if FGLName <> 0 then
   begin
     if VarianceShadowMaps then
-      Renderer.Cache.TextureFloat_DecReference(FGLName) else
+      Renderer.Cache.TextureFloat_DecReference(FGLName)
+    else
       Renderer.Cache.TextureDepth_DecReference(FGLName);
     FGLName := 0;
   end;
@@ -2177,19 +2147,12 @@ end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
   Shader: TShader; const Env: TTextureEnv): boolean;
-var
-  TextureType: TTextureType;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  if VisualizeDepthMap then
-    TextureType := tt2D
-  else
-    TextureType := tt2DShadow;
-
   Shader.EnableTexture(TextureUnit,
-    TextureType, TextureNode, Env, Size, TextureNode.Light);
+    tt2DShadow, TextureNode, Env, Size, TextureNode.Light);
 end;
 
 procedure TGLGeneratedShadowMap.Update(
@@ -2200,6 +2163,7 @@ var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedViewport: TRectangle;
   Camera: TRenderingCamera;
+  SavedPolygonOffset: TPolygonOffset;
 begin
   if FGLName = 0 then Exit;
 
@@ -2214,7 +2178,7 @@ begin
       Camera.Target := rtShadowMap;
 
     Camera.FromMatrix(
-      Light.ProjectionSceneLocation,
+      Light.ProjectionWorldLocation,
       Light.ModelviewMatrix,
       Light.ModelviewRotationMatrix,
       NewProjectionMatrix);
@@ -2227,27 +2191,18 @@ begin
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-        { Enable polygon offset for everything (whole scene).
+      { Enable polygon offset for everything (whole scene).
 
-          VarianceShadowMaps notes: can offset be avoided in this case?
-          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
-          offset is still needed for VSM. Without offset, VSM has some noise,
-          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        {$ifndef OpenGLES} // These do not exist on OpenGLES
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        {$endif}
-        glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+        VarianceShadowMaps notes: can offset be avoided in this case?
+        Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+        offset is still needed for VSM. Without offset, VSM has some noise,
+        and sunny_street demos have noise on walls. With offset, VSM is perfect. }
+      SavedPolygonOffset := RenderContext.PolygonOffset;
+      RenderContext.PolygonOffsetEnable(TextureNode.FdScale.Value, TextureNode.FdBias.Value);
 
-        Render(Camera);
+      Render(Camera);
 
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        {$ifndef OpenGLES} // These do not exist on OpenGLES
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glDisable(GL_POLYGON_OFFSET_POINT);
-        {$endif}
-
+      RenderContext.PolygonOffset := SavedPolygonOffset;
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
       RenderContext.Viewport := SavedViewport;
 

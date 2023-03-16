@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,10 +68,12 @@ type
     gvNvidia,
     { Intel GPU with Intel drivers. }
     gvIntel,
-    { Imagination Technologies (PowerVR) GPU, common on mobile devices. }
+    { Imagination Technologies (PowerVR) GPU, found on mobile devices. }
     gvImaginationTechnologies,
-    { Qualcomm Adreno, mobile devices }
-    gvQualcomm
+    { Qualcomm Adreno, found on mobile devices. }
+    gvQualcomm,
+    { Arm, makers of Mali GPU, found on mobile devices. }
+    gvArm
   );
 
   TGLVersion = class(TGenericGLVersion)
@@ -84,13 +86,9 @@ type
     FVendorMajor: Integer;
     FVendorMinor: Integer;
     FVendorRelease: Integer;
-    FBuggyGenerateMipmap: boolean;
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
-    FBuggyLightModelTwoSide: boolean;
-    FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
-    FBuggyShaderShadowMap: boolean;
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
@@ -129,15 +127,6 @@ type
     { ATI GPU with ATI drivers on Linux. }
     property Fglrx: boolean read FFglrx;
 
-    { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
-
-      This was observed with software (no direct) rendering with
-      7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
-      With Mesa 7.5.1 (but tested only with radeon and radeonhd,
-      so possibly it's not really related to Mesa version! Reports welcome)
-      no problems. }
-    property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
-
     { Buggy generation of cube maps on FBO (Intel(Windows) bug).
 
       Symptoms: Parts of the cube map texture are uninitialized (left magenta).
@@ -173,16 +162,8 @@ type
     }
     property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
-    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
-      See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
-    property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
-    property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
-
     { Buggy VBO (Intel(Windows) bug). }
     property BuggyVBO: boolean read FBuggyVBO;
-
-    { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
-    property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
 
     { Buggy (looks like wireframe) FBO rendering to
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
@@ -474,30 +455,29 @@ begin
 
   { calculate FVendorType }
   if IsPrefix('NVIDIA', Vendor) then // Actually seen possible values here: 'NVIDIA Corporation'.
-    FVendorType := gvNvidia else
+    FVendorType := gvNvidia
+  else
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
   if (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI') then
-    FVendorType := gvATI else
+    FVendorType := gvATI
+  else
   if IsPrefix('Intel', Vendor) then
-    FVendorType := gvIntel else
+    FVendorType := gvIntel
+  else
   if (Vendor = 'Imagination Technologies') then
-    FVendorType := gvImaginationTechnologies else
+    FVendorType := gvImaginationTechnologies
+  else
   if (Vendor = 'Qualcomm') then
-    FVendorType := gvQualcomm else
+    FVendorType := gvQualcomm
+  else
+  if SameText(Vendor, 'Arm') then
+    FVendorType := gvArm
+  else
     FVendorType := gvUnknown;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
-
-  FBuggyGenerateMipmap :=
-    (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-    {$ifdef MSWINDOWS}
-    or
-    ( (VendorType = gvIntel) and
-      not VendorVersionAtLeast(9, 0, 0)
-    )
-    {$endif};
 
   FBuggyFBOCubeMap :=
     {$ifdef MSWINDOWS}
@@ -516,30 +496,6 @@ begin
     {$else} false
     {$endif};
 
-  { On which fglrx versions does this occur?
-
-    - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
-      (tested on MacBook Pro "chantal").
-
-    - Catalyst 9.1 (fglrx 8.573) - not known.
-      Below we only *assume* the bug started from 9.1.
-
-    - On Catalyst 9.10 and 10.3 the bug does occur.
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug confirmed also on Ubuntu 10.04 (fglrx 8.723).
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug disappeared on Ubuntu 10.10 (fglrx 8.780). Seems fixed there.
-      (fglrx bugzilla was wiped, so we don't have any official
-      confirmation about this from AMD.) }
-
-  FBuggyLightModelTwoSide := Fglrx and ReleaseExists and
-    (Release >= 8573) and (Release < 8780);
-  if BuggyLightModelTwoSide then
-    FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
-    FBuggyLightModelTwoSideMessage := '';
-
   FBuggyVBO := {$ifdef MSWINDOWS}
     { See demo_models/x3d/background_test_mobile_intel_gpu_bugs.x3d }
     (Vendor = 'Intel') and
@@ -548,20 +504,6 @@ begin
     {$else}
     false
     {$endif};
-
-  FBuggyShaderShadowMap :=
-    { This happens on fglrx, the worst OpenGL driver in the world.
-      card: ATI Mobility Radeon HD 4300,
-      confirmed on
-        Ubuntu 10.10/x86_64 (czarny)
-        Ubuntu 10.10/i386   (czarny)
-        Ubuntu 11.4/x86_64  (czarny)
-        Ubuntu 11.4/i386    (czarny) (fglrx OpenGL version 3.3.10665)
-      not occurs on
-        Ubuntu 9.10/i386    (czarny)
-      Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
-      since Ubuntu 10.04, which is fglrx >= 8.723). }
-    Fglrx and ReleaseExists and (Release >= 8723);
 
   { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
@@ -749,7 +691,8 @@ const
     'Nvidia',
     'Intel',
     'Imagination Technologies',
-    'Qualcomm'
+    'Qualcomm',
+    'Arm'
   );
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;

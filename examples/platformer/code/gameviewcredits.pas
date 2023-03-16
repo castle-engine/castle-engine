@@ -24,9 +24,11 @@ uses Classes,
 type
   { Credits view }
   TViewCredits = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonCGE, ButtonGraphics, ButtonMusic, ButtonSources, ButtonMenu: TCastleButton;
+  private
     procedure ClickCGE(Sender: TObject);
     procedure ClickGraphics(Sender: TObject);
     procedure ClickMusic(Sender: TObject);
@@ -56,14 +58,6 @@ end;
 procedure TViewCredits.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
-  ButtonCGE := DesignedComponent('ButtonCGE') as TCastleButton;
-  ButtonGraphics := DesignedComponent('ButtonGraphics') as TCastleButton;
-  ButtonMusic := DesignedComponent('ButtonMusic') as TCastleButton;
-  ButtonSources := DesignedComponent('ButtonSources') as TCastleButton;
-
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
   ButtonCGE.OnClick := {$ifdef FPC}@{$endif}ClickCGE;
   ButtonGraphics.OnClick := {$ifdef FPC}@{$endif}ClickGraphics;

@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,11 +24,12 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelWasVisible, LabelFps: TCastleLabel;
     SceneTestBlocks: TCastleScene;
-
+  private
     ShapeRed, ShapeGreen, ShapeBlue, ShapeWhite: TShapeNode;
   public
     constructor Create(AOwner: TComponent); override;
@@ -55,11 +56,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  SceneTestBlocks := DesignedComponent('SceneTestBlocks') as TCastleScene;
-  LabelWasVisible := DesignedComponent('LabelWasVisible') as TCastleLabel;
 
   { We get X3D Shape nodes knowing how the Blender->glTF exporter works,
     and then how glTF is converted into X3D nodes in CGE.

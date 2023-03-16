@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -285,12 +285,14 @@ begin
     raise Exception.Create('<properties> element must have "texture_base_name" attribute');
 
   {$ifndef CASTLE_STRICT_CLI}
+  {$warnings off} // using deprecated SoundFromName for deprecated footsteps_sound
   FootstepsSoundName := '';
   if Element.AttributeString('footsteps_sound', FootstepsSoundName) and
      (FootstepsSoundName <> '') then
     FFootstepsSound := SoundEngine.SoundFromName(FootstepsSoundName)
   else
     FFootstepsSound := nil;
+  {$warnings on}
   {$endif}
 
   if Element.AttributeString('normal_map', FNormalMap) and (FNormalMap <> '') then

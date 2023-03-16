@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,20 @@ uses Classes, Contnrs,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    SoundKaboom, SoundRatSqueak: TCastleSound;
+    HelpMessage: TCastleLabel;
+    MuteImage: TCastleImageControl;
+    CrosshairForMouseLook: TCastleCrosshair;
+    TimerSpawnTnts: TCastleTimer;
+    Viewport: TCastleViewport;
+    Navigation: TCastleWalkNavigation;
+    Rat: TCastleScene;
+    SoundSourceRat: TCastleSoundSource;
+    SceneLevel: TCastleScene;
   private
     const
       { Max number of TNT items. }
@@ -33,20 +47,6 @@ type
       InitialTntsCount = MaxTntsCount;
 
     var
-      { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
-      LabelFps: TCastleLabel;
-      SoundKaboom, SoundRatSqueak: TCastleSound;
-      HelpMessage: TCastleLabel;
-      MuteImage: TCastleImageControl;
-      CrosshairForMouseLook: TCastleCrosshair;
-      TimerSpawnTnts: TCastleTimer;
-      Viewport: TCastleViewport;
-      Navigation: TCastleWalkNavigation;
-      Rat: TCastleScene;
-      RatSoundSource: TCastleSoundSource;
-      SceneLevel: TCastleScene;
-
-      { Other }
       RatAngle: Single;
       TntTemplate: TSerializedComponent;
       Tnts: TComponentList;
@@ -71,58 +71,6 @@ implementation
 uses SysUtils,
   CastleUtils, CastleBoxes, CastleWindow, CastleSceneCore;
 
-{ utils ---------------------------------------------------------------------- }
-
-{ Setup TRigidBody and TMeshCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsStaticMesh(const Scene: TCastleScene);
-var
-  RigidBody: TRigidBody;
-  Collider: TMeshCollider;
-begin
-  RigidBody := TRigidBody.Create(Scene);
-  RigidBody.Dynamic := false;
-
-  Collider := TMeshCollider.Create(RigidBody);
-  Collider.Scene := Scene;
-  Collider.Restitution := 0.3;
-
-  Scene.RigidBody := RigidBody;
-end;
-
-{ Setup TRigidBody and TMeshCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsStaticPlane(const Scene: TCastleScene);
-var
-  RigidBody: TRigidBody;
-  Collider: TPlaneCollider;
-begin
-  RigidBody := TRigidBody.Create(Scene);
-  RigidBody.Dynamic := false;
-
-  Collider := TPlaneCollider.Create(RigidBody);
-  Collider.Normal := Vector3(0, 1, 0);
-  Collider.Distance := 0;
-  Collider.Restitution := 0.3;
-
-  Scene.RigidBody := RigidBody;
-end;
-
-{ Setup TRigidBody and TBoxCollider on the Scene.
-  TODO: This will be possible to be created in CGE editor soon. }
-procedure SetupPhysicsDynamicBox(const Transform: TCastleTransform);
-var
-  RigidBody: TRigidBody;
-  Collider: TBoxCollider;
-begin
-  RigidBody := TRigidBody.Create(Transform);
-
-  Collider := TBoxCollider.Create(RigidBody);
-  Collider.Size := Transform.BoundingBox.Size * 0.9;
-
-  Transform.RigidBody := RigidBody;
-end;
-
 { TViewMain ----------------------------------------------------------------- }
 
 constructor TViewMain.Create(AOwner: TComponent);
@@ -135,20 +83,6 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  SoundKaboom := DesignedComponent('SoundKaboom') as TCastleSound;
-  SoundRatSqueak := DesignedComponent('SoundRatSqueak') as TCastleSound;
-  MuteImage := DesignedComponent('MuteImage') as TCastleImageControl;
-  CrosshairForMouseLook := DesignedComponent('CrosshairForMouseLook') as TCastleCrosshair;
-  HelpMessage := DesignedComponent('HelpMessage') as TCastleLabel;
-  TimerSpawnTnts := DesignedComponent('TimerSpawnTnts') as TCastleTimer;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
-  Navigation := DesignedComponent('Navigation') as TCastleWalkNavigation;
-  Rat := DesignedComponent('Rat') as TCastleScene;
-  RatSoundSource := Rat.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
-  SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
-
   { initialize Rat }
   UpdateRatPosition;
 
@@ -159,9 +93,6 @@ begin
     NewTnt(0.0);
 
   TimerSpawnTnts.OnTimer := {$ifdef FPC}@{$endif}DoTimerSpawnTnts;
-
-  SetupPhysicsStaticPlane(SceneLevel);
-  //SetupPhysicsStaticMesh(SceneLevel); // mesh collider not reliable on this
 end;
 
 procedure TViewMain.Stop;
@@ -184,7 +115,6 @@ begin
     RandomFloatRange(LevelBox.Data[0].X + TntExtent, LevelBox.Data[1].X - TntExtent),
     Y + TntExtent,
     RandomFloatRange(LevelBox.Data[0].Z + TntExtent, LevelBox.Data[1].Z - TntExtent));
-  SetupPhysicsDynamicBox(Tnt);
   Viewport.Items.Add(Tnt);
   Tnts.Add(Tnt);
 end;
@@ -223,7 +153,7 @@ begin
   UpdateRatPosition;
 
   { update "mute area" }
-  InMuteArea := CylinderContains(Viewport.Camera.Position, 2, 0, 0.76, 0, 1.045640);
+  InMuteArea := CylinderContains(Viewport.Camera.WorldTranslation, 2, 0, 0.76, 0, 1.045640);
   if MuteImage <> nil then
     MuteImage.Exists := InMuteArea;
   if InMuteArea then
@@ -258,7 +188,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     TntSoundSource.Play(SoundKaboomPlaying);
 
     if PointsDistanceSqr(TntTransform.Translation, Rat.Translation) < 1.0 then
-      RatSoundSource.Play(SoundRatSqueak);
+      SoundSourceRat.Play(SoundRatSqueak);
 
     FreeAndNil(TntTransform); // will automatically remove itself from Tnts list
   end;
@@ -266,19 +196,6 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
-
-  if Event.EventType = itKey then
-    case Event.Key of
-      keyF1: HelpMessage.Exists := not HelpMessage.Exists;
-      keyF4:
-        begin
-          Navigation.MouseLook := not Navigation.MouseLook;
-          // crosshair makes sense only with mouse look
-          CrosshairForMouseLook.Exists := Navigation.MouseLook;
-        end;
-      keyF5: Container.SaveScreenToDefaultFile;
-      keyEscape: Application.Terminate;
-    end;
 
   if Event.IsMouseButton(buttonLeft) then
   begin
@@ -290,6 +207,33 @@ begin
        (Viewport.TransformUnderMouse.Parent <> nil) and
        (Tnts.IndexOf(Viewport.TransformUnderMouse.Parent) <> -1) then
       TntHit(Viewport.TransformUnderMouse.Parent);
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    Navigation.MouseLook := not Navigation.MouseLook;
+    // crosshair makes sense only with mouse look
+    CrosshairForMouseLook.Exists := Navigation.MouseLook;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyF1) then
+  begin
+    HelpMessage.Exists := not HelpMessage.Exists;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyF5) then
+  begin
+    Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyEscape) then
+  begin
+    Application.Terminate;
+    Exit(true);
   end;
 end;
 

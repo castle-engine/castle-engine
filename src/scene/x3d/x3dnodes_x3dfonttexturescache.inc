@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,7 @@
       { @exclude Internal for TX3DFontTexturesCache. }
       TCachedFontTexture = class
       private
-        Font: TTextureFontData;
+        Font: TCastleFont;
         Blending: Boolean;
         References: Cardinal;
         FontTexture: TPixelTextureNode;
@@ -40,7 +40,7 @@
     destructor Destroy; override;
 
     { Return TPixelTextureNode to draw given font configuration. }
-    function LoadFontTexture(const Font: TTextureFontData;
+    function LoadFontTexture(const Font: TCastleFont;
       const Blending: boolean): TPixelTextureNode;
 
     procedure FreeFontTexture(var FontTexture: TPixelTextureNode);
@@ -70,12 +70,19 @@ begin
   inherited;
 end;
 
-function TX3DFontTexturesCache.LoadFontTexture(const Font: TTextureFontData;
+function TX3DFontTexturesCache.LoadFontTexture(const Font: TCastleFont;
   const Blending: boolean): TPixelTextureNode;
 var
   I: Integer;
   C: TCachedFontTexture;
+  Image: TGrayscaleImage;
 begin
+  {$warnings off} // using FontData, will be internal in the future
+  if Font.FontData = nil then
+    raise Exception.Create('Only loaded fonts can be used with TX3DFontTexturesCache.LoadFontTexture');
+  Image := Font.FontData.Image;
+  {$warnings on}
+
   for I := 0 to CachedFontTextures.Count - 1 do
   begin
     C := CachedFontTextures[I];
@@ -86,7 +93,7 @@ begin
 
       if Log then
         WritelnLog('++', 'Font texture %s, blending %s : %d', [
-          URIDisplay(Font.Image.URL),
+          URIDisplay(Image.URL),
           BoolToStr(Blending, true),
           C.References
         ]);
@@ -108,7 +115,7 @@ begin
   Result.RepeatT := true;
   { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
   Result.FdImage.Value := TGrayscaleAlphaImage.Create;
-  Result.FdImage.Value.Assign(Font.Image);
+  Result.FdImage.Value.Assign(Image);
   if Blending then
     Result.AlphaChannel := acBlending
   else
@@ -123,7 +130,7 @@ begin
 
   if Log then
     WritelnLog('++', 'Font texture %s, blending %s : %d', [
-      URIDisplay(Font.Image.URL),
+      URIDisplay(Image.URL),
       BoolToStr(Blending, true),
       1
     ]);
@@ -142,11 +149,13 @@ begin
     if C.FontTexture = FontTexture then
     begin
       if Log then
+        {$warnings off} // using FontData, will be internal in the future
         WritelnLog('--', 'Font texture %s, blending %s : %d', [
-          URIDisplay(C.Font.Image.URL),
+          URIDisplay(C.Font.FontData.Image.URL),
           BoolToStr(C.Blending, true),
           C.References - 1
         ]);
+        {$warnings on}
 
       FontTexture := nil;
 

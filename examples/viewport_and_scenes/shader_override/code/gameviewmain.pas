@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,12 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     Monkey2: TCastleScene;
-
+  private
     CustomShaderActive: Boolean;
     Appearance: TAppearanceNode;
     ComposedShader: TComposedShaderNode;
@@ -62,10 +63,6 @@ var
   VertexShader, FragmentShader: TShaderPartNode;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Monkey2 := DesignedComponent('Monkey2') as TCastleScene;
 
   { Define nodes with GLSL shader code. }
 

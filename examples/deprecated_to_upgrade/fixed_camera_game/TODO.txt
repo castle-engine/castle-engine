@@ -1,28 +1,26 @@
-- current moving of Player is just for test. Make better movement,
-  based on mouse clicks.
+- Current movement of Player is just for test, it can even get on walls.
+  Make better movement, adjusted to animation speed.
 - Player collisions with the Scene, don't allow to go outside the scene.
-- Player state change --- when moving, actually change to walk,
-  and make walk animation speed match moving speed.
-- footsteps sound (like castle)
-------------------------------------------------------------------------------
-- test on mesa on kocury ~/installed/mesa/
+- Footsteps sound.
+- Put other actors (rename creatures->actors in code) on scene.
+- Design location, player, other actors in CGE editor.
 
---------------------
-1st location: home.
+- Game plans:
+
+  1st location: home.
   Object: get rope, get to the othe side of the rift.
   Demo: Shadows. Getting object. Using it.
-2nd location: forest.
+
+  2nd location: forest.
   Object: Walk through the forest. If you enter on some area, you fall
     down the rift and you die.
   Demo: paralax. Area larger than screen.
-3rd location: city.
+
+  3rd location: city.
   Object: Find a detonator.
-4rd: city building inside.
+
+  4rd: city building inside.
   Object: Connect detonator. Blow up. The larger rift opens.
-5th: city follows. The rain is falling.
+
+  5th: city follows. The rain is falling.
   Demo: Rain.
-
---------------------
-Interesting photos:
-
-http://www.deviantart.com/deviation/58818046/

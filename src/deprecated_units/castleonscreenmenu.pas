@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -577,7 +577,7 @@ begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
-  Result := ExclusiveEvents;
+  Result := true;
   MakeCurrent;
   ClickStarted := true;
   ClickStartedPosition := Event.Position;
@@ -590,7 +590,7 @@ begin
 
   if ClickStarted then
   begin
-    Result := ExclusiveEvents;
+    Result := true;
     ClickStarted := false;
     if CapturesEventsAtPosition(Event.Position) then
       DoClick;
@@ -605,7 +605,7 @@ begin
   if Event.Pressed = [] then
   begin
     MakeCurrent;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -866,19 +866,19 @@ begin
   if Event.IsKey(KeyPreviousItem) then
   begin
     PreviousItem;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(KeyNextItem) then
   begin
     NextItem;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if Event.IsKey(KeySelectItem) and
      Between(CurrentItem, 0, MenuItems.ControlsCount - 1) and
      (MenuItems.Controls[CurrentItem] is TCastleOnScreenMenuItem) then
   begin
     TCastleOnScreenMenuItem(MenuItems.Controls[CurrentItem]).DoClick;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -888,7 +888,7 @@ begin
   inherited;
 
   { some keys pressed are already handled by Press }
-  if HandleInput and ExclusiveEvents and
+  if HandleInput and
      (Container.Pressed[KeyPreviousItem] or
       Container.Pressed[KeyNextItem] or
       Container.Pressed[KeySelectItem]) then

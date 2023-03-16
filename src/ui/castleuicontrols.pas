@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2009-2022 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2023 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -53,7 +53,7 @@ uses DOM, TypInfo, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInternalInspector, CastleInternalControlsImages;
+  CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castleuicontrols_initial_types.inc}

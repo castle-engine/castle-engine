@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -888,7 +888,7 @@ procedure TCastleTerrainData.UpdateTriangulatedNode(const Node: TAbstractChildNo
 var
   SubdivisionsPlus1: TVector2Cardinal;
   Coord, Normal: TVector3List;
-  Index: TLongIntList;
+  Index: TInt32List;
   FaceNormals: TVector3List;
   SubdivisionsX, SubdivisionsZ: Cardinal;
 
@@ -958,7 +958,7 @@ var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
   I, J: Cardinal;
-  IndexPtr: PLongInt;
+  IndexPtr: PInt32;
 begin
   { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
   Transform := Node as TTransformNode;
@@ -1013,7 +1013,7 @@ begin
 
   { calculate Index }
   Index.Count := (SubdivisionsX - 1) * (SubdivisionsZ * 2 + 1);
-  IndexPtr := PLongInt(Index.List);
+  IndexPtr := PInt32(Index.List);
   for I := 1 to SubdivisionsX - 1 do
   begin
     for J := 0 to SubdivisionsZ - 1 do
@@ -1026,7 +1026,7 @@ begin
     Inc(IndexPtr);
   end;
   // make sure our Index.Count was set exactly to what we needed
-  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(LongInt) = Index.Count);
+  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(Int32) = Index.Count);
   Geometry.FdIndex.Changed;
 end;
 

@@ -10,13 +10,9 @@
       <part image="human_beach"       corrode_duration="7.00" />
     </parts>
   </intro>
+
   <creatures>
-    <player>
-      <!-- Each state has a url of associated animation. -->
-      <stand url="creatures/humanoid/stand.castle-anim-frames" />
-      <walk url="creatures/humanoid/walk.castle-anim-frames" />
-      <bored url="creatures/humanoid/bored.castle-anim-frames" />
-    </player>
+    <player url="avatar/avatar.castle-transform" />
   </creatures>
 
   <!-- List of game locations.
@@ -30,10 +26,10 @@
     <location name="home"
       image_url="locations/home/renders/render.png"
       shadowed_image_url="locations/home/renders/render_shadowed.png"
-      scene_url="locations/home/scene_final.wrl"
+      scene_url="locations/home/scene.glb"
+      viewpoint="Camera"
       player_position="0 0 0"
       player_direction="1 0 0"
-      player_up="0 0 1"
     >
     </location>
   </locations>

@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="28">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -206,6 +206,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DesignUndoSystem"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="code/formrestartcustomeditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RestartCustomEditorForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormRestartCustomEditor"/>
+      </Unit27>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

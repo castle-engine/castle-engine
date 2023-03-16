@@ -98,7 +98,7 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdParameter := TMFString.Create(Self, True, 'parameter', []);

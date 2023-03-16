@@ -31,9 +31,9 @@
     { Internal wrapper for property @link(Image). This wrapper API may change, we advise to access simpler @link(Image) instead. }
     public property FdImage: TMFInt32 read FFdImage;
     {  }
-    procedure SetImage(const Value: array of LongInt); overload;
+    procedure SetImage(const Value: array of Int32); overload;
     {  }
-    procedure SetImage(const Value: TLongIntList); overload;
+    procedure SetImage(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -41,12 +41,12 @@
 
 { TPixelTexture3DNode ----------------------------------------------- }
 
-procedure TPixelTexture3DNode.SetImage(const Value: array of LongInt);
+procedure TPixelTexture3DNode.SetImage(const Value: array of Int32);
 begin
   FdImage.Send(Value);
 end;
 
-procedure TPixelTexture3DNode.SetImage(const Value: TLongIntList);
+procedure TPixelTexture3DNode.SetImage(const Value: TInt32List);
 begin
   FdImage.Send(Value);
 end;

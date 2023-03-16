@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,15 +52,10 @@ begin
   Requirements.AlphaBits := AlphaBits;
   Requirements.StencilBits := StencilBits;
   Requirements.MultiSampling := MultiSampling;
-  {$warnings off} // using AccumBits to keep them working for now
-  Requirements.AccumBits := AccumBits;
-  {$warnings on}
 
   Context := TGLContextWGL.Create;
   Context.WndPtr := WndPtr;
   Context.h_Dc := h_Dc;
-  Context.WindowCaption := GetWholeCaption;
-  Context.WndClassName := Application.WndClassName;
   { All OpenGL contexts created by CGE should be shared }
   if Application.OpenWindowsCount <> 0 then
     Context.SharedContext := Application.OpenWindows[0].Context;

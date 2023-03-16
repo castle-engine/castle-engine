@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,19 +57,9 @@ private
 
 procedure TCastleWindow.ContextCreateBegin;
 var
-  Attribs: TLongIntList;
+  Attribs: TInt32List;
   FBConfigs: PGLXFBConfig;
   FBConfigsCount: Integer;
-{$ifdef CASTLE_CONTEXT_FORWARD_3}
-const
-  { Used with glXCreateContextAttribsARB to select 3.0 forward-compatible context }
-  Context30Forward: array [0..6] of Integer =
-  ( GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-    GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-    None
-  );
-{$endif}
 begin
   { Use new glX 1.3 functions to create context, that take TGLXFBConfig?
     About modern GLX context selection, see
@@ -77,7 +67,7 @@ begin
     http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
   UseFBConfig := GLX_version_1_3(Application.XDisplay);
 
-  Attribs := TLongIntList.Create;
+  Attribs := TInt32List.Create;
   try
     { constant Attribs part }
     if UseFBConfig then
@@ -93,11 +83,8 @@ begin
       { Buffer sizes below are all in bits. }
       GLX_DEPTH_SIZE, DepthBits,
       GLX_STENCIL_SIZE, StencilBits,
-      GLX_ALPHA_SIZE, AlphaBits,
-      GLX_ACCUM_RED_SIZE, FAccumBits[0],
-      GLX_ACCUM_GREEN_SIZE, FAccumBits[1],
-      GLX_ACCUM_BLUE_SIZE, FAccumBits[2],
-      GLX_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
+      GLX_ALPHA_SIZE, AlphaBits
+    ]);
     if RedBits   <> 0 then Attribs.AddRange([GLX_RED_SIZE  , RedBits  ]);
     if GreenBits <> 0 then Attribs.AddRange([GLX_GREEN_SIZE, GreenBits]);
     if BlueBits  <> 0 then Attribs.AddRange([GLX_BLUE_SIZE , BlueBits ]);
@@ -144,29 +131,68 @@ end;
 procedure TCastleWindow.ContextCreateEnd(WndPtr: TWindow);
 var
   ShareContext: GLXContext;
+
+  function UseCreateContextAttribsARB: GLXContext;
+  var
+    Attribs: TInt32List;
+  begin
+    { TODO:
+
+      We should catch X errors (see XSync and XSetErrorHandler inside
+      http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 )
+      and fallback on non-modern context,
+      not using glXCreateContextAttribsARB, if it is impossible to get modern one.
+
+      Right now, our XLibUtils catches X errors, but without XSync
+      it's not known where they occur anyway. }
+
+    Attribs := TInt32List.Create;
+    try
+      { Select 3.2 core context.
+        See https://registry.khronos.org/OpenGL/extensions/ARB/GLX_ARB_create_context.txt }
+      if TGLFeatures.RequestCapabilities = rcForceModern then
+      begin
+        Attribs.AddRange([
+          GLX_CONTEXT_MAJOR_VERSION_ARB, TGLFeatures.ModernVersionMajor,
+          GLX_CONTEXT_MINOR_VERSION_ARB, TGLFeatures.ModernVersionMinor,
+          GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB
+          { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
+            forward-compatible really only makes sense on macOS.
+            The "core" profile is what should be just used with new OpenGLs on sane
+            (non-macOS) platforms. }
+          //GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        ]);
+      end;
+      { Select debug context.
+        Note that the implementation assumes nothing above passes GLX_CONTEXT_FLAGS_ARB. }
+      if TGLFeatures.Debug then
+      begin
+        Attribs.AddRange([
+          GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB
+        ]);
+      end;
+      Attribs.AddRange([None]);
+      Assert(SizeOf(CInt) = SizeOf(Int32)); // make sure Attribs match PCInt type
+      Result := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, PCInt(Attribs.List));
+    finally FreeAndNil(Attribs) end;
+  end;
+
 begin
   { All OpenGL contexts should be shared }
   if Application.OpenWindowsCount <> 0 then
-    ShareContext := Application.OpenWindows[0].Context else
+    ShareContext := Application.OpenWindows[0].Context
+  else
     ShareContext := nil;
 
   if UseFBConfig then
   begin
-    {$ifdef CASTLE_CONTEXT_FORWARD_3}
-    { For now, we just use GLX_ARB_create_context for testing
-      "how much can we render with forward-compatible context".
-      TODO:
-      - The ability to change Context30Forward version is not available.
-        Or not request compatibility, or debug, etc.
-      - We also don't properly catch errors: we should catch X errors
-        (see XSync and XSetErrorHandler inside
-        http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29).
-        Right now, our XLibUtils catches X errors, but without XSync
-        it's not known where they occur anyway. }
-    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
-      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, Context30Forward)
-    else
-    {$endif}
+    if (TGLFeatures.RequestCapabilities = rcForceModern) or
+       TGLFeatures.Debug then
+    begin
+      if not GLX_ARB_create_context_profile(Application.XDisplay, Application.XScreen) then
+        raise EGLContextNotPossible.Create('GLX_ARB_create_context_profile not available, cannot OpenGL context with "core" profile or debug bit');
+      Context := UseCreateContextAttribsARB;
+    end else
       Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContext, true);
   end else
     Context := glXCreateContext(Application.XDisplay, XVisual, ShareContext, true);

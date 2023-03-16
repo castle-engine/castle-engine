@@ -216,7 +216,7 @@ begin
   AddField(FFdCenterOfRotation);
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdJump := TSFBool.Create(Self, True, 'jump', true);

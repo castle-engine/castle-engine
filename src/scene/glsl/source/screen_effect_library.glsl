@@ -18,10 +18,6 @@
   #endif
 #endif
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 varying vec2 screenf_01_position;
 
 uniform int screen_height;

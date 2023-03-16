@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,7 +118,7 @@ const
       {$ifdef FPC}
       Inc(TextPtr, CharLen);
       {$else}
-      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       {$endif}
 

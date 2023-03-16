@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various low-level utilities for working with OpenGL. }
+{ Various utilities for OpenGL(ES) rendering. }
 unit CastleGLUtils;
 
 {$I castleconf.inc}
@@ -22,9 +22,7 @@ unit CastleGLUtils;
 interface
 
 uses
-  // needed by castleglutils_delphi_wgl.inc
-  {$ifndef FPC} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
-  SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
+  SysUtils, Math, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
@@ -32,14 +30,10 @@ uses
 {$define read_interface}
 
 {$I castleglutils_types.inc}
-{$I castleglutils_errors.inc}
-{$I castleglutils_helpers.inc}
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
-{$I castleglutils_mipmaps.inc}
-{$I castleglutils_ext_framebuffer_blit.inc}
-{$I castleglutils_delphi_wgl.inc}
+{$I castleglutils_vertex_array_object.inc}
 
 {$undef read_interface}
 
@@ -49,17 +43,14 @@ implementation
 
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleApplicationProperties, CastleRenderContext;
+  CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
+  CastleInternalGLUtils;
 
 {$I castleglutils_types.inc}
-{$I castleglutils_errors.inc}
-{$I castleglutils_helpers.inc}
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
-{$I castleglutils_mipmaps.inc}
-{$I castleglutils_ext_framebuffer_blit.inc}
-{$I castleglutils_delphi_wgl.inc}
+{$I castleglutils_vertex_array_object.inc}
 
 { initialization, finalization ----------------------------------------------- }
 

@@ -646,7 +646,7 @@
                     "Name" : "Label5",
                     "Text" : [
                       "Button, part 2",
-                      "(TCastleLabel)"
+                      "(TCastleButton)"
                     ],
                     "VerticalAnchorParent" : "vpMiddle",
                     "VerticalAnchorSelf" : "vpMiddle"

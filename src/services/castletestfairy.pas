@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -62,14 +62,14 @@ begin
     TTestFairy.LogCallback('  Platform: ' + SPlatformDescription + '.' + NL);
   end;
 
-  if ApplicationProperties.OnLog.IndexOf(@LogCallback) = -1 then
-    ApplicationProperties.OnLog.Add(@LogCallback);
+  if ApplicationProperties.OnLog.IndexOf({$ifdef FPC}@{$endif} LogCallback) = -1 then
+    ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogCallback);
   {$endif}
 end;
 
 class procedure TTestFairy.FinalizeRemoteLogging;
 begin
-  ApplicationProperties.OnLog.Remove(@LogCallback);
+  ApplicationProperties.OnLog.Remove({$ifdef FPC}@{$endif} LogCallback);
 end;
 
 {$ifdef CASTLE_IOS}

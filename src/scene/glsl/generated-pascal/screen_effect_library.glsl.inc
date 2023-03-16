@@ -20,10 +20,6 @@
 '  #endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 'varying vec2 screenf_01_position;' + LineEnding +
 '' + LineEnding +
 'uniform int screen_height;' + LineEnding +

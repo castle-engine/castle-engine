@@ -58,7 +58,7 @@
               "X" : -1.0162577056884766E+002,
               "Y" : -1.0975583076477051E+001
             },
-            "URL" : "castle-data:/level.x3d",
+            "URL" : "castle-data:/level.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleMeshCollider",
@@ -145,8 +145,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.4114990234375000E+001,
-          "Y" : 3.5605785369873047E+001,
+          "X" : -2.3588165283203125E+001,
+          "Y" : 4.1020603179931641E+001,
           "Z" : 6.0000000000000000E+002
         }
       },

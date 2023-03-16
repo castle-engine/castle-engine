@@ -22,11 +22,10 @@ interface
 
 uses
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum;
+  CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
+  CastleRenderPrimitives;
 
 type
-  TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
-
   TGLShadowVolumeRenderer = class;
 
   TSVRenderProc = procedure (const Params: TRenderParams) of object;
@@ -46,24 +45,6 @@ type
     FFrustum: TFrustum;
     FrustumNearPoints: TFrustumPoints;
 
-    FWrapAvailable: boolean;
-    FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
-
-    { These will ideally be initialized to GL_INCR/DECR_WRAP (available
-      in OpenGL >= 2.0) or GL_INCR/DECR_WRAP_EXT (available if EXT_stencil_wrap).
-      Actually values with and without _EXT are the same.
-
-      If OpenGL will not have these available, then they will be equal to
-      old GL_INCR/DECT constants (without wrapping).
-
-      These are set by GLContextOpen. WrapAvailable says whether
-      they were set to _WRAP_ versions.
-
-      @groupBegin }
-    property StencilOpIncrWrap: TGLenum read FStencilOpIncrWrap;
-    property StencilOpDecrWrap: TGLenum read FStencilOpDecrWrap;
-    { @groupEnd }
-  private
     FCasterShadowPossiblyVisible: boolean;
     FZFail: boolean;
     FZFailAndLightCap: boolean;
@@ -71,10 +52,7 @@ type
     FLightPosition: TVector4;
 
     StencilConfigurationKnown: boolean;
-    StencilConfigurationKnownKind: TStencilSetupKind;
     StencilConfigurationKnownZFail: boolean;
-
-    FStencilSetupKind: TStencilSetupKind;
 
     FCount: boolean;
     FCountCasters: Cardinal;
@@ -83,17 +61,14 @@ type
     FCountZFailNoLightCap: Cardinal;
     FCountZFailAndLightCap: Cardinal;
 
-    FStencilTwoSided: boolean;
+    FMesh: TCastleRenderUnlitMesh;
+    FDebugRender: Boolean;
 
     procedure UpdateCount;
+    procedure SetDebugRender(const Value: Boolean);
   public
     constructor Create;
-
-    property WrapAvailable: boolean read FWrapAvailable;
-
-    { Call this when OpenGL context is initialized, this will set some things.
-      For now, this sets StencilOpIncrWrap, StencilOpDecrWrap. }
-    procedure GLContextOpen;
+    destructor Destroy; override;
 
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
@@ -123,7 +98,7 @@ type
       Also note that after InitFrustumAndLight, all InitCaster will assume that
       they have complete control over glStencilOp states for the time
       of rendering shadow volumes. In other words: InitCaster will setup
-      some stencil configuration, depending on ZFail state and StencilSetupKind.
+      some stencil configuration, depending on ZFail state.
       For the sake of speed, we try to avoid setting the same state
       twice, so we optimize it: first InitCaster after InitFrustumAndLight
       does always setup stencil confguration. Following InitCaster will
@@ -149,29 +124,6 @@ type
 
     { Is the ZFail with light caps method needed, set by InitCaster. }
     property ZFailAndLightCap: boolean read FZFailAndLightCap;
-
-    { Is two-sided stencil test (that allows you to make SV in a single pass)
-      available.
-
-      This is initialized by GLContextOpen, and is true if OpenGL provides
-      one of:
-      @unorderedList(
-        @item(glStencilOpSeparate (in OpenGL >= 2.0))
-        @item(GL_ATI_separate_stencil extension, glStencilOpSeparateATI)
-        @item(We could also handle GL_EXT_stencil_two_side extension, glActiveStencilFaceEXT.
-          But, since OpenGL >= 2.0 is now common, don't try.)
-      ) }
-    property StencilTwoSided: boolean read FStencilTwoSided;
-
-    { What kind of stencil settings should be set by InitCaster.
-
-      Set ssFrontAndBack only if StencilTwoSided is @true.
-      Otherwise, you have to use 2-pass method (render everything
-      2 times, culling front one time, culling back second time) ---
-      in this case use ssFront or ssBack as appropriate. }
-    property StencilSetupKind: TStencilSetupKind
-      read FStencilSetupKind  write FStencilSetupKind
-      default ssFrontAndBack;
 
     { Statistics of shadow volumes. They are enabled by default,
       as calculating them takes practically no time.
@@ -221,16 +173,18 @@ type
       partially-transparent parts, IOW they also note that transparent parts
       simply don't work at all with shadow volumes.
 
-      RenderShadowVolumes renders shadow volumes from shadow casters.
-
-      If DrawShadowVolumes then shadow volumes will be also actually drawn
-      to color buffer (as yellow blended polygons), this is useful for debugging
-      shadow volumes. }
+      RenderShadowVolumes renders shadow volumes from shadow casters. }
     procedure Render(
       const Params: TRenderParams;
       const RenderOnePass: TSVRenderProc;
-      const RenderShadowVolumes: TSVRenderProc;
-      const DrawShadowVolumes: boolean);
+      const RenderShadowVolumes: TSVRenderProc);
+
+    { Use this to render shadow quads. }
+    property Mesh: TCastleRenderUnlitMesh read FMesh;
+
+    { Shadow volumes will be also actually drawn to color buffer
+      (as yellow blended polygons), useful for debugging. }
+    property DebugRender: Boolean read FDebugRender write SetDebugRender default false;
   end;
 
 implementation
@@ -243,60 +197,13 @@ constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
+  FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
 end;
 
-procedure TGLShadowVolumeRenderer.GLContextOpen;
+destructor TGLShadowVolumeRenderer.Destroy;
 begin
-  { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
-  {$ifdef OpenGLES}
-  FWrapAvailable := true;
-  FStencilOpIncrWrap := GL_INCR_WRAP;
-  FStencilOpDecrWrap := GL_DECR_WRAP;
-  {$else}
-  FWrapAvailable := GLFeatures.Version_2_0 or Load_GL_EXT_stencil_wrap;
-  if WrapAvailable then
-  begin
-    FStencilOpIncrWrap := GL_INCR_WRAP_EXT;
-    FStencilOpDecrWrap := GL_DECR_WRAP_EXT;
-  end else
-  begin
-    FStencilOpIncrWrap := GL_INCR;
-    FStencilOpDecrWrap := GL_DECR;
-  end;
-
-  { This looks hacky, but actually this is how it should be:
-    - with Mesa versions 6.x (tested with 6.4.1, 6.5.1, 6.5.2),
-      glStencilOpSeparate is not nil, but it doesn't work.
-    - Same thing happens with NVidia legacy 96xx drivers (reported
-      version is "1.5.8 NVIDIA 96.43.01").
-    I guess that's OK (I mean, it's not Mesa/NVidia bug), as I should look
-    for glStencilOpSeparate only if GL version is >= 2. }
-  if GLVersion.Major <= 1 then
-    glStencilOpSeparate := nil;
-
-  { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
-    call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
-    is just an extension promoted to standard in GL 2.0... }
-  if (not Assigned(glStencilOpSeparate)) and Load_GL_ATI_separate_stencil then
-  begin
-    if LogShadowVolumes then
-      WritelnLog('Shadow volumes',
-        'Real glStencilOpSeparate not available, ' +
-        'but faking it by glStencilOpSeparateATI (since ' +
-        'GL_ATI_separate_stencil available)');
-    glStencilOpSeparate := glStencilOpSeparateATI;
-  end;
-  {$endif}
-
-  // In case of Nintendo Switch, glStencilOpSeparate isn't a function pointer
-  FStencilTwoSided := {$ifdef CASTLE_NINTENDO_SWITCH} true {$else} {$ifndef FPC}@{$endif}glStencilOpSeparate <> nil {$endif};
-
-  if LogShadowVolumes then
-    WritelnLogMultiline('Shadow volumes',
-      Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
-             'Two-sided stencil test available: %s',
-            [ BoolToStr(WrapAvailable, true),
-              BoolToStr(StencilTwoSided, true) ]));
+  FreeAndNil(FMesh);
+  inherited;
 end;
 
 procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
@@ -545,53 +452,19 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
 
   procedure OnlySetupStencil;
 
+    { Set glStencilOpSeparate (suitable for both front and back faces) as appropriate.
+      Use this before rendering shadow volumes.
+      It uses ZFail to decide what setup is necessary. }
     procedure ActuallySetStencilConfiguration;
-
-      { These set glStencilOpSeparate (suitable for both front and
-        back faces) or glStencil (suitable only for front or only for back faces)
-        as appropriate.
-
-        Use this before rendering shadow volumes.
-        It uses ZFail to decide what setup is necessary.
-        It also uses StencilOpIncrWrap / StencilOpDecrWrap as needed. }
-
-      procedure SetStencilOpSeparate;
-      begin
-        if ZFail then
-        begin
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, StencilOpDecrWrap, GL_KEEP);
-          glStencilOpSeparate(GL_BACK , GL_KEEP, StencilOpIncrWrap, GL_KEEP);
-        end else
-        begin
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, StencilOpIncrWrap);
-          glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, StencilOpDecrWrap);
-        end;
-      end;
-
-      procedure SetStencilOpForFront;
-      begin
-        if ZFail then
-          glStencilOp(GL_KEEP, StencilOpDecrWrap, GL_KEEP) else
-          { For each fragment that passes depth-test, *increase* it's stencil value. }
-          glStencilOp(GL_KEEP, GL_KEEP, StencilOpIncrWrap);
-      end;
-
-      procedure SetStencilOpForBack;
-      begin
-        if ZFail then
-          glStencilOp(GL_KEEP, StencilOpIncrWrap, GL_KEEP) else
-          { For each fragment that passes depth-test, *decrease* it's stencil value. }
-          glStencilOp(GL_KEEP, GL_KEEP, StencilOpDecrWrap);
-      end;
-
     begin
-      case StencilSetupKind of
-        ssFrontAndBack: SetStencilOpSeparate;
-        ssFront: SetStencilOpForFront;
-        ssBack: SetStencilOpForBack;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('shadowvolumes.pas 456');
-        {$endif}
+      if ZFail then
+      begin
+        glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+        glStencilOpSeparate(GL_BACK , GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+      end else
+      begin
+        glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+        glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, GL_DECR_WRAP);
       end;
     end;
 
@@ -601,12 +474,10 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       { setup stencil configuration. To avoid state too often changes,
         use StencilConfigurationKnown. }
       if (not StencilConfigurationKnown) or
-         (StencilConfigurationKnownZFail <> ZFail) or
-         (StencilConfigurationKnownKind <> StencilSetupKind) then
+         (StencilConfigurationKnownZFail <> ZFail) then
       begin
         ActuallySetStencilConfiguration;
         StencilConfigurationKnown := true;
-        StencilConfigurationKnownKind := StencilSetupKind;
         StencilConfigurationKnownZFail := ZFail;
       end;
         { else, if configuration known and equals current, nothing to do }
@@ -642,14 +513,7 @@ end;
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
   const RenderOnePass: TSVRenderProc;
-  const RenderShadowVolumes: TSVRenderProc;
-  const DrawShadowVolumes: boolean);
-{$ifdef OpenGLES}
-begin
-  // TODO-es
-  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-{$else}
+  const RenderShadowVolumes: TSVRenderProc);
 
 const
   { Which stencil bits should be tested when determining which things
@@ -675,7 +539,11 @@ var
   SavedCount: boolean;
   SavedDepthBufferUpdate: Boolean;
   SavedColorChannels: TColorChannels;
+  SavedDepthFunc: TDepthFunction;
+  SavedCullFace, SavedDepthTest: Boolean;
 begin
+  Assert(GLFeatures.ShadowVolumesPossible);
+
   Params.InShadow := false;
   Params.Transparent := false;
   Params.ShadowVolumesReceivers := [false];
@@ -688,46 +556,25 @@ begin
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
+    { Calculate shadows to the stencil buffer. }
 
-    glPushAttrib(GL_ENABLE_BIT
-      { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
-      glEnable(GL_DEPTH_TEST);
+    SavedCullFace := RenderContext.CullFace;
+    SavedDepthTest := RenderContext.DepthTest;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    SavedColorChannels := RenderContext.ColorChannels;
 
-      { Calculate shadows to the stencil buffer. }
+    RenderContext.DepthTest := true;
+    { Don't write anything to depth or color buffers. }
+    RenderContext.DepthBufferUpdate := false;
+    RenderContext.ColorChannels := [];
 
-      { Don't write anything to depth or color buffers. }
-      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
-      SavedColorChannels := RenderContext.ColorChannels;
-      RenderContext.DepthBufferUpdate := false;
-      RenderContext.ColorChannels := [];
+      glStencilFunc(GL_ALWAYS, 0, 0);
+      RenderShadowVolumes(Params);
 
-        glStencilFunc(GL_ALWAYS, 0, 0);
-
-        if StencilTwoSided then
-        begin
-          StencilSetupKind := ssFrontAndBack;
-          RenderShadowVolumes(Params);
-        end else
-        begin
-          glEnable(GL_CULL_FACE);
-
-          { Render front facing shadow shadow volume faces. }
-          StencilSetupKind := ssFront;
-          glCullFace(GL_BACK);
-          RenderShadowVolumes(Params);
-
-          { Render back facing shadow shadow volume faces. }
-          StencilSetupKind := ssBack;
-          SavedCount := Count;
-          Count := false;
-          glCullFace(GL_FRONT);
-          RenderShadowVolumes(Params);
-          Count := SavedCount;
-        end;
-
-      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
-      RenderContext.ColorChannels := SavedColorChannels;
-    glPopAttrib;
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.ColorChannels := SavedColorChannels;
+    RenderContext.CullFace := SavedCullFace;
+    RenderContext.DepthTest := SavedDepthTest;
   glDisable(GL_STENCIL_TEST);
 
   { Now render everything once again, with lights turned on.
@@ -793,8 +640,8 @@ begin
   Assert(Params.InternalPass = 0);
   Inc(Params.InternalPass);
 
-  glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
-    glDepthFunc(GL_LEQUAL);
+  SavedDepthFunc := RenderContext.DepthFunc;
+  RenderContext.DepthFunc := dfLessEqual;
 
     { setup stencil : don't modify stencil, stencil test passes only for =0 }
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -807,25 +654,27 @@ begin
       RenderOnePass(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
-  glPopAttrib();
 
-  if DrawShadowVolumes then
+  RenderContext.DepthFunc := SavedDepthFunc;
+
+  if DebugRender then
   begin
     SavedCount := Count;
     Count := false;
+
     SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    SavedDepthTest := RenderContext.DepthTest;
+
     RenderContext.DepthBufferUpdate := false;
+    RenderContext.DepthTest := true;
+    RenderContext.BlendingEnable;
 
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
-      glEnable(GL_DEPTH_TEST);
-      glDisable(GL_LIGHTING);
-      glColor4f(1, 1, 0, 0.3);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
-      RenderShadowVolumes(Params);
-    glPopAttrib;
+    RenderShadowVolumes(Params);
 
+    RenderContext.BlendingDisable;
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.DepthTest := SavedDepthTest;
+
     Count := SavedCount;
   end;
 
@@ -838,7 +687,20 @@ begin
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := [false];
   RenderOnePass(Params);
-{$endif}
+end;
+
+procedure TGLShadowVolumeRenderer.SetDebugRender(const Value: Boolean);
+begin
+  if FDebugRender <> Value then
+  begin
+    FDebugRender := Value;
+    if (Mesh <> nil) and (Mesh.UseColor <> Value) then
+    begin
+      FreeAndNil(FMesh);
+      FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
+      FMesh.Color := Vector4(1, 1, 0, 0.3);
+    end;
+  end;
 end;
 
 end.

@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -230,7 +230,7 @@ var
   V: TVector3;
 begin
   try
-    F := StrToFloat(NewValue);
+    F := StrToFloatDot(NewValue);
     V := Vector3(F, F, F);
   except
     on EConvertError do

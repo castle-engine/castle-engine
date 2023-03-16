@@ -1,5 +1,5 @@
-{
-  Copyright 2015-2021 Michalis Kamburelis.
+﻿{
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,7 +112,7 @@ type
   TInAppPurchases = class(TComponent)
   private
     type
-      TProductList = specialize TObjectList<TInAppProduct>;
+      TProductList = {$ifdef FPC}specialize{$endif} TObjectList<TInAppProduct>;
     var
       FDebugMockupBuying: boolean;
       List: TProductList;
@@ -199,8 +199,8 @@ type
       The overloaded version with TAvailableProduct allows to provide additional
       information to the in-app payment system, see @link(TAvailableProduct) docs.
       @groupBegin }
-    procedure SetAvailableProducts(const Names: array of string);
-    procedure SetAvailableProducts(const Products: array of TAvailableProduct);
+    procedure SetAvailableProducts(const Names: array of string); overload;
+    procedure SetAvailableProducts(const Products: array of TAvailableProduct); overload;
     { @groupEnd }
 
     { Initiate a purchase of given item. }
@@ -307,16 +307,16 @@ constructor TInAppPurchases.Create(AOwner: TComponent);
 begin
   inherited;
   List := TProductList.Create(true);
-  Messaging.OnReceive.Add(@MessageReceived);
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TInAppPurchases.Destroy;
 begin
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove({$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   FreeAndNil(List);
   inherited;
 end;
@@ -433,9 +433,9 @@ begin
   FLastAvailableProducts := '';
   for I := 0 to High(Products) do
   begin
-    FLastAvailableProducts += Products[I].Name + Chr(3) + Products[I].Category;
+    FLastAvailableProducts := FLastAvailableProducts + Products[I].Name + Chr(3) + Products[I].Category;
     if I < High(Products) then
-      FLastAvailableProducts += Chr(2);
+      FLastAvailableProducts := FLastAvailableProducts + Chr(2);
   end;
   Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
@@ -447,7 +447,7 @@ var
 begin
   LogStr := Message + NL;
   for I := 0 to List.Count - 1 do
-    LogStr += 'Product ' + List[I].Name +
+    LogStr := LogStr + 'Product ' + List[I].Name +
       ', price: ' + List[I].PriceRaw +
       ', owned: ' + BoolToStr(List[I].Owns, true) +
       ', title: ' + List[I].Title +
