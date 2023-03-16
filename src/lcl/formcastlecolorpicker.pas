@@ -122,10 +122,11 @@ type
     PrevColor: TCastleColor;
 
     procedure Init(const ColorPropEditor: TCastleAbstractColorPropertyEditor;
-      InitColor: TCastleColor); overload;
+      const InitColor: TCastleColor;
+      const ShowAlpha: Boolean = true); overload;
 
     procedure Init(const ColorPropEditor: TCastleAbstractColorPropertyEditor;
-      InitColorRGB: TCastleColorRGB); overload;
+      const InitColorRGB: TCastleColorRGB); overload;
 
     function CurrentCastleColor: TCastleColor;
     function CurrentCastleColorRGB: TCastleColorRGB;
@@ -714,7 +715,8 @@ end;
 
 procedure TCastleColorPickerForm.Init(
   const ColorPropEditor: TCastleAbstractColorPropertyEditor;
-  InitColor: TCastleColor);
+  const InitColor: TCastleColor;
+  const ShowAlpha: Boolean);
 begin
   ColorPrecision := -3;
   ColorEpsilon := 0.0009;
@@ -724,20 +726,17 @@ begin
   SetColorInRgbTab(InitColor);
   SetColorInHsvTab(InitColor);
   SetAlphaValue(InitColor.W);
+
+  PanelAlpha.Visible:= ShowAlpha;
+  AlphaColorPicker.Enabled := ShowAlpha;
+  AlphaSpinEdit.Enabled := ShowAlpha;
 end;
 
 procedure TCastleColorPickerForm.Init(
   const ColorPropEditor: TCastleAbstractColorPropertyEditor;
-  InitColorRGB: TCastleColorRGB);
-var
-  InitColor: TCastleColor;
+  const InitColorRGB: TCastleColorRGB);
 begin
-  InitColor := Vector4(InitColorRGB, 1.0);
-
-  Init(ColorPropEditor, InitColor);
-
-  AlphaColorPicker.Enabled := false;
-  AlphaSpinEdit.Enabled := false;
+  Init(ColorPropEditor, Vector4(InitColorRGB, 1.0), false);
 end;
 
 end.
