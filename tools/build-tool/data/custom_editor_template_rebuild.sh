@@ -16,8 +16,8 @@ sed --in-place \
 
 cp -f "${EDITOR_SOURCE_ROOT}castle_editor.lpi" custom_editor_template/
 sed --in-place \
-  -e 's|<RequiredPackages Count="3">|<RequiredPackages Count="4">|' \
-  -e 's|</RequiredPackages>|<Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>|' \
+  -e 's|<RequiredPackages Count="4">|<RequiredPackages Count="5">|' \
+  -e 's|</RequiredPackages>|<Item5> <PackageName Value="castle_editor_automatic_package"/> </Item5> </RequiredPackages>|' \
   -e 's|<Filename Value="\(code/[_a-zA-Z0-9]\+.pas\)"|<Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/\1"|' \
   -e 's|<Filename Value="../common-code/|<Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/|' \
   -e 's|<IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>|<IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>|' \
