@@ -693,6 +693,11 @@ begin
       ', ' + SText + ', ' + VText + '));');
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := HexToColorRGB(''' + ColorRGBToHex(CurrentCastleColorRGB) + ''');');
   end;
+
+  { Without this, at least on LCL WinAPI, the memo is scrolled to the end
+    after the above operations.
+    We prefer to show the memo beginning. }
+  MemoPascalCode.SelStart := 0;
 end;
 
 function TCastleColorPickerForm.CurrentCastleColor: TCastleColor;
