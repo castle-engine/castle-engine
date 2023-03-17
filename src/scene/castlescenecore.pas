@@ -3388,6 +3388,9 @@ procedure TCastleSceneCore.LoadCore(const ARootNode: TX3DRootNode;
 var
   RestoreProcessEvents: boolean;
 begin
+  { ARootNodeCacheOrigin can be non-nil only if ARootNode is non-nil. }
+  Assert(not ((ARootNodeCacheOrigin <> nil) and (ARootNode = nil)));
+
   { temporarily turn off events, to later initialize and turn them on }
   RestoreProcessEvents := ProcessEvents;
   ProcessEvents := false;
