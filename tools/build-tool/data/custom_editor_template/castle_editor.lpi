@@ -41,9 +41,9 @@
         <PackageName Value="LCL"/>
       </Item4>
       <Item5> 
-		<PackageName Value="castle_editor_automatic_package"/>
-	  </Item5> 
-	</RequiredPackages>
+        <PackageName Value="castle_editor_automatic_package"/>
+      </Item5> 
+    </RequiredPackages>
     <Units Count="28">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
