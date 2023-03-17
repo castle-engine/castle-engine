@@ -3447,6 +3447,9 @@ var
 begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
   try
+    NewRoot := nil; // set this as RootNode when AURL is ''
+    NewRootCacheOrigin := nil;
+
     if AURL <> '' then
     begin
       { If LoadNode fails:
@@ -3464,9 +3467,6 @@ begin
       }
 
       try
-        NewRoot := nil;
-        NewRootCacheOrigin := nil;
-
         if Cache then
         begin
           NewRootCacheOrigin := X3DCache.LoadNode(AURL);
@@ -3493,9 +3493,6 @@ begin
             raise;
         end;
       end;
-    end else
-    begin
-      NewRoot := nil; // when AURL is ''
     end;
 
     { Set FURL before calling Load below.
