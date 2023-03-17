@@ -507,6 +507,11 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
 
 begin
   inherited;
+
+  // clamp Scroll, in case the contents shrunk, see https://github.com/castle-engine/castle-engine/issues/465
+  if not Between(Scroll, ScrollMin, ScrollMax) then
+    Scroll := Scroll;
+
   UpdateScrollBarVisibleAndRects;
   HandleKeys;
   DraggingInertialForce;
