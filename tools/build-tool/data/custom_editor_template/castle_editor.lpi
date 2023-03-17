@@ -27,7 +27,7 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="5">
       <Item1>
         <PackageName Value="castle_editor_components"/>
       </Item1>
@@ -40,7 +40,10 @@
       <Item4>
         <PackageName Value="LCL"/>
       </Item4>
-    <Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>
+      <Item5> 
+		<PackageName Value="castle_editor_automatic_package"/>
+	  </Item5> 
+	</RequiredPackages>
     <Units Count="28">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
