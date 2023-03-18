@@ -120,7 +120,7 @@
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
-    property LayerCollisons: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
+    property LayerCollisions: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
     property LayerNames: TCastleLayersNames read FLayerNames write FLayerNames;
   end;
 
@@ -3227,7 +3227,7 @@ begin
   if FKraftBody <> nil then
   begin
     FKraftBody.CollisionGroups := [TKraftRigidBodyCollisionGroup(FLayer)];
-    CollisionMask := FTransform.World.PhysicsProperties.LayerCollisons.FCollides[FLayer];
+    CollisionMask := FTransform.World.PhysicsProperties.LayerCollisions.FCollides[FLayer];
     Move(CollisionMask, KraftCollisionMask, SizeOf(KraftCollisionMask));
     FKraftBody.CollideWithCollisionGroups := KraftCollisionMask;
   end;

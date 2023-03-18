@@ -12,10 +12,10 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "GravityStrength" : 1.2000000000000000E+003,
-          "LayerCollisons" : {
+          "LayerCollisions" : {
             "$$ClassName" : "TCastleLayerCollisions",
-            "0" : 15,
-            "1" : 5,
+            "0" : 13,
+            "1" : 4,
             "2" : 11,
             "3" : 5
           },
@@ -24,11 +24,13 @@
             "Name0" : "Ground",
             "Desc0" : "All not dynamic things",
             "Name1" : "Player",
-            "Desc1" : "Only player here, should collide with enemies and ground.",
+            "Desc1" : "Should collide with enemies and ground.",
             "Name2" : "Enemy",
-            "Desc2" : "Enemies should not collide with other enemies, should collide with player and ground.",
-            "Name3" : "Bullets",
-            "Desc3" : "Should collide with ground and enemies"
+            "Desc2" : "Enemies should not collide with other, should collide with player and ground.",
+            "Name3" : "B",
+            "Desc3" : "Should collide with ground and enemies",
+            "Name4" : "dsadsad",
+            "Desc4" : "description"
           }
         },
         "$Children" : [
@@ -2624,6 +2626,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2666,6 +2669,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2849,6 +2853,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2896,6 +2901,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2943,6 +2949,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2990,6 +2997,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -11645,7 +11653,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 1.1543336181640625E+003,
+          "Height" : 1.1164901123046875E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
