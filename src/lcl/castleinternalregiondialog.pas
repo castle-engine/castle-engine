@@ -282,14 +282,6 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
         Floor(FSourceRegion.Bottom), ImageWidth, ImageHeight);
   end;
 
-  procedure RenderPoints(const Points: TArrayScreenPoints);
-  var
-    Point: TVector2;
-  begin
-    for Point in Points do
-      DrawCircle(Point, CircleRads, CircleRads, Vector4(0.864, 0.17, 0.03, 1));
-  end;
-
   procedure RenderImage;
   begin
     FImage.Draw(ScreenRect, ImageRect);
@@ -307,21 +299,39 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
   var
     vRect: TFloatRectangle;
     vImageRegionRect: TRectangle;
-    LineColor: TCastleColor;
     Points: TArrayImagePoints;
   const
     LineWidth: single = 2;
+    LineColor: TCastleColor = (X: 1; Y: 1; Z: 1; W: 0.8);
+    FillColor: TCastleColor = (X: 1; Y: 1; Z: 1; W: 0.382);
+    CircleColor: TCastleColor = (X: 0.86; Y: 0.21; Z: 0.14; W: 1);
+
+    procedure RenderPoints(const Points: TArrayScreenPoints);
+    var
+      Point: TVector2;
+      Rads: single;
+    const
+      RenderCircleRads = 5;
+    begin
+      Rads := Min(RenderCircleRads, CircleRads);
+      for Point in Points do
+      begin
+        DrawCircle(Point, Rads, Rads, CircleColor);
+        DrawCircleOutline(Point, Rads, Rads, LineColor,
+          LineWidth);
+      end;
+    end;
+
   begin
     vRect := ScreenRegionRectangle;
-    LineColor := CastleColors.Red;
 
     case FDesignMode of
       TDesignMode.ModeRegion:
       begin
         DrawRectangle(vRect,
-          Vector4(1, 1, 1, 0.4));
+          FillColor);
         DrawRectangleOutline(vRect,
-          LineColor, 2);
+          LineColor, LineWidth);
         RenderPoints(ScreenRegionPoints);
         RenderPoints(ScreenAdditionalPoints);
       end;
@@ -613,7 +623,8 @@ begin
   for  i := Low(FControlPointRec.Points) to High(FControlPointRec.Points) do
   begin
     FControlPointRec.Points[i].X := Clamped(FControlPointRec.Points[i].X, 0, ImageWidth);
-    FControlPointRec.Points[i].Y := Clamped(FControlPointRec.Points[i].Y, 0, ImageHeight);
+    FControlPointRec.Points[i].Y :=
+      Clamped(FControlPointRec.Points[i].Y, 0, ImageHeight);
   end;
 end;
 
