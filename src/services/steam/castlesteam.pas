@@ -19,7 +19,8 @@
   Note: Current calls to Steam API require a specific version of SteamWorks: 1.55
   You can download the corresponding dynamic library from
   https://partner.steamgames.com/downloads/list
-  Note currently only 64 bit libraries on Linux and Windows are supported }
+  Note currently only 64 bit libraries on Linux and Windows are supported
+  32-bit libraries use a different memory layout and therefore adding the support is not trivial }
 unit CastleSteam;
 
 {$I castleconf.inc}
