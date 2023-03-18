@@ -147,6 +147,13 @@ begin
   InternalDrawMarker(x, y, c);
 end;
 
+{ Castle Game Engine additional property:
+  allows to treat clicks within control rectangle,
+  but outside of the circle, as still valid (instead of resetting color
+  to default). }
+const
+  TolerateOutsideCircle = true;
+
 function THSCirclePicker.GetColorAtPoint(x, y: integer): TColor;
 var
   angle: Double;
@@ -158,6 +165,8 @@ begin
   dy := y - Radius;
 
   r := round(sqrt(sqr(dx) + sqr(dy)));
+  if TolerateOutsideCircle then
+    r := Min(r, Radius);
   if r <= radius then
   begin
     angle := 360 + 180 * arctan2(-dy, dx) / pi;
@@ -246,8 +255,13 @@ begin
 
   if r > radius then  // point outside circle
   begin
-    SetSelectedColor(clNone);
-    exit;
+    if TolerateOutsideCircle then
+      r := Radius
+    else
+    begin
+      SetSelectedColor(clNone);
+      exit;
+    end;
   end;
 
   //FSelectedColor := clWhite;         // ????
