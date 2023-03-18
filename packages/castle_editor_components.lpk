@@ -11,6 +11,11 @@
         <OtherUnitFiles Value="../tools/castle-editor/components/mbColorLib;../tools/castle-editor/components"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <Other>
+        <Verbosity>
+          <ShowHints Value="False"/>
+        </Verbosity>
+      </Other>
     </CompilerOptions>
     <Description Value="Components used by CGE editor. Engine developers (who wish to modify CGE editor forms) should install this in Lazarus IDE.
 
