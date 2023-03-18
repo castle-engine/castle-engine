@@ -72,7 +72,7 @@ begin
     if (PropertyHook <> nil) and (PropertyHook is TCastlePropertyEditorHook) then
     begin
       CastlePropertyHook := PropertyHook as TCastlePropertyEditorHook;
-      ColorPicker.Position := poDefaultPosOnly;
+      ColorPicker.Position := poDesigned;
       InspectorArea := CastlePropertyHook.InspectorAreaOnScreen;
       ColorPicker.Left := InspectorArea.Left -
         (ColorPicker.Width - InspectorArea.Width);
