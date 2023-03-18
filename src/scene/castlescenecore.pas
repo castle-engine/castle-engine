@@ -3544,6 +3544,14 @@ end;
 procedure TCastleSceneCore.Loaded;
 begin
   inherited;
+
+  {$ifdef FPC} // with non-FPC, we don't define PrimitiveGeometry at all
+  {$warnings off} // using deprecated to warn about it
+  if PrimitiveGeometry <> pgNone then
+    WritelnWarning('PrimitiveGeometry is deprecated. Instead: use specialized components like TCastleBox, TCastleSphere');
+  {$warnings on}
+  {$endif}
+
   if FPendingSetUrl <> '' then
   begin
     Url := FPendingSetUrl;
