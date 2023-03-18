@@ -148,9 +148,9 @@ Initialization
   MyCallbackVTable.Run_2 := @MySteamCallback_Run_2;
   MyCallbackVTable.GetCallbackSizeBytes := @MySteamCallback_GetCallbackSizeBytes;
 
-{$else}
+{$else STEAM_API}
 Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer); begin end;
 Destructor SteamCallbackDispatcher.Destroy; begin inherited end;
-{$endif}
+{$endif STEAM_API}
 
 End.
