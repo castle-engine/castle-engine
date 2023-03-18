@@ -495,16 +495,17 @@
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       CornerTop, CornerRight, CornerBottom, CornerLeft: Single;
-      const SrcTop: Single = 0; const SrcRight: Single = 0; const SrcBottom: Single = 0;
-      const SrcLeft: Single = 0; const ScaleCornerEx: Single = 1); overload;
+       SrcLeft: Single = 0; SrcBottom: Single = 0;
+       SrcWidth: Single = -1; SrcHeight: Single = -1;
+      const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1); overload;
+      const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
-      const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1); overload;
+      const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
-      const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1); overload;
+      const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
-      const Corner: TVector4; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1); overload;
+      const Corner: TVector4; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -1371,8 +1372,9 @@ end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       CornerTop, CornerRight, CornerBottom, CornerLeft: Single;
-      const SrcTop: Single = 0; const SrcRight: Single = 0; const SrcBottom: Single = 0;
-      const SrcLeft: Single = 0; const ScaleCornerEx: Single = 1);
+      SrcLeft: Single = 0; SrcBottom: Single = 0;
+      SrcWidth: Single = -1; SrcHeight: Single = -1;
+      const ScaleCornerEx: Single = 1);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
@@ -1411,7 +1413,6 @@ var
     HorizontalImageSize, VerticalImageSize: Single;
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
   DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
-  SrcWidth,SrcHeight: Single;
 
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1420,8 +1421,13 @@ var
 begin
   if SmoothScaling then Epsilon := 0.51 else Epsilon := 0.01;
 
-  SrcWidth := Width - SrcLeft - SrcRight;
-  SrcHeight := Height - SrcBottom - SrcTop;
+  if (SrcWidth < 0) or (SrcHeight < 0) then
+  begin
+    SrcLeft := 0;
+    SrcBottom := 0;
+    SrcWidth := Width;
+    SrcHeight := Height;
+  end;
 
   FitWithin(CornerLeft, CornerRight, SrcWidth);
   FitWithin(CornerBottom, CornerTop, SrcHeight);
@@ -1437,12 +1443,12 @@ begin
   XScreenLeft := X;
   XImageLeft := SrcLeft;
   XScreenRight := X + DrawWidth - DrawCornerRight;
-  XImageRight  := Width - SrcRight -  CornerRight;
+  XImageRight  := SrcLeft + SrcWidth -  CornerRight;
 
   YScreenBottom := Y;
   YImageBottom := SrcBottom;
   YScreenTop := Y + DrawHeight - DrawCornerTop;
-  YImageTop  := Height - SrcTop -    CornerTop;
+  YImageTop  := SrcBottom + SrcHeight - CornerTop;
 
   { setup rotations }
   if Rotation <> 0 then
@@ -1497,34 +1503,34 @@ begin
 end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1);
+  const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1);
 begin
   Draw3x3(X, Y, DrawWidth, DrawHeight,
-    Corner[0], Corner[1], Corner[2], Corner[3], SrcCorner[0], SrcCorner[1], SrcCorner[2], SrcCorner[3], ScaleCornerEx);
+    Corner[0], Corner[1], Corner[2], Corner[3], SrcRect.Left, SrcRect.Bottom, SrcRect.Width, SrcRect.Height, ScaleCornerEx);
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TRectangle;
-  const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1);
+  const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
-    Corner[0], Corner[1], Corner[2], Corner[3], SrcCorner[0], SrcCorner[1], SrcCorner[2], SrcCorner[3], ScaleCornerEx);
+    Corner[0], Corner[1], Corner[2], Corner[3], SrcRect.Left, SrcRect.Bottom, SrcRect.Width, SrcRect.Height, ScaleCornerEx);
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TFloatRectangle;
-  const Corner: TVector4Integer; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1);
+  const Corner: TVector4Integer; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
-    Corner[0], Corner[1], Corner[2], Corner[3], SrcCorner[0], SrcCorner[1], SrcCorner[2], SrcCorner[3], ScaleCornerEx);
+    Corner[0], Corner[1], Corner[2], Corner[3], SrcRect.Left, SrcRect.Bottom, SrcRect.Width, SrcRect.Height, ScaleCornerEx);
 end;
 
 procedure TDrawableImage.Draw3x3(const ScreenRect: TFloatRectangle;
-  const Corner: TVector4; const SrcCorner: TVector4; const ScaleCornerEx: Single = 1);
+  const Corner: TVector4; const SrcRect: TFloatRectangle; const ScaleCornerEx: Single = 1);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
-    Corner[0], Corner[1], Corner[2], Corner[3], SrcCorner[0], SrcCorner[1], SrcCorner[2], SrcCorner[3], ScaleCornerEx);
+    Corner[0], Corner[1], Corner[2], Corner[3], SrcRect.Left, SrcRect.Bottom, SrcRect.Width, SrcRect.Height, ScaleCornerEx);
 end;
 
 function TDrawableImage.CurrentFilter: TTextureFilter;

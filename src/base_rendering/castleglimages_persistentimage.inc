@@ -725,7 +725,8 @@ procedure TCastleImagePersistent.Draw(
   end;
 
 var
-  ProtectedSidesVector, SrcSidesVector: TVector4;
+  ProtectedSidesVector: TVector4;
+  SrcRect: TFloatRectangle;
 begin
   if (DrawableImage.Width = 0) or (DrawableImage.Height = 0) then Exit;
 
@@ -767,16 +768,11 @@ begin
       ProtectedSides.TotalLeft
     );
     if Clipped then
-      SrcSidesVector := Vector4(
-        FDrawableImage.Height - FRegion.Top,
-        FDrawableImage.Width - FRegion.Right,
-        FRegion.Bottom,
-        FRegion.Left
-      ) 
-	else
-      SrcSidesVector := TVector4.Zero;
+      SrcRect := FRegion
+    else
+      SrcRect := TFloatRectangle.Empty;
 
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcSidesVector, FScaleProtectedSides);
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, SrcRect, FScaleProtectedSides);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;
