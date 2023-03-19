@@ -56,4 +56,18 @@ function SteamAPI_ISteamUserStats_StoreStats(SteamUserStats: Pointer): Boolean; 
 //function SteamAPI_ISteamUserStats_UpdateAvgRateStat(SteamUserStats: Pointer; const StatName: PAnsiChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl; external SteamLib;
 
 implementation
+
+procedure FinalizeSteamLibrary;
+begin
+end;
+
+procedure InitializeSteamLibrary;
+begin
+end;
+
+function SteamLibraryAvailable: Boolean;
+begin
+  Result := true;
+end;
+
 end.

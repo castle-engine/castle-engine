@@ -19,11 +19,14 @@ interface
 {$endif}{$endif}
 
 {$ifdef STEAM_API}
-//{$define STEAM_DYNAMIC}
+{$define STEAM_DYNAMIC}
 
 uses
   CastleInternalSteamConstantsAndTypes;
 
+procedure InitializeSteamLibrary;
+procedure FinalizeSteamLibrary;
+function SteamLibraryAvailable: Boolean;
 {$ifdef STEAM_DYNAMIC}
   {$I castleinternalsteamapi_dynamic.inc}
 {$else}
