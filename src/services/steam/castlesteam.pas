@@ -142,6 +142,7 @@ end;
 procedure InitSteam(const AppId: Integer);
 begin
   {$ifdef STEAM_API}
+  InitializeSteamLibrary;
   // Initialize Steam API
   if SteamAPI_Init() then
   begin
