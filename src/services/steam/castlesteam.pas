@@ -143,6 +143,11 @@ procedure InitSteam(const AppId: Integer);
 begin
   {$ifdef STEAM_API}
   InitializeSteamLibrary;
+  if not SteamLibraryAvailable then
+  begin
+    WriteLnWarning('FATAL: InitializeSteamLibrary failed!');
+    Halt(1);
+  end;
   // Initialize Steam API
   if SteamAPI_Init() then
   begin
