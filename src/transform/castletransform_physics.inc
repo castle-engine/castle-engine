@@ -120,7 +120,10 @@
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
+     { Configures the way layers interact each other. }
     property LayerCollisions: TCastleLayerCollisions read FLayerCollisions write FLayerCollisions;
+
+    { Each layer can also have name and description. }
     property LayerNames: TCastleLayerNames read FLayerNames write FLayerNames;
   end;
 
