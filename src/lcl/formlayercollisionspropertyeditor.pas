@@ -72,7 +72,7 @@ implementation
 
 {$R *.lfm}
 
-uses formphysicslayernamespropertyeditor;
+uses FormPhysicsLayerNamesPropertyEditor;
 
 { TLayerCollisionsPropertyEditorForm ----------------------------------------- }
 

@@ -1,4 +1,4 @@
-unit formphysicslayernamespropertyeditor;
+unit FormPhysicsLayerNamesPropertyEditor;
 
 {$mode ObjFPC}{$H+}
 
