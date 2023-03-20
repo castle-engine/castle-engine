@@ -45,19 +45,19 @@
     property Collides[const Layer1, Layer2: TPhysicsLayer]: Boolean read GetCollides write SetCollides;
   end;
 
-  TCastleLayersNames = class (TCastleComponent)
+  TCastleLayerNames = class (TCastleComponent)
   strict private
-    FLayersNames: array[TPhysicsLayer] of String;
-    FLayersDescriptions: array[TPhysicsLayer] of String;
-    function GetLayersDescriptions(const Layer: TPhysicsLayer): String;
-    function GetLayersNames(const Layer: TPhysicsLayer): String;
-    procedure SetLayersNames(const Layer: TPhysicsLayer; const AValue: String);
-    procedure SetLayersDescriptions(const Layer: TPhysicsLayer; const AValue: String);
+    FLayerNames: array[TPhysicsLayer] of String;
+    FLayerDescriptions: array[TPhysicsLayer] of String;
+    function GetLayerDescriptions(const Layer: TPhysicsLayer): String;
+    function GetLayerNames(const Layer: TPhysicsLayer): String;
+    procedure SetLayerNames(const Layer: TPhysicsLayer; const AValue: String);
+    procedure SetLayerDescriptions(const Layer: TPhysicsLayer; const AValue: String);
   public
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
-    property Names[const Layer: TPhysicsLayer]: String read GetLayersNames write SetLayersNames;
-    property Descriptions[const Layer: TPhysicsLayer]: String read GetLayersDescriptions write SetLayersDescriptions;
+    property Names[const Layer: TPhysicsLayer]: String read GetLayerNames write SetLayerNames;
+    property Descriptions[const Layer: TPhysicsLayer]: String read GetLayerDescriptions write SetLayerDescriptions;
   end;
 
   { Configure physics simulation calculation. }
@@ -70,7 +70,7 @@
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FContinuousCollisionDetection: Boolean;
     FLayerCollisions: TCastleLayerCollisions;
-    FLayerNames: TCastleLayersNames;
+    FLayerNames: TCastleLayerNames;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
@@ -121,7 +121,7 @@
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
     property LayerCollisions: TCastleLayerCollisions read FLayerCollisions write FLayerCollisions;
-    property LayerNames: TCastleLayersNames read FLayerNames write FLayerNames;
+    property LayerNames: TCastleLayerNames read FLayerNames write FLayerNames;
   end;
 
   { Abstract collider that determines the shape used to determine collisions with physics bodies. }
@@ -1078,7 +1078,7 @@
       property in physics properties located in Viewport.Items.
 
       Each layer can also have name and description. We can set
-      them in @link(TPhysicsProperties.LayersNames) property.
+      them in @link(TPhysicsProperties.LayerNames) property.
     }
     property Layer: TPhysicsLayer read FLayer write SetLayer default 0;
 
@@ -1294,32 +1294,32 @@ begin
   end;
 end;
 
-{ TCastleLayersNames --------------------------------------------------------- }
+{ TCastleLayerNames --------------------------------------------------------- }
 
-function TCastleLayersNames.GetLayersDescriptions(
+function TCastleLayerNames.GetLayerDescriptions(
     const Layer: TPhysicsLayer): String;
 begin
-  Result := FLayersDescriptions[Layer];
+  Result := FLayerDescriptions[Layer];
 end;
 
-function TCastleLayersNames.GetLayersNames(const Layer: TPhysicsLayer): String;
+function TCastleLayerNames.GetLayerNames(const Layer: TPhysicsLayer): String;
 begin
-  Result := FLayersNames[Layer];
+  Result := FLayerNames[Layer];
 end;
 
-procedure TCastleLayersNames.SetLayersNames(const Layer: TPhysicsLayer;
+procedure TCastleLayerNames.SetLayerNames(const Layer: TPhysicsLayer;
   const AValue: String);
 begin
-  FLayersNames[Layer] := AValue;
+  FLayerNames[Layer] := AValue;
 end;
 
-procedure TCastleLayersNames.SetLayersDescriptions(const Layer: TPhysicsLayer;
+procedure TCastleLayerNames.SetLayerDescriptions(const Layer: TPhysicsLayer;
   const AValue: String);
 begin
-  FLayersDescriptions[Layer] := AValue;
+  FLayerDescriptions[Layer] := AValue;
 end;
 
-procedure TCastleLayersNames.CustomSerialization(
+procedure TCastleLayerNames.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 var
   I: TPhysicsLayer;
@@ -1329,13 +1329,13 @@ begin
 
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
-    Value := FLayersNames[I];
+    Value := FLayerNames[I];
     SerializationProcess.ReadWriteString('Name'+IntToStr(I), Value, Value <> '');
-    FLayersNames[I] := Value;
+    FLayerNames[I] := Value;
 
-    Value := FLayersDescriptions[I];
+    Value := FLayerDescriptions[I];
     SerializationProcess.ReadWriteString('Desc'+IntToStr(I), Value, Value <> '');
-    FLayersDescriptions[I] := Value;
+    FLayerDescriptions[I] := Value;
   end;
 end;
 
@@ -1358,7 +1358,7 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
-  FLayerNames := TCastleLayersNames.Create(Self);
+  FLayerNames := TCastleLayerNames.Create(Self);
   FLayerNames.SetSubComponent(true);
   FLayerCollisions := TCastleLayerCollisions.Create(Self);
   FLayerCollisions.SetSubComponent(true);

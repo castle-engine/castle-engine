@@ -179,11 +179,11 @@ See https://castle-engine.io/license for details.
       </Item31>
       <Item32>
         <Filename Value="../src/lcl/formlayercollisionspropertyeditor.pas"/>
-        <UnitName Value="formlayercollisionspropertyeditor"/>
+        <UnitName Value="FormLayerCollisionsPropertyEditor"/>
       </Item32>
       <Item33>
-        <Filename Value="../src/lcl/formphysicslayersnamespropertyeditor.pas"/>
-        <UnitName Value="FormPhysicsLayersNamesPropertyEditor"/>
+        <Filename Value="../src/lcl/formphysicslayernamespropertyeditor.pas"/>
+        <UnitName Value="formphysicslayernamespropertyeditor"/>
       </Item33>
     </Files>
     <CompatibilityMode Value="True"/>

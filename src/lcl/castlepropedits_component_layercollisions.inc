@@ -25,7 +25,7 @@ type
     procedure Edit; override;
   end;
 
-  TPhysicsLayersNamesPropertyEditor = class(TSubPropertiesEditor)
+  TPhysicsLayerNamesPropertyEditor = class(TSubPropertiesEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -42,29 +42,29 @@ type
     procedure SetValue(const NewValue: ansistring); override;
   end;
 
-{ TPhysicsLayersNamesPropertyEditor }
+{ TPhysicsLayerNamesPropertyEditor ------------------------------------------ }
 
-function TPhysicsLayersNamesPropertyEditor.GetAttributes: TPropertyAttributes;
+function TPhysicsLayerNamesPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := inherited GetAttributes + [paDialog, paRevertable] - [paSubProperties];
 end;
 
-procedure TPhysicsLayersNamesPropertyEditor.Edit;
+procedure TPhysicsLayerNamesPropertyEditor.Edit;
 var
-  LayersNamesForm: TPhysicsLayersNamesPropertyEditorForm;
-  LayerNames: TCastleLayersNames;
+  LayerNamesForm: TPhysicsLayerNamesPropertyEditorForm;
+  LayerNames: TCastleLayerNames;
 begin
-  LayerNames := GetObjectValue as TCastleLayersNames;
+  LayerNames := GetObjectValue as TCastleLayerNames;
   if LayerNames = nil then
     Exit;
 
-  LayersNamesForm := TPhysicsLayersNamesPropertyEditorForm.Create(nil);
+  LayerNamesForm := TPhysicsLayerNamesPropertyEditorForm.Create(nil);
   try
-    LayersNamesForm.Init(LayerNames);
-    if LayersNamesForm.ShowModal = mrOK then
+    LayerNamesForm.Init(LayerNames);
+    if LayerNamesForm.ShowModal = mrOK then
       Modified;
   finally
-    FreeAndNil(LayersNamesForm);
+    FreeAndNil(LayerNamesForm);
   end;
 end;
 

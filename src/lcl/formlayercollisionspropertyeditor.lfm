@@ -110,7 +110,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     OnClick = RevertButtonClick
     TabOrder = 1
   end
-  object LayersNamesButton: TButton
+  object LayerNamesButton: TButton
     AnchorSideLeft.Control = OkButton
     AnchorSideTop.Control = CancelButton
     AnchorSideTop.Side = asrBottom
@@ -122,8 +122,8 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Width = 126
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 24
-    Caption = 'Layers Names'
-    OnClick = LayersNamesButtonClick
+    Caption = 'Layer Names'
+    OnClick = LayerNamesButtonClick
     TabOrder = 3
   end
 end

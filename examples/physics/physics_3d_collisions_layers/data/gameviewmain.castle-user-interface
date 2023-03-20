@@ -42,12 +42,13 @@
             "2" : 3
           },
           "LayerNames" : {
-            "$$ClassName" : "TCastleLayersNames",
+            "$$ClassName" : "TCastleLayerNames",
             "Name0" : "Ground",
             "Desc0" : "Plane",
             "Name1" : "Wall",
             "Desc1" : "Box",
-            "Name2" : "Ball"
+            "Name2" : "Ball",
+            "Desc2" : "All balls here"
           }
         },
         "$Children" : [
@@ -85,7 +86,7 @@
           },
           {
             "$$ClassName" : "TCastlePlane",
-            "Name" : "Plane1",
+            "Name" : "Plane",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -193,7 +194,7 @@
           }
         ]
       },
-      "Name" : "Viewport1",
+      "Name" : "Viewport",
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",

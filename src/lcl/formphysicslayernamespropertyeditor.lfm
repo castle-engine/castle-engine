@@ -1,4 +1,4 @@
-object PhysicsLayersNamesPropertyEditorForm: TPhysicsLayersNamesPropertyEditorForm
+object PhysicsLayerNamesPropertyEditorForm: TPhysicsLayerNamesPropertyEditorForm
   Left = 1702
   Height = 510
   Top = 292

@@ -10,7 +10,7 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
-    LayersNamesButton: TButton;
+    LayerNamesButton: TButton;
     RevertButton: TButton;
     CancelButton: TButton;
     OkButton: TButton;
@@ -18,7 +18,7 @@ type
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
     procedure FormResize(Sender: TObject);
-    procedure LayersNamesButtonClick(Sender: TObject);
+    procedure LayerNamesButtonClick(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure RevertButtonClick(Sender: TObject);
   strict private
@@ -72,7 +72,7 @@ implementation
 
 {$R *.lfm}
 
-uses FormPhysicsLayersNamesPropertyEditor;
+uses formphysicslayernamespropertyeditor;
 
 { TLayerCollisionsPropertyEditorForm ----------------------------------------- }
 
@@ -81,21 +81,21 @@ begin
   UpdateHorizontalNamesTop;
 end;
 
-procedure TLayerCollisionsPropertyEditorForm.LayersNamesButtonClick(
+procedure TLayerCollisionsPropertyEditorForm.LayerNamesButtonClick(
   Sender: TObject);
 var
-  LayersNamesForm: TPhysicsLayersNamesPropertyEditorForm;
-  LayerNames: TCastleLayersNames;
+  LayerNamesForm: TPhysicsLayerNamesPropertyEditorForm;
+  LayerNames: TCastleLayerNames;
 begin
   if not (FLayerCollisions.Owner is TPhysicsProperties) then
     Exit;
 
   LayerNames := TPhysicsProperties(FLayerCollisions.Owner).LayerNames;
 
-  LayersNamesForm := TPhysicsLayersNamesPropertyEditorForm.Create(nil);
+  LayerNamesForm := TPhysicsLayerNamesPropertyEditorForm.Create(nil);
   try
-    LayersNamesForm.Init(LayerNames);
-    if LayersNamesForm.ShowModal = mrOK then
+    LayerNamesForm.Init(LayerNames);
+    if LayerNamesForm.ShowModal = mrOK then
     begin
       // update layers names and
       RepaintVerticalNames(Self);
@@ -103,7 +103,7 @@ begin
       UpdateCheckboxesHints;
     end;
   finally
-    FreeAndNil(LayersNamesForm);
+    FreeAndNil(LayerNamesForm);
   end;
 end;
 

@@ -1,4 +1,4 @@
-unit FormPhysicsLayersNamesPropertyEditor;
+unit formphysicslayernamespropertyeditor;
 
 {$mode ObjFPC}{$H+}
 
@@ -9,7 +9,7 @@ uses
   StdCtrls, ValEdit, CastleTransform, Types;
 
 type
-  TPhysicsLayersNamesPropertyEditorForm = class(TForm)
+  TPhysicsLayerNamesPropertyEditorForm = class(TForm)
     CancelButton: TButton;
     OkButton: TButton;
     NamesAndDescStringGrid: TStringGrid;
@@ -20,17 +20,17 @@ type
     procedure NamesAndDescStringGridSelectEditor(Sender: TObject; ACol,
       ARow: Integer; var Editor: TWinControl);
   strict private
-    { Pointer to layers names in physics properties }
-    FLayersNames: TCastleLayersNames;
+    { Pointer to layer names in physics properties }
+    FLayerNames: TCastleLayerNames;
     { Pointer to custom editor }
     FEditor: TMemo;
     { Column edited by custom editor, used by EditorKeyDown() }
     FEditorCol: Integer;
     { Row edited by custom editor, used by EditorKeyDown() }
     FEditorRow: Integer;
-    { Load layers names to grid }
+    { Load layer names to grid }
     procedure Load;
-    { Save layers names from grid to physics properties }
+    { Save layer names from grid to physics properties }
     procedure Save;
     { Recalculate columns widths to fit grid control }
     procedure RecalculateColumnsWidth;
@@ -43,7 +43,7 @@ type
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     { Initialize window }
-    procedure Init(const LayersNames: TCastleLayersNames);
+    procedure Init(const LayerNames: TCastleLayerNames);
   end;
 
 implementation
@@ -57,14 +57,14 @@ const
   NameColIndex = 1;
   DescriptionColIndex = 2;
 
-{ TPhysicsLayersNamesPropertyEditorForm -------------------------------------- }
+{ TPhysicsLayerNamesPropertyEditorForm -------------------------------------- }
 
-procedure TPhysicsLayersNamesPropertyEditorForm.OkButtonClick(Sender: TObject);
+procedure TPhysicsLayerNamesPropertyEditorForm.OkButtonClick(Sender: TObject);
 begin
   Save;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridPrepareCanvas
+procedure TPhysicsLayerNamesPropertyEditorForm.NamesAndDescStringGridPrepareCanvas
   (Sender: TObject; ACol, ARow: Integer; AState: TGridDrawState);
 var
   ATextStyle: TTextStyle;
@@ -79,13 +79,13 @@ begin
   end;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridResize(
+procedure TPhysicsLayerNamesPropertyEditorForm.NamesAndDescStringGridResize(
   Sender: TObject);
 begin
   RecalculateColumnsWidth;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.NamesAndDescStringGridSelectEditor
+procedure TPhysicsLayerNamesPropertyEditorForm.NamesAndDescStringGridSelectEditor
   (Sender: TObject; ACol, ARow: Integer; var Editor: TWinControl);
 var
   EditorRect: TRect;
@@ -112,7 +112,7 @@ begin
   end;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.Load;
+procedure TPhysicsLayerNamesPropertyEditorForm.Load;
 var
   I: Integer;
 begin
@@ -121,23 +121,23 @@ begin
   for I := Low(TPhysicsLayer) + 1 to High(TPhysicsLayer) + 1 do
   begin
     NamesAndDescStringGrid.Cols[0][I] := IntToStr(I - 1);
-    NamesAndDescStringGrid.Cols[1][I] := FLayersNames.Names[TPhysicsLayer(I-1)];
-    NamesAndDescStringGrid.Cols[2][I] := FLayersNames.Descriptions[TPhysicsLayer(I-1)];
+    NamesAndDescStringGrid.Cols[1][I] := FLayerNames.Names[TPhysicsLayer(I-1)];
+    NamesAndDescStringGrid.Cols[2][I] := FLayerNames.Descriptions[TPhysicsLayer(I-1)];
   end;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.Save;
+procedure TPhysicsLayerNamesPropertyEditorForm.Save;
 var
   I: Integer;
 begin
   for I := Low(TPhysicsLayer) + 1 to High(TPhysicsLayer) + 1 do
   begin
-    FLayersNames.Names[TPhysicsLayer(I-1)] := NamesAndDescStringGrid.Cols[1][I];
-    FLayersNames.Descriptions[TPhysicsLayer(I-1)] := NamesAndDescStringGrid.Cols[2][I];
+    FLayerNames.Names[TPhysicsLayer(I-1)] := NamesAndDescStringGrid.Cols[1][I];
+    FLayerNames.Descriptions[TPhysicsLayer(I-1)] := NamesAndDescStringGrid.Cols[2][I];
   end;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateColumnsWidth;
+procedure TPhysicsLayerNamesPropertyEditorForm.RecalculateColumnsWidth;
 const
   MinColWidth = 30;
   NumberColPercent: Single = 0.07;
@@ -161,7 +161,7 @@ begin
   RecalculateRowsWidth;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateRowWidth(const RowIndex: Integer);
+procedure TPhysicsLayerNamesPropertyEditorForm.RecalculateRowWidth(const RowIndex: Integer);
 var
   ARect: TRect;
 begin
@@ -179,7 +179,7 @@ begin
     NamesAndDescStringGrid.DefaultRowHeight, ARect.Bottom);
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.RecalculateRowsWidth;
+procedure TPhysicsLayerNamesPropertyEditorForm.RecalculateRowsWidth;
 var
   I: Integer;
 begin
@@ -187,7 +187,7 @@ begin
     RecalculateRowWidth(I);
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.EditorKeyDown(Sender: TObject;
+procedure TPhysicsLayerNamesPropertyEditorForm.EditorKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
   if (Key = 13) and (Shift = []) then
@@ -244,10 +244,10 @@ begin
   end;
 end;
 
-procedure TPhysicsLayersNamesPropertyEditorForm.Init(
-  const LayersNames: TCastleLayersNames);
+procedure TPhysicsLayerNamesPropertyEditorForm.Init(
+  const LayerNames: TCastleLayerNames);
 begin
-  FLayersNames := LayersNames;
+  FLayerNames := LayerNames;
 
   Load;
   RecalculateColumnsWidth;

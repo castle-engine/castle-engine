@@ -20,17 +20,15 @@
             "3" : 5
           },
           "LayerNames" : {
-            "$$ClassName" : "TCastleLayersNames",
+            "$$ClassName" : "TCastleLayerNames",
             "Name0" : "Ground",
             "Desc0" : "All not dynamic things",
             "Name1" : "Player",
             "Desc1" : "Should collide with enemies and ground.",
             "Name2" : "Enemy",
             "Desc2" : "Enemies should not collide with other, should collide with player and ground.",
-            "Name3" : "B",
-            "Desc3" : "Should collide with ground and enemies",
-            "Name4" : "dsadsad",
-            "Desc4" : "description"
+            "Name3" : "Bullet",
+            "Desc3" : "Should collide with ground and enemies"
           }
         },
         "$Children" : [
@@ -11742,7 +11740,7 @@
           },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.4800000190734863E+001
+            "Y" : -1.6800001144409180E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -11768,7 +11766,7 @@
           },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -3.6799999237060547E+001
+            "Y" : -3.8800003051757812E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

@@ -53,7 +53,7 @@ uses // FPC and LCL units
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation,
-  FormLayerCollisionsPropertyEditor, FormPhysicsLayersNamesPropertyEditor;
+  FormLayerCollisionsPropertyEditor, formphysicslayernamespropertyeditor;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -187,8 +187,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleLayerCollisions), nil,  '',
     TLayerCollisionsPropertyEditor);
 
-  RegisterPropertyEditor(TypeInfo(TCastleLayersNames), nil, '',
-    TPhysicsLayersNamesPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleLayerNames), nil, '',
+    TPhysicsLayerNamesPropertyEditor);
 
   { used by LockRotation, LockTranslation }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
