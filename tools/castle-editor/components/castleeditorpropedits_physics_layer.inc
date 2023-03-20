@@ -14,7 +14,6 @@
   ----------------------------------------------------------------------------
 }
 
-{ TCastle property editor. }
 {$ifdef read_interface}
 type
 
