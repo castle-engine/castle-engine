@@ -154,7 +154,6 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item25>
       <Item26>
-        <Filename Value="../src/lcl/castlepropedits_component_layercollisions.inc"/>
         <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
         <Type Value="Include"/>
       </Item26>
@@ -168,6 +167,10 @@ See https://castle-engine.io/license for details.
       </Item28>
       <Item29>
         <Filename Value="../src/lcl/castlepropedits_tiledlayers.inc"/>
+        <Type Value="Include"/>
+      </Item29>
+      <Item30>
+        <Filename Value="../src/lcl/castlepropedits_component_layercollisions.inc"/>
         <Type Value="Include"/>
       </Item30>
       <Item31>
