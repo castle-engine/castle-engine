@@ -199,64 +199,49 @@ begin
   if (Key = 37) and (Shift = []) then
   begin
     { Change editor to left }
-    if (FEditor.SelLength = 0) and (FEditor.SelStart = 0) then
+    if (FEditor.SelLength = 0) and (FEditor.SelStart = 0) and
+      (NamesAndDescStringGrid.Col > 0) then
     begin
-      if NamesAndDescStringGrid.Col > 0 then
-      begin
-        NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
-        FEditor.Hide;
-        NamesAndDescStringGrid.SetFocus;
-        NamesAndDescStringGrid.Col := NamesAndDescStringGrid.Col - 1;
-      end;
+      NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
+      FEditor.Hide;
+      NamesAndDescStringGrid.SetFocus;
+      NamesAndDescStringGrid.Col := NamesAndDescStringGrid.Col - 1;
     end;
   end else
   if (Key = 39) and (Shift = []) then
   begin
     { Change editor to right }
-    if (FEditor.SelLength = 0) and (FEditor.SelStart = Length(FEditor.Text)) then
+    if (FEditor.SelLength = 0) and (FEditor.SelStart = Length(FEditor.Text)) and
+      (NamesAndDescStringGrid.Col < NamesAndDescStringGrid.ColCount - 1) then
     begin
-      if NamesAndDescStringGrid.Col < NamesAndDescStringGrid.ColCount - 1 then
-      begin
-        NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
-        FEditor.Hide;
-        NamesAndDescStringGrid.SetFocus;
-        NamesAndDescStringGrid.Col := NamesAndDescStringGrid.Col + 1;
-      end;
+      NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
+      FEditor.Hide;
+      NamesAndDescStringGrid.SetFocus;
+      NamesAndDescStringGrid.Col := NamesAndDescStringGrid.Col + 1;
     end;
   end else
   if (Key = 40) and (Shift = []) then
   begin
     { Change editor to next row }
-    if (FEditor.SelLength = 0) then
+    if (FEditor.SelLength = 0) and (NamesAndDescStringGrid.Row < NamesAndDescStringGrid.RowCount - 1) then
     begin
-      if NamesAndDescStringGrid.Row < NamesAndDescStringGrid.RowCount - 1 then
-      begin
-        NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
-        FEditor.Hide;
-        NamesAndDescStringGrid.SetFocus;
-        NamesAndDescStringGrid.Row := NamesAndDescStringGrid.Row + 1;
-      end;
+      NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
+      FEditor.Hide;
+      NamesAndDescStringGrid.SetFocus;
+      NamesAndDescStringGrid.Row := NamesAndDescStringGrid.Row + 1;
     end;
   end else
   if (Key = 38) and (Shift = []) then
   begin
     { Change editor to previous row }
-    if (FEditor.SelLength = 0) then
+    if (FEditor.SelLength = 0) and (NamesAndDescStringGrid.Row > 1) then
     begin
-      if NamesAndDescStringGrid.Row > 1 then
-      begin
-        NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
-        FEditor.Hide;
-        NamesAndDescStringGrid.SetFocus;
-        NamesAndDescStringGrid.Row := NamesAndDescStringGrid.Row - 1;
-      end;
+      NamesAndDescStringGrid.Cols[FEditorCol][FEditorRow] := FEditor.Text;
+      FEditor.Hide;
+      NamesAndDescStringGrid.SetFocus;
+      NamesAndDescStringGrid.Row := NamesAndDescStringGrid.Row - 1;
     end;
-  end {else
-  if (Key = 27) and (Shift = []) then
-  begin
-    FEditor.Hide;
-    NamesAndDescStringGrid.SetFocus;
-  end;}
+  end;
 end;
 
 procedure TPhysicsLayersNamesPropertyEditorForm.Init(
