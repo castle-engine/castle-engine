@@ -9,37 +9,20 @@ object PhysicsLayerNamesPropertyEditorForm: TPhysicsLayerNamesPropertyEditorForm
   DesignTimePPI = 120
   Position = poMainFormCenter
   LCLVersion = '2.2.5.0'
-  object OkButton: TButton
-    AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 720
-    Height = 31
-    Top = 4
-    Width = 94
-    Anchors = [akTop, akRight]
-    BorderSpacing.Top = 4
-    BorderSpacing.Right = 4
-    Caption = 'OK'
-    ModalResult = 1
-    OnClick = OkButtonClick
-    TabOrder = 0
-  end
   object NamesAndDescStringGrid: TStringGrid
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = OkButton
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrCenter
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel
     Left = 4
-    Height = 502
+    Height = 448
     Top = 4
-    Width = 712
+    Width = 810
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 4
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
-    BorderSpacing.Bottom = 4
     ColCount = 3
     Columns = <    
       item
@@ -67,28 +50,31 @@ object PhysicsLayerNamesPropertyEditorForm: TPhysicsLayerNamesPropertyEditorForm
     ScrollBars = ssAutoVertical
     ShowHint = True
     TabAdvance = aaDown
-    TabOrder = 2
+    TabOrder = 0
     TitleStyle = tsNative
     OnPrepareCanvas = NamesAndDescStringGridPrepareCanvas
     OnResize = NamesAndDescStringGridResize
     OnSelectEditor = NamesAndDescStringGridSelectEditor
   end
-  object CancelButton: TButton
-    AnchorSideLeft.Control = OkButton
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = OkButton
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = OkButton
-    AnchorSideRight.Side = asrBottom
-    Left = 721
-    Height = 31
-    Top = 39
-    Width = 93
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 4
-    BorderSpacing.Top = 4
-    Caption = 'Cancel'
-    ModalResult = 2
+  object ButtonPanel: TButtonPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideBottom.Control = Owner
+    Left = 8
+    Height = 42
+    Top = 460
+    Width = 802
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    OKButton.OnClick = OkButtonClick
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
     TabOrder = 1
+    ShowButtons = [pbOK, pbCancel]
   end
 end

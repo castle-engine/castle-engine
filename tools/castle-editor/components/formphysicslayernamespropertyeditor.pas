@@ -6,12 +6,11 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, ComCtrls,
-  StdCtrls, ValEdit, CastleTransform, Types;
+  StdCtrls, ValEdit, ButtonPanel, CastleTransform, Types;
 
 type
   TPhysicsLayerNamesPropertyEditorForm = class(TForm)
-    CancelButton: TButton;
-    OkButton: TButton;
+    ButtonPanel: TButtonPanel;
     NamesAndDescStringGrid: TStringGrid;
     procedure OkButtonClick(Sender: TObject);
     procedure NamesAndDescStringGridPrepareCanvas(Sender: TObject; ACol,
