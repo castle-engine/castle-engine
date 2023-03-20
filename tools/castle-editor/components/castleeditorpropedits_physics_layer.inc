@@ -1,4 +1,4 @@
-{%MainUnit castlepropedits.pas}
+{%MainUnit castleeditorpropedits.pas}
 {
   Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijanski
 
@@ -15,11 +15,11 @@
 }
 
 { TCastle property editor. }
-
+{$ifdef read_interface}
 type
 
   { Property editor for layer collisions }
-  TLayerCollisionsPropertyEditor = class(TSubPropertiesEditor)
+  TPhysicsLayerCollisionsPropertyEditor = class(TSubPropertiesEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -41,7 +41,9 @@ type
     procedure GetValues(Proc: TGetStrProc); override;
     procedure SetValue(const NewValue: ansistring); override;
   end;
+{$endif read_interface}
 
+{$ifdef read_implementation}
 { TPhysicsLayerNamesPropertyEditor ------------------------------------------ }
 
 function TPhysicsLayerNamesPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -70,12 +72,12 @@ end;
 
 { TLayerCollisionsPropertyEditor --------------------------------------------- }
 
-function TLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
+function TPhysicsLayerCollisionsPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := inherited GetAttributes + [paDialog, paRevertable] - [paSubProperties];
 end;
 
-procedure TLayerCollisionsPropertyEditor.Edit;
+procedure TPhysicsLayerCollisionsPropertyEditor.Edit;
 var
   LayerCollisionsForm: TLayerCollisionsPropertyEditorForm;
   LayerCollisions: TCastleLayerCollisions;
@@ -157,5 +159,5 @@ begin
     SetOrdValue(IntValue);
 end;
 
-
+{$endif read_implementation}
 

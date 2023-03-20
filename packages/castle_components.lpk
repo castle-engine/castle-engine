@@ -48,7 +48,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="33">
+    <Files Count="30">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -170,21 +170,9 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item29>
       <Item30>
-        <Filename Value="../src/lcl/castlepropedits_component_layercollisions.inc"/>
-        <Type Value="Include"/>
-      </Item30>
-      <Item31>
         <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
         <Type Value="Include"/>
-      </Item31>
-      <Item32>
-        <Filename Value="../src/lcl/formlayercollisionspropertyeditor.pas"/>
-        <UnitName Value="FormLayerCollisionsPropertyEditor"/>
-      </Item32>
-      <Item33>
-        <Filename Value="../src/lcl/formphysicslayernamespropertyeditor.pas"/>
-        <UnitName Value="formphysicslayernamespropertyeditor"/>
-      </Item33>
+      </Item30>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">
