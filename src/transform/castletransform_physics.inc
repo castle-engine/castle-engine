@@ -69,7 +69,7 @@
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FContinuousCollisionDetection: Boolean;
-    FLayerCollisons: TCastleLayerCollisions;
+    FLayerCollisions: TCastleLayerCollisions;
     FLayerNames: TCastleLayersNames;
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
@@ -120,7 +120,7 @@
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
-    property LayerCollisions: TCastleLayerCollisions read FLayerCollisons write FLayerCollisons;
+    property LayerCollisions: TCastleLayerCollisions read FLayerCollisions write FLayerCollisions;
     property LayerNames: TCastleLayersNames read FLayerNames write FLayerNames;
   end;
 
@@ -1360,8 +1360,8 @@ begin
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
   FLayerNames := TCastleLayersNames.Create(Self);
   FLayerNames.SetSubComponent(true);
-  FLayerCollisons := TCastleLayerCollisions.Create(Self);
-  FLayerCollisons.SetSubComponent(true);
+  FLayerCollisions := TCastleLayerCollisions.Create(Self);
+  FLayerCollisions.SetSubComponent(true);
 end;
 
 destructor TPhysicsProperties.Destroy;
@@ -1840,7 +1840,7 @@ function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisons',
+     'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisions',
      'LayerNames'
      ]) then
     Result := [psBasic]
