@@ -3,7 +3,7 @@ object PhysicsLayerNamesPropertyEditorForm: TPhysicsLayerNamesPropertyEditorForm
   Height = 510
   Top = 292
   Width = 818
-  Caption = 'Physics layers names config'
+  Caption = 'Physics layer names config'
   ClientHeight = 510
   ClientWidth = 818
   DesignTimePPI = 120
