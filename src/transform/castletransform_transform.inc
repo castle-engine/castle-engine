@@ -3276,9 +3276,17 @@ var
   OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
-  HasSavedDepthRange: Boolean;
+  HasSavedDepthRange, HasSavedDepthFunc: Boolean;
   SavedDepthRange: TDepthRange;
+  SavedDepthFunc: TDepthFunction;
 begin
+  HasSavedDepthFunc := BlendingSort = bsYSort;
+  if HasSavedDepthFunc then
+  begin
+    SavedDepthFunc := RenderContext.DepthFunc;
+    RenderContext.DepthFunc := dfAlways;
+  end;
+
   OldInMeaningfulParent := Params.InMeaningfulParent;
   Params.InMeaningfulParent := Params.InMeaningfulParent and
     { We look at Parent.MeaningfulParent, not Self.MeaningfulParent,
@@ -3371,6 +3379,8 @@ begin
 
   if HasSavedDepthRange then
     RenderContext.DepthRange := SavedDepthRange;
+  if HasSavedDepthFunc then
+    RenderContext.DepthFunc := SavedDepthFunc;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
