@@ -2775,10 +2775,6 @@ procedure TCastleRigidBody.InitializeCollider;
 
     FKraftBody.Finish;
 
-    // TODO: make this configurable
-    //FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
-    //FKraftBody.CollisionGroups := [0];
-
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
     begin
