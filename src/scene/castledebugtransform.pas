@@ -153,6 +153,7 @@ type
       end;
     var
       FBox: TDebugBox;
+      FYSortBox: TDebugBox;
       FTransform: TMatrixTransformNode;
       FParentSpace: TAbstractGroupingNode;
       FParent: TCastleTransform;
@@ -520,6 +521,10 @@ begin
   FBox.Color := FBoxColor;
   ParentSpace.AddChildren(FBox.Root);
 
+  FYSortBox := TDebugBox.Create(Self);
+  FYSortBox.Color := Red;
+  ParentSpace.AddChildren(FYSortBox.Root);
+
   InitializeNodes;
 
   Root := TX3DRootNode.Create;
@@ -610,6 +615,9 @@ begin
 
   // show FParent.BoundingBox
   FBox.Box := FParent.BoundingBox;
+
+  FYSortBox.Box := TBox3D.FromCenterSize(FParent.BoundingBox.Center
+    + Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
 end;
 
 procedure TDebugTransformBox.ChangedScene;
