@@ -619,7 +619,7 @@ end;
 function TCastleAbstractRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'TimeScale', 'Paused', 'BlendingSort', 'PhysicsProperties'
+       'TimeScale', 'Paused', 'PhysicsProperties'
      ]) then
     Result := [psBasic]
   else

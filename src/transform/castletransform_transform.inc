@@ -3750,7 +3750,7 @@ end;
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Exists', 'CastShadows', 'RenderLayer'
+       'Exists', 'CastShadows', 'RenderLayer', 'BlendingSort'
      ]) then
       Result := [psBasic]
   else
