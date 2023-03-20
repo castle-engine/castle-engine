@@ -103,6 +103,9 @@
       FPendingToRemoveAndFree: TComponentList;
       FRenderLayer: TRenderLayer;
 
+      FBlendingSort: TBlendingSort;
+      FSortedList: TCastleTransformList;
+
       // transformation
       FCenter: TVector3;
       FRotation: TVector4;
@@ -1977,6 +1980,60 @@
       The typical use-case is to force some object to be in front, by setting rlFront. }
     property RenderLayer: TRenderLayer read FRenderLayer write FRenderLayer default rlParent;
 
+    { When rendering, sort all the children,
+      making blending correct when there are multiple partially-transparent objects
+      in the world.
+
+      This is a simple way to achieve correct blending order when rendering multiple objects.
+      You need this when multiple objects (like TCastleScene and TCastleImageTransform)
+      use blending (partial transparency) within the world.
+      Note that inside each scene (TCastleScene) the partially-transparent
+      shapes are also sorted, following TCastleRenderOptions.BlendingSort,
+      with each TCastleScene having own TCastleRenderOptions instance.
+
+      TODO: This is a simple approach to have correct blending.
+      But it is not the most efficient approach, it is also not the most capable one.
+      However, it is really simple to use and likely is enough in many practical cases.
+
+      Future: We plan to have a rendering that gathers all partially-transparent shapes
+      from all the objects, and sorts them.
+      This will make the sorting process more efficient (it will only sort partially-transparent shapes)
+      and more capable (each shape will be ordered).
+
+      Drawbacks of current approach:
+
+      @unorderedList(
+
+        @item(
+          The sorting is repeated at every render call.
+          This is not optimal in case of 2D, where it would be more efficient
+          to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
+          objects from the world.
+
+          To avoid this overhead, just leave this property at bsNone
+          and call @link(SortBackToFront2D) when necessary.
+        )
+
+        @item(
+          The sorting accounts for all objects (not only partially transparent).
+          This is not optimal (but we cannot be more efficient because each scene
+          may contain something partially transparent).)
+
+        @item(
+          The sorting puts each TCastleScene completely in front or completely behind
+          other TCastleScene. This is not good enough when multiple TCastleScene instances
+          have multiple partially-transparent shapes and the correct order would mix their
+          shapes.)
+
+        @item(
+          The sorting is not recursive (to avoid making it really not efficient, in particular
+          to recalculate camera for each transform and to sort in each tree TCastleTransform).
+
+          This means it is not capable of dealing with some cases. It assumes that all things
+          where the order matters are direct children of TCastleAbstractRootTransform.)
+      )
+    }
+    property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -2053,6 +2110,7 @@ begin
   GLContextClose;
 
   FreeAndNil(FList);
+  FreeAndNil(FSortedList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
   inherited;
@@ -2578,7 +2636,15 @@ end;
 
 function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
 begin
-  Result := List;
+  if BlendingSort <> bsNone then
+  begin
+    if FSortedList = nil then // create on-demand
+      FSortedList := TCastleTransformList.Create(false);
+    FSortedList.Assign(List);
+    FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
+    Result := FSortedList;
+  end else
+    Result := List;
 end;
 
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);

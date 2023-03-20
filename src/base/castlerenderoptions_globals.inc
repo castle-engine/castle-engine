@@ -383,6 +383,8 @@ type
       even if viewed from the other side). }
     bs2D,
 
+    bsYSort,
+
     { Sort objects by the (3D) distance of their bounding box to the camera.
       This is the best universal sorting method for 3D
       scenes with many partially-transparent objects.
