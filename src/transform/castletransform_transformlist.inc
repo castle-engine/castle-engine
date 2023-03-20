@@ -95,7 +95,7 @@ var
 begin
   PointA := TCastleTransform(A).Translation;
   PointB := TCastleTransform(B).Translation;
-  Result := Sign(PointA.Y - PointB.Y);
+  Result := Sign(PointB.Y - PointA.Y);
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
