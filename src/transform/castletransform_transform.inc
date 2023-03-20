@@ -184,6 +184,7 @@
     { Never call ChangedTransform directly, always call this. }
     procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
   private
+    FYSortOffset: Single;
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
       a meaningful parent, so that transforms under TCastleTransformReference
@@ -2034,6 +2035,9 @@
       )
     }
     property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
+
+    property YSortOffset: Single read FYSortOffset write FYSortOffset {$IFDEF FPC}default 0{$ENDIF};
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_interface_class}

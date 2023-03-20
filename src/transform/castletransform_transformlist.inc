@@ -91,11 +91,11 @@ end;
 
 function CompareBackToFrontYSort(A, B: Pointer): Integer;
 var
-  PointA, PointB: TVector3;
+  YA, YB: Single;
 begin
-  PointA := TCastleTransform(A).Translation;
-  PointB := TCastleTransform(B).Translation;
-  Result := Sign(PointB.Y - PointA.Y);
+  YA := TCastleTransform(A).Translation.Y + TCastleTransform(A).YSortOffset;
+  YB := TCastleTransform(B).Translation.Y + TCastleTransform(B).YSortOffset;
+  Result := Sign(YB - YA);
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
