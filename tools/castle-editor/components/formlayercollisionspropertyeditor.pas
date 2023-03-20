@@ -203,6 +203,7 @@ begin
     ALabel.AnchorSide[akTop].Control := nil;
     ALabel.AnchorSide[akRight].Side := asrRight;
     ALabel.AnchorSide[akRight].Control := HorizontalNamesPanel;
+    ALabel.BorderSpacing.Right := 2;
 
     HorizontalNames[I] := ALabel;
   end;
