@@ -574,6 +574,34 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   end;
 
   function Handle_IME: Boolean;
+  
+    function ToPoint(const V: TVector2): TPoint;
+    begin
+      Result.X := Floor(V.X);
+      Result.Y := Floor(Container.Height - V.Y);
+    end;
+    
+    function GetCaretPos(var CaretPos: TPoint): Boolean;
+    var
+      CastleEdit: TCastleEdit;
+      CaretShift: Single;
+      S: string;
+    begin
+      Result := false;
+      { TODO: Handles all input controls, not just TCastleEdit }
+      if (Container.Focus.Count <> 0) and
+         (Container.Focus.Last is TCastleEdit) then
+      begin
+        CastleEdit := Container.Focus.Last as TCastleEdit;
+        S := CastleEdit.Text;
+        if CastleEdit.PasswordChar <> #0 then
+          S := StringOfChar(CastleEdit.PasswordChar, Length(S));
+        CaretShift := CastleEdit.Font.TextWidth(S);
+        CaretPos := ToPoint(CastleEdit.LocalToContainerPosition(Vector2(CaretShift / CastleEdit.UIScale, 0)));
+        Result := true;
+      end;
+    end;
+
   var
     vhIMC: HIMC;
     vSize: Integer;
@@ -581,7 +609,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString: UnicodeString;
     //vLogFont: TLogFont;
     vCF: TCompositionForm;
-    pt: TPoint;
+    Pt: TPoint;
   begin
     Result := false;
     case uMsg of
@@ -592,47 +620,58 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
           if vhIMC = 0 then Exit;
           try
             ImmSetOpenStatus(vhIMC, true);
+            { TODO: Set the LogFont size }
             {
             ImmGetCompositionFont(vhIMC, @vLogFont);
             vLogFont.lfHeight := Font.Height;
             ImmSetCompositionFont(vhIMC, @vLogFont);
             }
-            { should get focused edit's position, not done }
-            GetCursorPos(pt);
-            ScreenToClient(h_Wnd, pt);
-            pt.Offset(0,25);
-            vCF.ptCurrentPos := pt;
+            if not GetCaretPos(Pt) then
+            begin
+              GetCursorPos(Pt);
+              ScreenToClient(h_Wnd, Pt);
+              Pt.Offset(0, 25);
+            end;
+            vCF.ptCurrentPos := Pt;
             vCF.dwStyle := CFS_RECT;
             vCF.rcArea := TRect.Create(0, 0, Width, Height);
             ImmSetCompositionWindow(vhIMC, @vCF);
           finally
             ImmReleaseContext(h_Wnd, vhIMC);
           end;
+          
+          { About return value:
+            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false. 
+            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself. 
+            We only tell the system where the IME window needs to be displayed, font information, etc.
+            
+            Why do we handle WM_IME_ENDCOMPOSITION at all (that is usually when IME window is hidden)?
+            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position. 
+            So deal with WM_IME_ENDCOMPOSITION to avoid This case. 
+          }
         end;
       WM_IME_COMPOSITION:
         begin
           if (LParm and GCS_RESULTSTR) <> 0 then
           begin
             vhIMC := ImmGetContext(h_Wnd);
-            if vhIMC <> 0 then
-            begin
-              try
-                vSize := ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, nil, 0);
-                if vSize > 0 then
+            if vhIMC = 0 then Exit;
+            try
+              vSize := ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, nil, 0);
+              if vSize > 0 then
+              begin
+                SetLength(vBuffer, vSize);
+                ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, @vBuffer[0], vSize);
+                KeyString := WideStringOf(vBuffer);
+                if KeyString <> '' then
                 begin
-                  SetLength(vBuffer, vSize);
-                  ImmGetCompositionStringW(vhIMC, GCS_RESULTSTR, @vBuffer[0], vSize);
-                  KeyString := WideStringOf(vBuffer);
-                  if KeyString <> '' then
-                  begin
-                    DoKeyDown(keyNone, KeyString);
-                  end;
+                  DoKeyDown(keyNone, Utf16ToString(KeyString));
                 end;
-              finally
-                ImmReleaseContext(h_Wnd, vhIMC);
               end;
-              Result := true;
+            finally
+              ImmReleaseContext(h_Wnd, vhIMC);
             end;
+            Result := true;
           end;
         end;
     end;
@@ -1093,11 +1132,14 @@ procedure TCastleWindow.OpenBackend;
   end;
 
   procedure InitializeDpi;
+  var
+    NewDpi: Single;
   begin
-    FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
+    NewDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
     // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
     // WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
-    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
+    Container.Dpi := NewDpi;
   end;
 
   { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events

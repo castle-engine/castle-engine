@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -392,7 +392,7 @@ begin
 
     { allocate the necessary glyphs at start.
       This allows to quickly fill them later.
-      Note that we possibly allocate too much, because Length(S) may be > UTF8Length(S)
+      Note that we possibly allocate too much, because Length(S) may be > StringLength(S)
       (because of multi-byte characters), and also because some characters do not have glyphs.
       That's OK, we'll calculate real GlyphsToRender when iterating. }
     if Outline = 0 then
@@ -433,7 +433,7 @@ begin
       {$ifdef FPC}
       Inc(TextPtr, CharLen);
       {$else}
-      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       {$endif}
 
@@ -494,7 +494,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
 
@@ -530,7 +530,7 @@ begin
     Exit(0); // font not loaded
   Result := FFont.TextWidth(S) * Scale;
   if Outline <> 0 then
-    Result := Result + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
+    Result := Result + Outline * 2 * StringLength(S);
 end;
 
 function TCastleFont.TextHeight(const S: string): Single;
@@ -557,7 +557,7 @@ begin
   Result := Vector2(M.X, M.Y);
   Result.X := Result.X * Scale;
   if Outline <> 0 then
-    Result.X := Result.X + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
+    Result.X := Result.X + Outline * 2 * StringLength(S);
   Result.Y := Result.Y * Scale;
 end;
 

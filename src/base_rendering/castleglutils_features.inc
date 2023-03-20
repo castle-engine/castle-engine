@@ -472,6 +472,26 @@ type
 
     { Request specific OpenGL(ES) capabilities at context creation.
 
+      @unorderedList(
+        @item(By default we work in automatic mode: @link(rcAutomatic).
+          We will use only modern (core, >= 3.3) OpenGL features, if your OpenGL version is sufficiently high.
+          But we will fallback sensibly on OpenGL 2.0 or even OpenGL 1.1 if necessary.)
+
+        @item(You can force using only modern OpenGL 3.3 (on desktops) by setting this to @link(rcForceModern).
+
+          You can alternatively select @italic("Run -> Run Parameters -> Force Modern Rendering Context") menu item
+          before running any application from CGE editor to test it.
+          Or you can pass command-line option @code(--capabilities=force-modern).
+        )
+
+        @item(You can force using ancient OpenGL 1.1 (on desktops), only for testing, by setting this to @link(rcForceFixedFunction).
+
+          You can alternatively select @italic("Run -> Run Parameters -> Force Ancient Rendering Context") menu item
+          before running any application to test it.
+          Or you can pass command-line option @code(--capabilities=force-fixed-function).
+        )
+      )
+
       This is a class property and it can only change before OpenGL(ES)
       context is initialized, which means before TCastleWindow.Open
       occurs, which means before @link(GLFeatures) instance is initialized.

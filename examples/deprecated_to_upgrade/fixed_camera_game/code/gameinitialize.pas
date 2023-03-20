@@ -23,8 +23,8 @@ implementation
 uses SysUtils,
   CastleScene, CastleControls, CastleLog, CastleWindow,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleWindowProgress,
-  CastleProgress, CastleGameNotifications, CastleVectors, CastleSoundEngine,
+  CastleUIControls, CastleApplicationProperties,
+  CastleGameNotifications, CastleVectors, CastleSoundEngine,
   CastleTransform, CastleConfig,
   GameSound, GameConfiguration, GameCreatures, GameLocations
   {$region 'Castle Initialization Uses'}
@@ -37,30 +37,39 @@ uses SysUtils,
 var
   Window: TCastleWindow;
 
-{ routines ------------------------------------------------------------------- }
+{ load / save user config ---------------------------------------------------- }
 
-const
-  DefaultWindowWidth = 1024;
-  DefaultWindowHeight = 768;
+procedure LoadUserConfig;
+begin
+  UserConfig.Load;
+  SoundEngine.Volume := UserConfig.GetFloat('sound/volume', TSoundEngine.DefaultVolume);
+  SoundEngine.LoopingChannel[0].Volume := UserConfig.GetFloat('sound/music/volume', TLoopingChannel.DefaultVolume);
+end;
+
+procedure SaveUserConfig;
+begin
+  UserConfig.SetDeleteFloat('sound/volume',
+    SoundEngine.Volume, TSoundEngine.DefaultVolume);
+  UserConfig.SetDeleteFloat('sound/music/volume',
+    SoundEngine.LoopingChannel[0].Volume, TLoopingChannel.DefaultVolume);
+  UserConfig.Save;
+end;
+
+{ routines ------------------------------------------------------------------- }
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  Progress.UserInterface := WindowProgressInterface;
-  Window.Container.UIReferenceWidth := DefaultWindowWidth;
-  Window.Container.UIReferenceHeight := DefaultWindowHeight;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
   Window.Container.BackgroundColor := Black;
 
   { configure Notifications }
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector4(0.8, 0.8, 0.8, 1.0);
 
+  LoadUserConfig;
   InitializeSound;
-
-  { The reason for this is historical.
-    We designed models in Blender following this (non-standard) orientation. }
-  TCastleTransform.DefaultOrientation := otUpZDirectionX;
 
   { load game configuration }
   GameConfig := TCastleConfig.Create(nil);
@@ -116,11 +125,11 @@ initialization
     Note that some platforms (like mobile) ignore these window sizes.
   }
   Window.FpsShowOnCaption := true;
-  Window.Width := DefaultWindowWidth;
-  Window.Height := DefaultWindowHeight;
   Window.FullScreen := true;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }
   Window.ParseParameters;
+finalization
+  SaveUserConfig;
 end.

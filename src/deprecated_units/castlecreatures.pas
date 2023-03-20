@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1105,7 +1105,9 @@ begin
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
+  {$warnings off} // using deprecated in deprecated
   FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
+  {$warnings on}
   ScaleMin := 1;
   ScaleMax := 1;
 end;
@@ -1141,12 +1143,14 @@ begin
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
   FallDamageScaleMax := ResourceConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
 
+  {$warnings off} // using deprecated SoundFromName in deprecated
   SoundSuddenPain := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_sudden_pain', ''));
   SoundDie := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_die', ''));
   FallSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('fall/sound/name', DefaultFallSoundName), false);
+  {$warnings on}
 end;
 
 function TCreatureResource.FlexibleUp: boolean;
@@ -1339,14 +1343,18 @@ begin
   AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance', DefaultAttackMaxDistance);
   AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle', DefaultAttackMaxAngle);
   AttackMinDelay := ResourceConfig.GetFloat('attack/min_delay', DefaultAttackMinDelay);
+  {$warnings off} // using deprecated SoundFromName in deprecated
   AttackSoundHit := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackSoundStart := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_start', ''));
+  {$warnings on}
 
   FireMissileTime :=  ResourceConfig.GetFloat('fire_missile/time', DefaultFireMissileTime);
   FireMissileMaxDistance := ResourceConfig.GetFloat('fire_missile/max_distance', DefaultFireMissileMaxDistance);
   FireMissileMaxAngle := ResourceConfig.GetFloat('fire_missile/max_angle', DefaultFireMissileMaxAngle);
   FireMissileMinDelay := ResourceConfig.GetFloat('fire_missile/min_delay', DefaultFireMissileMinDelay);
+  {$warnings off} // using deprecated SoundFromName in deprecated
   FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
+  {$warnings on}
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
 end;
@@ -1401,10 +1409,12 @@ begin
     DefaultDirectionFallSpeed);
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 
+  {$warnings off} // using deprecated SoundFromName in deprecated
   SoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_hit', ''));
   SoundIdle := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_idle', ''));
+  {$warnings on}
 end;
 
 function TMissileCreatureResource.CreateCreature(

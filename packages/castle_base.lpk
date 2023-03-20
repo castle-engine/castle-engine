@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1056">
+    <Files Count="1055">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -3986,7 +3986,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item974>
       <Item975>
-        <Filename Value="../src/ui/castlecontrols_progressbar.inc"/>
+        <Filename Value="../src/ui/castlecontrols_mask.inc"/>
         <Type Value="Include"/>
       </Item975>
       <Item976>
@@ -4285,10 +4285,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleinternalclassutils.pas"/>
         <UnitName Value="CastleInternalClassUtils"/>
       </Item1048>
-      <Item1049>
-        <Filename Value="../src/common_includes/request_dedicated_gpu.inc"/>
-        <Type Value="Include"/>
-      </Item1049>
       <Item1050>
         <Filename Value="../src/ui/castleuicontrols_view.inc"/>
         <Type Value="Include"/>
@@ -4326,10 +4322,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castlerenderprimitives.pas"/>
         <UnitName Value="CastleRenderPrimitives"/>
       </Item1055>
-      <Item1056>
+      <Item1049>
         <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
         <Type Value="Include"/>
-      </Item1056>
+      </Item1049>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

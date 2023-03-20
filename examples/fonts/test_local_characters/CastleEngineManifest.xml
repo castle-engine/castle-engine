@@ -7,7 +7,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="test_local_characters"
   caption="CGE Local Characters"
-  qualified_name="io.sourceforge.castleengine.test.local.characters"
+  qualified_name="io.castleengine.test.local.characters"
   standalone_source="test_local_characters_standalone.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"

@@ -711,11 +711,42 @@ begin
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLint);
+
+{ We have a weird bug, specific to one model now (knight.gltf)
+  loaded in special way (application initialization)
+  in one example (3D model viewer template) on Windows with Nvidia.
+  So far, no other testcases of it.
+
+  OpenGL (in both modern and automatic approach) reports GL_INVALID_OPERATION,
+  debug mode shows it's at glUniform1i, setting castle_texture_0 (sampler2D) to 0.
+
+  I eliminated all "common" sources of it. The location is valid (14),
+  LogShaders confirms this (shader log), glGetUniformLocation confirms it.
+  The shader is correctly active (glUseProgram right before it) when doing glUniform1i.
+  The type is sampler2D, which is OK to be set by glUniform1i. }
+{$define CASTLE_WORKAROUND_KNIGHT}
+{$ifdef CASTLE_WORKAROUND_KNIGHT}
+var
+  ErrorCode: TGLenum;
+{$endif}
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+  begin
     glUniform1i(Location, Value);
+
+    {$ifdef CASTLE_WORKAROUND_KNIGHT}
+    ErrorCode := glGetError();
+    if ErrorCode = GL_INVALID_OPERATION then
+    begin
+      WritelnWarning('Uniform assignment at glUniform1i failed, temporary known issue -- ignoring (but please report where do you experience this warning)');
+      Exit;
+    end else
+    if ErrorCode <> GL_NO_ERROR then
+      raise EOpenGLError.Create(ErrorCode, 'glUniform1i');
+    {$endif}
+  end;
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2Integer);
@@ -1234,8 +1265,8 @@ function TGLSLProgram.DebugInfo: string;
         glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
           @Size, @AType, PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
-        UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
-          [Name, GLShaderVariableTypeName(AType), Size]));
+        UniformNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
+          [I, Name, GLShaderVariableTypeName(AType), Size]));
       end;
     end;
   end;
@@ -1271,8 +1302,8 @@ function TGLSLProgram.DebugInfo: string;
         glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
           @Size, @AType, PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
-        AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
-          [Name, GLShaderVariableTypeName(AType), Size]));
+        AttribNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
+          [I, Name, GLShaderVariableTypeName(AType), Size]));
       end;
     end;
   end;

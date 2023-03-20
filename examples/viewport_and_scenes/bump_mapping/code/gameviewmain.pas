@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,11 +23,12 @@ uses Classes,
 
 type
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from the castle-user-interface file. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainLight: TCastlePointLight;
-
+  private
     Time: TFloatTime;
     procedure UpdateMainLightLocation;
   public
@@ -53,10 +54,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainLight := DesignedComponent('MainLight') as TCastlePointLight;
-
   Time := 0;
   UpdateMainLightLocation;
 end;

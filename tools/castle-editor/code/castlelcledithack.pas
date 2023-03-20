@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -223,9 +223,9 @@ begin
     VK_END:
       begin
         if Shift = [ssShift] then
-          SelLength := UTF8Length(Text) - SelStart
+          SelLength := StringLength(Text) - SelStart
         else
-          SelStart := UTF8Length(Text);
+          SelStart := StringLength(Text);
       end;
     {.$endif}
     VK_0..VK_9:
@@ -428,7 +428,7 @@ begin
   E.SelText := AValue;
   { Without these lines, by default setting SelText keeps it selected,
     unlike on TEdit. }
-  E.SelStart := E.SelStart + UTF8Length(AValue);
+  E.SelStart := E.SelStart + StringLength(AValue);
   E.SelLength := 0;
 end;
 

@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelMessage: TCastleLabel;
     LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
@@ -37,7 +38,7 @@ type
     ButtonStartTests: TCastleButton;
     ButtonStopTests: TCastleButton;
     ButtonSelectTests: TCastleButton;
-
+  private
     Tester: TCastleTester;
     RunTests: Boolean;
 
@@ -194,25 +195,13 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  ButtonStartTests := DesignedComponent('ButtonStartTests') as TCastleButton;
   ButtonStartTests.OnClick := {$ifdef FPC}@{$endif}ClickStartTests;
 
-  ButtonStopTests := DesignedComponent('ButtonStopTests') as TCastleButton;
   ButtonStopTests.OnClick := {$ifdef FPC}@{$endif}ClickStopTests;
   ButtonStopTests.Enabled := false;
 
-  ButtonSelectTests := DesignedComponent('ButtonSelectTests') as TCastleButton;
   ButtonSelectTests.Enabled := true;
   ButtonSelectTests.Exists := false; // TODO: ButtonSelectTests functionality not implemented yet
-
-  LabelTestPassed := DesignedComponent('LabelTestPassed') as TCastleLabel;
-  LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
-  LabelMessage := DesignedComponent('LabelMessage') as TCastleLabel;
-  LabelCurrentTest := DesignedComponent('LabelCurrentTest') as TCastleLabel;
-  LabelFailedTests := DesignedComponent('LabelFailedTests') as TCastleLabel;
-  LabelTestsCount := DesignedComponent('LabelTestsCount') as TCastleLabel;
-  CheckboxStopOnFail := DesignedComponent('CheckboxStopOnFail') as TCastleCheckbox;
 
   { Make sure the tests are not running }
   RunTests := false;

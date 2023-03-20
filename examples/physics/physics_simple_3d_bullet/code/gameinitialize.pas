@@ -47,9 +47,6 @@ begin
   {$endregion 'Castle View Creation'}
 
   Window.Container.View := ViewMenu;
-
-  //SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  //SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');
 end;
 
 initialization

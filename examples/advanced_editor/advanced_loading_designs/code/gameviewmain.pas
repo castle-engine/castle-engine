@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     DesignedButton1: TCastleDesign;
     DesignedButton1Button: TCastleButton;
@@ -36,7 +37,7 @@ type
     ScrollViewTable: TCastleScrollView;
     VerticalGroupTable: TCastleVerticalGroup;
     ViewportForSoldiers: TCastleViewport;
-
+  private
     procedure ClickDesignedButton1(Sender: TObject);
     procedure ClickDesignedButton2(Sender: TObject);
   public
@@ -105,16 +106,7 @@ var
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  DesignedButton1 := DesignedComponent('DesignedButton1') as TCastleDesign;
-  DesignedButton2 := DesignedComponent('DesignedButton2') as TCastleDesign;
-  Notifications := DesignedComponent('Notifications') as TCastleNotifications;
-  ScrollViewTable := DesignedComponent('ScrollViewTable') as TCastleScrollView;
-  VerticalGroupTable := DesignedComponent('VerticalGroupTable') as TCastleVerticalGroup;
-  ViewportForSoldiers := DesignedComponent('ViewportForSoldiers') as TCastleViewport;
-
-  { Find the components inside TCastleDesigns -- need another FindRequiredComponent call }
+  { Find the components inside TCastleDesigns -- use TCastleDesign.DesignedComponent }
   DesignedButton1Button := DesignedButton1.DesignedComponent('RootButton') as TCastleButton;
   DesignedButton2Button := DesignedButton2.DesignedComponent('RootButton') as TCastleButton;
 

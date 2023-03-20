@@ -34,11 +34,12 @@
 }
 
 { TODO p1:
-  - fullscreen: should be on top of dock / menu
+  - fullscreen: should be on top of dock / menu (started but doesn't work, search for COCOA_FULL_SCREEN)
+  - hide / show mouse cursor (for mouse look) (started but doesn't work, NSCursor.hide/unhide)
+  - reposition mouse (for mouse look ) (started but doesn't work, see SetMousePosition)
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
-  - update caption at runtime
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
@@ -65,6 +66,8 @@ CocoaAll,
 {$endif}
 
 {$ifdef read_implementation_uses}
+// for CGWarp... in SetMousePosition, unused for now
+// CGRemoteOperation, CGGeometry,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -307,14 +310,14 @@ function TBorderlessWindow.initWithContentRect(contentRect: NSRect): id;
 begin
   result := initWithContentRect_styleMask_backing_defer(contentRect, NSBorderlessWindowMask, NSBackingStoreBuffered, false);
   if result <> nil then
-    begin
-      result.setMovableByWindowBackground(false);
-      //result.setBackgroundColor(NSColor.clearColor);
-      //result.setOpaque(false);
-      result.setHasShadow(false);
-      result.setExcludedFromWindowsMenu(true);
-      self := result;
-    end;
+  begin
+    result.setMovableByWindowBackground(false);
+    //result.setBackgroundColor(NSColor.clearColor);
+    //result.setOpaque(false);
+    result.setHasShadow(false);
+    result.setExcludedFromWindowsMenu(true);
+    self := result;
+  end;
 end;
 
 {=============================================}
@@ -326,6 +329,7 @@ type
   private
     ref: TCastleWindow;
     WithinCloseBackend: Cardinal;
+    ScaleFactor: Single;
   public
     procedure close; override;
     procedure becomeKeyWindow; override;
@@ -386,10 +390,43 @@ var
     end;
   end;
 
+  { Simulate pressing / release of modifiers (like shift, alt, ctrl) based on modifier flags.
+    These keys are not passed to regular key down / up keycodes.
+    See https://stackoverflow.com/questions/4640696/cocoa-nsevent-respond-to-the-shift-key
+    https://developer.apple.com/documentation/appkit/nseventmodifierflags?language=objc }
+  procedure UpdateModifiersPressed(const ModifierFlags: NSEventModifierFlags);
+  var
+    IsShift, IsAlt, IsCtrl: Boolean;
+  begin
+    IsShift := (ModifierFlags and NSShiftKeyMask) <> 0;
+    if IsShift <> win.Pressed[keyShift] then
+      if IsShift then
+        win.DoKeyDown(keyShift, '')
+      else
+        win.DoKeyUp(keyShift);
+
+    IsAlt := (ModifierFlags and NSAlternateKeyMask) <> 0;
+    if IsAlt <> win.Pressed[keyAlt] then
+      if IsAlt then
+        win.DoKeyDown(keyAlt, '')
+      else
+        win.DoKeyUp(keyAlt);
+
+    IsCtrl :=
+      //(ModifierFlags and NSControlKeyMask) <> 0;
+      (ModifierFlags and NSCommandKeyMask) <> 0; // treat Command key as Ctrl
+    if IsCtrl <> win.Pressed[keyCtrl] then
+      if IsCtrl then
+        win.DoKeyDown(keyCtrl, '')
+      else
+        win.DoKeyUp(keyCtrl);
+  end;
+
 var
   event: NSEvent;
   pool: NSAutoreleasePool;
   CastleMouseButton: TCastleMouseButton;
+  ScaleFactor: Single;
 begin
   pool := NSAutoreleasePool.alloc.init;
   event := nextEventMatchingMask_untilDate_inMode_dequeue(NSAnyEventMask, {NSDate.distantPast}nil, NSDefaultRunLoopMode, true);
@@ -413,6 +450,7 @@ begin
 
       if win <> nil then
       begin
+        ScaleFactor := TCocoaWindow(event.window).ScaleFactor;
         case event.type_ of
           NSMouseMoved,
           NSLeftMouseDragged,
@@ -425,7 +463,7 @@ begin
                 NSOtherMouseDragged: CheckMotionDragged(buttonMiddle);
               end;
               win.DoMotion(InputMotion(win.MousePosition,
-                Vector2(event.locationInWindow.x, event.locationInWindow.y), win.MousePressed, 0));
+                Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor), win.MousePressed, 0));
             end;
           NSLeftMouseDown, NSRightMouseDown, NSOtherMouseDown:
             begin
@@ -435,7 +473,7 @@ begin
                 NSOtherMouseDown: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
-              win.DoMouseDown(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+              win.DoMouseDown(Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor),
                 CastleMouseButton, 0);
             end;
           NSLeftMouseUp, NSRightMouseUp, NSOtherMouseUp:
@@ -446,14 +484,22 @@ begin
                 NSOtherMouseUp: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
-              win.DoMouseUp(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+              win.DoMouseUp(Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor),
                 CastleMouseButton, 0);
             end;
           NSKeyDown:
-            win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
-            // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            begin
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+              win.DoKeyDown(KeyCodeCocoaToCastle[event.keycode], event.characters.UTF8String);
+              // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+            end;
           NSKeyUp:
-            win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+            begin
+              win.DoKeyUp(KeyCodeCocoaToCastle[event.keycode]);
+              // UpdateModifiersPressed(event.modifierFlags); // not needed - NSFlagsChanged works well enough
+            end;
+          NSFlagsChanged:
+            UpdateModifiersPressed(event.modifierFlags);
           NSScrollWheel:
             begin
               if event.deltaX <> 0 then
@@ -629,6 +675,12 @@ begin
       {$warnings on}
     else
       ScaleFactor := 1;
+
+    if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
+    begin
+      TCocoaWindow(window).ScaleFactor := ScaleFactor;
+      windowRef.Container.Dpi := ScaleFactor * DefaultDpi
+    end;
 
     windowRef.DoResize(
       trunc(ScaleFactor * bounds.size.width),
@@ -830,27 +882,25 @@ var
   windowFlags: NSUInteger = 0;
 begin
   if not FullScreen then
-    begin
-      windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
-      window.setTitle(NSSTR(GetWholeCaption));
-    end
-  else
-    begin
-      { Update position/size in case window is fullscreen.
-        If the backend always creates a fullscreen window for some reason
-        (e.g. typical on mobile), then you can remove the condition
-        "if FullScreen then" and just do this always, regardless of FullScreen value. }
-      FLeft := 0;
-      FTop := 0;
-      DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  begin
+    windowFlags := NSTitledWindowMask + NSClosableWindowMask + NSMiniaturizableWindowMask + NSResizableWindowMask;
+    window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window.setTitle(NSSTR(GetWholeCaption));
+  end else
+  begin
+    { Update position/size in case window is fullscreen }
+    FLeft := 0;
+    FTop := 0;
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
-      windowFlags := NSBorderlessWindowMask;
-      window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
-      window.setKeepFullScreenAlways(true);
-    end;
+    // windowFlags := NSBorderlessWindowMask;
+    // window := TCocoaWindow.alloc.initWithContentRect_styleMask_backing_defer(NSMakeRect(FLeft, FTop, FWidth, FHeight), windowFlags, NSBackingStoreBuffered, false);
+    window := TCocoaWindow.alloc.initWithContentRect(NSMakeRect(FLeft, FTop, FWidth, FHeight));
+    window.setKeepFullScreenAlways(true);
+  end;
 
   window.ref := Self;
+  window.ScaleFactor := 1; // wil be detected during openGLView creation
 
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   // makes drag-and-drop files on window work
@@ -870,12 +920,13 @@ begin
   glcontext := openGLView.openGLContext;
   ref := window;
 
+  Container.Dpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
+
   Application.OpenWindowsAdd(Self);
 
   // TODO
   // GetInitialCursorPos;
   // UpdateCursor;
-  // InitializeDpi;
 end;
 
 procedure TCastleWindow.CloseBackend;
@@ -966,9 +1017,32 @@ end;
 
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
 end;
+(* TODO: Unfortunately none of the options below make any effect.
+
+var
+  PointWindowCoords, PointScreenCoords: NSPoint;
+  CgPointScreenCoords: CGPoint;
+begin
+  if not Closed then
+  begin
+    PointWindowCoords := NSMakePoint(Value.X, Value.Y);
+    PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+
+    { Beware, it seems MacOsAll and CGGeometry both define CGPoint }
+    CgPointScreenCoords := CGGeometry.CGPoint(
+      //CGPointMake(PointScreenCoords.X, Application.ScreenHeight - PointScreenCoords.Y)
+      NSPointToCGPoint(PointScreenCoords)
+    );
+
+    { Seems that CGXxx function is the only way to do this:
+      https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc }
+    CGWarpMouseCursorPosition(CgPointScreenCoords);
+
+    Writeln('warping to ', CgPointScreenCoords.X:1:2, ' ', CgPointScreenCoords.Y:1:2);
+  end;
+end;
+*)
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin

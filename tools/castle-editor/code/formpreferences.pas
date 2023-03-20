@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -429,10 +429,10 @@ begin
   try
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
-
     RegisterPackage('packages/castle_base.lpk');
     RegisterPackage('packages/castle_window.lpk');
     RegisterPackage('packages/castle_components.lpk');
+    RegisterPackage('packages/castle_editor_components.lpk');
     RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
     RegisterPackage('packages/castle_indy.lpk');
 

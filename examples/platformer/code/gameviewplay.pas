@@ -50,7 +50,6 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    { Components designed using CGE editor, loaded from view_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;

@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -45,6 +46,28 @@ begin
   inherited;
 end;
 
+procedure AddSpineTextureProperties(const Node: TImageTextureNode; const IsRepeat: Boolean);
+var
+  TexProperties: TTexturePropertiesNode;
+begin
+  { No point in adjusting RepeatS/T: TextureProperties overrides it with BoundaryModeS/T.
+  Node.RepeatS := IsRepeat;
+  Node.RepeatT := IsRepeat;
+  }
+
+  TexProperties := TTexturePropertiesNode.Create;
+  // TexProperties.MagnificationFilter := magDefault; // this is default now
+  // TexProperties.MinificationFilter := minDefault; // this is default now
+  TexProperties.BoundaryModeS := BoolRepeatToBoundaryMode[IsRepeat];
+  TexProperties.BoundaryModeT := BoolRepeatToBoundaryMode[IsRepeat];
+  { Do not force "power of 2" size, which may prevent mipmaps.
+    Not resizing is consistent with X3DLoadInternalImage, LoadCastleSpriteSheet,
+    Tiled maps. Users may use Spine with pixel-art and don't expect images to be resized.
+    See https://github.com/castle-engine/castle-engine/issues/464 . }
+  TexProperties.GuiTexture := true;
+  Node.TextureProperties := TexProperties;
+end;
+
 function TSimpleTextureLoader.UseNode(const AttachmentName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
   out TexRotated: boolean): TImageTextureNode;
@@ -54,8 +77,7 @@ begin
     Result := TImageTextureNode.Create('SimpleTexture_' + AttachmentName, BaseUrl);
     if not SpineIgnoreTextures then
       Result.SetUrl(['images/' + AttachmentName + '.png']);
-    Result.RepeatS := false;
-    Result.RepeatT := false;
+    AddSpineTextureProperties(Result, false);
 
     Nodes.AddOrSetValue(AttachmentName, Result);
   end;

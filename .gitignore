@@ -183,10 +183,11 @@ castle-game-engine-*.fpm
 /examples/user_interface/custom_cursor/custom_cursor
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
+/examples/user_interface/mask/mask
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
-/examples/user_interface/view_events/view_events
 /examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
+/examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
@@ -217,12 +218,14 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/view_3d_model_advanced/view_3d_model_advanced
 /examples/viewport_and_scenes/view_3d_model_basic/view_3d_model_basic
 /examples/viewport_and_scenes/viewport_3d_tutorial/my-new-project-3d
+/examples/viewport_and_scenes/occlusion_culling/occlusion_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas
+/packages/castle_editor_components.pas
 /packages/castle_indy.pas
 /packages/castle_window.pas
 /packages/lib/

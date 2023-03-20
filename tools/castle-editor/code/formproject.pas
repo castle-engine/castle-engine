@@ -402,6 +402,7 @@ type
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Deactivate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
+    procedure FormChangeBounds(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -600,7 +601,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation,
+  FormSystemInformation, FormRestartCustomEditor,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
@@ -1464,6 +1465,14 @@ begin
   ErrorBox(E.Message);
 end;
 
+procedure TProjectForm.FormChangeBounds(Sender: TObject);
+begin
+  { Update inspector data for property editors needed by color pick to show in
+    right position. }
+  if Design <> nil then
+    Design.UpdateEditorDataForPropertyEditors;
+end;
+
 procedure TProjectForm.LoadDockLayout;
 var
   XMLConfig: TXMLConfigStorage;
@@ -2236,8 +2245,7 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 
 var
   ListItem: TListItem;
-  FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr, ProjectDataUrl: String;
+  DesignFileName, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
@@ -2269,11 +2277,7 @@ begin
     ListItem := ListOpenExistingView.Items.Add;
     ListItem.Caption := ShortDesignName(DesignFileName);
     ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    if FileAge(DesignFileName, FileDateTime) then
-      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
-    else
-      FileDateTimeStr := 'Unknown';
-    ListItem.SubItems.Append(FileDateTimeStr);
+    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
   end;
 end;
 
@@ -3253,6 +3257,7 @@ begin
   MenuItemRestartRebuildEditor.Enabled := EnableRun;
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
+  ActionRegenerateProject.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
@@ -3356,12 +3361,12 @@ begin
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then
   begin
-    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
-          'Rebuild and restart editor with custom components?', [
-          ProjectName
-        ])) then
-      MenuItemRestartRebuildEditorClick(nil);
-      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+    RestartCustomEditorForm.Initialize(ProjectName, ProjectPath);
+    case RestartCustomEditorForm.ShowModal of
+      mrOK: MenuItemRestartRebuildEditorClick(nil);
+      mrYesToAll: RestartEditor(nil);
+    end;
+    //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
 end;
 

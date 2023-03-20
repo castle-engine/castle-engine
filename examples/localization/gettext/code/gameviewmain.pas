@@ -137,7 +137,7 @@ begin
   MyFont.Size := 20; // size for UI
   WritelnLog('Font loaded, size %f, row height %f (should be similar)', [
     MyFont.Size,
-    MyFont.RowHeight
+    MyFont.Height
   ]);
 
   Text3d.CustomFont := MyFont;

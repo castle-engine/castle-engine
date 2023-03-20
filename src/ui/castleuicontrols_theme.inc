@@ -21,7 +21,7 @@
     tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
     tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
+    tiSliderBackground, tiSliderThumb, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
     tiCrosshair1, tiCrosshair2, tiCheckmark,
     tiSquareEmpty, tiSquareChecked, tiSquarePressedBackground,
@@ -271,6 +271,10 @@ function Theme: TCastleTheme;
 { Fallback (do not change this, ever) theme. Default state of @link(Theme). }
 function FallbackTheme: TCastleTheme;
 
+const
+  tiSlider = tiSliderBackground deprecated 'use tiSliderBackground';
+  tiSliderPosition = tiSliderThumb deprecated 'use tiSliderThumb';
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -332,13 +336,10 @@ begin
   FImagesPersistent[tiScrollbarFrame].ProtectedSides.AllSides := 1;
   FImagesPersistent[tiScrollbarSlider].Image := ScrollbarSlider;
   FImagesPersistent[tiScrollbarSlider].ProtectedSides.AllSides := 3;
-  FImagesPersistent[tiSlider].Image := Slider;
-  FImagesPersistent[tiSlider].ProtectedSides.Top := 4;
-  FImagesPersistent[tiSlider].ProtectedSides.Bottom := 4;
-  FImagesPersistent[tiSlider].ProtectedSides.Left := 7;
-  FImagesPersistent[tiSlider].ProtectedSides.Right := 7;
-  FImagesPersistent[tiSliderPosition].Image := SliderPosition;
-  FImagesPersistent[tiSliderPosition].ProtectedSides.AllSides := 1;
+  FImagesPersistent[tiSliderBackground].Image := SliderBackground;
+  FImagesPersistent[tiSliderBackground].ProtectedSides.AllSides := 31;
+  FImagesPersistent[tiSliderBackground].ProtectedSidesScaling := pssMatchHeight;
+  FImagesPersistent[tiSliderThumb].Image := SliderThumb;
   FImagesPersistent[tiLabel].Image := FrameWhiteBlack;
   FImagesPersistent[tiLabel].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiGroup].Image := FrameWhiteBlack;
