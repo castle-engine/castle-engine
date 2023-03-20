@@ -68,8 +68,10 @@ type
     FShape: TShapeNode;
     FGeometry: TBoxNode;
     FMaterial: TUnlitMaterialNode;
+    function GetRender: boolean;
     procedure SetBox(const Value: TBox3D);
     procedure SetColor(const AValue: TCastleColor);
+    procedure SetRender(const AValue: boolean);
   public
     constructor Create(AOwner: TComponent); overload; override;
     constructor Create(const AOwner: TComponent; const AColor: TCastleColorRGB); reintroduce; overload;
@@ -77,6 +79,7 @@ type
     property Root: TTransformNode read FTransform;
     property Box: TBox3D {read GetBox} {} write SetBox;
     property Color: TCastleColor read FColor write SetColor;
+    property Render: boolean read GetRender write SetRender;
   end;
 
   { 3D sphere, as an X3D node, to easily visualize debug things.
@@ -211,7 +214,7 @@ type
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleRenderOptions;
 
 { TDebugAxis ----------------------------------------------------------------- }
 
@@ -316,12 +319,22 @@ begin
   end;
 end;
 
+function TDebugBox.GetRender: boolean;
+begin
+  Result := FShape.Render;
+end;
+
 procedure TDebugBox.SetColor(const AValue: TCastleColor);
 begin
   if TCastleColor.PerfectlyEquals(FColor, AValue) then Exit;
   FColor := AValue;
   FMaterial.EmissiveColor := FColor.XYZ;
   FMaterial.Transparency := 1 - FColor.W;
+end;
+
+procedure TDebugBox.SetRender(const AValue: boolean);
+begin
+  FShape.Render := AValue;
 end;
 
 { TDebugSphere ----------------------------------------------------------------- }
@@ -616,8 +629,11 @@ begin
   // show FParent.BoundingBox
   FBox.Box := FParent.BoundingBox;
 
-  FYSortBox.Box := TBox3D.FromCenterSize(FParent.BoundingBox.Center
-    + Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
+  FYSortBox.Render := (FParent.World <> nil) and (FParent.Parent <> nil)
+    and (FParent.Parent.BlendingSort = bsYSort);
+  if FYSortBox.Render then
+    FYSortBox.Box := TBox3D.FromCenterSize(FParent.BoundingBox.Center
+      + Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
 end;
 
 procedure TDebugTransformBox.ChangedScene;
