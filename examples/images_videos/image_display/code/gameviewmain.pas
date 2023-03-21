@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,12 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonQuit, ButtonGoSpeedTest: TCastleButton;
-
+  private
     procedure ClickQuit(Sender: TObject);
     procedure ClickGoSpeedTest(Sender: TObject);
   public
@@ -58,11 +59,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-  ButtonGoSpeedTest := DesignedComponent('ButtonGoSpeedTest') as TCastleButton;
 
   // on some platforms, showing "Quit" button in applications is unusual
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;

@@ -8,12 +8,9 @@
     {
       "$$ClassName" : "TCastleScrollView",
       "Height" : 2.9000000000000000E+002,
-      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
       "Name" : "ScrollView1",
       "ScrollArea" : {
-        "$$ClassName" : "TInternalCastleScrollArea",
-        "AutoSizeToChildren" : true,
-        "Name" : "ScrollArea",
+        "$$ClassName" : "TCastleScrollArea",
         "$Children" : [
           {
             "$$ClassName" : "TCastleVerticalGroup",
@@ -60,7 +57,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button2",
-                "VerticalAnchorDelta" : -3.9000003814697266E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -3.9000000000000000E+001
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -83,7 +83,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button3",
-                "VerticalAnchorDelta" : -7.8000007629394531E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -7.8000000000000000E+001
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -106,7 +109,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button4",
-                "VerticalAnchorDelta" : -1.1700001525878906E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -1.1700000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -129,7 +135,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button5",
-                "VerticalAnchorDelta" : -1.5600001525878906E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -1.5600000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -152,7 +161,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button6",
-                "VerticalAnchorDelta" : -1.9500001525878906E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -1.9500000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -175,7 +187,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button7",
-                "VerticalAnchorDelta" : -2.3400001525878906E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -2.3400000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -198,7 +213,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button8",
-                "VerticalAnchorDelta" : -2.7300003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -2.7300000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -221,7 +239,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button9",
-                "VerticalAnchorDelta" : -3.1200003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -3.1200000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -244,7 +265,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button10",
-                "VerticalAnchorDelta" : -3.5100003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -3.5100000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -267,7 +291,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button11",
-                "VerticalAnchorDelta" : -3.9000003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -3.9000000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -290,7 +317,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button12",
-                "VerticalAnchorDelta" : -4.2900003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -4.2900000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -313,7 +343,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button13",
-                "VerticalAnchorDelta" : -4.6800003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -4.6800000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -336,7 +369,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button14",
-                "VerticalAnchorDelta" : -5.0700003051757812E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -5.0700000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -359,7 +395,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button15",
-                "VerticalAnchorDelta" : -5.4600006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -5.4600000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -382,7 +421,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button16",
-                "VerticalAnchorDelta" : -5.8500006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -5.8500000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -405,7 +447,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button17",
-                "VerticalAnchorDelta" : -6.2400006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -6.2400000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -428,7 +473,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button18",
-                "VerticalAnchorDelta" : -6.6300006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -6.6300000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -451,7 +499,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button19",
-                "VerticalAnchorDelta" : -7.0200006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -7.0200000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               },
@@ -474,7 +525,10 @@
                   "$$ClassName" : "TCastleImagePersistent"
                 },
                 "Name" : "Button20",
-                "VerticalAnchorDelta" : -7.4100006103515625E+002,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "Y" : -7.4100000000000000E+002
+                },
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop"
               }
@@ -482,7 +536,11 @@
           }
         ]
       },
-      "VerticalAnchorDelta" : -3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -3.9000000000000000E+002
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 1.3000000000000000E+002
@@ -495,35 +553,37 @@
         "Green" : 7.9215687513351440E-001,
         "Red" : 6.5098041296005249E-001
       },
-      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
       "Name" : "Label1",
       "Text" : [
-        "When designing TCastleScrollView contents, remember:",
+        "Hints for designing TCastleScrollView:",
         "",
-        "- Place children in ScrollArea to make their position controlled by the scrollbar.",
+        "- Place children in the ScrollArea, to make their position controlled by the scrollbar.",
         "",
-        "- It is most natural to set anchor to left-top for direct children you will add to ScrollArea.",
+        "- You can position things inside ScrollArea in any way, but often it is most natural to add a TCastleVerticalGroup as ScrollArea child.",
         "",
-        "- Set proper ScrollArea size. Usually setting AutoSizeToChildren = true on ScrollArea is the simplest solution.",
+        "- It is most natural to set anchors to \"top left\" for direct children you add to ScrollArea.",
         "",
-        "- You can layout things inside ScrollArea in any way, but usually TCastleVerticalGroup is most natural.",
+        "- Set proper ScrollArea size. Usually setting ScrollArea.AutoSizeToChildren = true (default now) is the simplest solution.",
         "",
-        "- Remember you can use right mouse button to move/resize selected UI, without changing the selection. ",
-        "  With left mouse button, moving/resizing TCastleScrollView will be hard, as you will auto-select some child."
+        "- Remember that in CGE editor you can move/resize selected UI *without changing the selection* ",
+        "  by holding Shift while dragging with the left mouse button.",
+        "  This is often useful with TCastleScrollView, ",
+        "  otherwise it is easy to select some TCastleScrollView child when you instead wanted to move/resize the TCastleScrollView."
       ],
-      "VerticalAnchorDelta" : -1.8000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -1.8000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleScrollView",
       "Height" : 2.1000000000000000E+002,
-      "HorizontalAnchorDelta" : 4.8000000000000000E+002,
       "Name" : "ScrollView2",
       "ScrollArea" : {
-        "$$ClassName" : "TInternalCastleScrollArea",
-        "AutoSizeToChildren" : true,
-        "Name" : "ScrollArea",
+        "$$ClassName" : "TCastleScrollArea",
         "$Children" : [
           {
             "$$ClassName" : "TCastleImageControl",
@@ -550,12 +610,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 1.5000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button21",
-            "VerticalAnchorDelta" : -1.4000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.5000000000000000E+002,
+              "Y" : -1.4000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -574,12 +637,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 2.5000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button22",
-            "VerticalAnchorDelta" : -2.0000000000000000E+001,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.5000000000000000E+002,
+              "Y" : -2.0000000000000000E+001
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -598,12 +664,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 4.3000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button23",
-            "VerticalAnchorDelta" : -3.9000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 4.3000000000000000E+002,
+              "Y" : -3.9000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -622,12 +691,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 2.6000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button24",
-            "VerticalAnchorDelta" : -3.6000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.6000000000000000E+002,
+              "Y" : -3.6000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -646,12 +718,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 3.0000000000000000E+001,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button25",
-            "VerticalAnchorDelta" : -3.3000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 3.0000000000000000E+001,
+              "Y" : -3.3000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -670,12 +745,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 2.5000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button26",
-            "VerticalAnchorDelta" : -2.6000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.5000000000000000E+002,
+              "Y" : -2.6000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -694,12 +772,15 @@
             "CustomBackgroundPressed" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
-            "HorizontalAnchorDelta" : 3.3000000000000000E+002,
             "Image" : {
               "$$ClassName" : "TCastleImagePersistent"
             },
             "Name" : "Button27",
-            "VerticalAnchorDelta" : -7.0000000000000000E+001,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 3.3000000000000000E+002,
+              "Y" : -7.0000000000000000E+001
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           },
@@ -712,7 +793,6 @@
               "Green" : 7.9215687513351440E-001,
               "Red" : 6.5098041296005249E-001
             },
-            "HorizontalAnchorDelta" : 3.3000000000000000E+002,
             "Name" : "Checkbox1",
             "TextColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent",
@@ -720,13 +800,21 @@
               "Green" : 7.9215687513351440E-001,
               "Red" : 6.5098041296005249E-001
             },
-            "VerticalAnchorDelta" : -1.6000000000000000E+002,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 3.3000000000000000E+002,
+              "Y" : -1.6000000000000000E+002
+            },
             "VerticalAnchorParent" : "vpTop",
             "VerticalAnchorSelf" : "vpTop"
           }
         ]
       },
-      "VerticalAnchorDelta" : -3.5000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 4.8000000000000000E+002,
+        "Y" : -3.9000000000000000E+002
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 7.1000000000000000E+002
@@ -739,13 +827,16 @@
         "Green" : 1.0000000000000000E+000,
         "Red" : 1.0000000000000000E+000
       },
-      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
       "Name" : "Label2",
       "Text" : [
         "Scroll view ",
         "with buttons in TCastleVerticalGroup:"
       ],
-      "VerticalAnchorDelta" : -2.9800000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -3.2800000000000000E+002
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
@@ -757,13 +848,16 @@
         "Green" : 1.0000000000000000E+000,
         "Red" : 1.0000000000000000E+000
       },
-      "HorizontalAnchorDelta" : 4.8000000000000000E+002,
       "Name" : "Label3",
       "Text" : [
         "Scroll view ",
         "with deliberately disorganized various UI controls:"
       ],
-      "VerticalAnchorDelta" : -2.9800000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 4.8000000000000000E+002,
+        "Y" : -3.2800000000000000E+002
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     }

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -123,6 +123,12 @@ type
 const
   QuatIdentityRot: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1))
     deprecated 'use TQuaternion.ZeroRotation';
+
+{ Quaternion with given vector.
+  See TQuaternion and SLerp for useful things you can do with quaternions.
+  See QuatFromAxisAngle if instead you want to initialize quternion with axis+angle vector.
+  @seealso QuatFromAxisAngle }
+function Quaternion(const V: TVector4): TQuaternion;
 
 { Calculate unit quaternion representing rotation around Axis
   by AngleRad angle (in radians).
@@ -396,6 +402,11 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
+function Quaternion(const V: TVector4): TQuaternion;
+begin
+  Result.Data.Vector4 := V;
+end;
+
 function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
 var
@@ -477,6 +488,11 @@ end;
   http://en.wikipedia.org/wiki/Slerp
 }
 function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+const
+  { Do not make this Epsilon too large.
+    See https://github.com/castle-engine/castle-engine/issues/342
+    and TTestCastleQuaternions.TestSlerpEpsilon }
+  Epsilon = 1E-6;
 var
   W1, W2, NegateOneQuaternion: Single;
   CosTheta, Theta: Float;
@@ -508,7 +524,7 @@ begin
 
   Theta := ArcCos(CosTheta);
   SinTheta := Sin(Theta);
-  if SinTheta > 0.001 then
+  if SinTheta > Epsilon then
   begin
     W1 := NegateOneQuaternion * Sin( (1-A) * Theta ) / SinTheta;
     W2 :=                       Sin(    A  * Theta ) / SinTheta;

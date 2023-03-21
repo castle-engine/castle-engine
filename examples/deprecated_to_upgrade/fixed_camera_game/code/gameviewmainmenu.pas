@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,10 +101,7 @@ begin
   Anchor(vpTop, -100);
 
   DrawBackgroundRectangle := false;
-  ExclusiveEvents := false;
   CaptureAllEvents := true;
-  { Since we always capture clicks on the entire screen,
-    no point in visualizing focused. }
   DrawFocusedBorder := false;
 
   { Assign TCastleSound instances loaded in GameSound unit. }

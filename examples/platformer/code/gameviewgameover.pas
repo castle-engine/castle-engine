@@ -23,9 +23,11 @@ uses Classes,
 
 type
   TViewGameOver = class(TCastleView)
-  private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonMenu: TCastleButton;
-
+  private
     procedure ClickMenu(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -54,8 +56,6 @@ end;
 procedure TViewGameOver.Start;
 begin
   inherited;
-
-  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }

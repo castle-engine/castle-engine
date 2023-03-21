@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -46,6 +46,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function SolidField: TSFBool; override;
   {$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
   end;
 
@@ -124,6 +125,11 @@ function TGeoElevationGridNode.TrianglesCount(State: TX3DGraphTraverseState;
 begin
   { Rendering of TGeoElevationGridNode not implemented. }
   Result := 0;
+end;
+
+function TGeoElevationGridNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
 end;
 
 { TGeoViewpointNode ---------------------------------------------------------- }

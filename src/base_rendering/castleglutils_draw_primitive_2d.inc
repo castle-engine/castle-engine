@@ -425,9 +425,15 @@ begin
 
     Primitive2DRes.AttribVertex.EnableArrayVector2(Primitive2DRes.Vao, SizeOf(TVector2), 0);
 
-    if (RenderContext.Viewport.Left <> 0) or
-       (RenderContext.Viewport.Bottom <> 0) then
+    { We do not warn when InternalClearColorsByDraw, because then indeed we'll have viewport
+      with non-zero left/bottom, and we DrawRectangle is used with Viewport as argument.
+      It works OK in this case. }
+    if (not RenderContext.InternalClearColorsByDraw) and
+       ( (RenderContext.Viewport.Left <> 0) or
+         (RenderContext.Viewport.Bottom <> 0)
+       ) then
       WritelnWarning('Drawing DrawPrimitive2D (DrawRectangle etc.) when viewport (left,bottom) is not (0,0) is undefined now');
+
     Primitive2DRes.UniformViewportSize.SetValue(Vector2(
       RenderContext.Viewport.Width,
       RenderContext.Viewport.Height

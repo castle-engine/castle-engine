@@ -61,11 +61,20 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    BtnNavWalk: TToggleBox;
+    BtnNavFly: TToggleBox;
+    BtnNavExamine: TToggleBox;
+    BtnNavTurntable: TToggleBox;
     BtnScreenshot: TButton;
-    LabelNavigationType: TLabel;
+    BtnOpen: TButton;
+    CbViewpoints: TComboBox;
+    OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
     Panel1: TPanel;
+    procedure BtnOpenClick(Sender: TObject);
     procedure BtnScreenshotClick(Sender: TObject);
+    procedure BtnWalkClick(Sender: TObject);
+    procedure CbViewpointsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -85,6 +94,9 @@ type
     procedure IdleFunc(Sender: TObject; var Done: Boolean);
   private
     { private declarations }
+    procedure UpdateUIAfterOpen;
+    procedure UpdateNavigationButtons;
+    procedure FillViewpoints;
   public
     { public declarations }
   end;
@@ -96,6 +108,9 @@ implementation
 
 uses
   LCLType, castlelib_dynloader, ctypes;
+
+var
+  bIgnoreNotifications: boolean;
 
 {$R *.lfm}
 
@@ -111,15 +126,7 @@ begin
         ecgecursorText: Form1.OpenGLControl1.Cursor := crIBeam;
         else Form1.OpenGLControl1.Cursor := crDefault;
       end;
-    ecgelibNavigationTypeChanged:
-      case iParam1 of
-        ecgenavWalk     : Form1.LabelNavigationType.Caption := 'Navigation: Walk';
-        ecgenavFly      : Form1.LabelNavigationType.Caption := 'Navigation: Fly';
-        ecgenavExamine  : Form1.LabelNavigationType.Caption := 'Navigation: Examine';
-        ecgenavTurntable: Form1.LabelNavigationType.Caption := 'Navigation: Turntable';
-        ecgenavNone     : Form1.LabelNavigationType.Caption := 'Navigation: None';
-        else Form1.LabelNavigationType.Caption := 'Navigation: UNKNOWN';
-      end;
+    ecgelibNavigationTypeChanged: Form1.UpdateNavigationButtons;
   end;
   Result := 0;
 end;
@@ -130,6 +137,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   sFile: String;
 begin
+  bIgnoreNotifications := false;
+
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
   CGE_Initialize(PCChar(PChar(GetAppConfigDir(false))));
@@ -138,9 +147,7 @@ begin
   CGE_SetUserInterface(true);
   sFile := 'data/bridge_level/bridge_final.x3dv';
   CGE_LoadSceneFromFile(@sFile[1]);
-
-  OpenGLControl1.Invalidate;
-  ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+  UpdateUIAfterOpen;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -307,6 +314,88 @@ begin
   sFile := ExtractFilePath(Application.ExeName) + 'cge_test_screenshot.png';
   StrPCopy(csFile, sFile);
   CGE_SaveScreenshotToFile(@csFile[0]);
+end;
+
+procedure TForm1.BtnOpenClick(Sender: TObject);
+var
+  csFile: array[0..260] of char;
+begin
+  { Note about OpenDialog1 (TOpenDialog) usage:
+    In a "real" Castle Game Engine application using LCL, we recommend to use
+    component TCastleOpen3DDialog (from castle_components.lpk) 
+    to have a dialog box to select a file to load in TCastleScene.
+    However, in case of this application, it deliberately *does not* use CGE in a normal
+    way (through Lazarus packages or Pascal units), it only accesses CGE as a shared library.
+    That's why we decided to define OpenDialog1 as TOpenDialog, not TCastleOpen3DDialog. }
+    
+  if OpenDialog1.Execute then
+  begin
+    StrPCopy(csFile, OpenDialog1.Filename);
+
+    CGE_LoadSceneFromFile(@csFile[0]);
+
+    UpdateUIAfterOpen;
+  end;
+end;
+
+procedure TForm1.UpdateUIAfterOpen;
+begin
+  OpenGLControl1.Invalidate;
+  FillViewpoints;
+  ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+  UpdateNavigationButtons;
+end;
+
+procedure TForm1.BtnWalkClick(Sender: TObject);
+begin
+  if bIgnoreNotifications then exit;
+
+  CGE_SetNavigationType((Sender as TToggleBox).Tag);
+  UpdateNavigationButtons;
+end;
+
+procedure TForm1.UpdateNavigationButtons;
+var
+  iType: integer;
+  bOldIgnore: boolean;
+begin
+  bOldIgnore := bIgnoreNotifications;
+  bIgnoreNotifications := true;
+
+  iType := CGE_GetNavigationType();
+  BtnNavWalk.Checked := (iType = ecgenavWalk);
+  BtnNavFly.Checked := (iType = ecgenavFly);
+  BtnNavExamine.Checked := (iType = ecgenavExamine);
+  BtnNavTurntable.Checked := (iType = ecgenavTurntable);
+
+  bIgnoreNotifications := bOldIgnore;
+end;
+
+procedure TForm1.FillViewpoints;
+var
+  i, nCount: integer;
+  csName: array[0..260] of char;
+  bOldIgnore: boolean;
+begin
+  bOldIgnore := bIgnoreNotifications;
+  bIgnoreNotifications := true;
+
+  CbViewpoints.Items.Clear;
+  nCount := CGE_GetViewpointsCount();
+  for i := 0 to nCount-1 do
+  begin
+    CGE_GetViewpointName(i, @csName[0], 260);
+    CbViewpoints.Items.Add(csName);
+  end;
+
+  bIgnoreNotifications := bOldIgnore;
+end;
+
+procedure TForm1.CbViewpointsChange(Sender: TObject);
+begin
+  if bIgnoreNotifications then exit;
+
+  CGE_MoveToViewpoint(CbViewpoints.ItemIndex, true);
 end;
 
 end.

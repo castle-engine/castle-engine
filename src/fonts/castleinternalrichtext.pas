@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -184,14 +184,14 @@ var
 begin
   if MaxDisplayChars <> -1 then
   begin
-    L := {$ifdef FPC}UTF8Length(S){$else}GetUTF32Length(S){$endif};
+    L := StringLength(S);
     if MaxDisplayChars >= L then
     begin
       MaxDisplayChars := MaxDisplayChars - L;
       Font.Print(X0, Y0, State.Color, S);
     end else
     begin
-      Font.Print(X0, Y0, State.Color, {$ifdef FPC}UTF8Copy{$else}UTF32Copy{$endif}(S, 1, MaxDisplayChars));
+      Font.Print(X0, Y0, State.Color, StringCopy(S, 1, MaxDisplayChars));
       MaxDisplayChars := 0;
     end;
   end else
@@ -293,7 +293,7 @@ begin
     Inc(SPtr, CharLen);
     PropWidthBytes := CharLen;
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
     CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
@@ -311,7 +311,7 @@ begin
       Inc(SPtr, CharLen);
       PropWidthBytes += CharLen;
       {$else}
-      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
       TextIndex := NextTextIndex;
       {$endif}
       CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
@@ -337,7 +337,7 @@ end;
 
 function TTextPropertyString.DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal;
 begin
-  Result := {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
+  Result := StringLength(S);
 end;
 
 { TTextPropertyCommand -------------------------------------------------------- }
@@ -905,11 +905,11 @@ var
   end;
 
 var
-  RowHeight: Single;
+  Height: Single;
 
   function YPos(const Line: Integer): Single;
   begin
-    Result := (Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
+    Result := (Count - 1 - Line) * (Height + LineSpacing) + Y0;
   end;
 
 var
@@ -926,7 +926,7 @@ begin
 
   State := BeginProcessing(Color);
   try
-    RowHeight := FFont.RowHeight;
+    Height := FFont.Height;
     for I := 0 to Count - 1 do
       Items[I].Print(State, XPos(I), YPos(I), MaxDisplayChars);
   finally EndProcessing(State) end;

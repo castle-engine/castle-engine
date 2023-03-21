@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,12 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainScene: TCastleScene;
-
+  private
     procedure ScriptTouchInitialize(Value: TX3DField; const Time: TX3DTime);
     procedure ScriptTouch(Value: TX3DField; const Time: TX3DTime);
   public
@@ -58,10 +59,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainScene := DesignedComponent('MainScene') as TCastleScene;
 
   { initialize events procesing }
   MainScene.RegisterCompiledScript('touch_initialize',  {$ifdef FPC}@{$endif} ScriptTouchInitialize);

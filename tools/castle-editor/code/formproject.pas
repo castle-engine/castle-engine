@@ -402,6 +402,7 @@ type
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Deactivate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
+    procedure FormChangeBounds(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -600,7 +601,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation,
+  FormSystemInformation, FormRestartCustomEditor,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
@@ -656,8 +657,13 @@ begin
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
+  begin
     Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 
   { On GTK, this happens when we open a dialog box, like open/save.
     It's important to stop treating keys/mouse as pressed then.
@@ -691,7 +697,12 @@ begin
   if Design.DesignUrl = '' then
     MenuItemSaveAsDesignClick(Sender)
   else
+  begin
     Design.SaveDesign(Design.DesignUrl);
+
+    // make sure to show new file in "Files" in editor
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
@@ -1452,6 +1463,14 @@ begin
     (don't even show exception class for now),
     instead of the default LCL dialog that proposes to kill the application. }
   ErrorBox(E.Message);
+end;
+
+procedure TProjectForm.FormChangeBounds(Sender: TObject);
+begin
+  { Update inspector data for property editors needed by color pick to show in
+    right position. }
+  if Design <> nil then
+    Design.UpdateEditorDataForPropertyEditors;
 end;
 
 procedure TProjectForm.LoadDockLayout;
@@ -2226,14 +2245,22 @@ procedure TProjectForm.ListOpenExistingViewRefresh;
 
 var
   ListItem: TListItem;
-  FileDateTime: TDateTime;
-  DesignFileName, FileDateTimeStr: String;
+  DesignFileName, ProjectDataUrl: String;
 begin
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
-  FindFiles(ProjectPathUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  // support deprecated names
-  FindFiles(ProjectPathUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
+    to be possible to open them at runtime.
+    This also avoids finding stuff in castle-engine-output, which is possible,
+    e.g. after "castle-engine package --target=android" the castle-engine-output contains
+    some temporary data with copies of design files -- and we *do not* want to show them here. }
+  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
+  if URIExists(ProjectDataUrl) <> ueNotExists then
+  begin
+    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    // support deprecated names
+    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+  end;
   { without sorting, the order would be ~random (as FindFiles enumarates).
     Note that we sort including the subdirectory names, which is good,
     we want files in the same subdirectory to be together. }
@@ -2250,11 +2277,7 @@ begin
     ListItem := ListOpenExistingView.Items.Add;
     ListItem.Caption := ShortDesignName(DesignFileName);
     ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    if FileAge(DesignFileName, FileDateTime) then
-      FileDateTimeStr := DateTimeToAtStr(FileDateTime)
-    else
-      FileDateTimeStr := 'Unknown';
-    ListItem.SubItems.Append(FileDateTimeStr);
+    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
   end;
 end;
 
@@ -3234,6 +3257,7 @@ begin
   MenuItemRestartRebuildEditor.Enabled := EnableRun;
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
+  ActionRegenerateProject.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
@@ -3337,12 +3361,12 @@ begin
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then
   begin
-    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
-          'Rebuild and restart editor with custom components?', [
-          ProjectName
-        ])) then
-      MenuItemRestartRebuildEditorClick(nil);
-      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+    RestartCustomEditorForm.Initialize(ProjectName, ProjectPath);
+    case RestartCustomEditorForm.ShowModal of
+      mrOK: MenuItemRestartRebuildEditorClick(nil);
+      mrYesToAll: RestartEditor(nil);
+    end;
+    //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
 end;
 

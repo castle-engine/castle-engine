@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,12 +24,13 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelMain: TCastleLabel;
     ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
     ScrollView: TCastleScrollView;
-
+  private
     { The critical thing to make TCastleScrollView work correctly is to set right
       the ScrollView.ScrollArea size.
       ScrollView.ScrollArea should enclose the children vertically,
@@ -72,16 +73,7 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelMain := DesignedComponent('LabelMain') as TCastleLabel;
-  ButtonHtml := DesignedComponent('ButtonHtml') as TCastleButton;
-  ButtonWrap := DesignedComponent('ButtonWrap') as TCastleButton;
-  ButtonAlignLeft := DesignedComponent('ButtonAlignLeft') as TCastleButton;
-  ButtonAlignMiddle := DesignedComponent('ButtonAlignMiddle') as TCastleButton;
-  ButtonAlignRight := DesignedComponent('ButtonAlignRight') as TCastleButton;
-  ScrollView := DesignedComponent('ScrollView') as TCastleScrollView;
-
-  { Assign buttons OnClick handlers }
+  { Assign buttons' OnClick handlers }
   ButtonHtml.OnClick := {$ifdef FPC}@{$endif} ClickHtml;
   ButtonWrap.OnClick := {$ifdef FPC}@{$endif} ClickWrap;
   ButtonAlignRight.OnClick := {$ifdef FPC}@{$endif} ClickAlignRight;

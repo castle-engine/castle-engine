@@ -36,7 +36,7 @@
         {
           "$$ClassName" : "TCastleButton",
           "AutoSize" : false,
-          "Caption" : "HInge 2",
+          "Caption" : "Hinge 2",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },

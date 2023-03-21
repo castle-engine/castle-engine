@@ -28,12 +28,13 @@ type
   TGLContextWGL = class(TGLContext)
   private
     HasDoubleBuffer: Boolean;
+    class var
+      WndClassName: UnicodeString;
+    class procedure NeedsWndClassName;
   public
     // Set this before using ContextCreate and other methods
     WndPtr: HWND;
     h_Dc: HDC;
-    WindowCaption: String;
-    WndClassName: UnicodeString;
 
     // Created by ContextCreate, destroyed by ContextDestroy
     h_GLRc: HGLRC;
@@ -133,6 +134,8 @@ var
       PixelFormat: Int32;
       pfd: Tpixelformatdescriptor;
     begin
+      NeedsWndClassName;
+
       Temp_h_Wnd := 0;
       Temp_h_Dc := 0;
       Temp_h_GLRc := 0;
@@ -141,12 +144,12 @@ var
         { create Temp_H_wnd }
         Temp_H_wnd := CreateWindowExW(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
           PWideChar(WndClassName),
-          PWideChar(StringToUtf16(WindowCaption + ' - temporary window for wgl')),
+          PWideChar(StringToUtf16('Temporary window to query WGL extensions')),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
           nil { don't pass anything to WM_CREATE } );
-        Check( Temp_H_Wnd <> 0, 'CreateWindowEx failed');
+        Check( Temp_H_Wnd <> 0, 'Creating temporary window (CreateWindowExW) to query WGL extensions failed');
 
         { create Temp_h_Dc }
         Temp_h_Dc := GetDC(Temp_h_Wnd);
@@ -221,7 +224,7 @@ var
           But it looks simpler to reuse it. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        WritelnLog('wgl', 'Extensions: ' + WglExtensions);
+        // WritelnLog('wgl', 'Extensions: ' + WglExtensions);  // too verbose
 
         Has_WGL_ARB_create_context := Load_WGL_ARB_create_context(WglExtensions);
         Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile(WglExtensions);
@@ -309,7 +312,7 @@ var
     Attribs: TInt32List;
     ShareContextGlrc: HGLRC;
   begin
-    WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good');
+    // WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good'); // too verbose
 
     Attribs := TInt32List.Create;
     try
@@ -418,6 +421,36 @@ begin
     Windows.SwapBuffers(h_Dc)
   else
     glFlush();
+end;
+
+{ Handler for events for our temporary window.
+  Does nothing for now, we could as well pass
+    WindowClass.lpfnWndProc := @DefWindowProcW;
+  but maybe there will be a need to handle something here some day. }
+function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT; stdcall;
+begin
+  result := DefWindowProcW(hWnd, uMsg, wParm, lParm);
+end;
+
+class procedure TGLContextWGL.NeedsWndClassName;
+var
+  WindowClass: TWndClassW;
+begin
+  if WndClassName = '' then
+  begin
+    { Register minimal window class, just to create temporary WinAPI window
+      to query WGL extensions.
+      See https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) }
+
+    WndClassName := 'TGLContextWGL';
+
+    FillChar(WindowClass, SizeOf(WindowClass), 0);
+    WindowClass.style := CS_OWNDC;
+    WindowClass.lpfnWndProc := @WndProc;
+    WindowClass.hInstance := hInstance;
+    WindowClass.lpszClassName := PWideChar(WndClassName);
+    OSCheck( RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  end;
 end;
 
 end.

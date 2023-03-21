@@ -1,0 +1,1485 @@
+object Form1: TForm1
+  Left = 447
+  Height = 416
+  Top = 197
+  Width = 594
+  Caption = 'mbColor Lib v2.2 Demo'
+  ClientHeight = 416
+  ClientWidth = 594
+  Font.Color = clWindowText
+  OnCreate = FormCreate
+  ShowHint = True
+  LCLVersion = '1.7'
+  object PageControl1: TPageControl
+    Left = 6
+    Height = 404
+    Top = 6
+    Width = 476
+    ActivePage = TabSheet1
+    Align = alClient
+    BorderSpacing.Around = 6
+    TabIndex = 0
+    TabOrder = 0
+    OnChange = PageControl1Change
+    OnMouseMove = PageControl1MouseMove
+    object TabSheet1: TTabSheet
+      Caption = 'HSLColorPicker'
+      ClientHeight = 376
+      ClientWidth = 468
+      object HSLColorPicker1: THSLColorPicker
+        Left = 8
+        Height = 360
+        Top = 8
+        Width = 454
+        Luminance = 128
+        HSPickerHintFormat = 'H: %h S: %s'#13'Hex: #%hex'
+        LPickerHintFormat = 'Luminance: %l'
+        VPickerHintFormat = 'Value: %value (selected)'
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+        OnChange = HSLColorPicker1Change
+        OnMouseMove = HSLColorPicker1MouseMove
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'HexaColorPicker'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 1
+      object Label4: TLabel
+        AnchorSideLeft.Control = CheckBox1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = CbMarker
+        AnchorSideTop.Side = asrCenter
+        Left = 111
+        Height = 15
+        Top = 355
+        Width = 40
+        BorderSpacing.Left = 24
+        Caption = 'Marker:'
+        ParentColor = False
+      end
+      object HexaColorPicker1: THexaColorPicker
+        AnchorSideTop.Control = TabSheet2
+        AnchorSideBottom.Control = CbMarker
+        Left = 64
+        Height = 351
+        Top = 0
+        Width = 336
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        HintFormat = 'RGB(%r, %g, %b)'#13'Hex: #%hex'
+        IntensityText = 'Intensity'
+        TabOrder = 0
+        Constraints.MinHeight = 85
+        Constraints.MinWidth = 93
+        OnChange = HexaColorPicker1Change
+        OnMouseMove = HexaColorPicker1MouseMove
+      end
+      object CheckBox1: TCheckBox
+        AnchorSideLeft.Control = TabSheet2
+        AnchorSideTop.Control = CbMarker
+        AnchorSideTop.Side = asrCenter
+        Left = 4
+        Height = 19
+        Top = 353
+        Width = 83
+        BorderSpacing.Left = 4
+        Caption = 'SliderVisible'
+        Checked = True
+        OnClick = CheckBox1Click
+        State = cbChecked
+        TabOrder = 1
+      end
+      object CbMarker: TComboBox
+        AnchorSideLeft.Control = Label4
+        AnchorSideLeft.Side = asrBottom
+        Left = 159
+        Height = 23
+        Top = 351
+        Width = 103
+        Anchors = [akLeft, akBottom]
+        BorderSpacing.Left = 8
+        ItemHeight = 15
+        ItemIndex = 0
+        Items.Strings = (
+          'smArrow'
+          'smRect'
+        )
+        OnChange = CbMarkerChange
+        Style = csDropDownList
+        TabOrder = 2
+        Text = 'smArrow'
+      end
+      object CheckBox2: TCheckBox
+        AnchorSideLeft.Control = CbMarker
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = CbMarker
+        AnchorSideTop.Side = asrCenter
+        Left = 286
+        Height = 20
+        Top = 352
+        Width = 101
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Left = 24
+        Caption = 'NewArrowStyle'
+        OnClick = CheckBox2Click
+        TabOrder = 3
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'mbColorPalette'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 2
+      object LblSort: TLabel
+        AnchorSideLeft.Control = TabSheet3
+        AnchorSideTop.Control = CbSortDir
+        AnchorSideTop.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet3
+        AnchorSideBottom.Side = asrBottom
+        Left = 6
+        Height = 15
+        Top = 349
+        Width = 24
+        Anchors = [akLeft, akBottom]
+        BorderSpacing.Left = 6
+        BorderSpacing.Bottom = 12
+        Caption = 'Sort:'
+        ParentColor = False
+      end
+      object LblStyle: TLabel
+        AnchorSideLeft.Control = CbSortMode
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = CbStyle
+        AnchorSideTop.Side = asrCenter
+        Left = 264
+        Height = 15
+        Top = 349
+        Width = 28
+        BorderSpacing.Left = 8
+        Caption = 'Style:'
+        ParentColor = False
+      end
+      object LblSize: TLabel
+        AnchorSideLeft.Control = CbStyle
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = udSize
+        AnchorSideTop.Side = asrCenter
+        Left = 398
+        Height = 15
+        Top = 349
+        Width = 23
+        BorderSpacing.Left = 6
+        Caption = 'Size:'
+        ParentColor = False
+      end
+      object BtnBluePalette: TButton
+        AnchorSideLeft.Control = LblSort
+        AnchorSideBottom.Control = CbSortDir
+        Left = 6
+        Height = 25
+        Top = 312
+        Width = 118
+        Anchors = [akLeft, akBottom]
+        AutoSize = True
+        BorderSpacing.Bottom = 8
+        Caption = 'Generate blue pal'
+        OnClick = BtnBluePaletteClick
+        TabOrder = 0
+      end
+      object BtnGradientPal: TButton
+        AnchorSideLeft.Control = BtnBluePalette
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = BtnBluePalette
+        AnchorSideTop.Side = asrCenter
+        Left = 128
+        Height = 25
+        Top = 312
+        Width = 139
+        AutoSize = True
+        BorderSpacing.Left = 4
+        Caption = 'Generate gradient pal'
+        OnClick = BtnGradientPalClick
+        TabOrder = 1
+      end
+      object BtnLoadPal: TButton
+        AnchorSideLeft.Control = BtnGradientPal
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = BtnBluePalette
+        AnchorSideTop.Side = asrCenter
+        Left = 271
+        Height = 25
+        Top = 312
+        Width = 139
+        AutoSize = True
+        BorderSpacing.Left = 4
+        Caption = 'Load palette from file'
+        OnClick = BtnLoadPalClick
+        TabOrder = 2
+      end
+      object ScrollBox1: TScrollBox
+        AnchorSideBottom.Control = BtnBluePalette
+        Left = 6
+        Height = 300
+        Top = 8
+        Width = 458
+        HorzScrollBar.Page = 75
+        VertScrollBar.Page = 50
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Bottom = 4
+        BorderStyle = bsNone
+        ClientHeight = 300
+        ClientWidth = 458
+        TabOrder = 3
+        object mbColorPalette1: TmbColorPalette
+          Left = 0
+          Height = 298
+          Top = 0
+          Width = 451
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          Colors.Strings = (
+            'clBlack'
+            '$00330000'
+            '$00660000'
+            '$00990000'
+            '$00CC0000'
+            'clBlue'
+            '$00FF3300'
+            '$00CC3300'
+            '$00993300'
+            '$00663300'
+            '$00333300'
+            '$00003300'
+            '$00000033'
+            '$00330033'
+            '$00660033'
+            '$00990033'
+            '$00CC0033'
+            '$00FF0033'
+            '$00FF3333'
+            '$00CC3333'
+            '$00993333'
+            '$00663333'
+            '$00333333'
+            '$00003333'
+            '$00000066'
+            '$00330066'
+            '$00660066'
+            '$00990066'
+            '$00CC0066'
+            '$00FF0066'
+            '$00FF3366'
+            '$00CC3366'
+            '$00993366'
+            '$00663366'
+            '$00333366'
+            '$00003366'
+            '$00000099'
+            '$00330099'
+            '$00660099'
+            '$00990099'
+            '$00CC0099'
+            '$00FF0099'
+            '$00FF3399'
+            '$00CC3399'
+            '$00993399'
+            '$00663399'
+            '$00333399'
+            '$00003399'
+            '$000000CC'
+            '$003300CC'
+            '$006600CC'
+            '$009900CC'
+            '$00CC00CC'
+            '$00FF00CC'
+            '$00FF33CC'
+            '$00CC33CC'
+            '$009933CC'
+            '$006633CC'
+            '$003333CC'
+            '$000033CC'
+            'clRed'
+            '$003300FF'
+            '$006600FF'
+            '$009900FF'
+            '$00CC00FF'
+            'clFuchsia'
+            '$00FF33FF'
+            '$00CC33FF'
+            '$009933FF'
+            '$006633FF'
+            '$003333FF'
+            '$000033FF'
+            '$000066FF'
+            '$003366FF'
+            '$006666FF'
+            '$009966FF'
+            '$00CC66FF'
+            '$00FF66FF'
+            '$00FF99FF'
+            '$00CC99FF'
+            '$009999FF'
+            '$006699FF'
+            '$003399FF'
+            '$000099FF'
+            '$000066CC'
+            '$003366CC'
+            '$006666CC'
+            '$009966CC'
+            '$00CC66CC'
+            '$00FF66CC'
+            '$00FF99CC'
+            '$00CC99CC'
+            '$009999CC'
+            '$006699CC'
+            '$003399CC'
+            '$000099CC'
+            '$00006699'
+            '$00336699'
+            '$00666699'
+            '$00996699'
+            '$00CC6699'
+            '$00FF6699'
+            '$00FF9999'
+            '$00CC9999'
+            '$00999999'
+            '$00669999'
+            '$00339999'
+            '$00009999'
+            '$00006666'
+            '$00336666'
+            '$00666666'
+            '$00996666'
+            '$00CC6666'
+            '$00FF6666'
+            '$00FF9966'
+            '$00CC9966'
+            '$00999966'
+            '$00669966'
+            '$00339966'
+            '$00009966'
+            '$00006633'
+            '$00336633'
+            '$00666633'
+            '$00996633'
+            '$00CC6633'
+            '$00FF6633'
+            '$00FF9933'
+            '$00CC9933'
+            '$00999933'
+            '$00669933'
+            '$00339933'
+            '$00009933'
+            '$00006600'
+            '$00336600'
+            '$00666600'
+            '$00996600'
+            '$00CC6600'
+            '$00FF6600'
+            '$00FF9900'
+            '$00CC9900'
+            '$00999900'
+            '$00669900'
+            '$00339900'
+            '$00009900'
+            '$0000CC00'
+            '$0033CC00'
+            '$0066CC00'
+            '$0099CC00'
+            '$00CCCC00'
+            '$00FFCC00'
+            'clAqua'
+            '$00CCFF00'
+            '$0099FF00'
+            '$0066FF00'
+            '$0033FF00'
+            'clLime'
+            '$0000CC33'
+            '$0033CC33'
+            '$0066CC33'
+            '$0099CC33'
+            '$00CCCC33'
+            '$00FFCC33'
+            '$00FFFF33'
+            '$00CCFF33'
+            '$0099FF33'
+            '$0066FF33'
+            '$0033FF33'
+            '$0000FF33'
+            '$0000CC66'
+            '$0033CC66'
+            '$0066CC66'
+            '$0099CC66'
+            '$00CCCC66'
+            '$00FFCC66'
+            '$00FFFF66'
+            '$00CCFF66'
+            '$0099FF66'
+            '$0066FF66'
+            '$0033FF66'
+            '$0000FF66'
+            '$0000CC99'
+            '$0033CC99'
+            '$0066CC99'
+            '$0099CC99'
+            '$00CCCC99'
+            '$00FFCC99'
+            '$00FFFF99'
+            '$00CCFF99'
+            '$0099FF99'
+            '$0066FF99'
+            '$0033FF99'
+            '$0000FF99'
+            '$0000CCCC'
+            '$0033CCCC'
+            '$0066CCCC'
+            '$0099CCCC'
+            '$00CCCCCC'
+            '$00FFCCCC'
+            '$00FFFFCC'
+            '$00CCFFCC'
+            '$0099FFCC'
+            '$0066FFCC'
+            '$0033FFCC'
+            '$0000FFCC'
+            '$0000CCFF'
+            '$0033CCFF'
+            '$0066CCFF'
+            '$0099CCFF'
+            '$00CCCCFF'
+            '$00FFCCFF'
+            'clWhite'
+            '$00CCFFFF'
+            '$0099FFFF'
+            '$0066FFFF'
+            '$0033FFFF'
+            'clYellow'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            '$00000099'
+            '$00009999'
+            '$00009900'
+            '$00999900'
+            '$00990000'
+            '$00990099'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clRed'
+            'clYellow'
+            'clLime'
+            'clAqua'
+            'clBlue'
+            'clFuchsia'
+            'clWhite'
+            '$00CCCCCC'
+            '$00999999'
+            '$00666666'
+            '$00333333'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+            'clBlack'
+          )
+          HintFormat = 'RGB(%r, %g, %b)'#13'Hex: #%hex'
+          TabOrder = 0
+          OnSelColorChange = mbColorPalette1SelColorChange
+          OnMouseMove = mbColorPalette1MouseMove
+        end
+      end
+      object CbSortDir: TComboBox
+        AnchorSideLeft.Control = LblSort
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = LblSort
+        AnchorSideTop.Side = asrCenter
+        Left = 34
+        Height = 23
+        Top = 345
+        Width = 110
+        BorderSpacing.Left = 4
+        ItemHeight = 15
+        ItemIndex = 0
+        Items.Strings = (
+          'soAscending'
+          'soDescending'
+        )
+        OnChange = CbSortDirChange
+        Style = csDropDownList
+        TabOrder = 4
+        Text = 'soAscending'
+      end
+      object CbSortMode: TComboBox
+        AnchorSideLeft.Control = CbSortDir
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = LblSort
+        AnchorSideTop.Side = asrCenter
+        Left = 150
+        Height = 23
+        Top = 345
+        Width = 106
+        BorderSpacing.Left = 6
+        ItemHeight = 15
+        ItemIndex = 7
+        Items.Strings = (
+          'smRed'
+          'smGreen'
+          'smBlue'
+          'smHue'
+          'smSaturation'
+          'smLuminance'
+          'smValue'
+          'smNone'
+          'smCyan'
+          'smMagenta'
+          'smYellow'
+          'smBlacK'
+          'smCIEx'
+          'smCIEy'
+          'smCIEz'
+          'smCIEl'
+          'smCIEa'
+          'smCIEb'
+        )
+        OnChange = CbSortModeChange
+        Style = csDropDownList
+        TabOrder = 5
+        Text = 'smNone'
+      end
+      object CbStyle: TComboBox
+        AnchorSideLeft.Control = LblStyle
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = LblSort
+        AnchorSideTop.Side = asrCenter
+        Left = 296
+        Height = 23
+        Top = 345
+        Width = 96
+        BorderSpacing.Left = 4
+        ItemHeight = 15
+        ItemIndex = 0
+        Items.Strings = (
+          'csDefault'
+          'csCorel'
+        )
+        OnChange = CbStyleChange
+        Style = csDropDownList
+        TabOrder = 6
+        Text = 'csDefault'
+      end
+      object udSize: TUpDown
+        AnchorSideLeft.Control = LblSize
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = LblSort
+        AnchorSideTop.Side = asrCenter
+        Left = 425
+        Height = 23
+        Top = 345
+        Width = 15
+        BorderSpacing.Left = 4
+        Min = 0
+        OnChangingEx = udSizeChangingEx
+        Position = 18
+        TabOrder = 7
+        Thousands = False
+        Wrap = True
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'HSLRingPicker'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 3
+      object HSLRingPicker1: THSLRingPicker
+        Left = 50
+        Height = 362
+        Top = 6
+        Width = 370
+        Luminance = 240
+        RingPickerHintFormat = 'Hue: %h'
+        SLPickerHintFormat = 'S: %hslS V: %v'#13'Hex: %hex'
+        SVPickerHintFormat = 'S: %hslS V: %v'#13'Hex: %hex'
+        MaxLuminance = 255
+        MaxSaturation = 255
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+        OnChange = HSLRingPicker1Change
+        OnMouseMove = HSLRingPicker1MouseMove
+      end
+    end
+    object TabSheet5: TTabSheet
+      Caption = 'HSCirclePicker'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 4
+      object HSCirclePicker1: THSCirclePicker
+        Left = 24
+        Height = 362
+        Top = 6
+        Width = 405
+        SelectedColor = clWhite
+        HintFormat = 'H: %h S: %s V: %v'#13'Hex: %hex'
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+        Luminance = 128
+        Saturation = 0
+        OnChange = HSVColorPicker1Change
+      end
+      object LVColorPicker1: TLVColorPicker
+        Left = 437
+        Height = 375
+        Top = 2
+        Width = 22
+        Layout = lyVertical
+        NewArrowStyle = True
+        Anchors = [akTop, akRight, akBottom]
+        TabOrder = 1
+        OnChange = LVColorPicker1Change
+        BrightnessMode = bmValue
+        LHintFormat = 'Luminance: %lum (selected)'
+        VHintFormat = 'Value: %value (selected)'
+      end
+    end
+    object TabSheet6: TTabSheet
+      Caption = 'SLHColorPicker'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 5
+      object SLHColorPicker1: TSLHColorPicker
+        Left = 8
+        Height = 364
+        Top = 6
+        Width = 458
+        SelectedColor = 213
+        Value = 213
+        Luminance = 100
+        HPickerHintFormat = 'Hue: %h (selected)'
+        SLPickerHintFormat = 'S: %s L: %l'#13'Hex: %hex'
+        MaxSaturation = 255
+        MaxLuminance = 255
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+        OnChange = SLHColorPicker1Change
+        OnMouseMove = SLHColorPicker1MouseMove
+      end
+    end
+    object TabSheet11: TTabSheet
+      Caption = 'Lists && Trees'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 10
+      object mbColorList1: TmbColorList
+        AnchorSideLeft.Control = Bevel1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = TabSheet11
+        AnchorSideRight.Control = TabSheet11
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Button5
+        Left = 238
+        Height = 347
+        Top = 0
+        Width = 230
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+      end
+      object mbColorTree1: TmbColorTree
+        AnchorSideLeft.Control = TabSheet11
+        AnchorSideTop.Control = TabSheet11
+        AnchorSideRight.Control = Bevel1
+        AnchorSideBottom.Control = Button5
+        Left = 0
+        Height = 347
+        Top = 0
+        Width = 230
+        InfoLabelText = 'Color Values:'
+        InfoDisplay1 = 'RGB: %r.%g.%b'
+        InfoDisplay2 = 'HEX: #%hex'
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Indent = 51
+        TabOrder = 1
+      end
+      object Button5: TButton
+        AnchorSideLeft.Control = TabSheet11
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet11
+        AnchorSideBottom.Side = asrBottom
+        Left = 159
+        Height = 25
+        Top = 347
+        Width = 151
+        Anchors = [akLeft, akBottom]
+        AutoSize = True
+        BorderSpacing.Bottom = 4
+        Caption = 'Add colors from palette'
+        OnClick = Button5Click
+        TabOrder = 2
+      end
+      object Bevel1: TBevel
+        AnchorSideLeft.Control = TabSheet11
+        AnchorSideLeft.Side = asrCenter
+        Left = 230
+        Height = 50
+        Top = 72
+        Width = 8
+        Shape = bsSpacer
+      end
+    end
+    object TabSheet7: TTabSheet
+      Caption = 'More'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 6
+      object Label9: TLabel
+        AnchorSideLeft.Control = mbDeskPickerButton1
+        AnchorSideLeft.Side = asrBottom
+        Left = 134
+        Height = 15
+        Top = 8
+        Width = 113
+        BorderSpacing.Left = 12
+        Caption = 'HintFormat variables:'
+        ParentColor = False
+      end
+      object mbDeskPickerButton1: TmbDeskPickerButton
+        Left = 8
+        Height = 25
+        Top = 8
+        Width = 114
+        AutoSize = True
+        Caption = 'Pick from screen'
+        TabOrder = 0
+        ScreenHintFormat = 'RGB(%r, %g, %b)'#13'Hex: %h'
+        ShowScreenHint = True
+        OnSelColorChange = mbDeskPickerButton1SelColorChange
+      end
+      object OfficeColorDialogButton: TButton
+        AnchorSideTop.Control = mbDeskPickerButton1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = mbDeskPickerButton1
+        AnchorSideRight.Side = asrBottom
+        Left = 8
+        Height = 25
+        Top = 41
+        Width = 114
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 8
+        Caption = 'OfficeColorDlg'
+        OnClick = OfficeColorDialogButtonClick
+        TabOrder = 1
+      end
+      object LVColorPicker2: TLVColorPicker
+        Left = 34
+        Height = 25
+        Top = 265
+        Width = 420
+        SelectedColor = 460777
+        SelectionIndicator = siRect
+        Anchors = [akLeft, akRight, akBottom]
+        TabOrder = 2
+        Luminance = 120
+        Saturation = 240
+        LHintFormat = 'Luminance: %l (selected)'
+        VHintFormat = 'Value: %v (selected)'
+      end
+      object LVColorPicker3: TLVColorPicker
+        Left = 34
+        Height = 21
+        Top = 233
+        Width = 420
+        ArrowPlacement = spBefore
+        NewArrowStyle = True
+        SelectionIndicator = siRect
+        Anchors = [akLeft, akRight, akBottom]
+        TabOrder = 3
+        Saturation = 255
+        LHintFormat = 'Luminance: %l (selected)'
+        VHintFormat = 'Value: %v (selected)'
+      end
+      object HColorPicker1: THColorPicker
+        Left = 34
+        Height = 61
+        Top = 304
+        Width = 420
+        SelectedColor = 8882175
+        Increment = 5
+        ArrowPlacement = spBoth
+        SelectionIndicator = siRect
+        Anchors = [akLeft, akRight, akBottom]
+        TabOrder = 4
+        OnGetHintStr = HColorPicker1GetHintStr
+        Luminance = 195
+        HintFormat = 'Hue: %h (under mouse)'
+      end
+      object SColorPicker1: TSColorPicker
+        AnchorSideTop.Control = OfficeColorDialogButton
+        AnchorSideTop.Side = asrBottom
+        Left = 8
+        Height = 291
+        Top = 74
+        Width = 19
+        SelectedColor = 11534335
+        Layout = lyVertical
+        ArrowPlacement = spBefore
+        NewArrowStyle = True
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Top = 8
+        TabOrder = 5
+        Hue = 60
+        Luminance = 215
+        HintFormat = 'Saturation: %s (selected)'
+      end
+      object Memo1: TMemo
+        AnchorSideLeft.Control = Label9
+        AnchorSideTop.Control = Label9
+        AnchorSideTop.Side = asrBottom
+        Left = 134
+        Height = 190
+        Top = 27
+        Width = 320
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Top = 4
+        Lines.Strings = (
+          'The following variables will be replaced in the hint at runtime:'
+          ''
+          '%hex = HTML HEX color value'
+          ''
+          '%cieL = CIE L*a*b* Luminance value'
+          '%cieA = CIE L*a*b* A-Chrominance value'
+          '%cieB = CIE L*a*b* B-Chrominance value'
+          ''
+          '%cieX = CIE XYZ X value'
+          '%cieY = CIE XYZ Y value'
+          '%cieZ = CIE XYZ Z value'
+          ''
+          '%cieC = CIE LCH Chrominance value'
+          '%cieH = CIE LCH Hue value'
+          ''
+          '%hslH = HSL Hue value'
+          '%hslS = HSL Saturation value'
+          '%hslL = HSL Luminance value'
+          ''
+          '%hsvH = HSV Hue value'
+          '%hsvS = HSV Saturation value'
+          '%hsvV = HSV Value value'
+          ''
+          '%r = RGB Red value'
+          '%g = RGB Green value'
+          '%b = RGB Blue value'
+          ''
+          '%c = CMYK Cyan value'
+          '%m = CMYK Magenta value'
+          '%y = CMYK Yellow value'
+          '%k = CMYK blacK value'
+          ''
+          '%h = HSL Hue value'
+          '%l = HSL Luminance value'
+          '%v = HSV Value value'
+        )
+        ScrollBars = ssVertical
+        TabOrder = 6
+      end
+    end
+    object TabSheet8: TTabSheet
+      Caption = 'Other'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 7
+      object HSColorPicker1: THSColorPicker
+        Left = 6
+        Height = 155
+        Top = 6
+        Width = 211
+        HintFormat = 'H: %h S: %s'#13'Hex: %hex'
+        TabOrder = 0
+        OnMouseMove = HSColorPicker1MouseMove
+        Luminance = 128
+        MarkerStyle = msSquare
+        OnChange = HSColorPicker1Change
+      end
+      object SLColorPicker1: TSLColorPicker
+        Left = 224
+        Height = 130
+        Top = 168
+        Width = 161
+        SelectedColor = 6579300
+        HintFormat = 'H: %h S: %s L: %l'#13'Hex: %hex'
+        TabOrder = 1
+        OnMouseMove = SLColorPicker1MouseMove
+        Luminance = 100
+        MarkerStyle = msCross
+        SLHintFormat = 'S: %hslS L: %l'#13#10'Hex: %hex'
+        SVHintFormat = 'S: %hslS V: %v'#13#10'Hex: %hex'
+        OnChange = SLColorPicker1Change
+      end
+      object HRingPicker1: THRingPicker
+        Left = 6
+        Height = 130
+        Top = 168
+        Width = 133
+        SelectedColor = 66047
+        HintFormat = 'Hue: %h (selected)'
+        TabOrder = 2
+        OnMouseMove = HRingPicker1MouseMove
+        Luminance = 128
+        OnChange = HRingPicker1Change
+      end
+    end
+    object TabSheet9: TTabSheet
+      Caption = 'Even more'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 8
+      object Label8: TLabel
+        AnchorSideLeft.Control = TabSheet9
+        AnchorSideTop.Control = TabSheet9
+        Left = 4
+        Height = 15
+        Top = 4
+        Width = 136
+        BorderSpacing.Left = 4
+        BorderSpacing.Top = 4
+        Caption = 'New: border styles added.'
+        ParentColor = False
+      end
+      object CColorPicker1: TCColorPicker
+        AnchorSideTop.Control = Label8
+        AnchorSideTop.Side = asrBottom
+        Left = 4
+        Height = 353
+        Top = 19
+        Width = 22
+        SelectedColor = clAqua
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 0
+        HintFormat = 'Cyan: %c (selected)'
+      end
+      object MColorPicker1: TMColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 34
+        Height = 353
+        Top = 19
+        Width = 22
+        SelectedColor = clFuchsia
+        ArrowPlacement = spBefore
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 1
+        HintFormat = 'Magenta: %m (selected)'
+      end
+      object YColorPicker1: TYColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 68
+        Height = 353
+        Top = 19
+        Width = 31
+        SelectedColor = clYellow
+        ArrowPlacement = spBoth
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 2
+        HintFormat = 'Yellow: %y (selected)'
+      end
+      object KColorPicker1: TKColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 120
+        Height = 353
+        Top = 19
+        Width = 22
+        SelectedColor = 16711422
+        NewArrowStyle = True
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 3
+        Cyan = 0
+        Black = 1
+        HintFormat = 'Black: %k (selected)'
+      end
+      object RColorPicker1: TRColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 184
+        Height = 353
+        Top = 19
+        Width = 22
+        SelectedColor = 8026879
+        ArrowPlacement = spBefore
+        NewArrowStyle = True
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 4
+        Green = 122
+        Blue = 122
+        HintFormat = 'Red: %r (selected)'
+      end
+      object GColorPicker1: TGColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 216
+        Height = 353
+        Top = 19
+        Width = 34
+        SelectedColor = 8060794
+        ArrowPlacement = spBoth
+        NewArrowStyle = True
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 5
+        Red = 122
+        Blue = 122
+        HintFormat = 'Green: %g (selected)'
+      end
+      object BColorPicker1: TBColorPicker
+        AnchorSideTop.Control = CColorPicker1
+        AnchorSideBottom.Control = CColorPicker1
+        AnchorSideBottom.Side = asrBottom
+        Left = 258
+        Height = 353
+        Top = 19
+        Width = 22
+        SelectedColor = 16743034
+        SelectionIndicator = siRect
+        Anchors = [akTop, akLeft, akBottom]
+        TabOrder = 6
+        Green = 122
+        Red = 122
+        HintFormat = 'Blue: %b (selected)'
+      end
+      object KColorPicker2: TKColorPicker
+        Left = 322
+        Height = 79
+        Top = 27
+        Width = 69
+        SelectedColor = 16711422
+        BevelInner = bvRaised
+        BevelOuter = bvRaised
+        BorderStyle = bsSingle
+        ArrowPlacement = spBoth
+        NewArrowStyle = True
+        TabOrder = 7
+        Cyan = 0
+        Black = 1
+        HintFormat = 'Black: %k (selected)'
+      end
+      object MColorPicker2: TMColorPicker
+        Left = 320
+        Height = 61
+        Top = 110
+        Width = 91
+        SelectedColor = clFuchsia
+        BevelInner = bvLowered
+        BevelOuter = bvRaised
+        BorderStyle = bsSingle
+        Layout = lyHorizontal
+        ArrowPlacement = spBoth
+        NewArrowStyle = True
+        TabOrder = 8
+        HintFormat = 'Magenta: %m (selected)'
+      end
+      object CColorPicker2: TCColorPicker
+        Left = 322
+        Height = 74
+        Top = 172
+        Width = 61
+        SelectedColor = clAqua
+        BevelInner = bvRaised
+        BevelOuter = bvLowered
+        BorderStyle = bsSingle
+        ArrowPlacement = spBoth
+        NewArrowStyle = True
+        TabOrder = 9
+        HintFormat = 'Cyan: %c (selected)'
+      end
+      object YColorPicker2: TYColorPicker
+        Left = 320
+        Height = 63
+        Top = 256
+        Width = 81
+        SelectedColor = clYellow
+        BevelInner = bvLowered
+        BevelOuter = bvLowered
+        BorderStyle = bsSingle
+        ArrowPlacement = spBoth
+        NewArrowStyle = True
+        TabOrder = 10
+        HintFormat = 'Yellow: %y (selected)'
+      end
+    end
+    object TabSheet10: TTabSheet
+      Caption = 'Yet even more'
+      ClientHeight = 376
+      ClientWidth = 468
+      ImageIndex = 9
+      object RAxisColorPicker1: TRAxisColorPicker
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideTop.Control = LblRAxisPicker
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 100
+        Top = 27
+        Width = 100
+        HintFormat = 'G: %g B: %b'#13'Hex: #%hex'
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 4
+        TabOrder = 0
+      end
+      object GAxisColorPicker1: TGAxisColorPicker
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = LblGAxisPicker
+        AnchorSideTop.Side = asrBottom
+        Left = 184
+        Height = 100
+        Top = 27
+        Width = 100
+        HintFormat = 'R: %r B: %b'#13'Hex: #%hex'
+        BorderSpacing.Top = 4
+        TabOrder = 1
+        MarkerStyle = msCross
+      end
+      object BAxisColorPicker1: TBAxisColorPicker
+        AnchorSideTop.Control = LblBAxisPicker
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheet10
+        AnchorSideRight.Side = asrBottom
+        Left = 358
+        Height = 100
+        Top = 27
+        Width = 100
+        HintFormat = 'R: %r G: %g'#13'Hex: #%hex'
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 4
+        BorderSpacing.Right = 10
+        TabOrder = 2
+        MarkerStyle = msCrossCirc
+      end
+      object CIELColorPicker1: TCIELColorPicker
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideTop.Control = LblCIELColorPicker
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 100
+        Top = 186
+        Width = 100
+        SelectedColor = 16119089
+        HintFormat = 'A: %cieA B: %cieB'#13'Hex: #%hex'
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 4
+        TabOrder = 3
+        AValue = -47
+        BValue = -32
+        LValue = 88
+      end
+      object CIEAColorPicker1: TCIEAColorPicker
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = LblCIEAColorPicker
+        AnchorSideTop.Side = asrBottom
+        Left = 184
+        Height = 100
+        Top = 186
+        Width = 100
+        SelectedColor = 16515327
+        HintFormat = 'L: %cieL B: %cieB'#13'Hex: #%hex'
+        BorderSpacing.Top = 4
+        TabOrder = 4
+        LValue = 60
+        AValue = 96
+        BValue = -78
+        MarkerStyle = msSquare
+      end
+      object CIEBColorPicker1: TCIEBColorPicker
+        AnchorSideTop.Control = LblCIEBColorPicker
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = TabSheet10
+        AnchorSideRight.Side = asrBottom
+        Left = 358
+        Height = 100
+        Top = 186
+        Width = 100
+        SelectedColor = 130823
+        HintFormat = 'L: %cieL A: %cieA'#13'Hex: #%hex'
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 4
+        BorderSpacing.Right = 10
+        TabOrder = 5
+        LValue = 88
+        AValue = -88
+        BValue = 74
+      end
+      object LblGAxisPicker: TLabel
+        AnchorSideLeft.Control = GAxisColorPicker1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = TabSheet10
+        Left = 189
+        Height = 15
+        Top = 8
+        Width = 90
+        BorderSpacing.Top = 8
+        Caption = 'GAxisColorPicker'
+        ParentColor = False
+      end
+      object LblRAxisPicker: TLabel
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideTop.Control = TabSheet10
+        Left = 10
+        Height = 15
+        Top = 8
+        Width = 89
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 8
+        Caption = 'RAxisColorPicker'
+        ParentColor = False
+      end
+      object LblBAxisPicker: TLabel
+        AnchorSideTop.Control = TabSheet10
+        AnchorSideRight.Control = BAxisColorPicker1
+        AnchorSideRight.Side = asrBottom
+        Left = 369
+        Height = 15
+        Top = 8
+        Width = 89
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 8
+        Caption = 'BAxisColorPicker'
+        ParentColor = False
+      end
+      object LblCIELColorPicker: TLabel
+        AnchorSideLeft.Control = TabSheet10
+        AnchorSideTop.Control = RAxisColorPicker1
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 15
+        Top = 167
+        Width = 84
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 40
+        Caption = 'CIELColorPicker'
+        ParentColor = False
+      end
+      object LblCIEAColorPicker: TLabel
+        AnchorSideLeft.Control = CIEAColorPicker1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = GAxisColorPicker1
+        AnchorSideTop.Side = asrBottom
+        Left = 191
+        Height = 15
+        Top = 167
+        Width = 86
+        BorderSpacing.Top = 40
+        Caption = 'CIEAColorPicker'
+        ParentColor = False
+      end
+      object LblCIEBColorPicker: TLabel
+        AnchorSideTop.Control = BAxisColorPicker1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = CIEBColorPicker1
+        AnchorSideRight.Side = asrBottom
+        Left = 373
+        Height = 15
+        Top = 167
+        Width = 85
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 40
+        Caption = 'CIEBColorPicker'
+        ParentColor = False
+      end
+    end
+  end
+  object RightPanel: TPanel
+    Left = 488
+    Height = 404
+    Top = 6
+    Width = 100
+    Align = alRight
+    AutoSize = True
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
+    BevelOuter = bvNone
+    ClientHeight = 404
+    ClientWidth = 100
+    TabOrder = 1
+    object LblSelectedColor: TLabel
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = RightPanel
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 73
+      Caption = 'SelectedColor'
+      ParentColor = False
+    end
+    object sc: TmbColorPreview
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = LblSelectedColor
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = RightPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 62
+      Top = 15
+      Width = 100
+      Color = clNone
+      Anchors = [akTop, akLeft, akRight]
+    end
+    object tb1: TTrackBar
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = sc
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = RightPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 20
+      Hint = 'Opacity'
+      Top = 81
+      Width = 100
+      Max = 100
+      OnChange = tb1Change
+      Position = 100
+      TickStyle = tsNone
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 4
+      TabOrder = 1
+    end
+    object LblColorUnderCursor: TLabel
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = tb1
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 105
+      Width = 96
+      BorderSpacing.Top = 4
+      Caption = 'ColorUnderCursor'
+      ParentColor = False
+    end
+    object uc: TmbColorPreview
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = LblColorUnderCursor
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = RightPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 62
+      Top = 120
+      Width = 100
+      Color = clNone
+      Anchors = [akTop, akLeft, akRight]
+    end
+    object tb2: TTrackBar
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = uc
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = RightPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 20
+      Top = 186
+      Width = 100
+      Max = 100
+      OnChange = tb2Change
+      Position = 100
+      TickStyle = tsNone
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 4
+      TabOrder = 3
+    end
+    object CbSwatchStyle: TCheckBox
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = tb2
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 210
+      Width = 83
+      BorderSpacing.Top = 4
+      Caption = 'SwatchStyle'
+      OnClick = CbSwatchStyleClick
+      TabOrder = 4
+    end
+    object LblInfo: TLabel
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = CbSwatchStyle
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 75
+      Top = 241
+      Width = 99
+      BorderSpacing.Top = 12
+      Caption = 'Aditional controls:'#13#13'- Arrow keys'#13'- Ctrl + Arrow keys'#13'- Mouse wheel'
+      ParentColor = False
+    end
+    object CbWebSsafe: TCheckBox
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = LblInfo
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 328
+      Width = 66
+      BorderSpacing.Top = 12
+      Caption = 'WebSafe'
+      OnClick = CbWebSsafeClick
+      TabOrder = 5
+    end
+    object CbShowHints: TCheckBox
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = CbWebSsafe
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 351
+      Width = 78
+      BorderSpacing.Top = 4
+      Caption = 'Show hints'
+      Checked = True
+      OnChange = CbShowHintsChange
+      State = cbChecked
+      TabOrder = 6
+    end
+    object CbEnabled: TCheckBox
+      AnchorSideLeft.Control = RightPanel
+      AnchorSideTop.Control = CbShowHints
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 374
+      Width = 62
+      BorderSpacing.Top = 4
+      Caption = 'Enabled'
+      Checked = True
+      OnChange = CbEnabledChange
+      State = cbChecked
+      TabOrder = 7
+    end
+  end
+  object mbOfficeColorDialog1: TmbOfficeColorDialog
+    UseHints = True
+    left = 504
+    top = 144
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'JASC PAL (*.pal)|*.pal|Photoshop (*.act; *.aco)|*.act;*.aco'
+    left = 504
+    top = 40
+  end
+end

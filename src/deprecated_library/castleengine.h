@@ -1,5 +1,5 @@
 /*
-  Copyright 2013 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,6 +63,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
+    ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType

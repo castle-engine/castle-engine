@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,12 +26,13 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainScene: TCastleScene;
     Notifications: TCastleNotifications;
-
+  private
     TouchSensors: array [1..4] of TTouchSensorNode;
     procedure TouchSensorClick(Sender: TObject);
     procedure TouchSensorTouchTime(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
@@ -62,12 +63,6 @@ var
   I: Integer;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Notifications := DesignedComponent('Notifications') as TCastleNotifications;
-  MainScene := DesignedComponent('MainScene') as TCastleScene;
-
   for I := Low(TouchSensors) to High(TouchSensors) do
   begin
     TouchSensors[I] := MainScene.Node('TouchSensorPiece' + IntToStr(I)) as TTouchSensorNode;

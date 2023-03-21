@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,8 +22,11 @@ uses Classes, CastleControls, CastleUIControls;
 
 type
   TViewMainMenu = class(TCastleView)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonNewGame, ButtonQuit: TCastleButton;
+  strict private
     procedure ClickNewGame(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
@@ -51,10 +54,6 @@ end;
 procedure TViewMainMenu.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonNewGame := DesignedComponent('ButtonNewGame') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   { attach events }
   ButtonNewGame.OnClick := {$ifdef FPC}@{$endif}ClickNewGame;

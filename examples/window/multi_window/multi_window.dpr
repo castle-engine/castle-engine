@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,7 +58,7 @@ begin
     'c':
       begin
         if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
-        Result := ExclusiveEvents;
+        Exit(true);
       end;
     'o':
       begin
@@ -66,7 +66,7 @@ begin
         { when file dialog is open, note that the other windows
           are still active as they should. }
         ParentWindow.FileDialog('Test open file dialog', URL, true);
-        Result := ExclusiveEvents;
+        Exit(true);
       end;
   end;
 end;

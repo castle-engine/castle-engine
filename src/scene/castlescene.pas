@@ -456,9 +456,8 @@ type
       The created scene has exactly the same class as this one
       (we use ClassType.Create to call a virtual constructor).
 
-      Note that this @bold(does not copy other scene attributes),
-      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(RenderOptions). }
+      Note that this @bold(does not copy other scene properties),
+      like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
 
     {$ifdef FPC}
@@ -1472,49 +1471,66 @@ procedure TCastleScene.LocalRenderOutside(
     LocalRenderInside(TestShapeVisibility, Params);
   end;
 
-  {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
   begin
-    glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    {$endif}
 
-      if UseWireframeColor then
-      begin
-        SavedMode := RenderOptions.Mode;
-        SavedSolidColor := RenderOptions.SolidColor;
-        RenderOptions.Mode := rmSolidColor;
-        RenderOptions.SolidColor := RenderOptions.WireframeColor;
+    if UseWireframeColor then
+    begin
+      SavedMode := RenderOptions.Mode;
+      SavedSolidColor := RenderOptions.SolidColor;
+      RenderOptions.Mode := rmSolidColor;
+      RenderOptions.SolidColor := RenderOptions.WireframeColor;
 
-        RenderNormal;
+      RenderNormal;
 
-        RenderOptions.Mode := SavedMode;
-        RenderOptions.SolidColor := SavedSolidColor;
-      end else
-      begin
-        RenderNormal;
-      end;
+      RenderOptions.Mode := SavedMode;
+      RenderOptions.SolidColor := SavedSolidColor;
+    end else
+    begin
+      RenderNormal;
+    end;
 
-    glPopAttrib;
+    { We restore by just assuming that default mode is GL_FILL.
+      Nothing else in CGE changes glPolygonMode for now, so this is trivially true.
+
+      This way we avoid using glPushAttrib / glPopAttrib to save state.
+      They are
+
+      1. deprecated,
+      2. using them would break RenderContext state knowledge, causing problems later.
+
+         Testcase:
+         - in CGE editor,
+         - activate shadow volumes on 1 light,
+         - add 2nd light, not casting shadows (maybe not needed to reproduce),
+         - make plane larger 100x100 (maybe not needed to reproduce),
+         - add sphere and box,
+         - add on them sphere and box collider,
+         - activate "Physics -> Show Colliders".
+
+         Using glPushAttrib / glPopAttrib would break rendering, making some
+         objects weirdly wireframe depending on what was last hovered-over
+         with a mouse in editor.  }
+
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    {$endif}
   end;
-  {$warnings on}
-  {$endif}
 
   { Render taking RenderOptions.WireframeEffect into account.
     Also controls InternalScenePass,
     this way shaders from RenderNormal and RenderWireframe can coexist,
     which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
   procedure RenderWithWireframeEffect;
-  // TODO-es For OpenGLES, wireframe must be done differently
-  {$ifndef OpenGLES}
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
   var
     WireframeEffect: TWireframeEffect;
+    SavedPolygonOffset: TPolygonOffset;
   begin
     WireframeEffect := RenderOptions.WireframeEffect;
     if InternalForceWireframe <> weNormal then
@@ -1540,14 +1556,10 @@ procedure TCastleScene.LocalRenderOutside(
       weSolidWireframe:
         begin
           InternalScenePass := 0;
-          glPushAttrib(GL_POLYGON_BIT);
-            { enable polygon offset for everything (whole scene) }
-            glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
-            RenderNormal;
-          glPopAttrib;
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias);
+          RenderNormal;
+          RenderContext.PolygonOffset := SavedPolygonOffset;
 
           InternalScenePass := 1;
           RenderWireframe(true);
@@ -1558,42 +1570,35 @@ procedure TCastleScene.LocalRenderOutside(
           RenderNormal;
 
           InternalScenePass := 1;
-          glPushAttrib(GL_POLYGON_BIT);
-            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias);
 
-            (* Old idea, may be resurrected one day:
+          (* Old idea, may be resurrected one day:
 
-            { rmSolidColor still does backface culling.
-              This is very good in this case. When rmSolidColor and weSilhouette,
-              and objects are solid (so backface culling is used) we can
-              significantly improve the effect by reverting glFrontFace,
-              this way we will cull *front* faces. This will not be noticed
-              in case of rmSolidColor will single solid color, and it will
-              improve the silhouette look, since front-face edges will not be
-              rendered at all (no need to even hide them by glPolygonOffset,
-              which is somewhat sloppy).
+          { rmSolidColor still does backface culling.
+            This is very good in this case. When rmSolidColor and weSilhouette,
+            and objects are solid (so backface culling is used) we can
+            significantly improve the effect by reverting glFrontFace,
+            this way we will cull *front* faces. This will not be noticed
+            in case of rmSolidColor will single solid color, and it will
+            improve the silhouette look, since front-face edges will not be
+            rendered at all (no need to even hide them by glPolygonOffset,
+            which is somewhat sloppy).
 
-              TODO: this is probably incorrect now, that some meshes
-              may have FrontFaceCcw = false.
-              What we really would like to is to negate the FrontFaceCcw
-              interpretation inside this RenderWireframe call.
-            }
-            if RenderOptions.Mode = rmSolidColor then
-              glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
-            *)
+            TODO: this is probably incorrect now, that some meshes
+            may have FrontFaceCcw = false.
+            What we really would like to is to negate the FrontFaceCcw
+            interpretation inside this RenderWireframe call.
+          }
+          if RenderOptions.Mode = rmSolidColor then
+            glFrontFace(GL_CW);
+          *)
 
-            RenderWireframe(true);
-          glPopAttrib;
+          RenderWireframe(true);
+          RenderContext.PolygonOffset := SavedPolygonOffset;
         end;
       else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
     end;
-  {$warnings on}
-  {$else}
-  begin
-    InternalScenePass := 0;
-    RenderNormal;
-  {$endif}
   end;
 
   { Render, doing some special tricks when rendering to shadow maps. }
@@ -2214,7 +2219,8 @@ begin
 
   if ReallyOcclusionQuery(RenderOptions) then
   begin
-    WritelnLog('Occlusion query', 'View changed suddenly');
+    // too spammy log, esp. during editor operations, that reload view
+    //WritelnLog('Occlusion query', 'View changed suddenly');
 
     { Set OcclusionQueryAsked := false for all shapes. }
     ShapeList := Shapes.TraverseList(false, false, false);

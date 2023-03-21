@@ -1,8 +1,8 @@
 # Component Gallery
 
-Demo of various _Castle Game Engine_ components that you can use and design using the editor.
+Demo of various _Castle Game Engine_ user interface components that you can use and design using the editor.
 
-The demo features multiple tabs demonstrating the use of various CGE user interface components. See https://castle-engine.io/user_interface for a description of all the components and links to API reference.
+The demo features multiple tabs demonstrating the use of various CGE user interface components (descendants of `TCastleUserInterface`). See https://castle-engine.io/user_interface for a description of all the components and links to API reference.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

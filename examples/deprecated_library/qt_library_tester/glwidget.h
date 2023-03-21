@@ -1,15 +1,15 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 
 #include "../../../src/deprecated_library/castleengine.h"
 
-class GLWidget : public QGLWidget
+class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 public:
-    explicit GLWidget(const QGLFormat &format, QWidget *parent = 0);
+    explicit GLWidget(const QSurfaceFormat &format, QWidget *parent = 0);
     ~GLWidget();
 
     QString m_sSceneToOpen;
@@ -24,6 +24,7 @@ protected:
     static int CDECL OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
     QPoint PointFromMousePoint(const QPoint& pt);
     QPoint PointFromMousePoint(const QPointF& pt);
+    void updateGL();
 
 private:
     bool m_bAfterInit;

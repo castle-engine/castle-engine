@@ -270,8 +270,7 @@ var
       good for speed.
 
       Some papers propose other solution:
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(1, 1);
+        RenderContext.PolygonOffsetEnable(1, 1);
       but this is no good for use, because it cannot be applied
       to DarkCap (otherwise DarkCap in infinity (as done by ExtrudeVertex)
       would go outside of depth range (even for infinite projection,
@@ -311,8 +310,7 @@ var
       - What to do?
 
         The trick
-          glEnable(GL_POLYGON_OFFSET_FILL);
-          glPolygonOffset(1, 1);
+          RenderContext.PolygonOffsetEnable(1, 1);
         makes light cap rendering working for both transparent and opaque
         objects, but it's not applicable to dark cap. Moreover,
         using glPolygonOffset always feels dirty.

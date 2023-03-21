@@ -131,6 +131,7 @@ default: tools
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_editor_components.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
@@ -363,10 +364,6 @@ examples-delphi:
 	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} --compiler=delphi compile; \
 	done
 
-.PHONY: cleanexamples
-cleanexamples:
-	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
-
 .PHONY: examples-laz
 examples-laz:
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
@@ -374,6 +371,7 @@ examples-laz:
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
@@ -384,6 +382,7 @@ examples-laz:
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
+	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
 	  /tmp/cge-laz-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
@@ -392,6 +391,20 @@ examples-laz:
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
 	  $(DO_IF_CONSERVE_DISK_SPACE) git clean --force -d -x "`dirname $${PROJECT_LPI}`"; \
 	done
+
+# Cleanup things in examples/ subdir,
+# produced by compilation (using "make examples*" or other methods of compilation)
+# and execution of the examples.
+.PHONY: cleanexamples
+cleanexamples:
+	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
+	rm -Rf \
+	  examples/deprecated_library/build-qt_library_tester-* \
+	  examples/deprecated_library/lazarus_library_tester/*.app  \
+	  examples/fonts/font_draw_over_image_output.png \
+	  examples/short_api_samples/transform_save_load/aaa.castle-transform
+# lazarus produces lib/ subdirectories during compilation
+	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 
 # cleaning ------------------------------------------------------------
 
@@ -407,6 +420,7 @@ clean: cleanexamples
 			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
 			   '(' -iname '*.res' -and \
 			       -not -iwholename '*/vampyre_imaginglib/*' -and \
+			       -not -iwholename '*/mbColorLib/*' -and \
 			       -not -iwholename '*/examples/delphi/*' ')' \
 			       -or \
 			   -iname '*.rsj' -or \
@@ -439,14 +453,10 @@ clean: cleanexamples
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
 	  tests/castle-tester \
-	  tests/castle-tester.exe \
-	  examples/fonts/font_draw_over_image_output.png \
-	  examples/short_api_samples/transform_save_load/aaa.castle-transform
+	  tests/castle-tester.exe
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
-# lazarus produces lib/ subdirectories during compilation
-	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 	rm -Rf src/deprecated_library/ios-output/\
 	       src/deprecated_library/libcastleengine.dylib \
 	       src/deprecated_library/castleengine.dll \

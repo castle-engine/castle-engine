@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1110,6 +1110,7 @@ begin
       LazbuildAddPackage('packages/castle_base.lpk');
       LazbuildAddPackage('packages/castle_window.lpk');
       LazbuildAddPackage('packages/castle_components.lpk');
+      LazbuildAddPackage('packages/castle_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;

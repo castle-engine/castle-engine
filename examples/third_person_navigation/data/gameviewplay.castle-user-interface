@@ -345,11 +345,11 @@
             "Space jumps (only when \"Change Transformation = Velocity\" now.)",
             "",
             "Rotate camera by moving the mouse.",
-            "Press M to toggle \"mouse look\" (to be able to e.g. click on checkboxes).",
+            "Press Right Mouse Button to toggle \"mouse look\" (to be able to e.g. click on checkboxes).",
             "",
-            "Click to shoot at the enemies.",
-            "Shoots with the avatar direction.",
-            "Use \"Debug Avatar\" to see a blue arrow indicating avatar direction.",
+            "Left Click to shoot at the enemies.",
+            "Shoots along the avatar forward ray.",
+            "Use \"Debug Avatar\" to see a blue arrow indicating avatar forward ray.",
             "",
             "Use mouse wheel to get closer / further to the avatar.",
             "",
@@ -391,7 +391,7 @@
         },
         {
           "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar) (Click with right mouse button to toggle)",
+          "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar)",
           "CheckboxColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.0000000000000000E+000,
@@ -611,9 +611,15 @@
         },
         {
           "$$ClassName" : "TCastleFloatSlider",
+          "Background" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "Caption" : "Air Movement Control",
           "Max" : 1.5000000000000000E+000,
           "Name" : "SliderAirMovementControl",
+          "Thumb" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
@@ -621,21 +627,29 @@
           },
           "Value" : 1.0000000000000000E+000,
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+002
         },
         {
           "$$ClassName" : "TCastleFloatSlider",
+          "Background" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "Caption" : "Air Rotation Control",
           "Max" : 1.5000000000000000E+000,
           "Name" : "SliderAirRotationControl",
+          "Thumb" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.9000000000000000E+002
+            "Y" : -7.0000000000000000E+002
           },
           "Value" : 1.0000000000000000E+000,
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+002
         }
       ]
     }

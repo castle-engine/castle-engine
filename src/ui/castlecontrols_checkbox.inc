@@ -226,7 +226,7 @@ begin
   begin
     FPressed := true;
     FImagePressedBackground.Exists := FPressed;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -256,7 +256,7 @@ begin
       DoChange;
     end;
 
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 

@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -525,10 +525,8 @@ begin
       ]));
       WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
     end;
-  end else
-    WritelnLog('LibPng not found.' + NL +
-      '  This also happens when a dependency of LibPng, like Zlib, is missing.' + NL +
-      '  Loading PNG images will be slower.');
+  end;
+  { Note: Do not report warning, it will be done by WarningNoLibPng if we'll load any PNG. }
 end;
 
 { error / warning handlers --------------------------------------------------- }

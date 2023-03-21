@@ -419,7 +419,7 @@ begin
     Application.MainWindow.FTop := 0;
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
-    Application.MainWindow.Dpi := ADpi;
+    Application.MainWindow.Container.Dpi := ADpi;
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));

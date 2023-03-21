@@ -6,10 +6,6 @@
 '   but the default shader did not compile.' + LineEnding +
 '   You cannot leave the shader empty in OpenGLES. */' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // ugly color to stand out' + LineEnding +
