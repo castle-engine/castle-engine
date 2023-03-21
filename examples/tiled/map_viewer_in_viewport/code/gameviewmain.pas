@@ -34,8 +34,9 @@ type
     CheckboxSmoothScaling, CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
     MapCamera: TCastleCamera;
   private
+    TiledAnimations: Boolean;
     procedure ClickOpen(Sender: TObject);
-    procedure ClickAnimationAct(Sender: TObject);
+    procedure ClickAnimations(Sender: TObject);
     procedure CheckboxSmoothScalingChange(Sender: TObject);
     procedure CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
     procedure OpenMap(const MapUrl: String);
@@ -67,7 +68,7 @@ begin
 
   { Assign events }
   ButtonOpen.OnClick := {$ifdef FPC}@{$endif} ClickOpen;
-  ButtonAnimations.OnClick := {$ifdef FPC}@{$endif} ClickAnimationAct;
+  ButtonAnimations.OnClick := {$ifdef FPC}@{$endif} ClickAnimations;
   CheckboxSmoothScaling.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingChange;
   CheckboxSmoothScalingSafeBorder.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingSafeBorderChange;
 
@@ -88,9 +89,9 @@ begin
   MapCamera.Translation := TVector3.Zero;
   MapCamera.Orthographic.Height := 1000; // resets zoom in/out
 
-  ButtonAnimations.Tag := 1;
-  ButtonAnimations.Caption := 'StopAnimations';
-  ButtonAnimations.Exists := TiledMap.AnimationsCount > 0;
+  TiledAnimations := true;
+  ButtonAnimations.Caption := 'Stop Animations';
+  ButtonAnimations.Enabled := TiledMap.AnimationsCount > 0;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -108,18 +109,18 @@ begin
     OpenMap(Url);
 end;
 
-procedure TViewMain.ClickAnimationAct(Sender: TObject);
+procedure TViewMain.ClickAnimations(Sender: TObject);
 begin
-  if ButtonAnimations.Tag = 0 then
-    begin
-      TiledMap.PlayAnimations;
-      ButtonAnimations.Caption := 'StopAnimations';
-    end else
-    begin
-      TiledMap.StopAnimations(False);
-      ButtonAnimations.Caption := 'PlayAnimations';
-    end;
-  ButtonAnimations.Tag := 1 - ButtonAnimations.Tag;
+  TiledAnimations := not TiledAnimations;
+  if TiledAnimations then
+  begin
+    TiledMap.PlayAnimations;
+    ButtonAnimations.Caption := 'Stop Animations';
+  end else
+  begin
+    TiledMap.StopAnimations(false);
+    ButtonAnimations.Caption := 'Play Animations';
+  end;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingChange(Sender: TObject);

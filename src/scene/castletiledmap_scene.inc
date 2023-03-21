@@ -68,7 +68,10 @@ type
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
     property Map: TCastleTiledMapData read FMap;
   published
-    { URL (or just filename) of the Tiled map file (TMX). }
+    { URL (or just filename) of the Tiled map file (TMX).
+
+      Note that loading new map from new URL automatically starts animations.
+      You can stop them with @link(StopAnimations). }
     property URL: String read FURL write SetURL;
 
     { How are images scaled.
@@ -81,8 +84,7 @@ type
       filled with the same color and alpha,
       otherwise bad colors will creep in because of bilinear filtering.
       See @url(https://castle-engine.io/manual_alpha_bleeding.php alpha bleeding).
-      Alternatively, you can use @link(SmoothScalingSafeBorder).
-    }
+      Alternatively, you can use @link(SmoothScalingSafeBorder). }
     property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling default false;
 
     { In case of @link(SmoothScaling),
@@ -95,7 +97,11 @@ type
       alpha bleeding) instead of using this property.
       This property workarounds the fact that some sprite (tileset) images
       lack proper spacing and color bleeding, but it distorts the image
-      a bit, so it's no longer pixel-perfect. }
+      a bit, so it's no longer pixel-perfect.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations). }
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
 
@@ -103,7 +109,11 @@ type
       should only be used when SmoothScaling is True. }
     property FixTileset: Boolean read FFixTileset write SetFixTileset default False;
 
-    { Layers to include when loading this map. }
+    { Layers to include when loading this map.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations). }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
 
     { When @true, rendering will assume that all shapes are in correct order.
@@ -290,11 +300,11 @@ var
   I: Integer;
   TimeSensor: TTimeSensorNode;
 begin
-  FScene.ProcessEvents := True;
+  FScene.ProcessEvents := true;
   for I := 0 to FScene.AnimationsList.Count - 1 do
   begin
     TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
-    TimeSensor.Start(True);
+    TimeSensor.Start(true);
   end;
 end;
 
@@ -308,7 +318,7 @@ begin
     TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
     TimeSensor.Stop;
     if ResetAnimations then
-      TimeSensor.FakeTime(0, False, True);
+      TimeSensor.FakeTime(0, false, true);
   end;
 end;
 
