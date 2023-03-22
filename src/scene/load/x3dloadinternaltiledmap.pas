@@ -23,8 +23,6 @@
   @orderedList(
     @item(Tiled image layers)
     @item(Tiled object ellipsoids)
-    @item(At extreme zooms, seams when rendering may appear (regardless of smooth or not filtering,
-      regardless of doing Round() on final coords).)
   )
 }
 unit X3DLoadInternalTiledMap;
@@ -119,8 +117,8 @@ type
         Set before @link(ConvertMap). }
       SmoothScalingSafeBorder: Boolean;
 
-      { See @link(TCastleTiledMap.FixTileset). }
-      FixTileset : Boolean;
+      { See @link(TCastleTiledMap.ForceTilesetSpacing). }
+      ForceTilesetSpacing : Boolean;
 
       { Layers to load.  }
       Layers: TLayers;
@@ -182,7 +180,7 @@ var
 
   { Make a tileset image with added paddings,
     also modify the Tileset to point to the new tileset image (with larger sizes). }
-  function FixedTilesetImage(const AURL: String): TCastleImage;
+  function ForceTilesetImageSpacing(const AURL: String): TCastleImage;
   var
     OriginalImage: TCastleImage;
     Col, Row: Integer;
@@ -297,8 +295,8 @@ begin
     end;
 
     Texture := TImageTextureNode.Create;
-    if FixTileset then
-      Texture.LoadFromImage(FixedTilesetImage(Tileset.Image.URL), true, '')
+    if ForceTilesetSpacing then
+      Texture.LoadFromImage(ForceTilesetImageSpacing(Tileset.Image.URL), true, '')
     else
       Texture.SetUrl([Tileset.Image.URL]);
 

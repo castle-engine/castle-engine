@@ -40,13 +40,13 @@ type
         procedure LocalRender(const Params: TRenderParams); override;
       end;
     var
-      FFixTileset: Boolean;
+      FForceTilesetSpacing: Boolean;
       FMap: TCastleTiledMapData;
       FURL: String;
       FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
       FScene: TMyScene;
       FLayers: TLayers;
-    procedure SetFixTileset(const AValue: Boolean);
+    procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
@@ -101,7 +101,16 @@ type
 
       Note that changing this when map is loaded reloads it,
       and automatically starts animations.
-      You can stop them with @link(StopAnimations). }
+      You can stop them with @link(StopAnimations).
+
+      See also @link(ForceTilesetSpacing) that workarounds artifacts with
+      @link(SmoothScaling) in a different way, by adding spacing in the tileset texture,
+      which makes this trick (@name) not necessary.
+      Do not use both @link(ForceTilesetSpacing) and @name --
+      these 2 properties are different workarounds for the same problem,
+      it doesn't make sense to use them both.
+
+      @seealso ForceTilesetSpacing }
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
 
@@ -110,8 +119,21 @@ type
       effectively 2-pixel wide spacing between each tile).
 
       Makes sense to be used only with @link(SmoothScaling) = @true,
-      it is pointless when @link(SmoothScaling) = @false. }
-    property FixTileset: Boolean read FFixTileset write SetFixTileset default false;
+      it is pointless (but harmless) when @link(SmoothScaling) = @false.
+
+      See also @link(SmoothScalingSafeBorder) that workarounds artifacts with
+      @link(SmoothScaling) in a different way, by changing texture coordinates
+      such that this spacing is not necessary.
+      Do not use both @link(SmoothScalingSafeBorder) and @name --
+      these 2 properties are different workarounds for the same problem,
+      it doesn't make sense to use them both.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations).
+
+      @seealso SmoothScalingSafeBorder }
+    property ForceTilesetSpacing: Boolean read FForceTilesetSpacing write SetForceTilesetSpacing default false;
 
     { Layers to include when loading this map.
 
@@ -176,7 +198,7 @@ begin
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
-  FFixTileset := false;
+  FForceTilesetSpacing := false;
 
   FLayers := AllLayers;
 
@@ -194,7 +216,7 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'FixTileset'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'ForceTilesetSpacing'
       //'AssumePerfectRenderingOrder'
      ]) then
     Result := [psBasic]
@@ -227,11 +249,11 @@ begin
   end;
 end;
 
-procedure TCastleTiledMap.SetFixTileset(const AValue: Boolean);
+procedure TCastleTiledMap.SetForceTilesetSpacing(const AValue: Boolean);
 begin
-  if FFixTileset <> AValue then
+  if FForceTilesetSpacing <> AValue then
   begin
-    FFixTileset := AValue;
+    FForceTilesetSpacing := AValue;
     ReloadMap;
   end;
 end;
@@ -249,7 +271,7 @@ begin
     Converter := TCastleTiledMapConverter.Create(FMap);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
-      Converter.FixTileset := FixTileset;
+      Converter.ForceTilesetSpacing := ForceTilesetSpacing;
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
