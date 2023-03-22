@@ -1,6 +1,8 @@
 # Physics 3D layers
 
-Change Physics Properties -> LayerCollisions matrix (e.g. Ball x Ball) to check how collisions layers works.
+Showing the physics layers in 3D.
+
+Change _Physics Properties -> LayerCollisions_ matrix (e.g. _Ball x Ball_) to check how collisions layers work.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
