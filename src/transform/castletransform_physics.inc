@@ -1073,16 +1073,15 @@
     property CollisionDetection: TCollisionDetection read FCollisionDetection
       write SetCollisionDetection default cdDiscrete;
 
-    { Defines on which physics layer the rigid body is located
+    { Physics layer of the rigid body determines with which other bodies it may collide.
 
-      By default it's layer 0.
+      The way layers interact is configured in the 
+      @link(TPhysicsProperties.LayerCollisions MyViewport.Items.PhysicsProperties.LayerCollisions).
 
-      The way layers interact is configured in the @link(TPhysicsProperties.LayerCollisions)
-      property in physics properties located in Viewport.Items.
-
-      Each layer can also have name and description. We can set
-      them in @link(TPhysicsProperties.LayerNames) property.
-    }
+      Each layer can also have name and description. You can set
+      them using the 
+      @link(TPhysicsProperties.LayerNames MyViewport.Items.PhysicsProperties.LayerNames) 
+      property. }
     property Layer: TPhysicsLayer read FLayer write SetLayer default 0;
 
     { Is this object affected by gravity. }
