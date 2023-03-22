@@ -583,13 +583,14 @@ begin
   if Element.AttributeString('format', TmpStr) then
     Format := TmpStr;
   if Element.AttributeString('source', TmpStr) then
-    begin
-      URLPrefix := CombineURI(BaseUrl, TmpStr);
-      { Tiled allows loading images ignoring the '.png' suffix }
-      if (ExtractFileExt(TmpStr) = '') and not URIFileExists(URLPrefix) then
-        URL := URLPrefix + '.png' else
-        URL := URLPrefix;
-    end;
+  begin
+    URLPrefix := CombineURI(BaseUrl, TmpStr);
+    { Tiled allows loading images ignoring the '.png' suffix }
+    if (ExtractFileExt(TmpStr) = '') and not URIFileExists(URLPrefix) then
+      URL := URLPrefix + '.png'
+    else
+      URL := URLPrefix;
+  end;
   if Element.AttributeString('trans', TmpStr) then
     Trans := TiledToColorRGB(TmpStr)
   else
