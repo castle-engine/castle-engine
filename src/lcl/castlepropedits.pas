@@ -220,10 +220,7 @@ begin
   RegisterComponentEditor(TCastlePulleyJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleSliderJoint, TCastleJointsComponentEditor);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
-
 end;
-
-
 
 initialization
   { Add lrs with icons, following
