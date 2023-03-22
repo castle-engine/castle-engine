@@ -91,7 +91,7 @@ begin
 
   TiledAnimations := true;
   ButtonAnimations.Caption := 'Stop Animations';
-  ButtonAnimations.Enabled := TiledMap.AnimationsCount > 0;
+  ButtonAnimations.Enabled := TiledMap.HasAnimations;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

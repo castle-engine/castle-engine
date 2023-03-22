@@ -33,7 +33,6 @@ type
       { Indicates that all @link(Layers) should be visible. }
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
-    FFixTileset: Boolean;
     type
       TMyScene = class(TCastleScene)
       public
@@ -41,6 +40,7 @@ type
         procedure LocalRender(const Params: TRenderParams); override;
       end;
     var
+      FFixTileset: Boolean;
       FMap: TCastleTiledMapData;
       FURL: String;
       FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
@@ -62,7 +62,7 @@ type
 
     procedure PlayAnimations;
     procedure StopAnimations(const ResetAnimations: Boolean);
-    function AnimationsCount: Integer;
+    function HasAnimations: Boolean;
 
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
@@ -105,9 +105,13 @@ type
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
 
-    { Automatically generate in-memory tilesets that create 1-pixel size border between tileset images,
-      should only be used when SmoothScaling is True. }
-    property FixTileset: Boolean read FFixTileset write SetFixTileset default False;
+    { Use a modified version of the tileset image,
+      with a proper space between each tile in the texture (1-pixel size border around each tile,
+      effectively 2-pixel wide spacing between each tile).
+
+      Makes sense to be used only with @link(SmoothScaling) = @true,
+      it is pointless when @link(SmoothScaling) = @false. }
+    property FixTileset: Boolean read FFixTileset write SetFixTileset default false;
 
     { Layers to include when loading this map.
 
@@ -227,7 +231,7 @@ procedure TCastleTiledMap.SetFixTileset(const AValue: Boolean);
 begin
   if FFixTileset <> AValue then
   begin
-    FFixTileset:=AValue;
+    FFixTileset := AValue;
     ReloadMap;
   end;
 end;
@@ -322,9 +326,9 @@ begin
   end;
 end;
 
-function TCastleTiledMap.AnimationsCount: Integer;
+function TCastleTiledMap.HasAnimations: Boolean;
 begin
-  Result := FScene.AnimationsList.Count;
+  Result := FScene.AnimationsList.Count > 0;
 end;
 
 function TCastleTiledMap.GetAssumePerfectRenderingOrder: Boolean;
