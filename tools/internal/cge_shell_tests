@@ -39,5 +39,22 @@ do_test_examples_copyright ()
   fi
 }
 
+# Test editor template in build-tool/data/custom_editor_template/ is up-to-date.
+# This means that tools/build-tool/data/custom_editor_template_rebuild.sh
+# should do nothing.
+do_test_custom_editor_template_up_to_date ()
+{
+  rm -Rf tools/build-tool/data/custom_editor_template-temptest/
+  cp -R  tools/build-tool/data/custom_editor_template/ \
+         tools/build-tool/data/custom_editor_template-temptest/
+  cd tools/build-tool/data/
+  ./custom_editor_template_rebuild.sh
+  diff -ur custom_editor_template/ \
+           custom_editor_template-temptest/
+  cd ../../../
+  rm -Rf tools/build-tool/data/custom_editor_template-temptest/
+}
+
 do_test_qualified_name
 do_test_examples_copyright
+do_test_custom_editor_template_up_to_date
