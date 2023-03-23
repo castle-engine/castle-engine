@@ -21,13 +21,12 @@
 type
   TFrameId = QWord;
 
-  { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindow
-    (see TCastleWindow.Fps) or Lazarus GL control (see TCastleControl.Fps).
+  { Measure frames per second.
 
-    Things named "_" here are supposed to be internal to the TCastleWindow /
-    TCastleControl and such implementations. Other properties can be
-    controlled by the user of TCastleWindow / TCastleControl. }
+    You should never create an instance of this class directly,
+    instead just use the available instance in @link(TCastleContainer.Fps).
+    The @link(TCastleContainer) instance is, in turn, automatically
+    created for each @link(TCastleWindow) or @link(TCastleControl). }
   TFramesPerSecond = class
   private
     FOnlyRenderFps: TFloatTime;
@@ -50,10 +49,10 @@ type
     constructor Create;
 
     { Internal for Castle Game Engine.
-      Called from CastleWindow or CastleControl.
-      Don't call these methods yourself.
       @groupBegin
       @exclude }
+    constructor InternalCreate;
+    { @exclude }
     procedure InternalRenderBegin;
     { @exclude }
     procedure InternalRenderEnd;
@@ -209,6 +208,11 @@ var
   FRenderFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
+begin
+  raise Exception.Create('Do not create instance of TFramesPerSecond class directly, only use the already-created instance in TCastleContainer.Fps');
+end;
+
+constructor TFramesPerSecond.InternalCreate;
 const
   DefaultFps = 60.0;
 begin

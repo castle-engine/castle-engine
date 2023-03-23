@@ -820,7 +820,7 @@ begin
   FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
   FFocus := TCastleUserInterfaceList.Create(false);
   FNewFocus := TCastleUserInterfaceList.Create(false);
-  FFps := TFramesPerSecond.Create;
+  FFps := TFramesPerSecond.InternalCreate;
   FPressed := TKeysPressed.Create;
   FContext := TRenderContext.Create;
   FBackgroundEnable := true;
