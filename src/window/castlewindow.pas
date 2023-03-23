@@ -815,7 +815,7 @@ type
 
     { Do MakeCurrent,
          EventBeforeRender,
-         EventRender (inside Fps._RenderBegin/End)
+         EventRender (inside Fps.InternalRenderBegin/End)
          flush gl command pipeline (and swap gl buffers if DoubleBuffer)
 
       - Take care of AutoRedisplay, like
@@ -3221,7 +3221,7 @@ begin
   if Closed then Exit; { check, in case window got closed in the event }
 
   FrameProfiler.Start(fmRender);
-  Fps._RenderBegin;
+  Fps.InternalRenderBegin;
   try
     Container.EventRender;
     if Closed then Exit; { check, in case window got closed in the event }
@@ -3265,7 +3265,7 @@ begin
 
     if AutoRedisplay then Invalidate;
   finally
-    Fps._RenderEnd;
+    Fps.InternalRenderEnd;
     FrameProfiler.Stop(fmRender);
   end;
 end;
@@ -4540,7 +4540,7 @@ begin
       if Window.Closed then Continue {don't Inc(I)};
       if Terminated then Exit;
     end else
-      Window.Fps._Sleeping;
+      Window.Fps.InternalSleeping;
 
     Inc(I);
   end;
@@ -4558,7 +4558,7 @@ var
   I: Integer;
 begin
   for I := 0 to OpenWindowsCount - 1 do
-    OpenWindows[I].Fps._Sleeping;
+    OpenWindows[I].Fps.InternalSleeping;
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;

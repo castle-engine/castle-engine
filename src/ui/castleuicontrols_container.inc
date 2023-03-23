@@ -1425,7 +1425,7 @@ var
   I: Integer;
   HandleInput: boolean;
 begin
-  Fps._UpdateBegin;
+  Fps.InternalUpdateBegin;
 
   if FInputInspector.IsPressed(Self, Fps.SecondsPassed) then
     ToggleInspector;

@@ -54,13 +54,13 @@ type
       Don't call these methods yourself.
       @groupBegin
       @exclude }
-    procedure _RenderBegin;
+    procedure InternalRenderBegin;
     { @exclude }
-    procedure _RenderEnd;
+    procedure InternalRenderEnd;
     { @exclude }
-    procedure _Sleeping;
+    procedure InternalSleeping;
     { @exclude }
-    procedure _UpdateBegin;
+    procedure InternalUpdateBegin;
     { @groupEnd }
 
     { Rendering speed, measured in frames per second, but accounting only
@@ -160,7 +160,7 @@ type
       just because we did a modal dialog.
 
       This forces the SecondsPassed to be zero at the next update event
-      (_UpdateBegin). }
+      (InternalUpdateBegin). }
     procedure ZeroNextSecondsPassed;
 
     { Time of last Update call. }
@@ -220,7 +220,7 @@ begin
   { for SecondsPassed this initialization is actually not essential,
     since we call ZeroNextSecondsPassed anyway.
     But in case programmer will (incorrectly!) try to use SecondsPassed
-    before _UpdateBegin call, it's useful to have here some predictable value. }
+    before InternalUpdateBegin call, it's useful to have here some predictable value. }
   FSecondsPassed := 1 / DefaultFps;
 
   { the default is non-zero now, since all Android games need it }
@@ -229,19 +229,19 @@ begin
   ZeroNextSecondsPassed;
 end;
 
-procedure TFramesPerSecond._RenderBegin;
+procedure TFramesPerSecond.InternalRenderBegin;
 begin
   RenderStartTime := Timer;
   FRenderFrameId := FFrameId;
 end;
 
-procedure TFramesPerSecond._RenderEnd;
+procedure TFramesPerSecond.InternalRenderEnd;
 begin
   Inc(FramesRendered);
   OnlyRenderTimePassed.Value := OnlyRenderTimePassed.Value + Timer.Value - RenderStartTime.Value;
 end;
 
-procedure TFramesPerSecond._Sleeping;
+procedure TFramesPerSecond.InternalSleeping;
 begin
   FSleeping := true;
 end;
@@ -258,7 +258,7 @@ begin
   Result := Result + FormatDot(' (only render: %f)', [OnlyRenderFps]);
 end;
 
-procedure TFramesPerSecond._UpdateBegin;
+procedure TFramesPerSecond.InternalUpdateBegin;
 
   { Update RealFps, OnlyRenderFps, WasSleeping }
   procedure UpdateFps;
