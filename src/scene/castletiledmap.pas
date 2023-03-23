@@ -36,7 +36,7 @@ uses
   Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
-  CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene;
+  CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes;
 
 {$define read_interface}
 {$I castletiledmap_data.inc}

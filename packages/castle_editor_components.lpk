@@ -7,7 +7,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../tools/castle-editor/components"/>
+        <IncludeFiles Value="../src/common_includes;../tools/castle-editor/components;../tools/castle-editor/components/mbColorLib"/>
         <OtherUnitFiles Value="../tools/castle-editor/components/mbColorLib;../tools/castle-editor/components"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -27,7 +27,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="49">
+    <Files Count="51">
       <Item1>
         <Filename Value="../tools/castle-editor/components/mbColorLib/BAxisColorPicker.pas"/>
         <UnitName Value="BAxisColorPicker"/>
@@ -226,6 +226,14 @@ See https://castle-engine.io/license for details.
         <Filename Value="../tools/castle-editor/components/castleeditorpropedits_color.inc"/>
         <Type Value="Include"/>
       </Item49>
+      <Item50>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbReg.lrs"/>
+        <Type Value="LRS"/>
+      </Item50>
+      <Item51>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mxs.inc"/>
+        <Type Value="Include"/>
+      </Item51>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="5">
