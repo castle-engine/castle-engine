@@ -630,7 +630,7 @@ begin
   FBox.Box := FParent.BoundingBox;
 
   FYSortBox.Render := (FParent.World <> nil) and (FParent.Parent <> nil)
-    and (FParent.Parent.BlendingSort = bsYSort);
+    and (FParent.Parent.BlendingSort = bsYSort) and not FParent.BoundingBox.IsEmpty;
   if FYSortBox.Render then
     FYSortBox.Box := TBox3D.FromCenterSize(FParent.BoundingBox.Center
       + Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
