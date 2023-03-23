@@ -2639,13 +2639,38 @@ begin
 end;
 
 function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
+
+  procedure GetRecursionChildRenderList(const AParent:TCastleTransform; const AList: TCastleTransformList);
+  var
+    T: TCastleTransform;
+    P: Pointer;
+  begin
+    for P in AParent.List do
+    begin
+      T := TCastleTransform(P);
+      if T.BlendingSort <> bsYSort then Continue;
+
+      AList.AddList(T.List);
+      GetRecursionChildRenderList(T, AList);
+    end;
+  end;
+
 begin
   if BlendingSort <> bsNone then
   begin
     if FSortedList = nil then // create on-demand
       FSortedList := TCastleTransformList.Create(false);
-    FSortedList.Assign(List);
-    FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
+
+    if (BlendingSort = bsYSort) and Assigned(FParent) and (FParent.BlendingSort = bsYSort) then
+    begin
+      FSortedList.Clear;
+    end else
+    begin
+      FSortedList.Assign(List);
+      if BlendingSort = bsYSort then
+        GetRecursionChildRenderList(Self, FSortedList);
+      FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
+    end;
     Result := FSortedList;
   end else
     Result := List;
