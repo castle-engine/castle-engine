@@ -32,25 +32,31 @@ begin
     WarningNoLibPngDone := true;
 
     {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
-    if not CastleZLibInitialized then
-      WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
-        '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
-        {$ifdef MSWINDOWS} +
-        NL +
-        '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
-        '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
-        {$endif}
-      );
+    { Do not make any warning when InternalDisableDynamicLibraries,
+      build tool deliberately uses this (see tools/build-tool/code/tooldisabledynamiclibraries.pas)
+      and it is harmless, there's no problem with build tool not using faster LibPng. }
+    if not InternalDisableDynamicLibraries then
+    begin
+      if not CastleZLibInitialized then
+        WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
+          '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
+          {$ifdef MSWINDOWS} +
+          NL +
+          '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+          '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+          {$endif}
+        );
 
-    if not CastlePngInitialized then
-      WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
-        '  Loading PNG will use a slower approach.'
-        {$ifdef MSWINDOWS} +
-        NL +
-        '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
-        '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
-        {$endif}
-      );
+      if not CastlePngInitialized then
+        WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
+          '  Loading PNG will use a slower approach.'
+          {$ifdef MSWINDOWS} +
+          NL +
+          '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+          '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+          {$endif}
+        );
+    end;
     {$else}
     WritelnWarning('Initializing LibPng failed, LibPng support not compiled-in.' + NL +
       '  Loading PNG will use a slower approach.');
