@@ -124,6 +124,7 @@
       FOnlyTranslation: Boolean;
 
       FTransformation: TTransformation;
+      FOutsideTransformation: TTransformation;
       FTransformationValid: Boolean;
 
       FWorldTransformation: TTransformation;
@@ -164,6 +165,7 @@
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
     procedure InternalTransformationMult(var T: TTransformation);
     procedure InternalTransformation(out T: TTransformation);
+    procedure InternalOutsideTransformation(out T: TTransformation);
     { Update our FWorldTransformation, FWorldTransformationId. }
     procedure UpdateWorldTransformation;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
@@ -205,7 +207,9 @@
       This is recursively called on all children as well.
       Value must not be @nil. }
     procedure AddToWorld(const Value: TCastleAbstractRootTransform);
+
     function GetRenderTranslation: TVector3;
+
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
       Value must not be @nil. }
@@ -1414,6 +1418,8 @@
       transformation of parent TCastleTransform (for this, use @link(WorldTransform)). }
     function Transform: TMatrix4;
 
+    function OutsideTransform: TMatrix4;
+
     { Inverse transformation as a matrix, thus transforming from outside to local
       coordinate system. This is an inverse of @link(Transform). }
     function InverseTransform: TMatrix4;
@@ -1525,6 +1531,8 @@
     function Move(const TranslationChange: TVector3;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
+
+    function RenderOutside: boolean;
 
     { Translation (move) the children. Zero by default.
 
@@ -2264,11 +2272,10 @@ var
 begin
   Result := Translation;
 
-  T := FParent;
-  while Assigned(T) and Assigned(T.Parent) and (T.BlendingSort = bsYSort)
-    and (T.Parent.BlendingSort = bsYSort) do
+  T := Self;
+  while T.RenderOutside do
   begin
-    Result := Result + T.Translation;
+    Result := Result + T.Parent.Translation;
     T := T.Parent;
   end;
 end;
@@ -2900,9 +2907,21 @@ begin
   if not FTransformationValid then
   begin
     InternalTransformation(FTransformation);
+    InternalOutsideTransformation(FOutsideTransformation);
     FTransformationValid := true;
   end;
   Result := FTransformation.Transform;
+end;
+
+function TCastleTransform.OutsideTransform: TMatrix4;
+begin
+  if not FTransformationValid then
+  begin
+    InternalTransformation(FTransformation);
+    InternalOutsideTransformation(FOutsideTransformation);
+    FTransformationValid := true;
+  end;
+  Result := FOutsideTransformation.Transform;
 end;
 
 function TCastleTransform.InverseTransform: TMatrix4;
@@ -3254,6 +3273,18 @@ begin
   InternalTransformationMult(T);
 end;
 
+procedure TCastleTransform.InternalOutsideTransformation(out T: TTransformation);
+begin
+  { TODO: Not done yet. Requires multiple operations from the root Ysort Transform. }
+  T.Init;
+  T.Multiply(
+  FCenter,
+  FRotation,
+  FScale,
+  FScaleOrientation,
+  RenderTranslation);
+end;
+
 function TCastleTransform.AverageScale: Single;
 begin
   Result := Approximate3DScale(Scale);
@@ -3399,6 +3430,17 @@ begin
       begin
         NewParamsTransformation.Translate(T);
         NewFrustumValue.MoveVar(-T);
+      end else if RenderOutside then
+      begin
+        NewParamsTransformation.Multiply(
+          FCenter,
+          FRotation,
+          FScale,
+          FScaleOrientation,
+          RenderTranslation);
+        if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
+          WarningMatrixNan(NewParamsTransformation.Transform);
+        NewFrustumValue := NewFrustumValue.TransformByInverse(OutsideTransform);
       end else
       begin
         InternalTransformationMult(NewParamsTransformation);
@@ -3710,6 +3752,12 @@ begin
 
   if Result then
     Translate(NewMiddle - OldMiddle);
+end;
+
+function TCastleTransform.RenderOutside: boolean;
+begin
+  Result := Assigned(FParent) and (FParent.BlendingSort = bsYSort)
+    and Assigned(FParent.Parent) and (FParent.Parent.BlendingSort = bsYSort);
 end;
 
 procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
