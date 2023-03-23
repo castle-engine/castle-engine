@@ -205,6 +205,7 @@
       This is recursively called on all children as well.
       Value must not be @nil. }
     procedure AddToWorld(const Value: TCastleAbstractRootTransform);
+    function GetRenderTranslation: TVector3;
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
       Value must not be @nil. }
@@ -1534,6 +1535,8 @@
       #) }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
+    property RenderTranslation: TVector3 read GetRenderTranslation;
+
     { Get or set the XY components of the translation.
       Useful for 2D games. }
     property TranslationXY: TVector2 read GetTranslationXY write SetTranslationXY;
@@ -2253,6 +2256,21 @@ begin
   if FList <> nil then // when one list is within another, this may be called during own destruction by TCastleTransformList.Notify
     for I := 0 to List.Count - 1 do
       List[I].AddToWorld(Value);
+end;
+
+function TCastleTransform.GetRenderTranslation: TVector3;
+var
+  T: TCastleTransform;
+begin
+  Result := Translation;
+
+  T := FParent;
+  while Assigned(T) and Assigned(T.Parent) and (T.BlendingSort = bsYSort)
+    and (T.Parent.BlendingSort = bsYSort) do
+  begin
+    Result := Result + T.Translation;
+    T := T.Parent;
+  end;
 end;
 
 procedure TCastleTransform.RemoveFromWorld(const Value: TCastleAbstractRootTransform);
@@ -3348,7 +3366,7 @@ begin
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
-    T := Translation;
+    T := RenderTranslation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       LocalRender(Params);
