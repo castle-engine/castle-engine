@@ -191,6 +191,8 @@ var
   SubAnimStart, SubAnimDuration, T: TFloatTime;
 begin
   Assert(FCurrentSubAnimation <> nil);
+  { We use -1 below, to not show last frame of this animation blended with 1st frame
+    of next animation in MD3 sequence. }
   SubAnimDuration := (Abs(FCurrentSubAnimation.NumFrames) - 1) / Md3Fps;
   SubAnimStart := FCurrentSubAnimation.FirstFrame / Md3Fps;
   if FLoop then
