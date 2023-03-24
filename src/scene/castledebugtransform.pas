@@ -535,7 +535,7 @@ begin
   ParentSpace.AddChildren(FBox.Root);
 
   FYSortBox := TDebugBox.Create(Self);
-  FYSortBox.Color := Red;
+  FYSortBox.Color := Vector4(0, 0.726, 0, 1);
   ParentSpace.AddChildren(FYSortBox.Root);
 
   InitializeNodes;
@@ -622,6 +622,8 @@ begin
 end;
 
 procedure TDebugTransformBox.Update;
+var
+  BoundingBoxCenter: TVector3;
 begin
   // update FTransform to cancel parent's transformation
   FTransform.Matrix := FParent.InverseTransform;
@@ -632,8 +634,11 @@ begin
   FYSortBox.Render := (FParent.World <> nil) and (FParent.Parent <> nil)
     and (FParent.Parent.BlendingSort = bsYSort) and not FParent.BoundingBox.IsEmpty;
   if FYSortBox.Render then
-    FYSortBox.Box := TBox3D.FromCenterSize(FParent.Translation +
-      Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
+  begin
+    BoundingBoxCenter := FParent.BoundingBox.Center;
+    FYSortBox.Box := TBox3D.FromCenterSize(Vector3(BoundingBoxCenter.X, FParent.Translation.Y +
+      FParent.YSortOffset, BoundingBoxCenter.Z), FParent.BoundingBox.Size * Vector3(1, 0.1, 1));
+  end;
 end;
 
 procedure TDebugTransformBox.ChangedScene;
