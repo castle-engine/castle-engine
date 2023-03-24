@@ -156,7 +156,7 @@ type
       end;
     var
       FBox: TDebugBox;
-      FYSortBox: TDebugSphere;
+      FYSortBox: TDebugBox;
       FTransform: TMatrixTransformNode;
       FParentSpace: TAbstractGroupingNode;
       FParent: TCastleTransform;
@@ -534,7 +534,8 @@ begin
   FBox.Color := FBoxColor;
   ParentSpace.AddChildren(FBox.Root);
 
-  FYSortBox := TDebugSphere.Create(Self, Vector3(0, 0.726, 0));
+  FYSortBox := TDebugBox.Create(Self);
+  FYSortBox.Color := Red;
   ParentSpace.AddChildren(FYSortBox.Root);
 
   InitializeNodes;
@@ -631,11 +632,8 @@ begin
   FYSortBox.Render := (FParent.World <> nil) and (FParent.Parent <> nil)
     and (FParent.Parent.BlendingSort = bsYSort) and not FParent.BoundingBox.IsEmpty;
   if FYSortBox.Render then
-  begin
-    FYSortBox.Position := FParent.Translation +
-      Vector3(0, FParent.YSortOffset, 0);
-    FYSortBox.Radius := 3;
-  end;
+    FYSortBox.Box := TBox3D.FromCenterSize(FParent.Translation +
+      Vector3(0, FParent.YSortOffset, 0), FParent.BoundingBox.Size / 10);
 end;
 
 procedure TDebugTransformBox.ChangedScene;
