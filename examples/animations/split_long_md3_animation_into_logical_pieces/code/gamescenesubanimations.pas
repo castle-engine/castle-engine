@@ -55,8 +55,11 @@ type
     { List of the subanimation names. Read-only. }
     property SubAnimations: TSubAnimations read FSubAnimations;
 
-    { Start playing given subanimation. }
+    { Start playing given subanimation, by name. }
     procedure PlaySubAnimation(const SubAnimationName: String);
+
+    { Start playing given subanimation. }
+    procedure PlaySubAnimation(const SubAnim: TSubAnimation);
   end;
 
 implementation
@@ -138,8 +141,13 @@ begin
   if not FSubAnimations.TryGetValue(SubAnimationName, SubAnim) then
   begin
     WritelnWarning('Cannot play subanimation named "%s", not found', [SubAnimationName]);
+    Exit;
   end;
+  PlaySubAnimation(SubAnim);
+end;
 
+procedure TSceneSubAnimations.PlaySubAnimation(const SubAnim: TSubAnimation);
+begin
   // TODO
 end;
 

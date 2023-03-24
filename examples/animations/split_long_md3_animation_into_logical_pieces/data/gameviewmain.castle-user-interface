@@ -331,6 +331,75 @@
               ]
             }
           ]
+        },
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 3.6862745881080627E-001,
+            "Blue" : 0.0000000000000000E+000,
+            "Green" : 0.0000000000000000E+000,
+            "Red" : 0.0000000000000000E+000
+          },
+          "Height" : 7.4000000000000000E+002,
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "RectangleControl2",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -1.0000000000000000E+001,
+            "Y" : -2.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 3.1000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleScrollView",
+              "FullSize" : true,
+              "Name" : "ScrollView1",
+              "ScrollArea" : {
+                "$$ClassName" : "TCastleScrollArea",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleVerticalGroup",
+                    "Name" : "VerticalGroupAnimations",
+                    "Padding" : 1.0000000000000000E+001,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                      {
+                        "$$ClassName" : "TCastleLabel",
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Blue" : 1.0000000000000000E+000,
+                          "Green" : 1.0000000000000000E+000,
+                          "Red" : 1.0000000000000000E+000
+                        },
+                        "Name" : "Label2",
+                        "Text" : [
+                          "Play SubAnimation:"
+                        ],
+                        "TranslationPersistent" : {
+                          "$$ClassName" : "TCastleVector2Persistent",
+                          "X" : 1.0000000000000000E+001,
+                          "Y" : -1.0000000000000000E+001
+                        },
+                        "VerticalAnchorParent" : "vpTop",
+                        "VerticalAnchorSelf" : "vpTop"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "ScrollbarFrame" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "ScrollbarSlider" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              }
+            }
+          ]
         }
       ],
       "InternalDesignCamera" : {
@@ -380,17 +449,12 @@
         "Red" : 9.8823529481887817E-001
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorParent" : "hpRight",
-      "HorizontalAnchorSelf" : "hpRight",
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : -2.0000000000000000E+001,
-        "Y" : -2.0000000000000000E+001
-      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     }

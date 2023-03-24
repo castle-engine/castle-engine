@@ -33,6 +33,7 @@ type
     ButtonLoadGranger, ButtonLoadDretch, ButtonLoadBasilisk,
       ButtonLoadMarauder, ButtonLoadDragoon, ButtonLoadTyrant: TCastleButton;
     ModelParent: TCastleTransform;
+    VerticalGroupAnimations: TCastleVerticalGroup;
   private
     ModelScene: TSceneSubAnimations;
     procedure LoadModel(const ModelUrl: String);
@@ -42,6 +43,7 @@ type
     procedure ClickLoadMarauder(Sender: TObject);
     procedure ClickLoadDragoon(Sender: TObject);
     procedure ClickLoadTyrant(Sender: TObject);
+    procedure ClickPlayAnimation(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -109,6 +111,10 @@ begin
 end;
 
 procedure TViewMain.LoadModel(const ModelUrl: String);
+var
+  I: Integer;
+  NewButton: TCastleButton;
+  SubAnimName: String;
 begin
   FreeAndNil(ModelScene);
 
@@ -116,6 +122,28 @@ begin
   ModelScene.Load(ModelUrl);
   ModelScene.PlayAnimation('animation', true);
   ModelParent.Add(ModelScene);
+
+  // clear VerticalGroupAnimations
+  for I := VerticalGroupAnimations.ControlsCount - 1 downto 0 do
+    if VerticalGroupAnimations.Controls[I] is TCastleButton then
+      VerticalGroupAnimations.Controls[I].Free;
+
+  // add VerticalGroupAnimations buttons based on ModelScene.SubAnimations
+  for SubAnimName in ModelScene.SubAnimations.Keys do
+  begin
+    NewButton := TCastleButton.Create(FreeAtStop);
+    NewButton.Caption := SubAnimName;
+    NewButton.OnClick := {$ifdef FPC}@{$endif} ClickPlayAnimation;
+    VerticalGroupAnimations.InsertFront(NewButton);
+  end;
+end;
+
+procedure TViewMain.ClickPlayAnimation(Sender: TObject);
+var
+  SubAnimationName: String;
+begin
+  SubAnimationName := (Sender as TCastleButton).Caption;
+  ModelScene.PlaySubAnimation(SubAnimationName);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
