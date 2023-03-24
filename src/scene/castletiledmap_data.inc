@@ -313,7 +313,7 @@ type
     FStaggerIndex: TStaggerIndex;
     FBackgroundColor: TCastleColor;
     FRenderOrder: TMapRenderOrder;
-    BaseUrl: string;
+    FBaseUrl: string;
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
@@ -1017,7 +1017,7 @@ procedure TCastleTiledMapData.TTileset.Load(const Element: TDOMElement; const Ba
     try
       Check(LowerCase(Doc.DocumentElement.TagName) = 'tileset',
         'Root element of TSX file must be <tileset>');
-      Load(Doc.DocumentElement, BaseUrl);
+      Load(Doc.DocumentElement, URL);
     finally
       FreeAndNil(Doc);
     end;
@@ -1265,29 +1265,29 @@ begin
       if LowerTagName = 'tileset' then
       begin
         NewTileset := TTileset.Create;
-        NewTileset.Load(I.Current, BaseUrl);
+        NewTileset.Load(I.Current, FBaseUrl);
         FTilesets.Add(NewTileset);
       end else
       if LowerTagName = 'layer' then
       begin
         NewLayer := TLayer.Create;
-        NewLayer.Load(I.Current, BaseUrl);
+        NewLayer.Load(I.Current, FBaseUrl);
         FLayers.Add(NewLayer);
       end else
       if LowerTagName = 'objectgroup' then
       begin
         NewLayer := TObjectGroupLayer.Create;
-        NewLayer.Load(I.Current, BaseUrl);
+        NewLayer.Load(I.Current, FBaseUrl);
         FLayers.Add(NewLayer);
       end else
       if LowerTagName = 'imagelayer' then
       begin
         NewLayer := TImageLayer.Create;
-        NewLayer.Load(I.Current, BaseUrl);
+        NewLayer.Load(I.Current, FBaseUrl);
         FLayers.Add(NewLayer);
       end else
       if LowerTagName = 'properties' then
-        FProperties.Load(I.Current, BaseUrl);
+        FProperties.Load(I.Current, FBaseUrl);
     end;
   finally FreeAndNil(I) end;
 end;
@@ -1299,7 +1299,7 @@ begin
   FTilesets := TTilesetList.Create;
   FProperties := TPropertyList.Create;
   FLayers := TLayerList.Create(true);
-  BaseUrl := ABaseUrl;
+  FBaseUrl := ABaseUrl;
 
   //Load TMX
   LoadTMXFile(Stream, ABaseUrl);

@@ -620,7 +620,7 @@ uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
   CastleURIUtils, CastleComponentSerialize, CastleInternalLclDesign;
 
-// TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
+// TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
 
 { globals -------------------------------------------------------------------- }
@@ -1389,7 +1389,7 @@ begin
     { clear Invalidated before rendering, so that calling Invalidate in OnRender works }
     Invalidated := false;
     Container.EventBeforeRender;
-    Fps._RenderBegin;
+    Fps.InternalRenderBegin;
     try
       Container.EventRender;
       DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
@@ -1399,7 +1399,7 @@ begin
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere
       // if AutoRedisplay then Invalidate;
-    finally Fps._RenderEnd end;
+    finally Fps.InternalRenderEnd end;
   end;
 end;
 

@@ -69,6 +69,7 @@ castle-game-engine-*.fpm
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
+/examples/animations/split_long_md3_animation_into_logical_pieces/split_long_md3_animation_into_logical_pieces
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/game_3d_sound/game_3d_sound
