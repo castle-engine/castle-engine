@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="3" height="3" tilewidth="32" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="1">
+ <tileset firstgid="1" source="../desert.tsx"/>
+ <layer id="1" name="Layer 1" width="3" height="3">
+  <data encoding="csv">
+1,2,3,
+9,10,11,
+17,18,19
+</data>
+ </layer>
+</map>
