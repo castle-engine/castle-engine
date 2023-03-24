@@ -19,16 +19,31 @@ unit GameSceneSubAnimations;
 interface
 
 uses Classes, Generics.Collections,
-  CastleScene;
+  CastleScene, CastleTimeUtils, CastleTransform;
 
 type
   TSubAnimation = class
     Name: String;
+
+    { Subanimation information below is encoded following MD3 animation.cfg conventions.
+      See e.g. https://github.com/edems96/MD3-Model---Animation-Viewer/blob/master/src/md3anim.h
+      for source code reading it. }
+
+    { Time of first frame.
+
+      In the current implementation of TSceneSubAnimations,
+      FirstFrame/30 is just a time in seconds. }
     FirstFrame: Cardinal;
-    { Note: may be negative in animation.cfg (likely to indicate playing animation backwards,
-      not supported). }
+
+    { Duration of subanimation.
+      May be negative in animation.cfg (likely to indicate playing animation backwards,
+      not supported).
+
+      In the current implementation of TSceneSubAnimations,
+      Abs(NumFrames)/30 is just subanimation duration in seconds. }
     NumFrames: Integer;
-    { We read these from animation.cfg, but don't support now. }
+
+    { We read these from animation.cfg, but don't support them now. }
     LoopingFrames, Fps: Cardinal;
   end;
 
@@ -44,9 +59,14 @@ type
   TSceneSubAnimations = class(TCastleScene)
   private
     FSubAnimations: TSubAnimations;
+    FCurrentSubAnimation: TSubAnimation;
+    FCurrentTime: TFloatTime;
+    FLoop: Boolean;
+    procedure UpdateAnimationPose;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Load the model from ModelUrl, additionally initialize subanimations from
       "animation.cfg". }
@@ -56,16 +76,16 @@ type
     property SubAnimations: TSubAnimations read FSubAnimations;
 
     { Start playing given subanimation, by name. }
-    procedure PlaySubAnimation(const SubAnimationName: String);
+    procedure PlaySubAnimation(const SubAnimationName: String; const ALoop: Boolean);
 
     { Start playing given subanimation. }
-    procedure PlaySubAnimation(const SubAnim: TSubAnimation);
+    procedure PlaySubAnimation(const SubAnim: TSubAnimation; const ALoop: Boolean);
   end;
 
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleDownload, CastleStringUtils, CastleLog;
+  CastleURIUtils, CastleDownload, CastleStringUtils, CastleLog, CastleUtils;
 
 constructor TSceneSubAnimations.Create(AOwner: TComponent);
 begin
@@ -134,7 +154,7 @@ begin
   ReadAnimationCfg(ExtractURIPath(ModelUrl) + 'animation.cfg');
 end;
 
-procedure TSceneSubAnimations.PlaySubAnimation(const SubAnimationName: String);
+procedure TSceneSubAnimations.PlaySubAnimation(const SubAnimationName: String; const ALoop: Boolean);
 var
   SubAnim: TSubAnimation;
 begin
@@ -143,12 +163,41 @@ begin
     WritelnWarning('Cannot play subanimation named "%s", not found', [SubAnimationName]);
     Exit;
   end;
-  PlaySubAnimation(SubAnim);
+  PlaySubAnimation(SubAnim, ALoop);
 end;
 
-procedure TSceneSubAnimations.PlaySubAnimation(const SubAnim: TSubAnimation);
+procedure TSceneSubAnimations.PlaySubAnimation(const SubAnim: TSubAnimation; const ALoop: Boolean);
 begin
-  // TODO
+  FCurrentTime := 0;
+  FCurrentSubAnimation := SubAnim;
+  FLoop := ALoop;
+  UpdateAnimationPose;
+end;
+
+procedure TSceneSubAnimations.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+  if FCurrentSubAnimation <> nil then
+  begin
+    FCurrentTime := FCurrentTime + SecondsPassed;
+    UpdateAnimationPose;
+  end;
+end;
+
+procedure TSceneSubAnimations.UpdateAnimationPose;
+const
+  Md3Fps = 30;
+var
+  SubAnimStart, SubAnimDuration, T: TFloatTime;
+begin
+  Assert(FCurrentSubAnimation <> nil);
+  SubAnimDuration := (Abs(FCurrentSubAnimation.NumFrames) - 1) / Md3Fps;
+  SubAnimStart := FCurrentSubAnimation.FirstFrame / Md3Fps;
+  if FLoop then
+    T := FloatModulo(FCurrentTime, SubAnimDuration)
+  else
+    T := Clamped(FCurrentTime, 0, SubAnimDuration);
+  ForceAnimationPose('animation', SubAnimStart + T, false);
 end;
 
 end.

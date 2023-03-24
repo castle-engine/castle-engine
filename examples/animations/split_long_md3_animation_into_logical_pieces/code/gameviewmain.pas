@@ -34,6 +34,7 @@ type
       ButtonLoadMarauder, ButtonLoadDragoon, ButtonLoadTyrant: TCastleButton;
     ModelParent: TCastleTransform;
     VerticalGroupAnimations: TCastleVerticalGroup;
+    CheckboxLoop: TCastleCheckbox;
   private
     ModelScene: TSceneSubAnimations;
     procedure LoadModel(const ModelUrl: String);
@@ -120,7 +121,10 @@ begin
 
   ModelScene := TSceneSubAnimations.Create(FreeAtStop);
   ModelScene.Load(ModelUrl);
-  ModelScene.PlayAnimation('animation', true);
+  { Do not call PlayAnimation, as then both sensors started by PlayAnimation,
+    and ForceAnimationPose done by PlaySubAnimation, would try to update the model
+    -- it would be undefined which animation is eventually visible. }
+  // ModelScene.PlayAnimation('animation', true);
   ModelParent.Add(ModelScene);
 
   // clear VerticalGroupAnimations
@@ -143,7 +147,7 @@ var
   SubAnimationName: String;
 begin
   SubAnimationName := (Sender as TCastleButton).Caption;
-  ModelScene.PlaySubAnimation(SubAnimationName);
+  ModelScene.PlaySubAnimation(SubAnimationName, CheckboxLoop.Checked);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
