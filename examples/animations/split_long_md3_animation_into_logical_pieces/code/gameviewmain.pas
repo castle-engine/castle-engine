@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleTransform,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene,
+  GameSceneSubAnimations;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -33,7 +34,7 @@ type
       ButtonLoadMarauder, ButtonLoadDragoon, ButtonLoadTyrant: TCastleButton;
     ModelParent: TCastleTransform;
   private
-    ModelScene: TCastleScene;
+    ModelScene: TSceneSubAnimations;
     procedure LoadModel(const ModelUrl: String);
     procedure ClickLoadGranger(Sender: TObject);
     procedure ClickLoadDretch(Sender: TObject);
@@ -111,7 +112,7 @@ procedure TViewMain.LoadModel(const ModelUrl: String);
 begin
   FreeAndNil(ModelScene);
 
-  ModelScene := TCastleScene.Create(FreeAtStop);
+  ModelScene := TSceneSubAnimations.Create(FreeAtStop);
   ModelScene.Load(ModelUrl);
   ModelScene.PlayAnimation('animation', true);
   ModelParent.Add(ModelScene);
