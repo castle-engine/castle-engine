@@ -16,6 +16,8 @@ To this end, this example defines `TSceneSubAnimations` class, descendant of `TC
 
 The example application uses this class, displays all animations, and allows to play them by clicking on appropriate buttons.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
