@@ -629,6 +629,15 @@ var
   begin
     FrameCount := Tileset.Tiles[Frame].Animation.Count;
 
+    { Silence Delphi warnings about uninitialized variables,
+      in this case the warning is really a false alarm -- our bCreate stays constant,
+      so in each case the variables that will be really used are initialized. }
+    {$ifndef FPC}
+    Durations := 0;
+    StartIndex := 0;
+    Step := 0;
+    {$endif}
+
     if bCreate then
       Durations := 0
     else
