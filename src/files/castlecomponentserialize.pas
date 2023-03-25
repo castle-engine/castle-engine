@@ -395,7 +395,7 @@ begin
     raise EInvalidComponentFile.CreateFmt('Component JSON file references an unrecognized class "%s".' + NL + NL +
       Iff(CastleDesignMode,
       'As you see this in the editor: the most likely cause is that this project uses custom components, and you did not make a custom editor build. Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.',
-      'Add the unit that registers "%s" to the "uses" clause of any unit in the application. E.g. add "CastleTiledMap" to some uses clause, if you use "TCastleTiledMapControl" in the design.'),
+      'Add the unit that registers "%s" to the "uses" clause of any unit in the application. E.g. add "CastleTiledMap" to some uses clause, if you use "TCastleTiledMap" in the design.'),
       [ResultClassName, ResultClassName]);
   Result := ResultClass.Create(Owner);
 end;
