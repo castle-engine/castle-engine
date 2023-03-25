@@ -76,10 +76,10 @@ type
     property SubAnimations: TSubAnimations read FSubAnimations;
 
     { Start playing given subanimation, by name. }
-    procedure PlaySubAnimation(const SubAnimationName: String; const ALoop: Boolean);
+    procedure PlaySubAnimation(const SubAnimationName: String; const ALoop: Boolean); overload;
 
     { Start playing given subanimation. }
-    procedure PlaySubAnimation(const SubAnim: TSubAnimation; const ALoop: Boolean);
+    procedure PlaySubAnimation(const SubAnim: TSubAnimation; const ALoop: Boolean); overload;
   end;
 
 implementation
