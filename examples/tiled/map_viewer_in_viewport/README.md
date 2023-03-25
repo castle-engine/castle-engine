@@ -2,6 +2,12 @@
 
 Load and view any Tiled map using `TCastleTiledMap` component in `TCastleViewport`.
 
+## Screenshot
+
+![Screenshot](screenshot.png)
+
+## Features
+
 You can
 
 - open any Tiled map (`*.tmx` file),
