@@ -19,6 +19,12 @@
 {$ifdef read_interface}
 
 type
+  TAssignableObject = class
+  public
+    procedure Assign(const AObject: TAssignableObject);virtual;
+  end;
+  TAssignableObjectClass = class of TAssignableObject;
+
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
   TCastleTiledMapData = class
   public
@@ -323,6 +329,8 @@ type
     procedure LoadTMXFile(const AURL: String); overload;
     { Load TMX file internally from XMLDocument instance. }
     procedure LoadTMXFileInternal(const Doc: TXMLDocument);
+
+    procedure CreateLists;
   public
     property Layers: TLayerList read FLayers;
     { Map orientation. }
@@ -357,6 +365,7 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
     constructor Create(const AURL: string); overload;
+    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer; const AData: array of Cardinal); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -411,6 +420,11 @@ end;
 function TiledToColor(const S: String): TCastleColor;
 begin
   Result := Vector4(TiledToColorRGB(S), 1);
+end;
+
+procedure TAssignableObject.Assign(const AObject: TAssignableObject);
+begin
+  raise Exception.CreateFmt('Canot Assign %s to %s',[AObject.ClassName, self.ClassName]);
 end;
 
 { TProperty ------------------------------------------------------------------ }
@@ -1292,13 +1306,18 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+procedure TCastleTiledMapData.CreateLists;
+begin
+  FTilesets := TTilesetList.Create(true);
+  FProperties := TPropertyList.Create(true);
+  FLayers := TLayerList.Create(true);
+end;
+
 constructor TCastleTiledMapData.Create(const Stream: TStream; const ABaseUrl: String);
 begin
   inherited Create;
 
-  FTilesets := TTilesetList.Create;
-  FProperties := TPropertyList.Create;
-  FLayers := TLayerList.Create(true);
+  CreateLists;
   FBaseUrl := ABaseUrl;
 
   //Load TMX
@@ -1320,6 +1339,18 @@ begin
   try
     Create(Stream, AURL);
   finally FreeAndNil(Stream) end;
+end;
+
+constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData;
+  const ALayerIndex: Integer; const AData: array of Cardinal);
+var
+  I: Integer;
+begin
+  inherited Create;
+
+  CreateLists;
+  for I := 0 to AMapData.Tilesets.Count - 1 do;
+  //FTilesets.Add();
 end;
 
 destructor TCastleTiledMapData.Destroy;
