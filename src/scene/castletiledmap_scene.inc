@@ -34,6 +34,7 @@ type
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
     FForceTilesetSpacing: Boolean;
+    FItems: TCastleTransform;
     FMap: TCastleTiledMapData;
     FURL: String;
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
@@ -135,6 +136,8 @@ type
       and automatically starts animations.
       You can stop them with @link(StopAnimations). }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
+
+    property Items:TCastleTransform read FItems ;
   end;
 
 {$endif read_interface}
@@ -155,6 +158,11 @@ begin
     Testcase: data/maps/isometric_grass_and_water.tmx . }
   FScene.RenderOptions.BlendingSort := bsNone;
   Add(FScene);
+
+  FItems := TCastleTransform.Create(Self);
+  FItems.SetSubComponent(true);
+  FItems.Name := 'Items';
+  Add(FItems);
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
