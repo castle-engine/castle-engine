@@ -436,6 +436,8 @@ type
     function PositionToTile(const Position: TVector2;
       out TilePosition: TVector2Integer): Boolean;
 
+    function TilePositionToIndex(const ATilePosition: TVector2Integer):integer;
+
     { Left-bottom corner where the given tile should be rendered. }
     function TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
 
@@ -1873,6 +1875,12 @@ begin
   Result := TilePositionValid(TilePosition);
 end;
 
+function TCastleTiledMapData.TilePositionToIndex(
+  const ATilePosition: TVector2Integer): integer;
+begin
+  Result := ATilePosition.X + (Height - 1 - ATilePosition.Y) * Width;
+end;
+
 function TCastleTiledMapData.TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
 var
   X, Y: Integer;
@@ -1949,7 +1957,7 @@ var
 begin
   Result := false;
 
-  Index := TilePosition.X + (Height - 1 - TilePosition.Y) * Width;
+  Index := TilePositionToIndex(TilePosition);
   Data := Layer.Data.Data[Index];
   GID := Data and ClearFlag;
   if GID = 0 then Exit;

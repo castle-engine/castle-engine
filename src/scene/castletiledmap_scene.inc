@@ -307,7 +307,12 @@ var
 
   procedure ProcessLayer;
   type
-    TTileDataList = {$Ifdef fpc}specialize {$endif}TList<Cardinal>;
+    TTileData = record
+      Position: TVector2Integer;
+      Data: Cardinal;
+    end;
+
+    TTileDataList = {$Ifdef fpc}specialize {$endif}TList<TTileData>;
     { Abs YSortOffset, Data }
     TTilesCompositing = {$Ifdef fpc}specialize {$endif}TDictionary<Single, TTileDataList>;
   var
@@ -316,8 +321,9 @@ var
     Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;
     TileYSortOffset: Single;
-    TileDataList: TTileDataList;
     Data: Cardinal;
+    TileDataList: TTileDataList;
+    TileData: TTileData;
 
     function GetYSortOffset: Single;
     var
@@ -330,8 +336,55 @@ var
 
     procedure AddToTilesCompositing;
     begin
+      TileData.Position := Vector2Integer(X, Y);
+      TileData.Data := Data;
+
       if TilesCompositing.TryGetValue(TileYSortOffset, TileDataList) then
-        TileDataList.Add(Data);
+        TileDataList.Add(TileData)
+      else
+      begin
+        TileDataList := TTileDataList.Create;
+        TileDataList.Add(TileData);
+        TilesCompositing.Add(TileYSortOffset, TileDataList);
+      end;
+    end;
+
+    procedure FreeTilesCompositing;
+    begin
+      for TileDataList in TilesCompositing.Values do
+      begin
+        TileDataList.Free;
+      end;
+      FreeAndNil(TilesCompositing);
+    end;
+
+    procedure CreateMaps;
+
+      function TileRect(const Pos: TVector2Integer): TRectangle;
+      begin
+        Result := Rectangle(Pos, FMap.TileWidth, FMap.TileHeight);
+      end;
+
+      function GetMapRect:TRectangle;
+      begin
+        Result := TRectangle.Empty;
+        for TileData in TileDataList do
+        begin
+          Result := Result + TileRect(TileData.Position);
+        end;
+      end;
+
+      procedure CreateMap;
+      begin
+
+      end;
+
+    begin
+      for TileYSortOffset in TilesCompositing.Keys do
+      begin
+        if TilesCompositing.TryGetValue(TileYSortOffset, TileDataList) then
+          CreateMap;
+      end;
     end;
 
   begin
@@ -350,12 +403,12 @@ var
             Continue;
           end;
           TileYSortOffset := GetYSortOffset;
-
+          AddToTilesCompositing;
+          CreateMaps;
         end;
     finally
-      FreeAndNil(TilesCompositing);
+      FreeTilesCompositing;
     end;
-    //FMap.TileRenderData();
   end;
 
 begin
