@@ -33,20 +33,26 @@ type
       { Indicates that all @link(Layers) should be visible. }
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
-    FForceTilesetSpacing: Boolean;
-    FItems: TCastleTransform;
-    FMap: TCastleTiledMapData;
-    FURL: String;
-    FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
-    FScene: TCastleScene;
-    FLayers: TLayers;
-    FKeepMapData: Boolean;
+    type
+      TMapList = {$Ifdef fpc}specialize{$endif}TObjectList<TCastleTiledMap>;
+    var
+      FForceTilesetSpacing: Boolean;
+      FIsInternal: Boolean;
+      FItems: TCastleTransform;
+      FMap: TCastleTiledMapData;
+      FSubMaps: TMapList;
+      FURL: String;
+      FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
+      FScene: TCastleScene;
+      FLayers: TLayers;
+      FKeepMapData: Boolean;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMapData;
     procedure ConvertMap;
+    procedure CreateYSortItems;
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
@@ -62,6 +68,8 @@ type
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
     property Map: TCastleTiledMapData read FMap;
+    { Is it a submap in Items automatically created by the parent map. }
+    property IsInternal:Boolean read FIsInternal;
   published
     { URL (or just filename) of the Tiled map file (TMX).
 
@@ -150,6 +158,7 @@ constructor TCastleTiledMap.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  FSubMaps := TMapList.Create(False);
   FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
   { This is the best BlendingSort.
@@ -175,6 +184,7 @@ end;
 
 destructor TCastleTiledMap.Destroy;
 begin
+  FreeAndNil(FSubMaps);
   FreeAndNil(FScene);
   FreeAndNil(FMap);
   inherited;
@@ -229,6 +239,7 @@ procedure TCastleTiledMap.ReloadMap;
 begin
   ReloadMapData;
   ConvertMap;
+  CreateYSortItems;
 end;
 
 procedure TCastleTiledMap.SetSmoothScaling(const Value: Boolean);
@@ -288,6 +299,62 @@ begin
     PlayAnimations;
 
   finally FreeAndNil(Converter) end;
+end;
+
+procedure TCastleTiledMap.CreateYSortItems;
+var
+  Layer: TCastleTiledMapData.TLayer;
+
+  procedure ProcessLayer;
+  type
+    { YOffset, Data }
+    TTilesCompositing = {$Ifdef fpc}specialize {$endif}TDictionary<Single, Cardinal>;
+  var
+    TilesCompositing: TTilesCompositing;
+    X, Y: Integer;
+    Tileset: TCastleTiledMapData.TTileset;
+    Frame: Integer;
+    HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+    TileYSortOffset: Single;
+    function GetYSortOffset: Single;
+    begin
+      Tileset.Tiles[Frame].Properties.Items['ysort'];
+    end;
+
+  begin
+    if not Layer.YSortEnabled then Exit;
+
+    TilesCompositing := TTilesCompositing.Create;
+    try
+      for Y := Map.Height - 1 downto 0 do
+        for X := 0 to Map.Width - 1 do
+        begin
+          if not FMap.TileRenderData(Vector2Integer(X, Y), Layer, Tileset, Frame,
+            HorizontalFlip, VerticalFlip, DiagonalFlip) then Continue;
+          if not Tileset.ValidTileId(Frame) then
+          begin
+            WritelnWarning('CreateYSortItems', 'ProcessLayer: ValidTileId ' + Frame.ToString);
+            Continue;
+          end;
+          TileYSortOffset := GetYSortOffset;
+        end;
+    finally
+      FreeAndNil(TilesCompositing);
+    end;
+    //FMap.TileRenderData();
+  end;
+
+begin
+  FSubMaps.OwnsObjects := True;
+  FSubMaps.Clear;
+  FSubMaps.OwnsObjects := False;
+
+  if FMap = nil then Exit;
+
+  for Layer in FMap.Layers do
+  begin
+     ProcessLayer;
+  end;
 end;
 
 procedure TCastleTiledMap.SetLayers(const Value: TLayers);

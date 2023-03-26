@@ -43,14 +43,29 @@ type
           or file (since 0.16, with color and file added in 0.17). }
         AType: string;
         procedure Assign(const AObject: TAssignableObject);override;
+
+        function AsFloat(var ADefaultValue: Single):Single;
+        function AsInteger(var ADefaultValue: Integer):Integer;
+        function AsString():String;
+        function AsBoolean(var ADefaultValue: Boolean):Boolean;
+        function AsColor(var ADefaultValue: TCastleColor):TCastleColor;
       end;
 
       { List of properties. }
       TPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TProperty>)
       private
+        function GetItems(const S: String): TProperty;
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         procedure Assign(const APropertyList: TPropertyList);
+
+        function FloatValue(const AName: string; var ADefaultValue: Single):Boolean;
+        function IntegerValue(const AName: string; var ADefaultValue: Integer):Boolean;
+        function StringValue(const AName: string; var ADefaultValue: String):Boolean;
+        function BooleanValue(const AName: string; var ADefaultValue: Boolean):Boolean;
+        function ColorValue(const AName: string; var ADefaultValue: TCastleColor):Boolean;
+
+        property Items[const S: String]: TProperty read GetItems ;
       end;
 
       TEncodingType = (etNone, etBase64, etCSV);
@@ -175,6 +190,7 @@ type
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
         procedure Assign(const AObject: TAssignableObject);override;
+        function YSortEnabled: Boolean;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -321,6 +337,7 @@ type
         constructor Create;
         destructor Destroy; override;
         procedure Assign(const AObject: TAssignableObject);override;
+        function ValidTileId(const TileId : Integer):Boolean;
       end;
 
       { List of tilesets. }
@@ -558,7 +575,50 @@ begin
   end else inherited;
 end;
 
+function TCastleTiledMapData.TProperty.AsFloat(var ADefaultValue: Single): Single;
+begin
+  Result := StrToFloatDef(Value, ADefaultValue);
+end;
+
+function TCastleTiledMapData.TProperty.AsInteger(var ADefaultValue: Integer): Integer;
+begin
+  Result := StrToIntDef(Value, ADefaultValue);
+end;
+
+function TCastleTiledMapData.TProperty.AsString(): String;
+begin
+  Result := Value;
+end;
+
+function TCastleTiledMapData.TProperty.AsBoolean(
+  var ADefaultValue: Boolean): Boolean;
+begin
+  if SameText(Value, 'true') then Result := True
+  else
+  if SameText(Value, 'false') then Result := False
+  else
+    Result := ADefaultValue;
+end;
+
+function TCastleTiledMapData.TProperty.AsColor(
+  var ADefaultValue: TCastleColor): TCastleColor;
+begin
+  {ToDO: convert color value}
+  Result := ADefaultValue;
+end;
+
 { TPropertyList -------------------------------------------------------------- }
+
+function TCastleTiledMapData.TPropertyList.GetItems(const S: String): TProperty;
+var
+  P: TProperty;
+begin
+  for P in Self do
+  begin
+    if P.Name = S then Exit(P);
+  end;
+  Result := nil;
+end;
 
 procedure TCastleTiledMapData.TPropertyList.Load(const Element: TDOMElement; const BaseUrl: String);
 var
@@ -591,6 +651,56 @@ begin
     NewProp.Assign(Prop);
     Add(NewProp);
   end;
+end;
+
+function TCastleTiledMapData.TPropertyList.FloatValue(const AName: string;
+  var ADefaultValue: Single): Boolean;
+var
+  P: TProperty;
+begin
+  P := self.Items[AName];
+  Result := Assigned(P);
+  if Assigned(P) then ADefaultValue := P.AsFloat(ADefaultValue);
+end;
+
+function TCastleTiledMapData.TPropertyList.IntegerValue(const AName: string;
+  var ADefaultValue: Integer): Boolean;
+var
+  P: TProperty;
+begin
+  P := self.Items[AName];
+  Result := Assigned(P);
+  if Assigned(P) then ADefaultValue := P.AsInteger(ADefaultValue);
+end;
+
+function TCastleTiledMapData.TPropertyList.StringValue(const AName: string;
+  var ADefaultValue: String): Boolean;
+var
+  P: TProperty;
+begin
+  P := self.Items[AName];
+  Result := Assigned(P);
+  if Assigned(P) then ADefaultValue := P.AsString;
+end;
+
+function TCastleTiledMapData.TPropertyList.BooleanValue(const AName: string;
+  var ADefaultValue: Boolean): Boolean;
+var
+  P: TProperty;
+begin
+  P := self.Items[AName];
+  Result := Assigned(P);
+  if Assigned(P) then ADefaultValue := P.AsBoolean(ADefaultValue);
+end;
+
+function TCastleTiledMapData.TPropertyList.ColorValue(const AName: string;
+  var ADefaultValue: TCastleColor): Boolean;
+var
+  P: TProperty;
+begin
+  P := self.Items[AName];
+  Result := Assigned(P);
+  if Assigned(P) then ADefaultValue := P.AsColor(ADefaultValue);
 end;
 
 { TData ---------------------------------------------------------------------- }
@@ -1172,6 +1282,14 @@ begin
   end else inherited;
 end;
 
+function TCastleTiledMapData.TLayer.YSortEnabled: Boolean;
+var
+  P: TProperty;
+begin
+  P := Properties.Items['ysort'];
+  Result := Assigned(P) and SameText(P.Value, 'true');
+end;
+
 { TObjectGroupLayer ---------------------------------------------------------- }
 
 constructor TCastleTiledMapData.TObjectGroupLayer.Create;
@@ -1313,7 +1431,12 @@ begin
     TerrainTypes.Assign(TTileset(AObject).TerrainTypes);
     RendererData := TTileset(AObject).RendererData;
   end else inherited;
+end;
 
+function TCastleTiledMapData.TTileset.ValidTileId(const TileId: Integer
+  ): Boolean;
+begin
+  Result := Between(TileId, 0, Tiles.Count - 1);
 end;
 
 procedure TCastleTiledMapData.TTileset.Load(const Element: TDOMElement; const BaseUrl: String);
@@ -1647,7 +1770,7 @@ constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData;
   begin
     if not Between(ALayerIndex, 0, AMapData.Layers.Count - 1) then
     begin
-      WritelnLog(Format('AssignLayers Error: Invalid LayerIndex %d',[ALayerIndex]));
+      WritelnWarning(Format('AssignLayers Error: Invalid LayerIndex %d',[ALayerIndex]));
       Exit;
     end;
 

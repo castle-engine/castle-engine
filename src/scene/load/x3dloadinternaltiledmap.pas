@@ -572,7 +572,7 @@ var
 
   function ValidTileId(const TileId : Integer):Boolean;
   begin
-    Result := Between(TileId, 0, Tileset.Tiles.Count - 1);
+    Result := Tileset.ValidTileId(TileId);
   end;
 
   procedure CalcTexCoordArray(const TileId:Integer);
