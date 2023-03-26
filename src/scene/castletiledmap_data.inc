@@ -25,11 +25,13 @@ type
   end;
   TAssignableObjectClass = class of TAssignableObject;
 
+  TTilesData = array of Cardinal;
+
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
   TCastleTiledMapData = class
   public
     type
-      TProperty = class
+      TProperty = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -52,7 +54,7 @@ type
       TCompressionType = (ctNone, ctGZip, ctZLib);
 
       { Binary data definition. }
-      TData = class
+      TData = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -63,11 +65,11 @@ type
           "gzip" and "zlib". }
         Compression: TCompressionType;
         { Binary data. Uncompressed and decoded. }
-        Data: array of Cardinal;
+        Data: TTilesData;
       end;
 
       { Image definition. }
-      TImage = class
+      TImage = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -96,7 +98,7 @@ type
         topPolyLine);
 
       { Object definition. }
-      TTiledObject = class
+      TTiledObject = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -135,7 +137,7 @@ type
 
       TTiledObjectList = {$ifdef FPC}specialize{$endif} TObjectList<TTiledObject>;
 
-      TLayer = class
+      TLayer = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
       public
@@ -188,7 +190,7 @@ type
       TLayerList = {$ifdef FPC}specialize{$endif} TObjectList<TLayer>;
 
       { Single frame of animation. }
-      TFrame = class
+      TFrame = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -207,7 +209,7 @@ type
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       end;
 
-      TTile = class
+      TTile = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -236,7 +238,7 @@ type
       { Tiles list. }
       TTileList = {$ifdef FPC}specialize{$endif} TObjectList<TTile>;
 
-      TTerrain = class
+      TTerrain = class(TAssignableObject)
         { The name of the terrain type. }
         Name: string;
         { The local tile-id of the tile that represents the terrain visually. }
@@ -249,7 +251,7 @@ type
       TTerrainTypes = {$ifdef FPC}specialize{$endif} TObjectList<TTerrain>;
 
       { Tileset definition. }
-      TTileset = class
+      TTileset = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
@@ -365,7 +367,7 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
     constructor Create(const AURL: string); overload;
-    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer; const AData: array of Cardinal); overload;
+    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer; const AData: TTilesData); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -1342,15 +1344,56 @@ begin
 end;
 
 constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData;
-  const ALayerIndex: Integer; const AData: array of Cardinal);
-var
-  I: Integer;
+  const ALayerIndex: Integer; const AData: TTilesData);
+
+  procedure AssignTilesets;
+  var
+    Tileset, NewTileset: TTileset;
+  begin
+    for Tileset in AMapData.Tilesets do
+    begin
+      NewTileset := TTileset.Create;
+      NewTileset.Assign(Tileset);
+      FTilesets.Add(NewTileset);
+    end;
+  end;
+
+  procedure AssignProps;
+  var
+    Prop, NewProp: TProperty;
+  begin
+    for Prop in AMapData.Properties do
+    begin
+      NewProp := TProperty.Create;
+      NewProp.Assign(Prop);
+      FProperties.Add(NewProp);
+    end;
+  end;
+
+  procedure AssignLayers;
+  var
+    NewLayer: TLayer;
+  begin
+    if not Between(ALayerIndex, 0, AMapData.Layers.Count - 1) then
+    begin
+      WritelnLog(Format('AssignLayers Error: Invalid LayerIndex %d',[ALayerIndex]));
+      Exit;
+    end;
+
+    NewLayer := TLayer.Create;
+    NewLayer.Assign(AMapData.Layers[ALayerIndex]);
+    NewLayer.Data.Data := AData;
+    FLayers.Add(NewLayer);
+  end;
+
 begin
   inherited Create;
 
   CreateLists;
-  for I := 0 to AMapData.Tilesets.Count - 1 do;
-  //FTilesets.Add();
+
+  AssignTilesets;
+  AssignProps;
+  AssignLayers;
 end;
 
 destructor TCastleTiledMapData.Destroy;
