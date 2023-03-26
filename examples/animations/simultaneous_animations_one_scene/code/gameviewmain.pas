@@ -72,7 +72,7 @@ var
   TimeSensor: TTimeSensorNode;
 begin
   ButtonAnimationSqueeze.Pressed := not ButtonAnimationSqueeze.Pressed;
-  TimeSensor := Scene1.Node(TTimeSensorNode, 'squeeze') as TTimeSensorNode;
+  TimeSensor := Scene1.AnimationTimeSensor('squeeze');
   if ButtonAnimationSqueeze.Pressed then
     { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
       means that we start animation from the moment it was stopped
@@ -87,7 +87,7 @@ var
   TimeSensor: TTimeSensorNode;
 begin
   ButtonAnimationGear.Pressed := not ButtonAnimationGear.Pressed;
-  TimeSensor := Scene1.Node(TTimeSensorNode, 'gear_rotate') as TTimeSensorNode;
+  TimeSensor := Scene1.AnimationTimeSensor('gear_rotate');
   if ButtonAnimationGear.Pressed then
     { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
       means that we start animation from the moment it was stopped
