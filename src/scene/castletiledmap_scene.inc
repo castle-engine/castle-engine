@@ -39,10 +39,13 @@ type
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     FScene: TCastleScene;
     FLayers: TLayers;
+    FKeepMapData: Boolean;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
+    procedure ReloadMapData;
+    procedure ConvertMap;
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
@@ -215,26 +218,9 @@ begin
 end;
 
 procedure TCastleTiledMap.ReloadMap;
-var
-  Converter: TCastleTiledMapConverter;
 begin
-  FreeAndNil(FMap);
-  FScene.Load(nil, true);
-
-  if FURL <> '' then
-  begin
-    FMap := TCastleTiledMapData.Create(URL);
-    Converter := TCastleTiledMapConverter.Create(FMap);
-    try
-      Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
-      Converter.ForceTilesetSpacing := ForceTilesetSpacing;
-      Converter.Layers := Layers;
-      Converter.ConvertMap;
-      FScene.Load(Converter.RootNode, true);
-      PlayAnimations;
-
-    finally FreeAndNil(Converter) end;
-  end;
+  ReloadMapData;
+  ConvertMap;
 end;
 
 procedure TCastleTiledMap.SetSmoothScaling(const Value: Boolean);
@@ -266,6 +252,34 @@ begin
     FSmoothScalingSafeBorder := Value;
     ReloadMap;
   end;
+end;
+
+procedure TCastleTiledMap.ReloadMapData;
+begin
+  if FKeepMapData then Exit;
+
+  FreeAndNil(FMap);
+  if FURL <> '' then
+    FMap := TCastleTiledMapData.Create(URL);
+end;
+
+procedure TCastleTiledMap.ConvertMap;
+var
+  Converter: TCastleTiledMapConverter;
+begin
+  FScene.Load(nil, true);
+  if FMap = nil then Exit;
+
+  Converter := TCastleTiledMapConverter.Create(FMap);
+  try
+    Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
+    Converter.ForceTilesetSpacing := ForceTilesetSpacing;
+    Converter.Layers := Layers;
+    Converter.ConvertMap;
+    FScene.Load(Converter.RootNode, true);
+    PlayAnimations;
+
+  finally FreeAndNil(Converter) end;
 end;
 
 procedure TCastleTiledMap.SetLayers(const Value: TLayers);
