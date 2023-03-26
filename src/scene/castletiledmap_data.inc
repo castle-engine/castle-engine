@@ -44,11 +44,11 @@ type
         AType: string;
         procedure Assign(const AObject: TAssignableObject);override;
 
-        function AsFloat(var ADefaultValue: Single):Single;
-        function AsInteger(var ADefaultValue: Integer):Integer;
+        function AsFloat(const ADefaultValue: Single):Single;
+        function AsInteger(const ADefaultValue: Integer):Integer;
         function AsString():String;
-        function AsBoolean(var ADefaultValue: Boolean):Boolean;
-        function AsColor(var ADefaultValue: TCastleColor):TCastleColor;
+        function AsBoolean(const ADefaultValue: Boolean):Boolean;
+        function AsColor(const ADefaultValue: TCastleColor):TCastleColor;
       end;
 
       { List of properties. }
@@ -59,11 +59,11 @@ type
       public
         procedure Assign(const APropertyList: TPropertyList);
 
-        function FloatValue(const AName: string; var ADefaultValue: Single):Boolean;
-        function IntegerValue(const AName: string; var ADefaultValue: Integer):Boolean;
-        function StringValue(const AName: string; var ADefaultValue: String):Boolean;
-        function BooleanValue(const AName: string; var ADefaultValue: Boolean):Boolean;
-        function ColorValue(const AName: string; var ADefaultValue: TCastleColor):Boolean;
+        function FloatValue(const AName: string; var AValue: Single):Boolean;
+        function IntegerValue(const AName: string; var AValue: Integer):Boolean;
+        function StringValue(const AName: string; var AValue: String):Boolean;
+        function BooleanValue(const AName: string; var AValue: Boolean):Boolean;
+        function ColorValue(const AName: string; var AValue: TCastleColor):Boolean;
 
         property Items[const S: String]: TProperty read GetItems ;
       end;
@@ -439,6 +439,14 @@ type
     { Left-bottom corner where the given tile should be rendered. }
     function TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
 
+    { Information about which image (and how) should be displayed at given map position.
+      Similar to the following @link(TileRenderData).}
+    function TileRenderDataSimple(const TilePosition: TVector2Integer;
+      const Layer: TLayer;
+      out Tileset: TTileset;
+      out Frame: Integer;
+      out Data: Cardinal): Boolean;
+
     { Information about which image (and how) should be displayed at given map position. }
     function TileRenderData(const TilePosition: TVector2Integer;
       const Layer: TLayer;
@@ -575,12 +583,12 @@ begin
   end else inherited;
 end;
 
-function TCastleTiledMapData.TProperty.AsFloat(var ADefaultValue: Single): Single;
+function TCastleTiledMapData.TProperty.AsFloat(const ADefaultValue: Single): Single;
 begin
   Result := StrToFloatDef(Value, ADefaultValue);
 end;
 
-function TCastleTiledMapData.TProperty.AsInteger(var ADefaultValue: Integer): Integer;
+function TCastleTiledMapData.TProperty.AsInteger(const ADefaultValue: Integer): Integer;
 begin
   Result := StrToIntDef(Value, ADefaultValue);
 end;
@@ -591,7 +599,7 @@ begin
 end;
 
 function TCastleTiledMapData.TProperty.AsBoolean(
-  var ADefaultValue: Boolean): Boolean;
+  const ADefaultValue: Boolean): Boolean;
 begin
   if SameText(Value, 'true') then Result := True
   else
@@ -601,7 +609,7 @@ begin
 end;
 
 function TCastleTiledMapData.TProperty.AsColor(
-  var ADefaultValue: TCastleColor): TCastleColor;
+  const ADefaultValue: TCastleColor): TCastleColor;
 begin
   {ToDO: convert color value}
   Result := ADefaultValue;
@@ -654,53 +662,53 @@ begin
 end;
 
 function TCastleTiledMapData.TPropertyList.FloatValue(const AName: string;
-  var ADefaultValue: Single): Boolean;
+  var AValue: Single): Boolean;
 var
   P: TProperty;
 begin
   P := self.Items[AName];
   Result := Assigned(P);
-  if Assigned(P) then ADefaultValue := P.AsFloat(ADefaultValue);
+  if Assigned(P) then AValue := P.AsFloat(AValue);
 end;
 
 function TCastleTiledMapData.TPropertyList.IntegerValue(const AName: string;
-  var ADefaultValue: Integer): Boolean;
+  var AValue: Integer): Boolean;
 var
   P: TProperty;
 begin
   P := self.Items[AName];
   Result := Assigned(P);
-  if Assigned(P) then ADefaultValue := P.AsInteger(ADefaultValue);
+  if Assigned(P) then AValue := P.AsInteger(AValue);
 end;
 
 function TCastleTiledMapData.TPropertyList.StringValue(const AName: string;
-  var ADefaultValue: String): Boolean;
+  var AValue: String): Boolean;
 var
   P: TProperty;
 begin
   P := self.Items[AName];
   Result := Assigned(P);
-  if Assigned(P) then ADefaultValue := P.AsString;
+  if Assigned(P) then AValue := P.AsString;
 end;
 
 function TCastleTiledMapData.TPropertyList.BooleanValue(const AName: string;
-  var ADefaultValue: Boolean): Boolean;
+  var AValue: Boolean): Boolean;
 var
   P: TProperty;
 begin
   P := self.Items[AName];
   Result := Assigned(P);
-  if Assigned(P) then ADefaultValue := P.AsBoolean(ADefaultValue);
+  if Assigned(P) then AValue := P.AsBoolean(AValue);
 end;
 
 function TCastleTiledMapData.TPropertyList.ColorValue(const AName: string;
-  var ADefaultValue: TCastleColor): Boolean;
+  var AValue: TCastleColor): Boolean;
 var
   P: TProperty;
 begin
   P := self.Items[AName];
   Result := Assigned(P);
-  if Assigned(P) then ADefaultValue := P.AsColor(ADefaultValue);
+  if Assigned(P) then AValue := P.AsColor(AValue);
 end;
 
 { TData ---------------------------------------------------------------------- }
@@ -1915,11 +1923,9 @@ begin
   end;
 end;
 
-function TCastleTiledMapData.TileRenderData(const TilePosition: TVector2Integer;
-  const Layer: TLayer;
-  out Tileset: TTileset;
-  out Frame: Integer;
-  out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Boolean;
+function TCastleTiledMapData.TileRenderDataSimple(
+  const TilePosition: TVector2Integer; const Layer: TLayer; out
+  Tileset: TTileset; out Frame: Integer; out Data: Cardinal): Boolean;
 
   { Returns the tileset that contains the global ID. }
   function GIDToTileset(const AGID: Cardinal): TTileSet;
@@ -1936,28 +1942,43 @@ function TCastleTiledMapData.TileRenderData(const TilePosition: TVector2Integer;
   end;
 
 const
-  HorizontalFlag = $80000000;
-  VerticalFlag   = $40000000;
-  DiagonalFlag   = $20000000;
   ClearFlag      = $1FFFFFFF;
 var
   Index: Integer;
-  GID, Dat: Cardinal;
+  GID: Cardinal;
 begin
   Result := false;
 
   Index := TilePosition.X + (Height - 1 - TilePosition.Y) * Width;
-  Dat := Layer.Data.Data[Index];
-  GID := Dat and ClearFlag;
+  Data := Layer.Data.Data[Index];
+  GID := Data and ClearFlag;
   if GID = 0 then Exit;
 
   Tileset := GIDToTileset(GID);
   Frame := GID - Tileset.FirstGID;
+
+  Result := true;
+end;
+
+function TCastleTiledMapData.TileRenderData(const TilePosition: TVector2Integer;
+  const Layer: TLayer;
+  out Tileset: TTileset;
+  out Frame: Integer;
+  out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Boolean;
+
+const
+  HorizontalFlag = $80000000;
+  VerticalFlag   = $40000000;
+  DiagonalFlag   = $20000000;
+var
+  Dat: Cardinal;
+begin
+  Result := TileRenderDataSimple(TilePosition, Layer, Tileset, Frame, Dat);
+  if not Result then Exit;
+
   HorizontalFlip := Dat and HorizontalFlag > 0;
   VerticalFlip := Dat and VerticalFlag > 0;
   DiagonalFlip := Dat and DiagonalFlag > 0;
-
-  Result := true;
 end;
 
 function TCastleTiledMapData.TileNeighbor(const Tile1, Tile2: TVector2Integer;

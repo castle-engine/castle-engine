@@ -307,18 +307,31 @@ var
 
   procedure ProcessLayer;
   type
-    { YOffset, Data }
-    TTilesCompositing = {$Ifdef fpc}specialize {$endif}TDictionary<Single, Cardinal>;
+    TTileDataList = {$Ifdef fpc}specialize {$endif}TList<Cardinal>;
+    { Abs YSortOffset, Data }
+    TTilesCompositing = {$Ifdef fpc}specialize {$endif}TDictionary<Single, TTileDataList>;
   var
     TilesCompositing: TTilesCompositing;
     X, Y: Integer;
     Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;
-    HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
     TileYSortOffset: Single;
+    TileDataList: TTileDataList;
+    Data: Cardinal;
+
     function GetYSortOffset: Single;
+    var
+      ZIndex: Single;
     begin
-      Tileset.Tiles[Frame].Properties.Items['ysort'];
+      ZIndex := 0;
+      Tileset.Tiles[Frame].Properties.FloatValue('Z', ZIndex);
+      Result := - ZIndex + (Y + 0.5) * Map.TileHeight;
+    end;
+
+    procedure AddToTilesCompositing;
+    begin
+      if TilesCompositing.TryGetValue(TileYSortOffset, TileDataList) then
+        TileDataList.Add(Data);
     end;
 
   begin
@@ -329,14 +342,15 @@ var
       for Y := Map.Height - 1 downto 0 do
         for X := 0 to Map.Width - 1 do
         begin
-          if not FMap.TileRenderData(Vector2Integer(X, Y), Layer, Tileset, Frame,
-            HorizontalFlip, VerticalFlip, DiagonalFlip) then Continue;
+          if not FMap.TileRenderDataSimple(Vector2Integer(X, Y), Layer, Tileset, Frame,
+            Data) then Continue;
           if not Tileset.ValidTileId(Frame) then
           begin
             WritelnWarning('CreateYSortItems', 'ProcessLayer: ValidTileId ' + Frame.ToString);
             Continue;
           end;
           TileYSortOffset := GetYSortOffset;
+
         end;
     finally
       FreeAndNil(TilesCompositing);
