@@ -390,6 +390,7 @@ var
             for TileData in TileDataList do
             begin
               NewPos := TileData.Position - ARect.LeftBottom;
+              NewPos.Y := ARect.Height -1 - NewPos.Y;
               AData[NewPos.X + NewPos.Y * ARect.Width] := TileData.Data;
             end;
 
