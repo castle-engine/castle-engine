@@ -173,6 +173,14 @@ const
     'compatibility/delphi-only/fcl-json'
   );
 
+  { Additional include/units paths, only for WebAssembly target. }
+  EnginePathsWebAssembly: array [0..3] of String = (
+    'compatibility/web_assembly/generics.collections',
+    'compatibility/web_assembly/fcl-image/src',
+    'compatibility/web_assembly/pasjpeg/src',
+    'compatibility/web_assembly/paszlib/src'
+  );
+
   { Paths for library (object) files.
     For FPC these are passed using -Fl. }
   EngineLibraryPaths: array [0..1] of String = (
@@ -435,6 +443,10 @@ var
       FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
       FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
       }
+
+      if Options.CPU = Wasm32 then
+        for S in EnginePathsWebAssembly do
+          AddEnginePath(S);
     end;
   end;
 
