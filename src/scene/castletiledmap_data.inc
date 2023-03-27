@@ -44,11 +44,11 @@ type
         AType: string;
         procedure Assign(const AObject: TAssignableObject);override;
 
-        function AsFloat(const ADefaultValue: Single):Single;
-        function AsInteger(const ADefaultValue: Integer):Integer;
+        function AsFloat(const ADefaultValue: Single): Single;
+        function AsInteger(const ADefaultValue: Integer): Integer;
         function AsString():String;
-        function AsBoolean(const ADefaultValue: Boolean):Boolean;
-        function AsColor(const ADefaultValue: TCastleColor):TCastleColor;
+        function AsBoolean(const ADefaultValue: Boolean): Boolean;
+        function AsColor(const ADefaultValue: TCastleColor): TCastleColor;
       end;
 
       { List of properties. }
@@ -59,11 +59,11 @@ type
       public
         procedure Assign(const APropertyList: TPropertyList);
 
-        function FloatValue(const AName: string; var AValue: Single):Boolean;
-        function IntegerValue(const AName: string; var AValue: Integer):Boolean;
-        function StringValue(const AName: string; var AValue: String):Boolean;
-        function BooleanValue(const AName: string; var AValue: Boolean):Boolean;
-        function ColorValue(const AName: string; var AValue: TCastleColor):Boolean;
+        function FloatValue(const AName: string; var AValue: Single): Boolean;
+        function IntegerValue(const AName: string; var AValue: Integer): Boolean;
+        function StringValue(const AName: string; var AValue: String): Boolean;
+        function BooleanValue(const AName: string; var AValue: Boolean): Boolean;
+        function ColorValue(const AName: string; var AValue: TCastleColor): Boolean;
 
         procedure AddOrSetProperty(const AName, ATypeStr, AValue: String);
 
@@ -347,7 +347,7 @@ type
         constructor Create;
         destructor Destroy; override;
         procedure Assign(const AObject: TAssignableObject);override;
-        function ValidTileId(const TileId : Integer):Boolean;
+        function ValidTileId(const TileId : Integer): Boolean;
       end;
 
       { List of tilesets. }
