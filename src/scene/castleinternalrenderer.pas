@@ -2345,6 +2345,13 @@ begin
   end;
   {$endif}
 
+  { We need this in RenderEnd, not only in ViewportRenderEnd.
+    Otherwise some operations could make the current texture unit not bound
+    to any valid texture, causing the glUniform1i setting shader uniform for texture
+    to raise OpenGL errors.
+    Testcase: 3d_model_viewer template. }
+  RenderContext.CurrentProgram := nil;
+
   RenderingCamera := nil;
   Statistics := nil;
 end;

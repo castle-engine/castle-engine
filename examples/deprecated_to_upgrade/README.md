@@ -15,9 +15,9 @@ In particular:
 
     While this is allowed, it not advised. I would rather recommend to
 
-    - Use Tiled ( https://www.mapeditor.org/ ) to design such map, and render it using our `TCastleTiledMapControl`.
+    - Use Tiled ( https://www.mapeditor.org/ ) to design such map, and render it using our [TCastleTiledMap](https://castle-engine.io/tiled_maps) inside a viewport.
 
-    - Or use TCastleImageTransform inside a TCastleViewport to represent all images. Once we add "snapping" for TCasleTransform in editor, you will even be able to design such map in CGE editor.
+    - Use TCastleImageTransform inside a TCastleViewport to represent all images. Once we add "snapping" for TCasleTransform in editor, you will even be able to design such map in CGE editor.
 
     See https://castle-engine.io/using_images , https://castle-engine.io/how_to_render_2d .
 

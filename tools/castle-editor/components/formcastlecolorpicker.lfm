@@ -1,21 +1,21 @@
 object CastleColorPickerForm: TCastleColorPickerForm
   Left = 760
-  Height = 526
+  Height = 579
   Top = 264
-  Width = 460
+  Width = 346
   Caption = 'Choose Color'
-  ClientHeight = 526
-  ClientWidth = 460
+  ClientHeight = 579
+  ClientWidth = 346
   DesignTimePPI = 115
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object PanelCirclePicker: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 73
+    Left = 16
     Height = 267
     Top = 10
     Width = 314
@@ -73,8 +73,8 @@ object CastleColorPickerForm: TCastleColorPickerForm
     AnchorSideBottom.Control = PanelAlpha
     Left = 4
     Height = 181
-    Top = 290
-    Width = 452
+    Top = 292
+    Width = 338
     ActivePage = TabSheetRgb
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 4
@@ -86,7 +86,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
     object TabSheetRgb: TTabSheet
       Caption = 'RGB'
       ClientHeight = 146
-      ClientWidth = 442
+      ClientWidth = 328
       object RTabColorPickerRgb: TRColorPicker
         AnchorSideLeft.Control = GLabelTitleRgb
         AnchorSideLeft.Side = asrBottom
@@ -95,7 +95,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 57
         Height = 27
         Top = 16
-        Width = 292
+        Width = 178
         Layout = lyHorizontal
         SelectionIndicator = siRect
         Anchors = [akTop, akLeft, akRight]
@@ -115,7 +115,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 57
         Height = 27
         Top = 59
-        Width = 292
+        Width = 178
         SelectedColor = 8454016
         Layout = lyHorizontal
         SelectionIndicator = siRect
@@ -134,7 +134,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 57
         Height = 27
         Top = 102
-        Width = 292
+        Width = 178
         SelectedColor = 16744576
         Layout = lyHorizontal
         SelectionIndicator = siRect
@@ -156,6 +156,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         BorderSpacing.Left = 4
         BorderSpacing.Top = 10
         Caption = 'Red'
+        ParentColor = False
       end
       object GLabelTitleRgb: TLabel
         AnchorSideLeft.Control = TabSheetRgb
@@ -167,6 +168,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 49
         BorderSpacing.Left = 4
         Caption = 'Green'
+        ParentColor = False
       end
       object BLabelTitleRgb: TLabel
         AnchorSideLeft.Control = TabSheetRgb
@@ -178,12 +180,13 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 36
         BorderSpacing.Left = 4
         Caption = 'Blue'
+        ParentColor = False
       end
       object RSpinEditRgb: TFloatSpinEdit
         AnchorSideTop.Control = TabSheetRgb
         AnchorSideRight.Control = TabSheetRgb
         AnchorSideRight.Side = asrBottom
-        Left = 353
+        Left = 239
         Height = 38
         Top = 10
         Width = 89
@@ -201,7 +204,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheetRgb
         AnchorSideRight.Side = asrBottom
-        Left = 353
+        Left = 239
         Height = 38
         Top = 53
         Width = 89
@@ -219,7 +222,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheetRgb
         AnchorSideRight.Side = asrBottom
-        Left = 353
+        Left = 239
         Height = 38
         Top = 96
         Width = 89
@@ -236,7 +239,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
     object TabSheetHsv: TTabSheet
       Caption = 'HSV'
       ClientHeight = 146
-      ClientWidth = 442
+      ClientWidth = 328
       object LabelTabHsvTitleH: TLabel
         AnchorSideLeft.Control = TabSheetHsv
         AnchorSideTop.Control = HSpinEditHsv
@@ -247,6 +250,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 32
         BorderSpacing.Left = 4
         Caption = 'Hue'
+        ParentColor = False
       end
       object HTabColorPickerHsv: THColorPicker
         AnchorSideLeft.Control = LabelTabHsvTitleS
@@ -257,7 +261,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 90
         Height = 27
         Top = 16
-        Width = 258
+        Width = 144
         SelectedColor = 66047
         SelectionIndicator = siRect
         Anchors = [akTop, akLeft, akRight]
@@ -277,7 +281,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 90
         Height = 27
         Top = 59
-        Width = 259
+        Width = 145
         SelectedColor = 66047
         SelectionIndicator = siRect
         Anchors = [akTop, akLeft, akRight]
@@ -297,6 +301,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Top = 62
         Width = 82
         Caption = 'Saturation'
+        ParentColor = False
       end
       object LabelTabHsvTitleV: TLabel
         AnchorSideLeft.Control = LabelTabHsvTitleH
@@ -307,6 +312,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Top = 105
         Width = 45
         Caption = 'Value'
+        ParentColor = False
       end
       object VTabColorPickerHsv: TLVColorPicker
         AnchorSideLeft.Control = LabelTabHsvTitleS
@@ -317,7 +323,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 90
         Height = 27
         Top = 102
-        Width = 259
+        Width = 145
         SelectionIndicator = siRect
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
@@ -332,7 +338,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Control = TabSheetHsv
         AnchorSideRight.Control = TabSheetHsv
         AnchorSideRight.Side = asrBottom
-        Left = 352
+        Left = 238
         Height = 38
         Top = 10
         Width = 90
@@ -350,7 +356,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheetHsv
         AnchorSideRight.Side = asrBottom
-        Left = 353
+        Left = 239
         Height = 38
         Top = 53
         Width = 89
@@ -368,7 +374,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheetHsv
         AnchorSideRight.Side = asrBottom
-        Left = 353
+        Left = 239
         Height = 38
         Top = 96
         Width = 89
@@ -385,7 +391,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
     object TabSheetHex: TTabSheet
       Caption = 'Hex'
       ClientHeight = 146
-      ClientWidth = 442
+      ClientWidth = 328
       object LabelTabHexTitleHex: TLabel
         AnchorSideLeft.Control = TabSheetHex
         AnchorSideTop.Control = EditHex
@@ -396,6 +402,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Width = 31
         BorderSpacing.Left = 4
         Caption = 'Hex'
+        ParentColor = False
       end
       object EditHex: TEdit
         AnchorSideLeft.Control = LabelTabHexTitleHex
@@ -405,7 +412,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 45
         Height = 38
         Top = 10
-        Width = 327
+        Width = 213
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 10
         BorderSpacing.Top = 10
@@ -418,7 +425,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = TabSheetHex
         AnchorSideRight.Side = asrBottom
-        Left = 382
+        Left = 268
         Height = 37
         Top = 11
         Width = 56
@@ -433,7 +440,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
     object TabSheetPascalCode: TTabSheet
       Caption = 'Pascal'
       ClientHeight = 146
-      ClientWidth = 442
+      ClientWidth = 328
       object MemoPascalCode: TMemo
         AnchorSideLeft.Control = TabSheetPascalCode
         AnchorSideTop.Control = TabSheetPascalCode
@@ -444,7 +451,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
         Left = 4
         Height = 138
         Top = 4
-        Width = 434
+        Width = 320
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 4
         BorderSpacing.Top = 4
@@ -463,18 +470,17 @@ object CastleColorPickerForm: TCastleColorPickerForm
     AnchorSideLeft.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel1
     Left = 10
     Height = 55
-    Top = 471
-    Width = 446
+    Top = 473
+    Width = 332
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Right = 4
     BevelOuter = bvNone
     ClientHeight = 55
-    ClientWidth = 446
+    ClientWidth = 332
     TabOrder = 2
     object LabelTitleAlpha: TLabel
       AnchorSideLeft.Control = PanelAlpha
@@ -482,9 +488,11 @@ object CastleColorPickerForm: TCastleColorPickerForm
       AnchorSideTop.Side = asrCenter
       Left = 0
       Height = 21
+      Hint = 'Opacity'
       Top = 17
-      Width = 122
-      Caption = 'Alpha (Opacity)'
+      Width = 46
+      Caption = 'Alpha'
+      ParentColor = False
     end
     object AlphaColorPicker: TLVColorPicker
       AnchorSideLeft.Control = LabelTitleAlpha
@@ -492,10 +500,10 @@ object CastleColorPickerForm: TCastleColorPickerForm
       AnchorSideTop.Control = AlphaSpinEdit
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = AlphaSpinEdit
-      Left = 126
+      Left = 50
       Height = 27
       Top = 14
-      Width = 223
+      Width = 185
       SelectionIndicator = siRect
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 4
@@ -511,7 +519,7 @@ object CastleColorPickerForm: TCastleColorPickerForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = PanelAlpha
       AnchorSideRight.Side = asrBottom
-      Left = 353
+      Left = 239
       Height = 38
       Top = 8
       Width = 89
@@ -526,19 +534,33 @@ object CastleColorPickerForm: TCastleColorPickerForm
       Value = 1
     end
   end
-  object ButtonRevert: TButton
-    AnchorSideLeft.Control = PanelCirclePicker
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = PanelCirclePicker
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = PanelCirclePicker
-    AnchorSideBottom.Side = asrBottom
-    Left = 387
+  object ButtonPanel1: TButtonPanel
+    Left = 7
     Height = 37
-    Top = 10
-    Width = 63
-    Anchors = [akTop, akLeft, akRight]
+    Top = 535
+    Width = 332
+    BorderSpacing.Around = 7
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 4
+    ShowButtons = [pbClose]
+    ShowBevel = False
+  end
+  object ButtonRevert: TButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Side = asrBottom
+    Left = 7
+    Height = 37
+    Top = 535
+    Width = 70
+    Anchors = [akLeft, akBottom]
     AutoSize = True
     BorderSpacing.Right = 10
     Caption = 'Revert'

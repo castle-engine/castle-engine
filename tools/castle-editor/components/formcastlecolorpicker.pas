@@ -5,11 +5,11 @@ unit FormCastleColorPicker;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls, ComCtrls,
-  StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker, HRingPicker,
-  HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker, BColorPicker,
-  HColorPicker, SColorPicker, CastlePropEdits, CastleColors, LCLIntf, Buttons,
-  CastleEditorPropEdits;
+  Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls,
+  ComCtrls, StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker,
+  HRingPicker, HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker,
+  BColorPicker, HColorPicker, SColorPicker, CastlePropEdits, CastleColors,
+  LCLIntf, Buttons, ButtonPanel, CastleEditorPropEdits;
 
 type
   TCastleColorPickerForm = class(TForm)
@@ -17,6 +17,7 @@ type
     BSpinEditRgb: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
     ButtonCopy: TButton;
+    ButtonPanel1: TButtonPanel;
     ButtonRevert: TButton;
     EditHex: TEdit;
     GSpinEditRgb: TFloatSpinEdit;
