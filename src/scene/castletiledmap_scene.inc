@@ -405,6 +405,7 @@ var
           ARect.Height, AData);
         NewMap.FMap.Layers[0].YSortEnabled := False;
         NewMap.ReloadMap;
+        FreeAndNil(NewMap.FMap);
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
         NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
         FSubMaps.Add(NewMap);
