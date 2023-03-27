@@ -202,15 +202,28 @@ var
   const
     NewMargin = 1;
     NewSpacing = 2;
+  var
+    OldMargin, OldSpacing:Cardinal;
   begin
     OriginalImage := LoadImage(AURL);
     Result := TCastleImageClass(OriginalImage.ClassType).Create;
 
     try
-      ColumnCount := (OriginalImage.Width - 2 * Tileset.Margin + Tileset.Spacing)
-        div (Tileset.TileWidth + Tileset.Spacing);
-      RowCount := (OriginalImage.Height - 2 * Tileset.Margin + Tileset.Spacing)
-        div (Tileset.TileHeight + Tileset.Spacing);
+      if Tileset.Modified then
+      begin
+        Assert(NewMargin = Tileset.Margin, '"ForceTilesetImageSpacing" wrong margin');
+        Assert(NewSpacing = Tileset.Spacing, '"ForceTilesetImageSpacing" wrong spacing');
+        OldMargin := Tileset.OriginalMargin;
+        OldSpacing := Tileset.OriginalSpacing;
+      end else
+      begin
+        OldMargin := Tileset.Margin;
+        OldSpacing := Tileset.Spacing;
+      end;
+      ColumnCount := (OriginalImage.Width - 2 * OldMargin + OldSpacing)
+        div (Tileset.TileWidth + OldSpacing);
+      RowCount := (OriginalImage.Height - 2 * OldMargin + OldSpacing)
+        div (Tileset.TileHeight + OldSpacing);
 
       Result.SetSize(ColumnCount * (Tileset.TileWidth + NewSpacing) - NewSpacing + 2 * NewMargin,
         RowCount * (Tileset.TileHeight + NewSpacing) - NewSpacing + 2 * NewMargin);
@@ -220,7 +233,7 @@ var
         for Col := 0 to ColumnCount - 1 do
         begin
           Pos := TilePosition(Result, NewMargin, NewSpacing);
-          SrcPos := TilePosition(OriginalImage, Tileset.Margin, Tileset.Spacing);
+          SrcPos := TilePosition(OriginalImage, OldMargin, OldSpacing);
 
           { Draw original tiles -----------------------------------------------}
           Draw(Pos, SrcPos, Tileset.TileWidth, Tileset.TileHeight);
@@ -266,10 +279,17 @@ var
         Result.Height
       ]);
 
-      Tileset.Margin := NewMargin;
-      Tileset.Spacing := NewSpacing;
-      Tileset.Image.Width := Result.Width;
-      Tileset.Image.Height := Result.Height;
+      if not Tileset.Modified then
+      begin
+        Tileset.OriginalMargin := OldMargin;
+        Tileset.OriginalSpacing := OldSpacing;
+        Tileset.Modified := True;
+
+        Tileset.Margin := NewMargin;
+        Tileset.Spacing := NewSpacing;
+        Tileset.Image.Width := Result.Width;
+        Tileset.Image.Height := Result.Height;
+      end;
     finally
       FreeAndNil(OriginalImage);
     end;

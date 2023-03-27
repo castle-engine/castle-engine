@@ -344,6 +344,11 @@ type
         { Use to render the tileset. Not a part of the file format.
           In case of TCastleTiledMapControl, this is always TSprite. }
         RendererData: TObject;
+
+        { Already handled by ForceTilesetSpacing. }
+        Modified: Boolean;
+        { Original data, before handled by ForceTilesetSpacing. }
+        OriginalMargin, OriginalSpacing: Cardinal;
         constructor Create;
         destructor Destroy; override;
         procedure Assign(const AObject: TAssignableObject);override;
@@ -427,8 +432,6 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
     constructor Create(const AURL: string); overload;
-    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer;
-      const AWidth, AHeight: Cardinal; const AData: TTilesData); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -1498,6 +1501,9 @@ begin
     Tiles.Assign(TTileset(AObject).Tiles);
     TerrainTypes.Assign(TTileset(AObject).TerrainTypes);
     RendererData := TTileset(AObject).RendererData;
+    Modified := TTileset(AObject).Modified;
+    OriginalMargin := TTileset(AObject).OriginalMargin;
+    OriginalSpacing := TTileset(AObject).OriginalSpacing;
   end else inherited;
 end;
 
@@ -1842,43 +1848,6 @@ begin
   try
     Create(Stream, AURL);
   finally FreeAndNil(Stream) end;
-end;
-
-constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer;
-      const AWidth, AHeight: Cardinal; const AData: TTilesData);
-
-  procedure AssignLayers;
-  var
-    NewLayer: TLayer;
-    OldIgnoreDataAssign: Boolean;
-  begin
-    if not Between(ALayerIndex, 0, AMapData.Layers.Count - 1) then
-    begin
-      WritelnWarning(Format('AssignLayers Error: Invalid LayerIndex %d',[ALayerIndex]));
-      Exit;
-    end;
-
-    NewLayer := TLayer.Create;
-    OldIgnoreDataAssign := NewLayer.Data.IgnoreDataAssign;
-    NewLayer.Data.IgnoreDataAssign := True;
-    NewLayer.Assign(AMapData.Layers[ALayerIndex]);
-    NewLayer.Data.IgnoreDataAssign := OldIgnoreDataAssign;
-    NewLayer.Data.Data := AData;
-
-    FLayers.Add(NewLayer);
-  end;
-
-begin
-  inherited Create;
-
-  CreateLists;
-
-  AssignVars(AMapData);
-  FWidth := AWidth;
-  FHeight := AHeight;
-  FTilesets.Assign(AMapData.Tilesets);
-  FProperties.Assign(AMapData.Properties);
-  AssignLayers;
 end;
 
 destructor TCastleTiledMapData.Destroy;

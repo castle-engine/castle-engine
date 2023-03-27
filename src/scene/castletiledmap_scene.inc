@@ -44,7 +44,6 @@ type
       FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
       FScene: TCastleScene;
       FLayers: TLayers;
-      FKeepMapData: Boolean;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -53,8 +52,9 @@ type
     procedure ConvertMap;
     procedure ConvertToScene(const AMapData: TCastleTiledMapData;const AScene: TCastleScene;const ALayers: TLayers);
     procedure CreateYSortScenes;
-    procedure ReloadMap;
+    procedure ReloadMap(const KeepMapData: Boolean = False);
     procedure UpdateSmoothScaling;
+    procedure UpdateSmoothScalingOneScene(const AScene: TCastleScene);
     procedure SetLayers(const Value: TLayers);
   public
     constructor Create(AOwner: TComponent); override;
@@ -230,13 +230,13 @@ begin
   if FForceTilesetSpacing <> AValue then
   begin
     FForceTilesetSpacing := AValue;
-    ReloadMap;
+    ReloadMap(False);
   end;
 end;
 
-procedure TCastleTiledMap.ReloadMap;
+procedure TCastleTiledMap.ReloadMap(const KeepMapData: Boolean);
 begin
-  ReloadMapData;
+  if not KeepMapData then ReloadMapData;
   ConvertMap;
 end;
 
@@ -250,15 +250,27 @@ begin
 end;
 
 procedure TCastleTiledMap.UpdateSmoothScaling;
+var
+  AScene: TCastleScene;
+begin
+  UpdateSmoothScalingOneScene(FScene);
+  for AScene in FSubMaps do
+  begin
+    UpdateSmoothScalingOneScene(AScene);
+  end;
+end;
+
+procedure TCastleTiledMap.UpdateSmoothScalingOneScene(const AScene: TCastleScene
+  );
 begin
   if SmoothScaling then
   begin
-    FScene.RenderOptions.MinificationFilter := minLinear;
-    FScene.RenderOptions.MagnificationFilter := magLinear;
+    AScene.RenderOptions.MinificationFilter := minLinear;
+    AScene.RenderOptions.MagnificationFilter := magLinear;
   end else
   begin
-    FScene.RenderOptions.MinificationFilter := minNearest;
-    FScene.RenderOptions.MagnificationFilter := magNearest;
+    AScene.RenderOptions.MinificationFilter := minNearest;
+    AScene.RenderOptions.MagnificationFilter := magNearest;
   end;
 end;
 
@@ -267,14 +279,12 @@ begin
   if FSmoothScalingSafeBorder <> Value then
   begin
     FSmoothScalingSafeBorder := Value;
-    ReloadMap;
+    ReloadMap(True);
   end;
 end;
 
 procedure TCastleTiledMap.ReloadMapData;
 begin
-  if FKeepMapData then Exit;
-
   FreeAndNil(FMap);
   if FURL <> '' then
     FMap := TCastleTiledMapData.Create(URL);
@@ -404,15 +414,7 @@ var
         NewMap := TCastleScene.Create(FItems);
         NewMap.SetTransient;
         NewMap.RenderOptions.BlendingSort := bsNone;
-        if SmoothScaling then
-        begin
-          NewMap.RenderOptions.MinificationFilter := minLinear;
-          NewMap.RenderOptions.MagnificationFilter := magLinear;
-        end else
-        begin
-          NewMap.RenderOptions.MinificationFilter := minNearest;
-          NewMap.RenderOptions.MagnificationFilter := magNearest;
-        end;
+        UpdateSmoothScalingOneScene(NewMap);
         FItems.Add(NewMap);
 
         OldLayerList := FMap.Layers;
@@ -437,10 +439,7 @@ var
         FMap.Width := OldWidth;
         FMap.Height := OldHeight;
         FreeAndNil(NewLayerList);
-       // NewMap.FMap := TCastleTiledMapData.CreateFrom(FMap, LayerIndex, ARect.Width,
-        //  ARect.Height, AData);
-       // NewMap.FMap.Layers[0].YSortEnabled := False;
-        //NewMap.ReloadMap;
+
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
         NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
         FSubMaps.Add(NewMap);
@@ -461,8 +460,6 @@ var
     end;
 
   begin
-    if not Layer.YSortEnabled then Exit;
-
     TilesCompositing := TTilesCompositing.Create;
     try
       for Y := Map.Height - 1 downto 0 do
@@ -486,8 +483,6 @@ var
   end;
 
 begin
-  Assert(Assigned(FSubMaps), 'Inner maps donot call "CreateYSortScenes".');
-
   FSubMaps.OwnsObjects := True;
   FSubMaps.Clear;
   FSubMaps.OwnsObjects := False;
@@ -498,7 +493,7 @@ begin
   begin
     Layer := FMap.Layers[LayerIndex];
     if not (
-       Layer.Visible and
+       Layer.Visible and Layer.YSortEnabled and
        (
          (LayerIndex > High(TLayerIndex)) or
          (LayerIndex in Layers)
@@ -515,7 +510,7 @@ begin
   if FLayers <> Value then
   begin
     FLayers := Value;
-    ReloadMap;
+    ReloadMap(True);
   end;
 end;
 
