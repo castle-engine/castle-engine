@@ -227,7 +227,10 @@ unit CastleWindow;
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$endif}
-         {$endif} // end of UNIX possibilities
+         // end of UNIX possibilities
+         {$elseif defined(WASI)}
+           {$define CASTLE_WINDOW_WEBASSEMBLY}
+         {$endif}
 
        {$endif} // end of "not PasDoc"
 

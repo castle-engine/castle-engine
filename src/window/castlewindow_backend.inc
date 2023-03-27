@@ -50,6 +50,10 @@
   {$I castlewindow_cocoa.inc}
 {$endif}
 
+{$ifdef CASTLE_WINDOW_WEBASSEMBLY}
+  {$I castlewindow_webassembly.inc}
+{$endif}
+
 {$ifdef KAMBI_CHECK_POINTER}
 { Turn checkpointer back on }
 {$checkpointer on}
