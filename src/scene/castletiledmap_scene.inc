@@ -34,10 +34,9 @@ type
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
     type
-      TMapList = {$Ifdef fpc}specialize{$endif}TObjectList<TCastleTiledMap>;
+      TMapList = {$Ifdef fpc}specialize{$endif}TObjectList<TCastleScene>;
     var
       FForceTilesetSpacing: Boolean;
-      FIsInternal: Boolean;
       FItems: TCastleTransform;
       FMap: TCastleTiledMapData;
       FSubMaps: TMapList;
@@ -52,13 +51,13 @@ type
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMapData;
     procedure ConvertMap;
-    procedure CreateYSortItems;
+    procedure ConvertToScene(const AMapData: TCastleTiledMapData;const AScene: TCastleScene;const ALayers: TLayers);
+    procedure CreateYSortScenes;
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
   public
     constructor Create(AOwner: TComponent); override;
-    constructor CreateInternal(AOwner: TComponent);
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -69,8 +68,6 @@ type
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
     property Map: TCastleTiledMapData read FMap;
-    { Is it a submap in Items automatically created by the parent map. }
-    property IsInternal:Boolean read FIsInternal;
   published
     { URL (or just filename) of the Tiled map file (TMX).
 
@@ -168,15 +165,12 @@ begin
   FScene.RenderOptions.BlendingSort := bsNone;
   Add(FScene);
 
-  if not FIsInternal then
-  begin
-    FSubMaps := TMapList.Create(False);
-    FItems := TCastleTransform.Create(Self);
-    FItems.SetSubComponent(true);
-    FItems.Name := 'Items';
-    Add(FItems);
-    FItems.BlendingSort := bsYSort;
-  end;
+  FSubMaps := TMapList.Create(False);
+  FItems := TCastleTransform.Create(Self);
+  FItems.SetSubComponent(true);
+  FItems.Name := 'Items';
+  Add(FItems);
+  FItems.BlendingSort := bsYSort;
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
@@ -244,7 +238,6 @@ procedure TCastleTiledMap.ReloadMap;
 begin
   ReloadMapData;
   ConvertMap;
-  if not FIsInternal then CreateYSortItems;
 end;
 
 procedure TCastleTiledMap.SetSmoothScaling(const Value: Boolean);
@@ -288,25 +281,32 @@ begin
 end;
 
 procedure TCastleTiledMap.ConvertMap;
+begin
+  ConvertToScene(FMap, FScene, Layers);
+  CreateYSortScenes;
+end;
+
+procedure TCastleTiledMap.ConvertToScene(const AMapData: TCastleTiledMapData;
+  const AScene: TCastleScene; const ALayers: TLayers);
 var
   Converter: TCastleTiledMapConverter;
 begin
-  FScene.Load(nil, true);
-  if FMap = nil then Exit;
+  AScene.Load(nil, true);
+  if AMapData = nil then Exit;
 
-  Converter := TCastleTiledMapConverter.Create(FMap);
+  Converter := TCastleTiledMapConverter.Create(AMapData);
   try
     Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
     Converter.ForceTilesetSpacing := ForceTilesetSpacing;
-    Converter.Layers := Layers;
+    Converter.Layers := ALayers;
     Converter.ConvertMap;
-    FScene.Load(Converter.RootNode, true);
+    AScene.Load(Converter.RootNode, true);
     PlayAnimations;
 
   finally FreeAndNil(Converter) end;
 end;
 
-procedure TCastleTiledMap.CreateYSortItems;
+procedure TCastleTiledMap.CreateYSortScenes;
 var
   Layer: TCastleTiledMapData.TLayer;
   LayerIndex: integer;
@@ -368,7 +368,7 @@ var
 
       procedure CreateMap;
       var
-        NewMap: TCastleTiledMap;
+        NewMap: TCastleScene;
         ARect: TRectangle;
         AData: TTilesData;
         NewPos: TVector2Integer;
@@ -394,18 +394,53 @@ var
             end;
 
           end;
-
+      var
+        OldLayerList, NewLayerList: TCastleTiledMapData.TLayerList;
+        OldWidth, OldHeight: Cardinal;
+        NewLayer: TCastleTiledMapData.TLayer;
       begin
         if not ComposeMapData then Exit;
 
-        NewMap := TCastleTiledMap.CreateInternal(FItems);
+        NewMap := TCastleScene.Create(FItems);
+        NewMap.SetTransient;
+        NewMap.RenderOptions.BlendingSort := bsNone;
+        if SmoothScaling then
+        begin
+          NewMap.RenderOptions.MinificationFilter := minLinear;
+          NewMap.RenderOptions.MagnificationFilter := magLinear;
+        end else
+        begin
+          NewMap.RenderOptions.MinificationFilter := minNearest;
+          NewMap.RenderOptions.MagnificationFilter := magNearest;
+        end;
         FItems.Add(NewMap);
-        FreeAndNil(NewMap.FMap);
-        NewMap.FMap := TCastleTiledMapData.CreateFrom(FMap, LayerIndex, ARect.Width,
-          ARect.Height, AData);
-        NewMap.FMap.Layers[0].YSortEnabled := False;
-        NewMap.ReloadMap;
-        FreeAndNil(NewMap.FMap);
+
+        OldLayerList := FMap.Layers;
+        OldWidth := FMap.Width;
+        OldHeight := FMap.Height;
+
+        NewLayer := TCastleTiledMapData.TLayer.Create;
+        NewLayer.Data.IgnoreDataAssign := True;
+        NewLayer.Assign(Layer);
+        NewLayer.YSortEnabled := False;
+        NewLayer.Data.Data := AData;
+        NewLayerList := TCastleTiledMapData.TLayerList.Create(True);
+        NewLayerList.Add(NewLayer);
+
+        FMap.Layers := NewLayerList;
+        FMap.Width := ARect.Width;
+        FMap.Height := ARect.Height;
+
+        ConvertToScene(FMap, NewMap, AllLayers);
+
+        FMap.Layers := OldLayerList;
+        FMap.Width := OldWidth;
+        FMap.Height := OldHeight;
+        FreeAndNil(NewLayerList);
+       // NewMap.FMap := TCastleTiledMapData.CreateFrom(FMap, LayerIndex, ARect.Width,
+        //  ARect.Height, AData);
+       // NewMap.FMap.Layers[0].YSortEnabled := False;
+        //NewMap.ReloadMap;
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
         NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
         FSubMaps.Add(NewMap);
@@ -437,7 +472,7 @@ var
             Data) then Continue;
           if not Tileset.ValidTileId(Frame) then
           begin
-            WritelnWarning('CreateYSortItems', 'ProcessLayer => ValidTileId: ' + Frame.ToString);
+            WritelnWarning('CreateYSortScenes', 'ProcessLayer => ValidTileId: ' + Frame.ToString);
             Continue;
           end;
           TileYSortOffset := GetYSortOffset;
@@ -451,7 +486,7 @@ var
   end;
 
 begin
-  Assert(Assigned(FSubMaps), 'Inner maps donot call "CreateYSortItems".');
+  Assert(Assigned(FSubMaps), 'Inner maps donot call "CreateYSortScenes".');
 
   FSubMaps.OwnsObjects := True;
   FSubMaps.Clear;
@@ -482,14 +517,6 @@ begin
     FLayers := Value;
     ReloadMap;
   end;
-end;
-
-constructor TCastleTiledMap.CreateInternal(AOwner: TComponent);
-begin
-  FIsInternal := True;
-  FKeepMapData := True;
-  Create(AOwner);
-  SetTransient;
 end;
 
 procedure TCastleTiledMap.PlayAnimations;

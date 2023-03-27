@@ -394,15 +394,15 @@ type
     procedure CreateLists;
     procedure AssignVars(const AMapData: TCastleTiledMapData);
   public
-    property Layers: TLayerList read FLayers;
+    property Layers: TLayerList read FLayers write FLayers;
     { Map orientation. }
     property Orientation: TMapOrientation read FOrientation;
     property Properties: TPropertyList read FProperties;
     property Tilesets: TTilesetList read FTilesets;
     { The map width in tiles. }
-    property Width: Cardinal read FWidth;
+    property Width: Cardinal read FWidth write FWidth;
     { The map height in tiles. }
-    property Height: Cardinal read FHeight;
+    property Height: Cardinal read FHeight write FHeight;
     { The width of a tile. }
     property TileWidth: Cardinal read FTileWidth;
     { The height of a tile. }
