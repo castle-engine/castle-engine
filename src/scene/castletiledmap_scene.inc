@@ -160,7 +160,6 @@ constructor TCastleTiledMap.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FSubMaps := TMapList.Create(False);
   FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
   { This is the best BlendingSort.
@@ -172,6 +171,7 @@ begin
 
   if not FIsInternal then
   begin
+    FSubMaps := TMapList.Create(False);
     FItems := TCastleTransform.Create(Self);
     FItems.SetSubComponent(true);
     FItems.Name := 'Items';
@@ -410,9 +410,11 @@ var
         NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
         FSubMaps.Add(NewMap);
 
+        {
         WritelnLog('Compose Count', TileDataList.Count.ToString);
         WritelnLog('CreateMap', Format('Pos: %f, %f Size: %d, %d',[NewMap.Translation.X,
           NewMap.Translation.Y, NewMap.Map.Width, NewMap.Map.Height]));
+          }
       end;
 
     begin
@@ -449,6 +451,8 @@ var
   end;
 
 begin
+  Assert(Assigned(FSubMaps), 'Inner maps donot call "CreateYSortItems".');
+
   FSubMaps.OwnsObjects := True;
   FSubMaps.Clear;
   FSubMaps.OwnsObjects := False;
