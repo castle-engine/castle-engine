@@ -28,7 +28,7 @@ type
   TTilesData = array of Cardinal;
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
-  TCastleTiledMapData = class
+  TCastleTiledMapData = class(TAssignableObject)
   public
     type
       TProperty = class(TAssignableObject)
@@ -64,6 +64,8 @@ type
         function StringValue(const AName: string; var AValue: String):Boolean;
         function BooleanValue(const AName: string; var AValue: Boolean):Boolean;
         function ColorValue(const AName: string; var AValue: TCastleColor):Boolean;
+
+        procedure AddOrSetProperty(const AName, ATypeStr, AValue: String);
 
         property Items[const S: String]: TProperty read GetItems ;
       end;
@@ -166,6 +168,7 @@ type
       TLayer = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
+        procedure SetYSortEnabled(const AValue: Boolean);
       public
         { The name of the layer. }
         Name: string;
@@ -190,7 +193,9 @@ type
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
         procedure Assign(const AObject: TAssignableObject);override;
-        function YSortEnabled: Boolean;
+        function GetYSortEnabled: Boolean;
+
+        property YSortEnabled: Boolean read GetYSortEnabled write SetYSortEnabled ;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -217,8 +222,13 @@ type
         procedure Assign(const AObject: TAssignableObject);override;
       end;
 
+      TLayerClass = class of TLayer;
+
       { List of layers. }
-      TLayerList = {$ifdef FPC}specialize{$endif} TObjectList<TLayer>;
+      TLayerList = class({$ifdef FPC}specialize{$endif} TObjectList<TLayer>)
+      public
+      procedure Assign(const ALayerList: TLayerList);
+      end;
 
       { Single frame of animation. }
       TFrame = class(TAssignableObject)
@@ -382,6 +392,7 @@ type
     procedure LoadTMXFileInternal(const Doc: TXMLDocument);
 
     procedure CreateLists;
+    procedure AssignVars(const AMapData: TCastleTiledMapData);
   public
     property Layers: TLayerList read FLayers;
     { Map orientation. }
@@ -416,7 +427,8 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
     constructor Create(const AURL: string); overload;
-    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer; const AData: TTilesData); overload;
+    constructor CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer;
+      const AWidth, AHeight: Cardinal; const AData: TTilesData); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -461,6 +473,8 @@ type
       orthogonal etc. maps. }
     function TileNeighbor(const Tile1, Tile2: TVector2Integer;
       const CornersAreNeighbors: Boolean): Boolean;
+
+    procedure Assign(const AObject: TAssignableObject);override;
   end;
 
   TTiledMap = TCastleTiledMapData deprecated 'use TCastleTiledMapData';
@@ -481,6 +495,19 @@ end;
 function TiledToColor(const S: String): TCastleColor;
 begin
   Result := Vector4(TiledToColorRGB(S), 1);
+end;
+
+procedure TCastleTiledMapData.TLayerList.Assign(const ALayerList: TLayerList);
+var
+  Layer, NewLayer: TLayer;
+begin
+  Clear;
+  for Layer in ALayerList do
+  begin
+    NewLayer := TLayerClass(Layer.ClassType).Create;
+    NewLayer.Assign(Layer);
+    Add(NewLayer);
+  end;
 end;
 
 procedure TCastleTiledMapData.TTerrainTypes.Assign(
@@ -603,9 +630,9 @@ end;
 function TCastleTiledMapData.TProperty.AsBoolean(
   const ADefaultValue: Boolean): Boolean;
 begin
-  if SameText(Value, 'true') then Result := True
+  if Value = 'true' then Result := True
   else
-  if SameText(Value, 'false') then Result := False
+  if Value = 'false' then Result := False
   else
     Result := ADefaultValue;
 end;
@@ -711,6 +738,22 @@ begin
   P := self.Items[AName];
   Result := Assigned(P);
   if Assigned(P) then AValue := P.AsColor(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.AddOrSetProperty(const AName,
+  ATypeStr, AValue: String);
+var
+  P: TProperty;
+begin
+  P := Items[AName];
+  if not Assigned(P) then
+  begin
+    P := TProperty.Create;
+    Add(P);
+  end;
+  P.Name := AName;
+  P.AType := ATypeStr;
+  P.Value := AValue;
 end;
 
 { TData ---------------------------------------------------------------------- }
@@ -927,7 +970,13 @@ begin
     Trans := TImage(AObject).Trans;
     Width := TImage(AObject).Width;
     Height := TImage(AObject).Height;
-    Data.Assign(TImage(AObject).Data);
+    { Data is created on demand }
+    if not Assigned(TImage(AObject).Data) then
+      FreeAndNil(Data) else
+    begin
+      if not Assigned(Data) then Data := TData.Create;
+      Data.Assign(TImage(AObject).Data);
+    end;
   end else inherited;
 
 end;
@@ -1222,6 +1271,7 @@ constructor TCastleTiledMapData.TLayer.Create;
 begin
   inherited;
   Properties := TPropertyList.Create;
+  Data := TData.Create;
 end;
 
 destructor TCastleTiledMapData.TLayer.Destroy;
@@ -1270,6 +1320,14 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+procedure TCastleTiledMapData.TLayer.SetYSortEnabled(const AValue: Boolean);
+var
+  s: string;
+begin
+  if AValue then s := 'true' else s := 'false';
+  Properties.AddOrSetProperty('ysort', 'bool', s);
+end;
+
 function TCastleTiledMapData.TLayer.Offset: TVector2;
 begin
   Result := Vector2(OffsetX, OffsetY);
@@ -1292,12 +1350,10 @@ begin
   end else inherited;
 end;
 
-function TCastleTiledMapData.TLayer.YSortEnabled: Boolean;
-var
-  P: TProperty;
+function TCastleTiledMapData.TLayer.GetYSortEnabled: Boolean;
 begin
-  P := Properties.Items['ysort'];
-  Result := Assigned(P) and SameText(P.Value, 'true');
+  Result := False;
+  Properties.BooleanValue('ysort', Result);
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }
@@ -1409,6 +1465,7 @@ begin
   inherited;
   Properties := TPropertyList.Create;
   Tiles := TTileList.Create;
+  TerrainTypes := TTerrainTypes.Create;
   Image := TImage.Create;
   FirstGID := 1;
 end;
@@ -1417,13 +1474,14 @@ destructor TCastleTiledMapData.TTileset.Destroy;
 begin
   FreeAndNil(Image);
   FreeAndNil(Tiles);
+  FreeAndNil(TerrainTypes);
   FreeAndNil(Properties);
   inherited;
 end;
 
 procedure TCastleTiledMapData.TTileset.Assign(const AObject: TAssignableObject);
 begin
-  if (AObject is TProperty) then
+  if (AObject is TTileset) then
   begin
     FirstGID := TTileset(AObject).FirstGID;
     URL := TTileset(AObject).URL;
@@ -1742,6 +1800,22 @@ begin
   FLayers := TLayerList.Create(true);
 end;
 
+procedure TCastleTiledMapData.AssignVars(const AMapData: TCastleTiledMapData);
+begin
+  FVersion := AMapData.FVersion;
+  FOrientation := AMapData.FOrientation;
+  FWidth := AMapData.FWidth;
+  FHeight := AMapData.FHeight;
+  FTileWidth := AMapData.FTileWidth;
+  FTileHeight := AMapData.FTileHeight;
+  FHexSideLength := AMapData.FHexSideLength;
+  FStaggerAxis := AMapData.FStaggerAxis;
+  FStaggerIndex := AMapData.FStaggerIndex;
+  FBackgroundColor := AMapData.FBackgroundColor;
+  FRenderOrder := AMapData.FRenderOrder;
+  FBaseUrl := AMapData.FBaseUrl;
+end;
+
 constructor TCastleTiledMapData.Create(const Stream: TStream; const ABaseUrl: String);
 begin
   inherited Create;
@@ -1770,8 +1844,8 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData;
-  const ALayerIndex: Integer; const AData: TTilesData);
+constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData; const ALayerIndex: Integer;
+      const AWidth, AHeight: Cardinal; const AData: TTilesData);
 
   procedure AssignLayers;
   var
@@ -1790,6 +1864,7 @@ constructor TCastleTiledMapData.CreateFrom(const AMapData: TCastleTiledMapData;
     NewLayer.Assign(AMapData.Layers[ALayerIndex]);
     NewLayer.Data.IgnoreDataAssign := OldIgnoreDataAssign;
     NewLayer.Data.Data := AData;
+
     FLayers.Add(NewLayer);
   end;
 
@@ -1798,6 +1873,9 @@ begin
 
   CreateLists;
 
+  AssignVars(AMapData);
+  FWidth := AWidth;
+  FHeight := AHeight;
   FTilesets.Assign(AMapData.Tilesets);
   FProperties.Assign(AMapData.Properties);
   AssignLayers;
@@ -2065,6 +2143,21 @@ begin
             ( (YDiff = 0) and ((XDiff = -1) or (XDiff = 1)) );
       end;
   end;
+end;
+
+procedure TCastleTiledMapData.Assign(const AObject: TAssignableObject);
+var
+  AMapData: TCastleTiledMapData;
+begin
+  if (AObject is TCastleTiledMapData) then
+  begin
+    AMapData := TCastleTiledMapData(AObject);
+
+    AssignVars(AMapData);
+    FTilesets.Assign(AMapData.Tilesets);
+    FProperties.Assign(AMapData.Properties);
+    FLayers.Assign(AMapData.Layers);
+  end else inherited;
 end;
 
 {$endif read_implementation}

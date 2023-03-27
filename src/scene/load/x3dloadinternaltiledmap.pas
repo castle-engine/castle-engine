@@ -348,6 +348,7 @@ begin
   for LayerIndex := 0 to Map.Layers.Count - 1 do
   begin
     Layer := Map.Layers[LayerIndex];
+    if Layer.YSortEnabled then Continue;
     if not (
          Layer.Visible and
          (

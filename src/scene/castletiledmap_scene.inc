@@ -56,6 +56,8 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+  protected
+    constructor CreateInternal(AOwner: TComponent);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -168,10 +170,14 @@ begin
   FScene.RenderOptions.BlendingSort := bsNone;
   Add(FScene);
 
-  FItems := TCastleTransform.Create(Self);
-  FItems.SetSubComponent(true);
-  FItems.Name := 'Items';
-  Add(FItems);
+  if not FIsInternal then
+  begin
+    FItems := TCastleTransform.Create(Self);
+    FItems.SetSubComponent(true);
+    FItems.Name := 'Items';
+    Add(FItems);
+    FItems.BlendingSort := bsYSort;
+  end;
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
@@ -239,7 +245,7 @@ procedure TCastleTiledMap.ReloadMap;
 begin
   ReloadMapData;
   ConvertMap;
-  CreateYSortItems;
+  if not FIsInternal then CreateYSortItems;
 end;
 
 procedure TCastleTiledMap.SetSmoothScaling(const Value: Boolean);
@@ -304,6 +310,7 @@ end;
 procedure TCastleTiledMap.CreateYSortItems;
 var
   Layer: TCastleTiledMapData.TLayer;
+  LayerIndex: integer;
 
   procedure ProcessLayer;
   type
@@ -330,7 +337,7 @@ var
       ZIndex: Single;
     begin
       ZIndex := 0;
-      Tileset.Tiles[Frame].Properties.FloatValue('Z', ZIndex);
+      Tileset.Tiles[Frame].Properties.FloatValue('z', ZIndex);
       Result := - ZIndex + (Y + 0.5) * Map.TileHeight;
     end;
 
@@ -360,23 +367,50 @@ var
 
     procedure CreateMaps;
 
-      function TileRect(const Pos: TVector2Integer): TRectangle;
-      begin
-        Result := Rectangle(Pos, FMap.TileWidth, FMap.TileHeight);
-      end;
-
-      function GetMapRect:TRectangle;
-      begin
-        Result := TRectangle.Empty;
-        for TileData in TileDataList do
-        begin
-          Result := Result + TileRect(TileData.Position);
-        end;
-      end;
-
       procedure CreateMap;
-      begin
+      var
+        NewMap: TCastleTiledMap;
+        ARect: TRectangle;
+        AData: TTilesData;
+        NewPos: TVector2Integer;
 
+          function ComposeMapData: Boolean;
+          begin
+            ARect := TRectangle.Empty;
+            for TileData in TileDataList do
+            begin
+              ARect := ARect + Rectangle(TileData.Position, 1, 1);
+            end;
+            Result := not ARect.IsEmpty;
+            if not Result then Exit;
+
+            SetLength(AData, ARect.Width * ARect.Height);
+            if Length(AData) > 0 then
+              FillChar(AData[0], Length(AData) * SizeOf(AData[0]), 0);
+            for TileData in TileDataList do
+            begin
+              NewPos := TileData.Position - ARect.LeftBottom;
+              AData[NewPos.X + NewPos.Y * ARect.Width] := TileData.Data;
+            end;
+
+          end;
+
+      begin
+        if not ComposeMapData then Exit;
+
+        NewMap := TCastleTiledMap.CreateInternal(FItems);
+        FItems.Add(NewMap);
+        FreeAndNil(NewMap.FMap);
+        NewMap.FMap := TCastleTiledMapData.CreateFrom(FMap, LayerIndex, ARect.Width,
+          ARect.Height, AData);
+        NewMap.FMap.Layers[0].YSortEnabled := False;
+        NewMap.ReloadMap;
+        NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
+        NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
+
+        WritelnLog('Compose Count', TileDataList.Count.ToString);
+        WritelnLog('CreateMap', Format('Pos: %f, %f Size: %d, %d',[NewMap.Translation.X,
+          NewMap.Translation.Y, NewMap.Map.Width, NewMap.Map.Height]));
       end;
 
     begin
@@ -399,13 +433,14 @@ var
             Data) then Continue;
           if not Tileset.ValidTileId(Frame) then
           begin
-            WritelnWarning('CreateYSortItems', 'ProcessLayer: ValidTileId ' + Frame.ToString);
+            WritelnWarning('CreateYSortItems', 'ProcessLayer => ValidTileId: ' + Frame.ToString);
             Continue;
           end;
           TileYSortOffset := GetYSortOffset;
           AddToTilesCompositing;
-          CreateMaps;
         end;
+
+      CreateMaps;
     finally
       FreeTilesCompositing;
     end;
@@ -418,9 +453,10 @@ begin
 
   if FMap = nil then Exit;
 
-  for Layer in FMap.Layers do
+  for LayerIndex := 0 to FMap.Layers.Count - 1 do
   begin
-     ProcessLayer;
+    Layer := FMap.Layers[LayerIndex];
+    ProcessLayer;
   end;
 end;
 
@@ -431,6 +467,14 @@ begin
     FLayers := Value;
     ReloadMap;
   end;
+end;
+
+constructor TCastleTiledMap.CreateInternal(AOwner: TComponent);
+begin
+  FIsInternal := True;
+  FKeepMapData := True;
+  Create(AOwner);
+  SetTransient;
 end;
 
 procedure TCastleTiledMap.PlayAnimations;
