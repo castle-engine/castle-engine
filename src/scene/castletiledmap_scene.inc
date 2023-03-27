@@ -408,6 +408,7 @@ var
         NewMap.ReloadMap;
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
         NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
+        FSubMaps.Add(NewMap);
 
         WritelnLog('Compose Count', TileDataList.Count.ToString);
         WritelnLog('CreateMap', Format('Pos: %f, %f Size: %d, %d',[NewMap.Translation.X,
@@ -457,6 +458,13 @@ begin
   for LayerIndex := 0 to FMap.Layers.Count - 1 do
   begin
     Layer := FMap.Layers[LayerIndex];
+    if not (
+       Layer.Visible and
+       (
+         (LayerIndex > High(TLayerIndex)) or
+         (LayerIndex in Layers)
+       )
+     ) then Continue;
     ProcessLayer;
   end;
 end;
