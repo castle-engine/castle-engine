@@ -63,7 +63,7 @@ unit CastleGLES;
 
 interface
 
-uses SysUtils,dynlibs{$ifdef linux},x,xlib{$endif}{$ifdef windows},Windows{$endif};
+uses SysUtils{$ifndef WASI},dynlibs{$ifdef linux},x,xlib{$endif}{$ifdef windows},Windows{$endif}{$endif};
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
@@ -1887,7 +1887,7 @@ implementation
 
   function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
     begin
-      result:=dynlibs.GetProcAddress(ahlib,ProcName);
+      {$ifndef WASI} result:=dynlibs.GetProcAddress(ahlib,ProcName);{$endif}
 {$ifdef EGL}
       if assigned(eglGetProcAddress) and not assigned(result) then
         result:=eglGetProcAddress(ProcName);
@@ -2321,9 +2321,9 @@ implementation
     begin
       FreeGLES;
 {$ifdef OpenGLES}
-      GLESLib:=dynlibs.LoadLibrary(Lib);
+      {$ifndef WASI} GLESLib:=dynlibs.LoadLibrary(Lib);
       if (GLESLib=0) and (AltLibName <> '') then
-        GLESLib:=dynlibs.LoadLibrary(AltLibName);
+        GLESLib:=dynlibs.LoadLibrary(AltLibName); {$endif}
       if GLESLib=0 then
         raise Exception.Create(format('Could not load library: %s',[Lib]));
 {$else}

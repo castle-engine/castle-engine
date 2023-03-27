@@ -119,7 +119,7 @@ begin
   Result.Value := CastleGetTickCount64;
 end;
 
-{$elseif defined(ANDROID) or defined(FREEBSD) or defined(LINUX)}
+{$elseif defined(ANDROID) or defined(FREEBSD) or defined(LINUX) }
 
 { Use clock_gettime(CLOCK_MONOTONIC,...).
 
@@ -155,7 +155,7 @@ begin
   Result.Value := QWord(tp.tv_sec) * 1000000 + QWord(tp.tv_nsec div 1000);
 end;
 
-{$elseif defined(UNIX)}
+{$elseif defined(UNIX) }
 
 { Fallback Unix implementation using gettimeofday.
 
@@ -201,6 +201,20 @@ begin
     Result.Value := LastTimerValue;
   end else
     LastTimerValue := Result.Value;
+end;
+{$elseif defined(WASI)}
+
+type
+  TTimerFrequency = LongWord;
+const
+  TimerFrequency: TTimerFrequency = 1000000;
+
+var
+  LastTimerValue: QWord;
+
+function Timer: TTimerResult;
+begin
+   REsult.Value:= 1;
 end;
 
 {$endif}

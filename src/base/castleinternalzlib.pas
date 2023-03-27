@@ -236,7 +236,7 @@ const
       {$else} 'libz.so.1'
       {$endif}
     {$endif}
-    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
+    {$ifdef MSWINDOWS} 'zlib1.dll' {$else}'' {$endif};
 begin
   ZLibrary := TDynLib.Load(ZLibraryName, false);
 

@@ -116,6 +116,13 @@ begin
     LastGetTickCount64 := Result;
 end;
 {$I norqcheckend.inc}
+{$elseif defined(WASI)}
+
+function CastleGetTickCount64: QWord;
+begin
+  Result := 1;
+end;
+
 {$endif UNIX}
 
 {$endif}

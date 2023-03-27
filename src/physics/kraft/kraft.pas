@@ -214,7 +214,10 @@ uses {$ifdef windows}
         linux,
        {$ifend}
       {$else}
+       {$ifdef WASI }
+       {$else}
        SDL,
+      {$endif}
       {$endif}
      {$endif}
      {$ifdef DebugDraw}
@@ -10525,7 +10528,7 @@ begin
   ib:=tv.tv_usec;
   result:=ia+ib;
 {$else}
- result:=SDL_GetTicks;
+ result:=1;
 {$ifend}
  result:=result shr fFrequencyShift;
 end;
@@ -10601,12 +10604,12 @@ begin
 {$else}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
-  while (NowTime+4)<EndTime then begin
-   SDL_Delay(1);
+  while (NowTime+4)<EndTime do begin
+   ///SDL_Delay(1);
    NowTime:=GetTime;
   end;
   while (NowTime+2)<EndTime do begin
-   SDL_Delay(0);
+   ///SDL_Delay(0);
    NowTime:=GetTime;
   end;
   while NowTime<EndTime do begin

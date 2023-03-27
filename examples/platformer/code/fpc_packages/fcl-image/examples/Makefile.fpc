@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for fcl-image units example
+#
+
+[target]
+programs=imgconv drawing xwdtobmp interpoldemo
+
+[require]
+packages=fcl-image
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

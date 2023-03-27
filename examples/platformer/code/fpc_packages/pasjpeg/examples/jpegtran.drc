@@ -1,0 +1,160 @@
+#define SysUtils_SShortDayNameSun 65456
+#define SysUtils_SShortDayNameMon 65457
+#define SysUtils_SShortDayNameTue 65458
+#define SysUtils_SShortDayNameWed 65459
+#define SysUtils_SShortDayNameThu 65460
+#define SysUtils_SShortDayNameFri 65461
+#define SysUtils_SShortDayNameSat 65462
+#define SysUtils_SLongDayNameSun 65463
+#define SysUtils_SLongDayNameMon 65464
+#define SysUtils_SLongDayNameTue 65465
+#define SysUtils_SLongDayNameWed 65466
+#define SysUtils_SLongDayNameThu 65467
+#define SysUtils_SLongDayNameFri 65468
+#define SysUtils_SLongDayNameSat 65469
+#define SysUtils_SShortMonthNameSep 65472
+#define SysUtils_SShortMonthNameOct 65473
+#define SysUtils_SShortMonthNameNov 65474
+#define SysUtils_SShortMonthNameDec 65475
+#define SysUtils_SLongMonthNameJan 65476
+#define SysUtils_SLongMonthNameFeb 65477
+#define SysUtils_SLongMonthNameMar 65478
+#define SysUtils_SLongMonthNameApr 65479
+#define SysUtils_SLongMonthNameMay 65480
+#define SysUtils_SLongMonthNameJun 65481
+#define SysUtils_SLongMonthNameJul 65482
+#define SysUtils_SLongMonthNameAug 65483
+#define SysUtils_SLongMonthNameSep 65484
+#define SysUtils_SLongMonthNameOct 65485
+#define SysUtils_SLongMonthNameNov 65486
+#define SysUtils_SLongMonthNameDec 65487
+#define SysUtils_SVarNotArray 65488
+#define SysUtils_SVarArrayBounds 65489
+#define SysUtils_SExternalException 65490
+#define SysUtils_SAssertionFailed 65491
+#define SysUtils_SIntfCastError 65492
+#define SysUtils_SAssertError 65493
+#define SysUtils_SAbstractError 65494
+#define SysUtils_SModuleAccessViolation 65495
+#define SysUtils_SShortMonthNameJan 65496
+#define SysUtils_SShortMonthNameFeb 65497
+#define SysUtils_SShortMonthNameMar 65498
+#define SysUtils_SShortMonthNameApr 65499
+#define SysUtils_SShortMonthNameMay 65500
+#define SysUtils_SShortMonthNameJun 65501
+#define SysUtils_SShortMonthNameJul 65502
+#define SysUtils_SShortMonthNameAug 65503
+#define SysUtils_SInvalidPointer 65504
+#define SysUtils_SInvalidCast 65505
+#define SysUtils_SAccessViolation 65506
+#define SysUtils_SStackOverflow 65507
+#define SysUtils_SControlC 65508
+#define SysUtils_SPrivilege 65509
+#define SysUtils_SException 65510
+#define SysUtils_SExceptTitle 65511
+#define SysUtils_SInvalidFormat 65512
+#define SysUtils_SArgumentMissing 65513
+#define SysUtils_SInvalidVarCast 65514
+#define SysUtils_SInvalidVarOp 65515
+#define SysUtils_SDispatchError 65516
+#define SysUtils_SReadAccess 65517
+#define SysUtils_SWriteAccess 65518
+#define SysUtils_SVarArrayCreate 65519
+#define SysUtils_SOutOfMemory 65520
+#define SysUtils_SInOutError 65521
+#define SysUtils_SFileNotFound 65522
+#define SysUtils_SInvalidFilename 65523
+#define SysUtils_STooManyOpenFiles 65524
+#define SysUtils_SAccessDenied 65525
+#define SysUtils_SEndOfFile 65526
+#define SysUtils_SDiskFull 65527
+#define SysUtils_SInvalidInput 65528
+#define SysUtils_SDivByZero 65529
+#define SysUtils_SRangeError 65530
+#define SysUtils_SIntOverflow 65531
+#define SysUtils_SInvalidOp 65532
+#define SysUtils_SZeroDivide 65533
+#define SysUtils_SOverflow 65534
+#define SysUtils_SUnderflow 65535
+STRINGTABLE
+BEGIN
+	SysUtils_SShortDayNameSun,	"So"
+	SysUtils_SShortDayNameMon,	"Mo"
+	SysUtils_SShortDayNameTue,	"Di"
+	SysUtils_SShortDayNameWed,	"Mi"
+	SysUtils_SShortDayNameThu,	"Do"
+	SysUtils_SShortDayNameFri,	"Fr"
+	SysUtils_SShortDayNameSat,	"Sa"
+	SysUtils_SLongDayNameSun,	"Sonntag"
+	SysUtils_SLongDayNameMon,	"Montag"
+	SysUtils_SLongDayNameTue,	"Dienstag"
+	SysUtils_SLongDayNameWed,	"Mittwoch"
+	SysUtils_SLongDayNameThu,	"Donnerstag"
+	SysUtils_SLongDayNameFri,	"Freitag"
+	SysUtils_SLongDayNameSat,	"Samstag"
+	SysUtils_SShortMonthNameSep,	"Sep"
+	SysUtils_SShortMonthNameOct,	"Okt"
+	SysUtils_SShortMonthNameNov,	"Nov"
+	SysUtils_SShortMonthNameDec,	"Dez"
+	SysUtils_SLongMonthNameJan,	"Januar"
+	SysUtils_SLongMonthNameFeb,	"Februar"
+	SysUtils_SLongMonthNameMar,	"M\xe4rz"
+	SysUtils_SLongMonthNameApr,	"April"
+	SysUtils_SLongMonthNameMay,	"Mai"
+	SysUtils_SLongMonthNameJun,	"Juni"
+	SysUtils_SLongMonthNameJul,	"Juli"
+	SysUtils_SLongMonthNameAug,	"August"
+	SysUtils_SLongMonthNameSep,	"September"
+	SysUtils_SLongMonthNameOct,	"Oktober"
+	SysUtils_SLongMonthNameNov,	"November"
+	SysUtils_SLongMonthNameDec,	"Dezember"
+	SysUtils_SVarNotArray,	"Variante ist kein Array"
+	SysUtils_SVarArrayBounds,	"Varianten-Array-Index au\xdferhalb des zul\xe4ssigen Bereichs"
+	SysUtils_SExternalException,	"Externe Exception %x"
+	SysUtils_SAssertionFailed,	"Bedingungsfehler"
+	SysUtils_SIntfCastError,	"Interface wird nicht unterst\xfctzt"
+	SysUtils_SAssertError,	"%s (%s, Zeile %d)"
+	SysUtils_SAbstractError,	"Abstrakter Fehler"
+	SysUtils_SModuleAccessViolation,	"Zugriffsverletzung bei Adresse %p in Modul '%s'  %s von Adresse %p"
+	SysUtils_SShortMonthNameJan,	"Jan"
+	SysUtils_SShortMonthNameFeb,	"Feb"
+	SysUtils_SShortMonthNameMar,	"M\xe4r"
+	SysUtils_SShortMonthNameApr,	"Apr"
+	SysUtils_SShortMonthNameMay,	"Mai"
+	SysUtils_SShortMonthNameJun,	"Jun"
+	SysUtils_SShortMonthNameJul,	"Jul"
+	SysUtils_SShortMonthNameAug,	"Aug"
+	SysUtils_SInvalidPointer,	"Ung\xfcltige Zeigeroperation"
+	SysUtils_SInvalidCast,	"Ung\xfcltige Typumwandlung"
+	SysUtils_SAccessViolation,	"Zugriffsverletzung bei Adresse %p. %s von Adresse %p"
+	SysUtils_SStackOverflow,	"Stack-\xdcberlauf"
+	SysUtils_SControlC,	"Strg-C gedr\xfcckt"
+	SysUtils_SPrivilege,	"Priviligierte Instruktion"
+	SysUtils_SException,	"Exception %s im Modul %s bei %p.\n%s%s"
+	SysUtils_SExceptTitle,	"Anwendungsfehler"
+	SysUtils_SInvalidFormat,	"Format '%s' ung\xfcltig oder inkompatibel mit Argument"
+	SysUtils_SArgumentMissing,	"Kein Argument f\xfcr Format '%s'"
+	SysUtils_SInvalidVarCast,	"Typkonvertierung von Variant ung\xfcltig"
+	SysUtils_SInvalidVarOp,	"Ung\xfcltige Variantenoperation"
+	SysUtils_SDispatchError,	"Varianten-Methodenaufrufe werden nicht unterst\xfctzt"
+	SysUtils_SReadAccess,	"Lesen"
+	SysUtils_SWriteAccess,	"Schreiben"
+	SysUtils_SVarArrayCreate,	"Fehler beim Erzeugen von Varianten-Array"
+	SysUtils_SOutOfMemory,	"Speicher reicht nicht aus"
+	SysUtils_SInOutError,	"I/O-Fehler %d"
+	SysUtils_SFileNotFound,	"Datei nicht gefunden"
+	SysUtils_SInvalidFilename,	"Ung\xfcltiger Dateiname"
+	SysUtils_STooManyOpenFiles,	"Zu viele Dateien ge\xf6ffnet"
+	SysUtils_SAccessDenied,	"Dateizugriff verweigert"
+	SysUtils_SEndOfFile,	"Lesen nach Dateiende (EOF)"
+	SysUtils_SDiskFull,	"Kapazit\xe4t der Diskette/Festplatte ersch\xf6pft"
+	SysUtils_SInvalidInput,	"Ung\xfcltige numerische Eingabe"
+	SysUtils_SDivByZero,	"Division durch Null"
+	SysUtils_SRangeError,	"Bereichs\xfcberschreitung"
+	SysUtils_SIntOverflow,	"Integer-\xdcberlauf"
+	SysUtils_SInvalidOp,	"Fehler bei Flie\xdfkommaoperation"
+	SysUtils_SZeroDivide,	"Flie\xdfkommadivision durch Null"
+	SysUtils_SOverflow,	"\xdcberlauf bei Flie\xdfkommaoperation"
+	SysUtils_SUnderflow,	"Unterlauf bei Flie\xdfkommaoperation"
+END
+

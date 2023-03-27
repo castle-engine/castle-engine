@@ -1,0 +1,5 @@
+# Here is an example of a scan script that generates a
+# partially interleaved sequential JPEG file:
+
+	0;			# Y only in first scan
+	1 2;			# Cb and Cr in second scan

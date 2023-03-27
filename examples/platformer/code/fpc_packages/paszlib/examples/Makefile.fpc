@@ -1,0 +1,16 @@
+#
+#  Makefile.fpc for paszlib units example
+#
+
+[target]
+programs=minigzip example minizip miniunz example2
+
+[require]
+packages=paszlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+

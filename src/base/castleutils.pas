@@ -129,7 +129,7 @@ implementation
 {$undef read_implementation}
 
 initialization
-  InitializationOSSpecific;
+  ///InitializationOSSpecific;
 
   {$ifdef CASTLE_TEST_DECIMAL_SEPARATOR_COMMA}
   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
@@ -159,5 +159,5 @@ initialization
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
  {$ENDIF}
 finalization
-  FinalizationOSSpecific;
+  ///FinalizationOSSpecific;
 end.

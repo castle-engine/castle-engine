@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for PasZLib
+#
+
+[package]
+name=paszlib
+version=3.3.1
+
+[require]
+packages=hash
+
+[target]
+units=paszlib zip unzip zipper 
+implicitunits=adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr ziputils zstream
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[compiler]
+sourcedir=src
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+

@@ -187,7 +187,7 @@ begin
         'libopenal.so.0'
       {$endif}
     {$endif}
-    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}
+    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}{$ifdef WASI} '' {$endif}
     , false);
 
   {$ifdef UNIX}

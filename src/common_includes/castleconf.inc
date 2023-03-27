@@ -301,6 +301,7 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
+{$ifdef WASI} {$define OpenGLES} {$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,
   https://wccftech.com/nintendo-switch-supports-vulkan/ ).
@@ -565,5 +566,14 @@
 {$ifdef FPC}
   {$define CASTLE_SCRIPT_FPC}
 {$endif}
+
+
+{$ifdef WASI}
+{$undef HAS_FP_HTTP_CLIENT}
+{$undef USE_VAMPYRE_IMAGING}
+{$define GENERICS_CONSTREF}
+{$define OPENGL_CALLBACK_CDECL}
+{$endif}
+
 
 {$endif not CASTLE_CONF_INCLUDED}

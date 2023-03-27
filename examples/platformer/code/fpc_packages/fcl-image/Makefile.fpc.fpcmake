@@ -1,0 +1,43 @@
+#
+#   Makefile.fpc for FCL image units
+#
+
+[package]
+name=fcl-image
+version=3.3.1
+
+[target]
+units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
+      clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp \
+      fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg \
+      pcxcomn fpreadpcx fpwritepcx fptiffcmn fpreadtiff fpwritetiff \
+      targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer \ 
+      extinterpolation fpreadgif fpreadpsd xwdfile fpreadxwd
+units_win32=freetypeh freetype ftfont
+units_win64=freetypeh freetype ftfont
+units_beos=freetypeh freetype ftfont
+units_haiku=freetypeh freetype ftfont
+units_linux=freetypeh freetype ftfont
+units_freebsd=freetypeh freetype ftfont
+units_netbsd=freetypeh freetype ftfont
+units_darwin=freetypeh freetype ftfont
+units_iphonesim=freetypeh freetype ftfont
+units_solaris=freetypeh freetype ftfont
+rsts=pscanvas
+exampledirs=examples
+
+[require]
+packages=pasjpeg paszlib fcl-base
+
+[compiler]
+options=-S2h
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

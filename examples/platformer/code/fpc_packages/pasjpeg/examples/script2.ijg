@@ -1,0 +1,32 @@
+# Here is an example of a successive-approximation script.
+# This is equivalent to the default script used by
+# "cjpeg -progressive" for YCbCr images:
+
+	# Initial DC scan for Y,Cb,Cr (lowest bit not sent)
+	0,1,2: 0-0,   0, 1 ;
+	# First AC scan: send first 5 Y AC coefficients, minus 2 lowest bits:
+	0:     1-5,   0, 2 ;
+	# Send all Cr,Cb AC coefficients, minus lowest bit:
+	# (chroma data is usually too small to be worth subdividing further;
+	#  but note we send Cr first since eye is least sensitive to Cb)
+	2:     1-63,  0, 1 ;
+	1:     1-63,  0, 1 ;
+	# Send remaining Y AC coefficients, minus 2 lowest bits:
+	0:     6-63,  0, 2 ;
+	# Send next-to-lowest bit of all Y AC coefficients:
+	0:     1-63,  2, 1 ;
+	# At this point we've sent all but the lowest bit of all coefficients.
+	# Send lowest bit of DC coefficients
+	0,1,2: 0-0,   1, 0 ;
+	# Send lowest bit of AC coefficients
+	2:     1-63,  1, 0 ;
+	1:     1-63,  1, 0 ;
+	# Y AC lowest bit scan is last; it's usually the largest scan
+	0:     1-63,  1, 0 ;
+
+# It may be worth pointing out that this script is tuned for quality
+# settings of around 50 to 75.  For lower quality settings, you'd
+# probably want to use a script with fewer stages of successive
+# approximation (otherwise the initial scans will be really bad).
+# For higher quality settings, you might want to use more stages of
+# successive approximation (so that the initial scans are not too large).

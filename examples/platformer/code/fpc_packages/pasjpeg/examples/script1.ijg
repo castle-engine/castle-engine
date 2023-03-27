@@ -1,0 +1,12 @@
+# Here is an example of a progressive scan script using only
+# spectral selection (no successive approximation):
+
+	# Interleaved DC scan for Y,Cb,Cr:
+	0,1,2: 0-0,   0, 0 ;
+	# AC scans:
+	0:     1-2,   0, 0 ;	# First two Y AC coefficients
+	0:     3-5,   0, 0 ;	# Three more
+	1:     1-63,  0, 0 ;	# All AC coefficients for Cb
+	2:     1-63,  0, 0 ;	# All AC coefficients for Cr
+	0:     6-9,   0, 0 ;	# More Y coefficients
+	0:     10-63, 0, 0 ;	# Remaining Y coefficients

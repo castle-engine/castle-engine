@@ -237,6 +237,10 @@ begin
     TDynLib.Load('vorbisfile.dll', false);
     {$endif}
 
+    {$ifdef WASI}
+    nil;
+    {$endif}
+
   if VorbisFileLibrary <> nil then
   begin
     Pointer({$ifndef FPC}@{$endif} ov_clear) := VorbisFileLibrary.Symbol('ov_clear');

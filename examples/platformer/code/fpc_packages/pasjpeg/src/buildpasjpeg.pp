@@ -1,0 +1,60 @@
+{
+
+  Unit to build all units of Pasjpeg
+}
+unit buildpasjpeg;
+interface
+uses
+  jcapimin,
+  jcapistd,
+  jccoefct,
+  jccolor,
+  jcdctmgr,
+  jchuff,
+  jcinit,
+  jcmainct,
+  jcmarker,
+  jcmaster,
+  jcomapi,
+  jcparam,
+  jcphuff,
+  jcprepct,
+  jcsample,
+  jdapimin,
+  jdapistd,
+  jdatadst,
+  jdatasrc,
+  jdcoefct,
+  jdcolor,
+  jdct,
+  jddctmgr,
+  jdeferr,
+  jdhuff,
+  jdinput,
+  jdmainct,
+  jdmarker,
+  jdmaster,
+  jdmerge,
+  jdphuff,
+  jdpostct,
+  jdsample,
+  jerror,
+  jfdctflt,
+  jfdctfst,
+  jfdctint,
+  jidctflt,
+  jidctfst,
+  jidctint,
+  jidctred,
+  jinclude,
+  jmemmgr,
+  jmemnobs,
+  jmorecfg,
+  jpeglib,
+  jquant1,
+  jquant2,
+  jutils;
+
+implementation
+
+end.

@@ -8,6 +8,9 @@
     {$define OPENGL_CDECL}
     {$define OPENGL_CALLBACK_CDECL}
   {$else}
+    {$ifdef WASI}
+    {$else}
     {$fatal Define OPENGL_CALLBACK_CALL in OpenGLMac.inc}
+    {$endif}
   {$endif}
 {$endif}

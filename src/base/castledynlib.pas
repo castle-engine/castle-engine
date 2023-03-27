@@ -23,7 +23,7 @@ interface
 uses SysUtils
   {$ifdef FPC}
     { With FPC, use cross-platform DynLibs unit. }
-    , DynLibs
+    {$ifndef WASI}, DynLibs{$endif}
   {$else}
     { With Delphi, use Windows functions directly. }
     {$ifdef MSWINDOWS} , Windows {$endif}
@@ -34,7 +34,7 @@ type
 
 const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
-  InvalidDynLibHandle: TDynLibHandle = {$ifdef FPC} DynLibs.NilHandle {$else} 0 {$endif};
+  InvalidDynLibHandle: TDynLibHandle = {$ifdef WASI}0;{$else} {$ifdef FPC} DynLibs.NilHandle {$else} 0 {$endif}; {$endif}
 
 type
   { }

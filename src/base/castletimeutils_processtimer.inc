@@ -27,7 +27,7 @@ type
       {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
       QWord // ProcessTimer just does CastleGetTickCount64
       {$else}
-      clock_t // Unix
+      QWord // Unix
       {$endif};
   public
     { Seconds passed since this time sample up to now.
@@ -96,8 +96,8 @@ begin
   Result.Value := CastleGetTickCount64;
 {$else}
 // other Unixes
-var
-  Dummy: tms;
+///var
+///  Dummy: tms;
 begin
   { See console.tests/test_times/RESULTS,
     it seems that (at least on my Linux? Debian, Linux 2.4.20, libc-2.3.2)
@@ -105,7 +105,7 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
-  Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
+  Result.Value := 1 ///{$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
 {$endif}
 end;
 
