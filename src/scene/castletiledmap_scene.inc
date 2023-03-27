@@ -56,6 +56,8 @@ type
     procedure UpdateSmoothScaling;
     procedure UpdateSmoothScalingOneScene(const AScene: TCastleScene);
     procedure SetLayers(const Value: TLayers);
+    procedure PlayAnimationsOneScene(const AScene: TCastleScene);
+    procedure StopAnimationsOneScene(const AScene: TCastleScene; const ResetAnimations: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -445,7 +447,7 @@ var
         FSubMaps.Add(NewMap);
 
         {
-        WritelnLog('Compose Count', TileDataList.Count.ToString);
+        WritelnLog('CreateMap', 'Compose Tile Count: ' + TileDataList.Count.ToString);
         WritelnLog('CreateMap', Format('Pos: %f, %f Size: %d, %d',[NewMap.Translation.X,
           NewMap.Translation.Y, NewMap.Map.Width, NewMap.Map.Height]));
           }
@@ -514,31 +516,48 @@ begin
   end;
 end;
 
-procedure TCastleTiledMap.PlayAnimations;
+procedure TCastleTiledMap.PlayAnimationsOneScene(const AScene: TCastleScene);
 var
   I: Integer;
   TimeSensor: TTimeSensorNode;
 begin
-  FScene.ProcessEvents := true;
-  for I := 0 to FScene.AnimationsList.Count - 1 do
+  AScene.ProcessEvents := true;
+  for I := 0 to AScene.AnimationsList.Count - 1 do
   begin
-    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor := AScene.AnimationsList.Objects[I] as TTimeSensorNode;
     TimeSensor.Start(true);
   end;
 end;
 
-procedure TCastleTiledMap.StopAnimations(const ResetAnimations: Boolean);
+procedure TCastleTiledMap.StopAnimationsOneScene(const AScene: TCastleScene;
+  const ResetAnimations: Boolean);
 var
   I: Integer;
   TimeSensor: TTimeSensorNode;
 begin
-  for I := 0 to FScene.AnimationsList.Count - 1 do
+  for I := 0 to AScene.AnimationsList.Count - 1 do
   begin
-    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor := AScene.AnimationsList.Objects[I] as TTimeSensorNode;
     TimeSensor.Stop;
     if ResetAnimations then
       TimeSensor.FakeTime(0, false, true);
   end;
+end;
+
+procedure TCastleTiledMap.PlayAnimations;
+var
+  AScene: TCastleScene;
+begin
+  PlayAnimationsOneScene(FScene);
+  for AScene in FSubMaps do PlayAnimationsOneScene(AScene);
+end;
+
+procedure TCastleTiledMap.StopAnimations(const ResetAnimations: Boolean);
+var
+  AScene: TCastleScene;
+begin
+  StopAnimationsOneScene(FScene, ResetAnimations);
+  for AScene in FSubMaps do StopAnimationsOneScene(AScene, ResetAnimations);
 end;
 
 function TCastleTiledMap.HasAnimations: Boolean;

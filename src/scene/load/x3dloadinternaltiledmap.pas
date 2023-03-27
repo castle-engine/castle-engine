@@ -209,10 +209,11 @@ var
     Result := TCastleImageClass(OriginalImage.ClassType).Create;
 
     try
+      { Must read Margin,Spacing before processed by ForceTilesetImageSpacing. }
       if Tileset.Modified then
       begin
-        Assert(NewMargin = Tileset.Margin, '"ForceTilesetImageSpacing" wrong margin');
-        Assert(NewSpacing = Tileset.Spacing, '"ForceTilesetImageSpacing" wrong spacing');
+        Assert(NewMargin = Tileset.Margin, 'ForceTilesetImageSpacing: Wrong margin');
+        Assert(NewSpacing = Tileset.Spacing, 'ForceTilesetImageSpacing: Wrong spacing');
         OldMargin := Tileset.OriginalMargin;
         OldSpacing := Tileset.OriginalSpacing;
       end else
