@@ -56,10 +56,9 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
-  protected
-    constructor CreateInternal(AOwner: TComponent);
   public
     constructor Create(AOwner: TComponent); override;
+    constructor CreateInternal(AOwner: TComponent);
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 

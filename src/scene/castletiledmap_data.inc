@@ -614,7 +614,7 @@ end;
 
 function TCastleTiledMapData.TProperty.AsFloat(const ADefaultValue: Single): Single;
 begin
-  Result := StrToFloatDef(Value, ADefaultValue);
+  Result := StrToFloatDefDot(Value, ADefaultValue);
 end;
 
 function TCastleTiledMapData.TProperty.AsInteger(const ADefaultValue: Integer): Integer;
