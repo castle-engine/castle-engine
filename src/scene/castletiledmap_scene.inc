@@ -467,6 +467,8 @@ begin
      ) then Continue;
     ProcessLayer;
   end;
+
+  WritelnLog('SubMap Count',FSubMaps.Count.ToString);
 end;
 
 procedure TCastleTiledMap.SetLayers(const Value: TLayers);
