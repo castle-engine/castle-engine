@@ -174,8 +174,9 @@ const
   );
 
   { Additional include/units paths, only for WebAssembly target. }
-  EnginePathsWebAssembly: array [0..3] of String = (
+  EnginePathsWebAssembly: array [0..4] of String = (
     'compatibility/web_assembly/generics.collections',
+    'compatibility/web_assembly/generics.collections/inc',
     'compatibility/web_assembly/fcl-image/src',
     'compatibility/web_assembly/pasjpeg/src',
     'compatibility/web_assembly/paszlib/src'
