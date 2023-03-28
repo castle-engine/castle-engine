@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
 
 type
   TMd3Triangle = record
-    Indexes: array [0..2] of LongWord;
+    Indexes: array [0..2] of UInt32;
   end;
   TMd3TriangleList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Triangle>;
 
@@ -149,18 +149,18 @@ const
 
 type
   TMd3Header = record
-    Ident: array [0..3] of char;
-    Version: LongInt;
-    Name: array [0..Md3MaxQPath - 1] of char;
-    Flags: LongInt;
-    NumFrames: LongInt;
-    NumTags: LongInt;
-    NumSurfaces: LongInt;
-    NumSkins: LongInt;
-    OffsetFrames: LongInt;
-    OffsetTags: LongInt;
-    OffsetSurfaces: LongInt;
-    OffsetEof: LongInt;
+    Ident: array [0..3] of AnsiChar;
+    Version: Int32;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumTags: Int32;
+    NumSurfaces: Int32;
+    NumSkins: Int32;
+    OffsetFrames: Int32;
+    OffsetTags: Int32;
+    OffsetSurfaces: Int32;
+    OffsetEof: Int32;
   end;
 
   TMd3Frame = record
@@ -168,28 +168,28 @@ type
     MaxBounds: TVector3;
     LocalOrigin: TVector3;
     Radius: Single;
-    Name: array [0..15] of char;
+    Name: array [0..15] of AnsiChar;
   end;
 
   TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of char;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
     Origin: TVector3;
     Axis: array [0..2] of TVector3;
   end;
 
   TMd3FileSurface = record
-    Ident: array [0..3] of char;
-    Name: array [0..Md3MaxQPath - 1] of char;
-    Flags: LongInt;
-    NumFrames: LongInt;
-    NumShaders: LongInt;
-    NumVerts: LongInt;
-    NumTriangles: LongInt;
-    OffsetTriangles: LongInt;
-    OffsetShaders: LongInt;
-    OffsetST: LongInt;
-    OffsetXYZNormal: LongInt;
-    OffsetEnd: LongInt;
+    Ident: array [0..3] of AnsiChar;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumShaders: Int32;
+    NumVerts: Int32;
+    NumTriangles: Int32;
+    OffsetTriangles: Int32;
+    OffsetShaders: Int32;
+    OffsetST: Int32;
+    OffsetXYZNormal: Int32;
+    OffsetEnd: Int32;
   end;
 
 { TMd3Surface ---------------------------------------------------------------- }
