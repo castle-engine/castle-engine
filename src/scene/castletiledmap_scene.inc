@@ -167,7 +167,7 @@ begin
   FScene.RenderOptions.BlendingSort := bsNone;
   Add(FScene);
 
-  FSubMaps := TMapList.Create(False);
+  FSubMaps := TMapList.Create(True);
   FItems := TCastleTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
@@ -487,9 +487,7 @@ var
   end;
 
 begin
-  FSubMaps.OwnsObjects := True;
   FSubMaps.Clear;
-  FSubMaps.OwnsObjects := False;
 
   if FMap = nil then Exit;
 
