@@ -4157,12 +4157,13 @@ var
 
       WritelnLog('DistanceToGround: ' + FloatToStr(DistanceToGround));
       WritelnLog('ColliderHeight * 0.1: ' + FloatToStr(ColliderHeight * 0.1));
+      WritelnLog('(ColliderHeight / 2) + ColliderHeight * 0.1: ' + FloatToStr((ColliderHeight / 2) + ColliderHeight * 0.1));
       IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
     end else
     begin
       IsOnGroundBool := false;
       DistanceToGround := -1; // For animation checking
-      WritelnLog('aaa');
+      WritelnLog('Raycast not find anything');
     end;
 
     if IsOnGroundBool then

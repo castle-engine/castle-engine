@@ -1027,6 +1027,9 @@ var
       if DistanceToGround < 0 then
         DistanceToGround := 0;
 
+      WritelnLog('A DistanceToGround: ' + FloatToStr(DistanceToGround));
+      WritelnLog('AvatarHeight * 0.1: ' + FloatToStr(AvatarHeight * 0.1));
+
       IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
     end else
     begin

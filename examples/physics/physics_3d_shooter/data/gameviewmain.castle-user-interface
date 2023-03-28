@@ -48,15 +48,9 @@
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
                 "AutoSize" : false,
-                "Friction" : 1.0000000000000000E+000,
                 "Height" : 1.0000000000000000E+000,
-                "Name" : "CapsuleCollider1",
-                "Radius" : 5.0000000000000000E-001,
-                "Restitution" : 1.0000000149011612E-001,
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "Z" : -5.0000000000000000E-001
-                }
+                "Name" : "CapsuleCollider2",
+                "Radius" : 5.0000000000000000E-001
               }
             ]
           },
@@ -70,7 +64,20 @@
               "X" : 4.0000000000000000E+000,
               "Y" : 1.7633638381958008E+001,
               "Z" : 1.0000000000000000E+000
-            }
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "AutoSize" : false,
+                "Name" : "BoxCollider15",
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+000,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                }
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -94,6 +101,14 @@
                 "Name" : "MeshCollider1"
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Transform1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            }
           },
           {
             "$$ClassName" : "TCastleTransform",
