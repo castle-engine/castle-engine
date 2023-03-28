@@ -859,6 +859,13 @@ type
     FClimbHeight: Single;
     FCrouchHeight: Single;
 
+    FChangeTransformation: TChangeTransformation;
+
+    WarningDonePhysicsNotNecessary,
+      WarningDoneRigidBodyNecessary,
+      WarningDoneColliderNecessary: Boolean;
+
+
     { React to Input_MoveSpeedInc. }
     procedure MoveSpeedInc(const SecondsPassed: Single);
     { React to Input_MoveSpeedDec. }
@@ -928,6 +935,7 @@ type
     FJumpHeight: Single;
     FJumpTime: Single;
     FJumpHorizontalSpeedMultiply: Single;
+    FWasJumpInput: Boolean;
 
     HeadBobbingPosition: Single;
     function UseHeadBobbing: boolean;
@@ -1550,6 +1558,27 @@ type
       read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     property Radius;
+
+    { How does the camera change transformation (for movement and rotations).
+      This determines whether we update @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation) directly or use physics (TCastleRigidBody)
+      velocities or forces.
+
+      See TChangeTransformation for possible values are their meaning.
+
+      By default, this is ctAuto, which means that we detect whether you have
+      physics behaviors (TCastleRigidBody, TCastleCollider, with TCastleRigidBody.Exists)
+      set up on the avatar.
+
+      @unorderedList(
+        @item(If yes, we will use physics behaviors, and change transformation
+          using the velocity of TCastleRigidBody.)
+        @item(Otherwise (if you don't have physics behaviors), we will directly change
+          @link(TCastleTransform.Translation), @link(TCastleTransform.Rotation).)
+      )
+    }
+    property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
+      default ctAuto;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
@@ -2928,6 +2957,7 @@ begin
   FGrowSpeed := DefaultGrowSpeed;
   FFallingEffect := true;
   FIsJumping := false;
+  FWasJumpInput := false;
   FJumpMaxHeight := DefaultJumpMaxHeight;
   FMinAngleFromGravityUp := DefaultMinAngleFromGravityUp;
   FAllowSlowerRotations := true;
@@ -2946,6 +2976,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FHeadBobbingTime := DefaultHeadBobbingTime;
   FCrouchHeight := DefaultCrouchHeight;
+  FChangeTransformation := ctAuto;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -3315,6 +3346,27 @@ end;
 
 procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+type
+  TIsOnGround = (igGround, igJumping, igFalling);
+  TSpeedType = (stNormal, stCrouch, stRun);
+var
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+  Speed: Single;
+  SpeedType: TSpeedType;
+
+  { Warn if the avatar has TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists. }
+  procedure CheckNotPhysics;
+  begin
+    if (RBody <> nil) and (Collider <> nil) and RBody.Exists then
+    begin
+      if not WarningDonePhysicsNotNecessary then
+      begin
+        WarningDonePhysicsNotNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, remove physics behaviors (TCastleRigidBody, TCastleCollider) from avatar or set TCastleRigidBody.Exists to false');
+      end;
+    end;
+  end;
 
   { Check are keys for left/right/down/up rotations are pressed, and handle them.
     SpeedScale = 1 indicates a normal rotation speed, you can use it to scale
@@ -3922,8 +3974,387 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     end;
   end;
 
+  { If avatar does not have TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists,
+    warn and return @false. }
+  function CheckPhysics: Boolean;
+  begin
+    if (RBody = nil) or (not RBody.Exists) then
+    begin
+      if not WarningDoneRigidBodyNecessary then
+      begin
+        WarningDoneRigidBodyNecessary := true;
+        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleRigidBody to the camera and leave TCastleRigidBody.Exists = true');
+      end;
+      Exit(false);
+    end;
+
+    if Collider = nil then
+    begin
+      if not WarningDoneColliderNecessary then
+      begin
+        WarningDoneColliderNecessary := true;
+        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleCollider to the camera');
+      end;
+      Exit(false);
+    end;
+
+    Result := true;
+  end;
+
+  { Realize ctVelocity transformation method. }
+  procedure DoVelocity(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  var
+    IsOnGroundBool: Boolean;
+    Vel: TVector3;
+    VLength: Single;
+    //AvatarBoundingBox: TBox3D;
+    AvatarHeight: Single;
+    MaxHorizontalVelocityChange: Single;
+    Acceleration: Single;
+    HVelocity: TVector3;
+    VVelocity: Single;
+    MoveDirection: TVector3;
+    GroundRayCast: TPhysicsRayCastResult;
+    DistanceToGround: Single;
+    Jump: Single;
+    RayOrigin: TVector3;
+    DeltaSpeed: Single;
+    DeltaAngular: Single;
+  const
+    RotationSpeed: Single = Pi * 150 / 180;
+  begin
+    if not CheckPhysics then
+      Exit;
+
+    { How fast should avatar change it's speed }
+    Acceleration := Speed * 3 / 60;
+    MaxHorizontalVelocityChange := Acceleration * 60;
+    DeltaSpeed := 0;
+
+    { Check player is on ground, we use avatar size multiplied by ten to try
+      found ground. Distance is used to check we should set animation to fall
+      or we are almost on ground so use default animation.
+
+      We need add Collider.Translation because sometimes rigid body origin can be
+      under the collider. And ray will be casted under the floor. }
+    // TODO: what use as height
+    // AvatarBoundingBox := Camera.BoundingBox;
+    AvatarHeight :=  1; //AvatarBoundingBox.SizeY;
+    RayOrigin := Camera.Translation + Collider.Translation;
+
+    { TODO: In the ideal world, the way we check for ground collisions
+      (and determine Ground, IsOnGround)
+      should be independent from ChangeTransformation.
+
+      ChangeTransformation says how we change the transformation.
+
+      We should still have option to use
+
+      - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
+        not require having TCastleRigidBody on avatar) to detect ground
+      - or Height / WorldHeight calls that cooperate with old simple physics.
+
+      And we should update IsOnGround in all ChangeTransformation modes.
+
+      But in practice, now ctDirect forces to do gravity using old physics
+      (because it forbids TCastleRigidBody on avatar),
+      and ctVelocity forces to do gravity using new physics
+      (because it requires TCastleRigidBody on avatar).
+
+      So checking for ground (collisions) is not independent from ChangeTransformation.
+      When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
+      it would make no sense to use old simple physics. }
+
+    GroundRayCast := RBody.PhysicsRayCast(
+      RayOrigin,
+      Vector3(0, -1, 0),
+      AvatarHeight * 3
+    );
+
+    { Four more checks - player should slide down when player just
+      on the edge, but sometimes it stay and center ray don't "see" that we are
+      on ground }
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(1{AvatarBoundingBox.SizeX} * 0.49, 0, 0),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3
+      );
+
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(-1{AvatarBoundingBox.SizeX} * 0.49, 0, 0),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3
+      );
+
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(0, 0, 1{AvatarBoundingBox.SizeZ} * 0.49),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3
+      );
+
+    if not GroundRayCast.Hit then
+      GroundRayCast := RBody.PhysicsRayCast(
+        RayOrigin + Vector3(0, 0, -1{AvatarBoundingBox.SizeZ} * 0.49),
+        Vector3(0, -1, 0),
+        AvatarHeight * 3
+      );
+
+    if GroundRayCast.Hit then
+    begin
+      DistanceToGround := GroundRayCast.Distance;
+
+      { When collider has own translation we need substract it from distance
+        becouse distance will be too big }
+      DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+
+      { Sometimes rigid body center point can be under the collider so
+        the distance can be negative }
+      if DistanceToGround < 0 then
+        DistanceToGround := 0;
+
+      IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
+    end else
+    begin
+      IsOnGroundBool := false;
+      DistanceToGround := -1; // For animation checking
+    end;
+
+    if Input_Forward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
+      MoveDirection := Camera.Direction;
+    end;
+    if Input_Backward.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
+      MoveDirection := -Camera.Direction;
+    end;
+    if IsOnGroundBool and Input_RightStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+      MoveDirection := TVector3.CrossProduct(Camera.Direction, Camera.Up);
+    end;
+    if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
+    begin
+      MovingHorizontally := true;
+      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
+      MoveDirection := -TVector3.CrossProduct(Camera.Direction, Camera.Up);
+    end;
+
+    Jump := 0;
+    if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
+    begin
+      //if  and (not FWasJumpInput) and IsOnGroundBool
+      FWasJumpInput := true;
+      MovingHorizontally := false;
+      Jump := MoveVerticalSpeed * 2; ///JumpSpeed;
+    end else
+      FWasJumpInput := false;
+
+    DeltaAngular := 0;
+    if Input_RightRotate.IsPressed(Container) then
+    begin
+      DeltaAngular := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
+    end;
+    if Input_LeftRotate.IsPressed(Container) then
+    begin
+      DeltaAngular := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
+    end;
+
+    // jumping
+    if not IsZero(Jump) then
+    begin
+      Vel := RBody.LinearVelocity;
+      Vel.Y := Jump;
+      RBody.LinearVelocity := Vel;
+    end else
+    // moving
+    if not IsZero(DeltaSpeed) then
+    begin
+      Vel := RBody.LinearVelocity;
+      if IsOnGroundBool then
+      begin
+        { On ground we simply change direction to current one that's
+          helps do things like strafe or fast change direction from
+          forward to backward }
+        HVelocity := Vel;
+        HVelocity.Y := 0;
+        VVelocity := Vel.Y;
+        // maybe use LengthSqrt?
+        VLength := HVelocity.Length;
+        VLength := VLength + DeltaSpeed;
+        if VLength > Speed then
+            VLength := Speed;
+        Vel := MoveDirection * VLength;
+
+        if IsZero(Jump) then
+          Vel.Y := VVelocity
+        else
+          Vel.Y := Jump;
+      end else
+      begin
+        { In air we can't simply change movement direction, we will just
+          modify current one a little based on FAirMovementControl factor.
+          Notice that by default FAirMovementControl = 0 so no change
+          will be made. }
+
+        Vel := Vel + MoveDirection * DeltaSpeed;
+
+        { Here we only check speed is not faster than max speed }
+        HVelocity := Vel;
+        HVelocity.Y := 0;
+        VVelocity := Vel.Y;
+        VLength := HVelocity.Length;
+        { Check max speed }
+        if VLength > Speed then
+        begin
+            VLength := Speed;
+            Vel.Y := 0;
+            Vel := Vel.Normalize * VLength;
+
+            { Add gravity here }
+            Vel.Y := VVelocity;
+        end;
+      end;
+
+      RBody.LinearVelocity := Vel;
+    end else
+    if IsOnGroundBool then
+    begin
+      // slowing down the avatar only on ground
+      Vel := RBody.LinearVelocity;
+      Vel.X := 0;
+      Vel.Z := 0;
+      RBody.LinearVelocity := Vel;
+    end;
+
+    // rotation
+    if not IsZero(DeltaAngular) then
+    begin
+      RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
+      Rotating := true;
+    end
+    else
+    begin
+      RBody.AngularVelocity := Vector3(0, 0, 0);
+      Rotating := false;
+    end;
+
+    IsOnGround := igGround;
+    if not IsOnGroundBool then
+    begin
+      // TODO: 0.1 should not be hardcoded
+      if RBody.LinearVelocity.Y > 0.1 then
+        IsOnGround := igJumping
+      else
+      { When avatar falls we change animation to fall only when the distance
+        to ground is smaller than 1/4 of avatar height. This fixes changing
+        animation from walk to fall on small steps like in stairs.
+
+        DistanceToGround < 0 means that we are in air and ground
+        was not found.
+
+        TODO: 0.25 should not be hardcoded. }
+      if (DistanceToGround < 0) or (DistanceToGround > 1{Camera.LocalBoundingBox.SizeY} * 0.25) then
+        IsOnGround := igFalling;
+    end;
+  end;
+
+  { Realize ctDirect transformation method. }
+  procedure DoDirect(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  var
+    ModsDown: TModifierKeys;
+  begin
+    ModsDown := ModifiersDown(Container.Pressed);
+
+    HeadBobbingAlreadyDone := false;
+    MoveHorizontalDone := false;
+
+    if HandleInput then
+    begin
+      if niNormal in UsingInput then
+      begin
+        HandleInput := false;
+        FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
+
+        if (not CheckModsDown) or
+           (ModsDown - Input_Run.Modifiers = []) then
+        begin
+          CheckRotates(1.0);
+
+          if Input_Forward.IsPressed(Container) or MoveForward then
+            MoveHorizontal( Camera.Direction, SecondsPassed);
+          if Input_Backward.IsPressed(Container) or MoveBackward then
+            MoveHorizontal(-Camera.Direction, SecondsPassed);
+          if Input_RightStrafe.IsPressed(Container) then
+            MoveHorizontal(DirectionRight, SecondsPassed);
+          if Input_LeftStrafe.IsPressed(Container) then
+            MoveHorizontal(DirectionLeft , SecondsPassed);
+
+          { A simple implementation of Input_Jump was
+              RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
+            Similarly, simple implementation of Input_Crouch was
+              RotateVertical(-HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(HalfPi)
+            But this is not good, because when PreferGravityUp, we want to move
+            along the GravityUp. (Also later note: RotateVertical is now bounded by
+            MinAngleFromGravityUp). }
+
+          if Input_Jump.IsPressed(Container) then
+            MoveVertical(SecondsPassed, 1);
+          if Input_Crouch.IsPressed(Container) then
+            MoveVertical(SecondsPassed, -1);
+          if Input_MoveSpeedInc.IsPressed(Container) then
+            MoveSpeedInc(SecondsPassed);
+          if Input_MoveSpeedDec.IsPressed(Container) then
+            MoveSpeedDec(SecondsPassed);
+          if Input_IncreasePreferredHeight.IsPressed(Container) then
+            ChangePreferredHeight(+1);
+          if Input_DecreasePreferredHeight.IsPressed(Container) then
+            ChangePreferredHeight(-1);
+        end else
+        if ModsDown = [mkCtrl] then
+        begin
+          if AllowSlowerRotations then
+            CheckRotates(0.1);
+        end;
+      end;
+
+      { mouse dragging navigation }
+      if (MouseDraggingStarted <> -1) and
+         ReallyEnableMouseDragging and
+         ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+         { Enable dragging only when no modifiers (except Input_Run,
+           which must be allowed to enable running) are pressed.
+           This allows application to handle e.g. ctrl + dragging
+           in some custom ways (like view3dscene selecting a triangle). }
+         (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
+         (MouseDragMode = mdWalk) then
+      begin
+        HandleInput := false;
+        MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
+      end;
+    end;
+
+    PreferGravityUpForRotationsUpdate;
+
+    { These may be set to @true only inside GravityUpdate }
+    FIsWalkingOnTheGround := false;
+    FIsOnTheGround := false;
+
+    { Disable gravity in design mode (in the future we may add optional way to enable them) }
+    if not CastleDesignMode then
+      GravityUpdate;
+  end;
+
 var
-  ModsDown: TModifierKeys;
+  MovingHorizontally, Rotating: Boolean;
+  IsOnGround: TIsOnGround;
 begin
   inherited;
 
@@ -3936,85 +4367,46 @@ begin
 
   if (not Valid) then Exit;
 
-  ModsDown := ModifiersDown(Container.Pressed);
+  if Camera = nil then
+    Exit;
 
-  HeadBobbingAlreadyDone := false;
-  MoveHorizontalDone := false;
+  RBody := Camera.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  Collider := Camera.FindBehavior(TCastleCollider) as TCastleCollider;
 
-  if HandleInput then
+  if Input_Run.IsPressed(Container) then
   begin
-    if niNormal in UsingInput then
-    begin
-      HandleInput := false;
-      FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
-
-      if (not CheckModsDown) or
-         (ModsDown - Input_Run.Modifiers = []) then
-      begin
-        CheckRotates(1.0);
-
-        if Input_Forward.IsPressed(Container) or MoveForward then
-          MoveHorizontal( Camera.Direction, SecondsPassed);
-        if Input_Backward.IsPressed(Container) or MoveBackward then
-          MoveHorizontal(-Camera.Direction, SecondsPassed);
-        if Input_RightStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionRight, SecondsPassed);
-        if Input_LeftStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionLeft , SecondsPassed);
-
-        { A simple implementation of Input_Jump was
-            RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
-          Similarly, simple implementation of Input_Crouch was
-            RotateVertical(-HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(HalfPi)
-          But this is not good, because when PreferGravityUp, we want to move
-          along the GravityUp. (Also later note: RotateVertical is now bounded by
-          MinAngleFromGravityUp). }
-
-        if Input_Jump.IsPressed(Container) then
-          MoveVertical(SecondsPassed, 1);
-        if Input_Crouch.IsPressed(Container) then
-          MoveVertical(SecondsPassed, -1);
-        if Input_MoveSpeedInc.IsPressed(Container) then
-          MoveSpeedInc(SecondsPassed);
-        if Input_MoveSpeedDec.IsPressed(Container) then
-          MoveSpeedDec(SecondsPassed);
-        if Input_IncreasePreferredHeight.IsPressed(Container) then
-          ChangePreferredHeight(+1);
-        if Input_DecreasePreferredHeight.IsPressed(Container) then
-          ChangePreferredHeight(-1);
-      end else
-      if ModsDown = [mkCtrl] then
-      begin
-        if AllowSlowerRotations then
-          CheckRotates(0.1);
-      end;
-    end;
-
-    { mouse dragging navigation }
-    if (MouseDraggingStarted <> -1) and
-       ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
-       { Enable dragging only when no modifiers (except Input_Run,
-         which must be allowed to enable running) are pressed.
-         This allows application to handle e.g. ctrl + dragging
-         in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalk) then
-    begin
-      HandleInput := false;
-      MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
-    end;
+    SpeedType := stRun;
+    Speed := MoveSpeed * 2;
+  end else
+  if Input_Crouch.IsPressed(Container) then
+  begin
+    SpeedType := stCrouch;
+    Speed := MoveSpeed / 2;
+  end else
+  begin
+    SpeedType := stNormal;
+    Speed := MoveSpeed;
   end;
 
-  PreferGravityUpForRotationsUpdate;
+  MovingHorizontally := false;
+  Rotating := false;
+  IsOnGround := igGround;
 
-  { These may be set to @true only inside GravityUpdate }
-  FIsWalkingOnTheGround := false;
-  FIsOnTheGround := false;
-
-  { Disable gravity in design mode (in the future we may add optional way to enable them) }
-  if not CastleDesignMode then
-    GravityUpdate;
+  case FChangeTransformation of
+    ctAuto:
+      if (RBody <> nil) and RBody.Exists and (Collider <> nil) then
+        DoVelocity(MovingHorizontally, Rotating, IsOnGround)
+      else
+        DoDirect(MovingHorizontally, Rotating, IsOnGround);
+    ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
+    ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
+    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+    ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
+    {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
+    {$endif}
+  end;
 end;
 
 function TCastleWalkNavigation.Jump: boolean;
