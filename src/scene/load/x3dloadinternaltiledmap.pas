@@ -205,6 +205,13 @@ var
   var
     OldMargin, OldSpacing:Cardinal;
   begin
+    if Tileset.Modified and Assigned(Tileset.CacheImage) and (NewMargin = Tileset.Margin)
+      and (NewSpacing = Tileset.Spacing) then
+    begin
+      //WritelnLog('ForceTilesetImageSpacing', Format('Using CacheImage for %s', [AURL]));
+      Exit(Tileset.CacheImage.CreateCopy as TCastleImage);
+    end;
+
     OriginalImage := LoadImage(AURL);
     Result := TCastleImageClass(OriginalImage.ClassType).Create;
 
@@ -285,6 +292,8 @@ var
         Tileset.OriginalMargin := OldMargin;
         Tileset.OriginalSpacing := OldSpacing;
         Tileset.Modified := True;
+        FreeAndNil(Tileset.CacheImage);
+        Tileset.CacheImage := Result.CreateCopy as TCastleImage;
 
         Tileset.Margin := NewMargin;
         Tileset.Spacing := NewSpacing;

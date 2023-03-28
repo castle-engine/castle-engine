@@ -33,7 +33,7 @@ uses
   Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
-  CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes;
+  CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes, CastleImages;
 
 {$define read_interface}
 {$I castletiledmap_data.inc}
@@ -44,7 +44,7 @@ uses
 implementation
 
 uses Math,
-  CastleComponentSerialize, CastleImages, CastleRenderContext,
+  CastleComponentSerialize, CastleRenderContext,
   X3DLoadInternalTiledMap, CastleGLUtils, CastleDownload;
 
 {$define read_implementation}

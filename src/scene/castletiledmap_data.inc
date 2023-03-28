@@ -347,6 +347,7 @@ type
 
         { Already handled by ForceTilesetSpacing. }
         Modified: Boolean;
+        CacheImage: TCastleImage;
         { Original data, before handled by ForceTilesetSpacing. }
         OriginalMargin, OriginalSpacing: Cardinal;
         constructor Create;
@@ -1475,6 +1476,7 @@ end;
 
 destructor TCastleTiledMapData.TTileset.Destroy;
 begin
+  FreeAndNil(CacheImage);
   FreeAndNil(Image);
   FreeAndNil(Tiles);
   FreeAndNil(TerrainTypes);
