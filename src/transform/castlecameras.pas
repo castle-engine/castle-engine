@@ -2976,7 +2976,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FHeadBobbingTime := DefaultHeadBobbingTime;
   FCrouchHeight := DefaultCrouchHeight;
-  FChangeTransformation := ctAuto;
+  FChangeTransformation := ctDirect;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4267,7 +4267,7 @@ var
   end;
 
   { Realize ctDirect transformation method. }
-  procedure DoDirect(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  procedure DoDirect;
   var
     ModsDown: TModifierKeys;
   begin
@@ -4397,8 +4397,8 @@ begin
       if (RBody <> nil) and RBody.Exists and (Collider <> nil) then
         DoVelocity(MovingHorizontally, Rotating, IsOnGround)
       else
-        DoDirect(MovingHorizontally, Rotating, IsOnGround);
-    ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
+        DoDirect;
+    ctDirect: DoDirect;
     ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
     {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
