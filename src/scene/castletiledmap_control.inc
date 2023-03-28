@@ -323,6 +323,7 @@ begin
             topPoint: RenderPoint;
             topRectangle: RenderRectangle;
             // TODO: handle ellipse
+            else;
           end;
         end;
       end;
