@@ -174,6 +174,8 @@ begin
   Add(FItems);
   FItems.BlendingSort := bsYSort;
 
+  FMap := TCastleTiledMapData.Create;
+
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
   FForceTilesetSpacing := false;

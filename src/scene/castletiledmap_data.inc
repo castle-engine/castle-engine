@@ -19,9 +19,7 @@
 {$ifdef read_interface}
 
 type
-  TAssignableObject = class
-  public
-    procedure Assign(const AObject: TAssignableObject);virtual;
+  TAssignableObject = class(TPersistent)
   end;
   TAssignableObjectClass = class of TAssignableObject;
 
@@ -42,7 +40,7 @@ type
         { The type of the property. Can be string (default), int, float, bool, color
           or file (since 0.16, with color and file added in 0.17). }
         AType: string;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
 
         function AsFloat(const ADefaultValue: Single): Single;
         function AsInteger(const ADefaultValue: Integer): Integer;
@@ -88,7 +86,7 @@ type
         Data: TTilesData;
 
         IgnoreDataAssign: Boolean;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       { Image definition. }
@@ -113,7 +111,7 @@ type
         Data: TData;
         destructor Destroy; override;
         procedure DetermineSize;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
@@ -157,7 +155,7 @@ type
         destructor Destroy; override;
         { X and Y packed in a vector. }
         function Position: TVector2;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       TTiledObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TTiledObject>)
@@ -192,7 +190,7 @@ type
         destructor Destroy; override;
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
         function GetYSortEnabled: Boolean;
 
         property YSortEnabled: Boolean read GetYSortEnabled write SetYSortEnabled ;
@@ -208,7 +206,7 @@ type
         Objects: TTiledObjectList;
         constructor Create;
         destructor Destroy; override;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       TImageLayer = class(TLayer)
@@ -219,7 +217,7 @@ type
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       TLayerClass = class of TLayer;
@@ -240,7 +238,7 @@ type
         { How long (in milliseconds) this frame should be displayed before advancing
           to the next frame. }
         Duration: Cardinal;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       { Contains a list of animation frames.
@@ -277,7 +275,7 @@ type
         RendererData: TObject;
         constructor Create;
         destructor Destroy; override;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       { Tiles list. }
@@ -287,6 +285,7 @@ type
       end;
 
       TTerrain = class(TAssignableObject)
+      public
         { The name of the terrain type. }
         Name: string;
         { The local tile-id of the tile that represents the terrain visually. }
@@ -294,7 +293,7 @@ type
         Properties: TPropertyList;
         constructor Create;
         destructor Destroy; override;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
       end;
 
       { This element defines an array of terrain types, which can be referenced from
@@ -352,7 +351,7 @@ type
         OriginalMargin, OriginalSpacing: Cardinal;
         constructor Create;
         destructor Destroy; override;
-        procedure Assign(const AObject: TAssignableObject);override;
+        procedure Assign(Source: TPersistent);override;
         function ValidTileId(const TileId : Integer): Boolean;
       end;
 
@@ -433,6 +432,7 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
     constructor Create(const AURL: string); overload;
+    constructor Create; overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -478,11 +478,10 @@ type
     function TileNeighbor(const Tile1, Tile2: TVector2Integer;
       const CornersAreNeighbors: Boolean): Boolean;
 
-    procedure Assign(const AObject: TAssignableObject);override;
+    procedure Assign(Source: TPersistent);override;
   end;
 
   TTiledMap = TCastleTiledMapData deprecated 'use TCastleTiledMapData';
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -553,13 +552,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TCastleTiledMapData.TTerrain.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TTerrain.Assign(Source: TPersistent);
 begin
-  if (AObject is TTerrain) then
+  if (Source is TTerrain) then
   begin
-    Name := TTerrain(AObject).Name;
-    Tile := TTerrain(AObject).Tile;
-    Properties.Assign(TTerrain(AObject).Properties);
+    Name := TTerrain(Source).Name;
+    Tile := TTerrain(Source).Tile;
+    Properties.Assign(TTerrain(Source).Properties);
   end else inherited;
 end;
 
@@ -591,11 +590,6 @@ begin
   end;
 end;
 
-procedure TAssignableObject.Assign(const AObject: TAssignableObject);
-begin
-  raise Exception.CreateFmt('Canot Assign %s to %s',[AObject.ClassName, self.ClassName]);
-end;
-
 { TProperty ------------------------------------------------------------------ }
 
 procedure TCastleTiledMapData.TProperty.Load(const Element: TDOMElement; const BaseUrl: String);
@@ -605,14 +599,14 @@ begin
   AType := Element.AttributeStringDef('type', '');
 end;
 
-procedure TCastleTiledMapData.TProperty.Assign(const AObject: TAssignableObject
+procedure TCastleTiledMapData.TProperty.Assign(Source: TPersistent
   );
 begin
-  if (AObject is TProperty) then
+  if (Source is TProperty) then
   begin
-    Name := TProperty(AObject).Name;
-    AType := TProperty(AObject).AType;
-    Value := TProperty(AObject).Value;
+    Name := TProperty(Source).Name;
+    AType := TProperty(Source).AType;
+    Value := TProperty(Source).Value;
   end else inherited;
 end;
 
@@ -882,14 +876,14 @@ begin
   end;
 end;
 
-procedure TCastleTiledMapData.TData.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TData.Assign(Source: TPersistent);
 begin
-  if (AObject is TData) then
+  if (Source is TData) then
   begin
-    Encoding := TData(AObject).Encoding;
-    Compression := TData(AObject).Compression;
+    Encoding := TData(Source).Encoding;
+    Compression := TData(Source).Compression;
     if not IgnoreDataAssign then
-      Data := TData(AObject).Data;
+      Data := TData(Source).Data;
   end else inherited;
 end;
 
@@ -965,21 +959,21 @@ begin
   end;
 end;
 
-procedure TCastleTiledMapData.TImage.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TImage.Assign(Source: TPersistent);
 begin
-  if (AObject is TImage) then
+  if (Source is TImage) then
   begin
-    Format := TImage(AObject).Format;
-    URL := TImage(AObject).URL;
-    Trans := TImage(AObject).Trans;
-    Width := TImage(AObject).Width;
-    Height := TImage(AObject).Height;
+    Format := TImage(Source).Format;
+    URL := TImage(Source).URL;
+    Trans := TImage(Source).Trans;
+    Width := TImage(Source).Width;
+    Height := TImage(Source).Height;
     { Data is created on demand }
-    if not Assigned(TImage(AObject).Data) then
+    if not Assigned(TImage(Source).Data) then
       FreeAndNil(Data) else
     begin
       if not Assigned(Data) then Data := TData.Create;
-      Data.Assign(TImage(AObject).Data);
+      Data.Assign(TImage(Source).Data);
     end;
   end else inherited;
 
@@ -997,12 +991,12 @@ begin
     Duration := StrToInt(TmpStr);
 end;
 
-procedure TCastleTiledMapData.TFrame.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TFrame.Assign(Source: TPersistent);
 begin
-  if (AObject is TFrame) then
+  if (Source is TFrame) then
   begin
-    TileId := TFrame(AObject).TileId;
-    Duration := TFrame(AObject).Duration;
+    TileId := TFrame(Source).TileId;
+    Duration := TFrame(Source).Duration;
   end else inherited;
 end;
 
@@ -1062,24 +1056,24 @@ begin
   inherited;
 end;
 
-procedure TCastleTiledMapData.TTile.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TTile.Assign(Source: TPersistent);
 begin
-  if (AObject is TTile) then
+  if (Source is TTile) then
   begin
-    Id := TTile(AObject).Id;
-    Terrain := TTile(AObject).Terrain;
-    Probability := TTile(AObject).Probability;
-    Properties.Assign(TTile(AObject).Properties);
-    Image.Assign(TTile(AObject).Image);
+    Id := TTile(Source).Id;
+    Terrain := TTile(Source).Terrain;
+    Probability := TTile(Source).Probability;
+    Properties.Assign(TTile(Source).Properties);
+    Image.Assign(TTile(Source).Image);
     { ObjectGroup is created on demand }
-    if not Assigned(TTile(AObject).ObjectGroup) then
+    if not Assigned(TTile(Source).ObjectGroup) then
       FreeAndNil(ObjectGroup) else
     begin
       if not Assigned(ObjectGroup) then ObjectGroup := TObjectGroupLayer.Create;
-      ObjectGroup.Assign(TTile(AObject).ObjectGroup);
+      ObjectGroup.Assign(TTile(Source).ObjectGroup);
     end;
-    Animation.Assign(TTile(AObject).Animation);
-    RendererData := TTile(AObject).RendererData;
+    Animation.Assign(TTile(Source).Animation);
+    RendererData := TTile(Source).RendererData;
   end else inherited;
 end;
 
@@ -1247,24 +1241,24 @@ begin
 end;
 
 procedure TCastleTiledMapData.TTiledObject.Assign(
-  const AObject: TAssignableObject);
+  Source: TPersistent);
 begin
-  if (AObject is TTiledObject) then
+  if (Source is TTiledObject) then
   begin
-    Id := TTiledObject(AObject).Id;
-    Name := TTiledObject(AObject).Name;
-    Type_ := TTiledObject(AObject).Type_;
-    X := TTiledObject(AObject).X;
-    Y := TTiledObject(AObject).Y;
-    Width := TTiledObject(AObject).Width;
-    Height := TTiledObject(AObject).Height;
-    Rotation := TTiledObject(AObject).Rotation;
-    GId := TTiledObject(AObject).GId;
-    Visible := TTiledObject(AObject).Visible;
-    Properties.Assign(TTiledObject(AObject).Properties);
-    Points.Assign(TTiledObject(AObject).Points);
-    Primitive := TTiledObject(AObject).Primitive;
-    Image.Assign(TTiledObject(AObject).Image);
+    Id := TTiledObject(Source).Id;
+    Name := TTiledObject(Source).Name;
+    Type_ := TTiledObject(Source).Type_;
+    X := TTiledObject(Source).X;
+    Y := TTiledObject(Source).Y;
+    Width := TTiledObject(Source).Width;
+    Height := TTiledObject(Source).Height;
+    Rotation := TTiledObject(Source).Rotation;
+    GId := TTiledObject(Source).GId;
+    Visible := TTiledObject(Source).Visible;
+    Properties.Assign(TTiledObject(Source).Properties);
+    Points.Assign(TTiledObject(Source).Points);
+    Primitive := TTiledObject(Source).Primitive;
+    Image.Assign(TTiledObject(Source).Image);
   end else inherited;
 
 end;
@@ -1337,20 +1331,20 @@ begin
   Result := Vector2(OffsetX, OffsetY);
 end;
 
-procedure TCastleTiledMapData.TLayer.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TLayer.Assign(Source: TPersistent);
 begin
-  if (AObject is TLayer) then
+  if (Source is TLayer) then
   begin
-    Name := TLayer(AObject).Name;
-    Opacity := TLayer(AObject).Opacity;
-    Visible := TLayer(AObject).Visible;
-    OffsetX := TLayer(AObject).OffsetX;
-    OffsetY := TLayer(AObject).OffsetY;
-    Properties.Assign(TLayer(AObject).Properties);
-    Data.Assign(TLayer(AObject).Data);
-    Color := TLayer(AObject).Color;
-    Width := TLayer(AObject).Width;
-    Height := TLayer(AObject).Height;
+    Name := TLayer(Source).Name;
+    Opacity := TLayer(Source).Opacity;
+    Visible := TLayer(Source).Visible;
+    OffsetX := TLayer(Source).OffsetX;
+    OffsetY := TLayer(Source).OffsetY;
+    Properties.Assign(TLayer(Source).Properties);
+    Data.Assign(TLayer(Source).Data);
+    Color := TLayer(Source).Color;
+    Width := TLayer(Source).Width;
+    Height := TLayer(Source).Height;
   end else inherited;
 end;
 
@@ -1375,12 +1369,12 @@ begin
 end;
 
 procedure TCastleTiledMapData.TObjectGroupLayer.Assign(
-  const AObject: TAssignableObject);
+  Source: TPersistent);
 begin
-  if (AObject is TObjectGroupLayer) then
+  if (Source is TObjectGroupLayer) then
   begin
-    DrawOrder := TObjectGroupLayer(AObject).DrawOrder;
-    Objects.Assign(TObjectGroupLayer(AObject).Objects);
+    DrawOrder := TObjectGroupLayer(Source).DrawOrder;
+    Objects.Assign(TObjectGroupLayer(Source).Objects);
   end;
   inherited;
 end;
@@ -1427,11 +1421,11 @@ begin
 end;
 
 procedure TCastleTiledMapData.TImageLayer.Assign(
-  const AObject: TAssignableObject);
+  Source: TPersistent);
 begin
-  if (AObject is TImageLayer) then
+  if (Source is TImageLayer) then
   begin
-    Image.Assign(TImageLayer(AObject).Image);
+    Image.Assign(TImageLayer(Source).Image);
   end;
   inherited;
 end;
@@ -1484,28 +1478,28 @@ begin
   inherited;
 end;
 
-procedure TCastleTiledMapData.TTileset.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.TTileset.Assign(Source: TPersistent);
 begin
-  if (AObject is TTileset) then
+  if (Source is TTileset) then
   begin
-    FirstGID := TTileset(AObject).FirstGID;
-    URL := TTileset(AObject).URL;
-    Name := TTileset(AObject).Name;
-    TileWidth := TTileset(AObject).TileWidth;
-    TileHeight := TTileset(AObject).TileHeight;
-    Spacing := TTileset(AObject).Spacing;
-    Margin := TTileset(AObject).Margin;
-    TileCount := TTileset(AObject).TileCount;
-    Columns := TTileset(AObject).Columns;
-    TileOffset := TTileset(AObject).TileOffset;
-    Properties.Assign(TTileset(AObject).Properties);
-    Image.Assign(TTileset(AObject).Image);
-    Tiles.Assign(TTileset(AObject).Tiles);
-    TerrainTypes.Assign(TTileset(AObject).TerrainTypes);
-    RendererData := TTileset(AObject).RendererData;
-    Modified := TTileset(AObject).Modified;
-    OriginalMargin := TTileset(AObject).OriginalMargin;
-    OriginalSpacing := TTileset(AObject).OriginalSpacing;
+    FirstGID := TTileset(Source).FirstGID;
+    URL := TTileset(Source).URL;
+    Name := TTileset(Source).Name;
+    TileWidth := TTileset(Source).TileWidth;
+    TileHeight := TTileset(Source).TileHeight;
+    Spacing := TTileset(Source).Spacing;
+    Margin := TTileset(Source).Margin;
+    TileCount := TTileset(Source).TileCount;
+    Columns := TTileset(Source).Columns;
+    TileOffset := TTileset(Source).TileOffset;
+    Properties.Assign(TTileset(Source).Properties);
+    Image.Assign(TTileset(Source).Image);
+    Tiles.Assign(TTileset(Source).Tiles);
+    TerrainTypes.Assign(TTileset(Source).TerrainTypes);
+    RendererData := TTileset(Source).RendererData;
+    Modified := TTileset(Source).Modified;
+    OriginalMargin := TTileset(Source).OriginalMargin;
+    OriginalSpacing := TTileset(Source).OriginalSpacing;
   end else inherited;
 end;
 
@@ -1852,6 +1846,12 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
+constructor TCastleTiledMapData.Create;
+begin
+  inherited Create;
+  CreateLists;
+end;
+
 destructor TCastleTiledMapData.Destroy;
 begin
   FreeAndNil(FTilesets);
@@ -2116,13 +2116,13 @@ begin
   end;
 end;
 
-procedure TCastleTiledMapData.Assign(const AObject: TAssignableObject);
+procedure TCastleTiledMapData.Assign(Source: TPersistent);
 var
   AMapData: TCastleTiledMapData;
 begin
-  if (AObject is TCastleTiledMapData) then
+  if (Source is TCastleTiledMapData) then
   begin
-    AMapData := TCastleTiledMapData(AObject);
+    AMapData := TCastleTiledMapData(Source);
 
     AssignVars(AMapData);
     FTilesets.Assign(AMapData.Tilesets);
