@@ -4007,25 +4007,27 @@ var
     if Collider is TCastleBoxCollider then
     begin
       Result := TBox3D.FromCenterSize(Collider.Translation,
-        TCastleBoxCollider(Collider).Size / 2);
+        TCastleBoxCollider(Collider).Size);
       Exit;
     end;
 
     if Collider is TCastleSphereCollider then
     begin
       Result := TBox3D.FromCenterSize(Collider.Translation,
-        Vector3(TCastleSphereCollider(Collider).Radius,
-        TCastleSphereCollider(Collider).Radius,
-        TCastleSphereCollider(Collider).Radius));
+        Vector3(TCastleSphereCollider(Collider).Radius * 2,
+        TCastleSphereCollider(Collider).Radius * 2 ,
+        TCastleSphereCollider(Collider).Radius * 2));
       Exit;
     end;
 
     if Collider is TCastleCapsuleCollider then
     begin
+      WritelnLog('Capsule Height '+ FloatToStr(TCastleCapsuleCollider(Collider).Height));
+      WritelnLog('Translation '+ FloatToStr(Collider.Translation.Y));
       Result := TBox3D.FromCenterSize(Collider.Translation,
-        Vector3(TCastleCapsuleCollider(Collider).Radius,
-        TCastleCapsuleCollider(Collider).Height / 2,
-        TCastleCapsuleCollider(Collider).Radius));
+        Vector3(TCastleCapsuleCollider(Collider).Radius * 2,
+        TCastleCapsuleCollider(Collider).Height,
+        TCastleCapsuleCollider(Collider).Radius * 2));
       Exit;
     end;
 
@@ -4071,6 +4073,7 @@ var
     // TODO: what use as height, currently collider in camera
     ColliderBoundingBox := GetColliderBoundingBox(Collider);
     ColliderHeight :=  ColliderBoundingBox.SizeY;
+    WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
     RayOrigin := Camera.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
@@ -4096,12 +4099,14 @@ var
       When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
       it would make no sense to use old simple physics. }
 
+    WritelnLog('Ray Origin ' + );
     GroundRayCast := RBody.PhysicsRayCast(
       RayOrigin,
       Vector3(0, -1, 0),
       ColliderHeight * 3
     );
 
+    WritelnLog('ColliderBoundingBox.SizeX: ' + FloatToStr(ColliderBoundingBox.SizeX));
     { Four more checks - player should slide down when player just
       on the edge, but sometimes it stay and center ray don't "see" that we are
       on ground }
@@ -4146,12 +4151,18 @@ var
       if DistanceToGround < 0 then
         DistanceToGround := 0;
 
+      WritelnLog('DistanceToGround: ' + FloatToStr(DistanceToGround));
       IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
     end else
     begin
       IsOnGroundBool := false;
       DistanceToGround := -1; // For animation checking
     end;
+
+    if IsOnGroundBool then
+      WritelnLog(' On ground')
+    else
+      WritelnLog(' NOT on ground');
 
     if Input_Forward.IsPressed(Container) then
     begin
