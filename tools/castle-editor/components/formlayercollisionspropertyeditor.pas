@@ -6,14 +6,15 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  CastleTransform;
+  ButtonPanel, CastleTransform;
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
+    ButtonCancel: TButton;
+    ButtonOK: TButton;
     LayerNamesButton: TButton;
+    PanelButtons: TPanel;
     RevertButton: TButton;
-    CancelButton: TButton;
-    OkButton: TButton;
     CheckboxesPanel: TPanel;
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
