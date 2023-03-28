@@ -147,51 +147,6 @@ const
 
   Md3MaxQPath = 64;
 
-type
-  TMd3Header = record
-    Ident: array [0..3] of AnsiChar;
-    Version: Int32;
-    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
-    Flags: Int32;
-    NumFrames: Int32;
-    NumTags: Int32;
-    NumSurfaces: Int32;
-    NumSkins: Int32;
-    OffsetFrames: Int32;
-    OffsetTags: Int32;
-    OffsetSurfaces: Int32;
-    OffsetEof: Int32;
-  end;
-
-  TMd3Frame = record
-    MinBounds: TVector3;
-    MaxBounds: TVector3;
-    LocalOrigin: TVector3;
-    Radius: Single;
-    Name: array [0..15] of AnsiChar;
-  end;
-
-  TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
-    Origin: TVector3;
-    Axis: array [0..2] of TVector3;
-  end;
-
-  TMd3FileSurface = record
-    Ident: array [0..3] of AnsiChar;
-    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
-    Flags: Int32;
-    NumFrames: Int32;
-    NumShaders: Int32;
-    NumVerts: Int32;
-    NumTriangles: Int32;
-    OffsetTriangles: Int32;
-    OffsetShaders: Int32;
-    OffsetST: Int32;
-    OffsetXYZNormal: Int32;
-    OffsetEnd: Int32;
-  end;
-
 { TMd3Surface ---------------------------------------------------------------- }
 
 constructor TMd3Surface.Create;
@@ -211,6 +166,21 @@ begin
 end;
 
 procedure TMd3Surface.Read(Stream: TStream);
+type
+  TMd3FileSurface = record
+    Ident: array [0..3] of AnsiChar;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumShaders: Int32;
+    NumVerts: Int32;
+    NumTriangles: Int32;
+    OffsetTriangles: Int32;
+    OffsetShaders: Int32;
+    OffsetST: Int32;
+    OffsetXYZNormal: Int32;
+    OffsetEnd: Int32;
+  end;
 var
   SurfaceStart: Int64;
   Surface: TMd3FileSurface;
@@ -263,6 +233,13 @@ begin
     end;
   end;
 
+  // Shaders.Count := Surface.NumShaders;
+  // if Shaders.Count <> 0 then
+  // begin
+  //   Stream.Position := SurfaceStart + Surface.OffsetShaders;
+  //   for I := 0 to Shaders.Count - 1 do
+  // end;
+
   TextureCoords.Count := VertexesInFrameCount;
   if VertexesInFrameCount <> 0 then
   begin
@@ -289,10 +266,44 @@ begin
 end;
 
 constructor TObject3DMD3.CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
+type
+  TMd3Header = record
+    Ident: array [0..3] of AnsiChar;
+    Version: Int32;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumTags: Int32;
+    NumSurfaces: Int32;
+    NumSkins: Int32;
+    OffsetFrames: Int32;
+    OffsetTags: Int32;
+    OffsetSurfaces: Int32;
+    OffsetEof: Int32;
+  end;
+
+  (* Unused for now
+  TMd3Frame = record
+    MinBounds: TVector3;
+    MaxBounds: TVector3;
+    LocalOrigin: TVector3;
+    Radius: Single;
+    Name: array [0..15] of AnsiChar;
+  end;
+
+  TMd3Tag = record
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Origin: TVector3;
+    Axis: array [0..2] of TVector3;
+  end;
+  *)
+
 var
   Header: TMd3Header;
+  (* Unused for now
   Frame: TMd3Frame;
   Tag: TMd3Tag;
+  *)
   I: Integer;
   NewSurface: TMd3Surface;
 begin
@@ -313,6 +324,7 @@ begin
   Name := Header.Name;
   FramesCount := Header.NumFrames;
 
+  (* Unused for now
   if Header.NumFrames <> 0 then
   begin
     Stream.Position := Md3Start + Header.OffsetFrames;
@@ -330,6 +342,7 @@ begin
       Stream.ReadBuffer(Tag, SizeOf(Tag));
     end;
   end;
+  *)
 
   Surfaces := TMd3SurfaceList.Create(true);
 
