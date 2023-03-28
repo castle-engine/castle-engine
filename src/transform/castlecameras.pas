@@ -4099,7 +4099,8 @@ var
       When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
       it would make no sense to use old simple physics. }
 
-    WritelnLog('Ray Origin ' + );
+    WritelnLog('Camera.Translation: ' +Camera.Translation.ToString);
+    WritelnLog('Ray Origin ' + RayOrigin.ToString );
     GroundRayCast := RBody.PhysicsRayCast(
       RayOrigin,
       Vector3(0, -1, 0),
@@ -4141,22 +4142,27 @@ var
     if GroundRayCast.Hit then
     begin
       DistanceToGround := GroundRayCast.Distance;
+      WritelnLog('DistanceToGround1 : ' + FloatToStr(DistanceToGround));
 
       { When collider has own translation we need substract it from distance
         becouse distance will be too big }
       DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+      WritelnLog('DistanceToGround2 : ' + FloatToStr(DistanceToGround));
 
       { Sometimes rigid body center point can be under the collider so
         the distance can be negative }
       if DistanceToGround < 0 then
         DistanceToGround := 0;
+      WritelnLog('DistanceToGround3 : ' + FloatToStr(DistanceToGround));
 
       WritelnLog('DistanceToGround: ' + FloatToStr(DistanceToGround));
-      IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
+      WritelnLog('ColliderHeight * 0.1: ' + FloatToStr(ColliderHeight * 0.1));
+      IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
     end else
     begin
       IsOnGroundBool := false;
       DistanceToGround := -1; // For animation checking
+      WritelnLog('aaa');
     end;
 
     if IsOnGroundBool then
