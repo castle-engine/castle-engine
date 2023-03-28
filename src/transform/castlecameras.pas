@@ -2976,7 +2976,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FHeadBobbingTime := DefaultHeadBobbingTime;
   FCrouchHeight := DefaultCrouchHeight;
-  FChangeTransformation := ctDirect;
+  FChangeTransformation := ctAuto;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4001,14 +4001,45 @@ var
     Result := true;
   end;
 
+  function GetColliderBoundingBox(Collider: TCastleCollider): TBox3D;
+  begin
+    // TODO: Add BoundingBox for all colliders?
+    if Collider is TCastleBoxCollider then
+    begin
+      Result := TBox3D.FromCenterSize(Collider.Translation,
+        TCastleBoxCollider(Collider).Size / 2);
+      Exit;
+    end;
+
+    if Collider is TCastleSphereCollider then
+    begin
+      Result := TBox3D.FromCenterSize(Collider.Translation,
+        Vector3(TCastleSphereCollider(Collider).Radius,
+        TCastleSphereCollider(Collider).Radius,
+        TCastleSphereCollider(Collider).Radius));
+      Exit;
+    end;
+
+    if Collider is TCastleCapsuleCollider then
+    begin
+      Result := TBox3D.FromCenterSize(Collider.Translation,
+        Vector3(TCastleCapsuleCollider(Collider).Radius,
+        TCastleCapsuleCollider(Collider).Height / 2,
+        TCastleCapsuleCollider(Collider).Radius));
+      Exit;
+    end;
+
+    raise Exception.Create('Unknown collider type');
+  end;
+
   { Realize ctVelocity transformation method. }
   procedure DoVelocity(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
   var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
     VLength: Single;
-    //AvatarBoundingBox: TBox3D;
-    AvatarHeight: Single;
+    ColliderBoundingBox: TBox3D;
+    ColliderHeight: Single;
     MaxHorizontalVelocityChange: Single;
     Acceleration: Single;
     HVelocity: TVector3;
@@ -4037,9 +4068,9 @@ var
 
       We need add Collider.Translation because sometimes rigid body origin can be
       under the collider. And ray will be casted under the floor. }
-    // TODO: what use as height
-    // AvatarBoundingBox := Camera.BoundingBox;
-    AvatarHeight :=  1; //AvatarBoundingBox.SizeY;
+    // TODO: what use as height, currently collider in camera
+    ColliderBoundingBox := GetColliderBoundingBox(Collider);
+    ColliderHeight :=  ColliderBoundingBox.SizeY;
     RayOrigin := Camera.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
@@ -4068,7 +4099,7 @@ var
     GroundRayCast := RBody.PhysicsRayCast(
       RayOrigin,
       Vector3(0, -1, 0),
-      AvatarHeight * 3
+      ColliderHeight * 3
     );
 
     { Four more checks - player should slide down when player just
@@ -4076,30 +4107,30 @@ var
       on ground }
     if not GroundRayCast.Hit then
       GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(1{AvatarBoundingBox.SizeX} * 0.49, 0, 0),
+        RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
         Vector3(0, -1, 0),
-        AvatarHeight * 3
+        ColliderHeight * 3
       );
 
     if not GroundRayCast.Hit then
       GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(-1{AvatarBoundingBox.SizeX} * 0.49, 0, 0),
+        RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
         Vector3(0, -1, 0),
-        AvatarHeight * 3
+        ColliderHeight * 3
       );
 
     if not GroundRayCast.Hit then
       GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, 1{AvatarBoundingBox.SizeZ} * 0.49),
+        RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
         Vector3(0, -1, 0),
-        AvatarHeight * 3
+        ColliderHeight * 3
       );
 
     if not GroundRayCast.Hit then
       GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, -1{AvatarBoundingBox.SizeZ} * 0.49),
+        RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
         Vector3(0, -1, 0),
-        AvatarHeight * 3
+        ColliderHeight * 3
       );
 
     if GroundRayCast.Hit then
@@ -4115,7 +4146,7 @@ var
       if DistanceToGround < 0 then
         DistanceToGround := 0;
 
-      IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
+      IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
     end else
     begin
       IsOnGroundBool := false;
@@ -4261,7 +4292,7 @@ var
         was not found.
 
         TODO: 0.25 should not be hardcoded. }
-      if (DistanceToGround < 0) or (DistanceToGround > 1{Camera.LocalBoundingBox.SizeY} * 0.25) then
+      if (DistanceToGround < 0) or (DistanceToGround > ColliderBoundingBox.SizeY * 0.25) then
         IsOnGround := igFalling;
     end;
   end;
@@ -4272,6 +4303,8 @@ var
     ModsDown: TModifierKeys;
   begin
     ModsDown := ModifiersDown(Container.Pressed);
+
+    CheckNotPhysics;
 
     HeadBobbingAlreadyDone := false;
     MoveHorizontalDone := false;
