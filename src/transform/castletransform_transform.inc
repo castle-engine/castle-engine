@@ -2916,6 +2916,7 @@ begin
   if not FTransformationValid then
   begin
     InternalTransformation(FTransformation);
+    InternalOutsideTransformation(FOutsideTransformation);
     FTransformationValid := true;
   end;
   Result := FTransformation.InverseTransform;
@@ -3273,11 +3274,11 @@ begin
   Tf := Self;
   repeat
     T.Multiply(
-       Tf.FCenter,
-       Tf.FRotation,
-       Tf.FScale,
-       Tf.FScaleOrientation,
-       Tf.FTranslation);
+      Tf.FCenter,
+      Tf.FRotation,
+      Tf.FScale,
+      Tf.FScaleOrientation,
+      Tf.FTranslation);
 
     if not Tf.RenderOutside then Break;
     Tf := Tf.Parent;
@@ -4047,6 +4048,7 @@ end;
 
 function TCastleTransform.OutsideTranslation: TVector3;
 
+  //TODO: not used, for test
   function RenderTranslation: TVector3;
   var
     T: TCastleTransform;
@@ -4061,10 +4063,22 @@ function TCastleTransform.OutsideTranslation: TVector3;
     end;
   end;
 
+  function GetOutsideTransform: TMatrix4;
+  var
+    T: TCastleTransform;
+  begin
+    Result := Transform;
+
+    T := Self;
+    while T.RenderOutside do
+    begin
+      Result := Result * T.Parent.Transform;
+      T := T.Parent;
+    end;
+  end;
+
 begin
-  Result := TranslationFromMatrix(OutsideTransform);
-  //Result := RenderTranslation;
-  //TODO: wrong result
+  Result := TranslationFromMatrix(GetOutsideTransform);
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;
