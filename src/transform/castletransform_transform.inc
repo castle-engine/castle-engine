@@ -209,8 +209,6 @@
       Value must not be @nil. }
     procedure AddToWorld(const Value: TCastleAbstractRootTransform);
 
-    function GetRenderTranslation: TVector3;
-
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
       Value must not be @nil. }
@@ -1544,8 +1542,6 @@
       #) }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
-    property RenderTranslation: TVector3 read GetRenderTranslation;
-
     { Get or set the XY components of the translation.
       Useful for 2D games. }
     property TranslationXY: TVector2 read GetTranslationXY write SetTranslationXY;
@@ -1753,6 +1749,8 @@
       This method just doesn't calculation anything else, thus it is faster
       than @link(GetWorldView) if you don't need direction/up. }
     function WorldTranslation: TVector3;
+
+    function OutsideTranslation: TVector3;
 
     { Set at once vectors: position, direction, up.
 
@@ -2265,20 +2263,6 @@ begin
   if FList <> nil then // when one list is within another, this may be called during own destruction by TCastleTransformList.Notify
     for I := 0 to List.Count - 1 do
       List[I].AddToWorld(Value);
-end;
-
-function TCastleTransform.GetRenderTranslation: TVector3;
-var
-  T: TCastleTransform;
-begin
-  Result := Translation;
-
-  T := Self;
-  while T.RenderOutside do
-  begin
-    Result := Result + T.Parent.Translation;
-    T := T.Parent;
-  end;
 end;
 
 procedure TCastleTransform.RemoveFromWorld(const Value: TCastleAbstractRootTransform);
@@ -3270,14 +3254,27 @@ end;
 
 procedure TCastleTransform.InternalOutsideTransformationMult(
   var T: TTransformation);
+var
+  Tf: TCastleTransform;
 begin
-{ TODO: not done, need to call multiple times. }
   T.Multiply(
      FCenter,
      FRotation,
      FScale,
      FScaleOrientation,
-     RenderTranslation);
+     FTranslation);
+
+  Tf := Self;
+  while Tf.RenderOutside do
+  begin
+    T.Multiply(
+       Tf.Parent.FCenter,
+       Tf.Parent.FRotation,
+       Tf.Parent.FScale,
+       Tf.Parent.FScaleOrientation,
+       Tf.Parent.FTranslation);
+    Tf := Tf.Parent;
+  end;
 end;
 
 procedure TCastleTransform.InternalTransformation(out T: TTransformation);
@@ -3288,7 +3285,6 @@ end;
 
 procedure TCastleTransform.InternalOutsideTransformation(out T: TTransformation);
 begin
-  { TODO: Not done yet. Requires multiple operations from the root Ysort Transform. }
   T.Init;
   InternalOutsideTransformationMult(T);
 end;
@@ -3406,7 +3402,7 @@ begin
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
     { TODO: It is not fully dealt with here. }
-    T := RenderTranslation;
+    T := OutsideTranslation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       LocalRender(Params);
@@ -4040,6 +4036,11 @@ end;
 function TCastleTransform.WorldTranslation: TVector3;
 begin
   Result := TranslationFromMatrix(WorldTransform);
+end;
+
+function TCastleTransform.OutsideTranslation: TVector3;
+begin
+  Result := TranslationFromMatrix(OutsideTransform);
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;
