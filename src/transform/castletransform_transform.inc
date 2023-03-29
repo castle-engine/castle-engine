@@ -3409,8 +3409,8 @@ begin
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
     { TODO: It is not fully dealt with here. }
-    T := OutsideTranslation;
-    if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
+    T := Translation;
+    if not RenderOutside and FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       LocalRender(Params);
     end else
@@ -3438,16 +3438,16 @@ begin
       { Update NewXxx to apply the transformation defined by this TCastleTransform.
         LocalRender expects Frustum in local coordinates (without transformation),
         so we subtract transformation below. }
-      if FOnlyTranslation then
-      begin
-        NewParamsTransformation.Translate(T);
-        NewFrustumValue.MoveVar(-T);
-      end else if RenderOutside then
+      if RenderOutside then
       begin
         InternalOutsideTransformationMult(NewParamsTransformation);
         if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
           WarningMatrixNan(NewParamsTransformation.Transform);
         NewFrustumValue := NewFrustumValue.TransformByInverse(OutsideTransform);
+      end else if FOnlyTranslation then
+      begin
+        NewParamsTransformation.Translate(T);
+        NewFrustumValue.MoveVar(-T);
       end else
       begin
         InternalTransformationMult(NewParamsTransformation);
@@ -4058,7 +4058,9 @@ end;
 
 function TCastleTransform.OutsideRoot: TCastleTransform;
 begin
-  Result := Self.Parent;
+  if not RenderOutside then Exit(nil);
+
+  Result := Self.Parent.Parent;
   while (Result <> World) and Assigned(Result) and (Result.BlendingSort = bsYSort)  do
   begin
     if Assigned(Result.Parent) and (Result.Parent.BlendingSort = bsYSort) then Result := Result.Parent
