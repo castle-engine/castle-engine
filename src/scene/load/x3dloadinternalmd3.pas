@@ -366,7 +366,7 @@ begin
       end;
     finally FreeAndNil(SkinFile) end;
 
-    WritelnLog('MD3 skin file found, with %d pairs (shader name -> texture URL): %s', [Skin.Count, Skin.Text]);
+    //WritelnLog('MD3 skin file found, with %d pairs (shader name -> texture URL): %s', [Skin.Count, Skin.Text]);
   end;
 end;
 
