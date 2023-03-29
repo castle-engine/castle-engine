@@ -198,7 +198,6 @@ type
 var
   SurfaceStart: Int64;
   Surface: TMd3FileSurface;
-  I: Integer;
 begin
   SurfaceStart := Stream.Position;
   Stream.ReadBuffer(Surface, SizeOf(Surface));
@@ -225,26 +224,20 @@ begin
   Writeln('  OffsetEnd "', Surface.OffsetEnd, '"');
   *)
 
-  if Surface.NumTriangles <> 0 then
+  Triangles.Count := Surface.NumTriangles;
+  if Triangles.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetTriangles;
-    for I := 0 to Surface.NumTriangles - 1 do
-    begin
-      Stream.ReadBuffer(Triangles.Add^, SizeOf(TMd3Triangle));
-    end;
+    Stream.ReadBuffer(Triangles.List^, SizeOf(TMd3Triangle) * Triangles.Count);
   end;
 
+  { For animations: we have Surface.NumFrames times the vertexes array.
+    For each frame, separate collection of vertices is added. }
   Vertexes.Count := Surface.NumVerts * Surface.NumFrames;
   if Vertexes.Count <> 0 then
   begin
-    { For animations: actually we have here Surface.NumFrames times
-      the vertexes array. For each frame, separate collection of
-      vertices is added. }
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
-    for I := 0 to Vertexes.Count - 1 do
-    begin
-      Stream.ReadBuffer(Vertexes.List^[I], SizeOf(TMd3Vertex));
-    end;
+    Stream.ReadBuffer(Vertexes.List^, SizeOf(TMd3Vertex) * Vertexes.Count);
   end;
 
   Shaders.Count := Surface.NumShaders;
@@ -259,13 +252,10 @@ begin
   end;
 
   TextureCoords.Count := VertexesInFrameCount;
-  if VertexesInFrameCount <> 0 then
+  if TextureCoords.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
-    for I := 0 to VertexesInFrameCount - 1 do
-    begin
-      Stream.ReadBuffer(TextureCoords.List^[I], SizeOf(TMd3TexCoord));
-    end;
+    Stream.ReadBuffer(TextureCoords.List^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
   end;
 
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
