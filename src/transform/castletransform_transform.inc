@@ -164,6 +164,7 @@
     function GetItem(const I: Integer): TCastleTransform;
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
     procedure InternalTransformationMult(var T: TTransformation);
+    procedure InternalOutsideTransformationMult(var T: TTransformation);
     procedure InternalTransformation(out T: TTransformation);
     procedure InternalOutsideTransformation(out T: TTransformation);
     { Update our FWorldTransformation, FWorldTransformationId. }
@@ -3267,6 +3268,18 @@ begin
 {$endif}
 end;
 
+procedure TCastleTransform.InternalOutsideTransformationMult(
+  var T: TTransformation);
+begin
+{ TODO: not done, need to call multiple times. }
+  T.Multiply(
+     FCenter,
+     FRotation,
+     FScale,
+     FScaleOrientation,
+     RenderTranslation);
+end;
+
 procedure TCastleTransform.InternalTransformation(out T: TTransformation);
 begin
   T.Init;
@@ -3277,12 +3290,7 @@ procedure TCastleTransform.InternalOutsideTransformation(out T: TTransformation)
 begin
   { TODO: Not done yet. Requires multiple operations from the root Ysort Transform. }
   T.Init;
-  T.Multiply(
-  FCenter,
-  FRotation,
-  FScale,
-  FScaleOrientation,
-  RenderTranslation);
+  InternalOutsideTransformationMult(T);
 end;
 
 function TCastleTransform.AverageScale: Single;
@@ -3397,6 +3405,7 @@ begin
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
+    { TODO: It is not fully dealt with here. }
     T := RenderTranslation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
@@ -3432,12 +3441,7 @@ begin
         NewFrustumValue.MoveVar(-T);
       end else if RenderOutside then
       begin
-        NewParamsTransformation.Multiply(
-          FCenter,
-          FRotation,
-          FScale,
-          FScaleOrientation,
-          RenderTranslation);
+        InternalOutsideTransformationMult(NewParamsTransformation);
         if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
           WarningMatrixNan(NewParamsTransformation.Transform);
         NewFrustumValue := NewFrustumValue.TransformByInverse(OutsideTransform);
