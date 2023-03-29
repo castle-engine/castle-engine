@@ -124,7 +124,6 @@
       FOnlyTranslation: Boolean;
 
       FTransformation: TTransformation;
-      FOutsideTransformation: TTransformation;
       FTransformationValid: Boolean;
 
       FWorldTransformation: TTransformation;
@@ -1754,6 +1753,8 @@
 
     function OutsideTranslation: TVector3;
 
+    function OutsideRoot: TCastleTransform;
+
     { Set at once vectors: position, direction, up.
 
       ADir and AUp given here do not have to be normalized
@@ -2894,21 +2895,20 @@ begin
   if not FTransformationValid then
   begin
     InternalTransformation(FTransformation);
-    InternalOutsideTransformation(FOutsideTransformation);
     FTransformationValid := true;
   end;
   Result := FTransformation.Transform;
 end;
 
 function TCastleTransform.OutsideTransform: TMatrix4;
+var
+  AOutsideRoot: TCastleTransform;
 begin
-  if not FTransformationValid then
-  begin
-    InternalTransformation(FTransformation);
-    InternalOutsideTransformation(FOutsideTransformation);
-    FTransformationValid := true;
-  end;
-  Result := FOutsideTransformation.Transform;
+  AOutsideRoot := OutsideRoot;
+  if Assigned(AOutsideRoot) then
+    Result := AOutsideRoot.WorldInverseTransform * WorldTransform
+  else
+    Result := Transform;
 end;
 
 function TCastleTransform.InverseTransform: TMatrix4;
@@ -2916,21 +2916,20 @@ begin
   if not FTransformationValid then
   begin
     InternalTransformation(FTransformation);
-    InternalOutsideTransformation(FOutsideTransformation);
     FTransformationValid := true;
   end;
   Result := FTransformation.InverseTransform;
 end;
 
 function TCastleTransform.InverseOutsideTransform: TMatrix4;
+var
+  AOutsideRoot: TCastleTransform;
 begin
-  if not FTransformationValid then
-  begin
-    InternalTransformation(FTransformation);
-    InternalOutsideTransformation(FOutsideTransformation);
-    FTransformationValid := true;
-  end;
-  Result := FOutsideTransformation.InverseTransform;
+  AOutsideRoot := OutsideRoot;
+  if Assigned(AOutsideRoot) then
+    Result := WorldInverseTransform * AOutsideRoot.WorldTransform
+  else
+    Result := InverseTransform;
 end;
 
 function TCastleTransform.WorldTransform: TMatrix4;
@@ -4047,38 +4046,24 @@ begin
 end;
 
 function TCastleTransform.OutsideTranslation: TVector3;
-
-  //TODO: not used, for test
-  function RenderTranslation: TVector3;
-  var
-    T: TCastleTransform;
-  begin
-    Result := Translation;
-
-    T := Self;
-    while T.RenderOutside do
-    begin
-      Result := Result + T.Parent.Translation;
-      T := T.Parent;
-    end;
-  end;
-
-  function GetOutsideTransform: TMatrix4;
-  var
-    T: TCastleTransform;
-  begin
-    Result := Transform;
-
-    T := Self;
-    while T.RenderOutside do
-    begin
-      Result := Result * T.Parent.Transform;
-      T := T.Parent;
-    end;
-  end;
-
+var
+  AOutsideRoot: TCastleTransform;
 begin
-  Result := TranslationFromMatrix(GetOutsideTransform);
+  AOutsideRoot := OutsideRoot;
+  if Assigned(AOutsideRoot) then
+    Result := TranslationFromMatrix(AOutsideRoot.WorldInverseTransform * WorldTransform)
+  else
+    Result := Translation;
+end;
+
+function TCastleTransform.OutsideRoot: TCastleTransform;
+begin
+  Result := Self.Parent;
+  while (Result <> World) and Assigned(Result) and (Result.BlendingSort = bsYSort)  do
+  begin
+    if Assigned(Result.Parent) and (Result.Parent.BlendingSort = bsYSort) then Result := Result.Parent
+    else Break;
+  end;
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;

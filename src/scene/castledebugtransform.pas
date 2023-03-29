@@ -552,7 +552,6 @@ begin
   FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;
-  FScene.YSortOffset := -10000;
   FScene.Exists := FExists;
   FScene.SetTransient;
 end;
