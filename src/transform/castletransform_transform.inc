@@ -3257,24 +3257,18 @@ procedure TCastleTransform.InternalOutsideTransformationMult(
 var
   Tf: TCastleTransform;
 begin
-  T.Multiply(
-     FCenter,
-     FRotation,
-     FScale,
-     FScaleOrientation,
-     FTranslation);
-
   Tf := Self;
-  while Tf.RenderOutside do
-  begin
+  repeat
     T.Multiply(
-       Tf.Parent.FCenter,
-       Tf.Parent.FRotation,
-       Tf.Parent.FScale,
-       Tf.Parent.FScaleOrientation,
-       Tf.Parent.FTranslation);
+       Tf.FCenter,
+       Tf.FRotation,
+       Tf.FScale,
+       Tf.FScaleOrientation,
+       Tf.FTranslation);
+
+    if not Tf.RenderOutside then Break;
     Tf := Tf.Parent;
-  end;
+  until not Assigned(Tf);
 end;
 
 procedure TCastleTransform.InternalTransformation(out T: TTransformation);
