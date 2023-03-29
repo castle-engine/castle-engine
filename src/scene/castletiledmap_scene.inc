@@ -334,7 +334,7 @@ var
 
     TTileDataList = {$Ifdef fpc}specialize {$endif}TList<TTileData>;
     { Abs YSortOffset, Data }
-    TTilesCompositing = {$Ifdef fpc}specialize {$endif}TDictionary<Single, TTileDataList>;
+    TTilesCompositing = {$Ifdef fpc}specialize {$endif}TObjectDictionary<Single, TTileDataList>;
   var
     TilesCompositing: TTilesCompositing;
     X, Y: Integer;
@@ -367,15 +367,6 @@ var
         TileDataList.Add(TileData);
         TilesCompositing.Add(TileYSortOffset, TileDataList);
       end;
-    end;
-
-    procedure FreeTilesCompositing;
-    begin
-      for TileDataList in TilesCompositing.Values do
-      begin
-        TileDataList.Free;
-      end;
-      FreeAndNil(TilesCompositing);
     end;
 
     procedure CreateMaps;
@@ -464,7 +455,7 @@ var
     end;
 
   begin
-    TilesCompositing := TTilesCompositing.Create;
+    TilesCompositing := TTilesCompositing.Create([doOwnsValues]);
     try
       for Y := Map.Height - 1 downto 0 do
         for X := 0 to Map.Width - 1 do
@@ -482,7 +473,7 @@ var
 
       CreateMaps;
     finally
-      FreeTilesCompositing;
+      FreeAndNil(TilesCompositing);
     end;
   end;
 
