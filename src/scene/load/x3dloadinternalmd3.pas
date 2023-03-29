@@ -13,8 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading MD3 (Quake3 and derivatives) format. Format specification is on
-  [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html]. }
+{ Loading MD3 (used by Quake3 and derivatives like Tremulous) format.
+
+  References:
+  - Format spec: http://icculus.org/homepages/phaethon/q3a/formats/md3format.html
+  - Another format spec: https://mino-git.github.io/rtcw-wet-blender-model-tools/md3.html
+  - One sample implementation: https://github.com/edems96/MD3-Model---Animation-Viewer/tree/master/src
+}
 unit X3DLoadInternalMD3;
 
 {$I castleconf.inc}
@@ -28,10 +33,16 @@ uses SysUtils, Classes, Generics.Collections,
 { Load MD3 animation as a sequence of static X3D models. }
 function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
 
+var
+  Md3Skin: String = 'default';
+
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils, CastleDownload, CastleURIUtils;
+  X3DCameraUtils, CastleDownload, CastleURIUtils, CastleLog;
+
+const
+  Md3MaxQPath = 64;
 
 type
   TMd3Triangle = record
@@ -49,8 +60,16 @@ type
   TMd3TexCoord = TVector2;
   TMd3TexCoordList = TVector2List;
 
+  TMd3Shader = record
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    ShaderIndex: UInt32;
+  end;
+  TMd3ShaderList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Shader>;
+
   TMd3Surface = class
   private
+    Shaders: TMd3ShaderList;
+
     { Read surface from file, and advance position to next surface. }
     procedure Read(Stream: TStream);
   public
@@ -63,6 +82,9 @@ type
     Vertexes: TMd3VertexList;
     TextureCoords: TMd3TexCoordList;
     Triangles: TMd3TriangleList;
+
+    { Shader name, or '' if not found in file. }
+    ShaderName: String;
 
     { Frames within this surface.
       This is always the same as the TObject3DMD3.FramesCount of enclosing
@@ -81,15 +103,33 @@ type
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
+  strict private
+    { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
+    procedure ReadSkinFile(const SkinUrl: string);
+    { Read the stream containing MD3 file. }
+    procedure ReadMd3(const Stream: TStream);
   public
+    Name: string;
+    Surfaces: TMd3SurfaceList;
+    FramesCount: Cardinal;
+
+    { Skin information maps shader names -> texture URLs.
+      Empty (but never @nil) if the skin file was not found. }
+    Skin: TStringList;
+
     { Reads MD3 from a stream, with given absolute base URL.
 
-      Associated skin file is also read,
-      to get texture URL: for BaseUrl = 'xxx.md3', we will try to read
-      'xxx_default.skin' file, looking there for a texture URL.
-      Texture URL found there will be trimmed to a name
-      (i.e. without directory part, as it usually specifies directory
-      within quake/tremulous/etc. data dir, not relative to md3 model dir).
+      We also read the associated skin file, if it exists.
+      We look for file called '<basename>_<Md3Skin>.skin',
+      where <basename> is the basename (no path, no extension) from BaseUrl,
+      and Md3Skin is a global variable in this unit.
+      So e.g. for 'head.md3' we read 'head_default.skin' by default.
+
+      We strip the path from texture URLs found in the skin file,
+      because the texture URLs are often given relative to main quake/tremulous/etc.
+      data directory, and we don't know this directory.
+      So we strip path part, and assume that textures for MD3 models
+      are just inside the same directory as the MD3 file.
 
       The Stream must be freely seekable
       (i.e. setting Position to any value must be supported) ---
@@ -100,30 +140,7 @@ type
       do it for you. You can free Stream right after constructor finished
       it's work. }
     constructor Create(const Stream: TStream; const BaseUrl: string);
-
-    { Reads MD3 from a stream, knowing the texture URL (no need to parse MD3 skin file). }
-    constructor CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
-
     destructor Destroy; override;
-
-  public
-    Name: string;
-
-    Surfaces: TMd3SurfaceList;
-
-    FramesCount: Cardinal;
-
-    { Texture URL to use for this object. This is not read from md3
-      file (it's not recorded there), it's read (if available)
-      from accompanying xxx_default.skin file. It's empty '' if
-      no skin file was found, or it didn't specify any texture URL. }
-    TextureURL: string;
-
-    { Searches for a skin file accompanying given MD3 model URL,
-      and reads it. Returns @true and sets TextureURL if skin file
-      found and some texture URL was recorded there. }
-    class function ReadSkinFile(const Md3URL: string;
-      out ATextureURL: string): boolean;
   end;
 
 { Load a specific animation frame from a given MD3 model.
@@ -145,8 +162,6 @@ const
     be embedded in other things) it's a constant here. }
   Md3Start = 0;
 
-  Md3MaxQPath = 64;
-
 { TMd3Surface ---------------------------------------------------------------- }
 
 constructor TMd3Surface.Create;
@@ -155,6 +170,7 @@ begin
   Vertexes := TMd3VertexList.Create;
   Triangles := TMd3TriangleList.Create;
   TextureCoords := TMd3TexCoordList.Create;
+  Shaders := TMd3ShaderList.Create;
 end;
 
 destructor TMd3Surface.Destroy;
@@ -162,6 +178,7 @@ begin
   FreeAndNil(Vertexes);
   FreeAndNil(Triangles);
   FreeAndNil(TextureCoords);
+  FreeAndNil(Shaders);
   inherited;
 end;
 
@@ -233,12 +250,16 @@ begin
     end;
   end;
 
-  // Shaders.Count := Surface.NumShaders;
-  // if Shaders.Count <> 0 then
-  // begin
-  //   Stream.Position := SurfaceStart + Surface.OffsetShaders;
-  //   for I := 0 to Shaders.Count - 1 do
-  // end;
+  Shaders.Count := Surface.NumShaders;
+  if Shaders.Count <> 0 then
+  begin
+    Stream.Position := SurfaceStart + Surface.OffsetShaders;
+    Stream.ReadBuffer(Shaders.List^, SizeOf(TMd3Shader) * Shaders.Count);
+    { We only use 1st shader name.
+      Interpretation of other shader names is unknown. }
+    if Shaders.Count > 0 then
+      ShaderName := Shaders[0].Name;
+  end;
 
   TextureCoords.Count := VertexesInFrameCount;
   if VertexesInFrameCount <> 0 then
@@ -253,19 +274,100 @@ begin
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
 end;
 
+{ Convert texture URL found in skin file to a URL, relative to the MD3 file,
+  pointing to valid texture file.
+  This strips path from URL, always.
+  This can also fix (or add) URL extension. }
+function FixTextureUrl(const TextureUrl, TexturePath: String): String;
+begin
+  { Directory recorded in TextureUrl is useless for us,
+    it's usually a relative directory inside quake/tremulous/etc.
+    data. We just assume that this is inside the same dir as
+    md3 model file, so we strip the directory part. }
+  Result := ExtractURIName(TextureUrl);
+
+  if not URIFileExists(TexturePath + Result) then
+  begin
+    { We cannot trust
+      the extension of texture given in Result in skin file.
+      It's common in Quake3 data files that texture URL is given
+      as xxx.tga, while in fact only xxx.jpg exists and should be used. }
+    if URIFileExists(TexturePath + ChangeURIExt(Result, '.jpg')) then
+      Result := ChangeURIExt(Result, '.jpg') else
+
+    { Also, some files have texture names with missing extension...
+      So we have to check also for tga here.
+      E.g. tremulous-unpacked-data/models/players/human_base/head }
+    if URIFileExists(TexturePath + ChangeURIExt(Result, '.tga')) then
+      Result := ChangeURIExt(Result, '.tga') else
+  end;
+end;
+
 { TObject3DMD3 --------------------------------------------------------------- }
 
 constructor TObject3DMD3.Create(const Stream: TStream; const BaseUrl: string);
 var
-  ATextureURL: string;
+  SkinUrl: String;
 begin
-  if not ReadSkinFile(BaseUrl, ATextureURL) then
-    ATextureURL := '';
+  inherited Create;
 
-  CreateWithTextureUrl(Stream, ATextureURL);
+  Skin := TStringList.Create;
+  SkinUrl := DeleteURIExt(BaseUrl) + '_' + Md3Skin + '.skin';
+  ReadSkinFile(SkinUrl);
+
+  ReadMd3(Stream);
 end;
 
-constructor TObject3DMD3.CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
+destructor TObject3DMD3.Destroy;
+begin
+  FreeAndNil(Surfaces);
+  FreeAndNil(Skin);
+  inherited;
+end;
+
+procedure TObject3DMD3.ReadSkinFile(const SkinUrl: string);
+var
+  SkinFile: TTextReader;
+  S, SkinKey, TextureUrl: string;
+  CommaPos: Integer;
+  TexturePath: string;
+begin
+  if URIFileExists(SkinUrl) then
+  begin
+    TexturePath := ExtractURIPath(SkinUrl);
+    SkinFile := TTextReader.Create(SkinUrl);
+    try
+      { Note: We don't just do
+          Skin.NameValueSeparator := ',';
+          Skin.LoadFromURL(ATextureUrl);
+        because
+        - MissingNameValueSeparatorAction doesn't seem supported by Delphi
+          ( https://www.freepascal.org/docs-html/rtl/classes/tstrings.missingnamevalueseparatoraction.html )
+        - we want to process texture URL anyway before we add it.
+      }
+
+      while not SkinFile.Eof do
+      begin
+        S := SkinFile.Readln;
+        CommaPos := Pos(',', S);
+        if CommaPos <> 0 then
+        begin
+          SkinKey := Trim(Copy(S, 1, CommaPos - 1));
+          TextureUrl := Trim(SEnding(S, CommaPos + 1));
+          if (TextureUrl <> '') and
+             (TextureUrl <> 'null') then
+            TextureUrl := FixTextureUrl(TextureUrl, TexturePath);
+          Skin.Add(SkinKey + '=' + TextureUrl);
+        end else
+          WritelnWarning('Unexpected line in MD3 .skin file (no comma): %s', S);
+      end;
+    finally FreeAndNil(SkinFile) end;
+
+    WritelnLog('MD3 skin file found, with %d pairs (shader name -> texture URL): %s', [Skin.Count, Skin.Text]);
+  end;
+end;
+
+procedure TObject3DMD3.ReadMd3(const Stream: TStream);
 type
   TMd3Header = record
     Ident: array [0..3] of AnsiChar;
@@ -308,8 +410,6 @@ var
   NewSurface: TMd3Surface;
 begin
   inherited Create;
-
-  TextureURL := ATextureURL;
 
   Stream.ReadBuffer(Header, SizeOf(TMd3Header));
 
@@ -362,99 +462,11 @@ begin
   end;
 end;
 
-destructor TObject3DMD3.Destroy;
-begin
-  FreeAndNil(Surfaces);
-  inherited;
-end;
-
-class function TObject3DMD3.ReadSkinFile(const Md3URL: string;
-  out ATextureURL: string): boolean;
-var
-  SkinFile: TTextReader;
-  S: string;
-  SkinURL: string;
-  CommaPos: Integer;
-  Md3Path, NoExt: string;
-begin
-  Result := false;
-  NoExt := DeleteURIExt(Md3URL);
-  SkinURL := NoExt + '_default.skin';
-  Md3Path := ExtractURIPath(Md3URL);
-  if URIFileExists(SkinURL) then
-  begin
-    SkinFile := TTextReader.Create(SkinURL);
-    try
-      while not SkinFile.Eof do
-      begin
-        S := SkinFile.Readln;
-        CommaPos := Pos(',', S);
-        if CommaPos <> 0 then
-        begin
-          ATextureURL := Trim(SEnding(S, CommaPos + 1));
-          if ATextureURL <> '' then
-          begin
-            { Directory recorded in ATextureURL is useless for us,
-              it's usually a relative directory inside quake/tremulous/etc.
-              data. We just assume that this is inside the same dir as
-              md3 model file, so we strip the directory part. }
-            ATextureURL := ExtractURIName(ATextureURL);
-
-            if not URIFileExists(Md3Path + ATextureURL) then
-            begin
-              { We simply cannot trust
-                the extension of texture given in ATextureURL in skin file.
-                It's common in Quake3 data files that texture URL is given
-                as xxx.tga, while in fact only xxx.jpg exists and should be used. }
-              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.jpg')) then
-                ATextureURL := ChangeURIExt(ATextureURL, '.jpg') else
-
-              { Also, some files have texture names with missing extension...
-                So we have to check also for tga here.
-                E.g. tremulous-unpacked-data/models/players/human_base/head }
-              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.tga')) then
-                ATextureURL := ChangeURIExt(ATextureURL, '.tga') else
-
-              { Some tremulous data has texture recorded as "null".
-                We should ignore this
-                texture, and look at the next line. (We do it only
-                if above checks proved that texture URL doesn't
-                exist, and texture URL with .jpg also doesn't exist) }
-              { TODO: actually,
-                ~/3dmodels/tremulous-unpacked-data/models/players/human_base/upper_default.skin
-                shows that MD3 models may have various parts textured with
-                different textures or even not textured.
-                We should read each pair as PartName, PartTextureURL,
-                where null means "no texture". Then we should apply each
-                part separately. PairName is somewhere recorded in MD3
-                file, right ? }
-              if ATextureURL = 'null' then
-                Continue;
-            end;
-
-            Result := true;
-            Exit;
-          end;
-        end;
-      end;
-    finally FreeAndNil(SkinFile) end;
-  end else
-  begin
-    { I see this convention used in a couple of tremulous data places:
-      object may be without skin file, but just texture with
-      basename same as model exists. }
-    ATextureURL := NoExt + '.jpg';
-    if URIFileExists(ATextureURL) then
-      Result := true;
-  end;
-end;
-
 { Converting to X3D ---------------------------------------------------------- }
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const BaseUrl: string): TX3DRootNode;
 var
-  Texture: TImageTextureNode;
   SceneBox: TBox3D;
 
   function MakeCoordinates(Vertexes: TMd3VertexList;
@@ -517,6 +529,33 @@ var
     end;
   end;
 
+  function MakeTexture(const ShaderName: String): TImageTextureNode;
+  var
+    TextureUrl: String;
+  begin
+    TextureUrl := Md3.Skin.Values[ShaderName];
+    { If .skin file was not found, or was empty, or ShaderName isn't found there... }
+    if TextureUrl = '' then
+      TextureUrl := ShaderName;
+    { Use first texture specified in .skin, as a fallback (Tremulous creatures use it) }
+    if (TextureUrl = '') and (Md3.Skin.Count <> 0) then
+      TextureUrl := Md3.Skin.ValueFromIndex[0];
+    { Use basename of MD3 for texture basename. }
+    if TextureUrl = '' then
+      TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
+
+    if TextureUrl = 'none' then
+    begin
+      { In this case, we explicitly don't want to use a texture. }
+      Result := nil;
+    end else
+    begin
+      Result := TImageTextureNode.Create('', BaseUrl);
+      TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
+      Result.SetUrl([TextureUrl]);
+    end;
+  end;
+
   function MakeShape(Surface: TMd3Surface): TShapeNode;
   var
     IFS: TIndexedFaceSetNode;
@@ -528,7 +567,7 @@ var
     Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
     Result.Material := TMaterialNode.Create('', BaseUrl);
-    Result.Texture := Texture;
+    Result.Texture := MakeTexture(Surface.ShaderName);
   end;
 
 var
@@ -544,13 +583,6 @@ begin
 
   SceneBox := TBox3D.Empty;
 
-  if Md3.TextureURL <> '' then
-  begin
-    Texture := TImageTextureNode.Create('', BaseUrl);
-    Texture.SetUrl([Md3.TextureURL]);
-  end else
-    Texture := nil;
-
   for I := 0 to Md3.Surfaces.Count - 1 do
     Result.AddChildren(MakeShape(Md3.Surfaces[I]));
 
@@ -559,12 +591,6 @@ begin
     I saw (so I guess that Quake3 engine generally uses this convention). }
   Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
     BaseUrl, SceneBox, 0, 2, false, true));
-
-  if Texture <> nil then
-  begin
-    Texture.FreeIfUnused;
-    Texture := nil;
-  end;
 end;
 
 function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
