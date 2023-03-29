@@ -1423,6 +1423,8 @@
       coordinate system. This is an inverse of @link(Transform). }
     function InverseTransform: TMatrix4;
 
+    function InverseOutsideTransform: TMatrix4;
+
     { All conditions are satisfied to have @link(WorldTransform).
       When this returns @true, you know that @link(WorldTransform)
       and @link(WorldInverseTransform) will not raise @link(ETransformParentUndefined). }
@@ -2919,6 +2921,17 @@ begin
   Result := FTransformation.InverseTransform;
 end;
 
+function TCastleTransform.InverseOutsideTransform: TMatrix4;
+begin
+  if not FTransformationValid then
+  begin
+    InternalTransformation(FTransformation);
+    InternalOutsideTransformation(FOutsideTransformation);
+    FTransformationValid := true;
+  end;
+  Result := FOutsideTransformation.InverseTransform;
+end;
+
 function TCastleTransform.WorldTransform: TMatrix4;
 begin
   UpdateWorldTransformation;
@@ -4033,8 +4046,25 @@ begin
 end;
 
 function TCastleTransform.OutsideTranslation: TVector3;
+
+  function RenderTranslation: TVector3;
+  var
+    T: TCastleTransform;
+  begin
+    Result := Translation;
+
+    T := Self;
+    while T.RenderOutside do
+    begin
+      Result := Result + T.Parent.Translation;
+      T := T.Parent;
+    end;
+  end;
+
 begin
   Result := TranslationFromMatrix(OutsideTransform);
+  //Result := RenderTranslation;
+  //TODO: wrong result
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;
