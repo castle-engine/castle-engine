@@ -459,7 +459,7 @@ begin
   end;
 end;
 
-{ Converting to X3D ---------------------------------------------------------- }
+{ Converting single frame to X3D ---------------------------------------------------------- }
 
 { Load a specific animation frame from a given MD3 model.
   @param Md3 is the MD3 file to use.
@@ -578,14 +578,122 @@ begin
     Result.AddChildren(MakeShape(Md3.Surfaces[I]));
 end;
 
+{ Converting whole animation(s) to X3D --------------------------------------- }
+
+type
+  { MD3 animation information.
+    Encoded following MD3 animation.cfg conventions.
+    See e.g. https://github.com/edems96/MD3-Model---Animation-Viewer/blob/master/src/md3anim.h
+    for sample source code reading MD3 animations. }
+  TMd3Animation = class
+    Name: String;
+
+    { Time of the first frame.
+      Divide by Md3Fps to get time in seconds. }
+    FirstFrame: Cardinal;
+
+    { Duration of animation.
+      Divide by Md3Fps to get duration in seconds.
+
+      May be negative in animation.cfg (likely to indicate playing animation backwards,
+      not supported). We ignore it for now, i.e. we takes
+      Abs(NumFrames)/30 as just duration in seconds. }
+    NumFrames: Integer;
+
+    { We read these from animation.cfg, but don't support them now. }
+    LoopingFrames, Fps: Cardinal;
+  end;
+
+  { MD3 animations list. }
+  TMd3Animations = class({$ifdef FPC}specialize{$endif} TObjectList<TMd3Animation>)
+    { Read animation information from animation.cfg file. }
+    procedure ReadAnimationCfg(const AnimationCfgUrl: String);
+  end;
+
+procedure TMd3Animations.ReadAnimationCfg(const AnimationCfgUrl: String);
+var
+  Reader: TTextReader;
+  Line: String;
+  Anim: TMd3Animation;
+  Tokens: TCastleStringList;
+begin
+  Reader := TTextReader.Create(AnimationCfgUrl);
+  try
+    while not Reader.Eof do
+    begin
+      Line := Reader.ReadLn;
+      Tokens := CreateTokens(Line);
+      try
+        // skip lines that don't interest us
+        if Tokens.Count = 0 then
+          Continue; // empty line
+        if (Tokens[0] = '//') or // comment
+           (Tokens[0] = 'sex') or // various ignored information
+           (Tokens[0] = 'footsteps') or
+           (Tokens[0] = 'nonsegmented') then
+          Continue;
+        if Tokens.Count <> 5 then
+        begin
+          WritelnWarning('Unexpected line format in animation.cfg "%s", not 5 items', [Line]);
+          Continue;
+        end;
+
+        // line defines a animation
+        Anim := TMd3Animation.Create;
+        Anim.FirstFrame := StrToInt(Tokens[0]);
+        Anim.NumFrames := StrToInt(Tokens[1]);
+        Anim.LoopingFrames := StrToInt(Tokens[2]);
+        Anim.Fps := StrToInt(Tokens[3]);
+        Anim.Name := PrefixRemove('//', Tokens[4], true);
+        Add(Anim);
+      finally FreeAndNil(Tokens) end;
+    end;
+  finally FreeAndNil(Reader) end;
+end;
+
 function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+var
+  Switch: TSwitchNode;
+
+  { Add to Result an animation that drives Switch.WhichChoice,
+    changing frames from FirstFrame to FirstFrame + NumFrames - 1. }
+  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFrames: Cardinal);
+  var
+    TimeSensor: TTimeSensorNode;
+    IntSequencer: TIntegerSequencerNode;
+    I: Integer;
+  begin
+    TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
+    TimeSensor.CycleInterval := NumFrames / Md3Fps;
+    Result.AddChildren(TimeSensor);
+
+    IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
+    { Using ForceContinuousValue_Changed for the same reason why
+      castleinternalnodeinterpolator.pas .
+      See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_ext_forceContinuousValue_Changed .
+      As multiple IntegerSequencer may affect this Switch (once we add support
+      for other animations) this is important. }
+    IntSequencer.ForceContinuousValue_Changed := true;
+    IntSequencer.FdKey.Count := NumFrames;
+    IntSequencer.FdKeyValue.Count := NumFrames;
+    for I := 0 to NumFrames - 1 do
+    begin
+      IntSequencer.FdKey.Items[I] := I / NumFrames;
+      IntSequencer.FdKeyValue.Items[I] := FirstFrame + I;
+    end;
+    Result.AddChildren(IntSequencer);
+
+    Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
+    Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
+    Result.ExportNode(TimeSensor);
+  end;
+
 var
   Md3: TObject3DMD3;
   I: Integer;
   SceneBox: TBox3D;
-  Switch: TSwitchNode;
-  TimeSensor: TTimeSensorNode;
-  IntSequencer: TIntegerSequencerNode;
+  Animations: TMd3Animations;
+  AnimationCfgUrl: String;
 begin
   Md3 := TObject3DMD3.Create(Stream, BaseUrl);
   try
@@ -601,29 +709,18 @@ begin
       Switch.AddChildren(LoadMD3Frame(Md3, I, BaseUrl, SceneBox));
     Result.AddChildren(Switch);
 
-    TimeSensor := TTimeSensorNode.Create(TNodeInterpolator.DefaultAnimationName, BaseUrl);
-    TimeSensor.CycleInterval := Md3.FramesCount / Md3Fps;
-    Result.AddChildren(TimeSensor);
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, Md3.FramesCount);
 
-    IntSequencer := TIntegerSequencerNode.Create(TNodeInterpolator.DefaultAnimationName + '_IntegerSequencer', BaseUrl);
-    { Using ForceContinuousValue_Changed for the same reason why
-      castleinternalnodeinterpolator.pas .
-      See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_ext_forceContinuousValue_Changed .
-      As multiple IntegerSequencer may affect this Switch (once we add support
-      for other animations) this is important. }
-    IntSequencer.ForceContinuousValue_Changed := true;
-    IntSequencer.FdKey.Count := Md3.FramesCount;
-    IntSequencer.FdKeyValue.Count := Md3.FramesCount;
-    for I := 0 to Md3.FramesCount - 1 do
+    AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
+    if URIFileExists(AnimationCfgUrl) then
     begin
-      IntSequencer.FdKey.Items[I] := I / Md3.FramesCount;
-      IntSequencer.FdKeyValue.Items[I] := I;
+      Animations := TMd3Animations.Create;
+      try
+        Animations.ReadAnimationCfg(AnimationCfgUrl);
+        for I := 0 to Animations.Count - 1 do
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
+      finally FreeAndNil(Animations) end;
     end;
-    Result.AddChildren(IntSequencer);
-
-    Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
-    Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
-    Result.ExportNode(TimeSensor);
 
     { MD3 files have no camera. I add camera here, just to force GravityUp
       to be in +Z, since this is the convention used in all MD3 files that
