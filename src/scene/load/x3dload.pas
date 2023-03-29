@@ -386,16 +386,6 @@ function LoadNode(const Stream: TStream;
     finally FreeAndNil(Animations) end;
   end;
 
-  function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
-  var
-    Animations: TNodeInterpolator.TAnimationList;
-  begin
-    Animations := LoadMD3Sequence(Stream, BaseUrl);
-    try
-      Result := TNodeInterpolator.LoadToX3D(Animations);
-    finally FreeAndNil(Animations) end;
-  end;
-
 begin
   { All internal loading functions may assume BaseUrl is absolute.
 
@@ -594,14 +584,6 @@ begin
     Stream := Download(URL);
     try
       LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
-    finally FreeAndNil(Stream) end;
-  end else
-  if MimeType = 'application/x-md3' then
-  begin
-    AbsoluteBaseUrl := AbsoluteURI(URL);
-    Stream := Download(URL);
-    try
-      LoadNodeAnimation(LoadMD3Sequence(Stream, AbsoluteBaseUrl));
     finally FreeAndNil(Stream) end;
   end else
     LoadSingle(LoadNode(URL));

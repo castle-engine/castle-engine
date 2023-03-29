@@ -30,8 +30,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   CastleInternalNodeInterpolator;
 
-{ Load MD3 animation as a sequence of static X3D models. }
-function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
+{ Load MD3 model, with skin (from Md3Skin) and animations. }
+function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
 
 var
   Md3Skin: String = 'default';
@@ -43,6 +43,7 @@ uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
 
 const
   Md3MaxQPath = 64;
+  Md3Fps = 30;
 
 type
   TMd3Triangle = record
@@ -145,13 +146,6 @@ type
     constructor Create(const Stream: TStream; const BaseUrl: string);
     destructor Destroy; override;
   end;
-
-{ Load a specific animation frame from a given MD3 model.
-  @param Md3 is the MD3 file to use.
-  @param FrameNumber is the frame number to load, must be < Md3.Count.
-  @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
-function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
@@ -467,10 +461,12 @@ end;
 
 { Converting to X3D ---------------------------------------------------------- }
 
+{ Load a specific animation frame from a given MD3 model.
+  @param Md3 is the MD3 file to use.
+  @param FrameNumber is the frame number to load, must be < Md3.Count.
+  @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode;
-var
-  SceneBox: TBox3D;
+  const BaseUrl: string; var SceneBox: TBox3D): TGroupNode;
 
   function MakeCoordinates(Vertexes: TMd3VertexList;
     VertexesInFrameCount: Cardinal): TCoordinateNode;
@@ -576,65 +572,65 @@ var
 var
   I: Integer;
 begin
-  Result := TX3DRootNode.Create(Md3.Name
-    { Although adding here FrameNumber is not a bad idea, but TNodeInterpolator
-      requires for now that sequence of models have the same node names. }
-    { + '_Frame' + IntToStr(FrameNumber) }, BaseUrl);
-
-  Result.HasForceVersion := true;
-  Result.ForceVersion := X3DVersion;
-
-  SceneBox := TBox3D.Empty;
+  Result := TGroupNode.Create('', BaseUrl);
 
   for I := 0 to Md3.Surfaces.Count - 1 do
     Result.AddChildren(MakeShape(Md3.Surfaces[I]));
-
-  { MD3 files have no camera. I add camera here, just to force GravityUp
-    to be in +Z, since this is the convention used in all MD3 files that
-    I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
-    BaseUrl, SceneBox, 0, 2, false, true));
 end;
 
-function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
+function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
 var
   Md3: TObject3DMD3;
   I: Integer;
-  Animation: TNodeInterpolator.TAnimation;
+  SceneBox: TBox3D;
+  Switch: TSwitchNode;
+  TimeSensor: TTimeSensorNode;
+  IntSequencer: TIntegerSequencerNode;
 begin
-  Result := TNodeInterpolator.TAnimationList.Create(true);
+  Md3 := TObject3DMD3.Create(Stream, BaseUrl);
   try
-    Animation := TNodeInterpolator.TAnimation.Create;
-    Result.Add(Animation);
+    Result := TX3DRootNode.Create(Md3.Name, BaseUrl);
+    Result.HasForceVersion := true;
+    Result.ForceVersion := X3DVersion;
 
-    Md3 := TObject3DMD3.Create(Stream, BaseUrl);
-    try
-      { handle each MD3 frame }
-      for I := 0 to Md3.FramesCount - 1 do
-      begin
-        Animation.KeyNodes.Add(LoadMD3Frame(Md3, I, BaseUrl));
-        Animation.KeyTimes.Add(I / 30);
-      end;
+    SceneBox := TBox3D.Empty;
 
-      Animation.Name := TNodeInterpolator.DefaultAnimationName;
-      Animation.ScenesPerTime := TNodeInterpolator.DefaultScenesPerTime;
-      { Default ScenesPerTime and times are set such that one MD3
-        frame will result in one frame inside TNodeInterpolator.
-        So don't try to merge these frames (on the assumption that
-        they are not merged in MD3... so hopefully there's no need for it ?). }
-      Animation.Epsilon := 0.0;
+    Switch := TSwitchNode.Create('', BaseUrl);
+    Switch.WhichChoice := 0; // show something non-empty on load
+    for I := 0 to Md3.FramesCount - 1 do
+      Switch.AddChildren(LoadMD3Frame(Md3, I, BaseUrl, SceneBox));
+    Result.AddChildren(Switch);
 
-      { Really, no sensible default for Loop/Backwards here...
-        I set Loop to @false, otherwise it's not clear for user when
-        animation ends. }
-      Animation.Loop := false;
-      Animation.Backwards := false;
-    finally FreeAndNil(Md3) end;
-  except
-    Result.FreeKeyNodesContents;
-    FreeAndNil(Result);
-    raise;
-  end;
+    TimeSensor := TTimeSensorNode.Create(TNodeInterpolator.DefaultAnimationName, BaseUrl);
+    TimeSensor.CycleInterval := Md3.FramesCount / Md3Fps;
+    Result.AddChildren(TimeSensor);
+
+    IntSequencer := TIntegerSequencerNode.Create(TNodeInterpolator.DefaultAnimationName + '_IntegerSequencer', BaseUrl);
+    { Using ForceContinuousValue_Changed for the same reason why
+      castleinternalnodeinterpolator.pas .
+      See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_ext_forceContinuousValue_Changed .
+      As multiple IntegerSequencer may affect this Switch (once we add support
+      for other animations) this is important. }
+    IntSequencer.ForceContinuousValue_Changed := true;
+    IntSequencer.FdKey.Count := Md3.FramesCount;
+    IntSequencer.FdKeyValue.Count := Md3.FramesCount;
+    for I := 0 to Md3.FramesCount - 1 do
+    begin
+      IntSequencer.FdKey.Items[I] := I / Md3.FramesCount;
+      IntSequencer.FdKeyValue.Items[I] := I;
+    end;
+    Result.AddChildren(IntSequencer);
+
+    Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
+    Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
+    Result.ExportNode(TimeSensor);
+
+    { MD3 files have no camera. I add camera here, just to force GravityUp
+      to be in +Z, since this is the convention used in all MD3 files that
+      I saw (so I guess that Quake3 engine generally uses this convention). }
+    Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
+      BaseUrl, SceneBox, 0, 2, false, true));
+  finally FreeAndNil(Md3) end;
 end;
 
 end.
