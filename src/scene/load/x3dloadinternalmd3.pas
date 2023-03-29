@@ -83,7 +83,10 @@ type
     TextureCoords: TMd3TexCoordList;
     Triangles: TMd3TriangleList;
 
-    { Shader name, or '' if not found in file. }
+    { Shader name, or '' if not found in file.
+      Each surface may use a different "shader" which is really just a way to specify a texture
+      (possibly indirectly, if using Skin dictionary).
+      See sandyhead in example MD3 in https://forum.castle-engine.io/t/weirdness-with-zeronextsecondspassed-when-used-with-tupdate/775/21 }
     ShaderName: String;
 
     { Frames within this surface.
