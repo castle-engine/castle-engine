@@ -767,7 +767,17 @@ begin
           FpcOptions.Add('-Sa');
           FpcOptions.Add('-CR');
           FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-gl')
+          else
+            { Without this, compiling
+                castle-engine compile --os=wasi --cpu=wasm32 --mode=debug
+              fails with
+                Fatal: Can't find unit lnfodwrf used by Program
+              The default fpc.cfg contains clause to do -gl when DEBUG is defined,
+              so we have to explicitly disable it with -gl-.
+            }
+            FpcOptions.Add('-gl-');
           FpcOptions.Add('-dDEBUG');
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
