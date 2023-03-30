@@ -105,6 +105,7 @@
 
       FBlendingSort: TBlendingSort;
       FSortedList: TCastleTransformList;
+      FOutsideList: TCastleTransformList;
 
       // transformation
       FCenter: TVector3;
@@ -277,6 +278,8 @@
   protected
     { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
     function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
+
+    procedure UpdateOutsideList;
 
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -2128,6 +2131,7 @@ begin
 
   FreeAndNil(FList);
   FreeAndNil(FSortedList);
+  FreeAndNil(FOutsideList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
   inherited;
@@ -2687,6 +2691,33 @@ begin
     Result := FSortedList;
   end else
     Result := List;
+end;
+
+procedure TCastleTransform.UpdateOutsideList;
+var
+  Tf: TCastleTransform;
+begin
+  if not Assigned(FOutsideList) then
+  begin
+    FOutsideList := TCastleTransformList.Create(False);
+    FOutsideList.Capacity := 10;
+  end;
+
+  FOutsideList.Clear;
+  if not RenderOutside then Exit;
+
+  Tf := Self.Parent.Parent;
+  FOutsideList.Add(Self.Parent);
+  FOutsideList.Add(Self.Parent.Parent);
+  while (Tf <> World) and Assigned(Tf) and (Tf.BlendingSort = bsYSort)  do
+  begin
+    if Assigned(Tf.Parent) and (Tf.Parent.BlendingSort = bsYSort) then
+    begin
+      Tf := Tf.Parent;
+      FOutsideList.Add(Tf);
+    end
+    else Break;
+  end;
 end;
 
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);
@@ -3268,20 +3299,15 @@ end;
 procedure TCastleTransform.InternalOutsideTransformationMult(
   var T: TTransformation);
 var
-  Tf: TCastleTransform;
+  i: Integer;
 begin
-  Tf := Self;
-  repeat
-    T.Multiply(
-      Tf.FCenter,
-      Tf.FRotation,
-      Tf.FScale,
-      Tf.FScaleOrientation,
-      Tf.FTranslation);
+  UpdateOutsideList;
+  if (FOutsideList.Count < 2) then
+    Raise Exception.Create('InternalOutsideTransformationMult: No need to call this.');
 
-    if not Tf.RenderOutside then Break;
-    Tf := Tf.Parent;
-  until not Assigned(Tf);
+  { The last item in FOutsideList is OutsideRoot, so exclude it.}
+  for i := FOutsideList.Count - 2 downto 0 do FOutsideList[i].InternalTransformationMult(T);
+  InternalTransformationMult(T);
 end;
 
 procedure TCastleTransform.InternalTransformation(out T: TTransformation);
