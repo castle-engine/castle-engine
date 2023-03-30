@@ -1,20 +1,18 @@
-# Demo of using MD3 with long animation split into a few logical pieces (subanimations)
+# Demo of using ForceAnimationPose to play a subrange of a larger animation
 
-In case of some 3D authoring software and formats, it happens that we have one, long animation that contains a few logical animations ("subanimations") glued together.
+**TODO: This example is artifical at this point. You don't need to use this code to play MD3 animations. CGE now by default reads `animation.cfg` when loading MD3 file into `TCastleScene`. You can play all MD3 animations using standard `TCastleSceneCore.PlayAnimation` method.**
 
-This in particular happens when using MD3, because MD3 format just doesn't allow to define multiple animations. They are in some cases defined in separate `animation.cfg` file (simple text file placed alongside the .md3 file). CGE by itself does not read such `animation.cfg` file (at least now), but this example contains a simple reader for such files.
-
-This example shows a creature from [Tremulous](https://tremulous.net/) that in MD3 has just one animation. When loading such model as `TCastleScene`, it has just one animation called `animation`. Playing it as a whole using `MyScene.PlayAnimation('animation')` is possible... but not very useful. You actually want to play subranges of this animation.
+In case of some 3D authoring software and formats, it happens that we have one, long animation that contains a few logical animations (we call them "subanimations" in this demo) glued together.
 
 To this end, this example defines `TSceneSubAnimations` class, descendant of `TCastleScene`. This class:
 
-- automatically parses `animation.cfg` placed alongside md3 file when you use `TSceneSubAnimations.Load`
+- automatically parses `animation.cfg` placed alongside MD3 file when you use `TSceneSubAnimations.Load`
 
 - exposes information about subanimations in `TSceneSubAnimations.SubAnimations`
 
 - allows to play the subanimation using `TSceneSubAnimations.PlaySubAnimation`. Internally the playback uses `TCastleSceneCore.ForceAnimationPose` to update each frame.
 
-The example application uses this class, displays all animations, and allows to play them by clicking on appropriate buttons.
+This example shows creatures from [Tremulous](https://tremulous.net/), and it assumes that creature has only one long animation called `'animation'` (when loaded to `TCastleScene`). It plays various subranges of this animation.
 
 ![Screenshot](screenshot.png)
 

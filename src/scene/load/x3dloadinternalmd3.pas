@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading MD3 (Quake3 and derivatives) format. Format specification is on
-  [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html]. }
+{ Loading MD3 (used by Quake3 and derivatives like Tremulous) format.
+
+  References:
+  - Format spec: http://icculus.org/homepages/phaethon/q3a/formats/md3format.html
+  - Another format spec: https://mino-git.github.io/rtcw-wet-blender-model-tools/md3.html
+  - One sample implementation: https://github.com/edems96/MD3-Model---Animation-Viewer/tree/master/src
+}
 unit X3DLoadInternalMD3;
 
 {$I castleconf.inc}
@@ -25,17 +30,24 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   CastleInternalNodeInterpolator;
 
-{ Load MD3 animation as a sequence of static X3D models. }
-function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
+{ Load MD3 model, with skin (from Md3Skin) and animations. }
+function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+
+var
+  Md3Skin: String = 'default';
 
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils, CastleDownload, CastleURIUtils;
+  X3DCameraUtils, CastleDownload, CastleURIUtils, CastleLog;
+
+const
+  Md3MaxQPath = 64;
+  Md3Fps = 30;
 
 type
   TMd3Triangle = record
-    Indexes: array [0..2] of LongWord;
+    Indexes: array [0..2] of UInt32;
   end;
   TMd3TriangleList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Triangle>;
 
@@ -49,8 +61,16 @@ type
   TMd3TexCoord = TVector2;
   TMd3TexCoordList = TVector2List;
 
+  TMd3Shader = record
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    ShaderIndex: UInt32;
+  end;
+  TMd3ShaderList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Shader>;
+
   TMd3Surface = class
   private
+    Shaders: TMd3ShaderList;
+
     { Read surface from file, and advance position to next surface. }
     procedure Read(Stream: TStream);
   public
@@ -63,6 +83,12 @@ type
     Vertexes: TMd3VertexList;
     TextureCoords: TMd3TexCoordList;
     Triangles: TMd3TriangleList;
+
+    { Shader name, or '' if not found in file.
+      Each surface may use a different "shader" which is really just a way to specify a texture
+      (possibly indirectly, if using Skin dictionary).
+      See sandyhead in example MD3 in https://forum.castle-engine.io/t/weirdness-with-zeronextsecondspassed-when-used-with-tupdate/775/21 }
+    ShaderName: String;
 
     { Frames within this surface.
       This is always the same as the TObject3DMD3.FramesCount of enclosing
@@ -81,15 +107,33 @@ type
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
+  strict private
+    { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
+    procedure ReadSkinFile(const SkinUrl: string);
+    { Read the stream containing MD3 file. }
+    procedure ReadMd3(const Stream: TStream);
   public
+    Name: string;
+    Surfaces: TMd3SurfaceList;
+    FramesCount: Cardinal;
+
+    { Skin information maps shader names -> texture URLs.
+      Empty (but never @nil) if the skin file was not found. }
+    Skin: TStringList;
+
     { Reads MD3 from a stream, with given absolute base URL.
 
-      Associated skin file is also read,
-      to get texture URL: for BaseUrl = 'xxx.md3', we will try to read
-      'xxx_default.skin' file, looking there for a texture URL.
-      Texture URL found there will be trimmed to a name
-      (i.e. without directory part, as it usually specifies directory
-      within quake/tremulous/etc. data dir, not relative to md3 model dir).
+      We also read the associated skin file, if it exists.
+      We look for file called '<basename>_<Md3Skin>.skin',
+      where <basename> is the basename (no path, no extension) from BaseUrl,
+      and Md3Skin is a global variable in this unit.
+      So e.g. for 'head.md3' we read 'head_default.skin' by default.
+
+      We strip the path from texture URLs found in the skin file,
+      because the texture URLs are often given relative to main quake/tremulous/etc.
+      data directory, and we don't know this directory.
+      So we strip path part, and assume that textures for MD3 models
+      are just inside the same directory as the MD3 file.
 
       The Stream must be freely seekable
       (i.e. setting Position to any value must be supported) ---
@@ -100,38 +144,8 @@ type
       do it for you. You can free Stream right after constructor finished
       it's work. }
     constructor Create(const Stream: TStream; const BaseUrl: string);
-
-    { Reads MD3 from a stream, knowing the texture URL (no need to parse MD3 skin file). }
-    constructor CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
-
     destructor Destroy; override;
-
-  public
-    Name: string;
-
-    Surfaces: TMd3SurfaceList;
-
-    FramesCount: Cardinal;
-
-    { Texture URL to use for this object. This is not read from md3
-      file (it's not recorded there), it's read (if available)
-      from accompanying xxx_default.skin file. It's empty '' if
-      no skin file was found, or it didn't specify any texture URL. }
-    TextureURL: string;
-
-    { Searches for a skin file accompanying given MD3 model URL,
-      and reads it. Returns @true and sets TextureURL if skin file
-      found and some texture URL was recorded there. }
-    class function ReadSkinFile(const Md3URL: string;
-      out ATextureURL: string): boolean;
   end;
-
-{ Load a specific animation frame from a given MD3 model.
-  @param Md3 is the MD3 file to use.
-  @param FrameNumber is the frame number to load, must be < Md3.Count.
-  @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
-function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
@@ -145,53 +159,6 @@ const
     be embedded in other things) it's a constant here. }
   Md3Start = 0;
 
-  Md3MaxQPath = 64;
-
-type
-  TMd3Header = record
-    Ident: array [0..3] of char;
-    Version: LongInt;
-    Name: array [0..Md3MaxQPath - 1] of char;
-    Flags: LongInt;
-    NumFrames: LongInt;
-    NumTags: LongInt;
-    NumSurfaces: LongInt;
-    NumSkins: LongInt;
-    OffsetFrames: LongInt;
-    OffsetTags: LongInt;
-    OffsetSurfaces: LongInt;
-    OffsetEof: LongInt;
-  end;
-
-  TMd3Frame = record
-    MinBounds: TVector3;
-    MaxBounds: TVector3;
-    LocalOrigin: TVector3;
-    Radius: Single;
-    Name: array [0..15] of char;
-  end;
-
-  TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of char;
-    Origin: TVector3;
-    Axis: array [0..2] of TVector3;
-  end;
-
-  TMd3FileSurface = record
-    Ident: array [0..3] of char;
-    Name: array [0..Md3MaxQPath - 1] of char;
-    Flags: LongInt;
-    NumFrames: LongInt;
-    NumShaders: LongInt;
-    NumVerts: LongInt;
-    NumTriangles: LongInt;
-    OffsetTriangles: LongInt;
-    OffsetShaders: LongInt;
-    OffsetST: LongInt;
-    OffsetXYZNormal: LongInt;
-    OffsetEnd: LongInt;
-  end;
-
 { TMd3Surface ---------------------------------------------------------------- }
 
 constructor TMd3Surface.Create;
@@ -200,6 +167,7 @@ begin
   Vertexes := TMd3VertexList.Create;
   Triangles := TMd3TriangleList.Create;
   TextureCoords := TMd3TexCoordList.Create;
+  Shaders := TMd3ShaderList.Create;
 end;
 
 destructor TMd3Surface.Destroy;
@@ -207,14 +175,29 @@ begin
   FreeAndNil(Vertexes);
   FreeAndNil(Triangles);
   FreeAndNil(TextureCoords);
+  FreeAndNil(Shaders);
   inherited;
 end;
 
 procedure TMd3Surface.Read(Stream: TStream);
+type
+  TMd3FileSurface = record
+    Ident: array [0..3] of AnsiChar;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumShaders: Int32;
+    NumVerts: Int32;
+    NumTriangles: Int32;
+    OffsetTriangles: Int32;
+    OffsetShaders: Int32;
+    OffsetST: Int32;
+    OffsetXYZNormal: Int32;
+    OffsetEnd: Int32;
+  end;
 var
   SurfaceStart: Int64;
   Surface: TMd3FileSurface;
-  I: Integer;
 begin
   SurfaceStart := Stream.Position;
   Stream.ReadBuffer(Surface, SizeOf(Surface));
@@ -241,64 +224,179 @@ begin
   Writeln('  OffsetEnd "', Surface.OffsetEnd, '"');
   *)
 
-  if Surface.NumTriangles <> 0 then
+  Triangles.Count := Surface.NumTriangles;
+  if Triangles.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetTriangles;
-    for I := 0 to Surface.NumTriangles - 1 do
-    begin
-      Stream.ReadBuffer(Triangles.Add^, SizeOf(TMd3Triangle));
-    end;
+    Stream.ReadBuffer(Triangles.List^, SizeOf(TMd3Triangle) * Triangles.Count);
   end;
 
+  { For animations: we have Surface.NumFrames times the vertexes array.
+    For each frame, separate collection of vertices is added. }
   Vertexes.Count := Surface.NumVerts * Surface.NumFrames;
   if Vertexes.Count <> 0 then
   begin
-    { For animations: actually we have here Surface.NumFrames times
-      the vertexes array. For each frame, separate collection of
-      vertices is added. }
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
-    for I := 0 to Vertexes.Count - 1 do
-    begin
-      Stream.ReadBuffer(Vertexes.List^[I], SizeOf(TMd3Vertex));
-    end;
+    Stream.ReadBuffer(Vertexes.List^, SizeOf(TMd3Vertex) * Vertexes.Count);
+  end;
+
+  Shaders.Count := Surface.NumShaders;
+  if Shaders.Count <> 0 then
+  begin
+    Stream.Position := SurfaceStart + Surface.OffsetShaders;
+    Stream.ReadBuffer(Shaders.List^, SizeOf(TMd3Shader) * Shaders.Count);
+    { We only use 1st shader name.
+      Interpretation of other shader names is unknown. }
+    if Shaders.Count > 0 then
+      ShaderName := Shaders[0].Name;
   end;
 
   TextureCoords.Count := VertexesInFrameCount;
-  if VertexesInFrameCount <> 0 then
+  if TextureCoords.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
-    for I := 0 to VertexesInFrameCount - 1 do
-    begin
-      Stream.ReadBuffer(TextureCoords.List^[I], SizeOf(TMd3TexCoord));
-    end;
+    Stream.ReadBuffer(TextureCoords.List^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
   end;
 
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
+end;
+
+{ Convert texture URL found in skin file to a URL, relative to the MD3 file,
+  pointing to valid texture file.
+  This strips path from URL, always.
+  This can also fix (or add) URL extension. }
+function FixTextureUrl(const TextureUrl, TexturePath: String): String;
+begin
+  { Directory recorded in TextureUrl is useless for us,
+    it's usually a relative directory inside quake/tremulous/etc.
+    data. We just assume that this is inside the same dir as
+    md3 model file, so we strip the directory part. }
+  Result := ExtractURIName(TextureUrl);
+
+  if not URIFileExists(TexturePath + Result) then
+  begin
+    { We cannot trust
+      the extension of texture given in Result in skin file.
+      It's common in Quake3 data files that texture URL is given
+      as xxx.tga, while in fact only xxx.jpg exists and should be used. }
+    if URIFileExists(TexturePath + ChangeURIExt(Result, '.jpg')) then
+      Result := ChangeURIExt(Result, '.jpg') else
+
+    { Also, some files have texture names with missing extension...
+      So we have to check also for tga here.
+      E.g. tremulous-unpacked-data/models/players/human_base/head }
+    if URIFileExists(TexturePath + ChangeURIExt(Result, '.tga')) then
+      Result := ChangeURIExt(Result, '.tga') else
+  end;
 end;
 
 { TObject3DMD3 --------------------------------------------------------------- }
 
 constructor TObject3DMD3.Create(const Stream: TStream; const BaseUrl: string);
 var
-  ATextureURL: string;
+  SkinUrl: String;
 begin
-  if not ReadSkinFile(BaseUrl, ATextureURL) then
-    ATextureURL := '';
+  inherited Create;
 
-  CreateWithTextureUrl(Stream, ATextureURL);
+  Skin := TStringList.Create;
+  SkinUrl := DeleteURIExt(BaseUrl) + '_' + Md3Skin + '.skin';
+  ReadSkinFile(SkinUrl);
+
+  ReadMd3(Stream);
 end;
 
-constructor TObject3DMD3.CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
+destructor TObject3DMD3.Destroy;
+begin
+  FreeAndNil(Surfaces);
+  FreeAndNil(Skin);
+  inherited;
+end;
+
+procedure TObject3DMD3.ReadSkinFile(const SkinUrl: string);
+var
+  SkinFile: TTextReader;
+  S, SkinKey, TextureUrl: string;
+  CommaPos: Integer;
+  TexturePath: string;
+begin
+  if URIFileExists(SkinUrl) then
+  begin
+    TexturePath := ExtractURIPath(SkinUrl);
+    SkinFile := TTextReader.Create(SkinUrl);
+    try
+      { Note: We don't just do
+          Skin.NameValueSeparator := ',';
+          Skin.LoadFromURL(ATextureUrl);
+        because
+        - MissingNameValueSeparatorAction doesn't seem supported by Delphi
+          ( https://www.freepascal.org/docs-html/rtl/classes/tstrings.missingnamevalueseparatoraction.html )
+        - we want to process texture URL anyway before we add it.
+      }
+
+      while not SkinFile.Eof do
+      begin
+        S := SkinFile.Readln;
+        CommaPos := Pos(',', S);
+        if CommaPos <> 0 then
+        begin
+          SkinKey := Trim(Copy(S, 1, CommaPos - 1));
+          TextureUrl := Trim(SEnding(S, CommaPos + 1));
+          if (TextureUrl <> '') and
+             (TextureUrl <> 'null') then
+            TextureUrl := FixTextureUrl(TextureUrl, TexturePath);
+          Skin.Add(SkinKey + '=' + TextureUrl);
+        end else
+          WritelnWarning('Unexpected line in MD3 .skin file (no comma): %s', S);
+      end;
+    finally FreeAndNil(SkinFile) end;
+
+    //WritelnLog('MD3 skin file found, with %d pairs (shader name -> texture URL): %s', [Skin.Count, Skin.Text]);
+  end;
+end;
+
+procedure TObject3DMD3.ReadMd3(const Stream: TStream);
+type
+  TMd3Header = record
+    Ident: array [0..3] of AnsiChar;
+    Version: Int32;
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Flags: Int32;
+    NumFrames: Int32;
+    NumTags: Int32;
+    NumSurfaces: Int32;
+    NumSkins: Int32;
+    OffsetFrames: Int32;
+    OffsetTags: Int32;
+    OffsetSurfaces: Int32;
+    OffsetEof: Int32;
+  end;
+
+  (* Unused for now
+  TMd3Frame = record
+    MinBounds: TVector3;
+    MaxBounds: TVector3;
+    LocalOrigin: TVector3;
+    Radius: Single;
+    Name: array [0..15] of AnsiChar;
+  end;
+
+  TMd3Tag = record
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Origin: TVector3;
+    Axis: array [0..2] of TVector3;
+  end;
+  *)
+
 var
   Header: TMd3Header;
+  (* Unused for now
   Frame: TMd3Frame;
   Tag: TMd3Tag;
+  *)
   I: Integer;
   NewSurface: TMd3Surface;
 begin
   inherited Create;
-
-  TextureURL := ATextureURL;
 
   Stream.ReadBuffer(Header, SizeOf(TMd3Header));
 
@@ -313,6 +411,7 @@ begin
   Name := Header.Name;
   FramesCount := Header.NumFrames;
 
+  (* Unused for now
   if Header.NumFrames <> 0 then
   begin
     Stream.Position := Md3Start + Header.OffsetFrames;
@@ -330,6 +429,7 @@ begin
       Stream.ReadBuffer(Tag, SizeOf(Tag));
     end;
   end;
+  *)
 
   Surfaces := TMd3SurfaceList.Create(true);
 
@@ -349,100 +449,14 @@ begin
   end;
 end;
 
-destructor TObject3DMD3.Destroy;
-begin
-  FreeAndNil(Surfaces);
-  inherited;
-end;
+{ Converting single frame to X3D ---------------------------------------------------------- }
 
-class function TObject3DMD3.ReadSkinFile(const Md3URL: string;
-  out ATextureURL: string): boolean;
-var
-  SkinFile: TTextReader;
-  S: string;
-  SkinURL: string;
-  CommaPos: Integer;
-  Md3Path, NoExt: string;
-begin
-  Result := false;
-  NoExt := DeleteURIExt(Md3URL);
-  SkinURL := NoExt + '_default.skin';
-  Md3Path := ExtractURIPath(Md3URL);
-  if URIFileExists(SkinURL) then
-  begin
-    SkinFile := TTextReader.Create(SkinURL);
-    try
-      while not SkinFile.Eof do
-      begin
-        S := SkinFile.Readln;
-        CommaPos := Pos(',', S);
-        if CommaPos <> 0 then
-        begin
-          ATextureURL := Trim(SEnding(S, CommaPos + 1));
-          if ATextureURL <> '' then
-          begin
-            { Directory recorded in ATextureURL is useless for us,
-              it's usually a relative directory inside quake/tremulous/etc.
-              data. We just assume that this is inside the same dir as
-              md3 model file, so we strip the directory part. }
-            ATextureURL := ExtractURIName(ATextureURL);
-
-            if not URIFileExists(Md3Path + ATextureURL) then
-            begin
-              { We simply cannot trust
-                the extension of texture given in ATextureURL in skin file.
-                It's common in Quake3 data files that texture URL is given
-                as xxx.tga, while in fact only xxx.jpg exists and should be used. }
-              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.jpg')) then
-                ATextureURL := ChangeURIExt(ATextureURL, '.jpg') else
-
-              { Also, some files have texture names with missing extension...
-                So we have to check also for tga here.
-                E.g. tremulous-unpacked-data/models/players/human_base/head }
-              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.tga')) then
-                ATextureURL := ChangeURIExt(ATextureURL, '.tga') else
-
-              { Some tremulous data has texture recorded as "null".
-                We should ignore this
-                texture, and look at the next line. (We do it only
-                if above checks proved that texture URL doesn't
-                exist, and texture URL with .jpg also doesn't exist) }
-              { TODO: actually,
-                ~/3dmodels/tremulous-unpacked-data/models/players/human_base/upper_default.skin
-                shows that MD3 models may have various parts textured with
-                different textures or even not textured.
-                We should read each pair as PartName, PartTextureURL,
-                where null means "no texture". Then we should apply each
-                part separately. PairName is somewhere recorded in MD3
-                file, right ? }
-              if ATextureURL = 'null' then
-                Continue;
-            end;
-
-            Result := true;
-            Exit;
-          end;
-        end;
-      end;
-    finally FreeAndNil(SkinFile) end;
-  end else
-  begin
-    { I see this convention used in a couple of tremulous data places:
-      object may be without skin file, but just texture with
-      basename same as model exists. }
-    ATextureURL := NoExt + '.jpg';
-    if URIFileExists(ATextureURL) then
-      Result := true;
-  end;
-end;
-
-{ Converting to X3D ---------------------------------------------------------- }
-
+{ Load a specific animation frame from a given MD3 model.
+  @param Md3 is the MD3 file to use.
+  @param FrameNumber is the frame number to load, must be < Md3.Count.
+  @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode;
-var
-  Texture: TImageTextureNode;
-  SceneBox: TBox3D;
+  const BaseUrl: string; var SceneBox: TBox3D): TGroupNode;
 
   function MakeCoordinates(Vertexes: TMd3VertexList;
     VertexesInFrameCount: Cardinal): TCoordinateNode;
@@ -504,6 +518,33 @@ var
     end;
   end;
 
+  function MakeTexture(const ShaderName: String): TImageTextureNode;
+  var
+    TextureUrl: String;
+  begin
+    TextureUrl := Md3.Skin.Values[ShaderName];
+    { If .skin file was not found, or was empty, or ShaderName isn't found there... }
+    if TextureUrl = '' then
+      TextureUrl := ShaderName;
+    { Use first texture specified in .skin, as a fallback (Tremulous creatures use it) }
+    if (TextureUrl = '') and (Md3.Skin.Count <> 0) then
+      TextureUrl := Md3.Skin.ValueFromIndex[0];
+    { Use basename of MD3 for texture basename. }
+    if TextureUrl = '' then
+      TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
+
+    if TextureUrl = 'none' then
+    begin
+      { In this case, we explicitly don't want to use a texture. }
+      Result := nil;
+    end else
+    begin
+      Result := TImageTextureNode.Create('', BaseUrl);
+      TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
+      Result.SetUrl([TextureUrl]);
+    end;
+  end;
+
   function MakeShape(Surface: TMd3Surface): TShapeNode;
   var
     IFS: TIndexedFaceSetNode;
@@ -515,84 +556,168 @@ var
     Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
     Result.Material := TMaterialNode.Create('', BaseUrl);
-    Result.Texture := Texture;
+    Result.Texture := MakeTexture(Surface.ShaderName);
   end;
 
 var
   I: Integer;
 begin
-  Result := TX3DRootNode.Create(Md3.Name
-    { Although adding here FrameNumber is not a bad idea, but TNodeInterpolator
-      requires for now that sequence of models have the same node names. }
-    { + '_Frame' + IntToStr(FrameNumber) }, BaseUrl);
-
-  Result.HasForceVersion := true;
-  Result.ForceVersion := X3DVersion;
-
-  SceneBox := TBox3D.Empty;
-
-  if Md3.TextureURL <> '' then
-  begin
-    Texture := TImageTextureNode.Create('', BaseUrl);
-    Texture.SetUrl([Md3.TextureURL]);
-  end else
-    Texture := nil;
+  Result := TGroupNode.Create('', BaseUrl);
 
   for I := 0 to Md3.Surfaces.Count - 1 do
     Result.AddChildren(MakeShape(Md3.Surfaces[I]));
-
-  { MD3 files have no camera. I add camera here, just to force GravityUp
-    to be in +Z, since this is the convention used in all MD3 files that
-    I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
-    BaseUrl, SceneBox, 0, 2, false, true));
-
-  if Texture <> nil then
-  begin
-    Texture.FreeIfUnused;
-    Texture := nil;
-  end;
 end;
 
-function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
+{ Converting whole animation(s) to X3D --------------------------------------- }
+
+type
+  { MD3 animation information.
+    Encoded following MD3 animation.cfg conventions.
+    See e.g. https://github.com/edems96/MD3-Model---Animation-Viewer/blob/master/src/md3anim.h
+    for sample source code reading MD3 animations. }
+  TMd3Animation = class
+    Name: String;
+
+    { Time of the first frame.
+      Divide by Md3Fps to get time in seconds. }
+    FirstFrame: Cardinal;
+
+    { Duration of animation.
+      Divide by Md3Fps to get duration in seconds.
+
+      May be negative in animation.cfg (likely to indicate playing animation backwards,
+      not supported). We ignore it for now, i.e. we takes
+      Abs(NumFrames)/30 as just duration in seconds. }
+    NumFrames: Integer;
+
+    { We read these from animation.cfg, but don't support them now. }
+    LoopingFrames, Fps: Cardinal;
+  end;
+
+  { MD3 animations list. }
+  TMd3Animations = class({$ifdef FPC}specialize{$endif} TObjectList<TMd3Animation>)
+    { Read animation information from animation.cfg file. }
+    procedure ReadAnimationCfg(const AnimationCfgUrl: String);
+  end;
+
+procedure TMd3Animations.ReadAnimationCfg(const AnimationCfgUrl: String);
+var
+  Reader: TTextReader;
+  Line: String;
+  Anim: TMd3Animation;
+  Tokens: TCastleStringList;
+begin
+  Reader := TTextReader.Create(AnimationCfgUrl);
+  try
+    while not Reader.Eof do
+    begin
+      Line := Reader.ReadLn;
+      Tokens := CreateTokens(Line);
+      try
+        // skip lines that don't interest us
+        if Tokens.Count = 0 then
+          Continue; // empty line
+        if (Tokens[0] = '//') or // comment
+           (Tokens[0] = 'sex') or // various ignored information
+           (Tokens[0] = 'footsteps') or
+           (Tokens[0] = 'nonsegmented') then
+          Continue;
+        if Tokens.Count <> 5 then
+        begin
+          WritelnWarning('Unexpected line format in animation.cfg "%s", not 5 items', [Line]);
+          Continue;
+        end;
+
+        // line defines a animation
+        Anim := TMd3Animation.Create;
+        Anim.FirstFrame := StrToInt(Tokens[0]);
+        Anim.NumFrames := StrToInt(Tokens[1]);
+        Anim.LoopingFrames := StrToInt(Tokens[2]);
+        Anim.Fps := StrToInt(Tokens[3]);
+        Anim.Name := PrefixRemove('//', Tokens[4], true);
+        Add(Anim);
+      finally FreeAndNil(Tokens) end;
+    end;
+  finally FreeAndNil(Reader) end;
+end;
+
+function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+var
+  Switch: TSwitchNode;
+
+  { Add to Result an animation that drives Switch.WhichChoice,
+    changing frames from FirstFrame to FirstFrame + NumFrames - 1. }
+  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFrames: Cardinal);
+  var
+    TimeSensor: TTimeSensorNode;
+    IntSequencer: TIntegerSequencerNode;
+    I: Integer;
+  begin
+    TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
+    TimeSensor.CycleInterval := NumFrames / Md3Fps;
+    Result.AddChildren(TimeSensor);
+
+    IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
+    { Using ForceContinuousValue_Changed for the same reason why
+      castleinternalnodeinterpolator.pas .
+      See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_ext_forceContinuousValue_Changed .
+      As multiple IntegerSequencer may affect this Switch (once we add support
+      for other animations) this is important. }
+    IntSequencer.ForceContinuousValue_Changed := true;
+    IntSequencer.FdKey.Count := NumFrames;
+    IntSequencer.FdKeyValue.Count := NumFrames;
+    for I := 0 to NumFrames - 1 do
+    begin
+      IntSequencer.FdKey.Items[I] := I / NumFrames;
+      IntSequencer.FdKeyValue.Items[I] := FirstFrame + I;
+    end;
+    Result.AddChildren(IntSequencer);
+
+    Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
+    Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
+    Result.ExportNode(TimeSensor);
+  end;
+
 var
   Md3: TObject3DMD3;
   I: Integer;
-  Animation: TNodeInterpolator.TAnimation;
+  SceneBox: TBox3D;
+  Animations: TMd3Animations;
+  AnimationCfgUrl: String;
 begin
-  Result := TNodeInterpolator.TAnimationList.Create(true);
+  Md3 := TObject3DMD3.Create(Stream, BaseUrl);
   try
-    Animation := TNodeInterpolator.TAnimation.Create;
-    Result.Add(Animation);
+    Result := TX3DRootNode.Create(Md3.Name, BaseUrl);
+    Result.HasForceVersion := true;
+    Result.ForceVersion := X3DVersion;
 
-    Md3 := TObject3DMD3.Create(Stream, BaseUrl);
-    try
-      { handle each MD3 frame }
-      for I := 0 to Md3.FramesCount - 1 do
-      begin
-        Animation.KeyNodes.Add(LoadMD3Frame(Md3, I, BaseUrl));
-        Animation.KeyTimes.Add(I / 30);
-      end;
+    SceneBox := TBox3D.Empty;
 
-      Animation.Name := TNodeInterpolator.DefaultAnimationName;
-      Animation.ScenesPerTime := TNodeInterpolator.DefaultScenesPerTime;
-      { Default ScenesPerTime and times are set such that one MD3
-        frame will result in one frame inside TNodeInterpolator.
-        So don't try to merge these frames (on the assumption that
-        they are not merged in MD3... so hopefully there's no need for it ?). }
-      Animation.Epsilon := 0.0;
+    Switch := TSwitchNode.Create('', BaseUrl);
+    Switch.WhichChoice := 0; // show something non-empty on load
+    for I := 0 to Md3.FramesCount - 1 do
+      Switch.AddChildren(LoadMD3Frame(Md3, I, BaseUrl, SceneBox));
+    Result.AddChildren(Switch);
 
-      { Really, no sensible default for Loop/Backwards here...
-        I set Loop to @false, otherwise it's not clear for user when
-        animation ends. }
-      Animation.Loop := false;
-      Animation.Backwards := false;
-    finally FreeAndNil(Md3) end;
-  except
-    Result.FreeKeyNodesContents;
-    FreeAndNil(Result);
-    raise;
-  end;
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, Md3.FramesCount);
+
+    AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
+    if URIFileExists(AnimationCfgUrl) then
+    begin
+      Animations := TMd3Animations.Create;
+      try
+        Animations.ReadAnimationCfg(AnimationCfgUrl);
+        for I := 0 to Animations.Count - 1 do
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
+      finally FreeAndNil(Animations) end;
+    end;
+
+    { MD3 files have no camera. I add camera here, just to force GravityUp
+      to be in +Z, since this is the convention used in all MD3 files that
+      I saw (so I guess that Quake3 engine generally uses this convention). }
+    Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
+      BaseUrl, SceneBox, 0, 2, false, true));
+  finally FreeAndNil(Md3) end;
 end;
 
 end.
