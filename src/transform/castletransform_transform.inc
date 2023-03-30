@@ -3394,6 +3394,7 @@ var
   HasSavedDepthRange, HasSavedDepthFunc: Boolean;
   SavedDepthRange: TDepthRange;
   SavedDepthFunc: TDepthFunction;
+  ARenderOutside: Boolean;
 begin
   HasSavedDepthFunc := BlendingSort = bsYSort;
   if HasSavedDepthFunc then
@@ -3436,7 +3437,8 @@ begin
   begin
     { TODO: It is not fully dealt with here. }
     T := Translation;
-    if not RenderOutside and FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
+    ARenderOutside := RenderOutside;
+    if not ARenderOutside and FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       LocalRender(Params);
     end else
@@ -3464,7 +3466,7 @@ begin
       { Update NewXxx to apply the transformation defined by this TCastleTransform.
         LocalRender expects Frustum in local coordinates (without transformation),
         so we subtract transformation below. }
-      if RenderOutside then
+      if ARenderOutside then
       begin
         InternalOutsideTransformationMult(NewParamsTransformation);
         if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
