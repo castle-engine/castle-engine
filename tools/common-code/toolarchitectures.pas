@@ -328,7 +328,11 @@ end;
 function ExeExtensionOS(const OS: TOS): string;
 begin
   if OS in AllWindowsOSes then
-    Result :=  '.exe' else
+    Result :=  '.exe'
+  else
+  if OS = wasi then
+    Result :=  '.wasm'
+  else
     Result := '';
 end;
 
