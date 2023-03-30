@@ -671,8 +671,19 @@ end;
 function TCastleTiledMapData.TProperty.AsColor(
   const ADefaultValue: TCastleColor): TCastleColor;
 begin
-  {ToDO: convert color value}
-  Result := ADefaultValue;
+  { hex string: '#AARRGGBB' }
+  if Length(Value) = 9 then
+  begin
+    try
+      Result := Vector4(
+        StrHexToInt(Copy(Value, 4, 2)) / 255,
+        StrHexToInt(Copy(Value, 6, 2)) / 255,
+        StrHexToInt(Copy(Value, 8, 2)) / 255,
+        StrHexToInt(Copy(Value, 2, 2)) / 255);
+    except
+      Result := ADefaultValue;
+    end
+  end else Result := ADefaultValue;
 end;
 
 procedure TCastleTiledMapData.TProperty.SetFloat(const AValue: Single);
@@ -702,8 +713,11 @@ end;
 procedure TCastleTiledMapData.TProperty.SetColor(const AValue: TCastleColor);
 begin
   AType := ptColor;
-  //TODO:
-  //Value := AValue.ToString;
+  { hex string: '#AARRGGBB' }
+  Value := '#'+ IntToHex(RoundClamp255(AValue.W * 255), 2) +
+                IntToHex(RoundClamp255(AValue.X * 255), 2) +
+                IntToHex(RoundClamp255(AValue.Y * 255), 2) +
+                IntToHex(RoundClamp255(AValue.Z * 255), 2);
 end;
 
 { TPropertyList -------------------------------------------------------------- }
