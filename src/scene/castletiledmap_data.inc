@@ -25,13 +25,19 @@ type
 
   TTilesData = array of Cardinal;
 
+  TPropertyType = (ptString ,ptInteger, ptFloat, ptBoolean, ptColor, ptFile, ptObject);
+
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
   TCastleTiledMapData = class(TAssignableObject)
   public
+    const
+      PropertyTypeNames: array[TPropertyType] of string =('', 'int', 'float', 'bool',
+        'color', 'file', 'object');
     type
       TProperty = class(TAssignableObject)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
+        function PropertyTypeFromName(const AName: string): TPropertyType;
       public
         { The name of the property. }
         Name: string;
@@ -39,20 +45,27 @@ type
         Value: string;
         { The type of the property. Can be string (default), int, float, bool, color
           or file (since 0.16, with color and file added in 0.17). }
-        AType: string;
+        AType: TPropertyType;
         procedure Assign(Source: TPersistent);override;
 
         function AsFloat(const ADefaultValue: Single): Single;
         function AsInteger(const ADefaultValue: Integer): Integer;
-        function AsString():String;
+        function AsString(): String;
         function AsBoolean(const ADefaultValue: Boolean): Boolean;
         function AsColor(const ADefaultValue: TCastleColor): TCastleColor;
+
+        procedure SetFloat(const AValue: Single);
+        procedure SetInteger(const AValue: Integer);
+        procedure SetString(const AValue: String);
+        procedure SetBoolean(const AValue: Boolean);
+        procedure SetColor(const AValue: TCastleColor);
       end;
 
       { List of properties. }
       TPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TProperty>)
       private
-        function GetItems(const S: String): TProperty;
+        function GetItems(const AName: String): TProperty;
+        function GetOrCreateItems(const AName: String): TProperty;
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         procedure Assign(const APropertyList: TPropertyList);
@@ -63,9 +76,16 @@ type
         function BooleanValue(const AName: string; var AValue: Boolean): Boolean;
         function ColorValue(const AName: string; var AValue: TCastleColor): Boolean;
 
-        procedure AddOrSetProperty(const AName, ATypeStr, AValue: String);
+        procedure SetFloatValue(const AName: string; const AValue: Single);
+        procedure SetIntegerValue(const AName: string; const AValue: Integer);
+        procedure SetStringValue(const AName: string; const AValue: String);
+        procedure SetBooleanValue(const AName: string; const AValue: Boolean);
+        procedure SetColorValue(const AName: string; const AValue: TCastleColor);
 
-        property Items[const S: String]: TProperty read GetItems ;
+        procedure AddOrSetProperty(const AName: String; const AValue: String;
+          const APropType: TPropertyType = ptString);
+
+        property Items[const AName: String]: TProperty read GetItems;
       end;
 
       TEncodingType = (etNone, etBase64, etCSV);
@@ -596,7 +616,20 @@ procedure TCastleTiledMapData.TProperty.Load(const Element: TDOMElement; const B
 begin
   Name := Element.AttributeStringDef('name', '');
   Value := Element.AttributeStringDef('value', '');
-  AType := Element.AttributeStringDef('type', '');
+  AType := PropertyTypeFromName(Element.AttributeStringDef('type', ''));
+end;
+
+function TCastleTiledMapData.TProperty.PropertyTypeFromName(const AName: string
+  ): TPropertyType;
+var
+  APropType: TPropertyType;
+begin
+  Result := TPropertyType.ptString;
+  if AName = '' then Exit;
+  for APropType in TPropertyType do
+  begin
+    if PropertyTypeNames[APropType] = AName then Exit(APropType);
+  end;
 end;
 
 procedure TCastleTiledMapData.TProperty.Assign(Source: TPersistent
@@ -642,17 +675,61 @@ begin
   Result := ADefaultValue;
 end;
 
+procedure TCastleTiledMapData.TProperty.SetFloat(const AValue: Single);
+begin
+  AType := ptFloat;
+  Value := AValue.ToString;
+end;
+
+procedure TCastleTiledMapData.TProperty.SetInteger(const AValue: Integer);
+begin
+  AType := ptInteger;
+  Value := AValue.ToString;
+end;
+
+procedure TCastleTiledMapData.TProperty.SetString(const AValue: String);
+begin
+  AType := ptString;
+  Value := AValue;
+end;
+
+procedure TCastleTiledMapData.TProperty.SetBoolean(const AValue: Boolean);
+begin
+  AType := ptBoolean;
+  if AValue then Value := 'true' else Value := 'false';
+end;
+
+procedure TCastleTiledMapData.TProperty.SetColor(const AValue: TCastleColor);
+begin
+  AType := ptColor;
+  //TODO:
+  //Value := AValue.ToString;
+end;
+
 { TPropertyList -------------------------------------------------------------- }
 
-function TCastleTiledMapData.TPropertyList.GetItems(const S: String): TProperty;
+function TCastleTiledMapData.TPropertyList.GetItems(const AName: String
+  ): TProperty;
 var
   P: TProperty;
 begin
   for P in Self do
   begin
-    if P.Name = S then Exit(P);
+    if P.Name = AName then Exit(P);
   end;
   Result := nil;
+end;
+
+function TCastleTiledMapData.TPropertyList.GetOrCreateItems(const AName: String
+  ): TProperty;
+begin
+  Result := Items[AName];
+  if not Assigned(Result) Then
+  begin
+    Result := TProperty.Create;
+    Result.Name := AName;
+    Self.Add(Result);
+  end;
 end;
 
 procedure TCastleTiledMapData.TPropertyList.Load(const Element: TDOMElement; const BaseUrl: String);
@@ -738,19 +815,43 @@ begin
   if Assigned(P) then AValue := P.AsColor(AValue);
 end;
 
-procedure TCastleTiledMapData.TPropertyList.AddOrSetProperty(const AName,
-  ATypeStr, AValue: String);
+procedure TCastleTiledMapData.TPropertyList.SetFloatValue(const AName: string;
+  const AValue: Single);
+begin
+  GetOrCreateItems(AName).SetFloat(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.SetIntegerValue(
+  const AName: string; const AValue: Integer);
+begin
+  GetOrCreateItems(AName).SetInteger(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.SetStringValue(const AName: string;
+  const AValue: String);
+begin
+  GetOrCreateItems(AName).SetString(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.SetBooleanValue(
+  const AName: string; const AValue: Boolean);
+begin
+  GetOrCreateItems(AName).SetBoolean(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.SetColorValue(const AName: string;
+  const AValue: TCastleColor);
+begin
+  GetOrCreateItems(AName).SetColor(AValue);
+end;
+
+procedure TCastleTiledMapData.TPropertyList.AddOrSetProperty(
+  const AName: String; const AValue: String; const APropType: TPropertyType);
 var
   P: TProperty;
 begin
-  P := Items[AName];
-  if not Assigned(P) then
-  begin
-    P := TProperty.Create;
-    Add(P);
-  end;
-  P.Name := AName;
-  P.AType := ATypeStr;
+  P := GetOrCreateItems(AName);
+  P.AType := APropType;
   P.Value := AValue;
 end;
 
@@ -1319,11 +1420,8 @@ begin
 end;
 
 procedure TCastleTiledMapData.TLayer.SetYSortEnabled(const AValue: Boolean);
-var
-  s: string;
 begin
-  if AValue then s := 'true' else s := 'false';
-  Properties.AddOrSetProperty('ysort', 'bool', s);
+  Properties.SetBooleanValue('ysort', AValue);
 end;
 
 function TCastleTiledMapData.TLayer.Offset: TVector2;
