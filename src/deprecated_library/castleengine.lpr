@@ -221,6 +221,7 @@ begin
           ntExamine  : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavExamine  , 0, nil);
           ntTurntable: LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavTurntable, 0, nil);
           ntNone     : LibraryCallbackProc(ecgelibNavigationTypeChanged, ecgenavNone     , 0, nil);
+          // nt2D: TODO
           else WritelnWarning('Window', 'Current NavigationType cannot be expressed as enum for ecgelibNavigationTypeChanged');
         end;
       end;
@@ -445,6 +446,7 @@ begin
       ntExamine  : Result := 2;
       ntTurntable: Result := 3;
       ntNone     : Result := 4;
+      // nt2D: TODO
       else raise EInternalError.Create('CGE_GetNavigationType: Unrecognized Viewport.NavigationType');
     end;
   except
@@ -469,6 +471,7 @@ begin
       2: aNavType := ntExamine;
       3: aNavType := ntTurntable;
       4: aNavType := ntNone;
+      // TODO: aNavType := nt2D;
       else raise EInternalError.CreateFmt('CGE_SetNavigationType: Invalid navigation type %d', [NewType]);
     end;
     Viewport.NavigationType := aNavType;
