@@ -2,6 +2,10 @@
 
 Using MD3 models with some animations and tags. See https://castle-engine.io/creating_data_model_formats.php#section_md3 .
 
+![Screenshot from editor 1](screenshot_editor1.png)
+
+![Screenshot from editor 2](screenshot_editor2.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
