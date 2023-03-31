@@ -4100,7 +4100,7 @@ var
   T: TTransformation;
 begin
   T.Init;
-  T.Translate(Vector3(0, YSortOffset, 0));
+  T.Translate(CastleVectors.Vector3(0, YSortOffset, 0));
 
   AOutsideRoot := OutsideRoot;
   if Assigned(AOutsideRoot) then

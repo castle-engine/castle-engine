@@ -370,6 +370,8 @@ var
     end;
 
     procedure CreateMaps;
+    var
+      ATileYSortOffset: Single;//for delphi
 
       procedure CreateMap;
       var
@@ -379,11 +381,13 @@ var
         NewPos: TVector2Integer;
 
           function ComposeMapData: Boolean;
+          var
+            ATileData: TTileData; //for delphi
           begin
             ARect := TRectangle.Empty;
-            for TileData in TileDataList do
+            for ATileData in TileDataList do
             begin
-              ARect := ARect + Rectangle(TileData.Position, 1, 1);
+              ARect := ARect + Rectangle(ATileData.Position, 1, 1);
             end;
             Result := not ARect.IsEmpty;
             if not Result then Exit;
@@ -391,11 +395,11 @@ var
             SetLength(AData, ARect.Width * ARect.Height);
             if Length(AData) > 0 then
               FillChar(AData[0], Length(AData) * SizeOf(AData[0]), 0);
-            for TileData in TileDataList do
+            for ATileData in TileDataList do
             begin
-              NewPos := TileData.Position - ARect.LeftBottom;
+              NewPos := ATileData.Position - ARect.LeftBottom;
               NewPos.Y := ARect.Height -1 - NewPos.Y;
-              AData[NewPos.X + NewPos.Y * ARect.Width] := TileData.Data;
+              AData[NewPos.X + NewPos.Y * ARect.Width] := ATileData.Data;
             end;
 
           end;
@@ -436,7 +440,7 @@ var
         FreeAndNil(NewLayerList);
 
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
-        NewMap.YSortOffset := TileYSortOffset - ARect.Bottom * FMap.TileHeight;
+        NewMap.YSortOffset := ATileYSortOffset - ARect.Bottom * FMap.TileHeight;
         FSubMaps.Add(NewMap);
 
         {
@@ -445,11 +449,10 @@ var
           NewMap.Translation.Y, NewMap.Map.Width, NewMap.Map.Height]));
           }
       end;
-
     begin
-      for TileYSortOffset in TilesCompositing.Keys do
+      for ATileYSortOffset in TilesCompositing.Keys do
       begin
-        if TilesCompositing.TryGetValue(TileYSortOffset, TileDataList) then
+        if TilesCompositing.TryGetValue(ATileYSortOffset, TileDataList) then
           CreateMap;
       end;
     end;

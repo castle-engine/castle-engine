@@ -628,7 +628,7 @@ var
 begin
   Result := TPropertyType.ptString;
   if AName = '' then Exit;
-  for APropType in TPropertyType do
+  for APropType := Low(TPropertyType) to High(TPropertyType) do
   begin
     if PropertyTypeNames[APropType] = AName then Exit(APropType);
   end;
