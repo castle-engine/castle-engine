@@ -205,6 +205,10 @@ begin
         begin
           SkinKey := Trim(Copy(S, 1, CommaPos - 1));
           TextureUrl := Trim(SEnding(S, CommaPos + 1));
+          { Tremulous uses 'gfx/null' instead of just 'null',
+            see tremulous-data/data-1.1.0/models/players/human_base/upper_light.skin }
+          if TextureUrl = 'gfx/null' then
+            TextureUrl := 'null';
           if (TextureUrl <> '') and
              (TextureUrl <> 'null') then
             TextureUrl := FixTextureUrl(TextureUrl, TexturePath);
