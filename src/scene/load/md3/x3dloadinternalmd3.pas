@@ -30,11 +30,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   CastleInternalNodeInterpolator, CastleQuaternions;
 
-{ Load MD3 model, with skin (from Md3Skin) and animations. }
+{ Load MD3 model, with skin and animations. }
 function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
-
-var
-  Md3Skin: String = 'default';
 
 implementation
 
