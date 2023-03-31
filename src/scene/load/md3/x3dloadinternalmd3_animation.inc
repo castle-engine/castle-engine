@@ -50,28 +50,55 @@ type
 procedure TMd3Animations.ReadAnimationCfg(const AnimationCfgUrl: String);
 var
   Reader: TTextReader;
-  Line: String;
+  Line, LineComment, AnimationName: String;
   Anim: TMd3Animation;
   Tokens: TCastleStringList;
+  CommentPos: Integer;
 begin
   Reader := TTextReader.Create(AnimationCfgUrl);
   try
     while not Reader.Eof do
     begin
       Line := Reader.ReadLn;
+
+      { Calculate LineComment (after //), and trim Line (prefix before //).
+
+        Animation name is the first token after //
+        (sometimes separated by whitespace from //, sometimes not).
+        So we do not just reject the comment, we keep it for later.
+        We have to handle lines like this (examples from Tremulous):
+
+          130   6       0       15              // TORSO_ATTACK         (MUST NOT CHANGE -- hand animation is synced to this)
+          90    40      0       20              // TORSO_GESTURE
+          41    20    20    30  //NSPA_STAND
+      }
+      CommentPos := Pos('//', Line);
+      if CommentPos <> 0 then
+      begin
+        LineComment := SEnding(Line, CommentPos + 2);
+        Line := Copy(Line, 1, CommentPos - 1);
+      end else
+        LineComment := '';
+
       Tokens := CreateTokens(Line);
       try
         // skip lines that don't interest us
         if Tokens.Count = 0 then
           Continue; // empty line
-        if (Tokens[0] = '//') or // comment
-           (Tokens[0] = 'sex') or // various ignored information
+        if (Tokens[0] = 'sex') or // various ignored information
            (Tokens[0] = 'footsteps') or
            (Tokens[0] = 'nonsegmented') then
           Continue;
-        if Tokens.Count <> 5 then
+        if Tokens.Count <> 4 then
         begin
-          WritelnWarning('Unexpected line format in animation.cfg "%s", not 5 items', [Line]);
+          WritelnWarning('Unexpected line format in animation.cfg "%s", not 4 items before comment', [Line]);
+          Continue;
+        end;
+
+        AnimationName := NextTokenOnce(LineComment);
+        if AnimationName = '' then
+        begin
+          WritelnWarning('Empty animation name in animation.cfg');
           Continue;
         end;
 
@@ -81,7 +108,7 @@ begin
         Anim.NumFrames := StrToInt(Tokens[1]);
         Anim.LoopingFrames := StrToInt(Tokens[2]);
         Anim.Fps := StrToInt(Tokens[3]);
-        Anim.Name := PrefixRemove('//', Tokens[4], true);
+        Anim.Name := AnimationName;
         Add(Anim);
       finally FreeAndNil(Tokens) end;
     end;
