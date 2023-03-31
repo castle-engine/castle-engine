@@ -460,9 +460,9 @@ var
       if TagName <> Tag^.Name then
         WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", "%s"', [TagName, Tag^.Name]);
 
-      OriginInterpolator.FdKey.Items[I] := FrameIndex / NumFrames;
+      OriginInterpolator.FdKey.Items[I] := FrameIndex / NumFramesInAnimation;
       OriginInterpolator.FdKeyValue.Items[I] := Tag^.Origin;
-      OrientationInterpolator.FdKey.Items[I] := FrameIndex / NumFrames;
+      OrientationInterpolator.FdKey.Items[I] := FrameIndex / NumFramesInAnimation;
       OrientationInterpolator.FdKeyValue.Items[I] := QuatFromRotationMatrix(Tag^.Orientation).Data.Vector4;
     end;
   end;
