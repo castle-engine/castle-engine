@@ -1976,6 +1976,23 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   var
     MyGuid: TGUID;
   begin
+    { TODO: Implement and use CreateGUIDFromHash(String),
+      when build tool is called with --guid-from-name .
+
+      Then CreateGUIDFromHash does
+      - save/restore RandSeed
+      - sets RandSeed to something based on Project.QualifiedName
+      - use reliable and cross-platform GUID generation just using Random
+      - and in effect, for the same Project.QualifiedName, will always generate same GUID.
+
+      regenerate_auto_files_in_all_examples.sh could use this.
+      Or maybe it should be specified in CastleEngineManifest.xml?
+      Then regenerate_auto_files_in_all_examples.sh results will be stable between reruns.
+
+      (We don't want to do this by default, as people could copy examples to their own,
+      without changing name? Although if they copy the DPROJ, they will have duplicate GUID
+      anyway... Maybe we can do this by default without any damage?)
+    }
     CreateGUID(MyGuid);
     Result := GUIDToString(MyGuid);
   end;
