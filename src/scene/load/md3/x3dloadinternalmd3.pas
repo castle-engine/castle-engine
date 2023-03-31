@@ -28,7 +28,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
-  CastleInternalNodeInterpolator;
+  CastleInternalNodeInterpolator, CastleQuaternions;
 
 { Load MD3 model, with skin (from Md3Skin) and animations. }
 function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;

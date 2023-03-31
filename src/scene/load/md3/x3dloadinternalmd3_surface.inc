@@ -41,12 +41,12 @@ type
     ShaderName: String;
 
     { Frames within this surface.
-      This is always the same as the TObject3DMD3.FramesCount of enclosing
+      This is always the same as the TObject3DMD3.NumFrames of enclosing
       TObject3DMD3 instance (yes, this assumption is checked when loading
       MD3, as it must be @true for any valid MD3 file). }
-    FramesCount: Cardinal;
+    NumFrames: Cardinal;
 
-    { Vertexes array has VertexesInFrameCount * FramesCount items,
+    { Vertexes array has VertexesInFrameCount * NumFrames items,
       each set of VertexesInFrameCount is for a different animation frame.
       TextureCoords always has VertexesInFrameCount (texture is not
       animated). }
@@ -101,7 +101,7 @@ begin
       [GoodIdent]);
 
   Name := Surface.Name;
-  FramesCount := Surface.NumFrames;
+  NumFrames := Surface.NumFrames;
   VertexesInFrameCount := Surface.NumVerts;
 
   (* Tests:

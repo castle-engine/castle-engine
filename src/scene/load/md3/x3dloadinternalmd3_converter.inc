@@ -36,13 +36,17 @@ type
     class function FixTextureUrl(const TextureUrl, TexturePath: String): String; static;
 
     { Load a specific animation frame from a given MD3 model.
-      @param FrameNumber Frame number to load, must be < Md3.FramesCount.
+      @param FrameNumber Frame number to load, must be < Md3.NumFrames.
       @param SceneBox Will be increased by given frame bbox. }
     function FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBox3D): TGroupNode;
   public
     Name: String;
     Surfaces: TMd3SurfaceList;
-    FramesCount: Cardinal;
+    Tags: TMd3TagList;
+    NumFrames: Integer;
+
+    // Always 0 when NumFrames = 0
+    NumTags: Integer;
 
     { Skin information maps shader names -> texture URLs.
       Empty (but never @nil) if the skin file was not found. }
@@ -85,6 +89,7 @@ begin
   inherited Create;
 
   FBaseUrl := ABaseUrl;
+  Tags := TMd3TagList.Create;
 
   Skin := TStringList.Create;
   SkinUrl := DeleteURIExt(BaseUrl) + '_' + Md3Skin + '.skin';
@@ -97,6 +102,7 @@ destructor TMD3Converter.Destroy;
 begin
   FreeAndNil(Surfaces);
   FreeAndNil(Skin);
+  FreeAndNil(Tags);
   inherited;
 end;
 
@@ -194,12 +200,6 @@ type
     Radius: Single;
     Name: array [0..15] of AnsiChar;
   end;
-
-  TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
-    Origin: TVector3;
-    Axis: array [0..2] of TVector3;
-  end;
   *)
 
 var
@@ -223,8 +223,16 @@ begin
     raise EInvalidMD3.CreateFmt('Only supported version of MD3 file is "%d"',
       [GoodVersion]);
 
-  Name := Header.Name; // unused
-  FramesCount := Header.NumFrames;
+  Name := Header.Name;
+  NumFrames := Header.NumFrames;
+  NumTags := Header.NumTags;
+
+  { Due to the way MD3 is specified, there's no way to specify tags
+    when there are no animation frames.
+    Simplify code so that we can rely on it,
+    so that we know NumTags<>0 => NumFrames<>0. }
+  if NumFrames = 0 then
+    NumTags := 0;
 
   (* Unused for now
   if Header.NumFrames <> 0 then
@@ -235,16 +243,14 @@ begin
       Stream.ReadBuffer(Frame, SizeOf(Frame));
     end;
   end;
+  *)
 
-  if Header.NumTags <> 0 then
+  Tags.Count := NumFrames * NumTags;
+  if Tags.Count <> 0 then
   begin
     Stream.Position := Header.OffsetTags;
-    for I := 0 to Header.NumTags - 1 do
-    begin
-      Stream.ReadBuffer(Tag, SizeOf(Tag));
-    end;
+    Stream.ReadBuffer(Tags.List^, SizeOf(TMd3Tag) * Tags.Count);
   end;
-  *)
 
   Surfaces := TMd3SurfaceList.Create(true);
 
@@ -257,9 +263,9 @@ begin
       NewSurface.Read(Stream);
       Surfaces.Add(NewSurface);
 
-      if FramesCount <> NewSurface.FramesCount then
+      if NumFrames <> NewSurface.NumFrames then
         raise EInvalidMD3.CreateFmt('Surface frame count (%d) is different than ' +
-          'model''s frame count (%d)', [FramesCount, NewSurface.FramesCount]);
+          'model''s frame count (%d)', [NumFrames, NewSurface.NumFrames]);
     end;
   end;
 end;
@@ -381,17 +387,96 @@ end;
 function TMD3Converter.ToX3D: TX3DRootNode;
 var
   Switch: TSwitchNode;
+  TagTransforms: TX3DNodeList; // list of TTransformNode, once for each MD3 tag
+
+  { Create TTransformNode corresponding to tag.
+    Add it to Result, set TagTransforms[TagIndex]. }
+  procedure AddTag(const TagIndex: Cardinal);
+  var
+    Tag: PMd3Tag;
+    TagTransform: TTransformNode;
+    TagName: String;
+    {.$define CASTLE_MD3_VISUALIZE_TAG}
+    {$ifdef CASTLE_MD3_VISUALIZE_TAG}
+    Cone: TConeNode;
+    ConeShape: TShapeNode;
+    {$endif}
+  begin
+    // tags do not exist when NumFrames = 0, regardless of NumTags
+    Assert(NumFrames <> 0);
+    Assert(Tags.Count <> 0);
+
+    Tag := @Tags.List^[{NumTags * 0 + } TagIndex];
+    TagName := Tag^.Name;
+    TagTransform := TTransformNode.Create(TagName);
+    TagTransforms.Add(TagTransform);
+    Result.AddChildren(TagTransform);
+
+    {$ifdef CASTLE_MD3_VISUALIZE_TAG}
+    Cone := TConeNode.CreateWithShape(ConeShape);
+    TagTransform.AddChildren(ConeShape);
+    {$endif}
+  end;
+
+  procedure AddTagAnimation(const TagIndex: Cardinal;
+    const AnimationTimeSensor: TTimeSensorNode;
+    const FirstFrame, NumFramesInAnimation: Cardinal);
+  var
+    FrameIndex, I: Integer;
+    TagName: String;
+    Tag: PMd3Tag;
+    TagTransform: TTransformNode;
+    OriginInterpolator: TPositionInterpolatorNode;
+    OrientationInterpolator: TOrientationInterpolatorNode;
+  begin
+    // tags do not exist when NumFrames = 0, regardless of NumTags
+    Assert(NumFrames <> 0);
+    Assert(Tags.Count <> 0);
+
+    TagTransform := TagTransforms[TagIndex] as TTransformNode;
+    TagName := TagTransform.X3DName;
+
+    OriginInterpolator := TPositionInterpolatorNode.Create(
+      TagName + '_' + AnimationTimeSensor.X3DName + '_Origin');
+    OriginInterpolator.FdKey.Count := NumFramesInAnimation;
+    OriginInterpolator.FdKeyValue.Count := NumFramesInAnimation;
+    Result.AddChildren(OriginInterpolator);
+    Result.AddRoute(AnimationTimeSensor.EventFraction_changed, OriginInterpolator.EventSet_fraction);
+    Result.AddRoute(OriginInterpolator.EventValue_changed, TagTransform.FdTranslation);
+
+    OrientationInterpolator := TOrientationInterpolatorNode.Create(
+      TagName + '_' + AnimationTimeSensor.X3DName + '_Orientation');
+    OrientationInterpolator.KeyValueQuaternions := true;
+    OrientationInterpolator.FdKey.Count := NumFramesInAnimation;
+    OrientationInterpolator.FdKeyValue.Count := NumFramesInAnimation;
+    Result.AddChildren(OrientationInterpolator);
+    Result.AddRoute(AnimationTimeSensor.EventFraction_changed, OrientationInterpolator.EventSet_fraction);
+    Result.AddRoute(OrientationInterpolator.EventValue_changed, TagTransform.FdRotation);
+
+    for I := 0 to NumFramesInAnimation - 1 do
+    begin
+      FrameIndex := FirstFrame + I;
+      Tag := @Tags.List^[NumTags * FrameIndex + TagIndex];
+      if TagName <> Tag^.Name then
+        WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", "%s"', [TagName, Tag^.Name]);
+
+      OriginInterpolator.FdKey.Items[I] := FrameIndex / NumFrames;
+      OriginInterpolator.FdKeyValue.Items[I] := Tag^.Origin;
+      OrientationInterpolator.FdKey.Items[I] := FrameIndex / NumFrames;
+      OrientationInterpolator.FdKeyValue.Items[I] := QuatFromRotationMatrix(Tag^.Orientation).Data.Vector4;
+    end;
+  end;
 
   { Add to Result an animation that drives Switch.WhichChoice,
-    changing frames from FirstFrame to FirstFrame + NumFrames - 1. }
-  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFrames: Cardinal);
+    changing frames from FirstFrame to FirstFrame + NumFramesInAnimation - 1. }
+  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFramesInAnimation: Cardinal);
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
     I: Integer;
   begin
     TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
-    TimeSensor.CycleInterval := NumFrames / Md3Fps;
+    TimeSensor.CycleInterval := NumFramesInAnimation / Md3Fps;
     Result.AddChildren(TimeSensor);
 
     IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
@@ -401,11 +486,11 @@ var
       As multiple IntegerSequencer may affect this Switch (once we add support
       for other animations) this is important. }
     IntSequencer.ForceContinuousValue_Changed := true;
-    IntSequencer.FdKey.Count := NumFrames;
-    IntSequencer.FdKeyValue.Count := NumFrames;
-    for I := 0 to NumFrames - 1 do
+    IntSequencer.FdKey.Count := NumFramesInAnimation;
+    IntSequencer.FdKeyValue.Count := NumFramesInAnimation;
+    for I := 0 to NumFramesInAnimation - 1 do
     begin
-      IntSequencer.FdKey.Items[I] := I / NumFrames;
+      IntSequencer.FdKey.Items[I] := I / NumFramesInAnimation;
       IntSequencer.FdKeyValue.Items[I] := FirstFrame + I;
     end;
     Result.AddChildren(IntSequencer);
@@ -413,6 +498,9 @@ var
     Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
     Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
     Result.ExportNode(TimeSensor);
+
+    for I := 0 to NumTags - 1 do
+      AddTagAnimation(I, TimeSensor, FirstFrame, NumFramesInAnimation);
   end;
 
 var
@@ -429,22 +517,29 @@ begin
 
   Switch := TSwitchNode.Create('', BaseUrl);
   Switch.WhichChoice := 0; // show something non-empty on load
-  for I := 0 to FramesCount - 1 do
+  for I := 0 to NumFrames - 1 do
     Switch.AddChildren(FrameToX3D(I, SceneBox));
   Result.AddChildren(Switch);
 
-  AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, FramesCount);
+  TagTransforms := TX3DNodeList.Create(false);
+  try
+    for I := 0 to NumTags - 1 do
+      AddTag(I);
+    Assert(TagTransforms.Count = NumTags);
 
-  AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
-  if URIFileExists(AnimationCfgUrl) then
-  begin
-    Animations := TMd3Animations.Create;
-    try
-      Animations.ReadAnimationCfg(AnimationCfgUrl);
-      for I := 0 to Animations.Count - 1 do
-        AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
-    finally FreeAndNil(Animations) end;
-  end;
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames);
+
+    AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
+    if URIFileExists(AnimationCfgUrl) then
+    begin
+      Animations := TMd3Animations.Create;
+      try
+        Animations.ReadAnimationCfg(AnimationCfgUrl);
+        for I := 0 to Animations.Count - 1 do
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
+      finally FreeAndNil(Animations) end;
+    end;
+  finally FreeAndNil(TagTransforms) end;
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 files that

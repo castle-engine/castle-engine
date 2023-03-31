@@ -41,3 +41,11 @@ type
     ShaderIndex: UInt32;
   end;
   TMd3ShaderList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Shader>;
+
+  TMd3Tag = record
+    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
+    Origin: TVector3;
+    Orientation: TMatrix3;
+  end;
+  PMd3Tag = ^TMd3Tag;
+  TMd3TagList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Tag>;
