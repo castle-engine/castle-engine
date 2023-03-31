@@ -45,7 +45,17 @@ type
   TMd3Animations = class({$ifdef FPC}specialize{$endif} TObjectList<TMd3Animation>)
     { Read animation information from animation.cfg file. }
     procedure ReadAnimationCfg(const AnimationCfgUrl: String);
-    { Clear the list if the animations do not seem suitable for the model with NumFrames. }
+    { Delete from the list animations that are not suitable for the model with NumFrames.
+
+      This is necessary, as animation.cfg is sometimes placed adjacent to multiple MD3
+      files, and it matches some but not all animations there,
+      i.e. our current MD3 model may not even have enough frames to perform this animation.
+      By removing invalid animations, we let TMd3Converter to process all animations
+      without fear that it will cause buffer overflow when reading e.g. Tags array.
+
+      We don't remove all animations, as this would remove too much.
+      E.g. in Tremulous human player animations, this approach allows to at least
+      play attack, gesture etc. of upper.md3. }
     procedure ValidateFrames(const NumFrames: Cardinal);
   end;
 
@@ -121,18 +131,17 @@ procedure TMd3Animations.ValidateFrames(const NumFrames: Cardinal);
 var
   RequiredNumFrames, I: Integer;
 begin
-  for I := 0 to Count - 1 do
+  for I := Count - 1 downto 0 do
   begin
     RequiredNumFrames := Items[I].FirstFrame + Abs(Items[I].NumFrames);
     if RequiredNumFrames > NumFrames then
     begin
-      WritelnWarning('Animation "%s" defined in "animation.cfg" file would require more frames (%d) than this MD3 model has (%d). Ignoring the "animation.cfg" for this MD3 model, assuming this "animation.cfg" is for a different model in this directory.', [
+      WritelnWarning('Animation "%s" defined in "animation.cfg" file would require more frames (%d) than this MD3 model has (%d), ignoring this animation.', [
         Items[I].Name,
         RequiredNumFrames,
         NumFrames
       ]);
-      Clear;
-      Exit;
+      Delete(I);
     end;
   end;
 end;
