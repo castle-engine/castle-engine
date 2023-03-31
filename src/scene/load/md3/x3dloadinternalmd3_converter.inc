@@ -554,6 +554,7 @@ begin
       Animations := TMd3Animations.Create;
       try
         Animations.ReadAnimationCfg(AnimationCfgUrl);
+        Animations.ValidateFrames(NumFrames);
         for I := 0 to Animations.Count - 1 do
           AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
       finally FreeAndNil(Animations) end;
