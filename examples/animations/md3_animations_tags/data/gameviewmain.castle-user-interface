@@ -91,27 +91,23 @@
               "Y" : 2.3506367206573486E+000,
               "Z" : 7.7194600105285645E+000
             },
-            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3",
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3#skin:light",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleTransform",
                 "Name" : "BonesBase_tag_weapon",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 6.1950724571943283E-002,
-                  "X" : 1.5600970387458801E-001,
-                  "Y" : -8.3134487271308899E-002,
-                  "Z" : 9.8425096273422241E-001
-                },
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "Z" : 9.9999994039535522E-001
+                  "W" : 1.2059675529599190E-002,
+                  "X" : 3.9651206135749817E-001,
+                  "Y" : -4.6800814568996429E-002,
+                  "Z" : 9.1683578491210937E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 6.9758951663970947E-001,
-                  "Y" : -8.1027297973632812E+000,
-                  "Z" : 8.3107881546020508E+000
+                  "X" : 7.5823390483856201E-001,
+                  "Y" : -8.3564481735229492E+000,
+                  "Z" : 7.7975783348083496E+000
                 },
                 "$Children" : [
                   {
@@ -142,10 +138,10 @@
                 "Name" : "BonesBase_tag_head",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 5.3385257720947266E-001,
-                  "X" : 9.1846591234207153E-001,
-                  "Y" : 3.8881171494722366E-002,
-                  "Z" : -3.9358419179916382E-001
+                  "W" : 5.7906061410903931E-001,
+                  "X" : 9.1794496774673462E-001,
+                  "Y" : -1.0384187102317810E-002,
+                  "Z" : -3.9657205343246460E-001
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -153,9 +149,9 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -2.9496352672576904E+000,
-                  "Y" : -1.5854798257350922E-001,
-                  "Z" : 1.5735726356506348E+001
+                  "X" : -2.4543945789337158E+000,
+                  "Y" : -1.4444711804389954E-001,
+                  "Z" : 1.6044754028320312E+001
                 },
                 "$Children" : [
                   {
@@ -164,7 +160,8 @@
                     ],
                     "Name" : "SceneHumanBaseHead",
                     "RenderOptions" : {
-                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                      "Blending" : false
                     },
                     "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/head.md3"
                   }
@@ -179,9 +176,9 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 6.2937921541106334E-010,
-                  "Y" : 8.3184725774287926E-010,
-                  "Z" : 2.6066030045512889E-007
+                  "X" : 7.8249167145827414E-009,
+                  "Y" : 3.3126132947813858E-009,
+                  "Z" : 5.7337342695973348E-007
                 }
               }
             ]
@@ -216,23 +213,28 @@
               "Y" : 1.6491360664367676E+000,
               "Z" : 2.6966979503631592E+000
             },
-            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3",
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3#skin:light",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleTransform",
                 "Name" : "BonesBase2_tag_weapon",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 1.3465003967285156E+000,
-                  "X" : -7.3998910188674927E-001,
-                  "Y" : -4.7281274199485779E-001,
-                  "Z" : -4.7839757800102234E-001
+                  "W" : 1.8481427431106567E+000,
+                  "X" : -6.9469702243804932E-001,
+                  "Y" : -1.5462484955787659E-001,
+                  "Z" : -7.0248645544052124E-001
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.9999994039535522E-001,
+                  "Y" : 9.9999994039535522E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0875845909118652E+001,
-                  "Y" : -1.2818508148193359E+001,
-                  "Z" : 2.0517601013183594E+001
+                  "X" : 1.2032094001770020E+000,
+                  "Y" : -1.9044191360473633E+001,
+                  "Z" : 1.7020206451416016E+001
                 },
                 "$Children" : [
                   {
@@ -263,21 +265,20 @@
                 "Name" : "BonesBase2_tag_head",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 1.2151539325714111E-001,
-                  "X" : 1.8184760212898254E-001,
-                  "Y" : -9.5510452985763550E-001,
-                  "Z" : 2.3389525711536407E-001
+                  "W" : 2.6635712385177612E-001,
+                  "X" : 8.0798286944627762E-003,
+                  "Y" : -9.9020045995712280E-001,
+                  "Z" : 1.3942053914070129E-001
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 9.9999994039535522E-001,
-                  "Z" : 9.9999994039535522E-001
+                  "Y" : 9.9999994039535522E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -3.7000384330749512E+000,
-                  "Y" : 1.7273793220520020E+000,
-                  "Z" : 1.4942709922790527E+001
+                  "X" : -3.5980477333068848E+000,
+                  "Y" : 6.4596366882324219E-001,
+                  "Z" : 1.5293409347534180E+001
                 },
                 "$Children" : [
                   {
@@ -286,7 +287,8 @@
                     ],
                     "Name" : "SceneHumanBaseHead1",
                     "RenderOptions" : {
-                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                      "Blending" : false
                     },
                     "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/head.md3"
                   }
@@ -301,9 +303,9 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -1.0666159511174556E-008,
-                  "Y" : 3.7894500870550019E-009,
-                  "Z" : -5.1625613650685409E-007
+                  "X" : 2.6214721060568991E-008,
+                  "Y" : 6.1377840587795163E-009,
+                  "Z" : 3.6167321582070144E-007
                 }
               }
             ]
@@ -333,7 +335,6 @@
               "Y" : 1.0000000149011612E-001,
               "Z" : 1.0000000149011612E-001
             },
-            "TimePlayingSpeed" : 5.0000000000000000E-001,
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : 1.7774767875671387E+000,
@@ -346,20 +347,20 @@
                 "Name" : "BonesBattlesuit_tag_weapon",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 4.0794196128845215E+000,
-                  "X" : 9.7463673353195190E-001,
-                  "Y" : 2.2375470399856567E-001,
-                  "Z" : -4.1477289050817490E-003
+                  "W" : 4.0564603805541992E+000,
+                  "X" : 9.4699198007583618E-001,
+                  "Y" : 3.1590080261230469E-001,
+                  "Z" : -5.8421034365892410E-002
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000002384185791E+000
+                  "X" : 1.0000001192092896E+000
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -1.1931768655776978E+000,
-                  "Y" : -1.4777027130126953E+001,
-                  "Z" : 4.3566560745239258E+000
+                  "X" : 5.0120935440063477E+000,
+                  "Y" : -1.3564514160156250E+001,
+                  "Z" : 4.5369763374328613E+000
                 },
                 "$Children" : [
                   {
@@ -390,20 +391,21 @@
                 "Name" : "BonesBattlesuit_tag_head",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 2.0130543410778046E-001,
-                  "X" : 2.7785148471593857E-002,
-                  "Y" : -9.3370217084884644E-001,
-                  "Z" : -3.5697120428085327E-001
+                  "W" : 1.3101391494274139E-001,
+                  "X" : 1.1529479175806046E-002,
+                  "Y" : -8.3294278383255005E-001,
+                  "Z" : -5.5323928594589233E-001
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 9.9999994039535522E-001
+                  "X" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 6.9481663703918457E+000,
-                  "Y" : -5.0370562076568604E-001,
-                  "Z" : 1.7504877090454102E+001
+                  "X" : 8.2314004898071289E+000,
+                  "Y" : -4.4739943742752075E-001,
+                  "Z" : 1.6914501190185547E+001
                 }
               },
               {
@@ -415,9 +417,9 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 4.0395162770323623E-009,
-                  "Y" : -2.9484848340644021E-008,
-                  "Z" : 8.2388868349880795E-007
+                  "X" : 6.2700227232426187E-009,
+                  "Y" : 4.0323165251265891E-008,
+                  "Z" : 2.3137670268624788E-007
                 }
               }
             ]
@@ -465,10 +467,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 2.5763263702392578E+000,
-              "X" : -2.9040890932083130E-001,
-              "Y" : 6.7663484811782837E-001,
-              "Z" : 6.7663240432739258E-001
+              "W" : 3.7437953948974609E+000,
+              "X" : 3.1054437160491943E-001,
+              "Y" : 6.7214828729629517E-001,
+              "Z" : 6.7214614152908325E-001
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -478,9 +480,9 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.2432518005371094E+001,
-              "Y" : 2.5325765609741211E+000,
-              "Z" : 1.6186351776123047E+001
+              "X" : 1.9191232681274414E+001,
+              "Y" : 2.5324420928955078E+000,
+              "Z" : -1.3174358367919922E+001
             },
             "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/level3/nonseg.md3"
           },
@@ -521,16 +523,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.7656729221343994E-001,
-          "X" : -5.2668362855911255E-001,
-          "Y" : -8.3931428194046021E-001,
-          "Z" : -1.3474404811859131E-001
+          "W" : 8.0727165937423706E-001,
+          "X" : -1.5626767277717590E-001,
+          "Y" : -9.8535674810409546E-001,
+          "Z" : -6.8211637437343597E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -7.8829181194305420E-001,
-          "Y" : 9.5357084274291992E+000,
-          "Z" : 2.3460199356079102E+001
+          "X" : -4.1724214553833008E+000,
+          "Y" : 6.3856983184814453E+000,
+          "Z" : 1.5412659645080566E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

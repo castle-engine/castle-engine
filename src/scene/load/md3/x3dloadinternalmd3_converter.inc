@@ -24,6 +24,7 @@ type
   TMD3Converter = class
   strict private
     FBaseUrl: String;
+    SkinName: String;
 
     { Material nodes instantiated so far by FrameToX3D. }
     Materials: TMaterialsDictionary;
@@ -44,6 +45,9 @@ type
       @param FrameNumber Frame number to load, must be < Md3.NumFrames.
       @param SceneBox Will be increased by given frame bbox. }
     function FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBox3D): TGroupNode;
+
+    { Read settings (for now, only SkinName) from anchor inside BaseUrl. }
+    procedure SettingsFromAnchor;
   public
     Name: String;
     Surfaces: TMd3SurfaceList;
@@ -60,10 +64,15 @@ type
     { Reads MD3 from a stream, with given absolute base URL.
 
       We also read the associated skin file, if it exists.
-      We look for file called '<basename>_<Md3Skin>.skin',
-      where <basename> is the basename (no path, no extension) from BaseUrl,
-      and Md3Skin is a global variable in this unit.
-      So e.g. for 'head.md3' we read 'head_default.skin' by default.
+      We look for file called '<basename>_<SkinName>.skin',
+      where
+
+      - <basename> is the basename (no path, no extension, no anchor) from BaseUrl
+      - <SkinName> may be specified as anchor #skin=xxx at the end of BaseUrl,
+        by default 'default'.
+
+      So e.g. for 'head.md3' we read 'head_default.skin' by default,
+      for 'head.md3#skin:light' we read 'head_light.skin'.
 
       We strip the path from texture URLs found in the skin file,
       because the texture URLs are often given relative to main quake/tremulous/etc.
@@ -97,8 +106,13 @@ begin
   Tags := TMd3TagList.Create;
   Materials := TMaterialsDictionary.Create;
 
+  SkinName := 'default'; // default skin, SettingsFromAnchor may override it
+  SettingsFromAnchor;
+  // for all following operations, we don't want #anchor in URL anymore
+  FBaseUrl := URIDeleteAnchor(FBaseUrl, true);
+
   Skin := TStringList.Create;
-  SkinUrl := DeleteURIExt(BaseUrl) + '_' + Md3Skin + '.skin';
+  SkinUrl := DeleteURIExt(BaseUrl) + '_' + SkinName + '.skin';
   ReadSkinFile(SkinUrl);
 
   ReadMd3(Stream);
@@ -113,7 +127,31 @@ begin
   inherited;
 end;
 
-class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String; static;
+procedure TMD3Converter.SettingsFromAnchor;
+var
+  SettingsMap: TStringStringMap;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<String, String>{$endif};
+begin
+  SettingsMap := TStringStringMap.Create;
+  try
+    URIGetSettingsFromAnchor(BaseUrl, SettingsMap);
+    for Setting in SettingsMap do
+    begin
+      if LowerCase(Setting.Key) = 'skin' then
+      begin
+        SkinName := Setting.Value;
+      end else
+        WritelnWarning('MD3', 'Unknown setting (%s) in "%s" anchor.', [
+          Setting.Key,
+          URIDisplay(BaseUrl)
+        ]);
+    end;
+  finally
+    FreeAndNil(SettingsMap);
+  end;
+end;
+
+class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String;
 begin
   { Directory recorded in TextureUrl is useless for us,
     it's usually a relative directory inside quake/tremulous/etc.
@@ -167,6 +205,10 @@ begin
         begin
           SkinKey := Trim(Copy(S, 1, CommaPos - 1));
           TextureUrl := Trim(SEnding(S, CommaPos + 1));
+          { Tremulous uses 'gfx/null' instead of just 'null',
+            see tremulous-data/data-1.1.0/models/players/human_base/upper_light.skin }
+          if TextureUrl = 'gfx/null' then
+            TextureUrl := 'null';
           if (TextureUrl <> '') and
              (TextureUrl <> 'null') then
             TextureUrl := FixTextureUrl(TextureUrl, TexturePath);
@@ -341,6 +383,33 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     end;
   end;
 
+  { First value in TStringList key-value pairs, that is not ''.
+
+    Used to get first texture specified in .skin, as a fallback (Tremulous creatures use it).
+
+    Moreover, omit cases where texture is '' (Tremulous skins like
+    models/players/human_bsuit/upper_default.skin depend on it, as they start with tags:
+
+      tag_head,
+      tag_weapon,
+      u_torso,models/players/human_bsuit/human_bsuit.jpg
+      tag_torso,
+
+    ). }
+  function FirstNonEmptyValue(const StrList: TStringList): String;
+  var
+    I: Integer;
+  begin
+    for I := 0 to StrList.Count - 1 do
+    begin
+      Result := StrList.ValueFromIndex[I];
+      if Result <> '' then
+        Exit;
+    end;
+
+    Result := '';
+  end;
+
   function MakeMaterial(const ShaderName: String): TMaterialNode;
   var
     TextureUrl: String;
@@ -350,9 +419,9 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     { If .skin file was not found, or was empty, or ShaderName isn't found there... }
     if TextureUrl = '' then
       TextureUrl := ShaderName;
-    { Use first texture specified in .skin, as a fallback (Tremulous creatures use it) }
-    if (TextureUrl = '') and (Skin.Count <> 0) then
-      TextureUrl := Skin.ValueFromIndex[0];
+    { Use first non-empty texture specified in .skin, as a fallback. }
+    if TextureUrl = '' then
+      TextureUrl := FirstNonEmptyValue(Skin);
     { Use basename of MD3 for texture basename. }
     if TextureUrl = '' then
       TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
