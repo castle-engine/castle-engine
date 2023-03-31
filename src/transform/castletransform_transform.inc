@@ -2682,6 +2682,23 @@ function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTra
     end;
   end;
 
+  procedure ListAssign(const ASource, ATarget: TObjectList);
+  var
+    I: Integer;
+  begin
+    ATarget.Count := 0;
+    for I := 0 to ASource.Count - 1 do
+    begin
+      ATarget.Add(ASource[i]);
+    end;
+  end;
+
+  procedure CheckList(const AList: TObjectList);
+  begin
+    if AList.Capacity - AList.Count > 4 then
+      AList.Capacity := AList.Count;
+  end;
+
 begin
   if BlendingSort <> bsNone then
   begin
@@ -2693,9 +2710,11 @@ begin
       FSortedList.Clear;
     end else
     begin
-      FSortedList.Assign(List);
+      { Avoid calling `Clear` with FSortedList.Assign(List).The following `CheckList` will check the memory. }
+      ListAssign(List, FSortedList);
       if BlendingSort = bsYSort then
         GetRecursionChildRenderList(Self, FSortedList);
+      CheckList(FSortedList);
       FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
     end;
     Result := FSortedList;
