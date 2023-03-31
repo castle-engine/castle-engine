@@ -473,11 +473,15 @@ var
       FrameIndex := FirstFrame + I;
       Tag := @Tags.List^[NumTags * FrameIndex + TagIndex];
       if TagName <> Tag^.Name then
-        WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", "%s"', [TagName, Tag^.Name]);
+        WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", (frame %d) "%s"', [
+          TagName,
+          FrameIndex,
+          Tag^.Name
+        ]);
 
-      OriginInterpolator.FdKey.Items[I] := FrameIndex / NumFramesInAnimation;
+      OriginInterpolator.FdKey.Items[I] := I / NumFramesInAnimation;
       OriginInterpolator.FdKeyValue.Items[I] := Tag^.Origin;
-      OrientationInterpolator.FdKey.Items[I] := FrameIndex / NumFramesInAnimation;
+      OrientationInterpolator.FdKey.Items[I] := I / NumFramesInAnimation;
       OrientationInterpolator.FdKeyValue.Items[I] := QuatFromRotationMatrix(Tag^.Orientation).Data.Vector4;
     end;
   end;
