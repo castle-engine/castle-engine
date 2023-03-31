@@ -1,0 +1,575 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.1920181512832642E+000,
+              "X" : -2.7549156546592712E-001,
+              "Y" : 9.4538444280624390E-001,
+              "Z" : 1.7422014474868774E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 8.4411773681640625E+000,
+              "Y" : 6.4535861015319824E+000,
+              "Z" : 7.0560207366943359E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 3.0000000000000000E+000,
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.8772411346435547E+000,
+              "Y" : 7.2561860084533691E+000,
+              "Z" : 1.6227615356445312E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Name" : "Plane1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 5.0000000000000000E+001,
+              "Y" : 5.0000000000000000E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "TORSO_ATTACK",
+            "ExposeTransforms" : [
+              "tag_head",
+              "tag_weapon",
+              "tag_torso"
+            ],
+            "ExposeTransformsPrefix" : "BonesBase_",
+            "Name" : "SceneHumanBase",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : -1.5707963705062866E+000,
+              "X" : 1.0000000000000000E+000
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000149011612E-001,
+              "Y" : 1.0000000149011612E-001,
+              "Z" : 1.0000000149011612E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -7.4295505881309509E-002,
+              "Y" : 2.3506367206573486E+000,
+              "Z" : 7.7194600105285645E+000
+            },
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase_tag_weapon",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 6.1950724571943283E-002,
+                  "X" : 1.5600970387458801E-001,
+                  "Y" : -8.3134487271308899E-002,
+                  "Z" : 9.8425096273422241E-001
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Z" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.9758951663970947E-001,
+                  "Y" : -8.1027297973632812E+000,
+                  "Z" : 8.3107881546020508E+000
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneChaingun",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/chaingun/chaingun.md3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Exists" : false,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneBlaster",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/blaster/blaster.md3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase_tag_head",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 5.3385257720947266E-001,
+                  "X" : 9.1846591234207153E-001,
+                  "Y" : 3.8881171494722366E-002,
+                  "Z" : -3.9358419179916382E-001
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.9496352672576904E+000,
+                  "Y" : -1.5854798257350922E-001,
+                  "Z" : 1.5735726356506348E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneHumanBaseHead",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/head.md3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase_tag_torso",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.2937921541106334E-010,
+                  "Y" : 8.3184725774287926E-010,
+                  "Z" : 2.6066030045512889E-007
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "TORSO_GESTURE",
+            "ExposeTransforms" : [
+              "tag_head",
+              "tag_weapon",
+              "tag_torso"
+            ],
+            "ExposeTransformsPrefix" : "BonesBase2_",
+            "Name" : "SceneHumanBase2",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : -1.5707960128784180E+000,
+              "X" : 1.0000000000000000E+000
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000149011612E-001,
+              "Y" : 1.0000000149011612E-001,
+              "Z" : 1.0000000149011612E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.6491360664367676E+000,
+              "Z" : 2.6966979503631592E+000
+            },
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/upper.md3",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase2_tag_weapon",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.3465003967285156E+000,
+                  "X" : -7.3998910188674927E-001,
+                  "Y" : -4.7281274199485779E-001,
+                  "Z" : -4.7839757800102234E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0875845909118652E+001,
+                  "Y" : -1.2818508148193359E+001,
+                  "Z" : 2.0517601013183594E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Exists" : false,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneChaingun2",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/chaingun/chaingun.md3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneBlaster2",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/blaster/blaster.md3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase2_tag_head",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.2151539325714111E-001,
+                  "X" : 1.8184760212898254E-001,
+                  "Y" : -9.5510452985763550E-001,
+                  "Z" : 2.3389525711536407E-001
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.7000384330749512E+000,
+                  "Y" : 1.7273793220520020E+000,
+                  "Z" : 1.4942709922790527E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneHumanBaseHead1",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_base/head.md3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBase2_tag_torso",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0666159511174556E-008,
+                  "Y" : 3.7894500870550019E-009,
+                  "Z" : -5.1625613650685409E-007
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "TORSO_ATTACK",
+            "ExposeTransforms" : [
+              "tag_weapon",
+              "tag_head",
+              "tag_torso"
+            ],
+            "ExposeTransformsPrefix" : "BonesBattlesuit_",
+            "Name" : "SceneHumanBattlesuit",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.5526956319808960E+000,
+              "X" : -9.9999964237213135E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000149011612E-001,
+              "Y" : 1.0000000149011612E-001,
+              "Z" : 1.0000000149011612E-001
+            },
+            "TimePlayingSpeed" : 5.0000000000000000E-001,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.7774767875671387E+000,
+              "Z" : -2.1096279621124268E+000
+            },
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/human_bsuit/upper.md3",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBattlesuit_tag_weapon",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.0794196128845215E+000,
+                  "X" : 9.7463673353195190E-001,
+                  "Y" : 2.2375470399856567E-001,
+                  "Z" : -4.1477289050817490E-003
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000002384185791E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.1931768655776978E+000,
+                  "Y" : -1.4777027130126953E+001,
+                  "Z" : 4.3566560745239258E+000
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneChaingun1",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/chaingun/chaingun.md3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Exists" : false,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneBlaster1",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/tremulous-data/data-1.1.0/models/weapons/blaster/blaster.md3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBattlesuit_tag_head",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 2.0130543410778046E-001,
+                  "X" : 2.7785148471593857E-002,
+                  "Y" : -9.3370217084884644E-001,
+                  "Z" : -3.5697120428085327E-001
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 6.9481663703918457E+000,
+                  "Y" : -5.0370562076568604E-001,
+                  "Z" : 1.7504877090454102E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BonesBattlesuit_tag_torso",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.0395162770323623E-009,
+                  "Y" : -2.9484848340644021E-008,
+                  "Z" : 8.2388868349880795E-007
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "NSPA_CHARGE",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTyrant",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 3.1758282184600830E+000,
+              "X" : 1.7119089141488075E-002,
+              "Y" : 7.0700323581695557E-001,
+              "Z" : 7.0700299739837646E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000149011612E-001,
+              "Y" : 1.0000000149011612E-001,
+              "Z" : 1.0000000149011612E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.6670658111572266E+001,
+              "Y" : 3.2912199497222900E+000,
+              "Z" : 5.8931722640991211E+000
+            },
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/level4/nonseg.md3"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "NSPA_STAND",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragoon",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.5763263702392578E+000,
+              "X" : -2.9040890932083130E-001,
+              "Y" : 6.7663484811782837E-001,
+              "Z" : 6.7663240432739258E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000149011612E-001,
+              "Y" : 1.0000000149011612E-001,
+              "Z" : 1.0000000149011612E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2432518005371094E+001,
+              "Y" : 2.5325765609741211E+000,
+              "Z" : 1.6186351776123047E+001
+            },
+            "URL" : "castle-data:/tremulous-data/data-1.1.0/models/players/level3/nonseg.md3"
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Name" : "DirectionalLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.1553161144256592E+000,
+              "X" : -9.2864292860031128E-001,
+              "Y" : 3.1800636649131775E-001,
+              "Z" : -1.9103105366230011E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 7.4731378555297852E+000,
+              "Y" : 8.0837097167968750E+000,
+              "Z" : -2.9739975929260254E+000
+            }
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 5.7656729221343994E-001,
+          "X" : -5.2668362855911255E-001,
+          "Y" : -8.3931428194046021E-001,
+          "Z" : -1.3474404811859131E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -7.8829181194305420E-001,
+          "Y" : 9.5357084274291992E+000,
+          "Z" : 2.3460199356079102E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.7647059261798859E-001,
+        "Green" : 6.1176472902297974E-001,
+        "Red" : 9.8823529481887817E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}
