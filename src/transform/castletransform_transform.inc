@@ -2708,12 +2708,11 @@ var
   Tf: TCastleTransform;
 begin
   if not Assigned(FOutsideList) then
-  begin
     FOutsideList := TCastleTransformList.Create(False);
-    FOutsideList.Capacity := 10;
-  end;
 
-  FOutsideList.Clear;
+  { Without using `FOutsideList.clear`, the hierarchy is usually not very deep
+    and won't occupy too much memory. }
+  FOutsideList.Count := 0;
   if not RenderOutside then Exit;
 
   Tf := Self.Parent.Parent;
