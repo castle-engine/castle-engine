@@ -93,8 +93,8 @@ function CompareBackToFrontYSort(A, B: Pointer): Integer;
 var
   Ya, Yb: Single;
 begin
-  Ya := TCastleTransform(A).OutsideTranslation.Y + TCastleTransform(A).YSortOffset;
-  Yb := TCastleTransform(B).OutsideTranslation.Y + TCastleTransform(B).YSortOffset;
+  Ya := TCastleTransform(A).OutsideYSortTranslation.Y;
+  Yb := TCastleTransform(B).OutsideYSortTranslation.Y;
   Result := Sign(Yb - Ya);
 end;
 

@@ -1764,6 +1764,7 @@
     function WorldTranslation: TVector3;
 
     function OutsideTranslation: TVector3;
+    function OutsideYSortTranslation: TVector3;
 
     function OutsideRoot: TCastleTransform;
 
@@ -4091,6 +4092,21 @@ begin
     Result := TranslationFromMatrix(AOutsideRoot.WorldInverseTransform * WorldTransform)
   else
     Result := Translation;
+end;
+
+function TCastleTransform.OutsideYSortTranslation: TVector3;
+var
+  AOutsideRoot: TCastleTransform;
+  T: TTransformation;
+begin
+  T.Init;
+  T.Translate(Vector3(0, YSortOffset, 0));
+
+  AOutsideRoot := OutsideRoot;
+  if Assigned(AOutsideRoot) then
+    Result := TranslationFromMatrix(AOutsideRoot.WorldInverseTransform * WorldTransform * T.Transform)
+  else
+    Result := TranslationFromMatrix(Transform * T.Transform);
 end;
 
 function TCastleTransform.OutsideRoot: TCastleTransform;
