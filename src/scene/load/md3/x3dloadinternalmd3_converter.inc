@@ -113,7 +113,7 @@ begin
   inherited;
 end;
 
-class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String; static;
+class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String;
 begin
   { Directory recorded in TextureUrl is useless for us,
     it's usually a relative directory inside quake/tremulous/etc.
