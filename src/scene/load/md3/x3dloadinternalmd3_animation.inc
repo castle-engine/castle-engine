@@ -119,16 +119,16 @@ end;
 
 procedure TMd3Animations.ValidateFrames(const NumFrames: Cardinal);
 var
-  MaxFrame, I: Integer;
+  RequiredNumFrames, I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
-    MaxFrame := Items[I].FirstFrame + Abs(Items[I].NumFrames);
-    if MaxFrame >= NumFrames then
+    RequiredNumFrames := Items[I].FirstFrame + Abs(Items[I].NumFrames);
+    if RequiredNumFrames > NumFrames then
     begin
       WritelnWarning('Animation "%s" defined in "animation.cfg" file would require more frames (%d) than this MD3 model has (%d). Ignoring the "animation.cfg" for this MD3 model, assuming this "animation.cfg" is for a different model in this directory.', [
         Items[I].Name,
-        MaxFrame + 1,
+        RequiredNumFrames,
         NumFrames
       ]);
       Clear;
