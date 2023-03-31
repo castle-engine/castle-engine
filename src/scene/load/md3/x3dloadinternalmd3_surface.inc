@@ -139,10 +139,11 @@ begin
   begin
     Stream.Position := SurfaceStart + Surface.OffsetShaders;
     Stream.ReadBuffer(Shaders.List^, SizeOf(TMd3Shader) * Shaders.Count);
+
     { We only use 1st shader name.
       Interpretation of other shader names is unknown. }
-    if Shaders.Count > 0 then
-      ShaderName := Shaders[0].Name;
+    Assert(Shaders.Count <> 0);
+    ShaderName := Shaders[0].Name;
   end;
 
   TextureCoords.Count := VertexesInFrameCount;

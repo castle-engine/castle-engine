@@ -383,6 +383,33 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     end;
   end;
 
+  { First value in TStringList key-value pairs, that is not ''.
+
+    Used to get first texture specified in .skin, as a fallback (Tremulous creatures use it).
+
+    Moreover, omit cases where texture is '' (Tremulous skins like
+    models/players/human_bsuit/upper_default.skin depend on it, as they start with tags:
+
+      tag_head,
+      tag_weapon,
+      u_torso,models/players/human_bsuit/human_bsuit.jpg
+      tag_torso,
+
+    ). }
+  function FirstNonEmptyValue(const StrList: TStringList): String;
+  var
+    I: Integer;
+  begin
+    for I := 0 to StrList.Count - 1 do
+    begin
+      Result := StrList.ValueFromIndex[I];
+      if Result <> '' then
+        Exit;
+    end;
+
+    Result := '';
+  end;
+
   function MakeMaterial(const ShaderName: String): TMaterialNode;
   var
     TextureUrl: String;
@@ -392,9 +419,9 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     { If .skin file was not found, or was empty, or ShaderName isn't found there... }
     if TextureUrl = '' then
       TextureUrl := ShaderName;
-    { Use first texture specified in .skin, as a fallback (Tremulous creatures use it) }
-    if (TextureUrl = '') and (Skin.Count <> 0) then
-      TextureUrl := Skin.ValueFromIndex[0];
+    { Use first non-empty texture specified in .skin, as a fallback. }
+    if TextureUrl = '' then
+      TextureUrl := FirstNonEmptyValue(Skin);
     { Use basename of MD3 for texture basename. }
     if TextureUrl = '' then
       TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
